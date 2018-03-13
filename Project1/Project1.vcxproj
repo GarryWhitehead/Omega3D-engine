@@ -1,0 +1,175 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Systems\camera_system.cpp" />
+    <ClCompile Include="engine.cpp" />
+    <ClCompile Include="Systems\Input_system.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="Objector\MaterialParser.cpp" />
+    <ClCompile Include="Objector\objector.cpp" />
+    <ClCompile Include="Objector\ObjUtility.cpp" />
+    <ClCompile Include="utility\file_log.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_core.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_model.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_validation.cpp" />
+    <ClCompile Include="VulkanCore\Vulkan_terrain.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_scene.cpp" />
+    <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
+    <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Systems\camera_system.h" />
+    <ClInclude Include="engine.h" />
+    <ClInclude Include="Systems\input_system.h" />
+    <ClInclude Include="Objector\MaterialParser.h" />
+    <ClInclude Include="Objector\objector.h" />
+    <ClInclude Include="Objector\ObjUtility.h" />
+    <ClInclude Include="utility\file_log.h" />
+    <ClInclude Include="VulkanCore\vulkan_core.h" />
+    <ClInclude Include="VulkanCore\vulkan_model.h" />
+    <ClInclude Include="VulkanCore\vulkan_scene.h" />
+    <ClInclude Include="VulkanCore\vulkan_tools.h" />
+    <ClInclude Include="VulkanCore\vulkan_validation.h" />
+    <ClInclude Include="VulkanCore\vulkan_utility.h" />
+    <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>15.0</VCProjectVersion>
+    <ProjectGuid>{9BA80102-3AA1-417F-8026-49BFB44F190C}</ProjectGuid>
+    <RootNamespace>Project1</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v141</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IncludePath>C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+    </ClCompile>
+    <Link>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
