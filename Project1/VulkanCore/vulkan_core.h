@@ -10,12 +10,6 @@
 #include "VulkanCore/vulkan_validation.h"
 #include <vector>
 
-class Shader;
-class Texture;
-class DataBuffer;
-class CommandBuffers;
-class PipeLine;
-class Render;
 class ValidationLayers;
 
 struct QueueInfo
@@ -81,9 +75,8 @@ class VulkanCore
 {
 public:
 
-	VulkanCore();
+	VulkanCore(GLFWwindow *window);
 
-	GLFWwindow* InitWindow(const char *winTitle, int screenWidth, int screenHeight);
 	void InitVulkanCore();
 	void Release();
 	void CreateInstance();
@@ -102,9 +95,6 @@ public:
 protected:
 
 	GLFWwindow *m_window;
-	const char* m_windowTitle;
-	GLFWmonitor* m_monitor;
-	const GLFWvidmode* m_vmode;
 	int m_screenWidth, m_screenHeight;
 
 	VkInstance m_instance;
@@ -118,11 +108,5 @@ protected:
 	SurfaceInfo m_surface;
 
 	// pointers to critical vulkan components
-	PipeLine *pPipeLine;
-	DataBuffer *pDataBuffer;
-	Shader *pShader;
-	Texture *pTexture;
-	CommandBuffers *pCommBuffer;
-	Render *pRender;
 	ValidationLayers *pValidation;
 };

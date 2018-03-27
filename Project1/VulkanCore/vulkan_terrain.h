@@ -1,24 +1,26 @@
 #pragma once
-#include "VulkanCore/vulkan_utility.h"
+#include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/ModelInfo.h"
 #include <string>
 #include <vector>
 #include "glm.hpp"
 
-class VulkanScene;
+class VulkanEngine;
+class VulkanShadow;
 class CameraSystem;
 
-class VulkanTerrain : public VulkanUtility
+class VulkanTerrain : public VulkanModule
 {
 public:
 
 	// tesselation patch values
 	const uint32_t PATCH_SIZE = 64;		// 64 X 64 triangles
-	const uint32_t UV_SCALE = 1.0f;
+	const float UV_SCALE = 1.0f;
 	const float WX = 2.0f;
 	const float WY = 2.0f;
 
 	// tessellation shader factors
-	const float TESSELLATION_DISP_FACTOR = 32.0f;
+	const float TESSELLATION_DISP_FACTOR = 40.0f;
 	const float TESSELLATION_FACTOR = 0.75f;
 	const float TESSELLATION_EDGE_SIZE = 20.0f;
 
@@ -36,7 +38,6 @@ public:
 	struct SkyboxUbo
 	{
 		glm::mat4 projection;
-		glm::mat4 viewMatrix;
 		glm::mat4 modelMatrix;
 	};
 
@@ -72,18 +73,16 @@ public:
 			std::vector<TerrainUbo> uboData;
 		} data;
 
-		DescriptorInfo descrInfo;
-		PipeLlineInfo pipeline;
+		VulkanUtility::DescriptorInfo descrInfo;
+		VulkanUtility::PipeLlineInfo pipeline;
+		
 	};
 
 	struct SkyboxData	
 	{
 		struct BufferInfo
 		{
-			BufferData index;
-			BufferData vertex;
 			BufferData ubo;
-			uint32_t indexCount;
 		} buffer;
 
 		struct Data
@@ -91,28 +90,35 @@ public:
 			std::vector<SkyboxUbo> uboData;
 		} data;
 
-		DescriptorInfo descrInfo;
-		PipeLlineInfo pipeline;
+		VulkanUtility::DescriptorInfo descrInfo;
+		VulkanUtility::PipeLlineInfo pipeline;
 	};
 
 	VulkanTerrain();
-	VulkanTerrain(VulkanScene *vulkanScene);
+	VulkanTerrain(VulkanEngine *engine);
 	~VulkanTerrain();
 
-	void Init();
+	void Init(VulkanShadow *vulkanShadow);
 	void Update(CameraSystem *camera);
+	void Destroy() override;
+
 	void LoadTerrainTextures();
-	void PrepareTerrainDescriptorSets();
+	void PrepareTerrainDescriptorSets(VulkanShadow *vulkanShadow);
 	void PrepareSkyboxDescriptorSets();
 	void PreparePipeline();
-	void GenerateCmdBuffers();
+	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
 	void PrepareTerrainData();
 	float GetHeightmapPixel(uint32_t x, uint32_t y);
 	void PrepareUBOBuffer();
+	void MapVertexBufferToMemory();
+	void MapIndexBufferToMemory();
 
-	friend class VulkanScene;
+	friend class VulkanEngine;
+	friend class VulkanShadow;
 
 protected:
+
+	ModelInfo m_cubeModel;
 
 	struct HeightmapInfo
 	{
@@ -124,9 +130,8 @@ protected:
 	SkyboxData m_skyboxInfo;
 
 	ImageInfo m_images;
-	std::vector<VkCommandBuffer> m_cmdBuffer;
 	std::array<VkPipelineShaderStageCreateInfo, 4> m_shader;
 
-	VulkanScene *p_vulkanScene;
+	VulkanEngine *p_vkEngine;
 };
 

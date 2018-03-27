@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Systems/system.h"
 #include "glm.hpp"
 
 enum class MoveDirection
@@ -11,7 +11,7 @@ enum class MoveDirection
 	NO_MOVEMENT
 };
 
-class CameraSystem
+class CameraSystem : public System
 {
 
 public:
@@ -27,14 +27,22 @@ public:
 	const float MOUSE_SENSITIVITY = 0.1f;
 
 	CameraSystem();
-	CameraSystem(glm::vec3 cameraPos, float dt, glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f));
 	~CameraSystem();
 
-	void Update(float dt);
+	void Init(glm::vec3 cameraPos, glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f));
+	void Update() override;
+	void Destroy() override;
 	void SetMovementDirection(MoveDirection dir);
 	void SetPitchYaw(double xpos, double ypos);
 	void SetPerspective(float fov, float aspect, float zNear, float zFar);
+	void SetLightInformation(glm::vec3 pos, float fov);
 	void UpdateViewMatrix();
+
+	// helper functions
+	float GetZNear() const { return m_zNear; }
+	float GetZFar() const { return m_zFar; }
+	glm::vec3 GetLightPosition() { return m_lightInfo.pos; }
+	float GetLightFOV() const { return m_lightInfo.fov; }
 
 private:
 
@@ -50,5 +58,14 @@ private:
 	double m_currentY;
 	bool m_isMoving;
 
+	// locally stored values
+	float m_zNear;
+	float m_zFar;
+	
+	struct LightInfo
+	{
+		glm::vec3 pos;
+		float fov;
+	} m_lightInfo;
 };
 

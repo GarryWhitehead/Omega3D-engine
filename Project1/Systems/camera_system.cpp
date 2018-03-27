@@ -1,27 +1,32 @@
 #include "camera_system.h"
+#include "Engine/engine.h"
 #include <algorithm>
 #include <gtc/matrix_transform.hpp>
 #include <iostream>
 
-CameraSystem::CameraSystem()
-{
-}
-
-CameraSystem::CameraSystem(glm::vec3 cameraPos, float dt, glm::vec3 cameraFront) :
+CameraSystem::CameraSystem() :
 	m_currentDir(MoveDirection::NO_MOVEMENT),
-	m_cameraFront(cameraFront),
-	m_cameraUp(glm::vec3(0.0f, -1.0f, 0.0f)),
+	m_cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	m_cameraYaw(0.0f),
 	m_cameraPitch(0.0f),
 	m_currentX(0.0),
 	m_currentY(0.0),
-	m_isMoving(false)
+	m_isMoving(false),
+	m_zNear(0.0f),
+	m_zFar(0.0f)
 {
 
 }
 
 CameraSystem::~CameraSystem()
 {
+	Destroy();
+}
+
+void CameraSystem::Init(glm::vec3 cameraPos, glm::vec3 cameraFront)
+{
+	m_cameraPos = cameraPos;
+	m_cameraFront = cameraFront;
 }
 
 void CameraSystem::SetMovementDirection(MoveDirection dir)
@@ -57,7 +62,16 @@ void CameraSystem::SetPitchYaw(double xpos, double ypos)
 
 void CameraSystem::SetPerspective(float fov, float aspect, float zNear, float zFar)
 {
+	m_zNear = zNear;
+	m_zFar = zFar;
+
 	m_cameraInfo.projection = glm::perspective(fov, aspect, zNear, zFar);
+}
+
+void CameraSystem::SetLightInformation(glm::vec3 pos, float fov)
+{
+	m_lightInfo.pos = pos;
+	m_lightInfo.fov = fov;
 }
 
 void CameraSystem::UpdateViewMatrix()
@@ -65,7 +79,7 @@ void CameraSystem::UpdateViewMatrix()
 	m_cameraInfo.viewMatrix = glm::lookAt(m_cameraPos, m_cameraPos + m_cameraFront, m_cameraUp);
 }
 
-void CameraSystem::Update(float dt)
+void CameraSystem::Update()
 {
 	if (m_isMoving) {
 		//calculate the pitch and yaw vectors
@@ -78,16 +92,16 @@ void CameraSystem::Update(float dt)
 		if (m_currentDir != MoveDirection::NO_MOVEMENT) {
 
 			if (m_currentDir == MoveDirection::MOVE_FORWARD) {
-				m_cameraPos += m_cameraFront * CAMERA_VELOCITY * dt;
+				m_cameraPos += m_cameraFront * CAMERA_VELOCITY * Engine::DT;
 			}
 			if (m_currentDir == MoveDirection::MOVE_BACKWARD) {
-				m_cameraPos -= m_cameraFront *CAMERA_VELOCITY * dt;
+				m_cameraPos -= m_cameraFront *CAMERA_VELOCITY * Engine::DT;
 			}
 			if (m_currentDir == MoveDirection::MOVE_LEFT) {
-				m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * CAMERA_VELOCITY * dt;
+				m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * CAMERA_VELOCITY * Engine::DT;
 			}
 			if (m_currentDir == MoveDirection::MOVE_RIGHT) {
-				m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * CAMERA_VELOCITY * dt;
+				m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * CAMERA_VELOCITY * Engine::DT;
 			}
 			m_currentDir = MoveDirection::NO_MOVEMENT;
 		}
@@ -96,4 +110,9 @@ void CameraSystem::Update(float dt)
 
 		m_isMoving = false;
 	}
+}
+
+void CameraSystem::Destroy()
+{
+
 }

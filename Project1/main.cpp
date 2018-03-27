@@ -1,11 +1,12 @@
 #include "utility/file_log.h"
-#include "engine.h"
+#include "Engine/engine.h"
 #include "windows.h"
 #include "GLFW/glfw3.h"
 #include <memory>
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <vector>
 
 int main(int argc, char *argv[])
 {
@@ -13,12 +14,15 @@ int main(int argc, char *argv[])
 	const int frameLength = 1000 / fps;
 	
 	Engine engine("Omega3D v1.0");
-	FileLog filelog("test-log", (int)FileLogFlags::FILELOG_WRITE_DATE_INIT);
-
-	// Initialise engine - 1. Opens main window via GLFW and init
+	FileLog filelog("test-log", (int)FileLogFlags::FILELOG_CLOSE_AFTER_EACH_WRITE);
+	
+	// initiliases the window and vulkan main framework
 	engine.Init();
 
-	// variables for fixed-step loop
+	// the engine stores all the worlds which have there own designated systems but can share entities and data
+	engine.CreateWorld({ SystemId::CAMERA_SYSTEM_ID, SystemId::INPUT_SYSTEM_ID, SystemId::GRAPHICS_SYSTEM_ID  }, "main_world");
+	
+	// fixed-step game loop
 	float interpolation = 0;
 	int accumulator = 0;
 	long frameCount = 0, longestTime = 0, tickCount = 0, fpsElapsedTime = 0;

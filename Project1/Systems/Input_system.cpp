@@ -7,9 +7,16 @@ InputSystem::InputSystem()
 {
 }
 
-InputSystem::InputSystem(GLFWwindow *window, std::shared_ptr<CameraSystem> camera, uint32_t width, uint32_t height) : 
-	p_cameraSystem(camera)
+
+InputSystem::~InputSystem()
 {
+	Destroy();
+}
+
+void InputSystem::Init(GLFWwindow *window, CameraSystem *camera, uint32_t width, uint32_t height)
+{
+	p_cameraSystem = camera;
+	
 	// make glfw use our class for function calls
 	glfwSetWindowUserPointer(window, this);
 
@@ -24,13 +31,14 @@ InputSystem::InputSystem(GLFWwindow *window, std::shared_ptr<CameraSystem> camer
 	glfwSetCursorPosCallback(window, mouseCallback);
 }
 
-InputSystem::~InputSystem()
-{
-}
-
 void InputSystem::Update()
 {
 	glfwPollEvents();
+}
+
+void InputSystem::Destroy()
+{
+	p_cameraSystem = nullptr;
 }
 
 void InputSystem::KeyResponse(int key, int scan_code, int action, int mode)

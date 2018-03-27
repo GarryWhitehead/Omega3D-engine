@@ -1,6 +1,5 @@
 #include "VulkanCore/vulkan_core.h"
 #include "VulkanCore/vulkan_utility.h"
-#include "VulkanCore/vulkan_render.h"
 #include "VulkanCore/vulkan_validation.h"
 #include "VulkanCore/vulkan_tools.h"
 #include "utility/file_log.h"
@@ -9,10 +8,11 @@
 #include <math.h>
 #include <algorithm>
 
-VulkanCore::VulkanCore()
+VulkanCore::VulkanCore(GLFWwindow *window)
 {
-	pRender = new Render();
 	pValidation = new ValidationLayers();
+
+	m_window = window;
 }
 
 
@@ -21,33 +21,6 @@ void glfw_error_callback(int error, const char* description)
 	g_filelog->WriteLog("GLFW ERROR: code " + error);
 	g_filelog->WriteLog("\n Description: ");
 	g_filelog->WriteLog(description);
-}
-
-GLFWwindow* VulkanCore::InitWindow(const char *winTitle, int screenWidth, int screenHeight)
-{
-	m_screenWidth = screenWidth;
-	m_screenHeight = screenHeight;
-
-	//glfwSetErrorCallback(glfw_error_callback);
-	if (!glfwInit())
-	{
-		g_filelog->WriteLog("Critical error! Failed initialising GLFW. \n");
-		exit(EXIT_FAILURE);
-	}
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-	m_monitor = glfwGetPrimaryMonitor();
-	m_vmode = glfwGetVideoMode(m_monitor);
-
-	m_window = glfwCreateWindow(m_screenWidth, m_screenHeight, winTitle, nullptr, nullptr);
-	if (!m_window)
-	{
-		g_filelog->WriteLog("Critical error! Unable to open window!");
-		exit(EXIT_FAILURE);
-	}
-
-	return m_window;
 }
 
 void VulkanCore::InitVulkanCore()

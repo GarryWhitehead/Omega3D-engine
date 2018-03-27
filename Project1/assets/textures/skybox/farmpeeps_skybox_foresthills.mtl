@@ -1,0 +1,50 @@
+﻿#copyright 2012 farmpeeps.com
+#by dreamcutter
+#authorized use only in accordance to license.
+newmtl Material~0
+Kd 0.7 0.7 0.7 
+Ka 0 0 0 
+Ks 0 0 0 
+d 1
+
+newmtl skybox_foresthills_back
+Kd 0.588138 0.588138 0.588138 
+Ka 0.678336 0.678336 0.678336 
+Ks 0.607843 0.607843 0.607843 
+d 1
+map_Kd skybox_foresthills_back.jpg
+
+newmtl skybox_foresthills_bottom
+Kd 0.588138 0.588138 0.588138 
+Ka 0.678336 0.678336 0.678336 
+Ks 0.607843 0.607843 0.607843 
+d 1
+map_Kd skybox_foresthills_bottom.jpg
+
+newmtl skybox_foresthills_front
+Kd 0.580868 0.580868 0.580868 
+Ka 0.669952 0.669952 0.669952 
+Ks 0.60033 0.60033 0.60033 
+d 1
+map_Kd skybox_foresthills_front.jpg
+
+newmtl skybox_foresthills_top
+Kd 0.588138 0.588138 0.588138 
+Ka 0.678336 0.678336 0.678336 
+Ks 0.607843 0.607843 0.607843 
+d 1
+map_Kd skybox_foresthills_top.jpg
+
+newmtl skybox_foresthills_left
+Kd 0.588138 0.588138 0.588138 
+Ka 0.678336 0.678336 0.678336 
+Ks 0.607843 0.607843 0.607843 
+d 1
+map_Kd skybox_foresthills_left.jpg
+
+newmtl skybox_foresthills_right
+Kd 0.967581 0.967581 0.967581 
+Ka 1 1 1 
+Ks 1 1 1 
+d 1
+map_Kd skybox_foresthills_right.jpg

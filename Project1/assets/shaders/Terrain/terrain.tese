@@ -8,10 +8,10 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	mat4 projection;
 	mat4 modelMatrix;
 	mat4 viewMatrix;
+	vec2 dim;
 	float dispFactor;
 	float tessFactor;
 	float tessEdgeSize;
-	vec2 dim;
 } ubo;
 
 layout (quads, equal_spacing, cw) in;
@@ -23,6 +23,8 @@ layout (location = 1) in vec3 inNorm[];
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNorm;
+layout (location = 2) out vec3 outPos;
+layout (location = 3) out vec3 outViewPos;
 
 void main()
 {
@@ -33,12 +35,12 @@ void main()
 	
 	// interpolate normals
 	vec3 n1 = mix(inNorm[0], inNorm[1], gl_TessCoord.x);
-	vec3 n2 = mix(inNorm[2], inNorm[3], gl_TessCoord.x);
+	vec3 n2 = mix(inNorm[3], inNorm[2], gl_TessCoord.x);
 	outNorm = mix(n1, n2, gl_TessCoord.y);
 	
 	// interpolated positions from vertex
-	vec4 p1 = mix(gl_in[1].gl_Position, gl_in[0].gl_Position, gl_TessCoord.x);
-	vec4 p2 = mix(gl_in[2].gl_Position, gl_in[3].gl_Position, gl_TessCoord.x);
+	vec4 p1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
+	vec4 p2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(p1, p2, gl_TessCoord.y);
 	
 	// displace the y coord depending on height derived from map
@@ -46,5 +48,6 @@ void main()
 	
 	// get depth from heightmap
 	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * pos;
-	
+	outViewPos = (ubo.viewMatrix * vec4(pos.xyz, 1.0)).xyz;
+	outPos = pos.xyz;
 }

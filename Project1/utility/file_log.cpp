@@ -97,7 +97,7 @@ bool FileLog::WriteLog(std::string text)
 		m_file << "Text logged at: " << std::put_time(std::localtime(&in_time_t), "%d-%m-&y %X") << "\n";
 	}
 
-	m_file << text << "\n";
+	m_file << text;
 	
 	if (m_flags & (int)FileLogFlags::FILELOG_CLOSE_AFTER_EACH_WRITE) {
 

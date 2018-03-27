@@ -19,8 +19,22 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
+    <ClCompile Include="Engine\engine.cpp" />
+    <ClCompile Include="Engine\ModelResourceManager.cpp" />
+    <ClCompile Include="Engine\ObjectManager.cpp" />
+    <ClCompile Include="Engine\Object.cpp" />
+    <ClCompile Include="Engine\ObjectResourceManager.cpp" />
+    <ClCompile Include="Engine\World.cpp" />
+    <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
+    <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
+    <ClCompile Include="ComponentManagers\MeshComponentManager.cpp" />
+    <ClCompile Include="Systems\GraphicsSystem.cpp" />
+    <ClCompile Include="Systems\systems.cpp" />
+    <ClCompile Include="utility\serialisation.cpp" />
+    <ClCompile Include="VulkanCore\VulkanModule.cpp" />
+    <ClCompile Include="VulkanCore\ModelInfo.cpp" />
     <ClCompile Include="Systems\camera_system.cpp" />
-    <ClCompile Include="engine.cpp" />
     <ClCompile Include="Systems\Input_system.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Objector\MaterialParser.cpp" />
@@ -32,13 +46,26 @@
     <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
     <ClCompile Include="VulkanCore\vulkan_validation.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_terrain.cpp" />
-    <ClCompile Include="VulkanCore\vulkan_scene.cpp" />
+    <ClCompile Include="VulkanCore\VulkanEngine.cpp" />
     <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Engine\ModelResourceManager.h" />
+    <ClInclude Include="ComponentManagers\ComponentManager.h" />
+    <ClInclude Include="Engine\engine.h" />
+    <ClInclude Include="Engine\Object.h" />
+    <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
+    <ClInclude Include="Engine\ObjectManager.h" />
+    <ClInclude Include="Engine\ObjectResourceManager.h" />
+    <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
+    <ClInclude Include="Systems\GraphicsSystem.h" />
+    <ClInclude Include="Systems\system.h" />
+    <ClInclude Include="ComponentManagers\TransformComponentManager.h" />
+    <ClInclude Include="utility\serialisation.h" />
+    <ClInclude Include="VulkanCore\VulkanModule.h" />
+    <ClInclude Include="VulkanCore\ModelInfo.h" />
     <ClInclude Include="Systems\camera_system.h" />
-    <ClInclude Include="engine.h" />
     <ClInclude Include="Systems\input_system.h" />
     <ClInclude Include="Objector\MaterialParser.h" />
     <ClInclude Include="Objector\objector.h" />
@@ -46,11 +73,13 @@
     <ClInclude Include="utility\file_log.h" />
     <ClInclude Include="VulkanCore\vulkan_core.h" />
     <ClInclude Include="VulkanCore\vulkan_model.h" />
-    <ClInclude Include="VulkanCore\vulkan_scene.h" />
+    <ClInclude Include="VulkanCore\VulkanEngine.h" />
+    <ClInclude Include="VulkanCore\vulkan_terrain.h" />
     <ClInclude Include="VulkanCore\vulkan_tools.h" />
     <ClInclude Include="VulkanCore\vulkan_validation.h" />
     <ClInclude Include="VulkanCore\vulkan_utility.h" />
     <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
+    <ClInclude Include="Engine\World.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

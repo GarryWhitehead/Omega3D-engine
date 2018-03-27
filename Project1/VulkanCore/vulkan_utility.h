@@ -4,7 +4,7 @@
 #include "VulkanCore/vulkan_tools.h"
 #include "gli.hpp"
 
-class VulkanScene;
+class VulkanEngine;
 
 struct TextureInfo
 {
@@ -40,6 +40,7 @@ struct BufferData
 	VkBuffer buffer;
 	VkDeviceMemory memory;
 	uint32_t size;
+	uint32_t offset;
 };
 
 class VulkanUtility
@@ -71,8 +72,10 @@ public:
 	};
 
 	VulkanUtility();
-	VulkanUtility(VulkanScene *vulkanScene);
+	VulkanUtility(VulkanEngine *engine);
 	~VulkanUtility();
+
+	void InitVulkanUtility(VulkanEngine *engine);
 
 	// Buffer utilities
 	VkWriteDescriptorSet InitDescriptorSet(VkDescriptorSet set, uint32_t binding, VkDescriptorType type, VkDescriptorBufferInfo *info);
@@ -87,6 +90,9 @@ public:
 	template <typename T>
 	void MapBuffer(BufferData buffer, std::vector<T>& data);
 
+	template <typename T>
+	void MapBuffer(BufferData buffer, T bufferData);
+
 	// command buffer utilities
 	std::vector<VkFramebuffer> InitFrameBuffers(uint32_t width, uint32_t height, VkRenderPass renderPass, VkImageView imageView);
 	VkCommandPool InitCommandPool(uint32_t index);
@@ -97,7 +103,9 @@ public:
 	void DestroyCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer, VkCommandPool cmdPool);
 
 	// pipeline utilites
-	VkPipelineViewportStateCreateInfo InitViewPort(VkViewport& viewPort, VkRect2D& scissor, float width, float height);
+	VkPipelineViewportStateCreateInfo InitViewPortCreateInfo(VkViewport& viewPort, VkRect2D& scissor, float width, float height);
+	VkViewport InitViewPort(uint32_t width, uint32_t height, float minDepth, float maxDepth);
+	VkRect2D InitScissor(uint32_t width, uint32_t height, uint32_t x, uint32_t y);
 	VkPipelineRasterizationStateCreateInfo InitRasterzationState(VkPolygonMode polyMode, VkCullModeFlagBits cullMode, VkFrontFace frontFace);
 	VkPipelineMultisampleStateCreateInfo InitMultisampleState(VkSampleCountFlagBits flag);
 
@@ -110,6 +118,7 @@ public:
 	// texture
 	TextureInfo LoadTexture(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
 	TextureInfo LoadTextureArray(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
+	TextureInfo LoadCubeMap(std::string filename, VkFormat format, VkCommandPool cmdPool);
 	void ImageTransition(VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout,uint32_t mipLevels, uint32_t layers, VkCommandPool cmdPool);
 	void CreateTextureSampler(TextureInfo &texture, VkSamplerAddressMode addressMode, float maxAnisotropy, VkCompareOp compareOp, VkBorderColor borderColor);
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, VkImageTiling tiling, VkFormatFeatureFlags features);
@@ -120,7 +129,7 @@ public:
 
 protected:
 
-	VulkanScene *p_vulkanScene;
+	VulkanEngine *p_vkEngine;
 };
 
 template <typename T>
@@ -128,12 +137,25 @@ void VulkanUtility::MapBuffer(BufferData buffer, std::vector<T>& bufferData)
 {
 	assert(buffer.size != 0);
 	if (buffer.mappedData == nullptr) {
-		VK_CHECK_RESULT(vkMapMemory(p_vulkanScene->m_device.device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &buffer.mappedData));
+		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->m_device.device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &buffer.mappedData));
 		memcpy(buffer.mappedData, bufferData.data(), bufferData.size() * sizeof(T));
-		vkUnmapMemory(p_vulkanScene->m_device.device, buffer.memory);
+		vkUnmapMemory(p_vkEngine->m_device.device, buffer.memory);
 	}
 	else {
 		memcpy(buffer.mappedData, bufferData.data(), bufferData.size() * sizeof(T));
+	}
+}
+
+template <typename T>
+void VulkanUtility::MapBuffer(BufferData buffer, T bufferData)
+{
+	if (buffer.mappedData == nullptr) {
+		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->m_device.device, buffer.memory, 0, VK_WHOLE_SIZE, 0, &buffer.mappedData));
+		memcpy(buffer.mappedData, &bufferData, sizeof(T));
+		vkUnmapMemory(p_vkEngine->m_device.device, buffer.memory);
+	}
+	else {
+		memcpy(buffer.mappedData, &bufferData, sizeof(T));
 	}
 }
 

@@ -2,124 +2,72 @@
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm.hpp"
 
-#include "gtc/type_ptr.hpp"
-#include "VulkanCore/vulkan_utility.h"
+#include <gtc/matrix_transform.hpp>
+#include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/vulkan_tools.h"
-#include "Objector/objector.h"
-#include "Objector/MaterialParser.h"
+#include "VulkanCore/ModelInfo.h"
 #include <string>
 #include <vector>
 #include <array>
 #include <memory>
 
-struct TextureInfo;
-struct objMaterial;
 class CameraSystem;
-class VulkanScene;
+class VulkanEngine;
+class VulkanShadow;
+struct ModelInfo;
+class ModelResourceManager;
 
-class VulkanModel : public VulkanUtility
+class VulkanModel : public VulkanModule
 {
 public:
-
-	struct Vertex
-	{
-		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
-		std::array<VkVertexInputAttributeDescription, 4> Vertex::GetAttrBindingDescription();
-
-		glm::vec3 pos;
-		glm::vec2 uv;
-		glm::vec3 normal;
-		glm::vec3 colour;
-	};
 
 	struct UboLayout
 	{
 		glm::mat4 projection;
 		glm::mat4 viewMatrix;
 		glm::mat4 modelMatrix;
+		glm::mat4 lightSpace;
 		glm::vec4 lightPos;
 	};
 
-	struct MaterialProperties
-	{
-		glm::vec4 diffuse;
-		glm::vec4 specular;
-		glm::vec4 ambient;
-		float opacity;
-	};
-
-	struct Material
-	{
-		std::string name;
-		int id;
-		MaterialProperties properties;
-		TextureInfo diffuse;
-		TextureInfo specular;
-
-		// each material has its own descriptort set and pipeline
-		VkDescriptorSet descrSet;
-		VkPipeline pipeline;
-	};
-
-	struct MeshData
-	{
-		int32_t indexBase;
-		uint32_t indexCount;
-
-		Material *material;
-	};
-
-	struct DescriptorInfo 
-	{
-		VkDescriptorSetLayout layout;
-	};
-
 	VulkanModel();
-	VulkanModel(VulkanScene *vulkanScene);
+	VulkanModel(VulkanEngine *engine);
 	~VulkanModel();
 
-	void InitVulkanModel();
-	void Update(CameraSystem *camera);
-	void LoadScene(std::string filename);
-	void LoadMeshes();
-	void LoadMaterials();
-	TextureInfo LoadMaterialTexture(objMaterial& material, objTextureType type);
-	void PrepareModelDescriptorSets();
+	void Update(CameraSystem *camera, VulkanShadow *vulkanShadow);
+	void Destroy() override;
+
+	void PrepareMeshDescriptorSet();
+	void PrespareMaterialDescriptorPool(uint32_t materialCount);
+	void PrepareMaterialDescriptorSet(ModelInfo *model);
 	void PrepareModelPipelineWithMaterial();
 	void PrepareModelPipelineWithoutMaterial();
-	void GenerateModelCmdBuffer();
+	void GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
 	void PrepareUBOBuffer();
-	void MapVertexBufferToMemory();
-	void MapIndexBufferToMemory();
+	void CreateVertexBuffer(uint32_t bufferSize);
+	void CreateIndexBuffer(uint32_t bufferSize);
+	void MapDataToBuffers(ModelInfo *model, uint32_t vertexOffset, uint32_t indexOffset);
 
-	friend class VulkanScene;
+	friend class VulkanEngine;
+	friend class VulkanShadow;
+	friend class ModelResourceManager;
 
 private:
 
-	VulkanScene *p_vulkanScene;
-	Objector objector;
+	VulkanEngine *p_vkEngine;
+	ModelResourceManager *p_modelManager;
 
-	std::vector<MeshData> m_meshData;
-	std::vector<Material> m_materialData;
+	BufferData m_vertexBuffer;
+	BufferData m_indexBuffer;
 
-	std::vector<Vertex> m_vertices;
-	std::vector<uint32_t> m_indices;
+	VulkanUtility::DescriptorInfo m_meshDescrInfo;
+	VulkanUtility::DescriptorInfo m_materialDescrInfo;
 
-	Objector::ModelInfo *m_model;
-
-	VkDescriptorPool m_descrPool;
-	VkDescriptorSet m_sceneDescrSet;
-	DescriptorInfo m_sceneDescr;
-	DescriptorInfo m_materialDescr;
-
-	std::vector<VkCommandBuffer> m_cmdBuffer;
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 	
-	PipeLlineInfo m_matPipeline;
-	PipeLlineInfo m_noMatPipeline;
+	VulkanUtility::PipeLlineInfo m_matPipeline;
+	VulkanUtility::PipeLlineInfo m_noMatPipeline;
 
-	BufferData m_indexBuffer;
-	BufferData m_vertexBuffer;
 	BufferData m_uboBuffer;
 
 	bool vk_prepared;

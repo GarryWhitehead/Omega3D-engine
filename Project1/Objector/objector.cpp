@@ -33,6 +33,9 @@ Objector::ModelInfo* Objector::ImportObjFile(std::string filename)
 	m_nextIndex = 0;
 
 	std::string fileDir = filename.substr(0, filename.find_last_of('/') + 1);
+	
+	// save old position in the case of a vertives (v) designator is found
+	int oldPos = file.tellg();
 
 	std::string str;
 	while (getline(file, str)) {
@@ -67,18 +70,23 @@ Objector::ModelInfo* Objector::ImportObjFile(std::string filename)
 				this->ProcessGroup(mesh, file);
 				m_modelData->meshData.push_back(mesh);
 			}
-			//else {
+			else if (type == "v") {
 
-				// not all .obj files are designated by groups, so check whether there is an appropiate form and begin 
-				// processing data if so
-				//if (objUtility.CheckStringForForm(str)) {
-					
-				//	std::cout << "No group identifier. Processing data anyway....\n";
-				//	objMesh mesh;
-				//	this->ProcessGroup(mesh, file);
-				//	m_modelData.meshData.push_back(mesh);
-				//}
-			//}
+				// step back to the file position before this so we don't miss this data
+				file.seekg(oldPos);
+
+				// some .obj files have the group data towards the end of the file, so for now, load the vertex data into the temp buffers		
+				std::cout << "No group identifier. Processing data anyway....\n";
+				objMesh mesh;						// dummy mesh: as no group has been identified, only process the vertices,etc. into temp buffers
+				this->ProcessGroup(mesh, file);
+
+				// in some cases, the.obj file contains no group info whatsoever, so face data has been processed, assume this is the case
+				if (!mesh.faceData.empty()) {
+
+					mesh.meshName = "No group identifier!";
+					m_modelData->meshData.push_back(mesh);
+				}
+			}
 		}
 	}
 
@@ -91,14 +99,13 @@ Objector::ModelInfo* Objector::ImportObjFile(std::string filename)
 void Objector::ProcessGroup(objMesh& mesh, std::fstream& file)
 {
 	std::string str;
-	
-	while (!file.eof()) {
+	int oldPos;
 
-		int oldPos = file.tellg();
+	while (!file.eof()) {
 
 		// now sort all the vert, norm and indicies into their relevant containers
 		while (getline(file, str)) {
-
+ 
 			if (!objUtility.RemoveCommentsFromStr(str)) {
 
 				std::stringstream ss(str);
@@ -107,6 +114,7 @@ void Objector::ProcessGroup(objMesh& mesh, std::fstream& file)
 
 				// if we have found another object or group, return
 				if (type == "o" || type == "g") {
+	
 					file.seekg(oldPos);
 					return;
 				}
@@ -175,6 +183,7 @@ void Objector::ProcessGroup(objMesh& mesh, std::fstream& file)
 					mesh.faceData.push_back(face);
 				}
 			}
+			oldPos = file.tellg();
 		}
 	}
 }

@@ -1,38 +1,82 @@
 #pragma once
-#include "vulkan_utility.h"
+#include "VulkanCore/VulkanModule.h"
 #include <array>
 
-class VulkanScene;
+class VulkanEngine;
+class CameraSystem;
 
-class VulkanShadow : public VulkanUtility
+class VulkanShadow : public VulkanModule
 {
 
 public:
-
-	const uint32_t SHADOWMAP_WIDTH = 400;
-	const uint32_t SHADOWMAP_HEIGHT = 400;
-	const int CSM_COUNT = 4;
-
 	
+	const uint32_t SHADOWMAP_WIDTH = 4096;
+	const uint32_t SHADOWMAP_HEIGHT = 4096;
+
+	// projections values for offscreen buffer - from perspective of light
+	const float zNear = 1.0f;
+	const float zFar = 96.0f;
+
+	// values used by vkCmdDepthBias to reduce mapping artefacts - dynamically set at draw time
+	float biasConstant = 1.25f;
+	float biasSlope = 1.75f;
+
+	struct Vertex
+	{
+		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
+		std::array<VkVertexInputAttributeDescription, 1> Vertex::GetAttrBindingDescription();
+		
+		glm::vec3 pos;
+		glm::vec2 uv;
+	};
+
+	struct OffscreenUbo
+	{
+		glm::mat4 projection;
+		glm::mat4 viewMatrix;
+		glm::mat4 modelMatrix;
+	};
 
 	VulkanShadow();
-	VulkanShadow(VulkanScene* vulkanScene);
+	VulkanShadow(VulkanEngine* engine);
 	~VulkanShadow();
 
-	void PrepareDepthImage();
-	void GenerateCascadeCmdBuffer();
+	void Init();
+	void Update(CameraSystem *camera);
+	void Destroy() override;
+
+	void PrepareDepthBuffer();
+	void PrepareOffscreenDescriptors();
+	void PrepareOffscreenRenderpass();
+	void PrepareOffscreenPipeline();
+	void GenerateOffscreenCmdBuffer();
+	void PrepareUBOBuffer();
+
+	friend class VulkanEngine;
+	friend class VulkanTerrain;
+	friend class VulkanModel;
 
 private:
 
-	struct CascadeInfo
+	struct OffscreenInfo
 	{
-		std::array<VkImageView, 4> imageView;
-		std::array<VkFramebuffer, 4> frameBuffer;
+		VkFramebuffer frameBuffer;
 		VkCommandBuffer cmdBuffer;
-	} m_cascadeInfo;
+		VkRenderPass renderpass;
+		VkSemaphore semaphore;
 
-	TextureInfo m_depthInfo;
+		VulkanUtility::DescriptorInfo descriptors;
+		VulkanUtility::PipeLlineInfo pipelineInfo;
 
-	VulkanScene *p_vulkanScene;
+		BufferData uboBuffer;
+		OffscreenUbo uboData;
+
+		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+
+	} m_offscreenInfo;
+
+	TextureInfo m_depthImage;
+
+	VulkanEngine *p_vkEngine;
 };
 

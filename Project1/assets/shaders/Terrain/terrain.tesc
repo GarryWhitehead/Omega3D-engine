@@ -8,13 +8,13 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	mat4 projection;
 	mat4 modelMatrix;
 	mat4 viewMatrix;
+	vec2 dim;
 	float disFactor;
 	float tessFactor;
-	float tessEdgeSize;
-	vec2 dim;
+	float tessEdgeSize;	
 } ubo;
 
-layout (set = 0, binding = 1) uniform sampler2D heightSampler;
+layout (set = 1, binding = 1) uniform sampler2D heightSampler;
 
 layout (vertices = 4) out;
 
@@ -39,7 +39,7 @@ float ConvertToTessFactor(vec4 vert0, vec4 vert1)
 	vec4 view = ubo.viewMatrix * ubo.modelMatrix * mid;
 	
 	vec4 c0 = (ubo.projection * (view - vec4(dist, vec3(0.0))));
-	vec4 c1 = (ubo.projection * (view - vec4(dist, vec3(0.0))));
+	vec4 c1 = (ubo.projection * (view + vec4(dist, vec3(0.0))));
 	
 	c0 /= c0.w;
 	c1 /= c1.w;
@@ -80,16 +80,16 @@ void main()
 {
 	if(gl_InvocationID == 0) {
 		
-		if(!FustrumCheck()) {
+		//if(!FustrumCheck()) {
 		
-			gl_TessLevelInner[0] = 0;
-			gl_TessLevelInner[1] = 0;
-			gl_TessLevelOuter[0] = 0;
-			gl_TessLevelOuter[1] = 0;
-			gl_TessLevelOuter[2] = 0;
-			gl_TessLevelOuter[3] = 0;
-		}
-		else {
+		//	gl_TessLevelInner[0] = 0;
+		//	gl_TessLevelInner[1] = 0;
+		//	gl_TessLevelOuter[0] = 0;
+		//	gl_TessLevelOuter[1] = 0;
+		//	gl_TessLevelOuter[2] = 0;
+		//	gl_TessLevelOuter[3] = 0;
+		//}
+		//else {
 		
 			if(ubo.tessFactor > 0.0) {
 		
@@ -109,7 +109,7 @@ void main()
 				gl_TessLevelOuter[2] = 1.0;
 				gl_TessLevelOuter[3] = 1.0;
 			}
-		}
+		//}
 	}
 	
 	gl_out[gl_InvocationID].gl_Position = gl_in[gl_InvocationID].gl_Position;
