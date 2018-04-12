@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VulkanDeferred.h"
 #include <array>
 
 class VulkanEngine;
@@ -10,8 +11,7 @@ class VulkanShadow : public VulkanModule
 
 public:
 	
-	const uint32_t SHADOWMAP_WIDTH = 4096;
-	const uint32_t SHADOWMAP_HEIGHT = 4096;
+	const uint32_t SHADOWMAP_SIZE = 2048;
 
 	// projections values for offscreen buffer - from perspective of light
 	const float zNear = 1.0f;
@@ -21,47 +21,36 @@ public:
 	float biasConstant = 1.25f;
 	float biasSlope = 1.75f;
 
-	struct Vertex
+	struct ShadowUbo
 	{
-		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
-		std::array<VkVertexInputAttributeDescription, 1> Vertex::GetAttrBindingDescription();
-		
-		glm::vec3 pos;
-		glm::vec2 uv;
+		glm::mat4 mvp[LIGHT_COUNT];
+		glm::vec4 lightOffsets[LIGHT_COUNT];
 	};
 
-	struct OffscreenUbo
-	{
-		glm::mat4 projection;
-		glm::mat4 viewMatrix;
-		glm::mat4 modelMatrix;
-	};
-
-	VulkanShadow();
-	VulkanShadow(VulkanEngine* engine);
+	VulkanShadow(VulkanEngine* engine, VulkanUtility *utility);
 	~VulkanShadow();
 
 	void Init();
 	void Update(CameraSystem *camera);
 	void Destroy() override;
 
-	void PrepareDepthBuffer();
-	void PrepareOffscreenDescriptors();
-	void PrepareOffscreenRenderpass();
-	void PrepareOffscreenPipeline();
-	void GenerateOffscreenCmdBuffer();
+	void PrepareShadowPass();
+	void PrepareShadowDescriptors();
+	void PrepareShadowRenderpass();
+	void PrepareShadowPipeline();
+	void GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer);
 	void PrepareUBOBuffer();
 
 	friend class VulkanEngine;
 	friend class VulkanTerrain;
 	friend class VulkanModel;
+	friend class VulkanDeferred;
 
 private:
 
 	struct OffscreenInfo
 	{
 		VkFramebuffer frameBuffer;
-		VkCommandBuffer cmdBuffer;
 		VkRenderPass renderpass;
 		VkSemaphore semaphore;
 
@@ -69,11 +58,11 @@ private:
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 
 		BufferData uboBuffer;
-		OffscreenUbo uboData;
+		ShadowUbo uboData;
 
-		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+		std::array<VkPipelineShaderStageCreateInfo, 3> shader;
 
-	} m_offscreenInfo;
+	} m_shadowInfo;
 
 	TextureInfo m_depthImage;
 

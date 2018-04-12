@@ -9,9 +9,10 @@ layout (set = 0, binding = 2) uniform sampler2DArray textureArray;
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inPos;
-layout (location = 3) in vec3 inViewPos;
 
-layout (location = 0) out vec4 outFragColour;
+layout (location = 0) out vec4 outPosition;
+layout (location = 1) out vec4 outNormal;
+layout (location = 2) out vec4 outAlbedo;
 	
 const mat4 cropMat = mat4
 (
@@ -20,24 +21,7 @@ const mat4 cropMat = mat4
 	0.0, 0.0, 0.5, 0.0,
 	0.5, 0.5, 0.0, 1.0
 );
-
-float TextureCrop(vec4 P, vec2 offset)
-{
-	float shadow = 1.0;
-	float bias = 0.005;
 	
-	vec4 shadowPos = P / P.w;
-	if(shadowPos.z > -1.0 && shadowPos.z < 1.0) {
-	
-		float dist = texture(textureArray, vec3(shadowPos.st + offset, 1.0)).r;
-		if(shadowPos.w > 0 && dist < shadowPos.z - bias) {
-		
-			shadow = 0.3;		// ambient
-		}
-	}
-	return shadow;
-}
-		
 vec4 getTerrainLayer()
 {
 	// procedural texture generation using a texture array
@@ -52,7 +36,7 @@ vec4 getTerrainLayer()
 	
 	vec4 finalColour = vec4(0.0);
 	
-	for(int i = 0; i < 6; i++) {
+	for(int i = 0; i < 5; i++) {
 	
 		float range = layer[i].y - layer[i].x;
 		float weight = (range - abs(height - layer[i].y)) / range;
@@ -66,23 +50,11 @@ vec4 getTerrainLayer()
 }
 
 void main()
-{
-	//vec4 shadowPos = (cropMat * shadowUbo.viewProjMat[index]) * vec4(inPos, 1.0);
-	//float shadow = TextureCrop(shadowPos / shadowPos.w, vec2(0.0), index);
+{	
+	// output fragment information to the appropiate buffers - lighting will be calculated in the deferred pass	
+	outAlbedo = getTerrainLayer();
 	
-	// lighting
-	// ambient
-	vec3 ambient = vec3(0.5, 0.5, 0.5);
+	outPosition = vec4(inPos, 1.0);
 	
-	vec4 color = getTerrainLayer();
-	
-	// diffuse
-	vec3 N = normalize(inNormal);
-	vec3 L = normalize(-vec3(-48.0f, -48.0f, 46.0f));
-	vec3 H = normalize(L + inViewPos);
-	float diffuse = max(dot(N, L), 0.3);
-	vec3 lightColour = vec3(1.0);
-	
-	outFragColour = vec4(diffuse * color.rgb, 1.0);
-	//outFragColour *= shadow;
+	outNormal = vec4(normalize(inNormal), 0.0);
 }

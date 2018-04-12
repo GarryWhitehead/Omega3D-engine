@@ -7,9 +7,15 @@ layout (binding = 1) uniform samplerCube samplerMap;
 
 layout (location = 0) in vec3 inUv;
 
-layout (location = 0) out vec4 outFragColour;
+layout (location = 0) out vec4 outPosition;
+layout (location = 1) out vec4 outNormal;
+layout (location = 2) out vec4 outAlbedo;
 
 void main() 
 {
-	outFragColour = texture(samplerMap, inUv);
+	outPosition = vec4(inUv, 1.0);
+	
+	outNormal = vec4(1.0);		// not used yet
+	
+	outAlbedo = texture(samplerMap, inUv);
 }

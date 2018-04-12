@@ -2,8 +2,6 @@
 #include "utility/serialisation.h"
 #include <vector>
 
-// simple abstract base class for all ComponentManager instances
-
 class World;
 class ObjectManager;
 enum class SystemId;
@@ -12,7 +10,8 @@ enum class ComponentManagerId
 {
 	CM_PHYSICS_ID,
 	CM_TRANSFORM_ID,
-	CM_MESH_ID
+	CM_MESH_ID,
+	CM_ANIMATION_ID
 };
 
 class ComponentManager
@@ -34,6 +33,7 @@ public:
 
 	template<typename T>
 	T* GetRegisteredManager(ComponentManagerId id);
+	bool HasRegisteredManager(ComponentManagerId id);
 
 	void RegisterWithSystem(SystemId id);
 	ComponentManagerId GetId() const { return m_id; }

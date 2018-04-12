@@ -77,8 +77,6 @@ public:
 
 	// helper functions
 	bool isObjImported() const { return m_objFileImported; }
-
-	friend class ObjDataHandler;
 	
 private:
 

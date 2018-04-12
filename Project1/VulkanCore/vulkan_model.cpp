@@ -4,19 +4,15 @@
 #include "objector/MaterialParser.h"
 #include "Systems/camera_system.h"
 #include "Engine/ModelResourceManager.h"
+#include "ComponentManagers/TransformComponentManager.h"
 #include <gtc/matrix_transform.hpp>
 #include <iostream>
 
-VulkanModel::VulkanModel() : 
-	vk_prepared(false)
-{
-}
-
-VulkanModel::VulkanModel(VulkanEngine *engine) :
+VulkanModel::VulkanModel(VulkanEngine *engine, VulkanUtility *utility) :
+	VulkanModule(utility),
 	p_vkEngine(engine),
 	vk_prepared(false)
 {
-	vkUtility.InitVulkanUtility(engine);
 }
 
 VulkanModel::~VulkanModel()
@@ -26,13 +22,13 @@ VulkanModel::~VulkanModel()
 void VulkanModel::CreateVertexBuffer(uint32_t bufferSize)
 {
 	m_vertexBuffer.size = bufferSize;
-	vkUtility.CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_vertexBuffer.buffer, m_vertexBuffer.memory);
+	vkUtility->CreateBuffer(bufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_vertexBuffer.buffer, m_vertexBuffer.memory);
 }
 
 void VulkanModel::CreateIndexBuffer(uint32_t bufferSize)
 {
 	m_indexBuffer.size = bufferSize;
-	vkUtility.CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indexBuffer.buffer, m_indexBuffer.memory);
+	vkUtility->CreateBuffer(bufferSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indexBuffer.buffer, m_indexBuffer.memory);
 }
 
 void VulkanModel::MapDataToBuffers(ModelInfo *model, uint32_t vertexOffset, uint32_t indexOffset)
@@ -53,8 +49,6 @@ void VulkanModel::PrepareMeshDescriptorSet()
 	std::array<VkDescriptorPoolSize, 1> descrPoolSize = {};
 	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	descrPoolSize[0].descriptorCount = 1;
-	//descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				
-	//descrPoolSize[1].descriptorCount = 1;
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -65,10 +59,9 @@ void VulkanModel::PrepareMeshDescriptorSet()
 	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_meshDescrInfo.pool));
 
 	// scene descriptor layout
-	VkDescriptorSetLayoutBinding uboLayout = vkUtility.InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);					
-	//VkDescriptorSetLayoutBinding samplerLayout = vkUtility.InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);					
+	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);						
+	
 	VkDescriptorSetLayoutBinding sceneBind[] = { uboLayout };
-
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
 	layoutInfo.bindingCount = 1;
@@ -86,12 +79,10 @@ void VulkanModel::PrepareMeshDescriptorSet()
 
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_meshDescrInfo.set));
 
-	VkDescriptorBufferInfo uboBuffInfo = vkUtility.InitBufferInfoDescriptor(m_uboBuffer.buffer, 0, m_uboBuffer.size);											
-	//VkDescriptorImageInfo imageInfo = vkUtility.InitImageInfoDescriptor(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, vulkanShadow->m_depthImage.imageView, vulkanShadow->m_depthImage.m_tex_sampler);
+	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(m_uboBuffer.buffer, 0, m_uboBuffer.size);											
 
 	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility.InitDescriptorSet(m_meshDescrInfo.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBuffInfo);
-	//writeDescrSet[1] = vkUtility.InitDescriptorSet(m_meshDescr.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo);
+	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_meshDescrInfo.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBuffInfo);
 	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
@@ -119,8 +110,8 @@ void VulkanModel::PrepareMaterialDescriptorSet(ModelInfo *model)
 {
 	// material descriptor bindings
 
-	VkDescriptorSetLayoutBinding samplerLayoutDiff = vkUtility.InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);		// diffuse	- set 1 / loc 0
-	VkDescriptorSetLayoutBinding samplerLayoutSpec = vkUtility.InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);		// specular	- set 1 / loc 1
+	VkDescriptorSetLayoutBinding samplerLayoutDiff = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);		// diffuse	- set 1 / loc 0
+	VkDescriptorSetLayoutBinding samplerLayoutSpec = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);		// specular	- set 1 / loc 1
 																																	
 	VkDescriptorSetLayoutBinding materialBind[] = { samplerLayoutDiff, samplerLayoutSpec };
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
@@ -142,12 +133,12 @@ void VulkanModel::PrepareMaterialDescriptorSet(ModelInfo *model)
 
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &model->materialData[c].descrSet));
 
-		VkDescriptorImageInfo imageInfoDiff = vkUtility.InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].diffuse.imageView, model->materialData[c].diffuse.m_tex_sampler);		// diffuse texture
-		VkDescriptorImageInfo imageInfoSpec = vkUtility.InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].specular.imageView, model->materialData[c].specular.m_tex_sampler);		// diffuse texture
+		VkDescriptorImageInfo imageInfoDiff = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].diffuse.imageView, model->materialData[c].diffuse.m_tex_sampler);		// diffuse texture
+		VkDescriptorImageInfo imageInfoSpec = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].specular.imageView, model->materialData[c].specular.m_tex_sampler);		// diffuse texture
 
 		std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
-		writeDescrSet[0] = vkUtility.InitDescriptorSet(model->materialData[c].descrSet, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfoDiff);
-		writeDescrSet[1] = vkUtility.InitDescriptorSet(model->materialData[c].descrSet, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfoSpec);
+		writeDescrSet[0] = vkUtility->InitDescriptorSet(model->materialData[c].descrSet, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfoDiff);
+		writeDescrSet[1] = vkUtility->InitDescriptorSet(model->materialData[c].descrSet, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfoSpec);
 
 		vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 	}
@@ -155,6 +146,8 @@ void VulkanModel::PrepareMaterialDescriptorSet(ModelInfo *model)
 
 void VulkanModel::PrepareModelPipelineWithMaterial()
 {
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+
 	// scene graphics pipeline
 	ModelInfo::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
@@ -172,21 +165,26 @@ void VulkanModel::PrepareModelPipelineWithMaterial()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility.InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility.InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility.InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
-	VkPipelineColorBlendAttachmentState colorAttach = {};
-	colorAttach.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach.blendEnable = VK_FALSE;
+	// colour attachment required for each colour buffer
+	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
+	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[0].blendEnable = VK_FALSE;
+	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[1].blendEnable = VK_FALSE;
+	colorAttach[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[2].blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorInfo.logicOpEnable = VK_FALSE;
-	colorInfo.attachmentCount = 1;
-	colorInfo.pAttachments = &colorAttach;
+	colorInfo.attachmentCount = static_cast<uint32_t>(colorAttach.size());
+	colorInfo.pAttachments = colorAttach.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthInfo = {};
 	depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -217,8 +215,8 @@ void VulkanModel::PrepareModelPipelineWithMaterial()
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_matPipeline.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_shader[0] = vkUtility.InitShaders("model/model-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility.InitShaders("model/model-mat-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = vkUtility->InitShaders("model/model-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	m_shader[1] = vkUtility->InitShaders("model/model-mat-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -233,10 +231,9 @@ void VulkanModel::PrepareModelPipelineWithMaterial()
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
 	createInfo.layout = m_matPipeline.layout;
-	createInfo.renderPass = p_vkEngine->m_renderpass;
+	createInfo.renderPass = vkDeferred->GetRenderPass();		// rendered into the offcsreen buffer 
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
-	//createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_matPipeline.pipeline));
@@ -244,6 +241,8 @@ void VulkanModel::PrepareModelPipelineWithMaterial()
 
 void VulkanModel::PrepareModelPipelineWithoutMaterial()
 {
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+
 	// scene graphics pipeline
 	ModelInfo::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
@@ -261,28 +260,32 @@ void VulkanModel::PrepareModelPipelineWithoutMaterial()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility.InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility.InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility.InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
-	VkPipelineColorBlendAttachmentState colorAttach = {};
-	colorAttach.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach.blendEnable = VK_FALSE;
+	// colour attachment required for each colour buffer
+	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
+	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[0].blendEnable = VK_FALSE;
+	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[1].blendEnable = VK_FALSE;
+	colorAttach[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[2].blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorInfo.logicOpEnable = VK_FALSE;
-	colorInfo.attachmentCount = 1;
-	colorInfo.pAttachments = &colorAttach;
+	colorInfo.attachmentCount = static_cast<uint32_t>(colorAttach.size());
+	colorInfo.pAttachments = colorAttach.data();
 
 	VkPipelineDepthStencilStateCreateInfo depthInfo = {};
 	depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthInfo.depthTestEnable = VK_TRUE;
 	depthInfo.depthWriteEnable = VK_TRUE;
 	depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
-
 
 	VkDynamicState states[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 	VkPipelineDynamicStateCreateInfo dynamicInfo = {};
@@ -301,8 +304,8 @@ void VulkanModel::PrepareModelPipelineWithoutMaterial()
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_noMatPipeline.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_shader[0] = vkUtility.InitShaders("model/model-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility.InitShaders("model/model-nomat-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = vkUtility->InitShaders("model/model-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	m_shader[1] = vkUtility->InitShaders("model/model-nomat-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -317,10 +320,9 @@ void VulkanModel::PrepareModelPipelineWithoutMaterial()
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
 	createInfo.layout = m_noMatPipeline.layout;
-	createInfo.renderPass = p_vkEngine->m_renderpass;
+	createInfo.renderPass = vkDeferred->GetRenderPass();
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
-	//createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_noMatPipeline.pipeline));
@@ -329,7 +331,7 @@ void VulkanModel::PrepareModelPipelineWithoutMaterial()
 void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
 {
 	
-	for (auto& index : p_modelManager->m_updatedMeshInd) {
+	for (auto& index : p_modelManager->m_updatedStaticMeshInd) {
 
 		// bind vertex data at offset into buffer
 		VkBuffer vertexBuffers = m_vertexBuffer.buffer;
@@ -365,24 +367,21 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 void VulkanModel::PrepareUBOBuffer()
 {
 	m_uboBuffer.size = sizeof(UboLayout);
-	vkUtility.CreateBuffer(m_uboBuffer.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uboBuffer.buffer, m_uboBuffer.memory);
+	vkUtility->CreateBuffer(m_uboBuffer.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_uboBuffer.buffer, m_uboBuffer.memory);
 }
 
-void VulkanModel::Update(CameraSystem *camera, VulkanShadow *vulkanShadow)
+void VulkanModel::Update(CameraSystem *camera)
 {
 	std::vector<UboLayout> uboData;
 
 	UboLayout ubo;
-	ubo.lightPos = glm::vec4(camera->GetLightPosition(), 0.0f);
+
 	ubo.projection = camera->m_cameraInfo.projection;
 	ubo.viewMatrix = camera->m_cameraInfo.viewMatrix;
-
-	ubo.modelMatrix = p_modelManager->m_updatedTransform[0];		// ****** CHANGE!!!! *****
-
-	ubo.lightSpace = vulkanShadow->m_offscreenInfo.uboData.projection * vulkanShadow->m_offscreenInfo.uboData.viewMatrix * vulkanShadow->m_offscreenInfo.uboData.modelMatrix;
+	ubo.modelMatrix = p_modelManager->GetUpdatedTransform(0, ModelType::MODEL_STATIC);		// ****** CHANGE!!!! *****
 	uboData.push_back(ubo);
 
-	vkUtility.MapBuffer<UboLayout>(m_uboBuffer, uboData);
+	vkUtility->MapBuffer<UboLayout>(m_uboBuffer, uboData);
 }
 
 void VulkanModel::Destroy()

@@ -44,11 +44,14 @@ public:
 	struct Vertex
 	{
 		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
-		std::array<VkVertexInputAttributeDescription, 3> Vertex::GetAttrBindingDescription();
+		std::array<VkVertexInputAttributeDescription, 6> Vertex::GetAttrBindingDescription();
 
 		glm::vec3 pos;
 		glm::vec2 uv;
 		glm::vec3 normal;
+		glm::vec3 colour;
+		float boneWeigthts[4];
+		uint32_t boneId[4];
 	};
 
 	struct ImageInfo
@@ -94,16 +97,15 @@ public:
 		VulkanUtility::PipeLlineInfo pipeline;
 	};
 
-	VulkanTerrain();
-	VulkanTerrain(VulkanEngine *engine);
+	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility);
 	~VulkanTerrain();
 
-	void Init(VulkanShadow *vulkanShadow);
+	void Init();
 	void Update(CameraSystem *camera);
 	void Destroy() override;
 
 	void LoadTerrainTextures();
-	void PrepareTerrainDescriptorSets(VulkanShadow *vulkanShadow);
+	void PrepareTerrainDescriptorSets();
 	void PrepareSkyboxDescriptorSets();
 	void PreparePipeline();
 	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
@@ -114,7 +116,6 @@ public:
 	void MapIndexBufferToMemory();
 
 	friend class VulkanEngine;
-	friend class VulkanShadow;
 
 protected:
 

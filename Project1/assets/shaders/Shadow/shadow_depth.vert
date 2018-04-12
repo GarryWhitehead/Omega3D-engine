@@ -5,12 +5,7 @@
 
 layout (location = 0) in vec3 inPos;
 
-layout (binding = 0) uniform UBO
-{
-	mat4 projection;
-	mat4 viewMatrix;
-	mat4 modelMatrix;
-} ubo;
+layout (location = 0) out int outIndex;
 
 out gl_PerVertex
 {
@@ -19,5 +14,7 @@ out gl_PerVertex
 
 void main()
 {
-	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * vec4(inPos, 1.0);
+	gl_Position = vec4(inPos, 1.0);
+
+	outIndex = gl_InstanceIndex;
 }

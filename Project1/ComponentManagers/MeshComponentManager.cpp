@@ -1,4 +1,6 @@
 #include "MeshComponentManager.h"
+#include "ComponentManagers/TransformComponentManager.h"
+#include "ComponentManagers/AnimationComponentManager.h"
 #include "Engine/ObjectManager.h"
 #include "Engine/engine.h"
 
@@ -26,10 +28,50 @@ void MeshComponentManager::Update()
 
 }
 
-void MeshComponentManager::DownloadMeshIndicesData(std::vector<uint32_t>& indicesData) 
+void MeshComponentManager::InitModelTypes()
 {
-	indicesData.resize(m_data.meshIndex.size());
-	indicesData = m_data.meshIndex; 
+	m_data.type.resize(m_data.object.size());
+
+	// if animation manager isn't present, then assume all models are static
+	if (!HasRegisteredManager(ComponentManagerId::CM_ANIMATION_ID)) {
+		
+		for (int c = 0; c < m_data.object.size(); ++c) {
+			m_data.type[c] = ModelType::MODEL_STATIC;
+		}
+	}
+	else {
+		auto animManager = GetRegisteredManager<AnimationComponentManager>(ComponentManagerId::CM_ANIMATION_ID);
+
+		for (int c = 0; c < m_data.object.size(); ++c) {
+
+			if (animManager->HasObject(m_data.object[c])) {
+
+				// if the object is linked with the animation manager, then this objects model must be animated and thus linked with the collada vulkan animation module
+				m_data.type[c] = ModelType::MODEL_ANIMATED;
+			}
+			else {
+				// not linked with the animation manager so assumed to be a static model
+				m_data.type[c] = ModelType::MODEL_STATIC;
+			}
+		}
+	}
+
+	// the transform manager also requires this data
+	auto transManager = GetRegisteredManager<TransformComponentManager>(ComponentManagerId::CM_TRANSFORM_ID);
+	transManager->UploadModelTypeData(m_data.type);
+}
+
+void MeshComponentManager::DownloadMeshIndicesData(std::vector<uint32_t>& staticIndicesData, std::vector<uint32_t>& animIndicesData)
+{
+	for (int c = 0; c < m_data.object.size(); ++c) {
+
+		if (m_data.type[c] == ModelType::MODEL_STATIC) {
+			staticIndicesData.push_back(m_data.meshIndex[c]);
+		}
+		else if (m_data.type[c] == ModelType::MODEL_ANIMATED) {
+			animIndicesData.push_back(m_data.meshIndex[c]);
+		}
+	}
 }
 
 void MeshComponentManager::Destroy()

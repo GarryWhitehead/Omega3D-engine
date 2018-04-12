@@ -1,4 +1,5 @@
 #include "ModelInfo.h"
+#include "VulkanCore/VulkanEngine.h"
 
 ModelInfo::ModelInfo()
 {
@@ -18,7 +19,7 @@ ModelInfo::~ModelInfo()
 {
 }
 
-void ModelInfo::LoadModel(std::string filename, VkDevice device, VkCommandPool cmdPool)
+void ModelInfo::LoadModel(std::string filename, VulkanEngine *vkEngine, VkCommandPool cmdPool)
 {
 	Objector::ModelInfo *model = objector.ImportObjFile(filename);
 
@@ -30,7 +31,7 @@ void ModelInfo::LoadModel(std::string filename, VkDevice device, VkCommandPool c
 
 		if (model->numMaterials > 0) {
 
-			this->ProcessMaterials(model, cmdPool);
+			this->ProcessMaterials(model, vkEngine, cmdPool);
 		}
 
 		this->ProcessMeshes(model);
@@ -113,7 +114,7 @@ void ModelInfo::ProcessMeshes(Objector::ModelInfo *model)
 	indexBuffer.size = sizeof(uint32_t) * indices.size();
 }
 
-void ModelInfo::ProcessMaterials(Objector::ModelInfo *model, VkCommandPool cmdPool)
+void ModelInfo::ProcessMaterials(Objector::ModelInfo *model, VulkanEngine *vkEngine, VkCommandPool cmdPool)
 {
 	materialData.resize(model->numMaterials);
 
@@ -133,12 +134,12 @@ void ModelInfo::ProcessMaterials(Objector::ModelInfo *model, VkCommandPool cmdPo
 		materialData[c].properties.opacity = material.opacity;
 
 		// load material textures and create texture in memory
-		materialData[c].diffuse = LoadMaterialTexture(material, objTextureType::DIFFUSE_TEXTURE, cmdPool);
-		materialData[c].specular = LoadMaterialTexture(material, objTextureType::SPECULAR_TEXTURE, cmdPool);
+		materialData[c].diffuse = LoadMaterialTexture(material, objTextureType::DIFFUSE_TEXTURE, vkEngine, cmdPool);
+		materialData[c].specular = LoadMaterialTexture(material, objTextureType::SPECULAR_TEXTURE, vkEngine, cmdPool);
 	}
 }
 
-TextureInfo ModelInfo::LoadMaterialTexture(objMaterial &material, objTextureType type, VkCommandPool cmdPool)
+TextureInfo ModelInfo::LoadMaterialTexture(objMaterial &material, objTextureType type, VulkanEngine *vkEngine, VkCommandPool cmdPool)
 {
 	if (!material.hasTextureType(type)) {
 
@@ -150,6 +151,7 @@ TextureInfo ModelInfo::LoadMaterialTexture(objMaterial &material, objTextureType
 	filename = filename + ".ktx";
 
 	VulkanUtility vkUtility;
+	vkUtility.InitVulkanUtility(vkEngine);
 	TextureInfo texture = vkUtility.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_COMPARE_OP_ALWAYS, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_R8G8B8A8_UNORM, cmdPool);
 
 	return texture;
@@ -167,10 +169,10 @@ VkVertexInputBindingDescription ModelInfo::ModelVertex::GetInputBindingDescripti
 	return bindDescr;
 }
 
-std::array<VkVertexInputAttributeDescription, 4> ModelInfo::ModelVertex::GetAttrBindingDescription()
+std::array<VkVertexInputAttributeDescription, 6> ModelInfo::ModelVertex::GetAttrBindingDescription()
 {
 	// Vertex layout 0: uv
-	std::array<VkVertexInputAttributeDescription, 4> attrDescr = {};
+	std::array<VkVertexInputAttributeDescription, 6> attrDescr = {};
 	attrDescr[0].binding = 0;
 	attrDescr[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attrDescr[0].location = 0;
@@ -193,6 +195,19 @@ std::array<VkVertexInputAttributeDescription, 4> ModelInfo::ModelVertex::GetAttr
 	attrDescr[3].format = VK_FORMAT_R32G32B32_SFLOAT;
 	attrDescr[3].location = 3;
 	attrDescr[3].offset = offsetof(ModelVertex, colour);
+
+	// NOT USED - only here as the vertex structs need to be the asme size for the shadow mapping to work correctly
+	// Vertex layout 5: bone weights
+	attrDescr[4].binding = 0;
+	attrDescr[4].format = VK_FORMAT_R32G32B32A32_SFLOAT;
+	attrDescr[4].location = 4;
+	attrDescr[4].offset = offsetof(ModelVertex, boneWeigthts);
+
+	// Vertex layout 6: bone ids
+	attrDescr[5].binding = 0;
+	attrDescr[5].format = VK_FORMAT_R32G32B32_SINT;
+	attrDescr[5].location = 5;
+	attrDescr[5].offset = offsetof(ModelVertex, boneId);
 
 	return attrDescr;
 }

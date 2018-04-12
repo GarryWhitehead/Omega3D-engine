@@ -26,15 +26,12 @@ public:
 		glm::mat4 projection;
 		glm::mat4 viewMatrix;
 		glm::mat4 modelMatrix;
-		glm::mat4 lightSpace;
-		glm::vec4 lightPos;
 	};
 
-	VulkanModel();
-	VulkanModel(VulkanEngine *engine);
+	VulkanModel(VulkanEngine *engine, VulkanUtility *utility);
 	~VulkanModel();
 
-	void Update(CameraSystem *camera, VulkanShadow *vulkanShadow);
+	void Update(CameraSystem *camera);
 	void Destroy() override;
 
 	void PrepareMeshDescriptorSet();

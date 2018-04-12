@@ -3,6 +3,8 @@
 #include "Engine/Object.h"
 #include <vector>
 
+enum class ModelType;
+
 class MeshComponentManager : public ArchivableComponentManager<MeshComponentManager>
 {
 
@@ -10,6 +12,7 @@ public:
 
 	struct ComponentData
 	{
+		std::vector<ModelType> type;
 		std::vector<Object> object;
 		std::vector<uint32_t> meshIndex;
 	};
@@ -22,7 +25,8 @@ public:
 	void Destroy() override;
 	void Serialise(Archiver* arch, MeshComponentManager& manager, const Archiver::var_info& info);
 
-	void DownloadMeshIndicesData(std::vector<uint32_t>& indicesData);
+	void InitModelTypes();
+	void DownloadMeshIndicesData(std::vector<uint32_t>& staticIndicesData, std::vector<uint32_t>& animIndicesData);
 
 private:
 

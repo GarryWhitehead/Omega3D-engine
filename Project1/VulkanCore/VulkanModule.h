@@ -6,13 +6,13 @@ class VulkanModule
 
 public:
 
-	VulkanModule();
+	VulkanModule(VulkanUtility *utility);
 	~VulkanModule();
 
 	virtual void Destroy() = 0;
 
 protected:
 
-	VulkanUtility vkUtility;
+	VulkanUtility *vkUtility;
 };
 

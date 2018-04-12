@@ -8,6 +8,12 @@
 class ObjectManager;
 class World;
 
+enum class ModelType
+{
+	MODEL_STATIC,
+	MODEL_ANIMATED
+};
+
 class TransformComponentManager : public ArchivableComponentManager<TransformComponentManager>
 {
 
@@ -15,6 +21,7 @@ public:
 
 	struct ComponentData
 	{
+		std::vector<ModelType> type;
 		std::vector<Object> object;
 		std::vector<glm::mat4> localTransform;
 		std::vector<glm::mat4> worldTransform;
@@ -34,12 +41,15 @@ public:
 	void Transform(uint32_t index, glm::mat4 mat);
 	void Serialise(Archiver* arch, TransformComponentManager& manager, const Archiver::var_info& info);
 
-	void DownloadWorldTransformData(std::vector<glm::mat4>& transformData);
+	void DownloadWorldTransformData(std::vector<glm::mat4>& staticTransformData, std::vector<glm::mat4>& animTransformData);
+	void UploadModelTypeData(std::vector<ModelType>& typeData);
 
 private:
 
 	ComponentData m_data;
 
 	std::unordered_map<Object, uint32_t, HashGameObj> m_indicies;
+
+	bool dataUpdated;
 };
 

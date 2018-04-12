@@ -17,7 +17,10 @@ out gl_PerVertex
 
 void main()
 {
+	
 	gl_Position = vec4(inPos, 1.0);
+	
 	outUv = inUv;
+	
 	outNormal = inNormal;
 }

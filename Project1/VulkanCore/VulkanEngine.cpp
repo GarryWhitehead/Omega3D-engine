@@ -3,6 +3,8 @@
 #include "VulkanCore/vulkan_terrain.h"
 #include "VulkanCore/vulkan_shadow.h"
 #include "VulkanCore/vulkan_tools.h"
+#include "VulkanCore/VulkanAnimation.h"
+#include "VulkanCore/VulkanDeferred.h"
 #include "utility/file_log.h"
 
 
@@ -11,7 +13,8 @@ VulkanEngine::VulkanEngine(GLFWwindow *window) :
 	drawStateChanged(true),
 	vk_prepared(false)
 {	
-	vkUtility.InitVulkanUtility(this);
+	vkUtility = new VulkanUtility();
+	vkUtility->InitVulkanUtility(this);
 }
 
 VulkanEngine::~VulkanEngine()
@@ -23,18 +26,27 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 	for (auto mod : modules) {
 
 		if (mod == VkModId::VKMOD_SHADOW_ID) {
-			VulkanShadow *vkMod = new VulkanShadow(this);
+			VulkanShadow *vkMod = new VulkanShadow(this, vkUtility);
 			vkMod->Init();
 			m_vkModules.insert(std::make_pair(VkModId::VKMOD_SHADOW_ID, vkMod));
 		}
+		else if (mod == VkModId::VKMOD_DEFERRED_ID) {
+			VulkanDeferred *vkMod = new VulkanDeferred(this, vkUtility);
+			vkMod->Init();
+			m_vkModules.insert(std::make_pair(VkModId::VKMOD_DEFERRED_ID, vkMod));
+		}
 		else if (mod == VkModId::VKMOD_TERRAIN_ID) {
-			VulkanTerrain *vkMod = new VulkanTerrain(this);
-			vkMod->Init(static_cast<VulkanShadow*>(m_vkModules[VkModId::VKMOD_SHADOW_ID]));
+			VulkanTerrain *vkMod = new VulkanTerrain(this, vkUtility);
+			vkMod->Init();
 			m_vkModules.insert(std::make_pair(VkModId::VKMOD_TERRAIN_ID, vkMod));
 		}
 		else if (mod == VkModId::VKMOD_MODEL_ID) {
-			VulkanModel *vkMod = new VulkanModel(this);
+			VulkanModel *vkMod = new VulkanModel(this, vkUtility);
 			m_vkModules.insert(std::make_pair(VkModId::VKMOD_MODEL_ID, vkMod));
+		}
+		else if (mod == VkModId::VKMOD_ANIM_ID) {
+			VulkanAnimation *vkMod = new VulkanAnimation(this, vkUtility);
+			m_vkModules.insert(std::make_pair(VkModId::VKMOD_ANIM_ID, vkMod));
 		}
 	}
 }
@@ -44,7 +56,7 @@ TextureInfo VulkanEngine::InitDepthImage()
 	// required depth image format in order of preference
 	std::vector<VkFormat> formats = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 
-	m_depthImageFormat = vkUtility.FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
+	m_depthImageFormat = vkUtility->FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 
 	TextureInfo depthImage;
 	depthImage.width = m_surface.extent.width;
@@ -74,7 +86,7 @@ TextureInfo VulkanEngine::InitDepthImage()
 	VkMemoryAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = vkUtility.FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	alloc_info.memoryTypeIndex = vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	VK_CHECK_RESULT(vkAllocateMemory(m_device.device, &alloc_info, nullptr, &depthImage.texture_mem));
 
@@ -82,7 +94,7 @@ TextureInfo VulkanEngine::InitDepthImage()
 
 	depthImage.imageView = InitImageView(depthImage.image, m_depthImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT, VK_IMAGE_VIEW_TYPE_2D);
 
-	vkUtility.ImageTransition(VK_NULL_HANDLE, depthImage.image, m_depthImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1, m_cmdPool);
+	vkUtility->ImageTransition(VK_NULL_HANDLE, depthImage.image, m_depthImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1, m_cmdPool);
 
 	return depthImage;
 }
@@ -145,58 +157,21 @@ void VulkanEngine::PrepareRenderpass()
 
 void VulkanEngine::PrepareFrameBuffers()
 {
-	m_frameBuffer = vkUtility.InitFrameBuffers(m_surface.extent.width, m_surface.extent.height, m_renderpass, m_depthImage.imageView);
+	m_frameBuffer = vkUtility->InitFrameBuffers(m_surface.extent.width, m_surface.extent.height, m_renderpass, m_depthImage.imageView);
 }
 
 void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE)
 {
 	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
+	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
 	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
-}
-
-void VulkanEngine::GenerateSceneCmdBuffers()
-{
-	std::array<VkClearValue, 2> clearValues = {};
-	clearValues[0].color = CLEAR_COLOR;
-	clearValues[1].depthStencil = { 1.0f, 0 };
-
-	m_cmdBuffer.resize(m_frameBuffer.size());
-
-	for (uint32_t c = 0; c < m_cmdBuffer.size(); ++c) {
-
-		m_cmdBuffer[c] = vkUtility.CreateCmdBuffer(vkUtility.VK_PRIMARY, vkUtility.VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
-
-		VkRenderPassBeginInfo renderPassInfo = {};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.framebuffer = m_frameBuffer[c];
-		renderPassInfo.renderPass = m_renderpass;
-		renderPassInfo.renderArea.offset = { 0,0 };
-		renderPassInfo.renderArea.extent.width = m_surface.extent.width;
-		renderPassInfo.renderArea.extent.height = m_surface.extent.height;
-		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-		renderPassInfo.pClearValues = clearValues.data();
-		
-		VkViewport viewport = vkUtility.InitViewPort(m_surface.extent.width, m_surface.extent.height, 0.0f, 1.0f);
-		vkCmdSetViewport(m_cmdBuffer[c], 0, 1, &viewport);
-
-		VkRect2D scissor = vkUtility.InitScissor(m_surface.extent.width, m_surface.extent.height, 0, 0);
-		vkCmdSetScissor(m_cmdBuffer[c], 0, 1, &scissor);
-
-		vkCmdBeginRenderPass(m_cmdBuffer[c], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		
-		RenderScene(m_cmdBuffer[c], VK_NULL_HANDLE, VK_NULL_HANDLE, VK_NULL_HANDLE);
-		
-		// end of the command definitions for this render pass so tell the GPU
-		vkCmdEndRenderPass(m_cmdBuffer[c]);
-		VK_CHECK_RESULT(vkEndCommandBuffer(m_cmdBuffer[c]));
-	}
 }
 
 void VulkanEngine::Init()
 {
 	// Initialise the "global" renderpass and framebuffer which will be used by most systems
 	// image processing modules will use their own offscreen framebuffers though usually the same renderpass
-	m_cmdPool = vkUtility.InitCommandPool(m_queue.graphIndex);
+	m_cmdPool = vkUtility->InitCommandPool(m_queue.graphIndex);
 
 	// add depth test image used by the renderpass
 	m_depthImage = InitDepthImage();
@@ -207,24 +182,38 @@ void VulkanEngine::Init()
 
 void VulkanEngine::DrawScene()
 {
-	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->GenerateOffscreenCmdBuffer();
-	GenerateSceneCmdBuffers();
+	// command buffer for shadow and deferred draws
+	m_offscreenCmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
+	
+	// first pass - scene is drawn into shadow buffer
+	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
 
+	// second pass - scene is drawn into deferred buffers - position, albedo and normal. This data is then 
+	// passed into the G buffer
+	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->GenerateDeferredCmdBuffer(m_offscreenCmdBuffer);
+
+	VK_CHECK_RESULT(vkEndCommandBuffer(m_offscreenCmdBuffer));
+
+	// scene is drawn as a full screen quad and lighting calculation are done in the shader
+	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->GenerateFullscreenCmdBuffers();
+	
 	vk_prepared = true;
 }
 
 void VulkanEngine::Update(CameraSystem *camera)
 {
 	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->Update(camera);
+	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->Update(camera);
 	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->Update(camera);
-	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Update(camera, VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID));
+	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->Update(camera);
+	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Update(camera);
 }
 
 void VulkanEngine::Render()
 {
 	//check whether the draw buffers have changed and re-generate cmd buffers if this is the case
 	// also check whether anything has been drawn yet
-	if (drawStateChanged || m_cmdBuffer.empty()) {
+	if (drawStateChanged) {
 
 		DrawScene();
 		drawStateChanged = false;
@@ -238,8 +227,9 @@ void VulkanEngine::Render()
 
 void VulkanEngine::SubmitFrame()
 {
-	uint32_t imageIndex = vkUtility.InitRenderFrame();
-	VulkanShadow *p_vulkanShadow = VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
+	uint32_t imageIndex = vkUtility->InitRenderFrame();
+	auto vkShadow = VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
+	auto vkDeferred = VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
 
 	VkSubmitInfo submit_info = {};
 	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -248,26 +238,35 @@ void VulkanEngine::SubmitFrame()
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pWaitSemaphores = &m_semaphore.image;											// wait for swap chain presentation to finish
-	submit_info.pSignalSemaphores = &p_vulkanShadow->m_offscreenInfo.semaphore;
+	submit_info.pSignalSemaphores = &vkShadow->m_shadowInfo.semaphore;
 
 	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &p_vulkanShadow->m_offscreenInfo.cmdBuffer;
+	submit_info.pCommandBuffers = &m_offscreenCmdBuffer;
 	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
-	submit_info.pWaitSemaphores = &p_vulkanShadow->m_offscreenInfo.semaphore;
+	submit_info.pWaitSemaphores = &vkShadow->m_shadowInfo.semaphore;
 	submit_info.pSignalSemaphores = &m_semaphore.render;
 
  	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &m_cmdBuffer[imageIndex];
+	submit_info.pCommandBuffers = &vkDeferred->m_cmdBuffers[imageIndex];
 	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
-	vkUtility.SubmitFrame(imageIndex);
+	vkUtility->SubmitFrame(imageIndex);
 }
 
-VulkanModel* VulkanEngine::RegisterModelResourceManager(ModelResourceManager* manager)
+VulkanModel* VulkanEngine::AssociateWithVulkanModel(ModelResourceManager* manager)
 {
 	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->p_modelManager = manager;
-	return VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	auto model = VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	assert(model != nullptr);
+	return model;
 }
 
+VulkanAnimation*  VulkanEngine::AssociateWithVulkanAnimation(ModelResourceManager* manager)
+{
+	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->p_modelManager = manager;
+	auto anim = VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID);
+	assert(anim != nullptr);
+	return anim;
+}
 

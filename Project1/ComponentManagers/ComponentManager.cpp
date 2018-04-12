@@ -28,6 +28,17 @@ void ComponentManager::RegisterWithSystem(SystemId sysId)
 	p_world->LinkManagerWithSystem(m_id, sysId);
 }
 
+bool ComponentManager::HasRegisteredManager(ComponentManagerId id)
+{
+	for (auto man : m_registeredManagers) {
+
+		if (man->m_id == id) {
+			return true;
+		}
+	}
+	return false;
+}
+
 // Serialisation functions
 void ComponentManager::Serialise(Archiver *arch, ComponentManager& comp, const Archiver::var_info& info)
 {

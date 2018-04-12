@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
+    <ClCompile Include="VulkanCore\ColladaModelInfo.cpp" />
     <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
     <ClCompile Include="Engine\ModelResourceManager.cpp" />
@@ -29,9 +31,13 @@
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\MeshComponentManager.cpp" />
+    <ClCompile Include="SiimpleCollada\SimpleCollada.cpp" />
+    <ClCompile Include="SiimpleCollada\XMLparse.cpp" />
     <ClCompile Include="Systems\GraphicsSystem.cpp" />
     <ClCompile Include="Systems\systems.cpp" />
     <ClCompile Include="utility\serialisation.cpp" />
+    <ClCompile Include="VulkanCore\VulkanAnimation.cpp" />
+    <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
     <ClCompile Include="VulkanCore\VulkanModule.cpp" />
     <ClCompile Include="VulkanCore\ModelInfo.cpp" />
     <ClCompile Include="Systems\camera_system.cpp" />
@@ -51,6 +57,8 @@
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
+    <ClInclude Include="VulkanCore\ColladaModelInfo.h" />
     <ClInclude Include="Engine\ModelResourceManager.h" />
     <ClInclude Include="ComponentManagers\ComponentManager.h" />
     <ClInclude Include="Engine\engine.h" />
@@ -59,10 +67,13 @@
     <ClInclude Include="Engine\ObjectManager.h" />
     <ClInclude Include="Engine\ObjectResourceManager.h" />
     <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
+    <ClInclude Include="SiimpleCollada\SimpleCollada.h" />
+    <ClInclude Include="SiimpleCollada\XMLparse.h" />
     <ClInclude Include="Systems\GraphicsSystem.h" />
     <ClInclude Include="Systems\system.h" />
     <ClInclude Include="ComponentManagers\TransformComponentManager.h" />
     <ClInclude Include="utility\serialisation.h" />
+    <ClInclude Include="VulkanCore\VulkanAnimation.h" />
     <ClInclude Include="VulkanCore\VulkanModule.h" />
     <ClInclude Include="VulkanCore\ModelInfo.h" />
     <ClInclude Include="Systems\camera_system.h" />
@@ -80,6 +91,7 @@
     <ClInclude Include="VulkanCore\vulkan_utility.h" />
     <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
     <ClInclude Include="Engine\World.h" />
+    <ClInclude Include="VulkanCore\VulkanDeferred.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -151,6 +163,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -175,6 +188,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>

@@ -6,7 +6,8 @@
 #include <gtc/matrix_transform.hpp>
 
 TransformComponentManager::TransformComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<TransformComponentManager>(*this, id)
+	ArchivableComponentManager<TransformComponentManager>(*this, id),
+	dataUpdated(false)
 {
 }
 
@@ -22,6 +23,8 @@ void TransformComponentManager::Init(World *world, ObjectManager *manager)
 
 	// register with graphics systems, as the updated transform data will be uploaded to this system for rendering
 	RegisterWithSystem(SystemId::GRAPHICS_SYSTEM_ID);
+
+	RegisterWithManager(ComponentManagerId::CM_MESH_ID);
 }
 
 void TransformComponentManager::Update()
@@ -35,39 +38,38 @@ void TransformComponentManager::Update()
 	manager->DownloadObjectIndex(objectIndicies);
 
 	assert(updatedData.size() == objectIndicies.size());
+	m_data.worldTransform.resize(objectIndicies.size());
 
-	for (auto& transform : m_data.worldTransform) {
+	// ensure that there are objects and position data to transfrom with
+	if (!updatedData.empty() && !objectIndicies.empty()) {
 
-		// ensure that there are objects and position data to transfrom with
-		if (!updatedData.empty() && !objectIndicies.empty()) {
+		for (auto &objIndex : objectIndicies) {
 
-			for (auto &objIndex : objectIndicies) {
+			// first do a check to ensure that the position and transform data are synced to the same object at a particular index
+			Object obj = objIndex.first;
+			uint32_t index = objIndex.second;
+			if (m_indicies[obj] == index) {
 
-				// first do a check to ensure that the position and transform data are synced to the same object at a particular index
-				Object obj = objIndex.first;
-				uint32_t index = objIndex.second;
-				if (m_indicies[obj] == index) {
-
-					glm::mat4 trans(1.0);
-					if (!updatedData[index].pos.empty()) {
-						trans = glm::translate(trans, glm::vec3(updatedData[index].pos[0]));
-					}
-					if (!updatedData[index].rot.empty()) {
-						glm::vec4 rot = updatedData[index].rot[0];
-						trans = glm::rotate(trans, rot.w, glm::vec3(rot.x, rot.y, rot.z));
-					}
-					if (!updatedData[index].scale.empty()) {
-						trans = glm::scale(trans, updatedData[index].scale[0]);
-					}
-					m_data.worldTransform[index] = trans;
+				glm::mat4 trans(1.0);
+				if (!updatedData[index].pos.empty()) {
+					trans = glm::translate(trans, glm::vec3(updatedData[index].pos[0]));
 				}
-				else {
-					*g_filelog << "Error updating transform data. Object indicies out of sync - Index 1: " << m_indicies[obj] << " , Index 2: " << objectIndicies[obj] << "\n";
+				if (!updatedData[index].rot.empty()) {
+					glm::vec4 rot = updatedData[index].rot[0];
+					trans = glm::rotate(trans, rot.w, glm::vec3(rot.x, rot.y, rot.z));
 				}
-
+				if (!updatedData[index].scale.empty()) {
+					trans = glm::scale(trans, updatedData[index].scale[0]);
+				}
+				m_data.worldTransform[index] = trans;
 			}
+			else {
+				*g_filelog << "Error updating transform data. Object indicies out of sync - Index 1: " << m_indicies[obj] << " , Index 2: " << objectIndicies[obj] << "\n";
+			}
+
 		}
 	}
+	dataUpdated = true;
 }
 
 void TransformComponentManager::SetLocalTransform(uint32_t index, glm::mat4 mat)
@@ -89,10 +91,27 @@ void TransformComponentManager::Transform(uint32_t index, glm::mat4 parentMatrix
 	}
 }
 
-void TransformComponentManager::DownloadWorldTransformData(std::vector<glm::mat4>& transformData)
+void TransformComponentManager::DownloadWorldTransformData(std::vector<glm::mat4>& staticTransformData, std::vector<glm::mat4>& animTransformData)
 { 
-	transformData.resize(m_data.worldTransform.size());
-	transformData = m_data.worldTransform; 
+	if (!dataUpdated) {
+		return;
+	}
+
+	for (int c = 0; c < m_data.object.size(); ++c) {
+
+		if (m_data.type[c] == ModelType::MODEL_STATIC) {
+			staticTransformData.push_back(m_data.worldTransform[c]);
+		}
+		else if (m_data.type[c] == ModelType::MODEL_ANIMATED) {
+			animTransformData.push_back(m_data.worldTransform[c]);
+		}
+	}
+}
+
+void TransformComponentManager::UploadModelTypeData(std::vector<ModelType>& typeData)
+{
+	m_data.type.resize(typeData.size());
+	m_data.type = typeData;
 }
 
 void TransformComponentManager::Destroy()
@@ -106,8 +125,6 @@ void TransformComponentManager::Serialise(Archiver* arch, TransformComponentMana
 {
 	*g_filelog << "De/serialising data for transform component manager.......";
 	arch->Serialise<uint32_t>(manager.m_data.firstChildIndex, Archiver::var_info(info.name + ".m_data.acceleration"));
-	arch->Serialise<glm::mat4>(manager.m_data.localTransform, Archiver::var_info(info.name + ".m_data.velocity"));
-	arch->Serialise<glm::mat4>(manager.m_data.worldTransform, Archiver::var_info(info.name + ".m_data.position"));
 	arch->Serialise<uint32_t>(manager.m_data.nextChildIndex, Archiver::var_info(info.name + ".m_data.mass"));
 	arch->Serialise<uint32_t>(manager.m_data.parentIndex, Archiver::var_info(info.name + ".m_data.mass"));
 	p_objectManager->Serialise(arch, manager.m_data.object, Archiver::var_info(info.name + ".m_data.object"));		// a custom specific serialiser is used for the vector objects

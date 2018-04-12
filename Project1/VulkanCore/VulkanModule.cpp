@@ -1,8 +1,8 @@
 #include "VulkanModule.h"
 
 
-
-VulkanModule::VulkanModule()
+VulkanModule::VulkanModule(VulkanUtility *utility) :
+	vkUtility(utility)
 {
 }
 

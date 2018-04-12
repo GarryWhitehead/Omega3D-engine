@@ -12,7 +12,7 @@ class GraphicsSystem : public System
 {
 
 public:
-	GraphicsSystem(VulkanEngine *engine, std::vector<std::string> filenames);
+	GraphicsSystem(VulkanEngine *engine, std::vector<std::string> filenames, std::vector<std::string> animatedFilenames);
 	~GraphicsSystem();
 
 	void Init();
@@ -25,6 +25,7 @@ private:
 	ModelResourceManager modelManager;
 
 	std::vector<std::string> m_modelFilenames;
+	std::vector<std::string> m_animatedFilenames;
 
 	VulkanEngine *p_vkEngine;
 

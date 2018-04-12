@@ -24,6 +24,7 @@ struct TextureInfo
 	uint32_t layers;
 	void *data;
 	VkImage image;
+	VkFormat format;
 	VkImageView imageView;
 	VkDeviceMemory texture_mem;
 	VkSampler m_tex_sampler;

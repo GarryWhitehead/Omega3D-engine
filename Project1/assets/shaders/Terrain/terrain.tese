@@ -24,7 +24,6 @@ layout (location = 1) in vec3 inNorm[];
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNorm;
 layout (location = 2) out vec3 outPos;
-layout (location = 3) out vec3 outViewPos;
 
 void main()
 {
@@ -36,7 +35,7 @@ void main()
 	// interpolate normals
 	vec3 n1 = mix(inNorm[0], inNorm[1], gl_TessCoord.x);
 	vec3 n2 = mix(inNorm[3], inNorm[2], gl_TessCoord.x);
-	outNorm = mix(n1, n2, gl_TessCoord.y);
+	vec3 tempNorm = mix(n1, n2, gl_TessCoord.y);
 	
 	// interpolated positions from vertex
 	vec4 p1 = mix(gl_in[0].gl_Position, gl_in[1].gl_Position, gl_TessCoord.x);
@@ -46,8 +45,16 @@ void main()
 	// displace the y coord depending on height derived from map
 	pos.y -= textureLod(dispMap, outUv, 0.0).r * ubo.dispFactor;
 	
-	// get depth from heightmap
+	// convert everything to world space
+	
 	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * pos;
-	outViewPos = (ubo.viewMatrix * vec4(pos.xyz, 1.0)).xyz;
-	outPos = pos.xyz;
+	
+	// position (world space)
+	outPos = vec3(ubo.modelMatrix * pos);
+	
+	outUv.t = 1.0 - outUv.t;
+	
+	// normal (world space)
+	mat3 mNorm = transpose(inverse(mat3(ubo.modelMatrix)));
+	outNorm = mNorm * normalize(tempNorm);
 }

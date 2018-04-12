@@ -105,6 +105,24 @@
     <ClCompile Include="Systems\systems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="SiimpleCollada\SimpleCollada.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SiimpleCollada\XMLparse.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanAnimation.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\ColladaModelInfo.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanDeferred.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_model.h">
@@ -192,6 +210,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\VulkanModule.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SiimpleCollada\SimpleCollada.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SiimpleCollada\XMLparse.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanAnimation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\ColladaModelInfo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentManagers\AnimationComponentManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanDeferred.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

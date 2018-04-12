@@ -13,15 +13,13 @@ layout(set = 0, binding = 0) uniform UBOBuffer
 	mat4 projection;
 	mat4 viewMatrix;
 	mat4 modelMatrix;
-	vec4 lightPos;
+	vec4 offsets[3];
 } ubo;
 
 layout(location = 0) out vec3 outNormal;
 layout(location = 1) out vec2 outUv;
 layout(location = 2) out vec3 outPos;
 layout(location = 3) out vec3 outColour;
-layout(location = 4) out vec3 outViewMatrix;
-layout(location = 5) out vec3 outLightPos;
 
 out gl_PerVertex
 {
@@ -30,18 +28,15 @@ out gl_PerVertex
 
 void main()
 {
-	mat4 modelView = ubo.viewMatrix * ubo.modelMatrix;
+	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * vec4(inPos, 1.0);
 	
-	gl_Position = ubo.projection * modelView * vec4(inPos.xyz, 1.0);
+	outPos = vec3(ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
 	
-	vec4 pos = modelView * vec4(inPos.xyz, 1.0);
-
-	vec3 lightP = mat3(ubo.modelMatrix) * ubo.lightPos.xyz;
-	outLightPos = lightP - (ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
-	outViewMatrix = -(ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
-	
-	outPos = inPos;
 	outUv = inUv;
+	outUv.t = 1.0 - outUv.t;
+
 	outColour = inColour;
-	outNormal = mat3(ubo.modelMatrix) * inNormal;
+	
+	mat3 mNorm = transpose(inverse(mat3(ubo.modelMatrix)));
+	outNormal = mNorm * normalize(inNormal);
 }

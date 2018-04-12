@@ -6,6 +6,8 @@
 
 class VulkanShadow;
 class VulkanModel;
+class VulkanAnimation;
+class VulkanDeferred;
 class VulkanTerrain;
 class CameraSystem;
 class ModelResourceManager;
@@ -16,7 +18,9 @@ enum class VkModId
 {
 	VKMOD_TERRAIN_ID,
 	VKMOD_SHADOW_ID,
-	VKMOD_MODEL_ID
+	VKMOD_MODEL_ID,
+	VKMOD_ANIM_ID,
+	VKMOD_DEFERRED_ID
 };
 
 class VulkanEngine : public VulkanCore
@@ -24,7 +28,7 @@ class VulkanEngine : public VulkanCore
 
 public:
 
-	static constexpr VkClearColorValue CLEAR_COLOR = { 0.0f, 0.2f, 0.8f, 1.0f };
+	static constexpr VkClearColorValue CLEAR_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
 	
 	VulkanEngine(GLFWwindow *window);
 	~VulkanEngine();
@@ -33,7 +37,9 @@ public:
 	void Update(CameraSystem *camera);
 	void Render();
 
-	VulkanModel* RegisterModelResourceManager(ModelResourceManager* manager);
+	VulkanModel* AssociateWithVulkanModel(ModelResourceManager* manager);
+	VulkanAnimation*  AssociateWithVulkanAnimation(ModelResourceManager* manager);
+
 	void RegisterVulkanModules(std::vector<VkModId> modules);
 	void RegisterGraphicsSystem(GraphicsSystem *graphics) { assert(graphics != nullptr); p_graphicsSystem = graphics; }
 	
@@ -44,6 +50,8 @@ public:
 	friend class VulkanTerrain;
 	friend class VulkanShadow;
 	friend class VulkanUtility;
+	friend class VulkanAnimation;
+	friend class VulkanDeferred;
 	friend class ModelResourceManager;
 
 protected:
@@ -52,11 +60,10 @@ protected:
 	TextureInfo InitDepthImage();
 	void PrepareRenderpass();
 	void PrepareFrameBuffers();
-	void GenerateSceneCmdBuffers();
 	void DrawScene();
 	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
 
-	VulkanUtility vkUtility;
+	VulkanUtility *vkUtility;
 	GraphicsSystem *p_graphicsSystem;
 
 	std::unordered_map<VkModId, VulkanModule*> m_vkModules;
@@ -66,7 +73,8 @@ protected:
 	VkCommandPool m_cmdPool;
 	VkRenderPass m_renderpass;
 	std::vector<VkFramebuffer> m_frameBuffer;
-	std::vector<VkCommandBuffer> m_cmdBuffer;
+	VkCommandBuffer m_offscreenCmdBuffer;
+	std::vector<VkCommandBuffer> m_sceneCmdBuffer;
 	TextureInfo m_depthImage;
 
 	bool drawStateChanged;

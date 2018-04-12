@@ -168,6 +168,8 @@ void VulkanCore::InitDevice()
 	VkPhysicalDeviceFeatures devFeatures = {};
 	devFeatures.samplerAnisotropy = VK_TRUE;
 	devFeatures.tessellationShader = VK_TRUE;
+	devFeatures.textureCompressionBC = VK_TRUE;
+	devFeatures.geometryShader = VK_TRUE;
 
 	const std::vector<const char*> swapChainExt = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 

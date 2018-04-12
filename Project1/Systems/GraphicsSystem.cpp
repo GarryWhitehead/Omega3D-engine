@@ -3,9 +3,10 @@
 #include "ComponentManagers/TransformComponentManager.h"
 #include "ComponentManagers/MeshComponentManager.h"
 
-GraphicsSystem::GraphicsSystem(VulkanEngine *engine, std::vector<std::string> filenames) :
+GraphicsSystem::GraphicsSystem(VulkanEngine *engine, std::vector<std::string> filenames, std::vector<std::string> animatedfilenames) :
 	p_vkEngine(engine),
-	m_modelFilenames(filenames)
+	m_modelFilenames(filenames),
+	m_animatedFilenames(animatedfilenames)
 {
 }
 
@@ -19,13 +20,14 @@ void GraphicsSystem::Init()
 	// initialise all the vulkan components required to draw the scene for this world
 	p_vkEngine->Init();
 
-	p_vkEngine->RegisterVulkanModules({ VkModId::VKMOD_SHADOW_ID, VkModId::VKMOD_TERRAIN_ID, VkModId::VKMOD_MODEL_ID });
+	p_vkEngine->RegisterVulkanModules({ VkModId::VKMOD_SHADOW_ID, VkModId::VKMOD_DEFERRED_ID, VkModId::VKMOD_TERRAIN_ID, VkModId::VKMOD_MODEL_ID, VkModId::VKMOD_ANIM_ID});
 
 	p_vkEngine->RegisterGraphicsSystem(this);
 
-	// create model resource manager responsible for importing and controlling models within this space
+	// create model resource manager responsible for importing and controlling static and animated models within this space
 	modelManager.RegisterVulkanEngine(p_vkEngine);
-	modelManager.PrepareModelResources(m_modelFilenames);
+	modelManager.PrepareStaticModelResources(m_modelFilenames);
+	modelManager.PrepareAnimatedModelResources(m_animatedFilenames);
 }
 
 void GraphicsSystem::Update()

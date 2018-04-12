@@ -68,10 +68,12 @@ void CameraSystem::SetPerspective(float fov, float aspect, float zNear, float zF
 	m_cameraInfo.projection = glm::perspective(fov, aspect, zNear, zFar);
 }
 
-void CameraSystem::SetLightInformation(glm::vec3 pos, float fov)
+void CameraSystem::AddLight(const glm::vec3 pos, const float fov)
 {
-	m_lightInfo.pos = pos;
-	m_lightInfo.fov = fov;
+	LightInfo light;
+	light.pos = pos;
+	light.fov = fov;
+	m_lightInfo.push_back(light);
 }
 
 void CameraSystem::UpdateViewMatrix()
@@ -109,7 +111,7 @@ void CameraSystem::Update()
 		this->UpdateViewMatrix();
 
 		m_isMoving = false;
-	}
+	}	
 }
 
 void CameraSystem::Destroy()

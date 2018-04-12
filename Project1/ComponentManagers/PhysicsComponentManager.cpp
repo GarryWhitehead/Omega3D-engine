@@ -69,6 +69,7 @@ void PhysicsComponentManager::Serialise(Archiver* arch, PhysicsComponentManager&
 	*g_filelog << " Successfully imported!\n";
 
 	// update object indicies with newly imported data. If the data is being serialised, then this won't have any effect as the object will already be present in the map
-	uint32_t index = m_data.object.size() - 1;
-	m_indicies.insert(std::make_pair(m_data.object[index], index));
+	for (int c = 0; c < m_data.object.size(); ++c) {
+		m_indicies.insert(std::make_pair(m_data.object[c], c));
+	}
 }

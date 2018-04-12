@@ -13,6 +13,7 @@
 #include "ComponentManagers/PhysicsComponentManager.h"
 #include "ComponentManagers/TransformComponentManager.h"
 #include "ComponentManagers/MeshComponentManager.h"
+#include "ComponentManagers/AnimationComponentManager.h"
 
 #include "VulkanCore/VulkanEngine.h"
 #include <iostream>
@@ -43,6 +44,14 @@ void World::Generate(VulkanEngine *vkEngine)
 	resource.LoadObjectData("assets/world_data/test_world.data");
 
 	InitComponentManagers();
+
+	// models differ between static and animated - type is determined by whether the object is contatined within the animation component manager
+	// so check whether this is the case for each object and set the type for all managers conecerned with this informarion
+	auto mesh = RequestManager<MeshComponentManager>(ComponentManagerId::CM_MESH_ID);
+	if (mesh != nullptr) {
+
+		mesh->InitModelTypes();
+	}
 }
 
 void World::UpdateSystems()
@@ -82,13 +91,15 @@ void World::RegisterSystems(std::vector<SystemId>& systemIds, Engine *engine, Vu
 
 			// setup camera view
 			system->SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
-			system->SetLightInformation(glm::vec3(-48.0f, -48.0f, 46.0f), 45.0f);
+			system->AddLight(glm::vec3(-4.0f, -2.0f, 2.0f), 45.0f);
+			system->AddLight(glm::vec3(2.0f, -4.0f, 0.0f), 45.0f);
+			system->AddLight(glm::vec3(-7.0f, -1.0f, -6.0f), 45.0f);
 
 			*g_filelog << "Camera system successfully registered with world space " << m_name << ".\n";
 		}
 		else if (id == SystemId::GRAPHICS_SYSTEM_ID) {
 
-			GraphicsSystem *system = new GraphicsSystem(vkEngine, modelFilenames);
+			GraphicsSystem *system = new GraphicsSystem(vkEngine, modelFilenames, animatedFilenames);
 			system->Init();
 			m_systems.insert(std::make_pair(SystemId::GRAPHICS_SYSTEM_ID, system));
 
@@ -123,6 +134,13 @@ void World::RegisterComponentManager(ComponentManagerId id)
 		m_managers.insert(std::make_pair(ComponentManagerId::CM_MESH_ID, manager));
 
 		*g_filelog << "Mesh component manager successfully registered with world space " << m_name << ".\n";
+	}
+	else if (id == ComponentManagerId::CM_ANIMATION_ID) {
+
+		AnimationComponentManager *manager = new AnimationComponentManager(ComponentManagerId::CM_ANIMATION_ID);
+		m_managers.insert(std::make_pair(ComponentManagerId::CM_ANIMATION_ID, manager));
+
+		*g_filelog << "Animation component manager successfully registered with world space " << m_name << ".\n";
 	}
 	else {
 		*g_filelog << "Error registering component manager with id #" << (int)id << ". Component manager id not recognised.\n";

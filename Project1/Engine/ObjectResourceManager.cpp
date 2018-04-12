@@ -2,6 +2,7 @@
 #include "utility/serialisation.h"
 #include "ComponentManagers/PhysicsComponentManager.h"
 #include "ComponentManagers/TransformComponentManager.h"
+#include "ComponentManagers/MeshComponentManager.h"
 
 ObjectResourceManager::ObjectResourceManager()
 {
@@ -48,13 +49,13 @@ void ObjectResourceManager::MapObjectArchiver(Archiver *arch, std::unordered_map
 
 	auto iter = map.begin();
 	for (uint32_t c = 0; c < mapSize; ++c) {
-		if (map.size() != mapSize) {
+		if (map.size() != mapSize) {			// if map sizes differ then data isn't present - so de-serialise data from file
 
 			arch->Serialise((int&)type, Archiver::var_info(info.name + "Key::[" + std::to_string(c) + "]"));
 			p_world->RegisterComponentManager(type);
 			map[type]->Serialise(arch, *map.at(type), Archiver::var_info(info.name + "Data::[" + std::to_string(c) + "]"));
 		}
-		else {
+		else {									// otherwise data is present in map, so serialise data to file
 			type = iter->first;
 			arch->Serialise((int&)type, Archiver::var_info(info.name + "Key::[" + std::to_string(c) + "]"));
 			iter->second->Serialise(arch, *iter->second, Archiver::var_info(info.name + "Data::[" + std::to_string(c) + "]"));

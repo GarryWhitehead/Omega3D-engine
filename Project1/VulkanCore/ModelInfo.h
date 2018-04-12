@@ -44,12 +44,14 @@ struct ModelInfo
 	struct ModelVertex
 	{
 		VkVertexInputBindingDescription GetInputBindingDescription();
-		std::array<VkVertexInputAttributeDescription, 4> GetAttrBindingDescription();
+		std::array<VkVertexInputAttributeDescription, 6> GetAttrBindingDescription();
 
 		glm::vec3 pos;
 		glm::vec2 uv;
 		glm::vec3 normal;
 		glm::vec3 colour;
+		float boneWeigthts[4];
+		uint32_t boneId[4];
 	};
 
 	// constructor/de-constructor
@@ -58,10 +60,10 @@ struct ModelInfo
 	~ModelInfo();
 
 	// function templates
-	void LoadModel(std::string filename, VkDevice device, VkCommandPool cmdPool);
-	TextureInfo LoadMaterialTexture(objMaterial &material, objTextureType type, VkCommandPool cmdPool);
+	void LoadModel(std::string filename, VulkanEngine *vkEngine, VkCommandPool cmdPool);
+	TextureInfo LoadMaterialTexture(objMaterial &material, objTextureType type, VulkanEngine *vkEngine, VkCommandPool cmdPool);
 	void ProcessMeshes(Objector::ModelInfo *model);
-	void ProcessMaterials(Objector::ModelInfo *model, VkCommandPool cmdPool);
+	void ProcessMaterials(Objector::ModelInfo *model, VulkanEngine *vkEngine, VkCommandPool cmdPool);
 
 	// data
 	Objector objector;
