@@ -134,7 +134,7 @@ void VulkanModel::PrepareMaterialDescriptorSet(ModelInfo *model)
 		VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &model->materialData[c].descrSet));
 
 		VkDescriptorImageInfo imageInfoDiff = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].diffuse.imageView, model->materialData[c].diffuse.m_tex_sampler);		// diffuse texture
-		VkDescriptorImageInfo imageInfoSpec = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].specular.imageView, model->materialData[c].specular.m_tex_sampler);		// diffuse texture
+		VkDescriptorImageInfo imageInfoSpec = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, model->materialData[c].specular.imageView, model->materialData[c].specular.m_tex_sampler);		// specular texture
 
 		std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
 		writeDescrSet[0] = vkUtility->InitDescriptorSet(model->materialData[c].descrSet, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfoDiff);
@@ -169,7 +169,10 @@ void VulkanModel::PrepareModelPipelineWithMaterial()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
+	multiInfo.alphaToCoverageEnable = VK_TRUE;
+	multiInfo.minSampleShading = 0.25f;
+	multiInfo.sampleShadingEnable = VK_TRUE;
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
@@ -264,7 +267,10 @@ void VulkanModel::PrepareModelPipelineWithoutMaterial()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
+	multiInfo.alphaToCoverageEnable = VK_TRUE;
+	multiInfo.minSampleShading = 0.25f;
+	multiInfo.sampleShadingEnable = VK_TRUE;
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};

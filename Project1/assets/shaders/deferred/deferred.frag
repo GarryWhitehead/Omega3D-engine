@@ -3,9 +3,9 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (binding = 2) uniform sampler2D positionSampler;
-layout (binding = 3) uniform sampler2D normalSampler;
-layout (binding = 4) uniform sampler2D albedoSampler;
+layout (binding = 2) uniform sampler2DMS positionSampler;
+layout (binding = 3) uniform sampler2DMS normalSampler;
+layout (binding = 4) uniform sampler2DMS albedoSampler;
 layout (binding = 5) uniform sampler2DArray shadowSampler;
 
 layout (location = 0) in vec2 inUv;
@@ -29,6 +29,20 @@ layout (binding = 1) uniform UboBuffer
 	Light lights[LIGHT_COUNT];
 } ubo;
 
+layout (constant_id = 0) const int SAMPLE_COUNT = 8;
+
+vec4 resolve(sampler2DMS texture, ivec2 uv)
+{
+	vec4 result = vec4(0.0);
+	for(int c = 0; c < SAMPLE_COUNT; c++) {
+	
+		vec4 texel = texelFetch(texture, uv, c);
+		result += texel;
+	}
+	result /= float(SAMPLE_COUNT);
+	return result;
+}
+
 
 float textureProj(vec4 P, float layer, vec2 offset)
 {
@@ -47,13 +61,9 @@ float textureProj(vec4 P, float layer, vec2 offset)
 	return shadow;
 }
 
-void main()
+vec3 SampleLight(vec3 fragPos, vec3 normal, vec4 albedo)
 {
-	// extract values for position.etc from the G-buffer 
-	vec3 fragPos = texture(positionSampler, inUv).rgb;
-	vec3 normal = texture(normalSampler, inUv).rgb;
-	vec4 albedo = texture(albedoSampler, inUv); 	
-	vec3 light = albedo.rgb * 0.3;	// hard-coded ambient light - chnage to push-constant or similiar
+	vec3 light = vec3(0.0);
 	
 	vec3 N = normalize(normal);
 	
@@ -65,30 +75,54 @@ void main()
 		vec3 viewDir = normalize(ubo.viewPos.xyz - fragPos);
 		
 		// diffuse lighting
-		vec3 diffuse = max(dot(N, lightDir), 0.0) * albedo.rgb * ubo.lights[i].colour.rgb;
+		float diff = max(dot(N, lightDir), 0.0); 
+		vec3 diffuse = vec3(diff);
 		
 		// specular
 		vec3 R = reflect(-lightDir, N);
 		float angle = max(0.0, dot(R, viewDir));
 		vec3 specular = vec3(pow(angle, 16.0) * albedo.a * 2.5);
 		
-		light += vec3(diffuse + specular);
+		light += vec3(diffuse + specular) * ubo.lights[i].colour.rgb * albedo.rgb;
 	}
 	
-	
-	for(int i = 0; i < LIGHT_COUNT; ++i) {
-		vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
+	return light;
+}
 
-		float shadowFactor;
-		
-		shadowFactor = textureProj(shadowClip, i, vec2(0.0));
-		
-		light *= shadowFactor;
+void main()
+{
+	vec3 finalColour = vec3(0.0);
+	
+	// convert to non-normalised uv co-ords for use with texels
+	ivec2 texDim = textureSize(positionSampler);
+	ivec2 texUv = ivec2(texDim * inUv);
+	
+	// ambient
+	vec4 resAlbedo = resolve(albedoSampler, texUv);
+	
+	// diffuse and specular for each sample
+	for(int c = 0; c < SAMPLE_COUNT; c++) {
+	
+		vec3 texPos = texelFetch(positionSampler, texUv, c).rgb;
+		vec3 normal = texelFetch(normalSampler, texUv, c).rgb;
+		vec4 albedo = texelFetch(albedoSampler, texUv, c); 
+		finalColour += SampleLight(texPos, normal, albedo);
 	}
+	
+	finalColour = (resAlbedo.rgb * 0.5) + finalColour / float(SAMPLE_COUNT);
+			
+	// shadow calculations
+	vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
+	
+	for(int i = 0; i < LIGHT_COUNT; i++) {
+	
+		vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
+		float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
 		
+		finalColour *= shadowFactor;
+	}
 	
-	
-	outFrag.rgb = light;
+	outFrag = vec4(finalColour, 1.0);
 }
 		
 		

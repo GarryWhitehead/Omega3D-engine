@@ -209,7 +209,10 @@ void VulkanTerrain::PreparePipeline()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
+	multiInfo.alphaToCoverageEnable = VK_TRUE;
+	multiInfo.minSampleShading = 0.25f;
+	multiInfo.sampleShadingEnable = VK_TRUE;
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
@@ -315,20 +318,19 @@ void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescri
 
 	VkDeviceSize bgOffsets[] = { 0 };
 
-	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_cubeModel.vertexBuffer.buffer, bgOffsets);
-	vkCmdBindIndexBuffer(cmdBuffer, m_cubeModel.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.pipeline : pipeline);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_skyboxInfo.descrInfo.set : &set, 0, NULL);
-	vkCmdDrawIndexed(cmdBuffer, m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
-
+	if (pipeline == VK_NULL_HANDLE) {
+		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_cubeModel.vertexBuffer.buffer, bgOffsets);
+		vkCmdBindIndexBuffer(cmdBuffer, m_cubeModel.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.pipeline : pipeline);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_skyboxInfo.descrInfo.set : &set, 0, NULL);
+		vkCmdDrawIndexed(cmdBuffer, m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
+	}
 
 	// Terrain draw
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.pipeline : pipeline);
-	
+	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.pipeline : pipeline);	
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_terrainInfo.buffer.vertex.buffer, bgOffsets);
 	vkCmdBindIndexBuffer(cmdBuffer, m_terrainInfo.buffer.index.buffer, 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ?  &m_terrainInfo.descrInfo.set : &set, 0, NULL);
-
 	vkCmdDrawIndexed(cmdBuffer, m_terrainInfo.buffer.indexCount, 1, 0, 0, 0);
 }
 
@@ -347,7 +349,7 @@ void VulkanTerrain::PrepareTerrainData()
 			vertices[index].pos.x = x * WX + WX / 2.0f - (float)PATCH_SIZE * WX / 2.0f;
 			vertices[index].pos.z = y * WY + WY / 2.0f - (float)PATCH_SIZE * WY / 2.0f;
 			vertices[index].pos.y = 0.0f;
-			vertices[index].uv = glm::vec2(x / (float)PATCH_SIZE, y / (float)PATCH_SIZE) * 1.0f;
+			vertices[index].uv = glm::vec2(x / (float)PATCH_SIZE, y / (float)PATCH_SIZE) * 3.0f;
 		}
 	}
 

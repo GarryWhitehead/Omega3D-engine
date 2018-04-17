@@ -27,8 +27,8 @@ void main()
 	for(int i = 0; i < gl_in.length(); i++) {
 	
 		gl_Layer = gl_InvocationID;
-		vec4 tempPos = gl_in[i].gl_Position + indexedPos;
-		gl_Position = ubo.mvp[gl_InvocationID] * tempPos;
+		//vec4 tempPos = gl_in[i].gl_Position + indexedPos;
+		gl_Position = ubo.mvp[gl_InvocationID] * gl_in[i].gl_Position;
 		EmitVertex();
 	}
 	EndPrimitive();

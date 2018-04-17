@@ -101,6 +101,61 @@ uint32_t XMLparse::FindElementInBuffer(std::string node, XMLPbuffer& buffer, uin
 	return UINT32_MAX;
 }
 
+uint32_t XMLparse::FindElementInBufferIterateBack(std::string node, XMLPbuffer& buffer, uint32_t index)
+{
+	size_t pos = 0;
+	std::string line;
+
+	node = '<' + node;
+
+	for (int c = index; c > 0; --c) {
+
+		line = buffer[c];
+		pos = line.find(node);
+		if (pos != std::string::npos) {
+
+			return c;
+		}
+
+	}
+
+	return UINT32_MAX;
+}
+
+uint32_t XMLparse::FindChildElementInBuffer(std::string parent, std::string child, XMLPbuffer& buffer, uint32_t index)
+{
+	size_t pos = 0;
+	std::string line;
+
+	uint32_t count = index;
+	std::string endParent = "</" + parent + '>';
+
+	// start by determining the size of the parent element block
+	while (count < buffer.size()) {
+
+		line = buffer[count];
+		pos = line.find(endParent);
+		if (pos != std::string::npos) {
+			break;
+		}
+		++count;
+	}
+
+	std::string startChild = '<' + child;
+	for (int c = index; c < count; ++c) {
+
+		line = buffer[c];
+		pos = line.find(startChild);
+		if (pos != std::string::npos) {
+
+			return c;
+		}
+
+	}
+
+	return UINT32_MAX;
+}
+
 std::string XMLparse::ReadElementDataString(std::string node, XMLPbuffer& buffer, uint32_t index)
 {
 	std::string str = buffer[index];
@@ -142,13 +197,13 @@ std::string XMLparse::ReadElementDataString(std::string node, XMLPbuffer& buffer
 			pos = str.find_first_of('"');
 			if (pos != std::string::npos) {
 
-				std::string outputStr = str.substr(0, pos);
-				if (!outputStr.empty()) {
+				str = str.substr(0, pos);
+				if (!str.empty()) {
 
-					if (outputStr[0] == '#') {				// certain packages place a hash symbol before the string which we dont need
-						outputStr.erase(0, 1);
+					if (str[0] == '#') {				// certain packages place a hash symbol before the string which we dont need
+						str.erase(0, 1);
 					}
-					return outputStr;
+					return str;
 				}
 			}
 		}
@@ -170,7 +225,7 @@ int XMLparse::ReadElementDataInt(std::string nodeName, XMLPbuffer& buffer, uint3
 
 float XMLparse::ReadElementDataFloat(std::string nodeName, XMLPbuffer& buffer, uint32_t index)
 {
-	std::string startNode = '<' + nodeName + '>';
+	std::string startNode = '<' + nodeName;
 
 	std::string str = buffer[index];
 
@@ -229,48 +284,6 @@ glm::mat4 XMLparse::ReadElementDataMatrix(std::string nodeName, XMLPbuffer& buff
 	return mat;
 }
 
-uint32_t XMLparse::ReadElementArrayVec3(XMLPbuffer& buffer, std::vector<glm::vec3>& dstBuffer, uint32_t index, uint32_t arrayCount)
-{
-	uint32_t arrayIndex = index;
-
-	// start by removing array data from first line
-	std::string str = buffer[arrayIndex];
-
-	size_t pos = str.find_first_of(">");
-	if (pos == std::string::npos) {
-		m_errorFlags = ErrorFlags::XMLP_INCORRECT_NODE_FORMAT;
-		return index;
-	}
-	str = str.substr(pos + 1, str.size());
-	std::stringstream ss(str);
-	uint32_t count = 0;
-
-	while (arrayIndex < buffer.size()) {
-
-		glm::vec3 vec;
-		
-		for (int x = 0; x < 3; ++x) {
-
-			ss >> vec[x];
-			if (ss.eof()) {
-
-				++arrayCount;
-				str = buffer[arrayCount];
-				assert(arrayCount < buffer.size());
-			}
-		}
-		dstBuffer.push_back(vec);
-		++count;
-		if (count == arrayCount / 3) {				// stride of 3
-			return arrayIndex + 1;					// point to the next line in the file after the array
-		}
-	}
-
-	// if we arrived here, the there's a problem with the file formatting
-	m_errorFlags = ErrorFlags::XMLP_INCORRECT_FILE_FORMAT;
-	return arrayIndex;
-}
-
 uint32_t XMLparse::ReadElementArrayMatrix(XMLPbuffer& buffer, std::vector<glm::mat4>& dstBuffer, uint32_t index, uint32_t arrayCount)
 {
 	uint32_t arrayIndex = index;
@@ -319,6 +332,19 @@ uint32_t XMLparse::ReadElementArrayMatrix(XMLPbuffer& buffer, std::vector<glm::m
 bool XMLparse::CheckElement(std::string id, XMLPbuffer& buffer, uint32_t index)
 {
 	id = '<' + id;
+	std::string str = buffer[index];
+
+	size_t pos = str.find(id);
+	if (pos != std::string::npos) {
+
+		return true;
+	}
+
+	return false;
+}
+
+bool XMLparse::CheckChildElement(std::string id, XMLPbuffer& buffer, uint32_t index)
+{
 	std::string str = buffer[index];
 
 	size_t pos = str.find(id);

@@ -75,7 +75,7 @@ void ModelResourceManager::PrepareStaticModelResources(std::vector<std::string>&
 	p_vulkanModel->PrepareModelPipelineWithoutMaterial();
 
 	// add relevant descriptor set and pipeline info to each model
-	AddPipelineDataToModels();
+	PrepareMaterialData();
 }
 
 void ModelResourceManager::PrepareAnimatedModelResources(std::vector<std::string>& colladaFilenames)
@@ -86,8 +86,21 @@ void ModelResourceManager::PrepareAnimatedModelResources(std::vector<std::string
 	p_vulkanAnim->PrepareUBOBuffer();
 
 	// prepare descriptor sets for meshes and materials
-	p_vulkanAnim->PrepareDescriptorSet(m_colladaModels[0].m_matTexture);
+	p_vulkanAnim->PrepareMaterialDescriptorPool(m_animMaterialCount);
+	p_vulkanAnim->PrepareMeshDescriptorSet();
+	p_vulkanAnim->PrepareMaterialDescriptorLayouts();
+
+	for (auto& model : m_colladaModels) {
+
+		for (auto& mat : model.m_materials) {
+		
+			p_vulkanAnim->PrepareMaterialDescriptorSets(&mat);
+		}
+	}
+
 	p_vulkanAnim->PreparePipeline();
+	AddPipelineDataToModels();
+	
 }
 
 void ModelResourceManager::ImportModels(std::vector<std::string>& filenames)
@@ -135,10 +148,38 @@ void ModelResourceManager::ImportModels(std::vector<std::string>& filenames)
 
 void ModelResourceManager::AddPipelineDataToModels()
 {
+	for (auto& model : m_colladaModels) {
+
+		for (auto& mat : model.m_materials) {
+
+			if (mat.matTypes & (int)MaterialTexture::TEX_DIFF) {
+
+				if (mat.matTypes & (int)MaterialTexture::TEX_NORM) {
+
+					mat.layout = p_vulkanAnim->m_animInfo.matPipelines.diffNorm.layout;
+					mat.pipeline = p_vulkanAnim->m_animInfo.matPipelines.diffNorm.pipeline;
+				}
+				else {
+
+					mat.layout = p_vulkanAnim->m_animInfo.matPipelines.diff.layout;
+					mat.pipeline = p_vulkanAnim->m_animInfo.matPipelines.diff.pipeline;
+				}
+			}
+			else if (mat.matTypes & (int)MaterialTexture::TEX_NONE) {
+
+				mat.layout = p_vulkanAnim->m_animInfo.matPipelines.nomap.layout;
+				mat.pipeline = p_vulkanAnim->m_animInfo.matPipelines.nomap.pipeline;
+			}
+		}
+	}
+}
+
+void ModelResourceManager::PrepareMaterialData()
+{
 	for (auto& model : m_models) {
-		
+
 		if (!model.materialData.empty()) {
-		
+
 			for (uint32_t c = 0; c < model.meshData.size(); ++c) {
 
 				// descriptor set for mesh and material
@@ -153,7 +194,7 @@ void ModelResourceManager::AddPipelineDataToModels()
 		else {
 			// pipelines and descriptor sets for meshes with no material information
 			for (uint32_t c = 0; c < model.meshData.size(); ++c) {
-				
+
 				model.meshData[c].descrSets.push_back(p_vulkanModel->m_meshDescrInfo.set);
 
 				// pipeline info
@@ -175,9 +216,15 @@ void ModelResourceManager::ImportColladaModels(std::vector<std::string>& filenam
 		model.ImportFile(name, p_vkEngine, p_vkEngine->m_cmdPool);
 		m_colladaModels.push_back(model);
 
-		// total buffer size required for static meshes
-		totalVertexSize += sizeof(ColladaModelInfo::ModelVertex) * model.p_scene->meshData[0].numPositions();
-		totalIndexSize += sizeof(uint32_t) * model.p_scene->meshData[0].totalIndices();
+		for (auto& mesh : model.p_scene->meshData->meshes) {
+
+			// total buffer size required for static meshes
+			totalVertexSize += sizeof(ColladaModelInfo::ModelVertex) * mesh.numPositions();
+			
+			for (auto& face : mesh.face) {
+				totalIndexSize += sizeof(uint32_t) * face.numIndices();
+			}
+		}
 
 		*g_filelog << "Importing collada model data from " << name << "......... Sucessfully imported into world space!";
 	}
@@ -201,7 +248,7 @@ void ModelResourceManager::ImportColladaModels(std::vector<std::string>& filenam
 		indexOffset += model.indexBuffer.size;
 
 		// also calculate the total number of materials contained within all models
-		m_animMaterialCount += model.m_materials.size();
+		m_animMaterialCount += model.m_materials.size() + 1;
 	}
 }
 

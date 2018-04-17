@@ -35,6 +35,7 @@ private:
 
 	void ImportModels(std::vector<std::string>& filenames);
 	void AddPipelineDataToModels();
+	void PrepareMaterialData();
 
 	// collada models
 	void ImportColladaModels(std::vector<std::string>& filenames);

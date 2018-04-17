@@ -19,6 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComponentManagers\LightComponentManager.cpp" />
+    <ClCompile Include="SiimpleCollada\ColladaSkeleton.cpp" />
+    <ClCompile Include="SiimpleCollada\ColladaAnimation.cpp" />
+    <ClCompile Include="SiimpleCollada\ColladaMaterials.cpp" />
+    <ClCompile Include="SiimpleCollada\ColladaVertices.cpp" />
     <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
     <ClCompile Include="VulkanCore\ColladaModelInfo.cpp" />
     <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
@@ -55,8 +60,14 @@
     <ClCompile Include="VulkanCore\VulkanEngine.cpp" />
     <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
+    <ClCompile Include="VulkanPBR.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComponentManagers\LightComponentManager.h" />
+    <ClInclude Include="SiimpleCollada\ColladaAnimation.h" />
+    <ClInclude Include="SiimpleCollada\ColladaMaterials.h" />
+    <ClInclude Include="SiimpleCollada\ColladaSkeleton.h" />
+    <ClInclude Include="SiimpleCollada\ColladaVertices.h" />
     <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
     <ClInclude Include="VulkanCore\ColladaModelInfo.h" />
     <ClInclude Include="Engine\ModelResourceManager.h" />
@@ -92,6 +103,7 @@
     <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
     <ClInclude Include="Engine\World.h" />
     <ClInclude Include="VulkanCore\VulkanDeferred.h" />
+    <ClInclude Include="VulkanPBR.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

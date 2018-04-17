@@ -9,11 +9,10 @@ layout (binding = 0) uniform UBO
 {
 	mat4 projection;
 	mat4 model;
-	vec4 offsets[3];
 } ubo;
 
-layout (location = 0) out vec3 outPos;
-layout (location = 1) out vec3 outUv;
+layout (location = 0) out vec3 outUv;
+layout (location = 1) out vec3 outPos;
 
 out gl_PerVertex 
 {
@@ -22,10 +21,11 @@ out gl_PerVertex
 
 void main() 
 {
-	vec4 tempPos = vec4(inPos, 1.0) + ubo.offsets[gl_InstanceIndex];
-
-	gl_Position = ubo.projection * ubo.model * tempPos;
 	
+	gl_Position = ubo.projection * ubo.model * vec4(inPos, 1.0);
+	
+	outPos = (ubo.model * vec4(inPos, 1.0)).xyz;
+
 	outUv = inPos;
 	outUv.x *= -1.0;
 	outUv.t = 1.0 - outUv.t;

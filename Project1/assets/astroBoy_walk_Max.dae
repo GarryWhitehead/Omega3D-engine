@@ -13250,23 +13250,7 @@ See license file or www.creativecommons.org for details.
               <color>0.305882 0.254902 0.254902 1</color>
             </ambient>
             <diffuse>
-              <texture texture="boy_10_tga-sampler" texcoord="CHANNEL1">
-                <extra>
-                  <technique profile="MAYA">
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                  </technique>
-                  <technique profile="MAX3D">
-                    <amount>1</amount>
-                  </technique>
-                </extra>
-              </texture>
+              <texture texture="boy_10.jpg" />
             </diffuse>
             <specular>
               <color>0.306 0.203184 0.234183 1</color>
@@ -13306,7 +13290,7 @@ See license file or www.creativecommons.org for details.
     </effect>
     <effect id="glass-fx" name="glass-fx">
       <profile_COMMON>
-        <newparam sid="boy_10_tga-surface">
+        <newparam sid="boy_10_jpg">
           <surface type="2D">
             <init_from>boy_10.tga</init_from>
             <format>A8R8G8B8</format>
@@ -13331,23 +13315,7 @@ See license file or www.creativecommons.org for details.
               <color>0.254902 0.254902 0.254902 1</color>
             </ambient>
             <diffuse>
-              <texture texture="boy_10_tga-sampler" texcoord="CHANNEL1">
-                <extra>
-                  <technique profile="MAYA">
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                  </technique>
-                  <technique profile="MAX3D">
-                    <amount>1</amount>
-                  </technique>
-                </extra>
-              </texture>
+              <texture texture="boy_10.jpg" />
             </diffuse>
             <specular>
               <color>0.843137 0.831373 0.894118 1</color>
@@ -13412,23 +13380,7 @@ See license file or www.creativecommons.org for details.
               <color>0.254902 0.254902 0.254902 1</color>
             </ambient>
             <diffuse>
-              <texture texture="boy_10_tga-sampler" texcoord="CHANNEL1">
-                <extra>
-                  <technique profile="MAYA">
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                  </technique>
-                  <technique profile="MAX3D">
-                    <amount>1</amount>
-                  </technique>
-                </extra>
-              </texture>
+              <texture texture="boy_10.jpg" />
             </diffuse>
             <specular>
               <color>0.9 0.9 0.9 1</color>
@@ -13493,23 +13445,8 @@ See license file or www.creativecommons.org for details.
               <color>0.254902 0.254902 0.254902 1</color>
             </ambient>
             <diffuse>
-              <texture texture="boy_10_tga-sampler" texcoord="CHANNEL1">
-                <extra>
-                  <technique profile="MAYA">
-                    <mirrorU>0</mirrorU>
-                    <mirrorV>0</mirrorV>
-                    <wrapU>1</wrapU>
-                    <wrapV>1</wrapV>
-                    <repeatU>1</repeatU>
-                    <repeatV>1</repeatV>
-                    <offsetU>0</offsetU>
-                    <offsetV>0</offsetV>
-                  </technique>
-                  <technique profile="MAX3D">
-                    <amount>1</amount>
-                  </technique>
-                </extra>
-              </texture>
+              <texture texture="boy_10.jpg" />
+                
             </diffuse>
             <specular>
               <color>0.19834 0.19834 0.19834 1</color>

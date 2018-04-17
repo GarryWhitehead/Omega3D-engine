@@ -20,9 +20,11 @@ layout (vertices = 4) out;
 
 layout (location = 0) in vec2 inUv[];
 layout (location = 1) in vec3 inNorm[];
+layout (location = 2) in vec3 inPos[];
 
 layout (location = 0) out vec2 outUv[4]; 	// four vertices
 layout (location = 1) out vec3 outNorm[4];
+layout (location = 2) out vec3 outPos[4];
 
 vec4 WorldToNormalSpace(vec4 vert)
 {

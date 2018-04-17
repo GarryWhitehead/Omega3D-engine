@@ -17,7 +17,7 @@ public:
 
 	// model filenames to load
 	std::vector<std::string> modelFilenames = { "assets/giraffe.obj" };				// TODO: these will be moved to a json file and imported on creation of level
-	std::vector<std::string> animatedFilenames = { "assets/astroBoy_walk_Max.dae" };						// 
+	std::vector<std::string> animatedFilenames = { "assets/dragon.dae" };						// astroBoy_walk_Max.
 
 	World();
 	World(std::string name);

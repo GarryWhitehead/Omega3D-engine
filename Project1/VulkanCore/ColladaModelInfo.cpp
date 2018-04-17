@@ -30,55 +30,59 @@ void ColladaModelInfo::ImportFile(std::string filename, VulkanEngine *vkEngine, 
 
 void ColladaModelInfo::ProcessMeshes()
 {	
-	// setup bone data
-	m_globalInvTransform = glm::mat4(1.0f);		// global transform = node transform
-	glm::inverse(m_globalInvTransform);
-	m_vertexBoneData.resize(p_scene->meshData[0].numPositions());
-
-	uint32_t boneIndex = 0;
-	// collect required skeleton bone data - inverse bind matrix and name id and weights per vertex
-
-	for (uint32_t c = 0; c < p_scene->skeletonData.bones.size(); ++c) {
-
-		std::string boneName = p_scene->skeletonData.bones[c].sid;
-		uint32_t index = p_scene->skinData.FindBone(boneName);
 	
-		if (boneName != "") {
+	/*for (uint32_t m = 0; m < p_scene->meshData->meshes.size(); ++m) {
 
-			if (m_boneMap.find(boneName) == m_boneMap.end()) {
+		// setup bone data
+	//	m_globalInvTransform = glm::mat4(1.0f);		// global transform = node transform
+	//	glm::inverse(m_globalInvTransform);
+	//	m_vertexBoneData.resize(p_scene->meshData->meshes[m].position.size());
 
-				SkeletonInfo bone;
-				bone.name = p_scene->skinData.joints[index];				// data for the bones is actually found in the skinning data - library_controllers
-				bone.invBind = p_scene->skinData.invBind[index];
-				bone.localTransform = p_scene->skeletonData.GetLocalTransform(bone.name);
-				m_boneData.push_back(bone);
+	//	uint32_t boneIndex = 0;
+		// collect required skeleton bone data - inverse bind matrix and name id and weights per vertex
 
-				m_boneMap.insert(std::make_pair(boneName, boneIndex));
-				++boneIndex;
+	//	for (uint32_t c = 0; c < p_scene->numMeshes(); ++c) {
+
+	//		std::string boneName = p_scene->skeleton->skeletonData.bones[c].sid;
+	//		uint32_t index = p_scene->meshData->skinData[m].FindBone(boneName);
+
+	//		if (boneName != "") {
+
+				if (m_boneMap.find(boneName) == m_boneMap.end()) {
+
+					SkeletonInfo bone;
+					bone.name = p_scene->meshData->skinData[m].joints[index];				// data for the bones is actually found in the skinning data - library_controllers
+					bone.invBind = p_scene->meshData->skinData[m].invBind[index];
+					bone.localTransform = p_scene->skeleton->skeletonData.GetLocalTransform(bone.name);
+					m_boneData.push_back(bone);
+
+					m_boneMap.insert(std::make_pair(boneName, boneIndex));
+					++boneIndex;
+				}
+				else {
+					boneIndex = m_boneMap[boneName];
+				}
 			}
-			else {
-				boneIndex = m_boneMap[boneName];
+
+			for (uint32_t w = 0; w < p_scene->skeleton->skeletonData.bones[index].numWeights(); ++w) {		// indices data in the format offset 0 = joint id; 1 = weight 
+
+				uint32_t vertexIndex = p_scene->skeleton->skeletonData.bones[index].weights[w].vertexId;
+				assert(vertexIndex < m_vertexBoneData.size());
+				AddVertexBoneData(vertexIndex, boneIndex, p_scene->skeleton->skeletonData.bones[index].weights[w].weight);
 			}
-		}
-
-		for (uint32_t w = 0; w < p_scene->skeletonData.bones[index].numWeights(); ++w) {		// indices data in the format offset 0 = joint id; 1 = weight 
-
-			uint32_t vertexIndex = p_scene->skeletonData.bones[index].weights[w].vertexId;
-			assert(vertexIndex < m_vertexBoneData.size());
-			AddVertexBoneData(vertexIndex, boneIndex, p_scene->skeletonData.bones[index].weights[w].weight);
 		}
 	}
 	m_boneTransforms.resize(m_boneData.size());
-
+	*/
 	uint32_t indexBase = 0;
 	uint32_t vertexBase = 0;
+	uint32_t count = 0;
 	m_meshData.resize(p_scene->numMeshes());
 
-	for (int c = 0; c < p_scene->meshData.size(); ++c) {			// actually, at the moment the importer only allows for one mesh but this change in the future
+	for (int c = 0; c < p_scene->numMeshes(); ++c) {			
 
-		SimpleCollada::Mesh mesh = p_scene->meshData[c];
-
-		m_meshData[c].vertexBase = vertexBase;
+		ColladaVertices::Mesh mesh = p_scene->meshData->meshes[c];
+		m_meshData[c].vertexBase = vertexBase;				
 
 		// upload vertices
 		for (uint32_t i = 0; i < mesh.numPositions(); ++i) {
@@ -99,37 +103,42 @@ void ColladaModelInfo::ProcessMeshes()
 
 
 			// add the bone info
-			for (uint32_t b = 0; b < MAX_VERTEX_BONES; ++b) {
+			/*for (uint32_t b = 0; b < MAX_VERTEX_BONES; ++b) {
 				vertex.boneId[b] = m_vertexBoneData[i].boneId[b];
 				vertex.boneWeigthts[b] = m_vertexBoneData[i].weights[b];
-			}
+			}*/
 
 			vertices.push_back(vertex);
+			++count;
 		}
 
-		vertexBase += vertices.size() * sizeof(ModelVertex);
+		m_meshData[c].vertexCount = count;
+		vertexBase += count * sizeof(ModelVertex);
 
-		// retrieve the indices data
-		for (uint32_t i = 0; i < mesh.numFaces(); ++i) {
-
-			FaceInfo face;
-			std::string mat = p_scene->meshData[c].face[i].info.material;
-			face.materialIndex = FindMaterialIndex(mat);
-			face.indexBase = indexBase;
+		// retrieve the face indices data for this mesh 
+		for (uint32_t f = 0; f < mesh.numFaces(); ++f) {
 			
-			uint32_t count = 0;
-			for (uint32_t v = 0; v < mesh.face[i].numIndices(); ++v) {
+			count = 0;
+			FaceInfo face;
 
-				indices.push_back(mesh.face[i].indices[v]);
+			// material for each face
+			std::string mat = p_scene->meshData->meshes[c].face[f].material;
+			face.materialIndex = FindMaterialIndex(mat);
+
+			// indices data
+			face.indexBase = indexBase;
+
+			for (uint32_t v = 0; v < mesh.face[f].numIndices(); ++v) {
+
+				indices.push_back(mesh.face[f].indices[v]);
 				++count;
 			}
-			face.indexCount = count;
-			indexBase += count;
-			m_meshData[c].faces.push_back(face);
-		}
-		m_meshData[c].totalIndexSize = indexBase;
-	}
 
+			indexBase += count;
+			face.indexCount = count;
+			m_meshData[c].faceInfo.push_back(face);
+		}
+	}
 	
 	// calculate size of each buffer
 	vertexBuffer.size = sizeof(ColladaModelInfo::ModelVertex) * vertices.size();
@@ -165,29 +174,13 @@ uint8_t ColladaModelInfo::FindMaterialIndex(std::string matName)
 
 void ColladaModelInfo::ProcessMaterials(VulkanEngine *vkEngine, VkCommandPool cmdPool)
 {
-	// only assuming one texture for now, will change this when texture per material when needed...
-	VulkanUtility vkUtility;
-	vkUtility.InitVulkanUtility(vkEngine);
-
-	std::string filename(p_scene->libraryImageData[0]);
-	//std::string filename("goblin.ktx");
-	size_t pos = filename.find(".tga");
-	if (pos != std::string::npos) {
-
-		filename = filename.substr(0, pos);			// TODO:: add jpg, png, tga
-		filename = filename + ".ktx";
-	}
-
-	filename = "assets/" + filename;
-	m_matTexture = vkUtility.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_COMPARE_OP_ALWAYS, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, cmdPool);
-
-	m_materials.resize(p_scene->numMaterials());
+	m_materials.resize(p_scene->materials->materials.size());
 
 	for (int c = 0; c < m_materials.size(); ++c) {
 
 		m_materials[c] = {};
 
-		SimpleCollada::MaterialInfo mat = p_scene->materialData[c];
+		ColladaMaterials::MaterialInfo mat = p_scene->materials->materials[c];
 
 		// get material name
 		m_materials[c].name = mat.name;
@@ -198,7 +191,59 @@ void ColladaModelInfo::ProcessMaterials(VulkanEngine *vkEngine, VkCommandPool cm
 		m_materials[c].properties.specular = glm::vec4(mat.specular);
 		m_materials[c].properties.transparency = mat.transparency;
 		m_materials[c].properties.shininess = mat.shininess;
+
+		if (!mat.hasTexture()) {
+			m_materials[c].matTypes |= (int)MaterialTexture::TEX_NONE;
+			m_materials[c].texture.nomap = LoadMaterialTexture(mat, MatType::MAT_NONE, vkEngine, cmdPool);
+		}
+		else {
+			if (mat.hasTexture(MatType::MAT_DIFFUSE)) {
+				m_materials[c].texture.diffuse = LoadMaterialTexture(mat, MatType::MAT_DIFFUSE, vkEngine, cmdPool);
+				m_materials[c].matTypes |= (int)MaterialTexture::TEX_DIFF;
+			}
+			if (mat.hasTexture(MatType::MAT_NORMAL)) {
+				m_materials[c].texture.normal = LoadMaterialTexture(mat, MatType::MAT_NORMAL, vkEngine, cmdPool);
+				m_materials[c].matTypes |= (int)MaterialTexture::TEX_NORM;
+			}
+		}
 	}
+}
+
+TextureInfo ColladaModelInfo::LoadMaterialTexture(ColladaMaterials::MaterialInfo &material,  MatType type, VulkanEngine *vkEngine, VkCommandPool cmdPool)
+{
+	
+	std::string filename;
+
+	if (type == MatType::MAT_NONE) {
+
+		filename = "dummy.ktx";
+	}
+	else {
+
+		filename = material.GetMaterialType(type);
+
+		// check whether original file is of tga format
+		size_t pos = filename.find(".tga");
+		if (pos != std::string::npos) {
+
+			filename = filename.substr(0, pos);			// TODO:: add jpg, png, tga
+			filename = filename + ".ktx";
+		}
+		pos = filename.find(".jpg");
+		if (pos != std::string::npos) {
+
+			filename = filename.substr(0, pos);			// TODO:: add jpg, png, tga
+			filename = filename + ".ktx";
+		}
+	}
+
+	VulkanUtility vkUtility;
+	vkUtility.InitVulkanUtility(vkEngine);
+
+	filename = "assets/" + filename;
+	TextureInfo texture = vkUtility.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_COMPARE_OP_ALWAYS, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, cmdPool);
+
+	return texture;
 }
 
 void ColladaModelInfo::UpdateModelAnimation()
@@ -216,16 +261,16 @@ void ColladaModelInfo::UpdateModelAnimation()
 	uint32_t index = 0;
 	uint32_t childSize = 0;
 
-	while (index < 2 /*p_scene->skeletonData.bones.size() */) {
+	while (index < 0 /*p_scene->skeletonData.bones.size() */) {
 
-		for (int c = 0; p_scene->skeletonData.bones[index].numChildren.size(); ++c) {
+		for (int c = 0; p_scene->skeleton->skeletonData.bones[index].numChildren.size(); ++c) {
 			
-			childSize = p_scene->skeletonData.bones[index].numChildren[c];
-			uint32_t offset = p_scene->skeletonData.bones[index].childrenInd[c];
+			childSize = p_scene->skeleton->skeletonData.bones[index].numChildren[c];
+			uint32_t offset = p_scene->skeleton->skeletonData.bones[index].childrenInd[c];
 
 			for (int i = 0; i < childSize; ++i) {
 
-				std::string name = p_scene->skeletonData.bones[i + offset].sid;
+				std::string name = p_scene->skeleton->skeletonData.bones[i + offset].sid;
 				if (m_boneMap.find(name) != m_boneMap.end()) {
 
 					uint32_t mapIndex = m_boneMap[name];

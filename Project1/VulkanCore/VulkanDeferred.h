@@ -13,6 +13,7 @@ class VulkanDeferred : public VulkanModule
 public:
 
 	const int DEFERRED_SIZE = 2048;
+	static const VkSampleCountFlagBits SAMPLE_COUNT = VK_SAMPLE_COUNT_8_BIT;
 
 	struct Vertex
 	{

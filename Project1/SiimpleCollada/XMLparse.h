@@ -16,11 +16,20 @@ enum class ErrorFlags
 	XMLP_NO_ERROR
 };
 
+enum class VectorType
+{
+	VEC2_TYPE = 2,
+	VEC3_TYPE = 3,
+	VEC4_TYPE = 4
+};
+
 using XMLPbuffer = std::vector<std::string>;
 
 class XMLparse
 {
 public:
+
+	static const uint32_t WHOLE_ARRAY = UINT32_MAX;
 
 	XMLparse();
 	~XMLparse();
@@ -29,7 +38,10 @@ public:
 	void FindElement(std::string node);
 	XMLPbuffer ReadTreeIntoBuffer(std::string node);
 	uint32_t FindElementInBuffer(std::string node, XMLPbuffer& buffer, uint32_t index);
+	uint32_t FindElementInBufferIterateBack(std::string node, XMLPbuffer& buffer, uint32_t index);
+	uint32_t FindChildElementInBuffer(std::string parent, std::string child, XMLPbuffer& buffer, uint32_t index);
 	bool CheckElement(std::string id, XMLPbuffer& buffer, uint32_t index);
+	bool CheckChildElement(std::string id, XMLPbuffer& buffer, uint32_t index);
 
 	std::string ReadElementDataString(std::string nodeName, XMLPbuffer& buffer, uint32_t index);
 	int ReadElementDataInt(std::string nodeName, XMLPbuffer& buffer, uint32_t index);
@@ -39,7 +51,8 @@ public:
 	template <typename T>
 	T ReadElementDataVec(std::string nodeName, XMLPbuffer& buffer, uint32_t index);
 
-	uint32_t ReadElementArrayVec3(XMLPbuffer& buffer, std::vector<glm::vec3>& dstBuffer, uint32_t index, uint32_t arrayCount);
+	template <typename T>
+	uint32_t ReadElementArrayVec(XMLPbuffer& buffer, std::vector<T>& dstBuffer, uint32_t index, uint32_t arrayCount, VectorType type);
 	uint32_t ReadElementArrayMatrix(XMLPbuffer& buffer, std::vector<glm::mat4>& dstBuffer, uint32_t index, uint32_t arrayCount);
 	
 	template <typename T>
@@ -60,7 +73,7 @@ private:
 template <typename T>
 T XMLparse::ReadElementDataVec(std::string nodeName, XMLPbuffer& buffer, uint32_t index)
 {
-	std::string startNode = '<' + nodeName + '>';
+	std::string startNode = '<' + nodeName;
 
 	std::string str = buffer[index];
 
@@ -113,29 +126,19 @@ uint32_t XMLparse::ReadElementArray(XMLPbuffer& buffer, std::vector<T>& dstBuffe
 	uint32_t count = 0;
 	T value;
 
-	while (arrayIndex < buffer.size()) {
-
-		std::stringstream ss(floatArray);
-		while (ss >> value) {
+	std::stringstream ss(floatArray);
+	while (ss >> value) {
 			
-			if constexpr(std::is_same_v<T, std::string>) {
-				pos = value.find_last_of('<');
-				if (pos != std::string::npos) {
-					value.substr(0, pos - 1);
-				}
-			}
-
-			dstBuffer.push_back(value);
-			++count;
-			char next = ss.peek();
-			if (count == arrayCount || next == '<') {
-
-				
-				return arrayIndex + 1;
-			}
+		if (ss.fail()) {
+			return arrayIndex + 1;
 		}
-		++arrayIndex;
-		floatArray = buffer[arrayIndex];
+
+		dstBuffer.push_back(value);
+		++count;
+		if (count == arrayCount) {
+
+			return arrayIndex;
+		}
 	}
 
 	// if we arrived here, the there's a problem with the file formatting
@@ -143,4 +146,47 @@ uint32_t XMLparse::ReadElementArray(XMLPbuffer& buffer, std::vector<T>& dstBuffe
 	return arrayIndex;
 }
 
+template <typename T>
+uint32_t XMLparse::ReadElementArrayVec(XMLPbuffer& buffer, std::vector<T>& dstBuffer, uint32_t index, uint32_t arrayCount, VectorType type)
+{
+	uint32_t arrayIndex = index;
+	int floatCount = (int)type;
+
+	// start by removing array data from first line
+	std::string str = buffer[arrayIndex];
+
+	size_t pos = str.find_first_of(">");
+	if (pos == std::string::npos) {
+		m_errorFlags = ErrorFlags::XMLP_INCORRECT_NODE_FORMAT;
+		return index;
+	}
+	str = str.substr(pos + 1, str.size());
+	std::stringstream ss(str);
+	uint32_t count = 0;
+
+	while (arrayIndex < buffer.size()) {
+
+		glm::vec3 vec;
+
+		for (int x = 0; x < floatCount; ++x) {
+
+			ss >> vec[x];
+			if (ss.eof()) {
+
+				++arrayCount;
+				str = buffer[arrayCount];
+				assert(arrayCount < buffer.size());
+			}
+		}
+		dstBuffer.push_back(vec);
+		++count;
+		if (count == arrayCount / (int)type) {				// stride depend on type of vector
+			return arrayIndex + 1;					// point to the next line in the file after the array
+		}
+	}
+
+	// if we arrived here, the there's a problem with the file formatting
+	m_errorFlags = ErrorFlags::XMLP_INCORRECT_FILE_FORMAT;
+	return arrayIndex;
+}
 

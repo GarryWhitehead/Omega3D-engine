@@ -13,6 +13,34 @@ class VulkanAnimation : public VulkanModule
 
 public:
 
+	struct AnimationSets
+	{
+		VulkanUtility::DescriptorInfo descriptors;
+	};
+
+	struct AnimationInfo
+	{
+		AnimationSets mesh;
+		AnimationSets material;
+
+		VkPipelineLayout pipelineLayout;
+		struct MaterialPipelines
+		{
+			VulkanUtility::PipeLlineInfo diffNorm;
+			VulkanUtility::PipeLlineInfo diff;
+			VulkanUtility::PipeLlineInfo nomap;
+		} matPipelines;
+
+		struct MaterialDeccriptors
+		{
+			VkDescriptorSetLayout diffLayout;
+			VkDescriptorSetLayout nomapLayout;
+			VkDescriptorSetLayout diffnormLayout;
+		} descriptors;
+
+		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+	};
+
 	struct UboLayout
 	{
 		glm::mat4 projection;
@@ -25,7 +53,10 @@ public:
 	~VulkanAnimation();
 
 	void Destroy() override;
-	void PrepareDescriptorSet(TextureInfo& image);
+	void PrepareMeshDescriptorSet();
+	void PrepareMaterialDescriptorPool(uint32_t materialCount);
+	void PrepareMaterialDescriptorLayouts();
+	void PrepareMaterialDescriptorSets(ColladaModelInfo::Material *material);
 	void PreparePipeline();
 	void GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
 	void CreateVertexBuffer(uint32_t bufferSize);
@@ -35,21 +66,19 @@ public:
 	void Update(CameraSystem *camera);
 
 	friend class VulkanEngine;
+	friend class ModelResourceManager;
 
 private:
 
-	VulkanEngine * p_vkEngine;
+	VulkanEngine *p_vkEngine;
 	ModelResourceManager *p_modelManager;
 
 	// buffer info for the "mega" buffer which holds all the models and are referenced via offsets
 	BufferData m_vertexBuffer;
 	BufferData m_indexBuffer;
-
 	BufferData m_uboBuffer;
 
-	VulkanUtility::PipeLlineInfo m_pipeline;
-	VulkanUtility::DescriptorInfo m_descriptors;
-	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
+	AnimationInfo m_animInfo;
 
 };
 

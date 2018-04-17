@@ -12,7 +12,6 @@ VulkanAnimation::VulkanAnimation(VulkanEngine *engine, VulkanUtility *utility) :
 {
 }
 
-
 VulkanAnimation::~VulkanAnimation()
 {
 }
@@ -22,13 +21,11 @@ void VulkanAnimation::Destroy()
 
 }
 
-void VulkanAnimation::PrepareDescriptorSet(TextureInfo& image)
+void VulkanAnimation::PrepareMeshDescriptorSet()
 {
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
+	std::array<VkDescriptorPoolSize, 1> descrPoolSize = {};
 	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
 	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				
-	descrPoolSize[1].descriptorCount = 1;
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -36,41 +33,118 @@ void VulkanAnimation::PrepareDescriptorSet(TextureInfo& image)
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_animInfo.mesh.descriptors.pool));
 
 	// scene descriptor layout
 	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-	VkDescriptorSetLayoutBinding samplerLayout = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);					
-	VkDescriptorSetLayoutBinding sceneBind[] = { uboLayout, samplerLayout };
 
+	VkDescriptorSetLayoutBinding sceneBind[] = { uboLayout };
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = 2;
+	layoutInfo.bindingCount = 1;
 	layoutInfo.pBindings = sceneBind;
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_descriptors.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.mesh.descriptors.layout));
 
 	// Create descriptor set for meshes
-	VkDescriptorSetLayout layouts[] = { m_descriptors.layout };
+	VkDescriptorSetLayout layouts[] = { m_animInfo.mesh.descriptors.layout };
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_descriptors.pool;
+	allocInfo.descriptorPool = m_animInfo.mesh.descriptors.pool;
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = layouts;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_descriptors.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_animInfo.mesh.descriptors.set));
 
 	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(m_uboBuffer.buffer, 0, m_uboBuffer.size);
-	VkDescriptorImageInfo imageInfo = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, image.imageView, image.m_tex_sampler);
 
-	std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBuffInfo);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_descriptors.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo);
+	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
+	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_animInfo.mesh.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBuffInfo);
+	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+}
+
+void VulkanAnimation::PrepareMaterialDescriptorPool(uint32_t materialCount)
+{
+	// create descriptor pool for all models and materials
+	std::array<VkDescriptorPoolSize, 3> descrPoolSize = {};
+	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	descrPoolSize[0].descriptorCount = materialCount;
+	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// diffuse
+	descrPoolSize[1].descriptorCount = materialCount;
+	descrPoolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// normal
+	descrPoolSize[2].descriptorCount = materialCount;
+
+	VkDescriptorPoolCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
+	createInfo.pPoolSizes = descrPoolSize.data();
+	createInfo.maxSets = materialCount + 1;
+
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_animInfo.material.descriptors.pool));
+}
+
+void VulkanAnimation::PrepareMaterialDescriptorLayouts()
+{
+	// create a layout for each possible map arrangment - these will be assigned to models later
+	uint32_t bindCount = 0;
+	std::vector<VkDescriptorSetLayoutBinding> layoutBind;
+	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse
+	
+	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
+	layoutInfo.pBindings = layoutBind.data();
+
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.diffLayout));
+
+	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse + normal	
+	layoutInfo.pBindings = layoutBind.data();
+	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.diffnormLayout));
+}
+
+void VulkanAnimation::PrepareMaterialDescriptorSets(ColladaModelInfo::Material *material)
+{
+	std::vector<VkDescriptorSetLayout> layouts;
+	std::vector<VkDescriptorImageInfo> imageInfo;
+	
+	if (material->matTypes & (int)MaterialTexture::TEX_DIFF) {
+
+		layouts.push_back(m_animInfo.descriptors.diffLayout);
+		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.diffuse.imageView, material->texture.diffuse.m_tex_sampler));		// diffuse texture
+
+		if (material->matTypes & (int)MaterialTexture::TEX_NORM) {
+
+			layouts[0] = (m_animInfo.descriptors.diffnormLayout);
+			imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.normal.imageView, material->texture.normal.m_tex_sampler));			// normal texture
+		}
+	}
+	else if (material->matTypes & (int)MaterialTexture::TEX_NONE) {
+		
+		layouts.push_back(m_animInfo.descriptors.diffLayout);
+		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.nomap.imageView, material->texture.nomap.m_tex_sampler));		// no map - using dummy texture as vulkan requires an imageview
+	}
+
+	VkDescriptorSetAllocateInfo allocInfo = {};
+	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	allocInfo.descriptorPool = m_animInfo.material.descriptors.pool;
+	allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
+	allocInfo.pSetLayouts = layouts.data();
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &material->descrSet));
+		
+	std::vector<VkWriteDescriptorSet> writeDescrSet;
+	writeDescrSet.resize(imageInfo.size());
+	for (int c = 0; c < imageInfo.size(); ++c) {
+
+		writeDescrSet[c] = vkUtility->InitDescriptorSet(material->descrSet, c, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[c]);
+	}
+
 	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanAnimation::PreparePipeline()
 {
+	// pipeline for materials containing diffuse and normal maps
 	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
 	
 	// scene graphics pipeline
@@ -94,7 +168,10 @@ void VulkanAnimation::PreparePipeline()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
+	multiInfo.alphaToCoverageEnable = VK_TRUE;
+	multiInfo.minSampleShading = 0.25f;
+	multiInfo.sampleShadingEnable = VK_TRUE;
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
@@ -128,8 +205,8 @@ void VulkanAnimation::PreparePipeline()
 	pushConstant.offset = 0;
 	pushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 	VkPushConstantRange pushConstantArray[] = { pushConstant };
-
-	std::vector<VkDescriptorSetLayout> descrLayouts = { m_descriptors.layout };
+	
+	std::vector<VkDescriptorSetLayout> descrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffnormLayout };
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = static_cast<uint32_t>(descrLayouts.size());
@@ -137,16 +214,16 @@ void VulkanAnimation::PreparePipeline()
 	pipelineInfo.pPushConstantRanges = pushConstantArray;
 	pipelineInfo.pushConstantRangeCount = 1;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_pipeline.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.diffNorm.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_shader[0] = vkUtility->InitShaders("skinning/mesh-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility->InitShaders("skinning/mesh-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_animInfo.shader[0] = vkUtility->InitShaders("skinning/mesh-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_DIFFNORM-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	createInfo.stageCount = 2;
-	createInfo.pStages = m_shader.data();
+	createInfo.pStages = m_animInfo.shader.data();
 	createInfo.pVertexInputState = &vertexInfo;
 	createInfo.pInputAssemblyState = &assemblyInfo;
 	createInfo.pViewportState = &viewportState;
@@ -155,13 +232,35 @@ void VulkanAnimation::PreparePipeline()
 	createInfo.pDepthStencilState = &depthInfo;
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
-	createInfo.layout = m_pipeline.layout;
+	createInfo.layout = m_animInfo.matPipelines.diffNorm.layout;
 	createInfo.renderPass = vkDeferred->GetRenderPass();
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
+	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipeline.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diffNorm.pipeline));
+
+	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											// inform the API that we are using a pipeline derivative
+	createInfo.basePipelineHandle = m_animInfo.matPipelines.diffNorm.pipeline;
+
+	// diffuse map only pipeline
+	std::vector<VkDescriptorSetLayout> dndescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };
+	pipelineInfo.pSetLayouts = dndescrLayouts.data();
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.diff.layout));
+
+	createInfo.layout = m_animInfo.matPipelines.diff.layout;
+	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_DIFF-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diff.pipeline));
+
+	// no-material map pipeline
+	std::vector<VkDescriptorSetLayout> nomapdescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };		// no material map shader has a sampler bound but not used
+	pipelineInfo.pSetLayouts = nomapdescrLayouts.data();
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.nomap.layout));
+
+	createInfo.layout = m_animInfo.matPipelines.nomap.layout;
+	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_NOMAP-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.nomap.pipeline));
 }
 
 void VulkanAnimation::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
@@ -173,24 +272,25 @@ void VulkanAnimation::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescri
 		VkBuffer vertexBuffers = m_vertexBuffer.buffer;
 		VkDeviceSize offset = p_modelManager->m_models[index].vertexBuffer.offset;
 		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vertexBuffers, &offset);
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipeline.pipeline : pipeline);
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_descriptors.set : &set, 0, NULL);
-
-		auto& model = p_modelManager->m_colladaModels[index];
-
+		
 		for (uint32_t i = 0; i < p_modelManager->m_colladaModels[index].m_meshData.size(); i++) {		// the number of meshes within this particular model
 
-			for (uint32_t f = 0; f < p_modelManager->m_colladaModels[index].m_meshData[i].faces.size(); ++f) {		// number of faces within this mesh
+			for (uint32_t f = 0; f < p_modelManager->m_colladaModels[index].m_meshData[i].faceInfo.size(); ++f) {		// and the number of faces - with each face having its own material
+
+				auto& model = p_modelManager->m_colladaModels[index];
+
+				uint32_t matIndex = model.m_meshData[i].faceInfo[f].materialIndex;
+				std::array<VkDescriptorSet, 2> descrSets = { m_animInfo.mesh.descriptors.set, model.m_materials[matIndex].descrSet };
+				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? model.m_materials[matIndex].pipeline : pipeline);
+				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? model.m_materials[matIndex].layout : layout, 0, (pipeline == VK_NULL_HANDLE) ? static_cast<uint32_t>(descrSets.size()) : 1, (pipeline == VK_NULL_HANDLE) ? descrSets.data() : &set, 0, NULL);
 
 				// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
-				vkCmdBindIndexBuffer(cmdBuffer, m_indexBuffer.buffer, model.indexBuffer.offset + model.m_meshData[i].faces[f].indexBase * sizeof(uint32_t), VK_INDEX_TYPE_UINT32);
-				uint32_t matIndex = model.m_meshData[i].faces[f].materialIndex;
-				
-				if (pipeline == VK_NULL_HANDLE) {
-					vkCmdPushConstants(cmdBuffer, m_pipeline.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ColladaModelInfo::MaterialProperties), &model.m_materials[matIndex].properties);		// push material info per face
-				}
+				vkCmdBindIndexBuffer(cmdBuffer, m_indexBuffer.buffer, /* model.indexBuffer.offset + */ model.m_meshData[i].faceInfo[f].indexBase * sizeof(uint32_t), VK_INDEX_TYPE_UINT32);
 
-				vkCmdDrawIndexed(cmdBuffer, model.m_meshData[i].faces[f].indexCount, 1, 0, 0, 0);
+				if (pipeline == VK_NULL_HANDLE) {
+					vkCmdPushConstants(cmdBuffer, model.m_materials[matIndex].layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(ColladaModelInfo::MaterialProperties), &model.m_materials[matIndex].properties);		// push material info per face
+				}
+				vkCmdDrawIndexed(cmdBuffer, model.m_meshData[i].faceInfo[f].indexCount, 1, 0, 0, 0);
 			}
 		}
 	}
@@ -240,7 +340,7 @@ void VulkanAnimation::Update(CameraSystem *camera)
 	// update bone animation transforms for each model
 	for (auto& model : p_modelManager->m_colladaModels) {
 		
-		model.UpdateModelAnimation();
+		//model.UpdateModelAnimation();
 
 		for (uint32_t c = 0; c < model.m_boneTransforms.size(); ++c) {
 

@@ -9,6 +9,7 @@ layout (location = 2) in vec3 inNormal;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
+layout (location = 2) out vec3 outPos;
 
 out gl_PerVertex
 {
@@ -20,6 +21,8 @@ void main()
 	
 	gl_Position = vec4(inPos, 1.0);
 	
+	outPos = inPos;
+
 	outUv = inUv;
 	
 	outNormal = inNormal;

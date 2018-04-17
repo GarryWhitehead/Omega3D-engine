@@ -36,7 +36,7 @@ void VulkanShadow::PrepareShadowPass()
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	image_info.samples = VulkanDeferred::SAMPLE_COUNT;
 
 	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &m_depthImage.image));
 
@@ -74,7 +74,7 @@ void VulkanShadow::PrepareShadowPass()
 	frameInfo.pAttachments = &m_depthImage.imageView;
 	frameInfo.width = m_depthImage.width;
 	frameInfo.height = m_depthImage.height;
-	frameInfo.layers = 1;
+	frameInfo.layers = LIGHT_COUNT;
 
 	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &m_shadowInfo.frameBuffer))
 
@@ -130,9 +130,9 @@ void VulkanShadow::PrepareShadowRenderpass()
 {
 	VkAttachmentDescription depthAttach = {};
 	depthAttach.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
-	depthAttach.samples = VK_SAMPLE_COUNT_1_BIT;
+	depthAttach.samples = VulkanDeferred::SAMPLE_COUNT;
 	depthAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	depthAttach.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	depthAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	depthAttach.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	depthAttach.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	depthAttach.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -145,18 +145,18 @@ void VulkanShadow::PrepareShadowRenderpass()
 	std::array<VkSubpassDependency, 2> sPassDepend = {};
 	sPassDepend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
 	sPassDepend[0].dstSubpass = 0;
-	sPassDepend[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[0].dstStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	sPassDepend[0].srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
-	sPassDepend[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+	sPassDepend[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;					
+	sPassDepend[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;							
+	sPassDepend[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;								
+	sPassDepend[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;									
 	sPassDepend[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	sPassDepend[1].srcSubpass = 0;
 	sPassDepend[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[1].srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-	sPassDepend[1].dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-	sPassDepend[1].srcAccessMask =  VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-	sPassDepend[1].dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	sPassDepend[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;										
+	sPassDepend[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;											
+	sPassDepend[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;														
+	sPassDepend[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;															
 	sPassDepend[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 	VkSubpassDescription sPassDescr = {};
@@ -198,10 +198,13 @@ void VulkanShadow::PrepareShadowPipeline()
 
 	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
 	rasterInfo.depthBiasEnable = VK_TRUE;
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
+	multiInfo.alphaToCoverageEnable = VK_TRUE;
+	multiInfo.minSampleShading = 0.25f;
+	multiInfo.sampleShadingEnable = VK_TRUE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

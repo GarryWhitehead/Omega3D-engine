@@ -17,9 +17,9 @@ VulkanDeferred::~VulkanDeferred()
 void VulkanDeferred::CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr, VkAttachmentReference *attachRef)
 {
 	attachDescr->format = format;
-	attachDescr->samples = VK_SAMPLE_COUNT_1_BIT;
+	attachDescr->samples = SAMPLE_COUNT;								// used for MSAA 
 	attachDescr->loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	attachDescr->storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachDescr->storeOp = VK_ATTACHMENT_STORE_OP_STORE;				// IMPORTANT: this needs to be set to store operations for this to work!!!
 	attachDescr->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachDescr->stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachDescr->initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -61,7 +61,7 @@ void VulkanDeferred::CreateDeferredImage(VkFormat format, VkImageUsageFlagBits u
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	image_info.usage = usageFlags | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
+	image_info.samples = SAMPLE_COUNT;
 
 	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &imageInfo.image));
 
@@ -297,10 +297,25 @@ void VulkanDeferred::PrepareDeferredPipeline()
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_deferredInfo.pipelineInfo.layout));
 
+	// specialisation constant to specify sampling count at the shader
+	uint32_t specData = SAMPLE_COUNT;
+
+	VkSpecializationMapEntry mapEntry;
+	mapEntry.constantID = 0;
+	mapEntry.offset = 0;
+	mapEntry.size = sizeof(uint32_t);
+
+	VkSpecializationInfo specialInfo;
+	specialInfo.mapEntryCount = 1;
+	specialInfo.pMapEntries = &mapEntry;
+	specialInfo.pData = &specData;
+	specialInfo.dataSize = sizeof(specData);
+
 	// sahders for rendering full screen quad
 	m_deferredInfo.shader[0] = vkUtility->InitShaders("deferred/deferred-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
 	m_deferredInfo.shader[1] = vkUtility->InitShaders("deferred/deferred-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-
+	m_deferredInfo.shader[1].pSpecializationInfo = &specialInfo;
+	
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	createInfo.stageCount = 2;
