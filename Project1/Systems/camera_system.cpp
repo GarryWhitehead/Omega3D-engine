@@ -112,6 +112,16 @@ void CameraSystem::Update()
 
 		m_isMoving = false;
 	}	
+
+	// quick light update to move lights around - will do a better implementation once the lights are moved to their own manager
+	for (auto& light : m_lightInfo) {
+
+		light.pos.x += abs(sin(glm::radians(glm::radians(m_lightCounter))) * 200);
+		light.pos.z += abs(cos(glm::radians(m_lightCounter)) * 20);
+		++m_lightCounter;
+		if (m_lightCounter > 36000)
+			m_lightCounter = 0;
+	}
 }
 
 void CameraSystem::Destroy()

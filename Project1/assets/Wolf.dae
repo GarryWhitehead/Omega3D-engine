@@ -23,7 +23,7 @@
               <color sid="ambient">0 0 0 1</color>
             </ambient>
             <diffuse>
-              <texture texture="Wolf_Fur.jpg" />
+              <texture texture="Wolf_fur.jpg" />
             </diffuse>
             <transparency>
               <float sid="transparency">0</float>

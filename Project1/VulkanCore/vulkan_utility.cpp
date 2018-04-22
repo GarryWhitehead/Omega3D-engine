@@ -215,6 +215,29 @@ VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, VkF
 	return cmdBuffer;
 }
 
+void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue)
+{
+	VK_CHECK_RESULT(vkEndCommandBuffer(cmdBuffer));
+
+	VkFence fence;
+	VkFenceCreateInfo fenceInfo = {};
+	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fenceInfo.flags = 0;
+	VK_CHECK_RESULT(vkCreateFence(p_vkEngine->m_device.device, &fenceInfo, nullptr, &fence));
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &cmdBuffer;
+
+	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, fence));
+
+	VK_CHECK_RESULT(vkWaitForFences(p_vkEngine->m_device.device, 1, &fence, VK_TRUE, UINT64_MAX));
+
+	vkDestroyFence(p_vkEngine->m_device.device, fence, nullptr);
+	vkFreeCommandBuffers(p_vkEngine->m_device.device, p_vkEngine->m_cmdPool, 1, &cmdBuffer);
+}
+
 VkCommandBuffer VulkanUtility::CreateTempCmdBuffer(VkCommandPool cmdPool)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
@@ -445,7 +468,7 @@ TextureInfo VulkanUtility::LoadTexture(std::string filename, VkSamplerAddressMod
 
 	vkBindImageMemory(p_vkEngine->m_device.device, texture.image, texture.texture_mem, 0);
 
-	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.mipLevels, 1, cmdPool);
+	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, texture.mipLevels, 1);
 	
 	// copy image
 	VkCommandBuffer comm_buff = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
@@ -475,7 +498,7 @@ TextureInfo VulkanUtility::LoadTexture(std::string filename, VkSamplerAddressMod
 	vkCmdCopyBufferToImage(comm_buff, staging_buff, texture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
 	this->EndCmdBuffer(comm_buff, cmdPool, p_vkEngine->m_queue.graphQueue);
 
-	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, texture.mipLevels, 1, cmdPool);
+	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, texture.mipLevels, 1);
 
 	texture.imageView = p_vkEngine->InitImageView(texture.image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
 
@@ -545,7 +568,7 @@ TextureInfo VulkanUtility::LoadTextureArray(std::string filename, VkSamplerAddre
 	vkBindImageMemory(p_vkEngine->m_device.device, texture.image, texture.texture_mem, 0);
 
 	// transition image form undefined to destination transfer
-	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.mipLevels, texture.layers, cmdPool);
+	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, texture.mipLevels, texture.layers);
 	
 	// copy image
 	VkCommandBuffer comm_buff = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
@@ -579,7 +602,7 @@ TextureInfo VulkanUtility::LoadTextureArray(std::string filename, VkSamplerAddre
 	this->EndCmdBuffer(comm_buff, cmdPool, p_vkEngine->m_queue.graphQueue);
 	
 	// now transition image to shader read
-	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, texture.mipLevels, texture.layers, cmdPool);
+	ImageTransition(VK_NULL_HANDLE, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, texture.mipLevels, texture.layers);
 
 	// create texture array image view
 	texture.imageView = p_vkEngine->InitImageView(texture.image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY);
@@ -605,7 +628,7 @@ TextureInfo VulkanUtility::LoadCubeMap(std::string filename, VkFormat format, Vk
 	texture.height = static_cast<uint32_t>(tex.extent().y);
 	texture.size = static_cast<uint32_t>(tex.size());
 	texture.mipLevels = static_cast<uint32_t>(tex.levels());
-	texture.layers = static_cast<uint32_t>(tex.layers());
+	texture.layers = 6;
 	texture.data = tex.data();
 
 	VkDeviceMemory stagingMemory;
@@ -678,12 +701,12 @@ TextureInfo VulkanUtility::LoadCubeMap(std::string filename, VkFormat format, Vk
 	}
 
 	// transition image form undefined to destination transfer
-	ImageTransition(comm_buff, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, texture.mipLevels, texture.layers, cmdPool);
+	ImageTransition(comm_buff, texture.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, texture.mipLevels, 6);
 
 	vkCmdCopyBufferToImage(comm_buff, staging_buff, texture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
 
 	// now transition image to shader read
-	ImageTransition(comm_buff, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, texture.mipLevels, texture.layers, cmdPool);
+	ImageTransition(comm_buff, texture.image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, texture.mipLevels, texture.layers);
 	this->EndCmdBuffer(comm_buff, cmdPool, p_vkEngine->m_queue.graphQueue);
 
 	// create texture array image view
@@ -708,7 +731,7 @@ TextureInfo VulkanUtility::LoadCubeMap(std::string filename, VkFormat format, Vk
 	return texture;
 }
 
-void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, uint32_t mipLevels, uint32_t layers, VkCommandPool cmdPool)
+void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, VkCommandPool cmdPool, uint32_t mipLevels, uint32_t layers)
 {
 	VkCommandBuffer comm_buff;
 	if (cmdBuff == VK_NULL_HANDLE) {
@@ -727,7 +750,9 @@ void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, VkImage image
 	mem_barr.image = image;
 
 	if (new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+
 		if (format == VK_FORMAT_D32_SFLOAT_S8_UINT || format == VK_FORMAT_D24_UNORM_S8_UINT) {
+
 			mem_barr.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
 		}
 		else {
@@ -743,26 +768,39 @@ void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, VkImage image
 	mem_barr.subresourceRange.baseMipLevel = 0;
 	mem_barr.subresourceRange.levelCount = mipLevels;
 
-	VkPipelineStageFlags src_stage;
-	VkPipelineStageFlags dst_stage;
+	VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+	VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
+
 	if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
 		mem_barr.srcAccessMask = 0;
 		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		dst_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 	}
+
 	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 		mem_barr.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		mem_barr.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 	}
+
 	else if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
 		mem_barr.srcAccessMask = 0;
 		mem_barr.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-		src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		dst_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 	}
+
+	else if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		mem_barr.srcAccessMask = 0;
+		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	else if (old_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		mem_barr.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
+		mem_barr.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		mem_barr.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	}
+
 	else {
 		g_filelog->WriteLog("Invalid parameters for image transition.");
 		exit(EXIT_FAILURE);

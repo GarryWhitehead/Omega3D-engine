@@ -12,8 +12,8 @@ class VulkanDeferred : public VulkanModule
 
 public:
 
-	const int DEFERRED_SIZE = 2048;
-	static const VkSampleCountFlagBits SAMPLE_COUNT = VK_SAMPLE_COUNT_8_BIT;
+	static const int DEFERRED_SIZE = 2048;
+	static const VkSampleCountFlagBits SAMPLE_COUNT = VK_SAMPLE_COUNT_4_BIT;
 
 	struct Vertex
 	{
@@ -53,6 +53,7 @@ public:
 	{
 		glm::vec4 viewPos;
 		LightInfo lights[LIGHT_COUNT];
+		glm::vec4 cameraPos;
 	};
 
 	struct DeferredBufferInfo
@@ -65,6 +66,9 @@ public:
 		DeferredBufferInfo position;
 		DeferredBufferInfo normal;
 		DeferredBufferInfo albedo;
+		DeferredBufferInfo ao;
+		DeferredBufferInfo metallic;
+		DeferredBufferInfo roughness;
 		DeferredBufferInfo depth;
 
 		VkFramebuffer frameBuffer;
@@ -73,6 +77,14 @@ public:
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		VulkanUtility::DescriptorInfo descriptor;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+	};
+
+	struct ForwardInfo
+	{
+		TextureInfo offscreenImage;
+		TextureInfo imageInfo;
+		VkFramebuffer framebuffer;
+		VkRenderPass renderPass;
 	};
 
 	struct BufferInfo
@@ -101,17 +113,24 @@ public:
 	void PrepareFullscreenQuad();
 	void PreapareLightData();
 
+	// forward renderpass fucntions
+	void PrepareForwardFramebuffer();
+	void GenerateForwardCmdBuffer(VkCommandBuffer cmdBuffer);
+
 	// helper function
 	VkRenderPass GetRenderPass() const { return m_deferredInfo.renderPass; }
 
 	friend class VulkanShadow;
 	friend class VulkanEngine;
+	friend class VulkanSkybox;
 
 private:
 
 	VulkanEngine * p_vkEngine;
 
 	DeferredInfo m_deferredInfo;
+	ForwardInfo m_forwardInfo;
+
 	BufferInfo m_buffers;
 	FragmentUBOLayout m_fragBuffer;
 	VertexUBOLayout m_vertBuffer;

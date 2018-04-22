@@ -14,6 +14,7 @@ layout (binding = 0) uniform UboBuffer
 } ubo;
 
 layout (location = 0) out vec2 outUv;
+layout (location = 1) out vec3 outPosW;
 
 out gl_PerVertex
 {
@@ -23,5 +24,6 @@ out gl_PerVertex
 void main()
 {
 	outUv = inUv;
+	outPosW = (ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
 	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * vec4(inPos, 1.0);
 }

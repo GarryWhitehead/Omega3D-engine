@@ -3,17 +3,29 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (binding = 2) uniform sampler2DMS positionSampler;
-layout (binding = 3) uniform sampler2DMS normalSampler;
-layout (binding = 4) uniform sampler2DMS albedoSampler;
-layout (binding = 5) uniform sampler2DArray shadowSampler;
+layout (binding = 2) uniform sampler2D positionSampler;
+layout (binding = 3) uniform sampler2D normalSampler;
+layout (binding = 4) uniform sampler2D albedoSampler;
+layout (binding = 5) uniform sampler2D aoSampler;
+layout (binding = 6) uniform sampler2D metallicSampler;
+layout (binding = 7) uniform sampler2D roughnessSampler;
+layout (binding = 8) uniform sampler2DArray shadowSampler;
+
+layout (binding = 9) uniform sampler2D BDRFlut;
+layout (binding = 10) uniform samplerCube irradianceMap;
+layout (binding = 11) uniform samplerCube prefilterMap;
+
+layout (binding = 12) uniform samplerCube skyboxSampler;
 
 layout (location = 0) in vec2 inUv;
+layout (location = 1) in vec3 inPosW;
 
 layout (location = 0) out vec4 outFrag;
 
 #define LIGHT_COUNT 3
-#define SHADOW_FACTOR 0.25
+#define SHADOW_FACTOR 0.85
+
+#define PI 3.1415926535897932384626433832795
 
 struct Light
 {
@@ -27,22 +39,8 @@ layout (binding = 1) uniform UboBuffer
 {
 	vec4 viewPos;
 	Light lights[LIGHT_COUNT];
+	vec3 cameraPos;
 } ubo;
-
-layout (constant_id = 0) const int SAMPLE_COUNT = 8;
-
-vec4 resolve(sampler2DMS texture, ivec2 uv)
-{
-	vec4 result = vec4(0.0);
-	for(int c = 0; c < SAMPLE_COUNT; c++) {
-	
-		vec4 texel = texelFetch(texture, uv, c);
-		result += texel;
-	}
-	result /= float(SAMPLE_COUNT);
-	return result;
-}
-
 
 float textureProj(vec4 P, float layer, vec2 offset)
 {
@@ -61,65 +59,119 @@ float textureProj(vec4 P, float layer, vec2 offset)
 	return shadow;
 }
 
-vec3 SampleLight(vec3 fragPos, vec3 normal, vec4 albedo)
+float GGX_Distribution(float NdotH, float roughness)
 {
-	vec3 light = vec3(0.0);
+	float a = roughness * roughness;
+	float a2 = a * a;
+	float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
 	
-	vec3 N = normalize(normal);
-	
-	for(int i = 0; i < LIGHT_COUNT; i++) {
-	
-		// calculate light direction
-		vec3 lightDir = normalize(ubo.lights[i].pos.xyz - fragPos);
+	return (a2)/(PI * denom * denom); 
+}
 
-		vec3 viewDir = normalize(ubo.viewPos.xyz - fragPos);
+float GeometryShlickGGX(float NdotV, float NdotL, float roughness)
+{
+	float k = ((roughness + 1) * (roughness + 1)) / 8.0;
+	float GV = NdotV / (NdotV * (1.0 - k) + k);
+	float GL = NdotL / (NdotL * (1.0 - k) + k);
+	return GL * GV;
+}
+
+vec3 FresnelSchlick(float cosTheta, vec3 F0)
+{
+	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 FresnelRoughness(float cosTheta, vec3 F0, float roughness)
+{
+	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 albedo, vec3 lightCol)
+{
+	vec3 H = normalize (V + L);
+	float NdotH = clamp(dot(N, H), 0.0, 1.0);
+	float NdotV = clamp(dot(N, V), 0.0, 1.0);
+	float NdotL = clamp(dot(N, L), 0.0, 1.0);
+
+	vec3 colour = vec3(0.0);
+
+	if (NdotL > 0.0) {
 		
-		// diffuse lighting
-		float diff = max(dot(N, lightDir), 0.0); 
-		vec3 diffuse = vec3(diff);
+		float D = GGX_Distribution(NdotH, roughness); 
+		float G = GeometryShlickGGX(NdotV, NdotL, roughness);
+		vec3 F = FresnelSchlick(NdotV, F0);		
 		
-		// specular
-		vec3 R = reflect(-lightDir, N);
-		float angle = max(0.0, dot(R, viewDir));
-		vec3 specular = vec3(pow(angle, 16.0) * albedo.a * 2.5);
-		
-		light += vec3(diffuse + specular) * ubo.lights[i].colour.rgb * albedo.rgb;
+		vec3 specular = D * F * G / (4.0 * NdotL * NdotV + 0.001);		
+		vec3 Kd = (vec3(1.0) - F) * (1.0 - metallic);			
+		colour += (Kd * albedo / PI + specular) * NdotL;
 	}
-	
-	return light;
+
+	return colour;
 }
 
 void main()
 {
-	vec3 finalColour = vec3(0.0);
+	vec3 finalColour;
+	vec3 N = normalize(texture(normalSampler, inUv)).rgb;
 	
-	// convert to non-normalised uv co-ords for use with texels
-	ivec2 texDim = textureSize(positionSampler);
-	ivec2 texUv = ivec2(texDim * inUv);
-	
-	// ambient
-	vec4 resAlbedo = resolve(albedoSampler, texUv);
-	
-	// diffuse and specular for each sample
-	for(int c = 0; c < SAMPLE_COUNT; c++) {
-	
-		vec3 texPos = texelFetch(positionSampler, texUv, c).rgb;
-		vec3 normal = texelFetch(normalSampler, texUv, c).rgb;
-		vec4 albedo = texelFetch(albedoSampler, texUv, c); 
-		finalColour += SampleLight(texPos, normal, albedo);
-	}
-	
-	finalColour = (resAlbedo.rgb * 0.5) + finalColour / float(SAMPLE_COUNT);
-			
-	// shadow calculations
-	vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
-	
-	for(int i = 0; i < LIGHT_COUNT; i++) {
-	
-		vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
-		float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
+	// if depth is greater than 0.999 then output the skybox colour, otherwise continue with lighting
+	if(gl_FragCoord.z > 0.999) {
 		
-		finalColour *= shadowFactor;
+		finalColour = texture(skyboxSampler, inPosW).rgb;
+	}
+	else {
+	
+		vec3 inPos = texture(positionSampler, inUv).rgb;
+		vec3 albedo = texture(albedoSampler, inUv).rgb;
+	
+		vec3 V = normalize(ubo.cameraPos - inPos);
+		vec3 R = reflect(-V, N);
+	
+		float ao = texture(aoSampler, inUv).r;
+		float metallic = texture(metallicSampler, inUv).r;
+		float roughness = texture(roughnessSampler, inUv).r;
+	
+		vec3 F0 = vec3(0.04);
+		F0 = mix(F0, albedo, metallic);
+	
+		// apply additional lighting contribution to specular 
+		vec3 Lo = vec3(0.0);
+		for(int c = 0; c < LIGHT_COUNT; c++) {
+	
+			vec3 L = normalize(ubo.lights[c].pos.xyz - inPos);
+			Lo += specularContribution(L, V, N, F0, metallic, roughness, albedo, ubo.lights[c].colour.rgb);
+		}
+	
+		float NdotV = max(dot(N, V), 0.0);
+		vec3 F = FresnelRoughness(NdotV, F0, roughness);
+
+		// diffuse
+		vec3 irradiance = texture(irradianceMap, N).rgb;
+		vec3 diffuse = irradiance * albedo;
+	
+		// specular
+		const float MAX_REFLECTION_LOD = 9.0;
+		vec3 prefilterCol = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+		vec2 envBDRF = texture(BDRFlut, vec2(max(dot(N, V), 0.0), roughness)).rg;
+		vec3 specular = prefilterCol * (F * envBDRF.x + envBDRF.y);
+	
+		// ambient
+		vec3 Kd = 1.0 - F;
+		Kd *= 1.0 - metallic;
+		vec3 ambient = (Kd * diffuse + specular) * vec3(1.0); //ao;
+	
+		finalColour = ambient + Lo;
+			
+		// shadow calculations
+		//vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
+	
+		//for(int i = 0; i < LIGHT_COUNT; i++) {
+	
+		//	vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
+		//	float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
+		
+		//	finalColour *= shadowFactor;
+		//}
 	}
 	
 	outFrag = vec4(finalColour, 1.0);

@@ -60,7 +60,9 @@
     <ClCompile Include="VulkanCore\VulkanEngine.cpp" />
     <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
-    <ClCompile Include="VulkanPBR.cpp" />
+    <ClCompile Include="VulkanCore\VulkanIBL.cpp" />
+    <ClCompile Include="VulkanCore\VulkanPBR.cpp" />
+    <ClCompile Include="VulkanCore\VulkanSkybox.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentManagers\LightComponentManager.h" />
@@ -93,6 +95,8 @@
     <ClInclude Include="Objector\objector.h" />
     <ClInclude Include="Objector\ObjUtility.h" />
     <ClInclude Include="utility\file_log.h" />
+    <ClInclude Include="VulkanCore\VulkanPBR.h" />
+    <ClInclude Include="VulkanCore\VulkanSkybox.h" />
     <ClInclude Include="VulkanCore\vulkan_core.h" />
     <ClInclude Include="VulkanCore\vulkan_model.h" />
     <ClInclude Include="VulkanCore\VulkanEngine.h" />
@@ -103,7 +107,7 @@
     <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
     <ClInclude Include="Engine\World.h" />
     <ClInclude Include="VulkanCore\VulkanDeferred.h" />
-    <ClInclude Include="VulkanPBR.h" />
+    <ClInclude Include="VulkanCore\VulkanIBL.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

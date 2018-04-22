@@ -20,7 +20,10 @@ enum class VkModId
 	VKMOD_SHADOW_ID,
 	VKMOD_MODEL_ID,
 	VKMOD_ANIM_ID,
-	VKMOD_DEFERRED_ID
+	VKMOD_DEFERRED_ID,
+	VKMOD_PBR_ID,
+	VKMOD_IBL_ID,
+	VKMOD_SKYBOX_ID
 };
 
 class VulkanEngine : public VulkanCore
@@ -52,6 +55,9 @@ public:
 	friend class VulkanUtility;
 	friend class VulkanAnimation;
 	friend class VulkanDeferred;
+	friend class VulkanIBL;
+	friend class VulkanPBR;
+	friend class VulkanSkybox;
 	friend class ModelResourceManager;
 
 protected:
@@ -61,7 +67,7 @@ protected:
 	void PrepareRenderpass();
 	void PrepareFrameBuffers();
 	void DrawScene();
-	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
+	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
 
 	VulkanUtility *vkUtility;
 	GraphicsSystem *p_graphicsSystem;

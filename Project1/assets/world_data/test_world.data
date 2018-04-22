@@ -19,7 +19,7 @@
 <m_componentsData::[0]Data::[0].m_position.y> -17
 <m_componentsData::[0]Data::[0].m_position.z> 50
 <m_componentsData::[0]Data::[1].m_position.x> 0
-<m_componentsData::[0]Data::[1].m_position.y> -17
+<m_componentsData::[0]Data::[1].m_position.y> -30
 <m_componentsData::[0]Data::[1].m_position.z> 10
 <m_componentsData::[0].size> 2
 <m_componentsData::[0]Data::[0].m_rotation.x> 1
@@ -34,9 +34,9 @@
 <m_componentsData::[0]Data::[0].m_scale.x> 0.1
 <m_componentsData::[0]Data::[0].m_scale.y> 0.1
 <m_componentsData::[0]Data::[0].m_scale.z> 0.1
-<m_componentsData::[0]Data::[1].m_scale.x> 10
-<m_componentsData::[0]Data::[1].m_scale.y> 10
-<m_componentsData::[0]Data::[1].m_scale.z> 10
+<m_componentsData::[0]Data::[1].m_scale.x> 0.3
+<m_componentsData::[0]Data::[1].m_scale.y> 0.3
+<m_componentsData::[0]Data::[1].m_scale.z> 0.3
 <m_componentsData::[0].size> 2
 <m_componentsData::[0]Data::[0].m_mass> 0
 <m_componentsData::[0]Data::[1].m_mass> 0

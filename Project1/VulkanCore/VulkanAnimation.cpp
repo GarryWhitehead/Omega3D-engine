@@ -168,19 +168,22 @@ void VulkanAnimation::PreparePipeline()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
-	multiInfo.alphaToCoverageEnable = VK_TRUE;
-	multiInfo.minSampleShading = 0.25f;
-	multiInfo.sampleShadingEnable = VK_TRUE;
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
-	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
+	std::array<VkPipelineColorBlendAttachmentState, 6> colorAttach = {};
 	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[0].blendEnable = VK_FALSE;
 	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[1].blendEnable = VK_FALSE;
 	colorAttach[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[2].blendEnable = VK_FALSE;
+	colorAttach[3].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[3].blendEnable = VK_FALSE;
+	colorAttach[4].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[4].blendEnable = VK_FALSE;
+	colorAttach[5].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[5].blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;

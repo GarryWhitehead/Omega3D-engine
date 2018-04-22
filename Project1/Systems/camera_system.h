@@ -70,5 +70,6 @@ private:
 	float m_zFar;
 	
 	std::vector<LightInfo> m_lightInfo;
+	float m_lightCounter;
 };
 

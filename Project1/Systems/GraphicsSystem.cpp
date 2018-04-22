@@ -20,9 +20,9 @@ void GraphicsSystem::Init()
 	// initialise all the vulkan components required to draw the scene for this world
 	p_vkEngine->Init();
 
-	p_vkEngine->RegisterVulkanModules({ VkModId::VKMOD_SHADOW_ID, VkModId::VKMOD_DEFERRED_ID, VkModId::VKMOD_TERRAIN_ID, VkModId::VKMOD_MODEL_ID, VkModId::VKMOD_ANIM_ID});
-
 	p_vkEngine->RegisterGraphicsSystem(this);
+	
+	p_vkEngine->RegisterVulkanModules({ VkModId::VKMOD_SHADOW_ID, VkModId::VKMOD_PBR_ID, VkModId::VKMOD_IBL_ID, VkModId::VKMOD_DEFERRED_ID, VkModId::VKMOD_SKYBOX_ID, VkModId::VKMOD_TERRAIN_ID, VkModId::VKMOD_MODEL_ID, VkModId::VKMOD_ANIM_ID});
 
 	// create model resource manager responsible for importing and controlling static and animated models within this space
 	modelManager.RegisterVulkanEngine(p_vkEngine);

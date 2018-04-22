@@ -48,10 +48,10 @@ class VulkanUtility
 {
 public:
 
-	const bool VK_SINGLE_USE = true;
-	const bool VK_MULTI_USE = false;
-	const bool VK_PRIMARY = true;
-	const bool VK_SECONDARY = false;
+	static const bool VK_SINGLE_USE = true;
+	static const bool VK_MULTI_USE = false;
+	static const bool VK_PRIMARY = true;
+	static const bool VK_SECONDARY = false;
 
 	struct PipeLlineInfo
 	{
@@ -98,6 +98,7 @@ public:
 	std::vector<VkFramebuffer> InitFrameBuffers(uint32_t width, uint32_t height, VkRenderPass renderPass, VkImageView imageView);
 	VkCommandPool InitCommandPool(uint32_t index);
 	VkCommandBuffer CreateCmdBuffer(bool primary, bool singleUse, VkFramebuffer frameBuffer, VkRenderPass renderPass, VkCommandPool cmdPool);
+	void SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue);
 	VkCommandBuffer CreateTempCmdBuffer(VkCommandPool cmdPool);
 	void EndCmdBuffer(VkCommandBuffer cmdBuffer, VkCommandPool cmdPool, VkQueue queue);
 	bool CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer);
@@ -120,7 +121,7 @@ public:
 	TextureInfo LoadTexture(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
 	TextureInfo LoadTextureArray(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
 	TextureInfo LoadCubeMap(std::string filename, VkFormat format, VkCommandPool cmdPool);
-	void ImageTransition(VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout,uint32_t mipLevels, uint32_t layers, VkCommandPool cmdPool);
+	void ImageTransition(VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, VkCommandPool cmdPool, uint32_t mipLevels = 1, uint32_t layers = 1);
 	void CreateTextureSampler(TextureInfo &texture, VkSamplerAddressMode addressMode, float maxAnisotropy, VkCompareOp compareOp, VkBorderColor borderColor);
 	VkFormat FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, VkImageTiling tiling, VkFormatFeatureFlags features);
 

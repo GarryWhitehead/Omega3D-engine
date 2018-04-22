@@ -5,6 +5,9 @@
 #include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VulkanAnimation.h"
 #include "VulkanCore/VulkanDeferred.h"
+#include "VulkanCore/VulkanPBR.h"
+#include "VulkanCore/VulkanIBL.h"
+#include "VulkanCore/VulkanSkybox.h"
 #include "utility/file_log.h"
 
 
@@ -29,6 +32,21 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 			VulkanShadow *vkMod = new VulkanShadow(this, vkUtility);
 			vkMod->Init();
 			m_vkModules.insert(std::make_pair(VkModId::VKMOD_SHADOW_ID, vkMod));
+		}
+		else if (mod == VkModId::VKMOD_PBR_ID) {
+			VulkanPBR *vkMod = new VulkanPBR(this, vkUtility);
+			vkMod->Init();
+			m_vkModules.insert(std::make_pair(VkModId::VKMOD_PBR_ID, vkMod));
+		}
+		else if (mod == VkModId::VKMOD_IBL_ID) {
+			VulkanIBL *vkMod = new VulkanIBL(this, vkUtility);
+			vkMod->Init();
+			m_vkModules.insert(std::make_pair(VkModId::VKMOD_IBL_ID, vkMod));
+		}
+		else if (mod == VkModId::VKMOD_SKYBOX_ID) {
+			VulkanSkybox *vkMod = new VulkanSkybox(this, vkUtility);
+			vkMod->Init();
+			m_vkModules.insert(std::make_pair(VkModId::VKMOD_SKYBOX_ID, vkMod));
 		}
 		else if (mod == VkModId::VKMOD_DEFERRED_ID) {
 			VulkanDeferred *vkMod = new VulkanDeferred(this, vkUtility);
@@ -94,7 +112,7 @@ TextureInfo VulkanEngine::InitDepthImage()
 
 	depthImage.imageView = InitImageView(depthImage.image, m_depthImageFormat, VK_IMAGE_ASPECT_DEPTH_BIT, VK_IMAGE_VIEW_TYPE_2D);
 
-	vkUtility->ImageTransition(VK_NULL_HANDLE, depthImage.image, m_depthImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1, 1, m_cmdPool);
+	vkUtility->ImageTransition(VK_NULL_HANDLE, depthImage.image, m_depthImageFormat, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, m_cmdPool);
 
 	return depthImage;
 }
@@ -160,8 +178,13 @@ void VulkanEngine::PrepareFrameBuffers()
 	m_frameBuffer = vkUtility->InitFrameBuffers(m_surface.extent.width, m_surface.extent.height, m_renderpass, m_depthImage.imageView);
 }
 
-void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE)
+void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
 {
+	if (pipeline == VK_NULL_HANDLE) {
+	
+		VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->GenerateSkyboxCmdBuffer(cmdBuffer);
+	}
+
 	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
 	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
 	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
@@ -182,9 +205,16 @@ void VulkanEngine::Init()
 
 void VulkanEngine::DrawScene()
 {
+	// generate BDRF lut for PBR
+	VkModule<VulkanPBR>(VkModId::VKMOD_PBR_ID)->GenerateLUTCmdBuffer();
+
+	// generate irradiance and prefilter maps for environment cube
+	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GenerateIrrMapCmdBuffer();
+	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GeneratePreFilterCmdBuffer();
+	
 	// command buffer for shadow and deferred draws
 	m_offscreenCmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
-	
+
 	// first pass - scene is drawn into shadow buffer
 	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
 
@@ -204,6 +234,7 @@ void VulkanEngine::Update(CameraSystem *camera)
 {
 	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->Update(camera);
 	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->Update(camera);
+	VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->Update(camera);
 	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->Update(camera);
 	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->Update(camera);
 	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Update(camera);
@@ -215,8 +246,9 @@ void VulkanEngine::Render()
 	// also check whether anything has been drawn yet
 	if (drawStateChanged) {
 
-		DrawScene();
 		drawStateChanged = false;
+		DrawScene();
+		
 	}
 
 	if (vk_prepared) {

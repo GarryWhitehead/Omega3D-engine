@@ -19,11 +19,6 @@ VulkanTerrain::~VulkanTerrain()
 
 void VulkanTerrain::LoadTerrainTextures()
 {
-	m_images.skybox = vkUtility->LoadCubeMap("assets/textures/skybox/cubemap.ktx", VK_FORMAT_R8G8B8A8_UNORM, p_vkEngine->m_cmdPool);
-	m_cubeModel.LoadModel("assets/textures/skybox/cubemap.obj", p_vkEngine, p_vkEngine->m_cmdPool);
-	MapIndexBufferToMemory();
-	MapVertexBufferToMemory();
-
 	// create a repeating sampler for the terrain textures
 	m_images.terrain = vkUtility->LoadTextureArray("assets/textures/terrain_texture_array.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_COMPARE_OP_ALWAYS, 4, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->m_cmdPool);
 	
@@ -43,48 +38,6 @@ void VulkanTerrain::LoadTerrainTextures()
 	uint32_t size = m_heightmapInfo.imageDim * m_heightmapInfo.imageDim;
 	m_heightmapInfo.data = new uint16_t[size];
 	memcpy(m_heightmapInfo.data, tex.data(), tex.size());
-}
-
-void VulkanTerrain::MapVertexBufferToMemory()
-{
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingMemory;
-
-	m_cubeModel.vertexBuffer.size = sizeof(ModelInfo::ModelVertex) * m_cubeModel.vertices.size();
-
-	vkUtility->CreateBuffer(m_cubeModel.vertexBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
-
-	vkMapMemory(p_vkEngine->m_device.device, stagingMemory, 0, m_cubeModel.vertexBuffer.size, 0, &m_cubeModel.vertexBuffer.mappedData);
-	memcpy(m_cubeModel.vertexBuffer.mappedData, m_cubeModel.vertices.data(), m_cubeModel.vertexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, stagingMemory);
-
-	vkUtility->CreateBuffer(m_cubeModel.vertexBuffer.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_cubeModel.vertexBuffer.buffer, m_cubeModel.vertexBuffer.memory);
-
-	vkUtility->CopyBuffer(stagingBuffer, m_cubeModel.vertexBuffer.buffer, m_cubeModel.vertexBuffer.size, p_vkEngine->m_cmdPool);
-
-	vkDestroyBuffer(p_vkEngine->m_device.device, stagingBuffer, nullptr);
-	vkFreeMemory(p_vkEngine->m_device.device, stagingMemory, nullptr);
-}
-
-void VulkanTerrain::MapIndexBufferToMemory()
-{
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingMemory;
-
-	m_cubeModel.indexBuffer.size = sizeof(uint32_t) * m_cubeModel.indices.size();
-
-	vkUtility->CreateBuffer(m_cubeModel.indexBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
-
-	vkMapMemory(p_vkEngine->m_device.device, stagingMemory, 0, m_cubeModel.indexBuffer.size, 0, &m_cubeModel.indexBuffer.mappedData);
-	memcpy(m_cubeModel.indexBuffer.mappedData, m_cubeModel.indices.data(), m_cubeModel.indexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, stagingMemory);
-
-	vkUtility->CreateBuffer(m_cubeModel.indexBuffer.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_cubeModel.indexBuffer.buffer, m_cubeModel.indexBuffer.memory);
-
-	vkUtility->CopyBuffer(stagingBuffer, m_cubeModel.indexBuffer.buffer, m_cubeModel.indexBuffer.size, p_vkEngine->m_cmdPool);
-
-	vkDestroyBuffer(p_vkEngine->m_device.device, stagingBuffer, nullptr);
-	vkFreeMemory(p_vkEngine->m_device.device, stagingMemory, nullptr);
 }
 
 void VulkanTerrain::PrepareTerrainDescriptorSets()
@@ -137,53 +90,6 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 	vkUpdateDescriptorSets(p_vkEngine->m_device.device, BIND_COUNT, writeDescrSet, 0, nullptr);
 }
 
-void VulkanTerrain::PrepareSkyboxDescriptorSets()
-{
-	// skybox descriptors
-	const int BIND_COUNT = 2;
-	VkDescriptorPoolSize descrPoolSize[2] = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;										
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descrPoolSize[1].descriptorCount = 1;
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = BIND_COUNT;
-	createInfo.pPoolSizes = descrPoolSize;
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_skyboxInfo.descrInfo.pool));
-
-	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);						// bindings for the UBO	
-	VkDescriptorSetLayoutBinding samplerLayout = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// bindings for the colour image sampler
-	
-	VkDescriptorSetLayoutBinding descrBind[] = { uboLayout, samplerLayout };
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = BIND_COUNT;
-	layoutInfo.pBindings = descrBind;
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_skyboxInfo.descrInfo.layout));
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_skyboxInfo.descrInfo.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_skyboxInfo.descrInfo.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_skyboxInfo.descrInfo.set));
-
-	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(m_skyboxInfo.buffer.ubo.buffer, 0, m_skyboxInfo.buffer.ubo.size);											// Buffer information - UBO buffer size and location
-	VkDescriptorImageInfo imageInfo = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_images.skybox.imageView, m_images.skybox.m_tex_sampler);		// height map texture sampler
-
-	VkWriteDescriptorSet writeDescrSet[BIND_COUNT] = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_skyboxInfo.descrInfo.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBuffInfo);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_skyboxInfo.descrInfo.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo);
-
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, BIND_COUNT, writeDescrSet, 0, nullptr);
-}
-
 void VulkanTerrain::PreparePipeline()
 {
 	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
@@ -209,19 +115,22 @@ void VulkanTerrain::PreparePipeline()
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
-	multiInfo.alphaToCoverageEnable = VK_TRUE;
-	multiInfo.minSampleShading = 0.25f;
-	multiInfo.sampleShadingEnable = VK_TRUE;
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
-	std::array<VkPipelineColorBlendAttachmentState, 3> colorAttach = {};
+	std::array<VkPipelineColorBlendAttachmentState, 6> colorAttach = {};
 	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[0].blendEnable = VK_FALSE;
 	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[1].blendEnable = VK_FALSE;
 	colorAttach[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[2].blendEnable = VK_FALSE;
+	colorAttach[3].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[3].blendEnable = VK_FALSE;
+	colorAttach[4].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[4].blendEnable = VK_FALSE;
+	colorAttach[5].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[5].blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -281,33 +190,6 @@ void VulkanTerrain::PreparePipeline()
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_terrainInfo.pipeline.pipeline));
-
-	// skybox pipeline derivative
-	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-	depthInfo.depthTestEnable = VK_FALSE;
-	
-	pipelineInfo.pSetLayouts = &m_skyboxInfo.descrInfo.layout;
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_skyboxInfo.pipeline.layout));
-
-	ModelInfo::ModelVertex modelVertex;
-	auto modelBindingDescr = modelVertex.GetInputBindingDescription();
-	auto modelAttrDescr = modelVertex.GetAttrBindingDescription();
-
-	vertexInfo.vertexBindingDescriptionCount = 1;
-	vertexInfo.pVertexBindingDescriptions = &modelBindingDescr;
-	vertexInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(modelAttrDescr.size());
-	vertexInfo.pVertexAttributeDescriptions = modelAttrDescr.data();
-	rasterInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
-	m_shader[0] = vkUtility->InitShaders("terrain/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility->InitShaders("terrain/skybox-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-
-	createInfo.pTessellationState = nullptr;
-	createInfo.layout = m_skyboxInfo.pipeline.layout;
-	createInfo.stageCount = 2;
-
-	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											
-	createInfo.basePipelineHandle = m_terrainInfo.pipeline.pipeline;
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_skyboxInfo.pipeline.pipeline));
 }
 
 void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
@@ -317,14 +199,6 @@ void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescri
 	}
 
 	VkDeviceSize bgOffsets[] = { 0 };
-
-	if (pipeline == VK_NULL_HANDLE) {
-		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_cubeModel.vertexBuffer.buffer, bgOffsets);
-		vkCmdBindIndexBuffer(cmdBuffer, m_cubeModel.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.pipeline : pipeline);
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_skyboxInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_skyboxInfo.descrInfo.set : &set, 0, NULL);
-		vkCmdDrawIndexed(cmdBuffer, m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
-	}
 
 	// Terrain draw
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.pipeline : pipeline);	
@@ -436,10 +310,6 @@ void VulkanTerrain::PrepareUBOBuffer()
 	// terrain ubo
 	m_terrainInfo.buffer.ubo.size = sizeof(TerrainUbo);
 	vkUtility->CreateBuffer(m_terrainInfo.buffer.ubo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_terrainInfo.buffer.ubo.buffer, m_terrainInfo.buffer.ubo.memory);
-
-	// skybox ubo
-	m_skyboxInfo.buffer.ubo.size = sizeof(SkyboxUbo);
-	vkUtility->CreateBuffer(m_skyboxInfo.buffer.ubo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_skyboxInfo.buffer.ubo.buffer, m_skyboxInfo.buffer.ubo.memory);
 }
 
 void VulkanTerrain::Update(CameraSystem *camera)
@@ -456,11 +326,6 @@ void VulkanTerrain::Update(CameraSystem *camera)
 	terrainUbo.tessFactor = TESSELLATION_FACTOR;
 	terrainUbo.tessEdgeSize = TESSELLATION_EDGE_SIZE;
 	vkUtility->MapBuffer<TerrainUbo>(m_terrainInfo.buffer.ubo, terrainUbo);
-
-	SkyboxUbo skyboxUbo;
-	skyboxUbo.projection = camera->m_cameraInfo.projection * glm::mat4(glm::mat3(camera->m_cameraInfo.viewMatrix));
-	skyboxUbo.modelMatrix = glm::mat4(1.0f);
-	vkUtility->MapBuffer<SkyboxUbo>(m_skyboxInfo.buffer.ubo, skyboxUbo);
 }
 
 void VulkanTerrain::Init()
@@ -479,7 +344,6 @@ void VulkanTerrain::Init()
 	this->PrepareTerrainData();
 
 	this->PrepareTerrainDescriptorSets();
-	this->PrepareSkyboxDescriptorSets();
 	this->PreparePipeline();
 }
 

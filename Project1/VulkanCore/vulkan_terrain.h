@@ -1,6 +1,5 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/ModelInfo.h"
 #include <string>
 #include <vector>
 #include "glm.hpp"
@@ -35,12 +34,6 @@ public:
 		float tessEdgeSize;
 	};
 
-	struct SkyboxUbo
-	{
-		glm::mat4 projection;
-		glm::mat4 modelMatrix;
-	};
-
 	struct Vertex
 	{
 		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
@@ -58,7 +51,6 @@ public:
 	{
 		TextureInfo terrain;
 		TextureInfo heightMap;
-		TextureInfo skybox;
 	};
 
 	struct TerrainData
@@ -81,22 +73,6 @@ public:
 		
 	};
 
-	struct SkyboxData	
-	{
-		struct BufferInfo
-		{
-			BufferData ubo;
-		} buffer;
-
-		struct Data
-		{
-			std::vector<SkyboxUbo> uboData;
-		} data;
-
-		VulkanUtility::DescriptorInfo descrInfo;
-		VulkanUtility::PipeLlineInfo pipeline;
-	};
-
 	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility);
 	~VulkanTerrain();
 
@@ -106,20 +82,15 @@ public:
 
 	void LoadTerrainTextures();
 	void PrepareTerrainDescriptorSets();
-	void PrepareSkyboxDescriptorSets();
 	void PreparePipeline();
 	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
 	void PrepareTerrainData();
 	float GetHeightmapPixel(uint32_t x, uint32_t y);
 	void PrepareUBOBuffer();
-	void MapVertexBufferToMemory();
-	void MapIndexBufferToMemory();
 
 	friend class VulkanEngine;
 
 protected:
-
-	ModelInfo m_cubeModel;
 
 	struct HeightmapInfo
 	{
@@ -128,7 +99,6 @@ protected:
 	} m_heightmapInfo;
 
 	TerrainData m_terrainInfo;
-	SkyboxData m_skyboxInfo;
 
 	ImageInfo m_images;
 	std::array<VkPipelineShaderStageCreateInfo, 4> m_shader;

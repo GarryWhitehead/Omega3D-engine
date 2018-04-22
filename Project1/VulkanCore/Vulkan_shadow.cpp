@@ -11,7 +11,6 @@ VulkanShadow::VulkanShadow(VulkanEngine* engine, VulkanUtility *utility) :
 	VulkanModule(utility),
 	p_vkEngine(engine)
 {
-
 }
 
 VulkanShadow::~VulkanShadow()
@@ -36,7 +35,7 @@ void VulkanShadow::PrepareShadowPass()
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	image_info.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VulkanDeferred::SAMPLE_COUNT;
+	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
 	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &m_depthImage.image));
 
@@ -130,7 +129,7 @@ void VulkanShadow::PrepareShadowRenderpass()
 {
 	VkAttachmentDescription depthAttach = {};
 	depthAttach.format = VK_FORMAT_D32_SFLOAT_S8_UINT;
-	depthAttach.samples = VulkanDeferred::SAMPLE_COUNT;
+	depthAttach.samples = VK_SAMPLE_COUNT_1_BIT;
 	depthAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	depthAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	depthAttach.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -201,10 +200,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
 	rasterInfo.depthBiasEnable = VK_TRUE;
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VulkanDeferred::SAMPLE_COUNT);
-	multiInfo.alphaToCoverageEnable = VK_TRUE;
-	multiInfo.minSampleShading = 0.25f;
-	multiInfo.sampleShadingEnable = VK_TRUE;
+	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -259,7 +255,7 @@ void VulkanShadow::PrepareShadowPipeline()
 
 void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 {
-	std::array<VkClearValue, 4> clearValues = {};
+	std::array<VkClearValue, 7> clearValues = {};
 
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

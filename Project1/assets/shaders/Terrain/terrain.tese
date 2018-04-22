@@ -51,7 +51,7 @@ void main()
 	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * pos;
 	
 	// position (world space)
-	outPos = vec3(ubo.modelMatrix * pos);
+	outPos = inPos; // vec3(ubo.modelMatrix * pos);
 	
 	outUv.t = 1.0 - outUv.t;
 	

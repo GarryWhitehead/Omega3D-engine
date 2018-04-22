@@ -138,7 +138,13 @@
     <ClCompile Include="ComponentManagers\LightComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanPBR.cpp">
+    <ClCompile Include="VulkanCore\VulkanIBL.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanPBR.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanSkybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -263,7 +269,13 @@
     <ClInclude Include="ComponentManagers\LightComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanPBR.h">
+    <ClInclude Include="VulkanCore\VulkanIBL.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanPBR.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanSkybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
