@@ -1,0 +1,18 @@
+newmtl StingrayPBS1SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00
+map_Kd files/GARRY/textures/latern_base_color.png
+map_Pr files/GARRY/textures/latern_roughness.png
+map_Pm files/GARRY/textures/latern_metallic.png
+map_Bump files/GARRY/textures/latern_normal_openGL.png
+map_Pao files/GARRY/textures/latern_mixed_ao.png
+
+newmtl StingrayPBS2SG
+illum 4
+Kd 0.00 0.00 0.00
+Ka 0.00 0.00 0.00
+Tf 1.00 1.00 1.00
+Ni 0.00

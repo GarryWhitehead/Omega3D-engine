@@ -14,17 +14,35 @@ layout (location = 3) in vec3 inPos;
 
 layout(push_constant) uniform pushConstants 
 {
-		vec4 ambient;
-		vec4 diffuse;
-		vec4 specular;
-		vec4 color;
-		float shininess;
-		float transparency;
+		layout (offset = 16) vec4 colour;
+		layout (offset = 32) float roughness;
+		layout (offset = 36) float metallic;
 } material;
 
-layout (location = 0) out vec4 outPosition;
-layout (location = 1) out vec4 outNormal;
-layout (location = 2) out vec4 outAlbedo;
+layout (location = 0) out vec4 outColour;
+layout (location = 1) out vec4 outPosition;
+layout (location = 2) out vec4 outNormal;
+layout (location = 3) out vec4 outAlbedo;
+layout (location = 4) out float outAo;
+layout (location = 5) out float outMetallic;
+layout (location = 6) out float outRoughness;
+
+vec3 perturbNormal()
+{
+	vec3 tangentNormal = texture(normalMap, inUv).xyz * 2.0 - 1.0;
+
+	vec3 q1 = dFdx(inPos);
+	vec3 q2 = dFdy(inPos);
+	vec2 st1 = dFdx(inUv);
+	vec2 st2 = dFdy(inUv);
+
+	vec3 N = normalize(inNormal);
+	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+	vec3 B = -normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
+}
 
 void main()
 {
@@ -32,6 +50,12 @@ void main()
 	
 	outPosition = vec4(inPos, 1.0);
 	
-	vec3 norm = normalize(texture(normalMap, inUv).xyz * 2.0 - vec3(1.0));
+	vec3 norm = perturbNormal();
 	outNormal = vec4(norm, 1.0);
+	
+	outAo = 1.0;
+	outMetallic.r = material.metallic;
+	outRoughness.r = material.roughness;
+
+	outColour = vec4(0.0);
 }

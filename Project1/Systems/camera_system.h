@@ -2,6 +2,8 @@
 #include "Systems/system.h"
 #include "glm.hpp"
 
+class World;
+
 enum class MoveDirection
 {
 	MOVE_FORWARD,
@@ -32,7 +34,7 @@ public:
 	const float CAMERA_VELOCITY = 10.0f;
 	const float MOUSE_SENSITIVITY = 0.1f;
 
-	CameraSystem();
+	CameraSystem(World *world);
 	~CameraSystem();
 
 	void Init(glm::vec3 cameraPos, glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f));
@@ -52,6 +54,8 @@ public:
 	glm::vec3 GetCameraPosition() const { return m_cameraPos; }
 
 private:
+
+	World *p_world;
 
 	MoveDirection m_currentDir;
 

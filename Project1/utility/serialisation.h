@@ -41,6 +41,7 @@ public:
 	void Serialise(double& value, const var_info& info);
 	void Serialise(long& value, const var_info& info);
 	void Serialise(bool& value, const var_info& info);
+	void Serialise(std::string& str, const var_info& info);
 
 	// vector serialisation
 	template <typename T>
@@ -82,22 +83,23 @@ template <typename T>
 void Archiver::SerialiseText(T value, const var_info& info, std::string& line)
 {
 	// data stored in text file in the format e.g. <.x>val
-	std::string begin_str = "<" + info.name + ">";
-	std::string end_str = "";
-
 	if (mode == FileMode::FILE_OUT) {
+
+		std::string begin_str = "<" + info.name + ">";
+		std::string end_str = "";
 
 		file << begin_str << value << end_str << "\n";
 	}
 	else {
 		
 		getline(file, line);
-		std::stringstream ss(line);
-		std::string descriptor;
-		ss >> descriptor;					// not used
-		ss >> line;
-		if (ss.fail())
-		{
+		size_t pos = line.find_last_of('>');
+		if (pos != std::string::npos) {
+
+			line = line.substr(pos + 1, line.size());
+		}
+		else {
+
 			*g_filelog << "Critical error! Unable to read data from level file. Incorrect format. Exiting......";
 			exit(EXIT_FAILURE);
 		}

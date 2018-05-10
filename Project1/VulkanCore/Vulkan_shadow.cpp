@@ -1,8 +1,7 @@
 #include "Vulkan_shadow.h"
 #include "VulkanCore/VulkanEngine.h"
-#include "VulkanCore/vulkan_model.h"
+#include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/vulkan_terrain.h"
-#include "VulkanCore/ModelInfo.h"
 #include "Systems/camera_system.h"
 #include <gtc/matrix_transform.hpp>
 #include <algorithm>
@@ -179,7 +178,7 @@ void VulkanShadow::PrepareShadowRenderpass()
 void VulkanShadow::PrepareShadowPipeline()
 {
 	// offscreen pipeline
-	ModelInfo::ModelVertex vertex;
+	VulkanModel::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
 	auto attrDescr = vertex.GetAttrBindingDescription();
 

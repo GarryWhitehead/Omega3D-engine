@@ -96,11 +96,11 @@ void Engine::CreateWorld(std::vector<SystemId> systemIds, std::string name)
 {
 	World *world = new World(name);
 
-	// register the main engine systems required - e.g. camera, input, collision
-	world->RegisterSystems(systemIds, this, p_vkEngine);
-
 	// generate all data assocaited with this world through serialising from file
 	world->Generate(p_vkEngine);
+
+	// register the main engine systems required - e.g. camera, input, collision
+	world->RegisterSystems(systemIds, this, p_vkEngine);
 
 	m_worlds.push_back(world);
 	m_currentWorldIndex = m_worlds.size() - 1;

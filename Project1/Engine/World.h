@@ -8,16 +8,11 @@ class System;
 class Engine;
 class ComponentManager;
 class ObjectManager;
-class ModelResourceManager;
 class VulkanEngine;
 
 class World
 {
 public:
-
-	// model filenames to load
-	std::vector<std::string> modelFilenames = { "assets/giraffe.obj" };				// TODO: these will be moved to a json file and imported on creation of level
-	std::vector<std::string> animatedFilenames = { "assets/dragon.dae" };						// astroBoy_walk_Max.
 
 	World();
 	World(std::string name);
@@ -39,7 +34,7 @@ public:
 	void LinkManagerWithSystem(ComponentManagerId m_id, SystemId sysId);
 
 	template <typename T>
-	T* RequestManager(ComponentManagerId id);
+	T* RequestComponentManager(ComponentManagerId id);
 
 	friend class ObjectResourceManager;
 
@@ -53,11 +48,10 @@ private:
 	std::unordered_map<ComponentManagerId, ComponentManager*> m_managers;
 
 	ObjectManager *p_objectManager;
-	ModelResourceManager *p_modelManager;		// prepares and regualtes all models associated with this world
 };
 
 template <typename T>
-T* World::RequestManager(ComponentManagerId id)
+T* World::RequestComponentManager(ComponentManagerId id)
 {
 	auto& man = m_managers.find(id);
 	if (man != m_managers.end()) {

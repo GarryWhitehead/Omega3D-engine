@@ -35,7 +35,6 @@ public:
 	T* GetRegisteredManager(ComponentManagerId id);
 	bool HasRegisteredManager(ComponentManagerId id);
 
-	void RegisterWithSystem(SystemId id);
 	ComponentManagerId GetId() const { return m_id; }
 
 	void Serialise(Archiver *arch, ComponentManager& comp, const Archiver::var_info& info);

@@ -5,13 +5,14 @@
 // forward declerations
 struct GLFWwindow;
 class CameraSystem;
+class World;
 
 class InputSystem : public System
 {
 
 public:
 
-	InputSystem();
+	InputSystem(World *world);
 	void Init(GLFWwindow *window, CameraSystem *cameraSystem, uint32_t width, uint32_t height);
 	~InputSystem();
 
@@ -23,6 +24,7 @@ public:
 
 private:
 
+	World *p_world;
 	CameraSystem *p_cameraSystem;
 };
 

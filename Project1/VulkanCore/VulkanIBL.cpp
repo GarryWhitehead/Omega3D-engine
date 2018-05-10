@@ -1,6 +1,7 @@
 #include "VulkanIBL.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
+#include "VulkanCore/VulkanModel.h"
 #include "Systems/camera_system.h"
 
 VulkanIBL::VulkanIBL(VulkanEngine *engine, VulkanUtility *utility) :
@@ -17,53 +18,8 @@ VulkanIBL::~VulkanIBL()
 void VulkanIBL::LoadAssets()
 {
 	m_cubeImage = vkUtility->LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->m_cmdPool);
-	m_cubeModel.LoadModel("assets/textures/skybox/cubemap.obj", p_vkEngine, p_vkEngine->m_cmdPool);
-
-	MapVertexBufferToMemory();		//TODO: create a memory allocation class and reduce the amount of memory buffers being created
-	MapIndexBufferToMemory();
 }
 
-void VulkanIBL::MapVertexBufferToMemory()
-{
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingMemory;
-
-	m_vertexBuffer.size = sizeof(ModelInfo::ModelVertex) * m_cubeModel.vertices.size();
-
-	vkUtility->CreateBuffer(m_vertexBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
-
-	vkMapMemory(p_vkEngine->m_device.device, stagingMemory, 0, m_vertexBuffer.size, 0, &m_vertexBuffer.mappedData);
-	memcpy(m_vertexBuffer.mappedData, m_cubeModel.vertices.data(), m_vertexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, stagingMemory);
-
-	vkUtility->CreateBuffer(m_vertexBuffer.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_vertexBuffer.buffer, m_vertexBuffer.memory);
-
-	vkUtility->CopyBuffer(stagingBuffer, m_vertexBuffer.buffer, m_vertexBuffer.size, p_vkEngine->m_cmdPool);
-
-	vkDestroyBuffer(p_vkEngine->m_device.device, stagingBuffer, nullptr);
-	vkFreeMemory(p_vkEngine->m_device.device, stagingMemory, nullptr);
-}
-
-void VulkanIBL::MapIndexBufferToMemory()
-{
-	VkBuffer stagingBuffer;
-	VkDeviceMemory stagingMemory;
-
-	m_indexBuffer.size = sizeof(uint32_t) * m_cubeModel.indices.size();
-
-	vkUtility->CreateBuffer(m_indexBuffer.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingBuffer, stagingMemory);
-
-	vkMapMemory(p_vkEngine->m_device.device, stagingMemory, 0, m_indexBuffer.size, 0, &m_indexBuffer.mappedData);
-	memcpy(m_indexBuffer.mappedData, m_cubeModel.indices.data(), m_indexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, stagingMemory);
-
-	vkUtility->CreateBuffer(m_indexBuffer.size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_indexBuffer.buffer, m_indexBuffer.memory);
-
-	vkUtility->CopyBuffer(stagingBuffer, m_indexBuffer.buffer, m_indexBuffer.size, p_vkEngine->m_cmdPool);
-
-	vkDestroyBuffer(p_vkEngine->m_device.device, stagingBuffer, nullptr);
-	vkFreeMemory(p_vkEngine->m_device.device, stagingMemory, nullptr);
-}
 void VulkanIBL::PrepareImage(VkFormat format, TextureInfo& imageInfo, int dim, int mipLevels)
 {
 	imageInfo.width = dim;
@@ -276,7 +232,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 void VulkanIBL::PrepareIBLPipeline()
 {
 	// offscreen pipeline
-	ModelInfo::ModelVertex vertex;
+	VulkanModel::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
 	auto attrDescr = vertex.GetAttrBindingDescription();
 
@@ -392,15 +348,19 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 	VkRect2D scissor = vkUtility->InitScissor(m_irradianceCube.cubeImage.width, m_irradianceCube.cubeImage.height, 0, 0);
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
+	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
+
 	VkDeviceSize offsets[1]{ 0 };
 
 	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
 
-	for (uint32_t m = 0; m < MIP_LEVELS; ++m) {
+	for (int m = 0; m < MIP_LEVELS; ++m) {
 		
 		for (uint32_t c = 0; c < 6; ++c) {
 
-			uint32_t dim = static_cast<float>(IRRADIANCEMAP_DIM * std::pow(0.5f, m));
+			float dim = static_cast<float>(IRRADIANCEMAP_DIM * std::pow(0.5f, m));
 			VkViewport viewport = vkUtility->InitViewPort(dim, dim, 0.0f, 1.0f);
 
 			vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
@@ -409,15 +369,15 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_irradianceCube.pipeline);
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors.set, 0, NULL);
-			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_vertexBuffer.buffer, offsets);
-			vkCmdBindIndexBuffer(cmdBuffer, m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 			// render each of the cubes faces
 			FilterPushConstant push;
 			push.mvp = glm::perspective(PI / 2, 1.0f, 0.1f, 512.0f) * cubeView[c];
 			vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(FilterPushConstant), &push);
 
-			vkCmdDrawIndexed(cmdBuffer, m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
+			vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 
@@ -470,18 +430,22 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	VkRect2D scissor = vkUtility->InitScissor(m_filterCube.cubeImage.width, m_filterCube.cubeImage.height, 0, 0);
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
+	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
+
 	VkDeviceSize offsets[1]{ 0 };
 
 	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
 
 	FilterPushConstant push;
-	for (uint32_t m = 0; m < MIP_LEVELS; ++m) {
+	for (int m = 0; m < MIP_LEVELS; ++m) {
 
 		push.roughness = (float)m / (float)(MIP_LEVELS - 1);
 
 		for (uint32_t c = 0; c < 6; ++c) {
 
-			uint32_t dim = static_cast<float>(PREFILTERMAP_DIM * std::pow(0.5f, m));
+			float dim = static_cast<float>(PREFILTERMAP_DIM * std::pow(0.5f, m));
 			VkViewport viewport = vkUtility->InitViewPort(dim, dim, 0.0f, 1.0f);
 
 			vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
@@ -490,15 +454,15 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_filterCube.pipeline);
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors.set, 0, NULL);
-			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_vertexBuffer.buffer, offsets);
-			vkCmdBindIndexBuffer(cmdBuffer, m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 
 			// render each of the cubes faces
 			push.mvp = glm::perspective(PI / 2, 1.0f, 0.1f, 512.0f) * cubeView[c];
 			push.sampleCount = 1024;
 			vkCmdPushConstants(cmdBuffer, m_pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(FilterPushConstant), &push);
 
-			vkCmdDrawIndexed(cmdBuffer, m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
+			vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 

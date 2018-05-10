@@ -93,6 +93,13 @@ void Archiver::Serialise(double& value, const var_info& info)
 		value = (std::stod(line) == 0) ? false : true;
 }
 
+void Archiver::Serialise(std::string& str, const var_info& info)
+{
+	std::string line;
+	SerialiseText<std::string>(str, info, line);
+	str = line;
+}
+
 // glm functions
 void Archiver::Serialise(glm::vec2& vec, const var_info& info)
 {
@@ -122,4 +129,6 @@ void Archiver::Serialise(glm::mat4& vec, const var_info& info)
 	Serialise(vec[2], var_info(info.name + "[2].mat4"));
 	Serialise(vec[3], var_info(info.name + "[3].mat4"));
 }
+
+
 

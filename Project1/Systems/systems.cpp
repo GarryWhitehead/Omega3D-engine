@@ -9,10 +9,5 @@ System::~System()
 {
 }
 
-void System::RegisterManager(ComponentManager *manager)
-{
-	assert(manager != nullptr);
-	m_registeredManagers.push_back(manager);
-}
 
 

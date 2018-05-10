@@ -3,26 +3,23 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-layout (binding = 2) uniform sampler2D positionSampler;
-layout (binding = 3) uniform sampler2D normalSampler;
-layout (binding = 4) uniform sampler2D albedoSampler;
-layout (binding = 5) uniform sampler2D aoSampler;
-layout (binding = 6) uniform sampler2D metallicSampler;
-layout (binding = 7) uniform sampler2D roughnessSampler;
-layout (binding = 8) uniform sampler2DArray shadowSampler;
+layout (input_attachment_index = 0, binding = 2) uniform subpassInput positionSampler;
+layout (input_attachment_index = 1, binding = 3) uniform subpassInput normalSampler;
+layout (input_attachment_index = 2, binding = 4) uniform subpassInput albedoSampler;
+layout (input_attachment_index = 3, binding = 5) uniform subpassInput aoSampler;
+layout (input_attachment_index = 4, binding = 6) uniform subpassInput metallicSampler;
+layout (input_attachment_index = 5, binding = 7) uniform subpassInput roughnessSampler;
 
+layout (binding = 8) uniform sampler2DArray shadowSampler;
 layout (binding = 9) uniform sampler2D BDRFlut;
 layout (binding = 10) uniform samplerCube irradianceMap;
 layout (binding = 11) uniform samplerCube prefilterMap;
 
-layout (binding = 12) uniform samplerCube skyboxSampler;
-
 layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inPosW;
 
 layout (location = 0) out vec4 outFrag;
 
-#define LIGHT_COUNT 3
+#define LIGHT_COUNT 15			// use uniform buffer
 #define SHADOW_FACTOR 0.85
 
 #define PI 3.1415926535897932384626433832795
@@ -112,67 +109,64 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 void main()
 {
 	vec3 finalColour;
-	vec3 N = normalize(texture(normalSampler, inUv)).rgb;
 	
-	// if depth is greater than 0.999 then output the skybox colour, otherwise continue with lighting
-	if(gl_FragCoord.z > 0.999) {
-		
-		finalColour = texture(skyboxSampler, inPosW).rgb;
+	vec3 inPos = subpassLoad(positionSampler).rgb;
+	vec3 N = subpassLoad(normalSampler).rgb;
+	
+	vec3 V = normalize(ubo.cameraPos - inPos);
+	vec3 R = reflect(-V, N);
+	
+	// get colour information from G-buffer
+	vec3 albedo = subpassLoad(albedoSampler).rgb;
+	float ao = subpassLoad(aoSampler).r;
+	float metallic = subpassLoad(metallicSampler).r;
+	float roughness = subpassLoad(roughnessSampler).r;
+	
+	vec3 F0 = vec3(0.04);
+	F0 = mix(F0, albedo, metallic);
+	
+	// apply additional lighting contribution to specular 
+	vec3 Lo = vec3(0.0);
+	for(int c = 0; c < LIGHT_COUNT; c++) {
+	
+		vec3 L = normalize(ubo.lights[c].pos.xyz - inPos);
+		Lo += specularContribution(L, V, N, F0, metallic, roughness, albedo, ubo.lights[c].colour.rgb);
 	}
-	else {
 	
-		vec3 inPos = texture(positionSampler, inUv).rgb;
-		vec3 albedo = texture(albedoSampler, inUv).rgb;
-	
-		vec3 V = normalize(ubo.cameraPos - inPos);
-		vec3 R = reflect(-V, N);
-	
-		float ao = texture(aoSampler, inUv).r;
-		float metallic = texture(metallicSampler, inUv).r;
-		float roughness = texture(roughnessSampler, inUv).r;
-	
-		vec3 F0 = vec3(0.04);
-		F0 = mix(F0, albedo, metallic);
-	
-		// apply additional lighting contribution to specular 
-		vec3 Lo = vec3(0.0);
-		for(int c = 0; c < LIGHT_COUNT; c++) {
-	
-			vec3 L = normalize(ubo.lights[c].pos.xyz - inPos);
-			Lo += specularContribution(L, V, N, F0, metallic, roughness, albedo, ubo.lights[c].colour.rgb);
-		}
-	
-		float NdotV = max(dot(N, V), 0.0);
-		vec3 F = FresnelRoughness(NdotV, F0, roughness);
+	float NdotV = max(dot(N, V), 0.0);
+	vec3 F = FresnelRoughness(NdotV, F0, roughness);
 
-		// diffuse
-		vec3 irradiance = texture(irradianceMap, N).rgb;
-		vec3 diffuse = irradiance * albedo;
+	// diffuse
+	vec3 irradiance = texture(irradianceMap, N).rgb;
+	vec3 diffuse = irradiance * albedo;
 	
-		// specular
-		const float MAX_REFLECTION_LOD = 9.0;
-		vec3 prefilterCol = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
-		vec2 envBDRF = texture(BDRFlut, vec2(max(dot(N, V), 0.0), roughness)).rg;
-		vec3 specular = prefilterCol * (F * envBDRF.x + envBDRF.y);
+	// specular
+	const float MAX_REFLECTION_LOD = 9.0;
+	vec3 prefilterCol = textureLod(prefilterMap, R, roughness * MAX_REFLECTION_LOD).rgb;
+	vec2 envBDRF = texture(BDRFlut, vec2(max(dot(N, V), 0.0), roughness)).rg;
+	vec3 specular = prefilterCol * (F * envBDRF.x + envBDRF.y);
 	
-		// ambient
-		vec3 Kd = 1.0 - F;
-		Kd *= 1.0 - metallic;
-		vec3 ambient = (Kd * diffuse + specular) * vec3(1.0); //ao;
+	// ambient
+	vec3 Kd = 1.0 - F;
+	Kd *= 1.0 - metallic;
+	vec3 ambient = (Kd * diffuse + specular) * vec3(1.0) * ao;
 	
-		finalColour = ambient + Lo;
+	finalColour = ambient + Lo;
 			
-		// shadow calculations
-		//vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
+	// shadow calculations
+	//vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
 	
-		//for(int i = 0; i < LIGHT_COUNT; i++) {
+	//for(int i = 0; i < LIGHT_COUNT; i++) {
 	
-		//	vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
-		//	float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
+	//	vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
+	//	float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
 		
-		//	finalColour *= shadowFactor;
-		//}
-	}
+	//	finalColour *= shadowFactor;
+	//}
+	
+	finalColour = finalColour / (finalColour + vec3(1.0));
+	
+	finalColour = pow(finalColour, vec3(1.0/2.2));
 	
 	outFrag = vec4(finalColour, 1.0);
 }

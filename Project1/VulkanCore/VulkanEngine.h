@@ -13,13 +13,13 @@ class CameraSystem;
 class ModelResourceManager;
 class VulkanModule;
 class GraphicsSystem;
+class World;
 
 enum class VkModId
 {
 	VKMOD_TERRAIN_ID,
 	VKMOD_SHADOW_ID,
 	VKMOD_MODEL_ID,
-	VKMOD_ANIM_ID,
 	VKMOD_DEFERRED_ID,
 	VKMOD_PBR_ID,
 	VKMOD_IBL_ID,
@@ -36,12 +36,9 @@ public:
 	VulkanEngine(GLFWwindow *window);
 	~VulkanEngine();
 
-	void Init();
+	void Init(World *world);
 	void Update(CameraSystem *camera);
 	void Render();
-
-	VulkanModel* AssociateWithVulkanModel(ModelResourceManager* manager);
-	VulkanAnimation*  AssociateWithVulkanAnimation(ModelResourceManager* manager);
 
 	void RegisterVulkanModules(std::vector<VkModId> modules);
 	void RegisterGraphicsSystem(GraphicsSystem *graphics) { assert(graphics != nullptr); p_graphicsSystem = graphics; }
@@ -69,6 +66,8 @@ protected:
 	void DrawScene();
 	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
 
+	World *p_world;
+
 	VulkanUtility *vkUtility;
 	GraphicsSystem *p_graphicsSystem;
 
@@ -81,6 +80,7 @@ protected:
 	std::vector<VkFramebuffer> m_frameBuffer;
 	VkCommandBuffer m_offscreenCmdBuffer;
 	std::vector<VkCommandBuffer> m_sceneCmdBuffer;
+	std::vector<VkCommandBuffer> m_cmdBuffers;
 	TextureInfo m_depthImage;
 
 	bool drawStateChanged;

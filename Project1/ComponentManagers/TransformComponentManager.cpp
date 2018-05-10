@@ -21,9 +21,6 @@ void TransformComponentManager::Init(World *world, ObjectManager *manager)
 	p_world = world;
 	p_objectManager = manager;
 
-	// register with graphics systems, as the updated transform data will be uploaded to this system for rendering
-	RegisterWithSystem(SystemId::GRAPHICS_SYSTEM_ID);
-
 	RegisterWithManager(ComponentManagerId::CM_MESH_ID);
 }
 
@@ -69,6 +66,7 @@ void TransformComponentManager::Update()
 
 		}
 	}
+
 	dataUpdated = true;
 }
 
@@ -91,27 +89,16 @@ void TransformComponentManager::Transform(uint32_t index, glm::mat4 parentMatrix
 	}
 }
 
-void TransformComponentManager::DownloadWorldTransformData(std::vector<glm::mat4>& staticTransformData, std::vector<glm::mat4>& animTransformData)
+void TransformComponentManager::DownloadWorldTransformData(glm::mat4 transformData[256])
 { 
 	if (!dataUpdated) {
 		return;
 	}
 
-	for (int c = 0; c < m_data.object.size(); ++c) {
+	for (int c = 0; c < m_data.worldTransform.size(); ++c) {
 
-		if (m_data.type[c] == ModelType::MODEL_STATIC) {
-			staticTransformData.push_back(m_data.worldTransform[c]);
-		}
-		else if (m_data.type[c] == ModelType::MODEL_ANIMATED) {
-			animTransformData.push_back(m_data.worldTransform[c]);
-		}
+		transformData[c] = m_data.worldTransform[c];
 	}
-}
-
-void TransformComponentManager::UploadModelTypeData(std::vector<ModelType>& typeData)
-{
-	m_data.type.resize(typeData.size());
-	m_data.type = typeData;
 }
 
 void TransformComponentManager::Destroy()

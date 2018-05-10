@@ -1,6 +1,5 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/ModelInfo.h"
 #include "glm.hpp"
 #include <gtc/matrix_transform.hpp>
 
@@ -15,7 +14,7 @@ public:
 	const int IRRADIANCEMAP_DIM = 64;			// 64 x 64 samples
 	const int MIP_LEVELS = 5;
 
-	const float PI = 3.1415926535897932384626433832795;
+	const float PI = 3.1415926535897932384626433832795f;
 
 	// view from each of the cubemap faces
 	//const glm::mat4 cubeView[6] =
@@ -73,8 +72,6 @@ public:
 	void PrepareIBLPipeline();
 	void GenerateIrrMapCmdBuffer();
 	void GeneratePreFilterCmdBuffer();
-	void MapVertexBufferToMemory();
-	void MapIndexBufferToMemory();
 
 	friend class VulkanDeferred;
 	friend class VulkanSkybox;
@@ -88,9 +85,6 @@ private:
 	VulkanUtility::DescriptorInfo m_descriptors;
 
 	TextureInfo m_cubeImage;
-	ModelInfo m_cubeModel;
-	BufferData m_vertexBuffer;
-	BufferData m_indexBuffer;
 	VkPipelineLayout m_pipelineLayout;
 
 	IBLInfo m_irradianceCube;

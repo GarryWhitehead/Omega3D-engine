@@ -51,11 +51,11 @@ void main()
 	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * pos;
 	
 	// position (world space)
-	outPos = inPos; // vec3(ubo.modelMatrix * pos);
+	outPos = pos.rgb; // vec3(ubo.modelMatrix * pos);
 	
 	outUv.t = 1.0 - outUv.t;
 	
 	// normal (world space)
-	mat3 mNorm = transpose(inverse(mat3(ubo.modelMatrix)));
-	outNorm = mNorm * normalize(tempNorm);
+	//mat3 mNorm = transpose(inverse(mat3(ubo.modelMatrix)));
+	outNorm = normalize(tempNorm);
 }

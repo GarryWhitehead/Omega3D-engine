@@ -3,6 +3,7 @@
 #include "ComponentManagers/AnimationComponentManager.h"
 #include "Engine/ObjectManager.h"
 #include "Engine/engine.h"
+#include "VulkanCore/VulkanEngine.h"
 
 MeshComponentManager::MeshComponentManager(ComponentManagerId id) :
 	ArchivableComponentManager<MeshComponentManager>(*this, id)
@@ -18,59 +19,32 @@ void MeshComponentManager::Init(World *world, ObjectManager *manager)
 {
 	p_world = world;
 	p_objectManager = manager;
-
-	// register with graphics system as the updated mesh data will be required for rendering
-	RegisterWithSystem(SystemId::GRAPHICS_SYSTEM_ID);
 }
 
 void MeshComponentManager::Update()
 {
 
 }
-
-void MeshComponentManager::InitModelTypes()
+ 
+void MeshComponentManager::ImportOMFFile(std::string filename)
 {
-	m_data.type.resize(m_data.object.size());
+	// de-serialise data from file
+	Archiver *p_archiver = new Archiver();
+	p_archiver->OpenFile(filename, SaveMode::SAVE_TEXT, FileMode::FILE_IN);
 
-	// if animation manager isn't present, then assume all models are static
-	if (!HasRegisteredManager(ComponentManagerId::CM_ANIMATION_ID)) {
-		
-		for (int c = 0; c < m_data.object.size(); ++c) {
-			m_data.type[c] = ModelType::MODEL_STATIC;
-		}
-	}
-	else {
-		auto animManager = GetRegisteredManager<AnimationComponentManager>(ComponentManagerId::CM_ANIMATION_ID);
+	Serialise(p_archiver, m_models, Archiver::var_info(""));
 
-		for (int c = 0; c < m_data.object.size(); ++c) {
-
-			if (animManager->HasObject(m_data.object[c])) {
-
-				// if the object is linked with the animation manager, then this objects model must be animated and thus linked with the collada vulkan animation module
-				m_data.type[c] = ModelType::MODEL_ANIMATED;
-			}
-			else {
-				// not linked with the animation manager so assumed to be a static model
-				m_data.type[c] = ModelType::MODEL_STATIC;
-			}
-		}
-	}
-
-	// the transform manager also requires this data
-	auto transManager = GetRegisteredManager<TransformComponentManager>(ComponentManagerId::CM_TRANSFORM_ID);
-	transManager->UploadModelTypeData(m_data.type);
+	*g_filelog << "Successfully imported OMF file: " << filename << "\n";
 }
 
-void MeshComponentManager::DownloadMeshIndicesData(std::vector<uint32_t>& staticIndicesData, std::vector<uint32_t>& animIndicesData)
+
+void MeshComponentManager::DownloadMeshIndicesData(std::vector<uint32_t>& indicesData)
 {
+	indicesData.resize(m_data.meshIndex.size());
+
 	for (int c = 0; c < m_data.object.size(); ++c) {
 
-		if (m_data.type[c] == ModelType::MODEL_STATIC) {
-			staticIndicesData.push_back(m_data.meshIndex[c]);
-		}
-		else if (m_data.type[c] == ModelType::MODEL_ANIMATED) {
-			animIndicesData.push_back(m_data.meshIndex[c]);
-		}
+		indicesData.push_back(m_data.meshIndex[c]);
 	}
 }
 
@@ -82,7 +56,7 @@ void MeshComponentManager::Destroy()
 // Serialisation functions
 void MeshComponentManager::Serialise(Archiver* arch, MeshComponentManager& manager, const Archiver::var_info& info)
 {
-	*g_filelog << "De/serialising data for physics component manager.......";
+	*g_filelog << "De/serialising data for mesh component manager.......";
 
 	arch->Serialise<uint32_t>(manager.m_data.meshIndex, Archiver::var_info(info.name + ".m_data.meshIndex"));
 	p_objectManager->Serialise(arch, manager.m_data.object, Archiver::var_info(info.name + ".m_data.object"));		// a custom specific serialiser is used for the vector objects
@@ -93,3 +67,105 @@ void MeshComponentManager::Serialise(Archiver* arch, MeshComponentManager& manag
 	uint32_t index = m_data.object.size() - 1;
 	m_indicies.insert(std::make_pair(m_data.object[index], index));
 }
+
+// material serialisation functions
+void MeshComponentManager::Serialise(Archiver* arch, OMFMaterial& material, const Archiver::var_info& info)
+{
+	// materials colour
+	arch->Serialise(material.Color.ambient, info.name + "roughness");
+	arch->Serialise(material.Color.diffuse, info.name + "roughness");
+	arch->Serialise(material.Color.specular, info.name + "roughness");
+	arch->Serialise(material.Color.roughness, info.name + "roughness");
+	arch->Serialise(material.Color.metallic, info.name + "metallic");
+	
+	// materials texture maps
+	arch->Serialise(material.Map.albedo, info.name + "albedo");
+	arch->Serialise(material.Map.ao, info.name + "ao");
+	arch->Serialise(material.Map.metallic, info.name + "metallic");
+	arch->Serialise(material.Map.normal, info.name + "normal");
+	arch->Serialise(material.Map.roughness, info.name + "roughness");
+	arch->Serialise(material.Map.specular, info.name + "specular");
+
+	arch->Serialise(material.illumination, info.name + "illumination");
+	arch->Serialise(material.opacity, info.name + "opacity");
+	arch->Serialise(material.name, info.name + "name");
+}
+
+// mesh serialisation fucntions
+void MeshComponentManager::Serialise(Archiver* arch, OMFFaceInfo& face, const Archiver::var_info& info)
+{
+	arch->Serialise<uint32_t>(face.indices, info.name + "indices");
+}
+
+void MeshComponentManager::Serialise(Archiver* arch, OMFMesh& mesh, const Archiver::var_info& info)
+{
+	arch->Serialise(mesh.meshName, info.name + "name");
+	arch->Serialise(mesh.material, info.name + "material");
+	arch->Serialise<glm::vec3>(mesh.posData, info.name + "position");
+	arch->Serialise<glm::vec2>(mesh.uvData, info.name + "uv");
+	arch->Serialise<glm::vec3>(mesh.normData, info.name + "normal");
+	arch->Serialise<glm::vec3>(mesh.colorData, info.name + "color");
+	Serialise<OMFFaceInfo>(arch, mesh.faceData, info.name + "face");
+}
+
+// model serialisation fucntions
+void MeshComponentManager::Serialise(Archiver* arch, OMFModel& model, const Archiver::var_info& info)
+{
+	Serialise<OMFMesh>(arch, model.meshData, info.name + "meshData");
+	Serialise<OMFMaterial>(arch, model.materials, info.name + "materials");
+}
+
+// Material functions
+std::string MeshComponentManager::OMFMaterial::GetMaterialType(MaterialType type) const
+{
+	std::string filename;
+	switch (type) {
+	case MaterialType::ALBEDO_TYPE:
+		filename = Map.albedo;
+		break;
+	case MaterialType::NORMAL_TYPE:
+		filename = Map.normal;
+		break;
+	case MaterialType::SPECULAR_TYPE:
+		filename = Map.specular;
+		break;
+	case MaterialType::ROUGHNESS_TYPE:
+		filename = Map.roughness;
+		break;
+	case MaterialType::METALLIC_TYPE:
+		filename = Map.metallic;
+		break;
+	}
+	return filename;
+}
+
+bool MeshComponentManager::OMFMaterial::hasTexture(MaterialType type) const
+{
+	switch (type) {
+	case MaterialType::ALBEDO_TYPE:
+		return !Map.albedo.empty();
+		break;
+	case MaterialType::NORMAL_TYPE:
+		return !Map.normal.empty();
+		break;
+	case MaterialType::SPECULAR_TYPE:
+		return !Map.specular.empty();
+		break;
+	case MaterialType::ROUGHNESS_TYPE:
+		return !Map.roughness.empty();
+		break;
+	case MaterialType::METALLIC_TYPE:
+		return !Map.metallic.empty();
+		break;
+	}
+}
+
+bool MeshComponentManager::OMFMaterial::hasTexture() const
+{
+	// all materials must have a diffuse texture
+	if (Map.albedo.empty()) {
+		return false;
+	}
+	return true;
+}
+

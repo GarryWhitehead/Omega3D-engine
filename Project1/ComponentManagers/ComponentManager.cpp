@@ -23,11 +23,6 @@ void ComponentManager::RegisterManager(ComponentManager *manager)
 	m_registeredManagers.push_back(manager);
 }
 
-void ComponentManager::RegisterWithSystem(SystemId sysId)
-{
-	p_world->LinkManagerWithSystem(m_id, sysId);
-}
-
 bool ComponentManager::HasRegisteredManager(ComponentManagerId id)
 {
 	for (auto man : m_registeredManagers) {

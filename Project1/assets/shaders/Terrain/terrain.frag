@@ -10,40 +10,37 @@ layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
 layout (location = 2) in vec3 inPos;
 
-layout (location = 0) out vec4 outPosition;
-layout (location = 1) out vec4 outNormal;
-layout (location = 2) out vec4 outAlbedo;
-	
-const mat4 cropMat = mat4
-(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0 ,0.0,
-	0.0, 0.0, 0.5, 0.0,
-	0.5, 0.5, 0.0, 1.0
-);
-	
-vec4 getTerrainLayer()
+layout (location = 0) out vec4 outColour;
+layout (location = 1) out vec4 outPosition;
+layout (location = 2) out vec4 outNormal;
+layout (location = 3) out vec4 outAlbedo;
+layout (location = 4) out float outAo;
+layout (location = 5) out float outMetallic;
+layout (location = 6) out float outRoughness;
+
+
+vec3 getTerrainLayer()
 {
 	// procedural texture generation using a texture array
-	vec2 layer[5];
-	layer[0] = vec2(-10.0, 50.0);	//	water
-	layer[1] = vec2(40.0, 85.0);	// dirt
-	layer[2] = vec2(75.0, 120.0);	// grass
-	layer[3] = vec2(120.0, 190.0);	// stone
-	layer[4] = vec2(180.0, 255.0);	// snow
+	vec2 layer[6];
+	layer[0] = vec2(-10.0, 10.0);	// water
+	layer[1] = vec2(5.0, 45.0);	// dirt
+	layer[2] = vec2(45.0, 80.0);	// grass
+	layer[3] = vec2(75.0, 100.0);	// stone
+	layer[4] = vec2(95.0, 140.0);	// snow
+	layer[5] = vec2(140.0, 190.0);	// snow
 	
 	float height = textureLod(heightSampler, inUv, 0.0).r * 255.0;	// convert red into greyscale (0-256)
 	
-	vec4 finalColour = vec4(0.0);
+	vec3 finalColour = vec3(0.0);
 	
-	for(int i = 0; i < 5; i++) {
+	for(int i = 0; i < 6; i++) {
 	
 		float range = layer[i].y - layer[i].x;
 		float weight = (range - abs(height - layer[i].y)) / range;
-		weight = max(0.0, weight);									// if less than zero, return zero
+		weight = max(0.0, weight);					
 		vec4 color = texture(textureArray, vec3(inUv * 16.0, i));
-		finalColour.rgb += weight * color.rgb;
-		finalColour.a = color.a;
+		finalColour += weight * color.rgb;
 	}
 	
 	return finalColour;
@@ -52,9 +49,15 @@ vec4 getTerrainLayer()
 void main()
 {	
 	// output fragment information to the appropiate buffers - lighting will be calculated in the deferred pass	
-	outAlbedo = getTerrainLayer();
-	
+	outAlbedo.rgb = getTerrainLayer();	
+
 	outPosition = vec4(inPos, 1.0);
 	
-	outNormal = vec4(normalize(inNormal), 0.0);
+	outNormal = vec4(inNormal, 1.0);
+
+	outAo = 1.0;
+	outMetallic.r = 0.8;
+	outRoughness.r = 0.8;
+
+	outColour = vec4(0.0);
 }

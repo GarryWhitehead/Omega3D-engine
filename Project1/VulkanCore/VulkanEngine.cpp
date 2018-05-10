@@ -1,13 +1,13 @@
 #include "VulkanCore/VulkanEngine.h"
-#include "VulkanCore/vulkan_model.h"
+#include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/vulkan_terrain.h"
 #include "VulkanCore/vulkan_shadow.h"
 #include "VulkanCore/vulkan_tools.h"
-#include "VulkanCore/VulkanAnimation.h"
 #include "VulkanCore/VulkanDeferred.h"
 #include "VulkanCore/VulkanPBR.h"
 #include "VulkanCore/VulkanIBL.h"
 #include "VulkanCore/VulkanSkybox.h"
+#include "Engine/World.h"
 #include "utility/file_log.h"
 
 
@@ -60,11 +60,8 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 		}
 		else if (mod == VkModId::VKMOD_MODEL_ID) {
 			VulkanModel *vkMod = new VulkanModel(this, vkUtility);
+			vkMod->Init();
 			m_vkModules.insert(std::make_pair(VkModId::VKMOD_MODEL_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_ANIM_ID) {
-			VulkanAnimation *vkMod = new VulkanAnimation(this, vkUtility);
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_ANIM_ID, vkMod));
 		}
 	}
 }
@@ -173,34 +170,11 @@ void VulkanEngine::PrepareRenderpass()
 	VK_CHECK_RESULT(vkCreateRenderPass(m_device.device, &createInfo, nullptr, &m_renderpass));
 }
 
-void VulkanEngine::PrepareFrameBuffers()
-{
-	m_frameBuffer = vkUtility->InitFrameBuffers(m_surface.extent.width, m_surface.extent.height, m_renderpass, m_depthImage.imageView);
-}
 
 void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
 {
-	if (pipeline == VK_NULL_HANDLE) {
-	
-		VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->GenerateSkyboxCmdBuffer(cmdBuffer);
-	}
-
 	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
-	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
 	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
-}
-
-void VulkanEngine::Init()
-{
-	// Initialise the "global" renderpass and framebuffer which will be used by most systems
-	// image processing modules will use their own offscreen framebuffers though usually the same renderpass
-	m_cmdPool = vkUtility->InitCommandPool(m_queue.graphIndex);
-
-	// add depth test image used by the renderpass
-	m_depthImage = InitDepthImage();
-
-	PrepareRenderpass();
-	PrepareFrameBuffers();
 }
 
 void VulkanEngine::DrawScene()
@@ -212,49 +186,58 @@ void VulkanEngine::DrawScene()
 	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GenerateIrrMapCmdBuffer();
 	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GeneratePreFilterCmdBuffer();
 	
-	// command buffer for shadow and deferred draws
-	m_offscreenCmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
+	std::array<VkClearValue, 8> clearValues = {};
+	clearValues[0].color = CLEAR_COLOR;			// position
+	clearValues[1].color = CLEAR_COLOR;			// normal
+	clearValues[2].color = CLEAR_COLOR;			// albedo
+	clearValues[3].color = CLEAR_COLOR;			// ao
+	clearValues[4].color = CLEAR_COLOR;			// metallic
+	clearValues[5].color = CLEAR_COLOR;			// roughness
+	clearValues[6].color = CLEAR_COLOR;			// roughness
+	clearValues[7].depthStencil = { 1.0f, 0 };
 
-	// first pass - scene is drawn into shadow buffer
-	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
+	auto vkDeferred = VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
 
-	// second pass - scene is drawn into deferred buffers - position, albedo and normal. This data is then 
-	// passed into the G buffer
-	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->GenerateDeferredCmdBuffer(m_offscreenCmdBuffer);
+	m_cmdBuffers.resize(vkDeferred->m_deferredInfo.frameBuffers.size());
 
-	VK_CHECK_RESULT(vkEndCommandBuffer(m_offscreenCmdBuffer));
+	for (uint32_t c = 0; c < m_cmdBuffers.size(); ++c) {
 
-	// scene is drawn as a full screen quad and lighting calculation are done in the shader
-	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->GenerateFullscreenCmdBuffers();
+		m_cmdBuffers[c] = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
+
+		VkRenderPassBeginInfo renderPassInfo = {};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.framebuffer = vkDeferred->m_deferredInfo.frameBuffers[c];
+		renderPassInfo.renderPass = vkDeferred->m_deferredInfo.renderPass;
+		renderPassInfo.renderArea.offset = { 0,0 };
+		renderPassInfo.renderArea.extent.width = m_surface.extent.width;
+		renderPassInfo.renderArea.extent.height = m_surface.extent.height;
+		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+		renderPassInfo.pClearValues = clearValues.data();
+
+		VkViewport viewport = vkUtility->InitViewPort(m_surface.extent.width, m_surface.extent.height, 0.0f, 1.0f);
+		vkCmdSetViewport(m_cmdBuffers[c], 0, 1, &viewport);
+
+		VkRect2D scissor = vkUtility->InitScissor(m_surface.extent.width, m_surface.extent.height, 0, 0);
+		vkCmdSetScissor(m_cmdBuffers[c], 0, 1, &scissor);
+
+		vkCmdBeginRenderPass(m_cmdBuffers[c], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		// first pass - render the scene into the G buffers
+		RenderScene(m_cmdBuffers[c]);
+
+		// second pass - draw scene as a full screen quad
+		vkCmdNextSubpass(m_cmdBuffers[c], VK_SUBPASS_CONTENTS_INLINE);
+		vkDeferred->GenerateDeferredCmdBuffer(m_cmdBuffers[c]);
+
+		// third pass - draw skybox : this is done so it won't be effected by lighting calculations
+		vkCmdNextSubpass(m_cmdBuffers[c], VK_SUBPASS_CONTENTS_INLINE);
+		VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->GenerateSkyboxCmdBuffer(m_cmdBuffers[c]);
+
+		vkCmdEndRenderPass(m_cmdBuffers[c]);
+		VK_CHECK_RESULT(vkEndCommandBuffer(m_cmdBuffers[c]));
+	}
 	
 	vk_prepared = true;
-}
-
-void VulkanEngine::Update(CameraSystem *camera)
-{
-	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->Update(camera);
-	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->Update(camera);
-	VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->Update(camera);
-	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->Update(camera);
-	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->Update(camera);
-	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Update(camera);
-}
-
-void VulkanEngine::Render()
-{
-	//check whether the draw buffers have changed and re-generate cmd buffers if this is the case
-	// also check whether anything has been drawn yet
-	if (drawStateChanged) {
-
-		drawStateChanged = false;
-		DrawScene();
-		
-	}
-
-	if (vk_prepared) {
-
-		SubmitFrame();
-	}
 }
 
 void VulkanEngine::SubmitFrame()
@@ -270,35 +253,54 @@ void VulkanEngine::SubmitFrame()
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pWaitSemaphores = &m_semaphore.image;											// wait for swap chain presentation to finish
-	submit_info.pSignalSemaphores = &vkShadow->m_shadowInfo.semaphore;
+	//submit_info.pSignalSemaphores = &vkShadow->m_shadowInfo.semaphore;
 
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &m_offscreenCmdBuffer;
-	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
+	//submit_info.commandBufferCount = 1;
+	//submit_info.pCommandBuffers = &m_offscreenCmdBuffer;
+	//VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
-	submit_info.pWaitSemaphores = &vkShadow->m_shadowInfo.semaphore;
+	//submit_info.pWaitSemaphores = &vkShadow->m_shadowInfo.semaphore;
 	submit_info.pSignalSemaphores = &m_semaphore.render;
 
  	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &vkDeferred->m_cmdBuffers[imageIndex];
+	submit_info.pCommandBuffers = &m_cmdBuffers[imageIndex];
 	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
 	vkUtility->SubmitFrame(imageIndex);
 }
 
-VulkanModel* VulkanEngine::AssociateWithVulkanModel(ModelResourceManager* manager)
+void VulkanEngine::Render()
 {
-	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->p_modelManager = manager;
-	auto model = VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
-	assert(model != nullptr);
-	return model;
+	//check whether the draw buffers have changed and re-generate cmd buffers if this is the case
+	// also check whether anything has been drawn yet
+	if (drawStateChanged) {
+
+		drawStateChanged = false;
+		DrawScene();
+
+	}
+
+	if (vk_prepared) {
+
+		SubmitFrame();
+	}
 }
 
-VulkanAnimation*  VulkanEngine::AssociateWithVulkanAnimation(ModelResourceManager* manager)
+void VulkanEngine::Update(CameraSystem *camera)
 {
-	VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID)->p_modelManager = manager;
-	auto anim = VkModule<VulkanAnimation>(VkModId::VKMOD_ANIM_ID);
-	assert(anim != nullptr);
-	return anim;
+	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->Update(camera);
+	VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID)->Update(camera);
+	VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->Update(camera);
+	VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->Update(camera);
+	VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Update(camera);
 }
+
+void VulkanEngine::Init(World *world)
+{
+	p_world = world;
+
+	// Initialise the command pool used by all modules at present
+	m_cmdPool = vkUtility->InitCommandPool(m_queue.graphIndex);
+}
+
 

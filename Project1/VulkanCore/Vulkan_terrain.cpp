@@ -113,12 +113,12 @@ void VulkanTerrain::PreparePipeline()
 
 	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
 	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
-	std::array<VkPipelineColorBlendAttachmentState, 6> colorAttach = {};
+	std::array<VkPipelineColorBlendAttachmentState, 7> colorAttach = {};
 	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[0].blendEnable = VK_FALSE;
 	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -131,6 +131,8 @@ void VulkanTerrain::PreparePipeline()
 	colorAttach[4].blendEnable = VK_FALSE;
 	colorAttach[5].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[5].blendEnable = VK_FALSE;
+	colorAttach[6].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorAttach[6].blendEnable = VK_FALSE;
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -149,6 +151,17 @@ void VulkanTerrain::PreparePipeline()
 	depthInfo.depthTestEnable = VK_TRUE;
 	depthInfo.depthWriteEnable = VK_TRUE;
 	depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+	// enable stencil test - to ensure that the skybox is rendered correctly
+	depthInfo.stencilTestEnable = VK_TRUE;
+	depthInfo.back.compareOp = VK_COMPARE_OP_ALWAYS;
+	depthInfo.back.failOp = VK_STENCIL_OP_REPLACE;
+	depthInfo.back.depthFailOp = VK_STENCIL_OP_REPLACE;
+	depthInfo.back.passOp = VK_STENCIL_OP_REPLACE;
+	depthInfo.back.writeMask = 0xff;
+	depthInfo.back.compareMask = 0xff;
+	depthInfo.back.reference = 1;
+	depthInfo.front = depthInfo.back;
 
 	VkPipelineTessellationStateCreateInfo tessInfo = {};
 	tessInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
@@ -184,7 +197,7 @@ void VulkanTerrain::PreparePipeline()
 	createInfo.pTessellationState = &tessInfo;
 	createInfo.layout = m_terrainInfo.pipeline.layout;
 	createInfo.renderPass = vkDeferred->GetRenderPass();			// render into the offscreen buffer
-	createInfo.subpass = 0;
+	createInfo.subpass = 0;											// G buffer pass
 	createInfo.basePipelineIndex = -1;
 	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -253,7 +266,7 @@ void VulkanTerrain::PrepareTerrainData()
 			
 			// the co-efficent can be used to regulate the "bumpiness" of the map - <1.0 enhance - >1.0 smooth
 			// calculate gradient using SQRT(1 - Gx^2 - Gy^2)
-			normal.y = 0.5f * sqrt(1.0f - Gx * Gx - Gz * Gz);
+			normal.y = 0.25f * sqrt(1.0f - Gx * Gx - Gz * Gz);
 			
 			// convert to 0..1 space
 			vertices[x + y * PATCH_SIZE].normal = glm::normalize(normal * glm::vec3(2.0f, 1.0f, 2.0f));
@@ -302,7 +315,7 @@ float VulkanTerrain::GetHeightmapPixel(uint32_t x, uint32_t y)
 	interPos /= glm::ivec2(scale);													// adjust back after interpolation
 
 	// return pixel from calculated psoition
-	return *(m_heightmapInfo.data + (interPos.x + interPos.y * m_heightmapInfo.imageDim) * scale) / (65536.0f);
+	return *(m_heightmapInfo.data + (interPos.x + interPos.y * m_heightmapInfo.imageDim) * scale) / (65535.0f);
 }
 
 void VulkanTerrain::PrepareUBOBuffer()

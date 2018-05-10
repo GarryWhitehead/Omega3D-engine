@@ -1,9 +1,12 @@
 #include "input_system.h"
 #include "Systems/camera_system.h"
+#include "Engine/World.h"
 #include "GLFW/glfw3.h"
 #include <iostream>
 
-InputSystem::InputSystem()
+InputSystem::InputSystem(World *world) :
+	p_world(world)
+
 {
 }
 

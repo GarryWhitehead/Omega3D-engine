@@ -15,9 +15,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="VulkanCore\vulkan_model.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VulkanCore\vulkan_validation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -25,15 +22,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Objector\MaterialParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Objector\objector.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Objector\ObjUtility.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanCore\vulkan_core.cpp">
@@ -55,9 +43,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VulkanCore\ModelInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Engine\engine.cpp">
@@ -90,9 +75,6 @@
     <ClCompile Include="ComponentManagers\MeshComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Engine\ModelResourceManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VulkanCore\VulkanEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -105,34 +87,10 @@
     <ClCompile Include="Systems\systems.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SiimpleCollada\SimpleCollada.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SiimpleCollada\XMLparse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VulkanCore\VulkanAnimation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VulkanCore\ColladaModelInfo.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SiimpleCollada\ColladaAnimation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SiimpleCollada\ColladaMaterials.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SiimpleCollada\ColladaVertices.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SiimpleCollada\ColladaSkeleton.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ComponentManagers\LightComponentManager.cpp">
@@ -147,24 +105,15 @@
     <ClCompile Include="VulkanCore\VulkanSkybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VulkanCore\vulkan_model.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\file_log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Objector\MaterialParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Objector\objector.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Objector\ObjUtility.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\vulkan_core.h">
@@ -183,9 +132,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\Vulkan_shadow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanCore\ModelInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Engine\World.h">
@@ -224,9 +170,6 @@
     <ClInclude Include="ComponentManagers\MeshComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Engine\ModelResourceManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanCore\VulkanEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -236,34 +179,10 @@
     <ClInclude Include="VulkanCore\VulkanModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SiimpleCollada\SimpleCollada.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SiimpleCollada\XMLparse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanCore\VulkanAnimation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanCore\ColladaModelInfo.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentManagers\AnimationComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\VulkanDeferred.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SiimpleCollada\ColladaAnimation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SiimpleCollada\ColladaMaterials.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SiimpleCollada\ColladaVertices.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SiimpleCollada\ColladaSkeleton.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ComponentManagers\LightComponentManager.h">
@@ -276,6 +195,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\VulkanSkybox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

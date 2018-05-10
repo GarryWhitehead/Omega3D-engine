@@ -5,7 +5,7 @@
 class VulkanEngine;
 class CameraSystem;
 
-const int LIGHT_COUNT = 3;
+const int LIGHT_COUNT = 10;
 
 class VulkanDeferred : public VulkanModule
 {
@@ -71,7 +71,7 @@ public:
 		DeferredBufferInfo roughness;
 		DeferredBufferInfo depth;
 
-		VkFramebuffer frameBuffer;
+		std::vector<VkFramebuffer> frameBuffers;
 		VkRenderPass renderPass;
 	
 		VulkanUtility::PipeLlineInfo pipelineInfo;
@@ -101,21 +101,16 @@ public:
 	void Init();
 	void Update(CameraSystem *camera);
 	void Destroy() override;
-	void CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr, VkAttachmentReference *attachRef);
+	void CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr);
 	void CreateDeferredImage(const VkFormat format, VkImageUsageFlagBits usageFlags, TextureInfo& imageInfo);
 	void PrepareDeferredFramebuffer();
 	void PrepareDeferredRenderpass();
 	void PrepareDeferredDescriptorSet();
 	void PrepareDeferredPipeline();
-	void GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer);
-	void GenerateFullscreenCmdBuffers();
+	void GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer);;
 	void CreateUBOBuffers();
 	void PrepareFullscreenQuad();
 	void PreapareLightData();
-
-	// forward renderpass fucntions
-	void PrepareForwardFramebuffer();
-	void GenerateForwardCmdBuffer(VkCommandBuffer cmdBuffer);
 
 	// helper function
 	VkRenderPass GetRenderPass() const { return m_deferredInfo.renderPass; }
@@ -134,7 +129,5 @@ private:
 	BufferInfo m_buffers;
 	FragmentUBOLayout m_fragBuffer;
 	VertexUBOLayout m_vertBuffer;
-
-	std::vector<VkCommandBuffer> m_cmdBuffers;
 };
 

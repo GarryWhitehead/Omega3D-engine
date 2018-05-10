@@ -1,6 +1,7 @@
 #include "VulkanSkybox.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
+#include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/VulkanIBL.h"
 #include "Systems/camera_system.h"
 
@@ -68,7 +69,7 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 {
 	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
 
-	ModelInfo::ModelVertex vertex;
+	VulkanModel::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
 	auto attrDescr = vertex.GetAttrBindingDescription();
 
@@ -86,25 +87,15 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 
 	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
 
 	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
-	std::array<VkPipelineColorBlendAttachmentState, 6> colorAttach = {};
+	std::array<VkPipelineColorBlendAttachmentState, 1> colorAttach = {};
 	colorAttach[0].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
 	colorAttach[0].blendEnable = VK_FALSE;
-	colorAttach[1].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach[1].blendEnable = VK_FALSE;
-	colorAttach[2].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach[2].blendEnable = VK_FALSE;
-	colorAttach[3].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach[3].blendEnable = VK_FALSE;
-	colorAttach[4].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach[4].blendEnable = VK_FALSE;
-	colorAttach[5].colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-	colorAttach[5].blendEnable = VK_FALSE;
-
+	
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorInfo.logicOpEnable = VK_FALSE;
@@ -120,8 +111,19 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	VkPipelineDepthStencilStateCreateInfo depthInfo = {};
 	depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
 	depthInfo.depthTestEnable = VK_TRUE;
-	depthInfo.depthWriteEnable = VK_TRUE;
-	depthInfo.depthCompareOp = VK_COMPARE_OP_ALWAYS;
+	depthInfo.depthWriteEnable = VK_FALSE;
+	depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
+
+	// render skybox where stencil = 0; i.e. were there is no geomtry
+	depthInfo.stencilTestEnable = VK_TRUE;
+	depthInfo.back.compareOp = VK_COMPARE_OP_NOT_EQUAL;
+	depthInfo.back.failOp = VK_STENCIL_OP_KEEP;
+	depthInfo.back.depthFailOp = VK_STENCIL_OP_KEEP;
+	depthInfo.back.passOp = VK_STENCIL_OP_REPLACE;
+	depthInfo.back.writeMask = 0x00;
+	depthInfo.back.compareMask = 0x00;
+	depthInfo.back.reference = 1;
+	depthInfo.front = depthInfo.back;
 
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -133,8 +135,8 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_envCube.pipeline.layout));
 
 	// sahders for rendering full screen quad
-	m_shader[0] = vkUtility->InitShaders("IBL/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility->InitShaders("IBL/skybox-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = vkUtility->InitShaders("skybox/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	m_shader[1] = vkUtility->InitShaders("skybox/skybox-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -149,8 +151,8 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
 	createInfo.layout = m_envCube.pipeline.layout;
-	createInfo.renderPass = vkDeferred->m_deferredInfo.renderPass;		
-	createInfo.subpass = 0;
+	createInfo.renderPass = vkDeferred->GetRenderPass();		
+	createInfo.subpass = 2;					// skybox drawn after lighting calculations
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -159,21 +161,22 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 
 void VulkanSkybox::GenerateSkyboxCmdBuffer(VkCommandBuffer cmdBuffer)
 {
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
-	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID);
+	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
 
 	VkDeviceSize offsets[1]{ 0 };
 
-	VkViewport viewport = vkUtility->InitViewPort(VulkanDeferred::DEFERRED_SIZE, VulkanDeferred::DEFERRED_SIZE, 1.0f, 1.0f);
+	VkViewport viewport = vkUtility->InitViewPort(p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height, 1.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
-	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &vkIBL->m_vertexBuffer.buffer, offsets);
-	vkCmdBindIndexBuffer(cmdBuffer, vkIBL->m_indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
+	vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.pipeline);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors.set, 0, NULL);
-	vkCmdDrawIndexed(cmdBuffer, vkIBL->m_cubeModel.meshData[0].indexCount, 1, 0, 0, 0);
+	vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 
-	viewport = vkUtility->InitViewPort(VulkanDeferred::DEFERRED_SIZE, VulkanDeferred::DEFERRED_SIZE, 0.0f, 1.0f);
+	viewport = vkUtility->InitViewPort(p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 }
 

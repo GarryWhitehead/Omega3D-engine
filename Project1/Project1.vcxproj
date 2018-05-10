@@ -20,15 +20,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComponentManagers\LightComponentManager.cpp" />
-    <ClCompile Include="SiimpleCollada\ColladaSkeleton.cpp" />
-    <ClCompile Include="SiimpleCollada\ColladaAnimation.cpp" />
-    <ClCompile Include="SiimpleCollada\ColladaMaterials.cpp" />
-    <ClCompile Include="SiimpleCollada\ColladaVertices.cpp" />
     <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
-    <ClCompile Include="VulkanCore\ColladaModelInfo.cpp" />
     <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
-    <ClCompile Include="Engine\ModelResourceManager.cpp" />
     <ClCompile Include="Engine\ObjectManager.cpp" />
     <ClCompile Include="Engine\Object.cpp" />
     <ClCompile Include="Engine\ObjectResourceManager.cpp" />
@@ -36,24 +30,17 @@
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\MeshComponentManager.cpp" />
-    <ClCompile Include="SiimpleCollada\SimpleCollada.cpp" />
-    <ClCompile Include="SiimpleCollada\XMLparse.cpp" />
     <ClCompile Include="Systems\GraphicsSystem.cpp" />
     <ClCompile Include="Systems\systems.cpp" />
     <ClCompile Include="utility\serialisation.cpp" />
-    <ClCompile Include="VulkanCore\VulkanAnimation.cpp" />
+    <ClCompile Include="VulkanCore\VulkanModel.cpp" />
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
     <ClCompile Include="VulkanCore\VulkanModule.cpp" />
-    <ClCompile Include="VulkanCore\ModelInfo.cpp" />
     <ClCompile Include="Systems\camera_system.cpp" />
     <ClCompile Include="Systems\Input_system.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="Objector\MaterialParser.cpp" />
-    <ClCompile Include="Objector\objector.cpp" />
-    <ClCompile Include="Objector\ObjUtility.cpp" />
     <ClCompile Include="utility\file_log.cpp" />
     <ClCompile Include="VulkanCore\vulkan_core.cpp" />
-    <ClCompile Include="VulkanCore\vulkan_model.cpp" />
     <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
     <ClCompile Include="VulkanCore\vulkan_validation.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_terrain.cpp" />
@@ -66,13 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentManagers\LightComponentManager.h" />
-    <ClInclude Include="SiimpleCollada\ColladaAnimation.h" />
-    <ClInclude Include="SiimpleCollada\ColladaMaterials.h" />
-    <ClInclude Include="SiimpleCollada\ColladaSkeleton.h" />
-    <ClInclude Include="SiimpleCollada\ColladaVertices.h" />
     <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
-    <ClInclude Include="VulkanCore\ColladaModelInfo.h" />
-    <ClInclude Include="Engine\ModelResourceManager.h" />
     <ClInclude Include="ComponentManagers\ComponentManager.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="Engine\Object.h" />
@@ -80,25 +61,18 @@
     <ClInclude Include="Engine\ObjectManager.h" />
     <ClInclude Include="Engine\ObjectResourceManager.h" />
     <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
-    <ClInclude Include="SiimpleCollada\SimpleCollada.h" />
-    <ClInclude Include="SiimpleCollada\XMLparse.h" />
     <ClInclude Include="Systems\GraphicsSystem.h" />
     <ClInclude Include="Systems\system.h" />
     <ClInclude Include="ComponentManagers\TransformComponentManager.h" />
     <ClInclude Include="utility\serialisation.h" />
-    <ClInclude Include="VulkanCore\VulkanAnimation.h" />
+    <ClInclude Include="VulkanCore\VulkanModel.h" />
     <ClInclude Include="VulkanCore\VulkanModule.h" />
-    <ClInclude Include="VulkanCore\ModelInfo.h" />
     <ClInclude Include="Systems\camera_system.h" />
     <ClInclude Include="Systems\input_system.h" />
-    <ClInclude Include="Objector\MaterialParser.h" />
-    <ClInclude Include="Objector\objector.h" />
-    <ClInclude Include="Objector\ObjUtility.h" />
     <ClInclude Include="utility\file_log.h" />
     <ClInclude Include="VulkanCore\VulkanPBR.h" />
     <ClInclude Include="VulkanCore\VulkanSkybox.h" />
     <ClInclude Include="VulkanCore\vulkan_core.h" />
-    <ClInclude Include="VulkanCore\vulkan_model.h" />
     <ClInclude Include="VulkanCore\VulkanEngine.h" />
     <ClInclude Include="VulkanCore\vulkan_terrain.h" />
     <ClInclude Include="VulkanCore\vulkan_tools.h" />
