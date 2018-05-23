@@ -1,6 +1,6 @@
 #include "VulkanPBR.h"
 #include "VulkanCore/VulkanEngine.h"
-
+#include "Systems/camera_system.h"
 
 VulkanPBR::VulkanPBR(VulkanEngine *engine, VulkanUtility *utility) :
 	VulkanModule(utility),
@@ -10,57 +10,6 @@ VulkanPBR::VulkanPBR(VulkanEngine *engine, VulkanUtility *utility) :
 
 VulkanPBR::~VulkanPBR()
 {
-}
-
-void VulkanPBR::PrepareLUTImage()
-{
-	lutImage.width = LUT_DIM;
-	lutImage.height = LUT_DIM;
-	
-	VkImageCreateInfo image_info = {};
-	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	image_info.format = VK_FORMAT_R16G16_SFLOAT;
-	image_info.imageType = VK_IMAGE_TYPE_2D;
-	image_info.extent.width = lutImage.width;
-	image_info.extent.height = lutImage.height;
-	image_info.extent.depth = 1;
-	image_info.mipLevels = 1;
-	image_info.arrayLayers = 1;
-	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &lutImage.image));
-
-	VkMemoryRequirements mem_req;
-	vkGetImageMemoryRequirements(p_vkEngine->m_device.device, lutImage.image, &mem_req);
-
-	VkMemoryAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->m_device.device, &alloc_info, nullptr, &lutImage.texture_mem));
-
-	vkBindImageMemory(p_vkEngine->m_device.device, lutImage.image, lutImage.texture_mem, 0);
-
-	// depth image view
-	VkImageViewCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = lutImage.image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = VK_FORMAT_R16G16_SFLOAT;
-	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.layerCount = 1;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-
-	VK_CHECK_RESULT(vkCreateImageView(p_vkEngine->m_device.device, &createInfo, nullptr, &lutImage.imageView));
-
-	vkUtility->CreateTextureSampler(lutImage, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1, VK_COMPARE_OP_NEVER, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
 }
 
 void VulkanPBR::PrepareLUTRenderpass()
@@ -116,6 +65,10 @@ void VulkanPBR::PrepareLUTRenderpass()
 
 void VulkanPBR::PrepareLUTFramebuffer()
 {
+	lutImage.PrepareImage(VK_FORMAT_R16G16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, LUT_DIM, LUT_DIM, p_vkEngine);
+
+	PrepareLUTRenderpass();
+
 	VkFramebufferCreateInfo frameInfo = {};
 	frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 	frameInfo.renderPass = m_lutRenderpass;
@@ -236,10 +189,13 @@ void VulkanPBR::GenerateLUTCmdBuffer()
 
 void VulkanPBR::Init()
 {
-	PrepareLUTImage();
-	PrepareLUTRenderpass();
 	PrepareLUTFramebuffer();
 	PrepareLUTPipeline();
+}
+
+void VulkanPBR::Update(int acc_time)
+{
+
 }
 
 void VulkanPBR::Destroy()

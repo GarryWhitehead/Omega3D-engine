@@ -26,7 +26,7 @@ public:
 	~VulkanSkybox();
 
 	void Init();
-	void Update(CameraSystem *camera);
+	void Update(int acc_time) override;
 	void Destroy() override;
 	void PrepareSkyboxDescriptorSets();
 	void PrepareSkyboxPipeline();

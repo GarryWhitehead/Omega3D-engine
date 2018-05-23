@@ -28,7 +28,7 @@ public:
 	struct LightInfo
 	{
 		glm::vec3 pos;
-		float fov;
+		
 	};
 
 	const float CAMERA_VELOCITY = 10.0f;
@@ -44,13 +44,10 @@ public:
 	void SetPitchYaw(double xpos, double ypos);
 	void SetPerspective(float fov, float aspect, float zNear, float zFar);
 	void UpdateViewMatrix();
-	void AddLight(const glm::vec3 pos, const float fov);
 
 	// helper functions
 	float GetZNear() const { return m_zNear; }
 	float GetZFar() const { return m_zFar; }
-	glm::vec3 GetLightPosition(const uint32_t index) { assert(index < m_lightInfo.size()); return m_lightInfo[index].pos; }
-	float GetLightFOV(const uint32_t index) const { assert(index < m_lightInfo.size()); return m_lightInfo[index].fov; }
 	glm::vec3 GetCameraPosition() const { return m_cameraPos; }
 
 private:
@@ -72,8 +69,5 @@ private:
 	// locally stored values
 	float m_zNear;
 	float m_zFar;
-	
-	std::vector<LightInfo> m_lightInfo;
-	float m_lightCounter;
 };
 

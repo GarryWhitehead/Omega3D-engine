@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VulkanTexture.h"
 #include "ComponentManagers/MeshComponentManager.h"
 
 class VulkanEngine;
@@ -58,9 +59,11 @@ public:
 	// material data in format used for push constants
 	struct MaterialProperties
 	{
-		glm::vec4 color;
 		float roughness;
-		float metallic; 
+		float metallic;
+		float r;
+		float g;
+		float b;
 	};
 
 	struct Material
@@ -73,12 +76,12 @@ public:
 
 		struct Textures
 		{
-			TextureInfo diffuse;
-			TextureInfo specular;		// same as metallic
-			TextureInfo normal;
-			TextureInfo roughness;		// PBR
-			TextureInfo metallic;		// PBR
-			TextureInfo nomap;			// dummy texture
+			VulkanTexture diffuse;
+			VulkanTexture specular;			// same as metallic
+			VulkanTexture normal;
+			VulkanTexture roughness;		// PBR
+			VulkanTexture metallic;			// PBR
+			VulkanTexture nomap;			// dummy texture
 		}  texture;
 
 		VkDescriptorSet descrSet;
@@ -120,7 +123,7 @@ public:
 	{
 		glm::mat4 projection;
 		glm::mat4 viewMatrix;
-		glm::mat4 modelMatrix[MAX_MODELS];
+		std::array<glm::mat4, MAX_MODELS> modelMatrix;
 		glm::mat4 boneTransform[MAX_BONES];
 	};
 
@@ -128,7 +131,7 @@ public:
 	~VulkanModel();
 
 	void Init();
-	void Update(CameraSystem *camera);
+	void Update(int acc_time) override;
 	void Destroy() override;
 
 	void PrepareMeshDescriptorSet();
@@ -143,7 +146,7 @@ public:
 	// mesh-material vertex preperation functions
 	void ProcessMeshes();
 	void ProcessMaterials();
-	TextureInfo LoadMaterialTexture(MeshComponentManager::OMFMaterial &material, MaterialType type);
+	void LoadMaterialTexture(MeshComponentManager::OMFMaterial &material, MaterialType type, VulkanTexture &texture);
 	uint8_t FindMaterialIndex(std::string matName);
 	void AddPipelineDataToModels();
 

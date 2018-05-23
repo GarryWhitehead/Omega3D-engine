@@ -4,6 +4,8 @@
 #include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/VulkanIBL.h"
 #include "Systems/camera_system.h"
+#include "Engine/world.h"
+#include "Engine/engine.h"
 
 VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility) :
 	VulkanModule(utility),
@@ -56,7 +58,7 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	std::array<VkDescriptorBufferInfo, 1> buffInfo = {};
 	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(m_envCube.uboBuffer.buffer, 0, m_envCube.uboBuffer.size);
 	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_cubeImage.imageView, vkIBL->m_cubeImage.m_tex_sampler);
+	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_cubeImage.imageView, vkIBL->m_cubeImage.texSampler);
 
 	std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_envCube.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffInfo[0]);
@@ -187,8 +189,10 @@ void VulkanSkybox::PrepareUboBuffer()
 	vkUtility->CreateBuffer(m_envCube.uboBuffer.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_envCube.uboBuffer.buffer, m_envCube.uboBuffer.memory);
 }
 
-void VulkanSkybox::Update(CameraSystem *camera)
+void VulkanSkybox::Update(int acc_time)
 {
+	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+
 	// update skybox
 	SkyboxUbo skyboxUbo;
 	skyboxUbo.projection = camera->m_cameraInfo.projection * glm::mat4(glm::mat3(camera->m_cameraInfo.viewMatrix));

@@ -11,7 +11,6 @@ layout (triangle_strip, max_vertices = 3) out;
 layout (binding = 0) uniform UBObuffer
 {
 	mat4 mvp[LIGHT_COUNT];
-	vec4 instancePos[3];
 } ubo;
 
 layout (location = 0) in int inIndex[];
@@ -23,11 +22,9 @@ out gl_PerVertex
 
 void main()
 {
-	vec4 indexedPos = ubo.instancePos[inIndex[0]];
 	for(int i = 0; i < gl_in.length(); i++) {
 	
 		gl_Layer = gl_InvocationID;
-		//vec4 tempPos = gl_in[i].gl_Position + indexedPos;
 		gl_Position = ubo.mvp[gl_InvocationID] * gl_in[i].gl_Position;
 		EmitVertex();
 	}

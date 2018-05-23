@@ -2,6 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include "VulkanCore/vulkan_core.h"
+#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/vulkan_utility.h"
 
 class VulkanShadow;
@@ -23,7 +24,8 @@ enum class VkModId
 	VKMOD_DEFERRED_ID,
 	VKMOD_PBR_ID,
 	VKMOD_IBL_ID,
-	VKMOD_SKYBOX_ID
+	VKMOD_SKYBOX_ID,
+	VKMOD_WATER_ID
 };
 
 class VulkanEngine : public VulkanCore
@@ -37,7 +39,7 @@ public:
 	~VulkanEngine();
 
 	void Init(World *world);
-	void Update(CameraSystem *camera);
+	void Update(int acc_time);
 	void Render();
 
 	void RegisterVulkanModules(std::vector<VkModId> modules);
@@ -45,6 +47,16 @@ public:
 	
 	template<typename T>
 	T* VkModule(VkModId id);
+	bool hasModule(VkModId id);
+
+	// helper functions
+	VkDevice GetDevice() const { return m_device.device; }
+	VkCommandPool GetCmdPool() const { return m_cmdPool; }
+	uint32_t GetGraphQueueIndex() const { return m_queue.graphIndex; }
+	uint32_t GetComputeQueueIndex() const { return m_queue.computeIndex; }
+	VkQueue GetComputeQueue() const { return m_queue.computeQueue; }
+	VkCommandPool GetComputeCmdPool() const { return m_computeCmdPool; }
+	
 
 	friend class VulkanModel;
 	friend class VulkanTerrain;
@@ -55,14 +67,12 @@ public:
 	friend class VulkanIBL;
 	friend class VulkanPBR;
 	friend class VulkanSkybox;
-	friend class ModelResourceManager;
+	friend class VulkanWater;
+	friend class VulkanTexture;
 
 protected:
 
 	void SubmitFrame();
-	TextureInfo InitDepthImage();
-	void PrepareRenderpass();
-	void PrepareFrameBuffers();
 	void DrawScene();
 	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
 
@@ -73,16 +83,12 @@ protected:
 
 	std::unordered_map<VkModId, VulkanModule*> m_vkModules;
 
-	VkFormat m_depthImageFormat;
 	VulkanUtility::ViewPortInfo m_viewport;
 	VkCommandPool m_cmdPool;
-	VkRenderPass m_renderpass;
-	std::vector<VkFramebuffer> m_frameBuffer;
-	VkCommandBuffer m_offscreenCmdBuffer;
-	std::vector<VkCommandBuffer> m_sceneCmdBuffer;
-	std::vector<VkCommandBuffer> m_cmdBuffers;
-	TextureInfo m_depthImage;
+	VkCommandPool m_computeCmdPool;
 
+	VkCommandBuffer m_offscreenCmdBuffer;
+	std::vector<VkCommandBuffer> m_cmdBuffers;
 	bool drawStateChanged;
 	bool vk_prepared;
 };
@@ -90,7 +96,7 @@ protected:
 template<typename T>
 T* VulkanEngine::VkModule(VkModId id)
 {
-	T* mod = static_cast<T*>(m_vkModules[id]);
+	T* mod = (T*)m_vkModules[id]; //static_cast<T*>(m_vkModules[id]);
 	assert(mod != nullptr);
 	return mod;
 }

@@ -66,11 +66,11 @@ void main()
 		vec2 Xi = Hammersley(c, push.sampleCount);
 		vec3 H = GGX_ImportanceSample(Xi, N, push.roughness);
 		
-		vec3 L = normalize(2.0 * dot(V, H) * H - V);
+		vec3 L = 2.0 * dot(V, H) * H - V;
 		
-		float NdotL = max(dot(N, L), 0.0);
-		float NdotH = max(dot(N, H), 0.0);
-		float HdotV = max(dot(H, V), 0.0);
+		float NdotL = clamp(dot(N, L), 0.0, 1.0);
+		float NdotH = clamp(dot(N, H), 0.0, 1.0);
+		float HdotV = clamp(dot(H, V), 0.0, 1.0);
 		
 		if(NdotL > 0.0) {
 		
@@ -81,7 +81,7 @@ void main()
 			float saTex = 4.0 * PI / (6.0 * resolution * resolution);
 			float saSample = 1.0 / (float(push.sampleCount) * pdf + 0.0001);
 			
-			float mipLevel = push.roughness == 0.0 ? 0.0 : 0.5 * log2(saSample / saTex);
+			float mipLevel = push.roughness == 0.0 ? 0.0 : max(0.5 * log2(saSample / saTex) + 1.0, 0.0);
 			
 			preFilterCol += textureLod(envSampler, L, mipLevel).rgb * NdotL;
 			totalWeight += NdotL;

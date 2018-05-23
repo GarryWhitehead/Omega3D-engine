@@ -1,0 +1,49 @@
+#version 450
+
+layout (binding = 0) uniform uboBuffer
+{
+	float choppiness;
+	uint mapSize;
+	float _pad0;
+	float _pad1;
+} ubo;
+
+layout (std140, binding = 1) readonly buffer ssboBufferdx
+{
+	vec2 dxtMap[];
+};
+
+layout (std140, binding = 2) readonly buffer ssboBufferdy
+{
+	vec2 dytMap[];
+};
+
+layout (std140, binding = 3) readonly buffer ssboBufferdz
+{
+	vec2 htMap[];
+};
+
+layout (binding = 4, rgba16) uniform image2D displacementImage;
+
+layout (local_size_x = 16, local_size_y = 16) in;		// local work group size of 16 x 16
+
+void main()
+{
+	uvec3 id = gl_GlobalInvocationID;
+	
+	uint index = id.y * ubo.mapSize + id.x;
+	if(index > ubo.mapSize * ubo.mapSize)
+		return;
+	
+	// odds = -1 / evens +1
+	uint res = ((id.x + id.y) & 1);
+	uint signCorrect = (res == 0) ? -1 : 1;
+	
+	// update displacement map
+	vec3 displace = vec3(0.0);
+	displace.x = dxtMap[index].x * signCorrect * ubo.choppiness;
+	displace.y = dytMap[index].x * signCorrect * ubo.choppiness;
+	displace.z = htMap[index].x * signCorrect;
+	
+	imageStore(displacementImage, ivec2(gl_GlobalInvocationID.xy), vec4(displace, 1.0));
+}

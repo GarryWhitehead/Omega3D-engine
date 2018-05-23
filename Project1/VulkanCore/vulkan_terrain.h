@@ -1,5 +1,7 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/TerrainUtility.h"
 #include <string>
 #include <vector>
 #include "glm.hpp"
@@ -13,44 +15,18 @@ class VulkanTerrain : public VulkanModule
 public:
 
 	// tesselation patch values
-	const uint32_t PATCH_SIZE = 64;		// 64 X 64 triangles
+	const uint32_t PATCH_SIZE = 128;		// 64 X 64 triangles
 	const float UV_SCALE = 1.0f;
-	const float WX = 2.0f;
-	const float WY = 2.0f;
 
 	// tessellation shader factors
-	const float TESSELLATION_DISP_FACTOR = 40.0f;
+	const float TESSELLATION_DISP_FACTOR = 75.0f;
 	const float TESSELLATION_FACTOR = 0.75f;
-	const float TESSELLATION_EDGE_SIZE = 20.0f;
-
-	struct TerrainUbo
-	{
-		glm::mat4 projection;
-		glm::mat4 modelMatrix;
-		glm::mat4 viewMatrix;
-		glm::vec2 screenDim;
-		float disFactor;
-		float tessFactor;
-		float tessEdgeSize;
-	};
-
-	struct Vertex
-	{
-		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
-		std::array<VkVertexInputAttributeDescription, 6> Vertex::GetAttrBindingDescription();
-
-		glm::vec3 pos;
-		glm::vec2 uv;
-		glm::vec3 normal;
-		glm::vec3 colour;
-		float boneWeigthts[4];
-		uint32_t boneId[4];
-	};
+	const float TESSELLATION_EDGE_SIZE = 40.0f;
 
 	struct ImageInfo
 	{
-		TextureInfo terrain;
-		TextureInfo heightMap;
+		VulkanTexture terrain;
+		VulkanTexture heightMap;
 	};
 
 	struct TerrainData
@@ -65,7 +41,7 @@ public:
 
 		struct Data
 		{
-			std::vector<TerrainUbo> uboData;
+			std::vector<TerrainUtility::TerrainUbo> uboData;
 		} data;
 
 		VulkanUtility::DescriptorInfo descrInfo;
@@ -77,7 +53,7 @@ public:
 	~VulkanTerrain();
 
 	void Init();
-	void Update(CameraSystem *camera);
+	void Update(int acc_time) override;
 	void Destroy() override;
 
 	void LoadTerrainTextures();

@@ -4,6 +4,9 @@
 #include "VulkanCore/VulkanPBR.h"
 #include "VulkanCore/VulkanIBL.h"
 #include "Systems/camera_system.h"
+#include "Engine/World.h"
+#include "Engine/engine.h"
+#include "ComponentManagers/LightComponentManager.h"
 #include <gtc/matrix_transform.hpp>
 
 VulkanDeferred::VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility) :
@@ -19,7 +22,7 @@ VulkanDeferred::~VulkanDeferred()
 void VulkanDeferred::CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr)
 {
 	attachDescr->format = format;
-	attachDescr->samples = VK_SAMPLE_COUNT_1_BIT;								// used for MSAA 
+	attachDescr->samples = VK_SAMPLE_COUNT_1_BIT;			// used for MSAA
 	attachDescr->loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachDescr->storeOp = VK_ATTACHMENT_STORE_OP_STORE;				// IMPORTANT: this needs to be set to store operations for this to work!!!
 	attachDescr->stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -28,88 +31,31 @@ void VulkanDeferred::CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, V
 	attachDescr->finalLayout = finalLayout;
 }
 
-void VulkanDeferred::CreateDeferredImage(VkFormat format, VkImageUsageFlagBits usageFlags, TextureInfo& imageInfo)
-{	
-	imageInfo.height = p_vkEngine->m_surface.extent.height;
-	imageInfo.width = p_vkEngine->m_surface.extent.width;
-	imageInfo.format = format;
-
-	VkImageAspectFlags aspectFlags = 0;
-
-	if (usageFlags & VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT) {
-		aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
-	}
-	else if (usageFlags & VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
-		aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
-	}
-
-	assert(aspectFlags > 0);
-
-	VkImageCreateInfo image_info = {};
-	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	image_info.format = format;
-	image_info.imageType = VK_IMAGE_TYPE_2D;
-	image_info.extent.width = imageInfo.width;
-	image_info.extent.height = imageInfo.height;
-	image_info.extent.depth = 1;
-	image_info.mipLevels = 1;
-	image_info.arrayLayers = 1;
-	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &imageInfo.image));
-
-	VkMemoryRequirements mem_req;
-	vkGetImageMemoryRequirements(p_vkEngine->m_device.device, imageInfo.image, &mem_req);
-
-	VkMemoryAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->m_device.device, &alloc_info, nullptr, &imageInfo.texture_mem));
-
-	vkBindImageMemory(p_vkEngine->m_device.device, imageInfo.image, imageInfo.texture_mem, 0);
-
-	// depth image view
-	VkImageViewCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = imageInfo.image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = format;
-	createInfo.subresourceRange.aspectMask = aspectFlags;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.layerCount = 1;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-
-	VK_CHECK_RESULT(vkCreateImageView(p_vkEngine->m_device.device, &createInfo, nullptr, &imageInfo.imageView));
-}
-
 void VulkanDeferred::PrepareDeferredFramebuffer()
 {
+	uint32_t height = p_vkEngine->m_surface.extent.height;
+	uint32_t width = p_vkEngine->m_surface.extent.width;
+
 	// initialise the colour buffer attachments for PBR
-	CreateDeferredImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.position.imageInfo);		// positions
-	CreateDeferredImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.normal.imageInfo);		// normals
-	CreateDeferredImage(VK_FORMAT_R8G8B8A8_UNORM, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.albedo.imageInfo);		// albedo colour buffer
-	CreateDeferredImage(VK_FORMAT_R16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.ao.imageInfo);			// ao colour buffer
-	CreateDeferredImage(VK_FORMAT_R16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.metallic.imageInfo);		// metallic colour buffer
-	CreateDeferredImage(VK_FORMAT_R16_SFLOAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, m_deferredInfo.roughness.imageInfo);	// roughness colour buffer
+	m_deferredInfo.position.imageInfo.PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);		// positions
+	m_deferredInfo.normal.imageInfo.PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);			// normals
+	m_deferredInfo.albedo.imageInfo.PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);				// albedo colour buffer
+	m_deferredInfo.bump.imageInfo.PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);				// bump colour buffer
+	m_deferredInfo.ao.imageInfo.PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);						// ao 
+	m_deferredInfo.metallic.imageInfo.PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);				// metallic 
+	m_deferredInfo.roughness.imageInfo.PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);				// roughness 
 
 	// initialise the G buffer
 	// required depth image format in order of preference
 	std::vector<VkFormat> formats = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 	VkFormat depthFormat = vkUtility->FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-	CreateDeferredImage(depthFormat, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, m_deferredInfo.depth.imageInfo);
+	m_deferredInfo.depth.imageInfo.PrepareImage(depthFormat, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, width, height, p_vkEngine, false);
 
 	// prepare deferred render pass
 	PrepareDeferredRenderpass();
 
 	// frame buffers for eachg swap chain
-	std::array<VkImageView, 8> attachments = {};
+	std::array<VkImageView, 9> attachments = {};
 	m_deferredInfo.frameBuffers.resize(p_vkEngine->m_swapchain.imageCount);
 	
 	for (uint32_t c = 0; c < m_deferredInfo.frameBuffers.size(); ++c) {
@@ -118,10 +64,11 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 		attachments[1] = m_deferredInfo.position.imageInfo.imageView;
 		attachments[2] = m_deferredInfo.normal.imageInfo.imageView;
 		attachments[3] = m_deferredInfo.albedo.imageInfo.imageView;
-		attachments[4] = m_deferredInfo.ao.imageInfo.imageView;
-		attachments[5] = m_deferredInfo.metallic.imageInfo.imageView;
-		attachments[6] = m_deferredInfo.roughness.imageInfo.imageView;
-		attachments[7] = m_deferredInfo.depth.imageInfo.imageView;
+		attachments[4] = m_deferredInfo.bump.imageInfo.imageView;
+		attachments[5] = m_deferredInfo.ao.imageInfo.imageView;
+		attachments[6] = m_deferredInfo.metallic.imageInfo.imageView;
+		attachments[7] = m_deferredInfo.roughness.imageInfo.imageView;
+		attachments[8] = m_deferredInfo.depth.imageInfo.imageView;
 
 		VkFramebufferCreateInfo frameInfo = {};
 		frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -139,29 +86,31 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 void VulkanDeferred::PrepareDeferredRenderpass()
 {
 	// Create attachment info for colour attachment, G buffer 
-	std::array<VkAttachmentDescription, 8> attachDescr = {};
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkEngine->m_surface.format.format, 0, &attachDescr[0]);				// color attachment - for swap chain presentation
+	std::array<VkAttachmentDescription, 9> attachDescr = {};
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkEngine->m_surface.format.format, 0, &attachDescr[0]);						// color attachment - for swap chain presentation
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.position.imageInfo.format, 1, &attachDescr[1]);			// position
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.normal.imageInfo.format, 2, &attachDescr[2]);			// normal
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.albedo.imageInfo.format, 3, &attachDescr[3]);			//	albedo
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao.imageInfo.format, 4, &attachDescr[4]);				//	ao
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic.imageInfo.format, 5, &attachDescr[5]);			//	metallic
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness.imageInfo.format, 6, &attachDescr[6]);		//	roughness
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, m_deferredInfo.depth.imageInfo.format, 7, &attachDescr[7]);	// depth
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.bump.imageInfo.format, 4, &attachDescr[4]);				//	bump
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao.imageInfo.format, 5, &attachDescr[5]);				//	ao
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic.imageInfo.format, 6, &attachDescr[6]);			//	metallic
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness.imageInfo.format, 7, &attachDescr[7]);		//	roughness
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, m_deferredInfo.depth.imageInfo.format, 8, &attachDescr[8]);	// depth
 
 	std::array<VkSubpassDescription, 3> subpassDescr = {};
 
 	// ================================ subpass one - fill G-buffers
-	std::array<VkAttachmentReference, 7> colorRef1 = {};
+	std::array<VkAttachmentReference, 8> colorRef1 = {};
 	colorRef1[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// colour - swapchain present
 	colorRef1[1] = { 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// position
 	colorRef1[2] = { 2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// normal
-	colorRef1[3] = { 3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		//albedo
-	colorRef1[4] = { 4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// ao
-	colorRef1[5] = { 5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// metallic
-	colorRef1[6] = { 6, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// roughness
+	colorRef1[3] = { 3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// albedo
+	colorRef1[4] = { 4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// bump/normal
+	colorRef1[5] = { 5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// ao
+	colorRef1[6] = { 6, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// metallic
+	colorRef1[7] = { 7, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// roughness
 
-	VkAttachmentReference depthRef = { 7, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+	VkAttachmentReference depthRef = { 8, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
 	subpassDescr[0].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassDescr[0].colorAttachmentCount = static_cast<uint32_t>(colorRef1.size());
 	subpassDescr[0].pColorAttachments = colorRef1.data();
@@ -171,13 +120,14 @@ void VulkanDeferred::PrepareDeferredRenderpass()
 	std::array<VkAttachmentReference, 1> colorRef2 = {};
 	colorRef2[0] = { 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL };		// colour - swapchain present
 
-	std::array<VkAttachmentReference, 6> inputRef = {};
+	std::array<VkAttachmentReference, 7> inputRef = {};
 	inputRef[0] = { 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// position
 	inputRef[1] = { 2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// normal
 	inputRef[2] = { 3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// albedo
-	inputRef[3] = { 4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// ao
-	inputRef[4] = { 5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// metallic
-	inputRef[5] = { 6, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// roughness
+	inputRef[3] = { 4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// bump
+	inputRef[4] = { 5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// ao
+	inputRef[5] = { 6, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// metallic
+	inputRef[6] = { 7, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL };		// roughness
 
 	subpassDescr[1].pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	subpassDescr[1].colorAttachmentCount = static_cast<uint32_t>(colorRef2.size());
@@ -248,7 +198,7 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	descrPoolSize[1].descriptorCount = 6;
 	descrPoolSize[2].type = VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT;
-	descrPoolSize[2].descriptorCount = 6;
+	descrPoolSize[2].descriptorCount = 7;
 
 	VkDescriptorPoolCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -259,19 +209,20 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_deferredInfo.descriptor.pool));
 
 	// deferred descriptor layout
-	std::array<VkDescriptorSetLayoutBinding, 12> layoutBind = {};
+	std::array<VkDescriptorSetLayoutBinding, 13> layoutBind = {};
 	layoutBind[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
 	layoutBind[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT);
 	layoutBind[2] = vkUtility->InitLayoutBinding(2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// position
 	layoutBind[3] = vkUtility->InitLayoutBinding(3, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// normal
 	layoutBind[4] = vkUtility->InitLayoutBinding(4, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// albedo
-	layoutBind[5] = vkUtility->InitLayoutBinding(5, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// ao
-	layoutBind[6] = vkUtility->InitLayoutBinding(6, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// metallic
-	layoutBind[7] = vkUtility->InitLayoutBinding(7, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// roughness
-	layoutBind[8] = vkUtility->InitLayoutBinding(8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// shadow
-	layoutBind[9] = vkUtility->InitLayoutBinding(9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// BDRF lut
-	layoutBind[10] = vkUtility->InitLayoutBinding(10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// irradiance map
-	layoutBind[11] = vkUtility->InitLayoutBinding(11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// pre-filter map
+	layoutBind[5] = vkUtility->InitLayoutBinding(5, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// bump
+	layoutBind[6] = vkUtility->InitLayoutBinding(6, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// ao
+	layoutBind[7] = vkUtility->InitLayoutBinding(7, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// metallic
+	layoutBind[8] = vkUtility->InitLayoutBinding(8, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, VK_SHADER_STAGE_FRAGMENT_BIT);					// roughness
+	layoutBind[9] = vkUtility->InitLayoutBinding(9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// shadow
+	layoutBind[10] = vkUtility->InitLayoutBinding(10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// BDRF lut
+	layoutBind[11] = vkUtility->InitLayoutBinding(11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// irradiance map
+	layoutBind[12] = vkUtility->InitLayoutBinding(12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// pre-filter map
 
 	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
 	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
@@ -298,19 +249,20 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	auto vkPBR = p_vkEngine->VkModule<VulkanPBR>(VkModId::VKMOD_PBR_ID);
 	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID);
 
-	std::array<VkDescriptorImageInfo, 10> imageInfo = {};
+	std::array<VkDescriptorImageInfo, 11> imageInfo = {};
 	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.position.imageInfo.imageView, VK_NULL_HANDLE);
 	imageInfo[1] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.normal.imageInfo.imageView, VK_NULL_HANDLE);
 	imageInfo[2] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.albedo.imageInfo.imageView, VK_NULL_HANDLE);
-	imageInfo[3] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.ao.imageInfo.imageView, VK_NULL_HANDLE);
-	imageInfo[4] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.metallic.imageInfo.imageView, VK_NULL_HANDLE);
-	imageInfo[5] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.roughness.imageInfo.imageView, VK_NULL_HANDLE);
-	imageInfo[6] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, vkShadow->m_depthImage.imageView, vkShadow->m_depthImage.m_tex_sampler);
-	imageInfo[7] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkPBR->lutImage.imageView, vkPBR->lutImage.m_tex_sampler);
-	imageInfo[8] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_irradianceCube.cubeImage.imageView, vkIBL->m_irradianceCube.cubeImage.m_tex_sampler);
-	imageInfo[9] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_filterCube.cubeImage.imageView, vkIBL->m_filterCube.cubeImage.m_tex_sampler);
+	imageInfo[3] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.bump.imageInfo.imageView, VK_NULL_HANDLE);
+	imageInfo[4] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.ao.imageInfo.imageView, VK_NULL_HANDLE);
+	imageInfo[5] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.metallic.imageInfo.imageView, VK_NULL_HANDLE);
+	imageInfo[6] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.roughness.imageInfo.imageView, VK_NULL_HANDLE);
+	imageInfo[7] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, vkShadow->m_depthImage.imageView, vkShadow->m_depthImage.texSampler);
+	imageInfo[8] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkPBR->lutImage.imageView, vkPBR->lutImage.texSampler);
+	imageInfo[9] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_irradianceCube.cubeImage.imageView, vkIBL->m_irradianceCube.cubeImage.texSampler);
+	imageInfo[10] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_filterCube.cubeImage.imageView, vkIBL->m_filterCube.cubeImage.texSampler);
 	
-	std::array<VkWriteDescriptorSet, 12> writeDescrSet = {};
+	std::array<VkWriteDescriptorSet, 13> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBufferInfo[0]);
 	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 1, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &uboBufferInfo[1]);
 	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 2, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, &imageInfo[0]);
@@ -319,10 +271,11 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	writeDescrSet[5] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 5, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, &imageInfo[3]);
 	writeDescrSet[6] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 6, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, &imageInfo[4]);
 	writeDescrSet[7] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 7, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, &imageInfo[5]);
-	writeDescrSet[8] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 8, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[6]);
+	writeDescrSet[8] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 8, VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, &imageInfo[6]);
 	writeDescrSet[9] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 9, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[7]);
 	writeDescrSet[10] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[8]);
 	writeDescrSet[11] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[9]);
+	writeDescrSet[12] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[10]);
 	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
@@ -374,12 +327,17 @@ void VulkanDeferred::PrepareDeferredPipeline()
 	depthInfo.depthWriteEnable = VK_FALSE;
 	depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
+	VkPushConstantRange pushConstant = {};
+	pushConstant.size = sizeof(uint32_t);
+	pushConstant.offset = 0;
+	pushConstant.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
 	pipelineInfo.pSetLayouts = &m_deferredInfo.descriptor.layout;
-	pipelineInfo.pPushConstantRanges = 0;
-	pipelineInfo.pushConstantRangeCount = 0;
+	pipelineInfo.pPushConstantRanges = &pushConstant;
+	pipelineInfo.pushConstantRangeCount = 1;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_deferredInfo.pipelineInfo.layout));
 
@@ -417,6 +375,11 @@ void VulkanDeferred::GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_deferredInfo.pipelineInfo.layout, 0, 1, &m_deferredInfo.descriptor.set, 0, NULL);
 
 	vkCmdBindIndexBuffer(cmdBuffer, m_buffers.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
+
+	auto p_lightManager = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
+	uint32_t lightCount = p_lightManager->GetLightCount();
+	vkCmdPushConstants(cmdBuffer, m_deferredInfo.pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(uint32_t), &lightCount);
+
 	vkCmdDrawIndexed(cmdBuffer, 6, 1, 0, 0, 0);
 }
 
@@ -429,8 +392,6 @@ void VulkanDeferred::CreateUBOBuffers()
 	// fragment UBO buffer
 	m_buffers.fragmentUbo.size = sizeof(FragmentUBOLayout);
 	vkUtility->CreateBuffer(m_buffers.fragmentUbo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffers.fragmentUbo.buffer, m_buffers.fragmentUbo.memory);
-
-	PreapareLightData();
 }
 
 void VulkanDeferred::PrepareFullscreenQuad()
@@ -466,21 +427,6 @@ void VulkanDeferred::PrepareFullscreenQuad()
 	vkUtility->MapBuffer<uint32_t>(m_buffers.indices, indices);
 }
 
-void VulkanDeferred::PreapareLightData()
-{
-	m_fragBuffer.lights[0] = LightInfo(glm::vec4(-14.0f, -0.5f, 10.0f, 1.0f), glm::vec4(-2.0f, 0.0f, 0.0f, 0.0f), glm::vec4(1.0f, 0.5f, 0.5f, 0.0f));
-	m_fragBuffer.lights[1] = LightInfo(glm::vec4(-14.0f, -4.5f, 0.0f, 1.0f), glm::vec4(2.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 1.0f, 0.0f, 0.0f));
-	m_fragBuffer.lights[2] = LightInfo(glm::vec4(-0.0f, -0.5f, 10.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[3] = LightInfo(glm::vec4(4.0f, -1.0f, 0.0f, 1.0f), glm::vec4(1.0f, 0.0f, 1.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[4] = LightInfo(glm::vec4(0.0f, -0.0f, -15.0f, 1.0f), glm::vec4(-0.5f, 1.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[5] = LightInfo(glm::vec4(-5.0f, -1.5f, 0.0f, 1.0f), glm::vec4(0.0f, -2.0f, 0.5f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[6] = LightInfo(glm::vec4(-2.0f, 15.0f, -5.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[7] = LightInfo(glm::vec4(-40.0f, -10.0f, -20.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[8] = LightInfo(glm::vec4(10.0f, -2.0f, 0.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[9] = LightInfo(glm::vec4(-1.0f, -3.0f, 1.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-	m_fragBuffer.lights[10] = LightInfo(glm::vec4(-12.0f, -5.0f, 1.0f, 1.0f), glm::vec4(0.0f, 0.0f, 0.0f, 0.0f), glm::vec4(0.0f, 0.3f, 0.9f, 0.0f));
-}
-
 void VulkanDeferred::Init()
 {
 	PrepareDeferredFramebuffer();
@@ -490,11 +436,13 @@ void VulkanDeferred::Init()
 	PrepareDeferredPipeline();
 }
 
-void VulkanDeferred::Update(CameraSystem *camera)
+void VulkanDeferred::Update(int acc_time)
 {
 	auto vkShadow = p_vkEngine->VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
+	auto p_lightManager = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
+	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
 
-	// update vrtex ubo buffer
+	// update vertex ubo buffer
 	m_vertBuffer.projection = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
 	m_vertBuffer.viewMatrix = glm::mat4(1.0f);
 	m_vertBuffer.modelMatrix = glm::mat4(1.0f);
@@ -502,12 +450,16 @@ void VulkanDeferred::Update(CameraSystem *camera)
 	vkUtility->MapBuffer<VertexUBOLayout>(m_buffers.vertexUbo, m_vertBuffer);
 
 	// update fragment ubo buffer
-	m_fragBuffer.viewPos = glm::vec4(camera->GetCameraPosition(), 0.0f) * glm::vec4(-1.0f, 1.0f, -1.0f, 1.0f);
-	m_fragBuffer.cameraPos = glm::vec4(camera->GetCameraPosition(), 0.0f) * -1.0f;
+	uint32_t lightCount = p_lightManager->GetLightCount();
+	m_fragBuffer.cameraPos = glm::vec4(camera->GetCameraPosition(), 1.0f);
+	m_fragBuffer.activeLightCount = lightCount;
 
-	for (uint32_t c = 0; c < LIGHT_COUNT; ++c) {
+	for (uint32_t c = 0; c < lightCount; ++c) {
 
-		m_fragBuffer.lights[c].viewMatrix = vkShadow->m_shadowInfo.uboData.mvp[c];
+		LightComponentManager::LightInfo lightInfo = p_lightManager->GetLightData(c);
+		m_fragBuffer.light[c].pos = lightInfo.pos;
+		m_fragBuffer.light[c].direction = lightInfo.target;
+		m_fragBuffer.light[c].colour = lightInfo.colour;
 	}
 
 	vkUtility->MapBuffer<FragmentUBOLayout>(m_buffers.fragmentUbo, m_fragBuffer);

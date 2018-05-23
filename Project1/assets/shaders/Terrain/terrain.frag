@@ -14,9 +14,10 @@ layout (location = 0) out vec4 outColour;
 layout (location = 1) out vec4 outPosition;
 layout (location = 2) out vec4 outNormal;
 layout (location = 3) out vec4 outAlbedo;
-layout (location = 4) out float outAo;
-layout (location = 5) out float outMetallic;
-layout (location = 6) out float outRoughness;
+layout (location = 4) out vec4 outBump;
+layout (location = 5) out float outAo;
+layout (location = 6) out float outMetallic;
+layout (location = 7) out float outRoughness;
 
 
 vec3 getTerrainLayer()
@@ -55,9 +56,11 @@ void main()
 	
 	outNormal = vec4(inNormal, 1.0);
 
-	outAo = 1.0;
-	outMetallic.r = 0.8;
-	outRoughness.r = 0.8;
+	outBump = vec4(0.0, 0.0, -1.0, 1.0);
+
+	outAo = 0.0;
+	outMetallic.r = 0.0;
+	outRoughness.r = 0.0;
 
 	outColour = vec4(0.0);
 }

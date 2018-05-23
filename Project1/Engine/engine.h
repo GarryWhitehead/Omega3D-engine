@@ -35,7 +35,7 @@ public:
 
 	// main core functions
 	void Init();
-	void Update();
+	void Update(int acc_time);
 	void Release();
 	void Render(float interpolation);
 	void CreateWorld(std::vector<SystemId> systemIds, std::string name);

@@ -59,7 +59,7 @@ void Engine::Init()
 	p_vkEngine->InitVulkanCore();
 }
 
-void Engine::Update()
+void Engine::Update(int acc_time)
 {
 	//update component managers e.g. physics, transform, etc.
 	m_worlds[m_currentWorldIndex]->UpdateComponentManagers();
@@ -67,7 +67,7 @@ void Engine::Update()
 	// update main world systems - e.g. camera, input, etc.
 	m_worlds[m_currentWorldIndex]->UpdateSystems();
 
-	p_vkEngine->Update(static_cast<CameraSystem*>(m_worlds[m_currentWorldIndex]->HasSystem(SystemId::CAMERA_SYSTEM_ID)));
+	p_vkEngine->Update(acc_time);
 }
 
 void Engine::Render(float interpolation)

@@ -13,6 +13,7 @@
 #include "ComponentManagers/TransformComponentManager.h"
 #include "ComponentManagers/MeshComponentManager.h"
 #include "ComponentManagers/AnimationComponentManager.h"
+#include "ComponentManagers/LightComponentManager.h"
 
 #include "VulkanCore/VulkanEngine.h"
 #include <iostream>
@@ -84,16 +85,6 @@ void World::RegisterSystems(std::vector<SystemId>& systemIds, Engine *engine, Vu
 
 			// setup camera view
 			system->SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
-			system->AddLight(glm::vec3(-4.0f, -2.0f, 2.0f), 45.0f);
-			system->AddLight(glm::vec3(2.0f, -4.0f, 0.0f), 45.0f);
-			system->AddLight(glm::vec3(-7.0f, -1.0f, -6.0f), 45.0f);
-			system->AddLight(glm::vec3(24.0f, -12.0f, 20.0f), 45.0f);
-			system->AddLight(glm::vec3(20.0f, -17.0f, 50.0f), 45.0f);
-			system->AddLight(glm::vec3(-40.0f, -10.0f, -6.0f), 60.0f);
-			system->AddLight(glm::vec3(-1.0f, -5.0f, -2.0f), 45.0f);
-			system->AddLight(glm::vec3(12.0f, -14.0f, 0.5f), 45.0f);
-			system->AddLight(glm::vec3(-70.0f, -10.0f, -6.0f), 45.0f);
-			system->AddLight(glm::vec3(-7.0f, -1.0f, -60.0f), 60.0f);
 		}
 		else if (id == SystemId::GRAPHICS_SYSTEM_ID) {
 
@@ -129,6 +120,11 @@ void World::RegisterComponentManager(ComponentManagerId id)
 
 		AnimationComponentManager *manager = new AnimationComponentManager(ComponentManagerId::CM_ANIMATION_ID);
 		m_managers.insert(std::make_pair(ComponentManagerId::CM_ANIMATION_ID, manager));
+	}
+	else if (id == ComponentManagerId::CM_LIGHT_ID) {
+
+		LightComponentManager *manager = new LightComponentManager(ComponentManagerId::CM_LIGHT_ID);
+		m_managers.insert(std::make_pair(ComponentManagerId::CM_LIGHT_ID, manager));
 	}
 	else {
 		*g_filelog << "Error registering component manager with id #" << (int)id << ". Component manager id not recognised.\n";

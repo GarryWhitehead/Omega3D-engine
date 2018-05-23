@@ -1,7 +1,9 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VulkanTexture.h"
 
 class VulkanEngine;
+class CameraSystem;
 
 class VulkanPBR : public VulkanModule
 {
@@ -22,8 +24,8 @@ public:
 	~VulkanPBR();
 
 	void Init();
+	void Update(int acc_time) override;
 	void Destroy() override;
-	void PrepareLUTImage();
 	void PrepareLUTRenderpass();
 	void PrepareLUTFramebuffer();
 	void PrepareLUTPipeline();
@@ -35,7 +37,7 @@ private:
 
 	VulkanEngine * p_vkEngine;
 
-	TextureInfo lutImage;
+	VulkanTexture lutImage;
 	VkRenderPass m_lutRenderpass;
 	VkFramebuffer m_lutFramebuffer;
 	VkPipelineLayout m_lutLayout;

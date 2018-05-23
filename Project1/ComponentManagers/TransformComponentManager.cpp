@@ -45,7 +45,7 @@ void TransformComponentManager::Update()
 			// first do a check to ensure that the position and transform data are synced to the same object at a particular index
 			Object obj = objIndex.first;
 			uint32_t index = objIndex.second;
-			if (m_indicies[obj] == index) {
+			//if (m_indicies[obj] == index) {
 
 				glm::mat4 trans(1.0);
 				if (!updatedData[index].pos.empty()) {
@@ -59,10 +59,10 @@ void TransformComponentManager::Update()
 					trans = glm::scale(trans, updatedData[index].scale[0]);
 				}
 				m_data.worldTransform[index] = trans;
-			}
-			else {
-				*g_filelog << "Error updating transform data. Object indicies out of sync - Index 1: " << m_indicies[obj] << " , Index 2: " << objectIndicies[obj] << "\n";
-			}
+			//}
+			//else {
+			//	*g_filelog << "Error updating transform data. Object indicies out of sync - Index 1: " << m_indicies[obj] << " , Index 2: " << objectIndicies[obj] << "\n";
+			//}
 
 		}
 	}
@@ -89,16 +89,19 @@ void TransformComponentManager::Transform(uint32_t index, glm::mat4 parentMatrix
 	}
 }
 
-void TransformComponentManager::DownloadWorldTransformData(glm::mat4 transformData[256])
+std::array<glm::mat4, 256> TransformComponentManager::DownloadWorldTransformData()
 { 
-	if (!dataUpdated) {
-		return;
-	}
+	std::array<glm::mat4, 256> transformData;
+
+	//if (!dataUpdated) {
+	//	return transformData;
+	//}
 
 	for (int c = 0; c < m_data.worldTransform.size(); ++c) {
 
 		transformData[c] = m_data.worldTransform[c];
 	}
+	return transformData;
 }
 
 void TransformComponentManager::Destroy()

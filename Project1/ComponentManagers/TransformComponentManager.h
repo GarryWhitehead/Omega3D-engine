@@ -4,6 +4,7 @@
 #include "glm.hpp"
 #include "ComponentManagers/ComponentManager.h"
 #include "Engine/Object.h"
+#include <array>
 
 class ObjectManager;
 class World;
@@ -34,7 +35,7 @@ public:
 	void Transform(uint32_t index, glm::mat4 mat);
 	void Serialise(Archiver* arch, TransformComponentManager& manager, const Archiver::var_info& info);
 
-	void DownloadWorldTransformData(glm::mat4 transformData[]);
+	std::array<glm::mat4, 256> DownloadWorldTransformData();
 
 private:
 

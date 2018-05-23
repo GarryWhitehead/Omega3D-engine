@@ -1,0 +1,154 @@
+#version 450
+
+#extension GL_ARB_separate_shader_objects : enable
+#extension GL_ARB_shading_language_420pack : enable
+
+#define COS_PI_4_16 0.70710678118654752440084436210485f
+
+// source / destination buffers
+layout(binding = 0) buffer outMapDxt
+{
+	vec2 inHtMap[];				
+};
+
+layout(binding = 1) buffer outMapDxy
+{
+	vec2 outHtMap[];		
+};
+
+struct Data
+{
+	float iStride;
+	float oStride;
+	float pStride;
+	float phaseBase;		
+};
+
+layout (binding = 2) uniform uboBuffer
+{
+	Data data[6];
+} ubo;
+
+layout (push_constant) uniform pushConstant
+{
+	int uboIndex;
+};
+
+layout (local_size_x = 256) in;
+
+void FT2(inout vec2 a, inout vec2 b)
+{
+	float t;
+	
+	t = a.x;
+	a.x += b.x;
+	b.x = t - b.x;
+	
+	t = a.y;
+	a.y += b.y;
+	b.y = t - b.y;
+}
+
+void cmul_f(inout vec2 a, float bx, float by)
+{
+	float t = a.x;
+	a.x = t * bx - a.y * by;
+	a.y = t * by + a.y * bx;
+}
+
+void upd_f(inout vec2 a, inout vec2 b)
+{
+	float A = a.x;
+	float B = b.y;
+	
+	a.x += b.y;
+	b.y = a.y + b.x;
+	a.y -= b.x;
+	b.x = A - B;
+}
+
+void FFT_forward4(inout vec2 D[8])
+{
+	FT2(D[0], D[2]);
+	FT2(D[1], D[3]);
+	FT2(D[0], D[1]);
+	upd_f(D[2], D[3]);
+}
+	
+void FFT_forward8(inout vec2 D[8])
+{
+	// T = 8
+	FT2(D[0], D[4]);
+	FT2(D[1], D[5]);
+	FT2(D[2], D[6]);
+	FT2(D[3], D[7]);
+	
+	// T = 4
+	upd_f(D[4], D[6]);
+	upd_f(D[5], D[7]);
+	
+	cmul_f(D[5], COS_PI_4_16, -COS_PI_4_16);
+	cmul_f(D[7], -COS_PI_4_16, COS_PI_4_16);
+	
+	// T = 2
+	FFT_forward4(D);
+	FT2(D[4], D[5]);
+	FT2(D[6], D[7]);	
+}
+
+void Twiddle(inout vec2 d, float phase)
+{
+	float tx = cos(phase);
+	float ty = sin(phase);
+	
+	float t = d.x;
+	d.x = t * tx - d.y * ty;
+	d.y = t * ty - d.y * tx;
+}
+
+void ApplyTwiddleFactor(inout vec2 D[8], float phase)
+{
+	Twiddle(D[4], 1.0 * phase);		// evens	
+	Twiddle(D[2], 2.0 * phase);
+	Twiddle(D[6], 3.0 * phase);
+	Twiddle(D[1], 4.0 * phase);		// odds
+	Twiddle(D[5], 5.0 * phase);
+	Twiddle(D[3], 6.0 * phase);
+	Twiddle(D[7], 7.0 * phase);
+}
+
+void main()
+{
+	uvec3 id = gl_GlobalInvocationID;
+	
+	vec2 D[8];
+	
+	uint i_offset = id.x & uint((ubo.data[uboIndex].iStride - 1));	// check whether odd or even
+	uint i_index = ((id.x - i_offset) << 3) + i_offset;
+	
+	for(uint c = 0; c < 8; c++) {
+		D[c] = inHtMap[i_index + c * uint(ubo.data[uboIndex].iStride)];
+	}
+	
+	if(ubo.data[uboIndex].iStride > 1) {
+	
+		// perform the FFT on 8 complex numbers from h(t) buffer
+		FFT_forward8(D);
+		uint p = id.x & (uint(ubo.data[uboIndex].iStride) - uint(ubo.data[uboIndex].pStride));
+		float phase = ubo.data[uboIndex].phaseBase * float(p);
+		ApplyTwiddleFactor(D, phase);
+	}
+	
+	// store in output buffer
+	uint o_offset = id.x & (uint(ubo.data[uboIndex].oStride) - 1);
+	uint o_index = ((id.x - o_offset) << 3) + o_offset;
+	
+	outHtMap[o_index + 0 * uint(ubo.data[uboIndex].oStride)] = D[0];
+	outHtMap[o_index + 1 * uint(ubo.data[uboIndex].oStride)] = D[4];
+	outHtMap[o_index + 2 * uint(ubo.data[uboIndex].oStride)] = D[2];
+	outHtMap[o_index + 3 * uint(ubo.data[uboIndex].oStride)] = D[6];
+	outHtMap[o_index + 4 * uint(ubo.data[uboIndex].oStride)] = D[1];
+	outHtMap[o_index + 5 * uint(ubo.data[uboIndex].oStride)] = D[5];
+	outHtMap[o_index + 6 * uint(ubo.data[uboIndex].oStride)] = D[3];
+	outHtMap[o_index + 7 * uint(ubo.data[uboIndex].oStride)] = D[7];
+}	

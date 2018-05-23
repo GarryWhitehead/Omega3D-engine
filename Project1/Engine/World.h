@@ -31,7 +31,9 @@ public:
 	void World::InitComponentManagers();
 	void RegisterComponentManager(ComponentManagerId id);
 	void LinkComponentManager(ComponentManagerId srcId, ComponentManagerId dstId);
-	void LinkManagerWithSystem(ComponentManagerId m_id, SystemId sysId);
+
+	template <typename T>
+	T *RequestSystem(SystemId id);
 
 	template <typename T>
 	T* RequestComponentManager(ComponentManagerId id);
@@ -57,6 +59,17 @@ T* World::RequestComponentManager(ComponentManagerId id)
 	if (man != m_managers.end()) {
 
 		return static_cast<T*>(m_managers[id]);
+	}
+	return nullptr;
+}
+
+template <typename T>
+T* World::RequestSystem(SystemId id)
+{
+	auto& sys = m_systems.find(id);
+	if (sys != m_systems.end()) {
+
+		return static_cast<T*>(m_systems[id]);
 	}
 	return nullptr;
 }

@@ -43,15 +43,14 @@ void main()
 	boneTransform += ssbo.bones[inBoneId[2]] * inWeights[2];
 	boneTransform += ssbo.bones[inBoneId[3]] * inWeights[3];
 	
-	gl_Position = ssbo.projection * ssbo.viewMatrix * ssbo.modelMatrix[push.entIndex] * boneTransform * vec4(inPos, 1.0);
+	gl_Position = ssbo.projection * ssbo.viewMatrix * ssbo.modelMatrix[push.entIndex] * vec4(inPos, 1.0);
 
 	outPos = vec3(ssbo.modelMatrix[push.entIndex] * vec4(inPos, 1.0)).xyz; 
 	
 	outUv = inUv;
-	outUv.t = 1.0 - outUv.t;
+	//outUv.t = 1.0 - inUv.t;
 
 	outColour = inColour;
 	
-	// mat3 mNorm = transpose(inverse(mat3(ssbo.modelMatrix[push.entIndex])));
 	outNormal = mat3(ssbo.modelMatrix[push.entIndex]) * inNormal;
 }

@@ -11,7 +11,8 @@ enum class ComponentManagerId
 	CM_PHYSICS_ID,
 	CM_TRANSFORM_ID,
 	CM_MESH_ID,
-	CM_ANIMATION_ID
+	CM_ANIMATION_ID,
+	CM_LIGHT_ID
 };
 
 class ComponentManager

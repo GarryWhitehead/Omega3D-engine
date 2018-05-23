@@ -20,7 +20,7 @@ public:
 	void Update() override;
 	void Destroy() override;
 	void Render();
-	void RequestTransformData(glm::mat4 transformData[]);
+	std::array<glm::mat4, 256> RequestTransformData();
 	void InitVulkanModel();
 
 private:

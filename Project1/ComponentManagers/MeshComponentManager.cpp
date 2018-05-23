@@ -59,7 +59,8 @@ void MeshComponentManager::Serialise(Archiver* arch, MeshComponentManager& manag
 	*g_filelog << "De/serialising data for mesh component manager.......";
 
 	arch->Serialise<uint32_t>(manager.m_data.meshIndex, Archiver::var_info(info.name + ".m_data.meshIndex"));
-	p_objectManager->Serialise(arch, manager.m_data.object, Archiver::var_info(info.name + ".m_data.object"));		// a custom specific serialiser is used for the vector objects
+	arch->Serialise<std::string>(manager.m_data.materialName, Archiver::var_info(info.name + ".m_data.materialName"));
+	p_objectManager->Serialise(arch, manager.m_data.object, Archiver::var_info(info.name + ".m_data.object"));			// a custom specific serialiser is used for the vector objects
 
 	*g_filelog << " Successfully imported!\n";
 

@@ -28,6 +28,7 @@ public:
 	{
 		std::vector<Object> object;
 		std::vector<uint32_t> meshIndex;
+		std::vector<std::string> materialName;			// user dfeined material name to override default material. Useful for using the same meshes (e.g. geospheres) with different materials. If empty, default is used. 
 	};
 	
 	struct OMFFaceInfo

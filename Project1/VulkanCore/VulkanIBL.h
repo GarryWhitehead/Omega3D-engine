@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VulkanTexture.h"
 #include "glm.hpp"
 #include <gtc/matrix_transform.hpp>
 
@@ -15,17 +16,6 @@ public:
 	const int MIP_LEVELS = 5;
 
 	const float PI = 3.1415926535897932384626433832795f;
-
-	// view from each of the cubemap faces
-	//const glm::mat4 cubeView[6] =
-	//{
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),			// positive X
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(-1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),		// negative X
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),			// positive Y
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, -1.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f)),		// negative Y
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f)),			// positive Z
-	//	glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f))			// negative Z
-	//};
 
 	std::vector<glm::mat4> cubeView = {
 		// POSITIVE_X
@@ -51,8 +41,8 @@ public:
 
 	struct IBLInfo
 	{
-		TextureInfo cubeImage;
-		TextureInfo offscreenImage;
+		VulkanTexture cubeImage;
+		VulkanTexture offscreenImage;
 		VkFramebuffer offscreenFB;
 		VkRenderPass renderpass;
 		VkPipeline pipeline;
@@ -62,13 +52,12 @@ public:
 	~VulkanIBL();
 
 	void Init();
-	void Update(CameraSystem *camera);
+	void Update(int acc_time) override;
 	void Destroy() override;
 	void LoadAssets();
-	void PrepareImage(VkFormat format, TextureInfo& imageInfo, int dim, int mipLevels);
 	void PrepareRenderpass(VkFormat format, VkRenderPass& renderpass);
 	void PrepareIBLDescriptors();
-	void PrepareOffscreenFrameBuffer(VkFormat format, TextureInfo& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer);
+	void PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer);
 	void PrepareIBLPipeline();
 	void GenerateIrrMapCmdBuffer();
 	void GeneratePreFilterCmdBuffer();
@@ -84,7 +73,7 @@ private:
 
 	VulkanUtility::DescriptorInfo m_descriptors;
 
-	TextureInfo m_cubeImage;
+	VulkanTexture m_cubeImage;
 	VkPipelineLayout m_pipelineLayout;
 
 	IBLInfo m_irradianceCube;

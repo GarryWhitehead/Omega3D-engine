@@ -6,30 +6,6 @@
 
 class VulkanEngine;
 
-struct TextureInfo
-{
-	TextureInfo() : 
-		width(0),
-		height(0),
-		size(0), 
-		mipLevels(1), 
-		layers(1), 
-		data(nullptr) 
-	{}
-
-	uint32_t width;
-	uint32_t height;
-	uint32_t size;
-	uint32_t mipLevels;
-	uint32_t layers;
-	void *data;
-	VkImage image;
-	VkFormat format;
-	VkImageView imageView;
-	VkDeviceMemory texture_mem;
-	VkSampler m_tex_sampler;
-};
-
 struct BufferData
 {
 	BufferData() : 
@@ -72,7 +48,6 @@ public:
 		VkDescriptorSet set;
 	};
 
-	VulkanUtility();
 	VulkanUtility(VulkanEngine *engine);
 	~VulkanUtility();
 
@@ -117,17 +92,13 @@ public:
 	VkShaderModule CreateShaderModule(std::vector<char>& shader);
 	VkPipelineShaderStageCreateInfo CreateShader(VkShaderModule shader, VkShaderStageFlagBits stage);
 
-	// texture
-	TextureInfo LoadTexture(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
-	TextureInfo LoadTextureArray(std::string filename, VkSamplerAddressMode addrMode, VkCompareOp compare, float maxAnisotropy, VkBorderColor color, VkFormat format, VkCommandPool cmdPool);
-	TextureInfo LoadCubeMap(std::string filename, VkFormat format, VkCommandPool cmdPool);
-	void ImageTransition(VkCommandBuffer cmdBuff, VkImage image, VkFormat format, VkImageLayout old_layout, VkImageLayout new_layout, VkCommandPool cmdPool, uint32_t mipLevels = 1, uint32_t layers = 1);
-	void CreateTextureSampler(TextureInfo &texture, VkSamplerAddressMode addressMode, float maxAnisotropy, VkCompareOp compareOp, VkBorderColor borderColor);
-	VkFormat FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, VkImageTiling tiling, VkFormatFeatureFlags features);
-
 	// render
 	uint32_t InitRenderFrame();
 	void SubmitFrame(uint32_t imageIndex);
+
+	// image
+	void ImageTransition(const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, uint32_t mipLevels = 1, uint32_t layers = 1);
+	VkFormat FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, const VkImageTiling tiling, const VkFormatFeatureFlags features);
 
 protected:
 

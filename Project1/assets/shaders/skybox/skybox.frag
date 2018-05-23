@@ -11,5 +11,5 @@ layout (location = 0) out vec4 outCol;
 
 void main() 
 {	
-	outCol = texture(samplerMap, inUv);
+	outCol = textureLod(samplerMap, inUv, 0.5);
 }

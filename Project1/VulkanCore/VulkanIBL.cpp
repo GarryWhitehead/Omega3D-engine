@@ -17,60 +17,7 @@ VulkanIBL::~VulkanIBL()
 
 void VulkanIBL::LoadAssets()
 {
-	m_cubeImage = vkUtility->LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->m_cmdPool);
-}
-
-void VulkanIBL::PrepareImage(VkFormat format, TextureInfo& imageInfo, int dim, int mipLevels)
-{
-	imageInfo.width = dim;
-	imageInfo.height = dim;
-	imageInfo.mipLevels = mipLevels;
-
-	VkImageCreateInfo image_info = {};
-	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	image_info.format = format;
-	image_info.imageType = VK_IMAGE_TYPE_2D;
-	image_info.extent.width = imageInfo.width;
-	image_info.extent.height = imageInfo.height;
-	image_info.extent.depth = 1;
-	image_info.mipLevels = imageInfo.mipLevels;
-	image_info.arrayLayers = 6;
-	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-	image_info.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-
-	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &imageInfo.image));
-
-	VkMemoryRequirements mem_req;
-	vkGetImageMemoryRequirements(p_vkEngine->m_device.device, imageInfo.image, &mem_req);
-
-	VkMemoryAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->m_device.device, &alloc_info, nullptr, &imageInfo.texture_mem));
-
-	vkBindImageMemory(p_vkEngine->m_device.device, imageInfo.image, imageInfo.texture_mem, 0);
-
-	// depth image view
-	VkImageViewCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = imageInfo.image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
-	createInfo.format = format;
-	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.layerCount = 6;
-	createInfo.subresourceRange.levelCount = imageInfo.mipLevels;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-
-	VK_CHECK_RESULT(vkCreateImageView(p_vkEngine->m_device.device, &createInfo, nullptr, &imageInfo.imageView));
-
-	vkUtility->CreateTextureSampler(imageInfo, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 1, VK_COMPARE_OP_NEVER, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+	m_cubeImage.LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->m_cmdPool, p_vkEngine);
 }
 
 void VulkanIBL::PrepareRenderpass(VkFormat format, VkRenderPass& renderpass)
@@ -124,57 +71,10 @@ void VulkanIBL::PrepareRenderpass(VkFormat format, VkRenderPass& renderpass)
 	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->m_device.device, &createInfo, nullptr, &renderpass));
 }
 
-void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, TextureInfo& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer)
+void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer)
 {
-	imageInfo.width = dim;
-	imageInfo.height = dim;
+	imageInfo.PrepareImage(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, dim, dim, p_vkEngine, false);
 	
-	// the irradiance map will be rendered into an offscreen buffer
-	VkImageCreateInfo image_info = {};
-	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	image_info.format = format;
-	image_info.imageType = VK_IMAGE_TYPE_2D;
-	image_info.extent.width = imageInfo.width;
-	image_info.extent.height = imageInfo.height;
-	image_info.extent.depth = 1;
-	image_info.mipLevels = 1;
-	image_info.arrayLayers = 1;
-	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-
-	VK_CHECK_RESULT(vkCreateImage(p_vkEngine->m_device.device, &image_info, nullptr, &imageInfo.image));
-
-	vkUtility->ImageTransition(VK_NULL_HANDLE, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->m_cmdPool);
-
-	VkMemoryRequirements mem_req;
-	vkGetImageMemoryRequirements(p_vkEngine->m_device.device, imageInfo.image, &mem_req);
-
-	VkMemoryAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->m_device.device, &alloc_info, nullptr, &imageInfo.texture_mem));
-
-	vkBindImageMemory(p_vkEngine->m_device.device, imageInfo.image, imageInfo.texture_mem, 0);
-
-	// create ofscreen image view
-	VkImageViewCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	createInfo.image = imageInfo.image;
-	createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-	createInfo.format = format;
-	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	createInfo.subresourceRange.baseMipLevel = 0;
-	createInfo.subresourceRange.layerCount = 1;
-	createInfo.subresourceRange.levelCount = 1;
-	createInfo.subresourceRange.baseArrayLayer = 0;
-
-	VK_CHECK_RESULT(vkCreateImageView(p_vkEngine->m_device.device, &createInfo, nullptr, &imageInfo.imageView));
-
 	// create offscreen frame buffer
 	VkFramebufferCreateInfo frameInfo = {};
 	frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -186,6 +86,11 @@ void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, TextureInfo& imageI
 	frameInfo.layers = 1;
 
 	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &framebuffer))
+
+	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->m_cmdPool);
+	vkUtility->ImageTransition(cmdBuffer, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->m_cmdPool);
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+
 }
 
 void VulkanIBL::PrepareIBLDescriptors()
@@ -221,7 +126,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_descriptors.set));
 
 	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_cubeImage.imageView, m_cubeImage.m_tex_sampler);		
+	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_cubeImage.imageView, m_cubeImage.texSampler);		
 
 	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_descriptors.set, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[0]);
@@ -362,7 +267,6 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 
 			float dim = static_cast<float>(IRRADIANCEMAP_DIM * std::pow(0.5f, m));
 			VkViewport viewport = vkUtility->InitViewPort(dim, dim, 0.0f, 1.0f);
-
 			vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 			vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -396,6 +300,8 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 			imageCopy.dstSubresource.baseArrayLayer = c;
 			imageCopy.dstOffset = { 0,0,0 };
 			imageCopy.extent.depth = 1;
+			imageCopy.extent.width = dim;
+			imageCopy.extent.height = dim;
 
 			vkCmdCopyImage(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_irradianceCube.cubeImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
 
@@ -481,6 +387,8 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 			imageCopy.dstSubresource.baseArrayLayer = c;
 			imageCopy.dstOffset = { 0,0,0 };
 			imageCopy.extent.depth = 1;
+			imageCopy.extent.width = dim;
+			imageCopy.extent.height = dim;
 
 			vkCmdCopyImage(cmdBuffer, m_filterCube.offscreenImage.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_filterCube.cubeImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
 
@@ -492,7 +400,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
 }
 
-void VulkanIBL::Update(CameraSystem *camera)
+void VulkanIBL::Update(int acc_time)
 {	
 }
 
@@ -503,13 +411,13 @@ void VulkanIBL::Init()
 
 	// generate the image, FB and renderpass for the irradiance calculations
 	VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	PrepareImage(format, m_irradianceCube.cubeImage, IRRADIANCEMAP_DIM, MIP_LEVELS);
+	m_irradianceCube.cubeImage.PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
 	PrepareRenderpass(format, m_irradianceCube.renderpass);
 	PrepareOffscreenFrameBuffer(format, m_irradianceCube.offscreenImage, m_irradianceCube.renderpass, IRRADIANCEMAP_DIM, m_irradianceCube.offscreenFB);
 
 	// generate the image, FB and renderpass for the pre-filtered cube
 	format = VK_FORMAT_R16G16B16A16_SFLOAT;
-	PrepareImage(format, m_filterCube.cubeImage, PREFILTERMAP_DIM, MIP_LEVELS);
+	m_filterCube.cubeImage.PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, PREFILTERMAP_DIM, PREFILTERMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
 	PrepareRenderpass(format, m_filterCube.renderpass);
 	PrepareOffscreenFrameBuffer(format, m_filterCube.offscreenImage, m_filterCube.renderpass, PREFILTERMAP_DIM, m_filterCube.offscreenFB);
 
