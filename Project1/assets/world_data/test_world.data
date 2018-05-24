@@ -1,5 +1,5 @@
 <m_componentsData::[0].size> 5
-<m_componentsData::[0]Key::[0]> 0
+<m_componentsData::[0]Key::[0]> Physics
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_acceleration.x> 0
 <m_componentsData::[0]Data::[0].m_acceleration.y> 0
@@ -83,7 +83,7 @@
 <m_componentsData::[0]Data::[2].m_object.m_isAlive> 1
 <m_componentsData::[0]Data::[3].m_object.m_id> 3
 <m_componentsData::[0]Data::[3].m_object.m_isAlive> 1
-<m_componentsData::[0]Key::[1]> 1
+<m_componentsData::[0]Key::[1]> Transform
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_firstChildIndex> 0
 <m_componentsData::[0]Data::[1].m_firstChildIndex> 0
@@ -108,7 +108,7 @@
 <m_componentsData::[0]Data::[2].m_object.m_isAlive> 1
 <m_componentsData::[0]Data::[3].m_object.m_id> 3
 <m_componentsData::[0]Data::[3].m_object.m_isAlive> 1
-<m_componentsData::[0]Key::[0]> 2
+<m_componentsData::[0]Key::[0]> Mesh
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_meshIndex> 2
 <m_componentsData::[0]Data::[1].m_meshIndex> 1
@@ -128,13 +128,13 @@
 <m_componentsData::[0]Data::[2].m_object.m_isAlive> 1
 <m_componentsData::[0]Data::[3].m_object.m_id> 3
 <m_componentsData::[0]Data::[3].m_object.m_isAlive> 1
-<m_componentsData::[0]Key::[0]> 3
+<m_componentsData::[0]Key::[0]> Animation
 <m_componentsData::[0].size> 1
 <m_componentsData::[0]Data::[0].m_time> 0.75
 <m_componentsData::[0].size> 1
 <m_componentsData::[0]Data::[0].m_object.m_id> 1
 <m_componentsData::[0]Data::[0].m_object.m_isAlive> 1
-<m_componentsData::[0]Key::[0]> 4
+<m_componentsData::[0]Key::[0]> Light
 <m_componentsData::[0].size> 5
 <m_componentsData::[0]Data::[0].m_data.lightInfo.colour.r> 1.0
 <m_componentsData::[0]Data::[0].m_data.lightInfo.colour.g> 1.0

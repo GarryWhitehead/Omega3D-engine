@@ -4,10 +4,11 @@
 #include "GLFW/glfw3.h"
 #include <iostream>
 
-InputSystem::InputSystem(World *world) :
+InputSystem::InputSystem(World *world, GLFWwindow *window, uint32_t width, uint32_t height) :
 	p_world(world)
 
 {
+	Init(window, width, height);
 }
 
 
@@ -16,10 +17,8 @@ InputSystem::~InputSystem()
 	Destroy();
 }
 
-void InputSystem::Init(GLFWwindow *window, CameraSystem *camera, uint32_t width, uint32_t height)
-{
-	p_cameraSystem = camera;
-	
+void InputSystem::Init(GLFWwindow *window, uint32_t width, uint32_t height)
+{	
 	// make glfw use our class for function calls
 	glfwSetWindowUserPointer(window, this);
 
@@ -41,11 +40,12 @@ void InputSystem::Update()
 
 void InputSystem::Destroy()
 {
-	p_cameraSystem = nullptr;
+
 }
 
 void InputSystem::KeyResponse(int key, int scan_code, int action, int mode)
 {
+	auto p_cameraSystem = p_world->RequestSystem<CameraSystem>();
 
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	{
@@ -68,7 +68,7 @@ void InputSystem::KeyResponse(int key, int scan_code, int action, int mode)
 
 void InputSystem::MouseResponse(double xpos, double ypos)
 {
-	p_cameraSystem->SetPitchYaw(xpos, ypos);
+	p_world->RequestSystem<CameraSystem>()->SetPitchYaw(xpos, ypos);
 }
 
 

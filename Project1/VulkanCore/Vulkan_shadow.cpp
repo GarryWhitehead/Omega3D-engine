@@ -10,10 +10,11 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include <algorithm>
 
-VulkanShadow::VulkanShadow(VulkanEngine* engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanShadow::VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 VulkanShadow::~VulkanShadow()
@@ -24,7 +25,7 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 {
 	VkFormat format = VK_FORMAT_D32_SFLOAT_S8_UINT;
 
-	auto p_lightManager = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
+	auto p_lightManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
 	int layerCount = p_lightManager->GetLightCount();
 
 	// prepare layered texture samplers 
@@ -52,7 +53,7 @@ void VulkanShadow::PrepareShadowDescriptors()
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_shadowInfo.descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_shadowInfo.descriptors.pool));
 
 	std::array<VkDescriptorSetLayoutBinding, 1> uboLayout = {};
 	uboLayout[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT);
@@ -62,7 +63,7 @@ void VulkanShadow::PrepareShadowDescriptors()
 	layoutInfo.pBindings = uboLayout.data();
 	layoutInfo.bindingCount = static_cast<uint32_t>(uboLayout.size());
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_shadowInfo.descriptors.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_shadowInfo.descriptors.layout));
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -70,16 +71,16 @@ void VulkanShadow::PrepareShadowDescriptors()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &m_shadowInfo.descriptors.layout;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_shadowInfo.descriptors.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_shadowInfo.descriptors.set));
 	
 	// depth descriptor - vertex ubo and fragment shader
 	std::array<VkDescriptorBufferInfo, 1> buffInfo = {};
-	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(m_shadowInfo.uboBuffer.buffer, 0, m_shadowInfo.uboBuffer.size);
+	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_shadowInfo.uboBuffer.block_id), m_shadowInfo.uboBuffer.offset, m_shadowInfo.uboBuffer.size);
 
 	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_shadowInfo.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffInfo[0]);
 
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanShadow::PrepareShadowPipeline()
@@ -101,7 +102,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
 	rasterInfo.depthBiasEnable = VK_TRUE;
@@ -131,7 +132,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_shadowInfo.pipelineInfo.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_shadowInfo.pipelineInfo.layout));
 
 	// load the shaders with tyexture samplers for material textures
 	m_shadowInfo.shader[0] = vkUtility->InitShaders("Shadow/shadow-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -156,7 +157,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_shadowInfo.pipelineInfo.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_shadowInfo.pipelineInfo.pipeline));
 }
 
 void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
@@ -195,9 +196,11 @@ void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 
 void VulkanShadow::Update(int acc_time)
 {	
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
-	auto p_light = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
-	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
+	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
+	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
+
+	std::vector<UboLayout> ubo(1);
 
 	for(uint32_t c = 0; c < p_light->GetLightCount(); ++c) {
 
@@ -208,16 +211,16 @@ void VulkanShadow::Update(int acc_time)
 		glm::mat4 view = glm::lookAt(glm::vec3(info.pos), glm::vec3(info.target), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 model = glm::mat4(1.0f);
 
-		m_shadowInfo.uboData.mvp[c] = projection * view * model;
+		ubo[0].mvp[c] = projection * view * model;
 	}
 
-	m_shadowInfo.uboBuffer.MapBuffer<UboLayout>(m_shadowInfo.uboData, p_vkEngine->GetDevice());
+	p_vkMemory->MapDataToSegment<UboLayout>(m_shadowInfo.uboBuffer, ubo);
 }
 
 void VulkanShadow::Init()
 {
 	// create ubo buffer
-	m_shadowInfo.uboBuffer.CreateBuffer(sizeof(UboLayout), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, p_vkEngine);
+	m_shadowInfo.uboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(UboLayout));
 
 	// create the cascade image layers and frame buffers
 	PrepareShadowFrameBuffer();

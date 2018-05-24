@@ -1,8 +1,9 @@
 #include "VulkanModule.h"
 
 
-VulkanModule::VulkanModule(VulkanUtility *utility) :
-	vkUtility(utility)
+VulkanModule::VulkanModule(VulkanUtility *utility, VkMemoryManager *memory) :
+	vkUtility(utility),
+	p_vkMemory(memory)
 {
 }
 

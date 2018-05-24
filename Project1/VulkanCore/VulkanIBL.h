@@ -6,6 +6,7 @@
 
 class VulkanEngine;
 class CameraSystem;
+class VkMemoryManager;
 
 class VulkanIBL : public VulkanModule
 {
@@ -48,7 +49,7 @@ public:
 		VkPipeline pipeline;
 	};
 
-	VulkanIBL(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanIBL(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanIBL();
 
 	void Init();

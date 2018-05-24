@@ -2,11 +2,12 @@
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VulkanRenderpass.h"
-#include "VulkanCore/VulkanBuffer.h"
+#include "VulkanCore/VkMemoryManager.h"
 #include <array>
 
 class VulkanEngine;
 class CameraSystem;
+class VkMemoryManager;
 
 class VulkanShadow : public VulkanModule
 {
@@ -29,7 +30,7 @@ public:
 		glm::mat4 mvp[256];
 	};
 
-	VulkanShadow(VulkanEngine* engine, VulkanUtility *utility);
+	VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemoryManager *manager);
 	~VulkanShadow();
 
 	void Init();
@@ -40,7 +41,6 @@ public:
 	void PrepareShadowDescriptors();
 	void PrepareShadowPipeline();
 	void GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer);
-	void UpdateCSM();
 
 	friend class VulkanEngine;
 	friend class VulkanTerrain;
@@ -57,8 +57,7 @@ private:
 		VulkanUtility::DescriptorInfo descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 
-		VulkanBuffer uboBuffer;
-		UboLayout uboData;
+		VkMemoryManager::SegmentInfo uboBuffer;
 
 		std::array<VkPipelineShaderStageCreateInfo, 3> shader;
 

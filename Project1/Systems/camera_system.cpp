@@ -5,8 +5,10 @@
 #include <gtc/matrix_transform.hpp>
 #include <iostream>
 
-CameraSystem::CameraSystem(World *world) :
+CameraSystem::CameraSystem(World *world, glm::vec3 cameraPos, glm::vec3 cameraFront) :
 	p_world(world),
+	m_cameraPos(cameraPos),
+	m_cameraFront(cameraFront),
 	m_currentDir(MoveDirection::NO_MOVEMENT),
 	m_cameraUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 	m_cameraYaw(0.0f),
@@ -17,18 +19,12 @@ CameraSystem::CameraSystem(World *world) :
 	m_zNear(0.0f),
 	m_zFar(0.0f)
 {
-
+	SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
 }
 
 CameraSystem::~CameraSystem()
 {
 	Destroy();
-}
-
-void CameraSystem::Init(glm::vec3 cameraPos, glm::vec3 cameraFront)
-{
-	m_cameraPos = cameraPos;
-	m_cameraFront = cameraFront;
 }
 
 void CameraSystem::SetMovementDirection(MoveDirection dir)

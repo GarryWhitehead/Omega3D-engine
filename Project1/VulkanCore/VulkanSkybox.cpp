@@ -7,10 +7,11 @@
 #include "Engine/world.h"
 #include "Engine/engine.h"
 
-VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 VulkanSkybox::~VulkanSkybox()
@@ -19,7 +20,7 @@ VulkanSkybox::~VulkanSkybox()
 
 void VulkanSkybox::PrepareSkyboxDescriptorSets()
 {
-	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID);
+	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>();
 
 	// skybox descriptors
 	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
@@ -34,7 +35,7 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_envCube.descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_envCube.descriptors.pool));
 
 	std::array<VkDescriptorSetLayoutBinding, 2> layoutBind = {};
 	layoutBind[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);						// bindings for the UBO	
@@ -45,7 +46,7 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
 	layoutInfo.pBindings = layoutBind.data();
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_envCube.descriptors.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_envCube.descriptors.layout));
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -53,10 +54,10 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &m_envCube.descriptors.layout;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_envCube.descriptors.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_envCube.descriptors.set));
 
 	std::array<VkDescriptorBufferInfo, 1> buffInfo = {};
-	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(m_envCube.uboBuffer.buffer, 0, m_envCube.uboBuffer.size);
+	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_envCube.uboBuffer.block_id), m_envCube.uboBuffer.offset, m_envCube.uboBuffer.size);
 	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
 	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_cubeImage.imageView, vkIBL->m_cubeImage.texSampler);
 
@@ -64,12 +65,12 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_envCube.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffInfo[0]);
 	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_envCube.descriptors.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[0]);
 
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanSkybox::PrepareSkyboxPipeline()
 {
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 
 	VulkanModel::ModelVertex vertex;
 	auto bindingDescr = vertex.GetInputBindingDescription();
@@ -87,7 +88,7 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
 
@@ -134,7 +135,7 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_envCube.pipeline.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_envCube.pipeline.layout));
 
 	// sahders for rendering full screen quad
 	m_shader[0] = vkUtility->InitShaders("skybox/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -158,51 +159,45 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_envCube.pipeline.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_envCube.pipeline.pipeline));
 }
 
 void VulkanSkybox::GenerateSkyboxCmdBuffer(VkCommandBuffer cmdBuffer)
 {
 	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
-	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>();
 	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
 
-	VkDeviceSize offsets[1]{ 0 };
+	VkDeviceSize offsets[1]{ p_vkModel->GetVertexOffset() };
 
-	VkViewport viewport = vkUtility->InitViewPort(p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height, 1.0f, 1.0f);
+	VkViewport viewport = vkUtility->InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 1.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
-	vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.pipeline);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors.set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 
-	viewport = vkUtility->InitViewPort(p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height, 0.0f, 1.0f);
+	viewport = vkUtility->InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
-}
-
-void VulkanSkybox::PrepareUboBuffer()
-{
-	// skybox ubo
-	m_envCube.uboBuffer.size = sizeof(SkyboxUbo);
-	vkUtility->CreateBuffer(m_envCube.uboBuffer.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_envCube.uboBuffer.buffer, m_envCube.uboBuffer.memory);
 }
 
 void VulkanSkybox::Update(int acc_time)
 {
-	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
 
 	// update skybox
-	SkyboxUbo skyboxUbo;
-	skyboxUbo.projection = camera->m_cameraInfo.projection * glm::mat4(glm::mat3(camera->m_cameraInfo.viewMatrix));
-	skyboxUbo.modelMatrix = glm::mat4(1.0f);
-	vkUtility->MapBuffer<SkyboxUbo>(m_envCube.uboBuffer, skyboxUbo);
+	std::vector<SkyboxUbo> skyboxUbo(1);
+	skyboxUbo[0].projection = camera->m_cameraInfo.projection * glm::mat4(glm::mat3(camera->m_cameraInfo.viewMatrix));
+	skyboxUbo[0].modelMatrix = glm::mat4(1.0f);
+	p_vkMemory->MapDataToSegment<SkyboxUbo>(m_envCube.uboBuffer, skyboxUbo);
 }
 void VulkanSkybox::Init()
 {
 	// skybox prepeartion 
-	PrepareUboBuffer();
+	m_envCube.uboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC | MemoryUsage::VK_UNIFORM_BUFFER, sizeof(SkyboxUbo));
+
 	PrepareSkyboxDescriptorSets();
 	PrepareSkyboxPipeline();
 }

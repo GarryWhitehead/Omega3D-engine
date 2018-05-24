@@ -2,8 +2,8 @@
 #include "Engine/engine.h"
 #include "Engine/ObjectManager.h"
 
-PhysicsComponentManager::PhysicsComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<PhysicsComponentManager>(*this, id)
+PhysicsComponentManager::PhysicsComponentManager() :
+	ArchivableComponentManager<PhysicsComponentManager>(*this)
 {
 }
 
@@ -16,9 +16,6 @@ void  PhysicsComponentManager::Init(World *world, ObjectManager *manager)
 {
 	p_world = world;
 	p_objectManager = manager;
-
-	// position data will be required for world transforms, so associated this manager with the transform manager
-	RegisterWithManager(ComponentManagerId::CM_TRANSFORM_ID);
 }
 
 void PhysicsComponentManager::Update()

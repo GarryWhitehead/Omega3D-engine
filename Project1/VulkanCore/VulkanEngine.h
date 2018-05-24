@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <unordered_map>
+#include <typeindex>
 #include "VulkanCore/vulkan_core.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/vulkan_utility.h"
@@ -11,7 +12,7 @@ class VulkanAnimation;
 class VulkanDeferred;
 class VulkanTerrain;
 class CameraSystem;
-class ModelResourceManager;
+class VkMemoryManager;
 class VulkanModule;
 class GraphicsSystem;
 class World;
@@ -41,47 +42,52 @@ public:
 	void Init(World *world);
 	void Update(int acc_time);
 	void Render();
+	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
 
 	void RegisterVulkanModules(std::vector<VkModId> modules);
 	void RegisterGraphicsSystem(GraphicsSystem *graphics) { assert(graphics != nullptr); p_graphicsSystem = graphics; }
 	
 	template<typename T>
-	T* VkModule(VkModId id);
-	bool hasModule(VkModId id);
+	T* VkModule();
 
-	// helper functions
+	template<typename T>
+	bool hasModule();
+
+	// helper (getter) functions
 	VkDevice GetDevice() const { return m_device.device; }
+	VkPhysicalDevice GetPhysicalDevice() const { return m_device.physDevice; }
+	uint32_t GetSurfaceExtentW() { return m_surface.extent.width; }
+	uint32_t GetSurfaceExtentH() { return m_surface.extent.height; }
 	VkCommandPool GetCmdPool() const { return m_cmdPool; }
 	uint32_t GetGraphQueueIndex() const { return m_queue.graphIndex; }
+	VkQueue GetGraphQueue() const { return m_queue.graphQueue; }
 	uint32_t GetComputeQueueIndex() const { return m_queue.computeIndex; }
 	VkQueue GetComputeQueue() const { return m_queue.computeQueue; }
 	VkCommandPool GetComputeCmdPool() const { return m_computeCmdPool; }
-	
+	VkViewport GetViewPort() const { return m_viewport.viewPort; }
+	VkRect2D GetScissor() const { return m_viewport.scissor; }
+	uint32_t GetSwapChainImageCount() const { return m_swapchain.imageCount; }
+	VkImageView GetImageView(const uint32_t index) const { return m_imageView.images[index]; }
+	VkFormat GetSurfaceFormat() const { return m_surface.format.format; }
 
-	friend class VulkanModel;
-	friend class VulkanTerrain;
-	friend class VulkanShadow;
+	World* GetCurrentWorld() { return p_world; }
+	GraphicsSystem* RequestGraphicsSystem() { assert(p_graphicsSystem != nullptr); return p_graphicsSystem; }
+
 	friend class VulkanUtility;
-	friend class VulkanAnimation;
-	friend class VulkanDeferred;
-	friend class VulkanIBL;
-	friend class VulkanPBR;
-	friend class VulkanSkybox;
-	friend class VulkanWater;
-	friend class VulkanTexture;
+
 
 protected:
 
 	void SubmitFrame();
 	void DrawScene();
-	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
 
 	World *p_world;
+	VkMemoryManager *p_vkMemory;
 
 	VulkanUtility *vkUtility;
 	GraphicsSystem *p_graphicsSystem;
 
-	std::unordered_map<VkModId, VulkanModule*> m_vkModules;
+	std::unordered_map<std::type_index, VulkanModule*> m_vkModules;
 
 	VulkanUtility::ViewPortInfo m_viewport;
 	VkCommandPool m_cmdPool;
@@ -93,10 +99,21 @@ protected:
 	bool vk_prepared;
 };
 
-template<typename T>
-T* VulkanEngine::VkModule(VkModId id)
+template <typename T>
+T* VulkanEngine::VkModule()
 {
-	T* mod = (T*)m_vkModules[id]; //static_cast<T*>(m_vkModules[id]);
+	std::type_index index(typeid(T));
+
+	T* mod = (T*)m_vkModules[index]; //static_cast<T*>(m_vkModules[id]);
 	assert(mod != nullptr);
 	return mod;
+}
+
+template <typename T>
+bool VulkanEngine::hasModule()
+{
+	std::type_index index(typeid(T));
+
+	auto& iter = m_vkModules.find(index);
+	return(iter != m_vkModules.end());
 }

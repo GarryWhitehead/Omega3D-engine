@@ -1,8 +1,9 @@
 #include "vkFFT.h"
 #include "VulkanCore/VulkanEngine.h"
 
-vkFFT::vkFFT(VulkanEngine *engine) :
-	p_vkEngine(engine)
+vkFFT::vkFFT(VulkanEngine *engine, VkMemoryManager *memory) :
+	p_vkEngine(engine),
+	p_vkMemory(memory)
 {
 }
 
@@ -14,14 +15,14 @@ vkFFT::~vkFFT()
 void vkFFT::CreateBuffers()
 {
 	// ubo buffer
-	m_uboBuffer.CreateBuffer(sizeof(UboLayout), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, p_vkEngine);
+	m_uboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(UboLayout));
 
 	// generate 6 buffers for each phase / stride
 	int i_stride = 512 * 512 / 8;
 	int o_stride = i_stride;
 	int p_stride = 512;
 	float phaseBase = -PI_2 / (512.0f * 512.0f);
-	UboLayout ubo;
+	std::vector<UboLayout> ubo(1);
 
 	for (uint32_t c = 0; c < 6; ++c) {
 
@@ -30,23 +31,22 @@ void vkFFT::CreateBuffers()
 		data.o_stride = o_stride;
 		data.p_stride = p_stride;
 		data.phaseBase = phaseBase;
-		ubo.data[c] = data;
+		ubo[0].data[c] = data;
 
 		i_stride /= 8;
 		phaseBase *= 8.0f;
 
 		if (c == 3) {
-			o_stride /= 512.0;
+			o_stride /= 512;
 			p_stride = 1;
 		}
 	}
 
 	// transfer to local device
-	m_uboBuffer.MapBuffer<UboLayout>(ubo, p_vkEngine->GetDevice());
+	p_vkMemory->MapDataToSegment<UboLayout>(m_uboBuffer, ubo);
 
 	// create ssbo buffers - for destination (d(z))
-	m_ssboDstBuffer.CreateBuffer(sizeof(glm::vec2) * (512 * 512), VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, p_vkEngine);
-
+	m_ssboDstBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(glm::vec2) * (512 * 512));
 }
 
 void vkFFT::GenerateFFTCmdBuffer(VkBuffer &srcBuffer)
@@ -73,7 +73,7 @@ void vkFFT::GenerateFFTCmdBuffer(VkBuffer &srcBuffer)
 	std::array<VkBufferMemoryBarrier, 2> bufferBarriers = {};
 	computeBarrier.buffer = srcBuffer;
 	bufferBarriers[0] = computeBarrier;
-	computeBarrier.buffer = m_ssboDstBuffer.buffer;
+	computeBarrier.buffer = p_vkMemory->blockBuffer(m_ssboDstBuffer.block_id);
 	bufferBarriers[1] = computeBarrier;
 
 	vkCmdPipelineBarrier(m_cmdBuffer, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, static_cast<uint32_t>(bufferBarriers.size()), bufferBarriers.data(), 0, nullptr);
@@ -100,7 +100,7 @@ void vkFFT::GenerateFFTCmdBuffer(VkBuffer &srcBuffer)
 	vkEndCommandBuffer(m_cmdBuffer);
 }
 
-void vkFFT::PrepareFFTDescriptorSets(VulkanBuffer &srcBuffer)
+void vkFFT::PrepareFFTDescriptorSets(VkMemoryManager::SegmentInfo &srcBuffer)
 {
 	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
 	
@@ -142,9 +142,9 @@ void vkFFT::PrepareFFTDescriptorSets(VulkanBuffer &srcBuffer)
 	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &descriptors.set));
 
 	std::array<VkDescriptorBufferInfo, 3> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(srcBuffer.buffer, 0, srcBuffer.size);				// h(t) - computed from compute shader
-	bufferInfo[1] = vkUtility->InitBufferInfoDescriptor(m_ssboDstBuffer.buffer, 0, m_ssboDstBuffer.size);	// d(z)
-	bufferInfo[2] = vkUtility->InitBufferInfoDescriptor(m_uboBuffer.buffer, 0, m_uboBuffer.size);			// ubo
+	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(srcBuffer.block_id), srcBuffer.offset, srcBuffer.size);							// h(t) - computed from compute shader
+	bufferInfo[1] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_ssboDstBuffer.block_id), m_ssboDstBuffer.offset, m_ssboDstBuffer.size);		// d(z)
+	bufferInfo[2] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_uboBuffer.block_id), m_uboBuffer.offset, m_uboBuffer.size);					// ubo
 
 	std::array<VkWriteDescriptorSet, 3> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[0]);

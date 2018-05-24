@@ -8,6 +8,7 @@
 #include "VulkanCore/VulkanIBL.h"
 #include "VulkanCore/VulkanSkybox.h"
 #include "VulkanCore/VulkanWater.h"
+#include "VulkanCore/VkMemoryManager.h"
 #include "Engine/World.h"
 #include "utility/file_log.h"
 
@@ -18,6 +19,7 @@ VulkanEngine::VulkanEngine(GLFWwindow *window) :
 	vk_prepared(false)
 {	
 	vkUtility = new VulkanUtility(this);
+	p_vkMemory = new VkMemoryManager(this);
 }
 
 VulkanEngine::~VulkanEngine()
@@ -28,81 +30,67 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 {
 	for (auto mod : modules) {
 
-		if (mod == VkModId::VKMOD_SHADOW_ID) {
-			VulkanShadow *vkMod = new VulkanShadow(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_SHADOW_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_PBR_ID) {
-			VulkanPBR *vkMod = new VulkanPBR(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_PBR_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_IBL_ID) {
-			VulkanIBL *vkMod = new VulkanIBL(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_IBL_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_SKYBOX_ID) {
-			VulkanSkybox *vkMod = new VulkanSkybox(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_SKYBOX_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_DEFERRED_ID) {
-			VulkanDeferred *vkMod = new VulkanDeferred(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_DEFERRED_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_TERRAIN_ID) {
-			VulkanTerrain *vkMod = new VulkanTerrain(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_TERRAIN_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_WATER_ID) {
-			VulkanWater *vkMod = new VulkanWater(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_WATER_ID, vkMod));
-		}
-		else if (mod == VkModId::VKMOD_MODEL_ID) {
-			VulkanModel *vkMod = new VulkanModel(this, vkUtility);
-			vkMod->Init();
-			m_vkModules.insert(std::make_pair(VkModId::VKMOD_MODEL_ID, vkMod));
+		switch (mod) {
+			case VkModId::VKMOD_SHADOW_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanShadow)), new VulkanShadow(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_PBR_ID: 
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanPBR)), new VulkanPBR(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_IBL_ID:				
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanIBL)), new VulkanIBL(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_SKYBOX_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanSkybox)), new VulkanSkybox(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_DEFERRED_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanDeferred)), new VulkanDeferred(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_TERRAIN_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanTerrain)), new VulkanTerrain(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_WATER_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanWater)), new VulkanWater(this, vkUtility, p_vkMemory)));
+				break;
+			case VkModId::VKMOD_MODEL_ID:
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanModel)), new VulkanModel(this, vkUtility, p_vkMemory)));
+				break;
 		}
 	}
 }
 
 void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
 {
-	if (hasModule(VkModId::VKMOD_TERRAIN_ID)) {
-		VkModule<VulkanTerrain>(VkModId::VKMOD_TERRAIN_ID)->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
+	if (hasModule<VulkanTerrain>()) {
+		VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
 	}
 
-	if (hasModule(VkModId::VKMOD_WATER_ID)) {
-		VkModule<VulkanWater>(VkModId::VKMOD_WATER_ID)->GenerateWaterCmdBuffer(cmdBuffer, set, layout, pipeline);
+	if (hasModule<VulkanWater>()) {
+		VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, set, layout, pipeline);
 	}
 
-	if (hasModule(VkModId::VKMOD_MODEL_ID)) {
-		VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline);
+	if (hasModule<VulkanModel>()) {
+		VkModule<VulkanModel>()->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline); 
 	}
 }
 
 void VulkanEngine::DrawScene()
 {
 	// generate BDRF lut for PBR
-	VkModule<VulkanPBR>(VkModId::VKMOD_PBR_ID)->GenerateLUTCmdBuffer();
+	VkModule<VulkanPBR>()->GenerateLUTCmdBuffer();
 
 	// generate irradiance and prefilter maps for environment cube
-	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GenerateIrrMapCmdBuffer();
-	VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID)->GeneratePreFilterCmdBuffer();
+	VkModule<VulkanIBL>()->GenerateIrrMapCmdBuffer();
+	VkModule<VulkanIBL>()->GeneratePreFilterCmdBuffer();
 	
 	// draw into offscreen buffers
 	m_offscreenCmdBuffer = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
 	
-	if (hasModule(VkModId::VKMOD_WATER_ID)) {
-		VkModule<VulkanWater>(VkModId::VKMOD_WATER_ID)->GenerateOffscreenCmdBuffer(m_offscreenCmdBuffer);
+	if (hasModule<VulkanWater>()) {
+		VkModule<VulkanWater>()->GenerateOffscreenCmdBuffer(m_offscreenCmdBuffer);
 	}
 
-	VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID)->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
+	VkModule<VulkanShadow>()->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
 	VK_CHECK_RESULT(vkEndCommandBuffer(m_offscreenCmdBuffer));
 
 	std::array<VkClearValue, 9> clearValues = {};
@@ -116,7 +104,7 @@ void VulkanEngine::DrawScene()
 	clearValues[7].color = CLEAR_COLOR;			// roughness
 	clearValues[8].depthStencil = { 1.0f, 0 };
 
-	auto vkDeferred = VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+	auto vkDeferred = VkModule<VulkanDeferred>();
 
 	m_cmdBuffers.resize(vkDeferred->m_deferredInfo.frameBuffers.size());
 
@@ -150,10 +138,10 @@ void VulkanEngine::DrawScene()
 		vkDeferred->GenerateDeferredCmdBuffer(m_cmdBuffers[c]);
 
 		// third pass - draw skybox : this is done so it won't be affected by lighting calculations
-		if (hasModule(VkModId::VKMOD_SKYBOX_ID)) {
+		if (hasModule<VulkanSkybox>()) {
 
 			vkCmdNextSubpass(m_cmdBuffers[c], VK_SUBPASS_CONTENTS_INLINE);
-			VkModule<VulkanSkybox>(VkModId::VKMOD_SKYBOX_ID)->GenerateSkyboxCmdBuffer(m_cmdBuffers[c]);
+			VkModule<VulkanSkybox>()->GenerateSkyboxCmdBuffer(m_cmdBuffers[c]);
 		}
 
 		vkCmdEndRenderPass(m_cmdBuffers[c]);
@@ -166,7 +154,7 @@ void VulkanEngine::DrawScene()
 void VulkanEngine::SubmitFrame()
 {
 	uint32_t imageIndex = vkUtility->InitRenderFrame();
-	auto vkShadow = VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
+	auto vkShadow = VkModule<VulkanShadow>();
 
 	VkSubmitInfo submit_info = {};
 	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -175,8 +163,8 @@ void VulkanEngine::SubmitFrame()
 	submit_info.waitSemaphoreCount = 1;
 	submit_info.signalSemaphoreCount = 1;
 
-	if (hasModule(VkModId::VKMOD_WATER_ID)) {
-		auto vkWater = VkModule<VulkanWater>(VkModId::VKMOD_WATER_ID);
+	if (hasModule<VulkanWater>()) {
+		auto vkWater = VkModule<VulkanWater>();
 
 		// submit compute shaders for spectrum, fft and displacement map computations
 		vkWater->SubmitWaterCompute();
@@ -232,14 +220,13 @@ void VulkanEngine::Init(World *world)
 
 	// and a compute command pool
 	m_computeCmdPool = vkUtility->InitCommandPool(m_queue.computeIndex);
+
+	// setup some initial memory blocks - one large 256mb block for static local data and one smaller 
+	// host-visible memory block for dynamic buffers such as uniform buffers
+	p_vkMemory->AllocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL);
+	p_vkMemory->AllocateBlock(MemoryType::VK_BLOCK_TYPE_HOST);
 }
 
-bool VulkanEngine::hasModule(VkModId id)
-{
-	auto& iter = m_vkModules.find(id);
-	if (iter != m_vkModules.end()) {
-		return true;
-	}
-	return false;
-}
+
+
 

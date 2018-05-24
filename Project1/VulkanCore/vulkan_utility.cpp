@@ -21,30 +21,7 @@ void VulkanUtility::InitVulkanUtility(VulkanEngine *engine)
 }
 
 // =====================================================================================================================================================================================================================================================================================================
-// Buffer creation and editing
-
-void VulkanUtility::CreateBuffer(uint32_t size, VkBufferUsageFlags flags, VkMemoryPropertyFlags props, VkBuffer& buffer, VkDeviceMemory& devMemory)
-{
-	VkBufferCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	createInfo.size = size;
-	createInfo.usage = flags;
-	createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-	VK_CHECK_RESULT(vkCreateBuffer(p_vkEngine->m_device.device, &createInfo, nullptr, &buffer));
-
-	VkMemoryRequirements memoryReq;
-	vkGetBufferMemoryRequirements(p_vkEngine->m_device.device, buffer, &memoryReq);
-
-	VkMemoryAllocateInfo memoryInfo = {};
-	memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memoryInfo.allocationSize = memoryReq.size;
-	memoryInfo.memoryTypeIndex = FindMemoryType(memoryReq.memoryTypeBits, props);
-
-	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->m_device.device, &memoryInfo, nullptr, &devMemory));
-
-	VK_CHECK_RESULT(vkBindBufferMemory(p_vkEngine->m_device.device, buffer, devMemory, 0));
-}
+// descriptor set preperation
 
 VkWriteDescriptorSet VulkanUtility::InitDescriptorSet(VkDescriptorSet set, uint32_t binding, VkDescriptorType type, VkDescriptorBufferInfo *info)
 {
@@ -106,18 +83,17 @@ VkDescriptorSetLayoutBinding VulkanUtility::InitLayoutBinding(int binding, VkDes
 	return layout;
 }
 
-void VulkanUtility::CopyBuffer(VkBuffer dest, VkBuffer src, VkDeviceSize size, VkCommandPool cmdPool)
+void VulkanUtility::CopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkCommandPool cmdPool, uint32_t srcOffset, uint32_t dstOffset)
 {
-	VkCommandBuffer cmdBuffer;
-	cmdBuffer = this->CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
+	VkCommandBuffer cmdBuffer = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
 
-	VkBufferCopy copy;
+	VkBufferCopy copy = {};
 	copy.size = size;
-	copy.dstOffset = 0;
-	copy.srcOffset = 0;
-	vkCmdCopyBuffer(cmdBuffer, dest, src, 1, &copy);
+	copy.dstOffset = dstOffset;
+	copy.srcOffset = srcOffset;
+	vkCmdCopyBuffer(cmdBuffer, src, dest, 1, &copy);
 
-	this->EndCmdBuffer(cmdBuffer, cmdPool, p_vkEngine->m_queue.graphQueue);
+	this->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
 }
 
 uint32_t VulkanUtility::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flags)
@@ -125,7 +101,7 @@ uint32_t VulkanUtility::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flag
 	VkPhysicalDeviceMemoryProperties memoryProp;
 	vkGetPhysicalDeviceMemoryProperties(p_vkEngine->m_device.physDevice, &memoryProp);
 
-	for (int c = 0; c < memoryProp.memoryTypeCount; ++c)
+	for (uint32_t c = 0; c < memoryProp.memoryTypeCount; ++c)
 	{
 		if ((type & (1 << c)) && (memoryProp.memoryTypes[c].propertyFlags & flags) == flags)
 			return c;
@@ -234,35 +210,6 @@ void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue qu
 	vkFreeCommandBuffers(p_vkEngine->m_device.device, p_vkEngine->m_cmdPool, 1, &cmdBuffer);
 }
 
-VkCommandBuffer VulkanUtility::CreateTempCmdBuffer(VkCommandPool cmdPool)
-{
-	VkCommandBufferAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocInfo.commandPool = cmdPool;
-	allocInfo.commandBufferCount = 1;
-
-	VkCommandBuffer cmdBuffer;
-	VK_CHECK_RESULT(vkAllocateCommandBuffers(p_vkEngine->m_device.device, &allocInfo, &cmdBuffer));
-
-	return cmdBuffer;
-}
-
-void VulkanUtility::EndCmdBuffer(VkCommandBuffer cmdBuffer, VkCommandPool cmdPool, VkQueue queue)
-{
-	vkEndCommandBuffer(cmdBuffer);
-
-	VkSubmitInfo info = {};
-	info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	info.commandBufferCount = 1;
-	info.pCommandBuffers = &cmdBuffer;
-
-	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &info, VK_NULL_HANDLE));
-	VK_CHECK_RESULT(vkQueueWaitIdle(queue));
-
-	vkFreeCommandBuffers(p_vkEngine->m_device.device, cmdPool, 1, &cmdBuffer);
-}
-
 bool VulkanUtility ::CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer)
 {
 	for (auto& buffer : cmdBuffer) {
@@ -273,15 +220,11 @@ bool VulkanUtility ::CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer)
 	return true;
 }
 
-void VulkanUtility::DestroyCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer, VkCommandPool cmdPool)
-{
-	vkFreeCommandBuffers(p_vkEngine->m_device.device, cmdPool, cmdBuffer.size(), cmdBuffer.data());
-}
 
 // =========================================================================================================================================================================================================================================================================================================
 // pipeline utilities
 
-VkPipelineViewportStateCreateInfo VulkanUtility::InitViewPortCreateInfo(VkViewport& viewPort, VkRect2D& scissor, float width, float height)
+VkPipelineViewportStateCreateInfo VulkanUtility::InitViewPortCreateInfo(VkViewport& viewPort, VkRect2D& scissor, uint32_t width, uint32_t height)
 {
 	viewPort.x = 0.0f;
 	viewPort.y = 0.0f;
@@ -487,7 +430,7 @@ void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, const VkImage
 	vkCmdPipelineBarrier(comm_buff, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
 	if (cmdBuff == VK_NULL_HANDLE) {
-		p_vkUtility->EndCmdBuffer(comm_buff, cmdPool, p_vkEngine->m_queue.graphQueue);
+		p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->m_queue.graphQueue);
 	}
 	delete p_vkUtility;
 }

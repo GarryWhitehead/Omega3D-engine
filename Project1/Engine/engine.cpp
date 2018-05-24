@@ -72,7 +72,7 @@ void Engine::Update(int acc_time)
 
 void Engine::Render(float interpolation)
 {
-	auto sys = GetSystem<GraphicsSystem>(SystemId::GRAPHICS_SYSTEM_ID);
+	auto sys = GetSystem<GraphicsSystem>();
 	sys->Render();
 }
 

@@ -123,10 +123,10 @@
     <ClCompile Include="VulkanCore\VulkanRenderPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanCore\VulkanBuffer.cpp">
+    <ClCompile Include="VulkanCore\vkFFT.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanCore\vkFFT.cpp">
+    <ClCompile Include="VulkanCore\VkMemoryManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -236,10 +236,10 @@
     <ClInclude Include="VulkanCore\VulkanRenderPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanCore\VulkanBuffer.h">
+    <ClInclude Include="VulkanCore\vkFFT.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="VulkanCore\vkFFT.h">
+    <ClInclude Include="VulkanCore\VkMemoryManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

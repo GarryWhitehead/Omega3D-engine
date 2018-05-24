@@ -9,11 +9,11 @@
 #include "gli.hpp"
 #include <math.h>
 
-VulkanTerrain::VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanTerrain::VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
-	
+	Init();
 }
 
 VulkanTerrain::~VulkanTerrain()
@@ -23,10 +23,10 @@ VulkanTerrain::~VulkanTerrain()
 void VulkanTerrain::LoadTerrainTextures()
 {
 	// create a repeating sampler for the terrain textures
-	m_images.terrain.LoadTextureArray("assets/textures/terrain_texture_array.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 4.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->m_cmdPool, p_vkEngine);
+	m_images.terrain.LoadTextureArray("assets/textures/terrain_texture_array.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 4.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 	
 	// height map uses a mirrored sampler
-	m_images.heightMap.LoadTexture("assets/textures/terrain_heightmap.ktx", VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 0.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_R16_UNORM, p_vkEngine->m_cmdPool, p_vkEngine);
+	m_images.heightMap.LoadTexture("assets/textures/terrain_heightmap.ktx", VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, 0.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_R16_UNORM, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 
 	// load heightmap and transfer data to new buffer
 	gli::texture2d tex(gli::load("assets/textures/terrain_heightmap.ktx"));
@@ -59,7 +59,7 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 	createInfo.pPoolSizes = descrPoolSize;
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_terrainInfo.descrInfo.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_terrainInfo.descrInfo.pool));
 
 	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT | VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);													// bindings for the UBO	
 	VkDescriptorSetLayoutBinding samplerLayout1 = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT | VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT | VK_SHADER_STAGE_FRAGMENT_BIT);		// bindings for the height map image sampler
@@ -71,7 +71,7 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 	layoutInfo.bindingCount = BIND_COUNT;	
 	layoutInfo.pBindings = descrBind;
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_terrainInfo.descrInfo.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_terrainInfo.descrInfo.layout));
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -79,9 +79,9 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &m_terrainInfo.descrInfo.layout;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_terrainInfo.descrInfo.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_terrainInfo.descrInfo.set));
 
-	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(m_terrainInfo.buffer.ubo.buffer, 0, m_terrainInfo.buffer.ubo.size);										
+	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_terrainInfo.buffer.ubo.block_id), m_terrainInfo.buffer.ubo.offset, m_terrainInfo.buffer.ubo.size);										
 	VkDescriptorImageInfo imageInfo1 = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_images.heightMap.imageView, m_images.heightMap.texSampler);		// height map texture sampler
 	VkDescriptorImageInfo imageInfo2 = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_images.terrain.imageView, m_images.terrain.texSampler);			// texture array texture sampler
 
@@ -90,12 +90,12 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_terrainInfo.descrInfo.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo1);
 	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_terrainInfo.descrInfo.set, 2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo2);
 
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, BIND_COUNT, writeDescrSet, 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), BIND_COUNT, writeDescrSet, 0, nullptr);
 }
 
 void VulkanTerrain::PreparePipeline()
 {
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 
 	// tesselation pipeline
 	TerrainUtility::Vertex vertex;
@@ -114,7 +114,7 @@ void VulkanTerrain::PreparePipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;										// used for tesselation shader draw
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -179,7 +179,7 @@ void VulkanTerrain::PreparePipeline()
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_terrainInfo.pipeline.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_terrainInfo.pipeline.layout));
 
 	// load the shaders with tyexture samplers for material textures
 	m_shader[0] = vkUtility->InitShaders("terrain/land/terrain-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -207,7 +207,7 @@ void VulkanTerrain::PreparePipeline()
 	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_terrainInfo.pipeline.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_terrainInfo.pipeline.pipeline));
 }
 
 void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
@@ -216,12 +216,12 @@ void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescri
 		vkCmdSetLineWidth(cmdBuffer, 1.0f);
 	}
 
-	VkDeviceSize bgOffsets[] = { 0 };
+	VkDeviceSize bgOffsets[] = { m_terrainInfo.buffer.vertex.offset };
 
 	// Terrain draw
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.pipeline : pipeline);	
-	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_terrainInfo.buffer.vertex.buffer, bgOffsets);
-	vkCmdBindIndexBuffer(cmdBuffer, m_terrainInfo.buffer.index.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_terrainInfo.buffer.vertex.block_id), bgOffsets);
+	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_terrainInfo.buffer.index.block_id), m_terrainInfo.buffer.index.offset, VK_INDEX_TYPE_UINT32);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ?  &m_terrainInfo.descrInfo.set : &set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, m_terrainInfo.buffer.indexCount, 1, 0, 0, 0);
 }
@@ -275,14 +275,13 @@ void VulkanTerrain::PrepareTerrainData()
 
 	// now map to device memory
 	// vertex
-	m_terrainInfo.buffer.vertex.size = vertices.size() * sizeof(TerrainUtility::Vertex);
-	vkUtility->CreateBuffer(m_terrainInfo.buffer.vertex.size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_terrainInfo.buffer.vertex.buffer, m_terrainInfo.buffer.vertex.memory);
-	vkUtility->MapBuffer<TerrainUtility::Vertex>(m_terrainInfo.buffer.vertex, vertices);
+	m_terrainInfo.buffer.vertex = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, vertices.size() * sizeof(TerrainUtility::Vertex));
+	p_vkMemory->MapDataToSegment<TerrainUtility::Vertex>(m_terrainInfo.buffer.vertex, vertices);
 
 	//index
-	m_terrainInfo.buffer.index.size = m_terrainInfo.buffer.indexCount * sizeof(uint32_t);
-	vkUtility->CreateBuffer(m_terrainInfo.buffer.index.size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_terrainInfo.buffer.index.buffer, m_terrainInfo.buffer.index.memory);
-	vkUtility->MapBuffer<uint32_t>(m_terrainInfo.buffer.index, indices);
+	m_terrainInfo.buffer.index = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, indices.size() * sizeof(uint32_t));
+	p_vkMemory->MapDataToSegment<uint32_t>(m_terrainInfo.buffer.index, indices);
+
 }
 
 float VulkanTerrain::GetHeightmapPixel(uint32_t x, uint32_t y)
@@ -299,44 +298,37 @@ float VulkanTerrain::GetHeightmapPixel(uint32_t x, uint32_t y)
 	return *(m_heightmapInfo.data + (interPos.x + interPos.y * m_heightmapInfo.imageDim) * scale) / (65535.0f);
 }
 
-void VulkanTerrain::PrepareUBOBuffer()
-{
-	// terrain ubo
-	m_terrainInfo.buffer.ubo.size = sizeof(TerrainUtility::TerrainUbo);
-	vkUtility->CreateBuffer(m_terrainInfo.buffer.ubo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_terrainInfo.buffer.ubo.buffer, m_terrainInfo.buffer.ubo.memory);
-}
-
 void VulkanTerrain::Update(int acc_time)
 {
-	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
 
 	// update terrain tesselation ubo
-	TerrainUtility::TerrainUbo terrainUbo;
-	terrainUbo.projection = camera->m_cameraInfo.projection;
-	terrainUbo.viewMatrix = camera->m_cameraInfo.viewMatrix;
-	terrainUbo.modelMatrix = glm::mat4(1.0f);
-	terrainUbo.screenDim = glm::vec2(p_vkEngine->m_surface.extent.width, p_vkEngine->m_surface.extent.height);
+	std::vector<TerrainUbo> terrainUbo(1);
+	terrainUbo[0].projection = camera->m_cameraInfo.projection;
+	terrainUbo[0].viewMatrix = camera->m_cameraInfo.viewMatrix;
+	terrainUbo[0].modelMatrix = glm::mat4(1.0f);
+	terrainUbo[0].screenDim = glm::vec2(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH());
 
 	// constant tessellation values
-	terrainUbo.disFactor = TESSELLATION_DISP_FACTOR;
-	terrainUbo.tessFactor = TESSELLATION_FACTOR;
-	terrainUbo.tessEdgeSize = TESSELLATION_EDGE_SIZE;
-	vkUtility->MapBuffer<TerrainUtility::TerrainUbo>(m_terrainInfo.buffer.ubo, terrainUbo);
+	terrainUbo[0].disFactor = TESSELLATION_DISP_FACTOR;
+	terrainUbo[0].tessFactor = TESSELLATION_FACTOR;
+	terrainUbo[0].tessEdgeSize = TESSELLATION_EDGE_SIZE;
+	p_vkMemory->MapDataToSegment<TerrainUbo>(m_terrainInfo.buffer.ubo, terrainUbo);
 }
 
 void VulkanTerrain::Init()
 {
 	// check that the device supports tesselation shaders - no point in continuing if this isn't the case
-	if (p_vkEngine->m_device.features.tessellationShader == VK_FALSE) {
+	//if (p_vkEngine->m_device.features.tessellationShader == VK_FALSE) {
 
-		*g_filelog << "Critical error initialising  Vulkan terrain module! GPU device does not support tessellation shaders.";
-		exit(EXIT_FAILURE);
-	}
+	//	*g_filelog << "Critical error initialising  Vulkan terrain module! GPU device does not support tessellation shaders.";
+	//	exit(EXIT_FAILURE);
+	//}
 
 	// load model data - loads materials, then the vertex information, creates the device memory buffers and uploads the data
 	this->LoadTerrainTextures();
 
-	this->PrepareUBOBuffer();
+	m_terrainInfo.buffer.ubo = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(TerrainUbo));
 	this->PrepareTerrainData();
 
 	this->PrepareTerrainDescriptorSets();

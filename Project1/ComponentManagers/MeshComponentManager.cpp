@@ -5,8 +5,8 @@
 #include "Engine/engine.h"
 #include "VulkanCore/VulkanEngine.h"
 
-MeshComponentManager::MeshComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<MeshComponentManager>(*this, id)
+MeshComponentManager::MeshComponentManager() :
+	ArchivableComponentManager<MeshComponentManager>(*this)
 {
 }
 
@@ -42,7 +42,7 @@ void MeshComponentManager::DownloadMeshIndicesData(std::vector<uint32_t>& indice
 {
 	indicesData.resize(m_data.meshIndex.size());
 
-	for (int c = 0; c < m_data.object.size(); ++c) {
+	for (uint32_t c = 0; c < m_data.object.size(); ++c) {
 
 		indicesData.push_back(m_data.meshIndex[c]);
 	}

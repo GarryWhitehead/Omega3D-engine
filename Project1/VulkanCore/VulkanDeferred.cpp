@@ -9,10 +9,11 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include <gtc/matrix_transform.hpp>
 
-VulkanDeferred::VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanDeferred::VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 VulkanDeferred::~VulkanDeferred()
@@ -33,8 +34,8 @@ void VulkanDeferred::CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, V
 
 void VulkanDeferred::PrepareDeferredFramebuffer()
 {
-	uint32_t height = p_vkEngine->m_surface.extent.height;
-	uint32_t width = p_vkEngine->m_surface.extent.width;
+	uint32_t width = p_vkEngine->GetSurfaceExtentW();
+	uint32_t height = p_vkEngine->GetSurfaceExtentH();
 
 	// initialise the colour buffer attachments for PBR
 	m_deferredInfo.position.imageInfo.PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, p_vkEngine, false);		// positions
@@ -56,11 +57,11 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 
 	// frame buffers for eachg swap chain
 	std::array<VkImageView, 9> attachments = {};
-	m_deferredInfo.frameBuffers.resize(p_vkEngine->m_swapchain.imageCount);
+	m_deferredInfo.frameBuffers.resize(p_vkEngine->GetSwapChainImageCount());
 	
 	for (uint32_t c = 0; c < m_deferredInfo.frameBuffers.size(); ++c) {
 
-		attachments[0] = p_vkEngine->m_imageView.images[c];
+		attachments[0] = p_vkEngine->GetImageView(c);
 		attachments[1] = m_deferredInfo.position.imageInfo.imageView;
 		attachments[2] = m_deferredInfo.normal.imageInfo.imageView;
 		attachments[3] = m_deferredInfo.albedo.imageInfo.imageView;
@@ -75,11 +76,11 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 		frameInfo.renderPass = m_deferredInfo.renderPass;
 		frameInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		frameInfo.pAttachments = attachments.data();
-		frameInfo.width = p_vkEngine->m_surface.extent.width;
-		frameInfo.height = p_vkEngine->m_surface.extent.height;
+		frameInfo.width = p_vkEngine->GetSurfaceExtentW();
+		frameInfo.height = p_vkEngine->GetSurfaceExtentH();
 		frameInfo.layers = 1;
 
-		VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &m_deferredInfo.frameBuffers[c]));
+		VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->GetDevice(), &frameInfo, nullptr, &m_deferredInfo.frameBuffers[c]));
 	}
 }
 
@@ -87,7 +88,7 @@ void VulkanDeferred::PrepareDeferredRenderpass()
 {
 	// Create attachment info for colour attachment, G buffer 
 	std::array<VkAttachmentDescription, 9> attachDescr = {};
-	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkEngine->m_surface.format.format, 0, &attachDescr[0]);						// color attachment - for swap chain presentation
+	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkEngine->GetSurfaceFormat(), 0, &attachDescr[0]);						// color attachment - for swap chain presentation
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.position.imageInfo.format, 1, &attachDescr[1]);			// position
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.normal.imageInfo.format, 2, &attachDescr[2]);			// normal
 	CreateRenderpassAttachmentInfo(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.albedo.imageInfo.format, 3, &attachDescr[3]);			//	albedo
@@ -187,7 +188,7 @@ void VulkanDeferred::PrepareDeferredRenderpass()
 	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
 	createInfo.pDependencies = sPassDepend.data();
 
-	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->m_device.device, &createInfo, nullptr, &m_deferredInfo.renderPass));
+	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_deferredInfo.renderPass));
 }
 
 void VulkanDeferred::PrepareDeferredDescriptorSet()
@@ -206,7 +207,7 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_deferredInfo.descriptor.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_deferredInfo.descriptor.pool));
 
 	// deferred descriptor layout
 	std::array<VkDescriptorSetLayoutBinding, 13> layoutBind = {};
@@ -229,7 +230,7 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
 	layoutInfo.pBindings = layoutBind.data();
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_deferredInfo.descriptor.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_deferredInfo.descriptor.layout));
 
 	// Create descriptor set for meshes
 	VkDescriptorSetLayout layouts[] = { m_deferredInfo.descriptor.layout };
@@ -239,15 +240,15 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = layouts;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_deferredInfo.descriptor.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_deferredInfo.descriptor.set));
 
 	std::array<VkDescriptorBufferInfo, 2> uboBufferInfo = {};
-	uboBufferInfo[0] = vkUtility->InitBufferInfoDescriptor(m_buffers.vertexUbo.buffer, 0, m_buffers.vertexUbo.size);
-	uboBufferInfo[1] = vkUtility->InitBufferInfoDescriptor(m_buffers.fragmentUbo.buffer, 0, m_buffers.fragmentUbo.size);
+	uboBufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_buffers.vertexUbo.block_id), m_buffers.vertexUbo.offset, m_buffers.vertexUbo.size);
+	uboBufferInfo[1] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_buffers.fragmentUbo.block_id), m_buffers.fragmentUbo.offset, m_buffers.fragmentUbo.size);
 
-	auto vkShadow = p_vkEngine->VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
-	auto vkPBR = p_vkEngine->VkModule<VulkanPBR>(VkModId::VKMOD_PBR_ID);
-	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>(VkModId::VKMOD_IBL_ID);
+	auto vkShadow = p_vkEngine->VkModule<VulkanShadow>();
+	auto vkPBR = p_vkEngine->VkModule<VulkanPBR>();
+	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>();
 
 	std::array<VkDescriptorImageInfo, 11> imageInfo = {};
 	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_deferredInfo.position.imageInfo.imageView, VK_NULL_HANDLE);
@@ -276,7 +277,7 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 	writeDescrSet[10] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 10, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[8]);
 	writeDescrSet[11] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 11, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[9]);
 	writeDescrSet[12] = vkUtility->InitDescriptorSet(m_deferredInfo.descriptor.set, 12, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[10]);
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanDeferred::PrepareDeferredPipeline()
@@ -298,7 +299,7 @@ void VulkanDeferred::PrepareDeferredPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
 
@@ -339,7 +340,7 @@ void VulkanDeferred::PrepareDeferredPipeline()
 	pipelineInfo.pPushConstantRanges = &pushConstant;
 	pipelineInfo.pushConstantRangeCount = 1;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_deferredInfo.pipelineInfo.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_deferredInfo.pipelineInfo.layout));
 
 	// sahders for rendering full screen quad
 	m_deferredInfo.shader[0] = vkUtility->InitShaders("deferred/deferred-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -363,20 +364,20 @@ void VulkanDeferred::PrepareDeferredPipeline()
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_deferredInfo.pipelineInfo.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_deferredInfo.pipelineInfo.pipeline));
 }
 
 void VulkanDeferred::GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer)
 {
-	VkDeviceSize offsets[1]{ 0 };
+	VkDeviceSize offsets[1]{ m_buffers.vertices.offset };
 
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_deferredInfo.pipelineInfo.pipeline);
-	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_buffers.vertices.buffer, offsets);
+	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_buffers.vertices.block_id), offsets);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_deferredInfo.pipelineInfo.layout, 0, 1, &m_deferredInfo.descriptor.set, 0, NULL);
 
-	vkCmdBindIndexBuffer(cmdBuffer, m_buffers.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
+	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_buffers.indices.block_id), m_buffers.indices.offset, VK_INDEX_TYPE_UINT32);
 
-	auto p_lightManager = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
+	auto p_lightManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
 	uint32_t lightCount = p_lightManager->GetLightCount();
 	vkCmdPushConstants(cmdBuffer, m_deferredInfo.pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, sizeof(uint32_t), &lightCount);
 
@@ -386,12 +387,10 @@ void VulkanDeferred::GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer)
 void VulkanDeferred::CreateUBOBuffers()
 {
 	// vertex UBO buffer
-	m_buffers.vertexUbo.size = sizeof(VertexUBOLayout);
-	vkUtility->CreateBuffer(m_buffers.vertexUbo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffers.vertexUbo.buffer, m_buffers.vertexUbo.memory);
+	m_buffers.vertexUbo = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(VertexUBOLayout));
 
 	// fragment UBO buffer
-	m_buffers.fragmentUbo.size = sizeof(FragmentUBOLayout);
-	vkUtility->CreateBuffer(m_buffers.fragmentUbo.size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffers.fragmentUbo.buffer, m_buffers.fragmentUbo.memory);
+	m_buffers.fragmentUbo = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(FragmentUBOLayout));
 }
 
 void VulkanDeferred::PrepareFullscreenQuad()
@@ -415,16 +414,16 @@ void VulkanDeferred::PrepareFullscreenQuad()
 	}
 
 	// map to device memory
-	m_buffers.vertices.size = sizeof(Vertex) * vertices.size();
+	m_buffers.vertices.size = 
 	m_buffers.indices.size = sizeof(uint32_t) * indices.size();
 
 	// map vertices
-	vkUtility->CreateBuffer(m_buffers.vertices.size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffers.vertices.buffer, m_buffers.vertices.memory);
-	vkUtility->MapBuffer<Vertex>(m_buffers.vertices, vertices);
+	m_buffers.vertices = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(Vertex) * vertices.size());
+	p_vkMemory->MapDataToSegment<Vertex>(m_buffers.vertices, vertices);
 
 	// map indices
-	vkUtility->CreateBuffer(m_buffers.indices.size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_buffers.indices.buffer, m_buffers.indices.memory);
-	vkUtility->MapBuffer<uint32_t>(m_buffers.indices, indices);
+	m_buffers.indices = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * indices.size());
+	p_vkMemory->MapDataToSegment<uint32_t>(m_buffers.indices, indices);
 }
 
 void VulkanDeferred::Init()
@@ -438,31 +437,34 @@ void VulkanDeferred::Init()
 
 void VulkanDeferred::Update(int acc_time)
 {
-	auto vkShadow = p_vkEngine->VkModule<VulkanShadow>(VkModId::VKMOD_SHADOW_ID);
-	auto p_lightManager = p_vkEngine->p_world->RequestComponentManager<LightComponentManager>(ComponentManagerId::CM_LIGHT_ID);
-	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+	auto vkShadow = p_vkEngine->VkModule<VulkanShadow>();
+	auto p_lightManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
+	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
 
 	// update vertex ubo buffer
-	m_vertBuffer.projection = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
-	m_vertBuffer.viewMatrix = glm::mat4(1.0f);
-	m_vertBuffer.modelMatrix = glm::mat4(1.0f);
+	std::vector<VertexUBOLayout> vertUbo(1);
+	vertUbo[0].projection = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
+	vertUbo[0].viewMatrix = glm::mat4(1.0f);
+	vertUbo[0].modelMatrix = glm::mat4(1.0f);
 
-	vkUtility->MapBuffer<VertexUBOLayout>(m_buffers.vertexUbo, m_vertBuffer);
+	p_vkMemory->MapDataToSegment<VertexUBOLayout>(m_buffers.vertexUbo, vertUbo);
 
 	// update fragment ubo buffer
+	std::vector<FragmentUBOLayout> fragUbo(1);
+
 	uint32_t lightCount = p_lightManager->GetLightCount();
-	m_fragBuffer.cameraPos = glm::vec4(camera->GetCameraPosition(), 1.0f);
-	m_fragBuffer.activeLightCount = lightCount;
+	fragUbo[0].cameraPos = glm::vec4(camera->GetCameraPosition(), 1.0f);
+	fragUbo[0].activeLightCount = lightCount;
 
 	for (uint32_t c = 0; c < lightCount; ++c) {
 
 		LightComponentManager::LightInfo lightInfo = p_lightManager->GetLightData(c);
-		m_fragBuffer.light[c].pos = lightInfo.pos;
-		m_fragBuffer.light[c].direction = lightInfo.target;
-		m_fragBuffer.light[c].colour = lightInfo.colour;
+		fragUbo[0].light[c].pos = lightInfo.pos;
+		fragUbo[0].light[c].direction = lightInfo.target;
+		fragUbo[0].light[c].colour = lightInfo.colour;
 	}
 
-	vkUtility->MapBuffer<FragmentUBOLayout>(m_buffers.fragmentUbo, m_fragBuffer);
+	p_vkMemory->MapDataToSegment<FragmentUBOLayout>(m_buffers.fragmentUbo, fragUbo);
 }
 
 void VulkanDeferred::Destroy()

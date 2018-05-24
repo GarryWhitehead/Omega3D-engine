@@ -2,8 +2,8 @@
 #include "Engine/ObjectManager.h"
 
 
-AnimationComponentManager::AnimationComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<AnimationComponentManager>(*this, id)
+AnimationComponentManager::AnimationComponentManager() :
+	ArchivableComponentManager<AnimationComponentManager>(*this)
 {
 }
 
@@ -16,11 +16,6 @@ void AnimationComponentManager::Init(World *world, ObjectManager *manager)
 {
 	p_world = world;
 	p_objectManager = manager;
-
-	// register with graphics system as the updated mesh data will be required for rendering
-	//RegisterWithSystem(SystemId::GRAPHICS_SYSTEM_ID);
-
-	RegisterWithManager(ComponentManagerId::CM_MESH_ID);
 }
 
 void AnimationComponentManager::Update()

@@ -21,7 +21,6 @@ public:
 	void Destroy() override;
 	void Render();
 	std::array<glm::mat4, 256> RequestTransformData();
-	void InitVulkanModel();
 
 private:
 

@@ -25,7 +25,7 @@ public:
 		std::vector<uint32_t> modelIndex;
 	};
 
-	TransformComponentManager(ComponentManagerId id);
+	TransformComponentManager();
 	~TransformComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;

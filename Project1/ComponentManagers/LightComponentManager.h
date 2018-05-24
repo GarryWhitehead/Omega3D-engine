@@ -33,7 +33,7 @@ public:
 		std::vector<LightInfo> lightInfo;
 	};
 
-	LightComponentManager(ComponentManagerId id);
+	LightComponentManager();
 	~LightComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;

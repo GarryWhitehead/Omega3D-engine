@@ -8,17 +8,6 @@ class TerrainUtility
 
 public:
 
-	struct TerrainUbo
-	{
-		glm::mat4 projection;
-		glm::mat4 modelMatrix;
-		glm::mat4 viewMatrix;
-		glm::vec2 screenDim;
-		float disFactor;
-		float tessFactor;
-		float tessEdgeSize;
-	};
-
 	struct Vertex
 	{
 		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();

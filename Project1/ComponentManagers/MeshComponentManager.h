@@ -87,7 +87,7 @@ public:
 		std::vector<OMFMaterial> materials;
 	};
 
-	MeshComponentManager(ComponentManagerId id);
+	MeshComponentManager();
 	~MeshComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;

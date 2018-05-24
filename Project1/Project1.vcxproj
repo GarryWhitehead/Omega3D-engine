@@ -34,8 +34,8 @@
     <ClCompile Include="Systems\systems.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
     <ClCompile Include="utility\serialisation.cpp" />
+    <ClCompile Include="VulkanCore\VkMemoryManager.cpp" />
     <ClCompile Include="VulkanCore\vkFFT.cpp" />
-    <ClCompile Include="VulkanCore\VulkanBuffer.cpp" />
     <ClCompile Include="VulkanCore\TerrainUtility.cpp" />
     <ClCompile Include="VulkanCore\VulkanModel.cpp" />
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
@@ -75,7 +75,7 @@
     <ClInclude Include="VulkanCore\TerrainUtility.h" />
     <ClInclude Include="utility\RandomNumber.h" />
     <ClInclude Include="utility\serialisation.h" />
-    <ClInclude Include="VulkanCore\VulkanBuffer.h" />
+    <ClInclude Include="VulkanCore\VkMemoryManager.h" />
     <ClInclude Include="VulkanCore\VulkanModel.h" />
     <ClInclude Include="VulkanCore\VulkanModule.h" />
     <ClInclude Include="Systems\camera_system.h" />

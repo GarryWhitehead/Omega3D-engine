@@ -2,8 +2,8 @@
 #include "Engine/ObjectManager.h"
 #include "Engine/engine.h"
 
-LightComponentManager::LightComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<LightComponentManager>(*this, id)
+LightComponentManager::LightComponentManager() :
+	ArchivableComponentManager<LightComponentManager>(*this)
 {
 }
 

@@ -42,7 +42,7 @@ public:
 	void CreateWindow(const char *winTitle);
 
 	template <typename T>
-	T* GetSystem(SystemId id);
+	T* GetSystem();
 
 	// helper functions
 	GLFWwindow* Window() const { return m_window; }
@@ -64,9 +64,9 @@ private:
 };
 
 template <typename T>
-T* Engine::GetSystem(SystemId id)
+T* Engine::GetSystem()
 {
-	T* sys = static_cast<T*>(m_worlds[m_currentWorldIndex]->HasSystem(id));
+	T* sys = static_cast<T*>(m_worlds[m_currentWorldIndex]->RequestSystem<T>());
 	assert(sys != nullptr);
 	return sys;
 }

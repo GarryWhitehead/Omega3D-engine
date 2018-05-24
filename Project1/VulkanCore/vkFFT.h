@@ -4,7 +4,7 @@
 // 
 
 #include "VulkanCore/Vulkan_Utility.h"
-#include "VulkanCore/VulkanBuffer.h"
+#include "VulkanCore/VkMemoryManager.h"
 
 class VulkanEngine;
 
@@ -29,12 +29,12 @@ public:
 	};
 	
 	
-	vkFFT(VulkanEngine *engine);
+	vkFFT(VulkanEngine *engine, VkMemoryManager *memory);
 	~vkFFT();
 
 	// using complex-complex radix-8 FFT for now TODO: convert to C2R
 	void GenerateFFTCmdBuffer(VkBuffer &srcBuffer);
-	void PrepareFFTDescriptorSets(VulkanBuffer &srcBuffer);
+	void PrepareFFTDescriptorSets(VkMemoryManager::SegmentInfo &srcBuffer);
 	void PrepareFFTPipeline();
 	void CreateBuffers();
 	void SubmitFFTCompute();
@@ -44,6 +44,7 @@ public:
 private:
 
 	VulkanEngine *p_vkEngine;
+	VkMemoryManager *p_vkMemory;
 
 	// pipeline data
 	VulkanUtility::PipeLlineInfo pipelineInfo;
@@ -53,7 +54,7 @@ private:
 	VkFence m_fence;
 
 	// buffers for compute shader
-	VulkanBuffer m_uboBuffer;
-	VulkanBuffer m_ssboDstBuffer;	// d(z)	
+	VkMemoryManager::SegmentInfo m_uboBuffer;
+	VkMemoryManager::SegmentInfo m_ssboDstBuffer;	// d(z)	
 };
 

@@ -4,10 +4,11 @@
 #include "VulkanCore/VulkanModel.h"
 #include "Systems/camera_system.h"
 
-VulkanIBL::VulkanIBL(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanIBL::VulkanIBL(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 
@@ -17,7 +18,7 @@ VulkanIBL::~VulkanIBL()
 
 void VulkanIBL::LoadAssets()
 {
-	m_cubeImage.LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->m_cmdPool, p_vkEngine);
+	m_cubeImage.LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 }
 
 void VulkanIBL::PrepareRenderpass(VkFormat format, VkRenderPass& renderpass)
@@ -68,7 +69,7 @@ void VulkanIBL::PrepareRenderpass(VkFormat format, VkRenderPass& renderpass)
 	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
 	createInfo.pDependencies = sPassDepend.data();
 
-	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->m_device.device, &createInfo, nullptr, &renderpass));
+	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->GetDevice(), &createInfo, nullptr, &renderpass));
 }
 
 void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer)
@@ -85,11 +86,11 @@ void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imag
 	frameInfo.height = imageInfo.height;
 	frameInfo.layers = 1;
 
-	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &framebuffer))
+	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->GetDevice(), &frameInfo, nullptr, &framebuffer))
 
-	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->m_cmdPool);
-	vkUtility->ImageTransition(cmdBuffer, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->m_cmdPool);
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
+	vkUtility->ImageTransition(cmdBuffer, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
 
 }
 
@@ -105,7 +106,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_descriptors.pool));
 
 	std::array<VkDescriptorSetLayoutBinding, 1> layoutBind;
 	layoutBind[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// bindings for the colour image sampler
@@ -115,7 +116,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
 	layoutInfo.pBindings = layoutBind.data();
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_descriptors.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_descriptors.layout));
 
 	VkDescriptorSetAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -123,7 +124,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = &m_descriptors.layout;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_descriptors.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_descriptors.set));
 
 	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
 	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_cubeImage.imageView, m_cubeImage.texSampler);		
@@ -131,7 +132,7 @@ void VulkanIBL::PrepareIBLDescriptors()
 	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_descriptors.set, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[0]);
 
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanIBL::PrepareIBLPipeline()
@@ -153,7 +154,7 @@ void VulkanIBL::PrepareIBLPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -195,7 +196,7 @@ void VulkanIBL::PrepareIBLPipeline()
 	pipelineInfo.pPushConstantRanges = &pushConstant;
 	pipelineInfo.pushConstantRangeCount = 1;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_pipelineLayout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_pipelineLayout));
 
 	// sahders for rendering full screen quad
 	m_shader[0] = vkUtility->InitShaders("IBL/cubemap-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -220,14 +221,14 @@ void VulkanIBL::PrepareIBLPipeline()
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_irradianceCube.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_irradianceCube.pipeline));
 
 	// pre-filter pipeline
 	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											
 	createInfo.basePipelineHandle = m_irradianceCube.pipeline;
 	createInfo.renderPass = m_filterCube.renderpass;
 	m_shader[1] = vkUtility->InitShaders("IBL/cubemap_prefilter-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_filterCube.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_filterCube.pipeline));
 }
 
 void VulkanIBL::GenerateIrrMapCmdBuffer()
@@ -245,7 +246,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValue.size());
 	renderPassInfo.pClearValues = clearValue.data();
 	
-	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->m_cmdPool);
+	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 
 	VkViewport viewport = vkUtility->InitViewPort(m_irradianceCube.cubeImage.width, m_irradianceCube.cubeImage.height, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
@@ -254,12 +255,12 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
-	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>();
 	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
 
-	VkDeviceSize offsets[1]{ 0 };
+	VkDeviceSize offsets[1]{ p_vkModel->GetVertexOffset() };
 
-	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
+	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
 	for (int m = 0; m < MIP_LEVELS; ++m) {
 		
@@ -274,7 +275,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_irradianceCube.pipeline);
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors.set, 0, NULL);
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
-			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 
 			// render each of the cubes faces
 			FilterPushConstant push;
@@ -285,7 +286,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 
-			vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->m_cmdPool);
+			vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool());
 
 			VkImageCopy imageCopy = {};
 			imageCopy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -300,17 +301,17 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 			imageCopy.dstSubresource.baseArrayLayer = c;
 			imageCopy.dstOffset = { 0,0,0 };
 			imageCopy.extent.depth = 1;
-			imageCopy.extent.width = dim;
-			imageCopy.extent.height = dim;
+			imageCopy.extent.width = static_cast<uint32_t>(dim);
+			imageCopy.extent.height = static_cast<uint32_t>(dim);
 
 			vkCmdCopyImage(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_irradianceCube.cubeImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
 
-			vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->m_cmdPool);
+			vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
 		}
 	}
-	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
+	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
 }
 
 void VulkanIBL::GeneratePreFilterCmdBuffer()
@@ -328,7 +329,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValue.size());
 	renderPassInfo.pClearValues = clearValue.data();
 
-	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->m_cmdPool);
+	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 
 	VkViewport viewport = vkUtility->InitViewPort(m_filterCube.cubeImage.width, m_filterCube.cubeImage.height, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
@@ -337,12 +338,12 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	// the cube map object data is loaded with all other models - it is assumed that the cubemap will default at index location 0 in the model map - TODO: ref cubemap data location in .json world data when implemented
-	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID);
+	auto p_vkModel = p_vkEngine->VkModule<VulkanModel>();
 	VulkanModel::ModelInfo model = p_vkModel->RequestModelInfo(0);
 
-	VkDeviceSize offsets[1]{ 0 };
+	VkDeviceSize offsets[1]{ p_vkModel->GetVertexOffset() };
 
-	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
+	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
 	FilterPushConstant push;
 	for (int m = 0; m < MIP_LEVELS; ++m) {
@@ -361,7 +362,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_filterCube.pipeline);
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors.set, 0, NULL);
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
-			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), 0, VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 
 			// render each of the cubes faces
 			push.mvp = glm::perspective(PI / 2, 1.0f, 0.1f, 512.0f) * cubeView[c];
@@ -372,7 +373,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 
-			vkUtility->ImageTransition(cmdBuffer, m_filterCube.offscreenImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->m_cmdPool);
+			vkUtility->ImageTransition(cmdBuffer, m_filterCube.offscreenImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool());
 
 			VkImageCopy imageCopy = {};
 			imageCopy.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -387,17 +388,17 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 			imageCopy.dstSubresource.baseArrayLayer = c;
 			imageCopy.dstOffset = { 0,0,0 };
 			imageCopy.extent.depth = 1;
-			imageCopy.extent.width = dim;
-			imageCopy.extent.height = dim;
+			imageCopy.extent.width = static_cast<uint32_t>(dim);
+			imageCopy.extent.height = static_cast<uint32_t>(dim);
 
 			vkCmdCopyImage(cmdBuffer, m_filterCube.offscreenImage.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_filterCube.cubeImage.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageCopy);
 
-			vkUtility->ImageTransition(cmdBuffer, m_filterCube.offscreenImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->m_cmdPool);		
+			vkUtility->ImageTransition(cmdBuffer, m_filterCube.offscreenImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());		
 		}
 	}
-	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->m_cmdPool, MIP_LEVELS, 6);
+	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
 }
 
 void VulkanIBL::Update(int acc_time)

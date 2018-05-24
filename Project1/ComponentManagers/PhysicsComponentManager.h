@@ -33,7 +33,7 @@ public:
 		std::vector<float> mass;
 	};
 
-	PhysicsComponentManager(ComponentManagerId id);
+	PhysicsComponentManager();
 	~PhysicsComponentManager();
 	
 	void Init(World *world, ObjectManager *manager) override;

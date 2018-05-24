@@ -1,8 +1,10 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/VkMemoryManager.h"
 
 class VulkanEngine;
 class CameraSystem;
+class VkMemoryManager;
 
 class VulkanSkybox : public VulkanModule
 {
@@ -13,7 +15,7 @@ public:
 		VkRenderPass renderpass;
 		VulkanUtility::PipeLlineInfo pipeline;
 		VulkanUtility::DescriptorInfo descriptors;
-		BufferData uboBuffer;
+		VkMemoryManager::SegmentInfo uboBuffer;
 	};
 
 	struct SkyboxUbo
@@ -22,7 +24,7 @@ public:
 		glm::mat4 modelMatrix;
 	};
 
-	VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanSkybox();
 
 	void Init();
@@ -31,7 +33,6 @@ public:
 	void PrepareSkyboxDescriptorSets();
 	void PrepareSkyboxPipeline();
 	void GenerateSkyboxCmdBuffer(VkCommandBuffer cmdBuffer);
-	void PrepareUboBuffer();
 
 private:
 

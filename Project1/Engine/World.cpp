@@ -46,7 +46,7 @@ void World::Generate(VulkanEngine *vkEngine)
 	InitComponentManagers();
 
 	// de-serialiase model data for this world using mesh manager
-	auto p_meshManager = RequestComponentManager<MeshComponentManager>(ComponentManagerId::CM_MESH_ID);
+	auto p_meshManager = RequestComponentManager<MeshComponentManager>();
 	p_meshManager->ImportOMFFile("assets/models/model_data.omf");
 }
 
@@ -58,76 +58,50 @@ void World::UpdateSystems()
 	}
 }
 
-System* World::HasSystem(SystemId id)
-{
-	auto& sys = m_systems.find(id);
-	if (sys != m_systems.end()) {
-		return m_systems[id];
-	}
-	return nullptr;
-}
-
 void World::RegisterSystems(std::vector<SystemId>& systemIds, Engine *engine, VulkanEngine *vkEngine)
 {
 	for (auto& id : systemIds) {
 
-		if (id == SystemId::INPUT_SYSTEM_ID) {
-
-			InputSystem *system = new InputSystem(this);
-			system->Init(engine->Window(), static_cast<CameraSystem*>(m_systems[SystemId::CAMERA_SYSTEM_ID]), Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT);
-			m_systems.insert(std::make_pair(SystemId::INPUT_SYSTEM_ID, system));
-		}
-		else if(id == SystemId::CAMERA_SYSTEM_ID) {
-
-			CameraSystem *system = new CameraSystem(this);
-			system->Init(glm::vec3(15.0f, -45.0f, 0.0f));
-			m_systems.insert(std::make_pair(SystemId::CAMERA_SYSTEM_ID, system));
-
-			// setup camera view
-			system->SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
-		}
-		else if (id == SystemId::GRAPHICS_SYSTEM_ID) {
-
-			GraphicsSystem *system = new GraphicsSystem(this, vkEngine);
-			system->Init();
-			m_systems.insert(std::make_pair(SystemId::GRAPHICS_SYSTEM_ID, system));
-		}
-		else {
-			*g_filelog << "Error registering engine system with id #" << (int)id << ". Engine system id not recognised.\n";
+		switch (id) {
+			case SystemId::INPUT_SYSTEM_ID:
+				m_systems.insert(std::make_pair(std::type_index(typeid(InputSystem)), new InputSystem(this, engine->Window(), Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT)));
+				break;
+			case SystemId::CAMERA_SYSTEM_ID:
+				m_systems.insert(std::make_pair(std::type_index(typeid(CameraSystem)), new CameraSystem(this, glm::vec3(15.0f, -45.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0))));
+				break;
+			case SystemId::GRAPHICS_SYSTEM_ID:
+				m_systems.insert(std::make_pair(std::type_index(typeid(GraphicsSystem)), new GraphicsSystem(this, vkEngine)));
+				break;
 		}
 	}
 }
 
-void World::RegisterComponentManager(ComponentManagerId id)
+std::type_index World::RegisterComponentManager(std::string id)
 {
-	
-	if (id == ComponentManagerId::CM_PHYSICS_ID) {
-
-		PhysicsComponentManager *manager = new PhysicsComponentManager(ComponentManagerId::CM_PHYSICS_ID);
-		m_managers.insert(std::make_pair(ComponentManagerId::CM_PHYSICS_ID, manager));
+	if (id == " Physics") {
+		std::type_index index(typeid(PhysicsComponentManager));
+		m_managers.insert(std::make_pair(index, new PhysicsComponentManager()));
+		return index;
 	}
-	else if (id == ComponentManagerId::CM_TRANSFORM_ID) {
-
-		TransformComponentManager *manager = new TransformComponentManager(ComponentManagerId::CM_TRANSFORM_ID);
-		m_managers.insert(std::make_pair(ComponentManagerId::CM_TRANSFORM_ID, manager));
+	else if (id == " Transform") {
+		std::type_index index(typeid(TransformComponentManager));
+		m_managers.insert(std::make_pair(index, new TransformComponentManager()));
+		return index;
 	}
-	else if (id == ComponentManagerId::CM_MESH_ID) {
-
-		MeshComponentManager *manager = new MeshComponentManager(ComponentManagerId::CM_MESH_ID);
-		m_managers.insert(std::make_pair(ComponentManagerId::CM_MESH_ID, manager));
+	else if (id == " Mesh") {
+		std::type_index index(typeid(MeshComponentManager));
+		m_managers.insert(std::make_pair(index, new MeshComponentManager()));
+		return index;
 	}
-	else if (id == ComponentManagerId::CM_ANIMATION_ID) {
-
-		AnimationComponentManager *manager = new AnimationComponentManager(ComponentManagerId::CM_ANIMATION_ID);
-		m_managers.insert(std::make_pair(ComponentManagerId::CM_ANIMATION_ID, manager));
+	else if (id == " Animation") {
+		std::type_index index(typeid(AnimationComponentManager));
+		m_managers.insert(std::make_pair(index, new AnimationComponentManager()));
+		return index;
 	}
-	else if (id == ComponentManagerId::CM_LIGHT_ID) {
-
-		LightComponentManager *manager = new LightComponentManager(ComponentManagerId::CM_LIGHT_ID);
-		m_managers.insert(std::make_pair(ComponentManagerId::CM_LIGHT_ID, manager));
-	}
-	else {
-		*g_filelog << "Error registering component manager with id #" << (int)id << ". Component manager id not recognised.\n";
+	else if (id == " Light") {
+		std::type_index index(typeid(LightComponentManager));
+		m_managers.insert(std::make_pair(index, new LightComponentManager()));
+		return index;
 	}
 }
 
@@ -145,11 +119,6 @@ void World::UpdateComponentManagers()
 
 		manager.second->Update();
 	}
-}
-
-void World::LinkComponentManager(ComponentManagerId srcId, ComponentManagerId dstId)
-{
-	m_managers[dstId]->RegisterManager(m_managers[srcId]);
 }
 
 void World::Destroy()

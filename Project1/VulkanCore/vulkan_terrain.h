@@ -2,6 +2,7 @@
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/TerrainUtility.h"
+#include "VulkanCore/VkMemoryManager.h"
 #include <string>
 #include <vector>
 #include "glm.hpp"
@@ -9,6 +10,7 @@
 class VulkanEngine;
 class VulkanShadow;
 class CameraSystem;
+class VkMemoryManager;
 
 class VulkanTerrain : public VulkanModule
 {
@@ -29,19 +31,30 @@ public:
 		VulkanTexture heightMap;
 	};
 
+	struct TerrainUbo
+	{
+		glm::mat4 projection;
+		glm::mat4 modelMatrix;
+		glm::mat4 viewMatrix;
+		glm::vec2 screenDim;
+		float disFactor;
+		float tessFactor;
+		float tessEdgeSize;
+	};
+
 	struct TerrainData
 	{
 		struct BufferInfo
 		{
-			BufferData index;
-			BufferData vertex;
-			BufferData ubo;
+			VkMemoryManager::SegmentInfo index;
+			VkMemoryManager::SegmentInfo vertex;
+			VkMemoryManager::SegmentInfo ubo;
 			uint32_t indexCount;
 		} buffer;
 
 		struct Data
 		{
-			std::vector<TerrainUtility::TerrainUbo> uboData;
+			std::vector<TerrainUbo> uboData;
 		} data;
 
 		VulkanUtility::DescriptorInfo descrInfo;
@@ -49,7 +62,7 @@ public:
 		
 	};
 
-	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanTerrain();
 
 	void Init();

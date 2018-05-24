@@ -12,8 +12,8 @@ class InputSystem : public System
 
 public:
 
-	InputSystem(World *world);
-	void Init(GLFWwindow *window, CameraSystem *cameraSystem, uint32_t width, uint32_t height);
+	InputSystem(World *world, GLFWwindow *window, uint32_t width, uint32_t height);
+	void Init(GLFWwindow *window, uint32_t width, uint32_t height);
 	~InputSystem();
 
 	void Update() override;
@@ -25,7 +25,6 @@ public:
 private:
 
 	World *p_world;
-	CameraSystem *p_cameraSystem;
 };
 
 void keyCallback(GLFWwindow *window, int key, int scan_code, int action, int mode);

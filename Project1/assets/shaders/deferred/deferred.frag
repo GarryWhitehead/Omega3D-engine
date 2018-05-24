@@ -23,7 +23,7 @@ layout (location = 1) in vec3 inPosW;
 
 layout (location = 0) out vec4 outFrag;
 
-#define MAX_LIGHT_COUNT 200			// use uniform buffer
+#define MAX_LIGHT_COUNT 5			// use uniform buffer
 #define SHADOW_FACTOR 0.85
 
 #define PI 3.1415926535897932384626433832795
@@ -39,6 +39,7 @@ layout (binding = 1) uniform UboBuffer
 {
 	vec4 cameraPos;
 	Light lights[MAX_LIGHT_COUNT];
+	
 } ubo;
 
 layout (push_constant) uniform pushConstant
@@ -134,7 +135,7 @@ void main()
 {	
 	vec3 inPos = subpassLoad(positionSampler).rgb;
 	float hasBumpMap = subpassLoad(normalSampler).a;
-	vec3 V = normalize(ubo.cameraPos.xyz - inPos);
+	vec3 V = normalize(ubo.cameraPos - inPos);
 	
 	vec3 N;
 	if(hasBumpMap == 1.0) {
@@ -156,7 +157,7 @@ void main()
 	
 	// apply additional lighting contribution to specular 
 	vec3 Lo = vec3(0.0);
-	for(int c = 0; c < push.activeLightCount; c++) {   
+	for(int c = 0; c < push.activeLightCount; c++) {  
 		
 		vec3 lightPos = ubo.lights[c].pos.xyz - inPos;
 		float dist = length(lightPos);

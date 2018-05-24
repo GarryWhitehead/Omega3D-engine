@@ -2,10 +2,11 @@
 #include "VulkanCore/VulkanEngine.h"
 #include "Systems/camera_system.h"
 
-VulkanPBR::VulkanPBR(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanPBR::VulkanPBR(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 VulkanPBR::~VulkanPBR()
@@ -60,7 +61,7 @@ void VulkanPBR::PrepareLUTRenderpass()
 	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
 	createInfo.pDependencies = sPassDepend.data();
 
-	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->m_device.device, &createInfo, nullptr, &m_lutRenderpass));
+	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_lutRenderpass));
 }
 
 void VulkanPBR::PrepareLUTFramebuffer()
@@ -78,7 +79,7 @@ void VulkanPBR::PrepareLUTFramebuffer()
 	frameInfo.height = lutImage.height;
 	frameInfo.layers = 1;
 
-	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &m_lutFramebuffer))
+	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->GetDevice(), &frameInfo, nullptr, &m_lutFramebuffer))
 }
 
 void VulkanPBR::PrepareLUTPipeline()
@@ -94,7 +95,7 @@ void VulkanPBR::PrepareLUTPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -129,7 +130,7 @@ void VulkanPBR::PrepareLUTPipeline()
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_lutLayout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_lutLayout));
 
 	// sahders for rendering full screen quad
 	m_lutShader[0] = vkUtility->InitShaders("BDRF/lutBDRF-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -153,7 +154,7 @@ void VulkanPBR::PrepareLUTPipeline()
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_lutPipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_lutPipeline));
 }
 
 void VulkanPBR::GenerateLUTCmdBuffer()
@@ -171,7 +172,7 @@ void VulkanPBR::GenerateLUTCmdBuffer()
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValue.size());
 	renderPassInfo.pClearValues = clearValue.data();
 
-	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->m_cmdPool);
+	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 
 	VkViewport viewport = vkUtility->InitViewPort(lutImage.width, lutImage.height, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
@@ -184,7 +185,7 @@ void VulkanPBR::GenerateLUTCmdBuffer()
 	vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 	vkCmdEndRenderPass(cmdBuffer);
 
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
 }
 
 void VulkanPBR::Init()

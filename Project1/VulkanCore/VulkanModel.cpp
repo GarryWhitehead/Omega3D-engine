@@ -7,10 +7,11 @@
 #include "Engine/engine.h"
 #include "Engine/World.h"
 
-VulkanModel::VulkanModel(VulkanEngine *engine, VulkanUtility *utility) :
-	VulkanModule(utility),
+VulkanModel::VulkanModel(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
+	VulkanModule(utility, memory),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 VulkanModel::~VulkanModel()
@@ -34,7 +35,7 @@ void VulkanModel::PrepareMeshDescriptorSet()
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_animInfo.mesh.descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_animInfo.mesh.descriptors.pool));
 
 	// scene descriptor layout
 	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
@@ -45,7 +46,7 @@ void VulkanModel::PrepareMeshDescriptorSet()
 	layoutInfo.bindingCount = 1;
 	layoutInfo.pBindings = sceneBind;
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.mesh.descriptors.layout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.mesh.descriptors.layout));
 
 	// Create descriptor set for meshes
 	VkDescriptorSetLayout layouts[] = { m_animInfo.mesh.descriptors.layout };
@@ -55,13 +56,13 @@ void VulkanModel::PrepareMeshDescriptorSet()
 	allocInfo.descriptorSetCount = 1;
 	allocInfo.pSetLayouts = layouts;
 
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &m_animInfo.mesh.descriptors.set));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_animInfo.mesh.descriptors.set));
 
-	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(m_ssboBuffer.buffer, 0, m_ssboBuffer.size);
+	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_ssboBuffer.block_id), m_ssboBuffer.offset, m_ssboBuffer.size);
 
 	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
 	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_animInfo.mesh.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &uboBuffInfo);
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanModel::PrepareMaterialDescriptorPool(uint32_t materialCount)
@@ -89,7 +90,7 @@ void VulkanModel::PrepareMaterialDescriptorPool(uint32_t materialCount)
 	createInfo.pPoolSizes = descrPoolSize.data();
 	createInfo.maxSets = materialCount + 1;
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->m_device.device, &createInfo, nullptr, &m_animInfo.material.descriptors.pool));
+	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_animInfo.material.descriptors.pool));
 }
 
 void VulkanModel::PrepareMaterialDescriptorLayouts()
@@ -104,19 +105,19 @@ void VulkanModel::PrepareMaterialDescriptorLayouts()
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
 	layoutInfo.pBindings = layoutBind.data();
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.diffLayout));
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.nomapLayout));			// no map and diffuse only use the same layout for convienence
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.diffLayout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.nomapLayout));			// no map and diffuse only use the same layout for convienence
 
 	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse + normal	
 	layoutInfo.pBindings = layoutBind.data();
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.diffnormLayout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.diffnormLayout));
 
 	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		
 	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse + normal + roughness + metallic (PBR)
 	layoutInfo.pBindings = layoutBind.data();
 	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->m_device.device, &layoutInfo, nullptr, &m_animInfo.descriptors.pbrLayout));
+	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.pbrLayout));
 }
 
 void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
@@ -154,7 +155,7 @@ void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
 	allocInfo.descriptorPool = m_animInfo.material.descriptors.pool;
 	allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
 	allocInfo.pSetLayouts = layouts.data();
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->m_device.device, &allocInfo, &material->descrSet));
+	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &material->descrSet));
 		
 	std::vector<VkWriteDescriptorSet> writeDescrSet;
 	writeDescrSet.resize(imageInfo.size());
@@ -163,13 +164,13 @@ void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
 		writeDescrSet[c] = vkUtility->InitDescriptorSet(material->descrSet, c, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[c]);
 	}
 
-	vkUpdateDescriptorSets(p_vkEngine->m_device.device, static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
 }
 
 void VulkanModel::PreparePipeline()
 {
 	// pipeline for materials containing diffuse and normal maps
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>(VkModId::VKMOD_DEFERRED_ID);
+	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 	
 	// scene graphics pipeline
 	ModelVertex vertex;
@@ -188,7 +189,7 @@ void VulkanModel::PreparePipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->m_viewport.viewPort, p_vkEngine->m_viewport.scissor, 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
 	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
@@ -263,7 +264,7 @@ void VulkanModel::PreparePipeline()
 	pipelineInfo.pPushConstantRanges = pushConstantArray;
 	pipelineInfo.pushConstantRangeCount = 2;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.diffNorm.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.diffNorm.layout));
 
 	// load the shaders with tyexture samplers for material textures
 	m_animInfo.shader[0] = vkUtility->InitShaders("skinning/mesh-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -288,7 +289,7 @@ void VulkanModel::PreparePipeline()
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diffNorm.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diffNorm.pipeline));
 
 	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											// inform the API that we are using a pipeline derivative
 	createInfo.basePipelineHandle = m_animInfo.matPipelines.diffNorm.pipeline;
@@ -296,34 +297,34 @@ void VulkanModel::PreparePipeline()
 	// diffuse map only pipeline
 	std::vector<VkDescriptorSetLayout> dndescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };
 	pipelineInfo.pSetLayouts = dndescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.diff.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.diff.layout));
 
 	createInfo.layout = m_animInfo.matPipelines.diff.layout;
 	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_DIFF-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diff.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diff.pipeline));
 
 	// PBR texture pipeline
 	std::vector<VkDescriptorSetLayout> pbrdescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.pbrLayout };
 	pipelineInfo.pSetLayouts = pbrdescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.pbr.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.pbr.layout));
 
 	createInfo.layout = m_animInfo.matPipelines.pbr.layout;
 	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_PBR-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.pbr.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.pbr.pipeline));
 
 	// no-material map pipeline
 	std::vector<VkDescriptorSetLayout> nomapdescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };		// no material map shader has a sampler bound but not used
 	pipelineInfo.pSetLayouts = nomapdescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->m_device.device, &pipelineInfo, nullptr, &m_animInfo.matPipelines.nomap.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.nomap.layout));
 
 	createInfo.layout = m_animInfo.matPipelines.nomap.layout;
 	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_NOMAP-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->m_device.device, VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.nomap.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.nomap.pipeline));
 }
 
 void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
 {
-	auto p_meshManager = p_vkEngine->p_world->RequestComponentManager<MeshComponentManager>(ComponentManagerId::CM_MESH_ID);
+	auto p_meshManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<MeshComponentManager>();
 
 	// TODO::tidy this code - dont allow vulkan model direct access to mesh data
 	for (uint32_t m = 0; m < p_meshManager->m_data.meshIndex.size(); ++m) {			
@@ -331,8 +332,8 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 		uint32_t index = p_meshManager->m_data.meshIndex[m];
 
 		// bind vertex data at offset into buffer
-		VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset };
-		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &m_vertexBuffer.buffer, offset);
+		VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset + m_vertexBuffer.offset };
+		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertexBuffer.block_id), offset);
 		
 		for (uint32_t i = 0; i < m_modelInfo[index].meshes.size(); i++) {		// the number of meshes within this particular model - each mesh has its own material
 
@@ -352,7 +353,7 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_materials[matIndex].layout : layout, 0, (pipeline == VK_NULL_HANDLE) ? static_cast<uint32_t>(descrSets.size()) : 1, (pipeline == VK_NULL_HANDLE) ? descrSets.data() : &set, 0, NULL);
 
 			// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
-			vkCmdBindIndexBuffer(cmdBuffer, m_indexBuffer.buffer, model.meshes[i].indexBase * sizeof(uint32_t), VK_INDEX_TYPE_UINT32);
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indexBuffer.block_id), m_indexBuffer.offset + (model.meshes[i].indexBase * sizeof(uint32_t)), VK_INDEX_TYPE_UINT32);
 
 			if (pipeline == VK_NULL_HANDLE) {
 				uint32_t objIndex = m;			// TODO:: look up the object id between mesh and transform data 
@@ -364,18 +365,6 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 	}
 }
 
-void VulkanModel::CreateBuffers()
-{
-	vkUtility->CreateBuffer(m_vertexBuffer.size, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_vertexBuffer.buffer, m_vertexBuffer.memory);
-	vkUtility->CreateBuffer(m_indexBuffer.size, VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_indexBuffer.buffer, m_indexBuffer.memory);
-}
-
-void VulkanModel::PrepareSsboBuffer()
-{
-	m_ssboBuffer.size = sizeof(SsboLayout);
-	vkUtility->CreateBuffer(m_ssboBuffer.size, VK_BUFFER_USAGE_STORAGE_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_ssboBuffer.buffer, m_ssboBuffer.memory);
-}
-
 void VulkanModel::ProcessMeshes()
 {
 	uint32_t indexBase = 0;
@@ -383,7 +372,7 @@ void VulkanModel::ProcessMeshes()
 	std::vector<ModelVertex> vertices;
 	std::vector<uint32_t> indices;
 
-	auto p_meshManager = p_vkEngine->p_world->RequestComponentManager<MeshComponentManager>(ComponentManagerId::CM_MESH_ID);
+	auto p_meshManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<MeshComponentManager>();
 
 	m_modelInfo.resize(p_meshManager->m_models.size());
 
@@ -456,21 +445,12 @@ void VulkanModel::ProcessMeshes()
 		}
 	}	
 
-	m_vertexBuffer.size = sizeof(ModelVertex) * vertices.size();
-	m_indexBuffer.size = sizeof(uint32_t) * indices.size();
+	// create local device buffers to map index and vertex data too
+	m_vertexBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(ModelVertex) * vertices.size());
+	p_vkMemory->MapDataToSegment<ModelVertex>(m_vertexBuffer, vertices);
 
-	// create device buffers to map index and vertex data to
-	CreateBuffers();
-
-	// map vertex and index data to buffer
-	vkMapMemory(p_vkEngine->m_device.device, m_vertexBuffer.memory, 0, m_vertexBuffer.size, 0, &m_vertexBuffer.mappedData);
-	memcpy(m_vertexBuffer.mappedData, vertices.data(), m_vertexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, m_vertexBuffer.memory);
-
-	// map index buffer
-	vkMapMemory(p_vkEngine->m_device.device, m_indexBuffer.memory, 0, m_indexBuffer.size, 0, &m_indexBuffer.mappedData);
-	memcpy(m_indexBuffer.mappedData, indices.data(), m_indexBuffer.size);
-	vkUnmapMemory(p_vkEngine->m_device.device, m_indexBuffer.memory);
+	m_indexBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * indices.size());
+	p_vkMemory->MapDataToSegment<uint32_t>(m_indexBuffer, indices);
 }
 
 uint8_t VulkanModel::FindMaterialIndex(std::string matName)
@@ -489,7 +469,7 @@ uint8_t VulkanModel::FindMaterialIndex(std::string matName)
 
 void VulkanModel::ProcessMaterials()
 {
-	auto p_meshManager = p_vkEngine->p_world->RequestComponentManager<MeshComponentManager>(ComponentManagerId::CM_MESH_ID);
+	auto p_meshManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<MeshComponentManager>();
 	
 	for (auto& model : p_meshManager->m_models) {
 
@@ -566,7 +546,7 @@ void VulkanModel::LoadMaterialTexture(MeshComponentManager::OMFMaterial &materia
 	}
 
 	filename = "assets/models/textures/" + filename;
-	texture.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->m_cmdPool, p_vkEngine);
+	texture.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 
 	return;
 }
@@ -608,7 +588,7 @@ void VulkanModel::Init()
 	ProcessMeshes();
 	
 	// create uniform buffer for camera perspective info 
-	PrepareSsboBuffer();
+	m_ssboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(SsboLayout));
 
 	// prepare descriptor sets for meshes and materials
 	PrepareMaterialDescriptorPool(m_materials.size());
@@ -626,19 +606,18 @@ void VulkanModel::Init()
 
 void VulkanModel::Update(int acc_time)
 {
-	auto camera = p_vkEngine->p_world->RequestSystem<CameraSystem>(SystemId::CAMERA_SYSTEM_ID);
+	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
 
 	// ssbo buffer for transform matrices 
-	std::vector<SsboLayout> ssboData;
+	std::vector<SsboLayout> ssbo(1);
 
-	SsboLayout ssbo;
-	ssbo.projection = camera->m_cameraInfo.projection;
-	ssbo.viewMatrix = camera->m_cameraInfo.viewMatrix;
+	ssbo[0].projection = camera->m_cameraInfo.projection;
+	ssbo[0].viewMatrix = camera->m_cameraInfo.viewMatrix;
 	
-	ssbo.modelMatrix = p_vkEngine->p_graphicsSystem->RequestTransformData();		// request updated transform data
-	ssboData.push_back(ssbo);
-
-	vkUtility->MapBuffer<SsboLayout>(m_ssboBuffer, ssboData);
+	auto graphics = p_vkEngine->RequestGraphicsSystem();
+	ssbo[0].modelMatrix = graphics->RequestTransformData();		// request updated transform data
+	
+	p_vkMemory->MapDataToSegment<SsboLayout>(m_ssboBuffer, ssbo); 
 
 	// update bone animation transforms for each model
 	/* for (auto& model : p_modelManager->m_colladaModels) {

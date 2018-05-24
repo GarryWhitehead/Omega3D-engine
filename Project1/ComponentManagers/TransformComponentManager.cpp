@@ -5,8 +5,8 @@
 #include "Engine/engine.h"
 #include <gtc/matrix_transform.hpp>
 
-TransformComponentManager::TransformComponentManager(ComponentManagerId id) :
-	ArchivableComponentManager<TransformComponentManager>(*this, id),
+TransformComponentManager::TransformComponentManager() :
+	ArchivableComponentManager<TransformComponentManager>(*this),
 	dataUpdated(false)
 {
 }
@@ -20,13 +20,11 @@ void TransformComponentManager::Init(World *world, ObjectManager *manager)
 {
 	p_world = world;
 	p_objectManager = manager;
-
-	RegisterWithManager(ComponentManagerId::CM_MESH_ID);
 }
 
 void TransformComponentManager::Update()
 {
-	auto manager = GetRegisteredManager<PhysicsComponentManager>(ComponentManagerId::CM_PHYSICS_ID);
+	auto manager = p_world->RequestComponentManager<PhysicsComponentManager>();
 
 	std::vector<PhysicsComponentManager::UpdatedPhysics> updatedData;
 	manager->DownloadPhysicsData(updatedData);
@@ -47,23 +45,18 @@ void TransformComponentManager::Update()
 			uint32_t index = objIndex.second;
 			//if (m_indicies[obj] == index) {
 
-				glm::mat4 trans(1.0);
-				if (!updatedData[index].pos.empty()) {
-					trans = glm::translate(trans, glm::vec3(updatedData[index].pos[0]));
-				}
-				if (!updatedData[index].rot.empty()) {
-					glm::vec4 rot = updatedData[index].rot[0];
-					trans = glm::rotate(trans, rot.w, glm::vec3(rot.x, rot.y, rot.z));
-				}
-				if (!updatedData[index].scale.empty()) {
-					trans = glm::scale(trans, updatedData[index].scale[0]);
-				}
-				m_data.worldTransform[index] = trans;
-			//}
-			//else {
-			//	*g_filelog << "Error updating transform data. Object indicies out of sync - Index 1: " << m_indicies[obj] << " , Index 2: " << objectIndicies[obj] << "\n";
-			//}
-
+			glm::mat4 trans(1.0);
+			if (!updatedData[index].pos.empty()) {
+				trans = glm::translate(trans, glm::vec3(updatedData[index].pos[0]));
+			}
+			if (!updatedData[index].rot.empty()) {
+				glm::vec4 rot = updatedData[index].rot[0];
+				trans = glm::rotate(trans, rot.w, glm::vec3(rot.x, rot.y, rot.z));
+			}
+			if (!updatedData[index].scale.empty()) {
+				trans = glm::scale(trans, updatedData[index].scale[0]);
+			}
+			m_data.worldTransform[index] = trans;
 		}
 	}
 
@@ -92,10 +85,6 @@ void TransformComponentManager::Transform(uint32_t index, glm::mat4 parentMatrix
 std::array<glm::mat4, 256> TransformComponentManager::DownloadWorldTransformData()
 { 
 	std::array<glm::mat4, 256> transformData;
-
-	//if (!dataUpdated) {
-	//	return transformData;
-	//}
 
 	for (int c = 0; c < m_data.worldTransform.size(); ++c) {
 

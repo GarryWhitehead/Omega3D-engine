@@ -9,6 +9,7 @@ GraphicsSystem::GraphicsSystem(World *world, VulkanEngine *engine) :
 	p_world(world),
 	p_vkEngine(engine)
 {
+	Init();
 }
 
 
@@ -27,11 +28,6 @@ void GraphicsSystem::Init()
 	p_vkEngine->RegisterVulkanModules({ VkModId::VKMOD_SHADOW_ID, VkModId::VKMOD_PBR_ID, VkModId::VKMOD_IBL_ID, VkModId::VKMOD_DEFERRED_ID, VkModId::VKMOD_SKYBOX_ID, VkModId::VKMOD_WATER_ID, VkModId::VKMOD_MODEL_ID});
 }
 
-void GraphicsSystem::InitVulkanModel()
-{
-	p_vkEngine->VkModule<VulkanModel>(VkModId::VKMOD_MODEL_ID)->Init();
-}
-
 void GraphicsSystem::Update()
 {
 
@@ -45,7 +41,7 @@ void GraphicsSystem::Render()
 
 std::array<glm::mat4, 256> GraphicsSystem::RequestTransformData()
 {
-	auto transformManager = p_world->RequestComponentManager<TransformComponentManager>(ComponentManagerId::CM_TRANSFORM_ID);
+	auto transformManager = p_world->RequestComponentManager<TransformComponentManager>();
 	std::array<glm::mat4, 256> transformData = transformManager->DownloadWorldTransformData();
 
 	return transformData;

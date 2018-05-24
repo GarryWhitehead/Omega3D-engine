@@ -34,10 +34,9 @@ public:
 	const float CAMERA_VELOCITY = 10.0f;
 	const float MOUSE_SENSITIVITY = 0.1f;
 
-	CameraSystem(World *world);
+	CameraSystem(World *world, glm::vec3 cameraPos, glm::vec3 cameraFront);
 	~CameraSystem();
 
-	void Init(glm::vec3 cameraPos, glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f));
 	void Update() override;
 	void Destroy() override;
 	void SetMovementDirection(MoveDirection dir);

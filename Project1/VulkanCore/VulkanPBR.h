@@ -20,7 +20,7 @@ public:
 
 	const int LUT_DIM = 512;
 
-	VulkanPBR(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanPBR(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanPBR();
 
 	void Init();

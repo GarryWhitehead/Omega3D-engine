@@ -1,10 +1,12 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VkMemoryManager.h"
 #include "ComponentManagers/MeshComponentManager.h"
 
 class VulkanEngine;
 class CameraSystem;
+class VkMemoryManager;
 
 const int MAX_BONES = 64;
 const int MAX_VERTEX_BONES = 4;
@@ -127,7 +129,7 @@ public:
 		glm::mat4 boneTransform[MAX_BONES];
 	};
 
-	VulkanModel(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanModel(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanModel();
 
 	void Init();
@@ -140,8 +142,6 @@ public:
 	void PrepareMaterialDescriptorSets(Material *material);
 	void PreparePipeline();
 	void GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
-	void CreateBuffers();
-	void PrepareSsboBuffer();
 
 	// mesh-material vertex preperation functions
 	void ProcessMeshes();
@@ -152,8 +152,10 @@ public:
 
 	// helper functions
 	ModelInfo& RequestModelInfo(const uint32_t index) { return m_modelInfo[index]; }
-	VkBuffer& GetIndexBuffer()  { return m_indexBuffer.buffer; }
-	VkBuffer& GetVertexBuffer() { return m_vertexBuffer.buffer; }
+	VkBuffer& GetVertexBuffer() { return p_vkMemory->blockBuffer(m_vertexBuffer.block_id); }
+	VkBuffer& GetIndexBuffer() { return p_vkMemory->blockBuffer(m_indexBuffer.block_id); }
+	uint32_t GetVertexOffset() const { return m_vertexBuffer.offset; }
+	uint32_t GetIndexOffset() const { return m_indexBuffer.offset; }
 
 	friend class VulkanEngine;
 
@@ -163,9 +165,9 @@ private:
 	VulkanEngine *p_vkEngine;
 
 	// buffer info for the "mega" buffer which holds all the models and are referenced via offsets
-	BufferData m_vertexBuffer;
-	BufferData m_indexBuffer;
-	BufferData m_ssboBuffer;
+	VkMemoryManager::SegmentInfo m_vertexBuffer;
+	VkMemoryManager::SegmentInfo m_indexBuffer;
+	VkMemoryManager::SegmentInfo m_ssboBuffer;
 
 	AnimationInfo m_animInfo;
 

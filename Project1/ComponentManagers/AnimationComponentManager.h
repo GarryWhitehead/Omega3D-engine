@@ -31,7 +31,7 @@ public:
 		std::array<uint32_t, MAX_VERTEX_BONES> boneId;
 	};
 
-	AnimationComponentManager(ComponentManagerId id);
+	AnimationComponentManager();
 	~AnimationComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;

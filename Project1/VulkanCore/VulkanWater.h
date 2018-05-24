@@ -5,12 +5,13 @@
 #include "glm.hpp"
 #include "VulkanCore/VulkanRenderPass.h"
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanBuffer.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VkMemoryManager.h"
 
 class VulkanEngine;
 class vkFFT;
 class CameraSystem;
+class VkMemoryManager;
 
 class VulkanWater : public VulkanModule
 {
@@ -51,12 +52,12 @@ public:
 		
 		struct BufferSSBO
 		{
-			VulkanBuffer ht;
-			VulkanBuffer dx;
-			VulkanBuffer dy;
+			VkMemoryManager::SegmentInfo ht;
+			VkMemoryManager::SegmentInfo dx;
+			VkMemoryManager::SegmentInfo dy;
 		} ssboBuffer;
 
-		VulkanBuffer uboBuffer;
+		VkMemoryManager::SegmentInfo uboBuffer;
 	};
 
 	struct DispComputeInfo
@@ -68,7 +69,7 @@ public:
 		VkFence fence;
 
 		VulkanTexture image;
-		VulkanBuffer uboBuffer;
+		VkMemoryManager::SegmentInfo uboBuffer;
 	};
 
 	struct ComputeUbo
@@ -115,10 +116,10 @@ public:
 		std::array<VkPipelineShaderStageCreateInfo, 4> shader;
 
 		// buffers
-		VulkanBuffer uboTese;
-		VulkanBuffer uboFrag;
-		VulkanBuffer vertices;
-		VulkanBuffer indices;
+		VkMemoryManager::SegmentInfo uboTese;
+		VkMemoryManager::SegmentInfo uboFrag;
+		VkMemoryManager::SegmentInfo vertices;
+		VkMemoryManager::SegmentInfo indices;
 		uint32_t indexCount;
 
 		// textures
@@ -158,7 +159,7 @@ public:
 		float patchLength;
 	};
 
-	VulkanWater(VulkanEngine *engine, VulkanUtility *utility);
+	VulkanWater(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanWater();
 	
 	void Init();
@@ -216,13 +217,13 @@ private:
 	struct Buffers
 	{
 		// buffers for heightmaps and omega values
-		VulkanBuffer heightMap;
-		VulkanBuffer omegaMap;
+		VkMemoryManager::SegmentInfo heightMap;
+		VkMemoryManager::SegmentInfo omegaMap;
 
 		struct Offscreen
 		{
-			VulkanBuffer normUbo;
-			VulkanBuffer dispUbo;
+			VkMemoryManager::SegmentInfo normUbo;
+			VkMemoryManager::SegmentInfo dispUbo;
 		} offscreen;
 
 	} m_buffers;
