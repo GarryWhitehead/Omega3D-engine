@@ -18,6 +18,7 @@ VulkanDeferred::VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility, VkM
 
 VulkanDeferred::~VulkanDeferred()
 {
+	Destroy();
 }
 
 void VulkanDeferred::CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr)
@@ -469,7 +470,22 @@ void VulkanDeferred::Update(int acc_time)
 
 void VulkanDeferred::Destroy()
 {
+	// destroy pipeline and decriptors
+	vkDestroyPipeline(p_vkEngine->GetDevice(), m_deferredInfo.pipelineInfo.pipeline, nullptr);
+	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_deferredInfo.pipelineInfo.layout, nullptr);
+	vkDestroyDescriptorSetLayout(p_vkEngine->GetDevice(), m_deferredInfo.descriptor.set, nullptr);
 
+	// deallocate sgements - memory blocks will be dalloacted upon closure of vkEngine
+	p_vkMemory->DestroySegment(m_buffers.fragmentUbo);
+	p_vkMemory->DestroySegment(m_buffers.indices);
+	p_vkMemory->DestroySegment(m_buffers.vertexUbo);
+	p_vkMemory->DestroySegment(m_buffers.vertices);
+
+	// destroy frame buffers
+	for (uint32_t c = 0; c < m_deferredInfo.frameBuffers.size(); ++c) {
+
+		vkDestroyFramebuffer(p_vkEngine->GetDevice(), m_deferredInfo.frameBuffers[c], nullptr);
+	}
 }
 
 // shader setup

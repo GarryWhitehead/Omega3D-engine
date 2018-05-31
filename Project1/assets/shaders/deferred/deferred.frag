@@ -131,11 +131,22 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 	return colour;
 }
 
+vec3 Uncharted2Tonemap(vec3 x)
+{
+	float A = 0.15;
+	float B = 0.50;
+	float C = 0.10;
+	float D = 0.20;
+	float E = 0.02;
+	float F = 0.30;
+	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
+}
+
 void main()
 {	
 	vec3 inPos = subpassLoad(positionSampler).rgb;
 	float hasBumpMap = subpassLoad(normalSampler).a;
-	vec3 V = normalize(ubo.cameraPos - inPos);
+	vec3 V = normalize(ubo.cameraPos.xyz - inPos);
 	
 	vec3 N;
 	if(hasBumpMap == 1.0) {
@@ -200,9 +211,13 @@ void main()
 	//	finalColour *= shadowFactor;
 	//}
 	
-	//finalColour = finalColour / (finalColour + vec3(1.0));
+	// tone mapping - from http://filmicworlds.com/blog/filmic-tonemapping-operators/
+	float expBias = 2.0f;
+	finalColour = Uncharted2Tonemap(expBias * finalColour);
 	
-	//finalColour = pow(finalColour, vec3(1.0/2.2));
+	vec3 whiteScale = vec3(1.0 / Uncharted2Tonemap(vec3(11.2)));
+	finalColour *= whiteScale;
+	finalColour = pow(finalColour, vec3(1.0/2.2));		// to the power of 1/gamma
 	
 	outFrag = vec4(finalColour, 1.0);
 }

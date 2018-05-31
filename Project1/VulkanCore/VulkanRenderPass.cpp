@@ -9,6 +9,7 @@ VulkanRenderPass::VulkanRenderPass()
 
 VulkanRenderPass::~VulkanRenderPass()
 {
+
 }
 
 void VulkanRenderPass::AddAttachment(const VkImageLayout finalLayout, const VkFormat format)

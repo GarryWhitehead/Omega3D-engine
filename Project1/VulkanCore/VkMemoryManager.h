@@ -81,20 +81,28 @@ public:
 	VkMemoryManager(const VkMemoryManager&) = delete;
 	VkMemoryManager& operator=(const VkMemoryManager&) = delete;
 
-	// Block and segment allocation functions
+	// Block allocation functions
 	uint32_t AllocateBlock(MemoryType type, uint32_t size = 0);
 	uint32_t AllocateBlock(MemoryUsage usage);
+	void DestroyBlock(uint32_t block_id);
+	void DestroyAllBlocks();
+
+	// Segment allocation functions
 	SegmentInfo AllocateSegment(MemoryUsage usage, uint32_t size);
-	bool CreateBuffer(const uint32_t size, const VkBufferUsageFlags flags, const VkMemoryPropertyFlags props, VkDeviceMemory& memory, VkBuffer& buffer);
+	void DestroySegment(SegmentInfo &segment);
 	uint32_t FindFreeSegment(uint32_t block_id, uint32_t size);
 
 	// helper functions
+	bool CreateBuffer(const uint32_t size, const VkBufferUsageFlags flags, const VkMemoryPropertyFlags props, VkDeviceMemory& memory, VkBuffer& buffer);
 	uint32_t FindMemoryType(const uint32_t type, const VkMemoryPropertyFlags flags);
 	uint32_t FindBlockType(MemoryUsage usage);
 	void DefragBlockMemory(const uint32_t id);
 	VkBuffer& blockBuffer(const uint32_t id);
 
 	// memory mapping functions
+	void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize);
+	void MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, void *data, uint32_t totalSize);
+
 	template <typename T>
 	void MapDataToSegment(SegmentInfo &segment, std::vector<T> data);
 

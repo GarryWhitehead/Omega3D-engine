@@ -25,12 +25,6 @@ public:
 
 	} m_cameraInfo;
 
-	struct LightInfo
-	{
-		glm::vec3 pos;
-		
-	};
-
 	const float CAMERA_VELOCITY = 10.0f;
 	const float MOUSE_SENSITIVITY = 0.1f;
 
@@ -40,8 +34,8 @@ public:
 	void Update() override;
 	void Destroy() override;
 	void SetMovementDirection(MoveDirection dir);
-	void SetPitchYaw(double xpos, double ypos);
-	void SetPerspective(float fov, float aspect, float zNear, float zFar);
+	void SetPitchYaw(const double xpos, const double ypos);
+	void SetPerspective(const float fov, const float aspect, const float zNear,  const float zFar);
 	void UpdateViewMatrix();
 
 	// helper functions

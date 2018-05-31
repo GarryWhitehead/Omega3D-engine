@@ -52,7 +52,7 @@ public:
 	std::vector<VkFramebuffer> InitFrameBuffers(uint32_t width, uint32_t height, VkRenderPass renderPass, VkImageView imageView);
 	VkCommandPool InitCommandPool(uint32_t index);
 	VkCommandBuffer CreateCmdBuffer(bool primary, bool singleUse, VkFramebuffer frameBuffer, VkRenderPass renderPass, VkCommandPool cmdPool);
-	void SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue);
+	void SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue, VkCommandPool cmdPool);
 	bool CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer);
 
 	// pipeline utilites

@@ -93,7 +93,7 @@ void VulkanUtility::CopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, V
 	copy.srcOffset = srcOffset;
 	vkCmdCopyBuffer(cmdBuffer, src, dest, 1, &copy);
 
-	this->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue);
+	this->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue, p_vkEngine->GetCmdPool());
 }
 
 uint32_t VulkanUtility::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flags)
@@ -187,7 +187,7 @@ VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, VkF
 	return cmdBuffer;
 }
 
-void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue)
+void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue, VkCommandPool cmdPool)
 {
 	VK_CHECK_RESULT(vkEndCommandBuffer(cmdBuffer));
 
@@ -207,7 +207,7 @@ void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue qu
 	VK_CHECK_RESULT(vkWaitForFences(p_vkEngine->m_device.device, 1, &fence, VK_TRUE, UINT64_MAX));
 
 	vkDestroyFence(p_vkEngine->m_device.device, fence, nullptr);
-	vkFreeCommandBuffers(p_vkEngine->m_device.device, p_vkEngine->m_cmdPool, 1, &cmdBuffer);
+	vkFreeCommandBuffers(p_vkEngine->m_device.device, cmdPool, 1, &cmdBuffer);
 }
 
 bool VulkanUtility ::CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer)
@@ -430,7 +430,7 @@ void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, const VkImage
 	vkCmdPipelineBarrier(comm_buff, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
 	if (cmdBuff == VK_NULL_HANDLE) {
-		p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->m_queue.graphQueue);
+		p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->m_queue.graphQueue, p_vkEngine->GetCmdPool());
 	}
 	delete p_vkUtility;
 }

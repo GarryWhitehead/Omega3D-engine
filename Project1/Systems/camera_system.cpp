@@ -33,7 +33,7 @@ void CameraSystem::SetMovementDirection(MoveDirection dir)
 	m_isMoving = true;
 }
 
-void CameraSystem::SetPitchYaw(double xpos, double ypos)
+void CameraSystem::SetPitchYaw(const double xpos, const double ypos)
 {
 	double offsetX = xpos - m_currentX;
 	double offsetY = ypos - m_currentY;
@@ -52,13 +52,11 @@ void CameraSystem::SetPitchYaw(double xpos, double ypos)
 	if (m_cameraPitch < -89.0f) {
 		m_cameraPitch = -89.0f;
 	}
-	//m_cameraPitch = std::max(m_cameraPitch, 89.0f);
-	//m_cameraPitch = std::min(-89.0f, m_cameraPitch);
 
 	m_isMoving = true;
 }
 
-void CameraSystem::SetPerspective(float fov, float aspect, float zNear, float zFar)
+void CameraSystem::SetPerspective(const float fov, const float aspect, const float zNear, const float zFar)
 {
 	m_zNear = zNear;
 	m_zFar = zFar;
@@ -74,6 +72,7 @@ void CameraSystem::UpdateViewMatrix()
 void CameraSystem::Update()
 {
 	if (m_isMoving) {
+
 		//calculate the pitch and yaw vectors
 		m_cameraFront.x = cos(glm::radians(m_cameraYaw)) * cos(glm::radians(m_cameraPitch));
 		m_cameraFront.y = sin(glm::radians(m_cameraPitch));

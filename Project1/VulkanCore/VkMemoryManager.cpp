@@ -10,6 +10,7 @@ VkMemoryManager::VkMemoryManager(VulkanEngine *engine) :
 
 VkMemoryManager::~VkMemoryManager()
 {
+	DestroyAllBlocks();
 }
 
 uint32_t VkMemoryManager::AllocateBlock(MemoryType type, uint32_t size)
@@ -232,6 +233,93 @@ VkBuffer& VkMemoryManager::blockBuffer(const uint32_t id)
 	assert(id < mem_blocks.size());
 
 	return mem_blocks[id].block_buffer;
+}
+
+// override of the segment mapping function that allows data of type *void to be passed
+void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize)
+{
+	assert(segment.block_id < mem_blocks.size());
+	BlockInfo block = mem_blocks[segment.block_id];
+
+	// How we map the data depends on the memory type; 
+	// For host-visible memory, the memory is mapped and the data is just mem-copied across
+	// With device local, we must first create a buffer on the host, map the data to that and then copyCmd it across to local memory
+
+	if (block.type == MemoryType::VK_BLOCK_TYPE_HOST) {
+
+		MapData(segment.data, block.block_mem, segment.offset, segment.size, data, totalSize);
+	}
+	else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
+
+		// start by creating host-visible buffers
+		VkBuffer temp_buffer;
+		VkDeviceMemory temp_memory;
+		CreateBuffer(segment.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, temp_memory, temp_buffer);
+
+		// map data to temporary buffer
+		MapData(segment.data, temp_memory, 0, segment.size, data, totalSize);
+
+		// create cmd buffer for copy and transfer to device local memory
+		VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
+
+		vkUtility->CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), 0, segment.offset);
+		delete vkUtility;
+
+		// clear up and we are done
+		vkDestroyBuffer(p_vkEngine->GetDevice(), temp_buffer, nullptr);
+		vkFreeMemory(p_vkEngine->GetDevice(), temp_memory, nullptr);
+	}
+}
+
+void VkMemoryManager::MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, void* data, uint32_t totalSize)
+{
+	assert(totalSize <= segment_size);
+
+	if (mapped_data == nullptr) {
+		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->GetDevice(), memory, offset, segment_size, 0, &mapped_data));
+		memcpy(mapped_data, data, totalSize);
+		vkUnmapMemory(p_vkEngine->GetDevice(), memory);
+	}
+	else {
+		memcpy(mapped_data, data, totalSize);
+	}
+}
+
+void VkMemoryManager::DestroySegment(SegmentInfo &segment)
+{
+	// check that the segment exsists within the map
+	auto & alloc_segments = mem_blocks[segment.block_id].alloc_segments;
+	auto& iter = alloc_segments.find(segment.offset);
+
+	if (iter != alloc_segments.end()) {
+
+		// remove segment from the allocated
+		alloc_segments.erase(segment.offset);
+
+		// and add to the free segments pool
+		mem_blocks[segment.block_id].free_segments.insert(std::make_pair(segment.offset, segment.size));
+	}
+}
+
+void VkMemoryManager::DestroyBlock(uint32_t id)
+{
+	if (id < mem_blocks.size()) {
+
+		// handle the vulkan side first
+		vkDestroyBuffer(p_vkEngine->GetDevice(), mem_blocks[id].block_buffer, nullptr);
+		vkFreeMemory(p_vkEngine->GetDevice(), mem_blocks[id].block_mem, nullptr);
+
+		// and remove from the memory block pool
+		mem_blocks.erase(mem_blocks.begin() + (id + 1));
+	}
+}
+
+void VkMemoryManager::DestroyAllBlocks()
+{
+	for (auto &block : mem_blocks) {
+
+		DestroyBlock(block.block_id);
+	}
 }
 
 // ================================================================ segmentInfo functions ====================================================================================================================

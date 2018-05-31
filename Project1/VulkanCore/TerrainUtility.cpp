@@ -13,8 +13,8 @@ TerrainUtility::~TerrainUtility()
 
 void TerrainUtility::GenerateVertices(uint32_t patchSize, float uvFactor, std::vector<Vertex>& vertices)
 {
-	const float widthX = 2.0f;
-	const float widthY = 2.0f;
+	const float widthX = 3.0f;
+	const float widthY = 3.0f;
 
 	const uint32_t vertCount = patchSize * patchSize;
 	vertices.resize(vertCount);

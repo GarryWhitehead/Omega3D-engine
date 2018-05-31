@@ -19,7 +19,7 @@ public:
 	void Update() override;
 	void Destroy() override;
 	void KeyResponse(int key, int scan_code, int action, int mode);
-	void MouseResponse(double xpos, double ypos);
+	void MouseResponse(const double xpos, const double ypos);
 	
 
 private:

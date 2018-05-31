@@ -15,11 +15,11 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	vec4 cameraPos;
 	vec4 perlinOctave;
 	vec4 perlinAmplitude;
+	vec2 perlinMovement;
 	vec2 dim;
 	float dispFactor;
 	float tessFactor;
 	float tessEdgeSize;
-	float perlinMovement;
 } ubo;
 
 layout (quads, equal_spacing, cw) in;
@@ -32,7 +32,7 @@ layout (location = 1) in vec3 inPos[];
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outPos;
-layout (location = 2) out vec3 outViewDir;
+layout (location = 2) out float outViewLen;
 
 void main()
 {
@@ -51,11 +51,14 @@ void main()
 	vec4 p2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(p1, p2, gl_TessCoord.y);
 	
-	// belnding is required to stop artifacts appearing in distant pathces
-	vec3 worldPos = vec3(ubo.modelMatrix * pos).xyz;
-	outViewDir = vec3(ubo.cameraPos - pos).xyz;
-	float viewLen = length(outViewDir);
-	float blendFactor = (BLENDING_END - viewLen) / (BLENDING_END - BLENDING_BEGIN);
+	// belnding is required to stop artifacts appearing in distant pathces	
+	// calculate the local view pos
+	//mat4 invModelView = transpose(ubo.viewMatrix * ubo.modelMatrix);
+	
+	vec3 eyeVec = ubo.cameraPos.xyz - pos.xyz ;
+	outViewLen = length(eyeVec);
+	
+	float blendFactor = (BLENDING_END - outViewLen) / (BLENDING_END - BLENDING_BEGIN);
 	blendFactor = clamp(blendFactor, 0.0, 1.0);
 
 	// if distant patch, add noise to reduce tiling artifact
@@ -67,7 +70,7 @@ void main()
 		float perlin_y = textureLod(noiseSampler, perlinPos * ubo.perlinOctave.y * ubo.perlinMovement, 0.0).w;
 		float perlin_z = textureLod(noiseSampler, perlinPos * ubo.perlinOctave.z * ubo.perlinMovement, 0.0).w;
 		
-		noise = perlin_x * ubo.perlinAmplitude.x + perlin_y * ubo.perlinAmplitude.y + perlin_z * ubo.perlinAmplitude.z;
+		noise = perlin_x * ubo.perlinAmplitude.x + perlin_y * -ubo.perlinAmplitude.y + perlin_z * ubo.perlinAmplitude.z;
 	}
 		
 	// displace the position - derived from map
@@ -84,5 +87,5 @@ void main()
 	// position (world space)
 	outPos = vec3(ubo.modelMatrix * pos).xyz;
 	
-	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * vec4(outPos, 1.0);
+	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * pos;
 }

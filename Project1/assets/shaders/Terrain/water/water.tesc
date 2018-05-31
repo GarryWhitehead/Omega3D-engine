@@ -8,10 +8,14 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	mat4 projection;
 	mat4 modelMatrix;
 	mat4 viewMatrix;
+	vec4 cameraPos;
+	vec4 perlinOctave;
+	vec4 perlinAmplitude;
+	vec2 perlinMovement;
 	vec2 dim;
-	float disFactor;
+	float dispFactor;
 	float tessFactor;
-	float tessEdgeSize;	
+	float tessEdgeSize;
 } ubo;
 
 layout (set = 1, binding = 1) uniform sampler2D disSampler;

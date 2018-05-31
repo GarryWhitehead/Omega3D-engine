@@ -20,12 +20,14 @@ FileLog::FileLog(std::string filename, uint32_t flags) : m_flags(0), m_fileOpen(
 {
 	g_filelog = this;
 	m_flags = flags;
+
 	m_fileOpen = this->InitFile(filename);
 }
 
 FileLog& FileLog::operator<<(std::string str) 
 {
 	if (m_fileOpen) {
+
 		this->WriteLog(str);
 	}
 	return *this;
@@ -34,6 +36,7 @@ FileLog& FileLog::operator<<(std::string str)
 FileLog& FileLog::operator<<(int value)
 {
 	if (m_fileOpen) {
+
 		this->WriteLog(std::to_string(value));
 	}
 	return *this;
@@ -55,10 +58,10 @@ bool FileLog::InitFile(std::string filename)
 
 	m_filename = filename;
 	m_file.open(m_filename, std::ios_base::app);
-
 	if (!m_file.is_open()) {
 		return false;
 	}
+
 	m_fileOpen = true;
 
 	// init file by writing time/date
@@ -66,7 +69,7 @@ bool FileLog::InitFile(std::string filename)
 
 		auto now = std::chrono::system_clock::now();
 		auto in_time_t = std::chrono::system_clock::to_time_t(now);
-		m_file << "File log initialised at " << std::put_time(std::localtime(&in_time_t), "%d-%m-&y %X") << "\n\n";
+		m_file << "File log initialised at " << std::put_time(std::localtime(&in_time_t), "%d-%m-%y %X") << "\n\n";
 	}
 
 	if (m_flags & (int)FileLogFlags::FILELOG_CLOSE_AFTER_EACH_WRITE) {
@@ -83,6 +86,7 @@ bool FileLog::WriteLog(std::string text)
 	if(!m_fileOpen) {
 
 		m_file.open(m_filename, std::ios_base::app);
+
 		if (!m_file.is_open()) {
 			return false;
 		}
@@ -94,7 +98,7 @@ bool FileLog::WriteLog(std::string text)
 	auto in_time_t = std::chrono::system_clock::to_time_t(now);
 
 	if (m_flags & (int)FileLogFlags::FILELOG_WRITE_DATE) {
-		m_file << "Text logged at: " << std::put_time(std::localtime(&in_time_t), "%d-%m-&y %X") << "\n";
+		m_file << "Text logged at: " << std::put_time(std::localtime(&in_time_t), "%d-%m-%y %X") << "\n";
 	}
 
 	m_file << text;

@@ -66,7 +66,7 @@ void InputSystem::KeyResponse(int key, int scan_code, int action, int mode)
 	}
 }
 
-void InputSystem::MouseResponse(double xpos, double ypos)
+void InputSystem::MouseResponse(const double xpos, const double ypos)
 {
 	p_world->RequestSystem<CameraSystem>()->SetPitchYaw(xpos, ypos);
 }

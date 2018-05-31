@@ -1,0 +1,107 @@
+#version 450
+
+// source / destination buffers
+layout(binding = 0) readonly buffer inH0k
+{
+	vec2 tilde_h0k[];				
+};
+
+layout(binding = 1) readonly buffer inH0kminus
+{
+	vec2 tilde_h0minusk[];		
+};
+
+layout (binding  = 2) writeonly buffer outBuffer
+{
+	vec2 out_dxyz[];
+};
+
+layout (binding = 3) uniform uboBuffer
+{
+	float time;
+	float L;
+	float N;
+	float offset_dx;
+	float offset_dy;
+	float offset_dz;
+} ubo;
+
+#define PI 3.1415926535897932384626433832795
+#define GRAVITY 9.81
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+struct complex
+{
+	float r;
+	float i;
+};
+
+complex cmul(complex c0, complex c1)
+{
+	complex c;
+	c.r = c0.r * c1.r - c0.i * c1.i;
+	c.i = c0.r * c1.i + c0.i * c1.r;
+	return c;
+}
+
+complex cadd(complex c0, complex c1)
+{
+	complex c;
+	c.r = c0.r + c1.r;
+	c.i = c0.i + c1.i;
+	return c;
+}
+
+complex conjugate(complex c0)
+{
+	complex conj = complex(c0.r, -c0.i);
+	return conj;
+}
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.y >= ubo.N || id.x >= ubo.N)
+		return;
+	
+	ivec2 m_index = ivec2(id.xy) - int(ubo.N) / 2;
+	int index =  id.y * int(ubo.N) + id.x;
+
+	vec2 k = vec2(2.0 * PI * m_index.x / ubo.L, 2.0 * PI * m_index.y / ubo.L);
+	
+	float mag = length(k);
+	if(mag < 0.000001) 
+		mag = 0.000001;
+		
+	float w = sqrt(GRAVITY * mag);
+
+	vec2 h0_k = vec2(tilde_h0k[index]);
+	vec2 h0minus_k = vec2(tilde_h0minusk[index]);
+	
+	complex fft = complex(h0_k.x, h0_k.y);
+	complex fft_conj = conjugate(complex(h0minus_k.x, h0minus_k.y));
+	
+	float cos_omega = cos(w * ubo.time);
+	float sin_omega = sin(w * ubo.time);
+	
+	complex exp_omega = complex(cos_omega, sin_omega);
+	complex inv_exp_omega = complex(cos_omega, -sin_omega);
+
+	// calculate dt(y)
+	complex dyt = cadd(cmul(fft, exp_omega), cmul(fft_conj, inv_exp_omega));
+	
+	// dt(x)
+	complex dxt = cmul(complex(0.0, -k.x / mag), dyt);		// choppiness of the wave
+	
+	// dt(z)
+	complex dzt = cmul(complex(0.0, -k.y / mag), dyt);
+	
+	// write values to textures
+	out_dxyz[index + uint(ubo.offset_dx)] = vec2(dxt.r, dxt.i);
+	out_dxyz[index + uint(ubo.offset_dy)] = vec2(dyt.r, dyt.i);
+	out_dxyz[index + uint(ubo.offset_dz)] = vec2(dzt.r, dzt.i);
+}	
+	
+	
+	

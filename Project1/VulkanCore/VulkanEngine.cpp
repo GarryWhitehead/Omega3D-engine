@@ -86,10 +86,6 @@ void VulkanEngine::DrawScene()
 	// draw into offscreen buffers
 	m_offscreenCmdBuffer = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
 	
-	if (hasModule<VulkanWater>()) {
-		VkModule<VulkanWater>()->GenerateOffscreenCmdBuffer(m_offscreenCmdBuffer);
-	}
-
 	VkModule<VulkanShadow>()->GenerateShadowCmdBuffer(m_offscreenCmdBuffer);
 	VK_CHECK_RESULT(vkEndCommandBuffer(m_offscreenCmdBuffer));
 

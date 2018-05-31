@@ -243,7 +243,7 @@ void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode
 	}
 
 	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
-	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue());
+	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 
 	p_vkUtility->ImageTransition(VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, mipLevels, 1);
 
@@ -347,7 +347,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 	}
 
 	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
-	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue());
+	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 
 	// now transition image to shader read
 	p_vkUtility->ImageTransition(VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, mipLevels, layers);
@@ -454,7 +454,7 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 
 	// now transition image to shader read
 	p_vkUtility->ImageTransition(comm_buff, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, mipLevels, layers);
-	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue());
+	p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 
 	// create texture array image view
 	VkImageViewCreateInfo createInfo = {};

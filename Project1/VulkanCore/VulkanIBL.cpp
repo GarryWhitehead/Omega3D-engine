@@ -90,7 +90,7 @@ void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imag
 
 	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 	vkUtility->ImageTransition(cmdBuffer, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 
 }
 
@@ -311,7 +311,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 	}
 	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.cubeImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 }
 
 void VulkanIBL::GeneratePreFilterCmdBuffer()
@@ -398,7 +398,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	}
 	vkUtility->ImageTransition(cmdBuffer, m_filterCube.cubeImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->GetCmdPool(), MIP_LEVELS, 6);
 
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue());
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 }
 
 void VulkanIBL::Update(int acc_time)

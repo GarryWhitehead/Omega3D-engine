@@ -44,6 +44,5 @@ void ObjectManager::Serialise(Archiver *arch, std::vector<Object>& vec, Archiver
 	for (uint32_t c = 0; c < vecSize; ++c) {
 
 		vec[c].SerialiseObject(arch, vec[c], Archiver::var_info(info.name + "[" + std::to_string(c) + "]"));
-		//m_objects.push_back(vec[c]);										// also add to the list of alive objects
 	}
 }

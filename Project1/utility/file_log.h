@@ -33,8 +33,6 @@ public:
 	FileLog& operator<<(int value);
 
 	bool InitFile(std::string filename);
-	bool ChangeFile(std::string filename);
-	void SetFlags(FileLogFlags m_flags);
 	bool WriteLog(std::string text);
 	void Delete();
 
