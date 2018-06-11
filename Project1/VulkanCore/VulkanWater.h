@@ -7,6 +7,7 @@
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/VkDescriptors.h"
 
 class VulkanEngine;
 class vkFFT;
@@ -18,13 +19,13 @@ class VulkanWater : public VulkanModule
 
 public:
 
-	static const uint32_t PATCH_SIZE = 256;
+	static const uint32_t PATCH_SIZE = 512;
 	const float UV_SCALE = 1.0f;
 
 	// tessellation shader factors
-	const float TESSELLATION_DISP_FACTOR = 40.0f;
+	const float TESSELLATION_DISP_FACTOR = 40.0f;	// not used!
 	const float TESSELLATION_FACTOR = 0.7f;
-	const float TESSELLATION_EDGE_SIZE = 20.0f;
+	const float TESSELLATION_EDGE_SIZE = 20.0f;		// not used!
 
 	// perlin noise constants
 	const glm::vec4 PERLIN_GRADIENT = glm::vec4(1.4f, 1.6f, 2.2f, 0.0f);
@@ -35,8 +36,9 @@ public:
 	struct WaterInfo
 	{
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VulkanUtility::DescriptorInfo descriptors;
+		VkDescriptors descriptors;
 		std::array<VkPipelineShaderStageCreateInfo, 4> shader;
+		VkPipeline wirePipeline;			// seperate pipeline for the wireframe draw
 
 		// buffers
 		VkMemoryManager::SegmentInfo uboTese;
@@ -102,6 +104,7 @@ public:
 
 	// mesh generation
 	void GenerateMeshData();
+	void GenerateH0Map();
 
 private:
 
@@ -110,5 +113,8 @@ private:
 	
 	WaterInfo m_waterInfo;
 	WaterParams m_waterParams;
+
+	// keep a local track of the elapsed time
+	double app_time;
 };
 

@@ -40,12 +40,13 @@ class VkMemoryManager
 public:
 	
 	// default block size - can be overriden by user
-	static const uint32_t ALLOC_BLOCK_SIZE_LOCAL = 2.56e+8;			// each default device local block is 256mb
-	static const uint32_t ALLOC_BLOCK_SIZE_HOST = 6.4e+7;			// host block deaults to 64mb
+	static constexpr float ALLOC_BLOCK_SIZE_LOCAL = 2.56e+8f;			// each default device local block is 256mb
+	static constexpr float ALLOC_BLOCK_SIZE_HOST = 6.4e+7f;				// host block deaults to 64mb
 
 	struct SegmentInfo
 	{
-		SegmentInfo() : data(nullptr) {}
+		SegmentInfo() : data(nullptr), block_id(0), offset(0), size(0) {}
+
 		SegmentInfo(uint32_t id, uint32_t os, uint32_t sz) :
 			block_id(id),
 			offset(os),
@@ -100,14 +101,14 @@ public:
 	VkBuffer& blockBuffer(const uint32_t id);
 
 	// memory mapping functions
-	void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize);
-	void MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, void *data, uint32_t totalSize);
+	void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
+	void MapData(SegmentInfo &segment, VkDeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset);		// for data types of *void
 
 	template <typename T>
-	void MapDataToSegment(SegmentInfo &segment, std::vector<T> data);
+	void MapDataToSegment(SegmentInfo &segment, std::vector<T> data);								// for data stored in containers
 
 	template <typename T>
-	void MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, std::vector<T>& data);
+	void MapData(SegmentInfo &segment, VkDeviceMemory memory, const uint32_t offset, std::vector<T>& data);
 
 private:
 
@@ -120,7 +121,7 @@ private:
 template <typename T>
 void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, std::vector<T> data)
 {
-	assert(segment.block_id < mem_blocks.size());
+	assert(segment.block_id < (int32_t)mem_blocks.size());
 	BlockInfo block = mem_blocks[segment.block_id];
 
 	// How we map the data depends on the memory type; 
@@ -129,7 +130,7 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, std::vector<T> data
 
 	if (block.type == MemoryType::VK_BLOCK_TYPE_HOST) {
 
-		MapData(segment.data, block.block_mem, segment.offset, segment.size, data);
+		MapData(segment, block.block_mem, segment.offset, data);
 	}
 	else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
 
@@ -139,7 +140,7 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, std::vector<T> data
 		CreateBuffer(segment.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, temp_memory, temp_buffer);
 
 		// map data to temporary buffer
-		MapData(segment.data, temp_memory, 0, segment.size, data);
+		MapData(segment, temp_memory, 0, data);
 
 		// create cmd buffer for copy and transfer to device local memory
 		VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
@@ -154,17 +155,17 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, std::vector<T> data
 }
 
 template <typename T>
-void VkMemoryManager::MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, std::vector<T>& data)
+void VkMemoryManager::MapData(SegmentInfo &segment, VkDeviceMemory memory, const uint32_t offset, std::vector<T>& data)
 {
 	uint32_t data_size = sizeof(T) * data.size();
-	assert(data_size <= segment_size);
+	assert(data_size <= segment.size);
 
-	if (mapped_data == nullptr) {
-		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->GetDevice(), memory, offset, segment_size, 0, &mapped_data));
-		memcpy(mapped_data, data.data(), data_size);
+	if (segment.data == nullptr) {
+		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->GetDevice(), memory, offset, segment.size, 0, &segment.data));
+		memcpy(segment.data, data.data(), data_size);
 		vkUnmapMemory(p_vkEngine->GetDevice(), memory);
 	}
 	else {
-		memcpy(mapped_data, data.data(), data_size);
+		memcpy(segment.data, data.data(), data_size);
 	}
 }

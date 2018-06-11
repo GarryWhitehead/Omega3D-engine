@@ -1,6 +1,7 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/VkDescriptors.h"
 
 class VulkanEngine;
 class CameraSystem;
@@ -14,7 +15,7 @@ public:
 	{
 		VkRenderPass renderpass;
 		VulkanUtility::PipeLlineInfo pipeline;
-		VulkanUtility::DescriptorInfo descriptors;
+		VkDescriptors descriptors;
 		VkMemoryManager::SegmentInfo uboBuffer;
 	};
 

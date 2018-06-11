@@ -18,9 +18,10 @@ layout(push_constant) uniform pushConstants
 {
 		layout(offset = 4) float roughness;
 		layout(offset = 8) float metallic;
-		layout(offset = 12) float r;
-		layout(offset = 16) float g;
-		layout(offset = 20) float b;
+		layout(offset = 12) float ao;
+		layout(offset = 16) float r;
+		layout(offset = 20) float g;
+		layout(offset = 24) float b;
 
 } material;
 
@@ -48,7 +49,7 @@ void main()
 	outBump = texture(normalMap, inUv);
 	
 	// ao - not used yet
-	outAo = 1.0;
+	outAo = material.ao;
 
 	// metallic
 	outMetallic = texture(metallicMap, inUv).r;

@@ -21,118 +21,57 @@ void VulkanIBL::LoadAssets()
 	m_cubeImage.LoadCubeMap("assets/textures/skybox/hdr_cube.ktx", VK_FORMAT_R16G16B16A16_SFLOAT, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 }
 
-void VulkanIBL::PrepareRenderpass(VkFormat format, VkRenderPass& renderpass)
+void VulkanIBL::SetupIBL()
 {
-	VkAttachmentDescription colorAttach = {};
-	colorAttach.format = format;
-	colorAttach.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttach.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttach.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttach.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttach.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	// prepare images for cube mapping 
+	m_irradianceCube.cubeImage.PrepareImageArray(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
+	m_filterCube.cubeImage.PrepareImageArray(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, PREFILTERMAP_DIM, PREFILTERMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
 
-	VkAttachmentReference colorRef = {};
-	colorRef.attachment = 0;
-	colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	// prepare images for offscreen rendering
+	m_irradianceCube.offscreenImage.PrepareImage(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, p_vkEngine, false);
+	m_filterCube.offscreenImage.PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, PREFILTERMAP_DIM, PREFILTERMAP_DIM, p_vkEngine, false);
 
-	std::array<VkSubpassDependency, 2> sPassDepend = {};
-	sPassDepend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[0].dstSubpass = 0;
-	sPassDepend[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	// irradiance cube renderpass and framebuffer
+	// create renderpass with colour attachment
+	m_irradianceCube.renderpass.AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_irradianceCube.renderpass.AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_irradianceCube.renderpass.PrepareRenderPass(p_vkEngine->GetDevice());
 
-	sPassDepend[1].srcSubpass = 0;
-	sPassDepend[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	m_irradianceCube.renderpass.PrepareFramebuffer(m_irradianceCube.offscreenImage.imageView, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, p_vkEngine->GetDevice());
 
-	VkSubpassDescription sPassDescr = {};
-	sPassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	sPassDescr.colorAttachmentCount = 1;
-	sPassDescr.pColorAttachments = &colorRef;
+	// create offscreen frame buffer for pre-filtered cube
+	m_filterCube.renderpass.AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_filterCube.renderpass.AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_filterCube.renderpass.PrepareRenderPass(p_vkEngine->GetDevice());
 
-	std::vector<VkAttachmentDescription> attach = { colorAttach };
-	VkRenderPassCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	createInfo.attachmentCount = static_cast<uint32_t>(attach.size());
-	createInfo.pAttachments = attach.data();
-	createInfo.subpassCount = 1;
-	createInfo.pSubpasses = &sPassDescr;
-	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
-	createInfo.pDependencies = sPassDepend.data();
+	m_filterCube.renderpass.PrepareFramebuffer(m_filterCube.offscreenImage.imageView, PREFILTERMAP_DIM, PREFILTERMAP_DIM, p_vkEngine->GetDevice());
 
-	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->GetDevice(), &createInfo, nullptr, &renderpass));
-}
-
-void VulkanIBL::PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer)
-{
-	imageInfo.PrepareImage(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT, dim, dim, p_vkEngine, false);
-	
-	// create offscreen frame buffer
-	VkFramebufferCreateInfo frameInfo = {};
-	frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	frameInfo.renderPass = renderpass;
-	frameInfo.attachmentCount = 1;
-	frameInfo.pAttachments = &imageInfo.imageView;
-	frameInfo.width = imageInfo.width;
-	frameInfo.height = imageInfo.height;
-	frameInfo.layers = 1;
-
-	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->GetDevice(), &frameInfo, nullptr, &framebuffer))
-
+	// transition images to format ready for reading from later
 	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
-	vkUtility->ImageTransition(cmdBuffer, imageInfo.image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
-	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 
+	// irradiance transition
+	vkUtility->ImageTransition(cmdBuffer, m_irradianceCube.offscreenImage.image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
+
+	// pre-filter transition
+	vkUtility->ImageTransition(cmdBuffer, m_filterCube.offscreenImage.image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool());
+
+	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
 }
 
 void VulkanIBL::PrepareIBLDescriptors()
 {
-	std::array<VkDescriptorPoolSize, 1> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descrPoolSize[0].descriptorCount = 1;
+	std::vector<VkDescriptors::LayoutBinding> layoutBind = 
+	{
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }			// bindings for the colour image sampler
+	};
+	m_descriptors.AddDescriptorBindings(layoutBind);
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
+	std::vector<VkDescriptorImageInfo> imageInfo = 
+	{
+		{ m_cubeImage.texSampler, m_cubeImage.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+	};
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_descriptors.pool));
-
-	std::array<VkDescriptorSetLayoutBinding, 1> layoutBind;
-	layoutBind[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// bindings for the colour image sampler
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	layoutInfo.pBindings = layoutBind.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_descriptors.layout));
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_descriptors.set));
-
-	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_cubeImage.imageView, m_cubeImage.texSampler);		
-
-	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_descriptors.set, 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[0]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	m_descriptors.GenerateDescriptorSets(nullptr, imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void VulkanIBL::PrepareIBLPipeline()
@@ -215,7 +154,7 @@ void VulkanIBL::PrepareIBLPipeline()
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
 	createInfo.layout = m_pipelineLayout;
-	createInfo.renderPass = m_irradianceCube.renderpass;
+	createInfo.renderPass = m_irradianceCube.renderpass.renderpass;
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -226,7 +165,7 @@ void VulkanIBL::PrepareIBLPipeline()
 	// pre-filter pipeline
 	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											
 	createInfo.basePipelineHandle = m_irradianceCube.pipeline;
-	createInfo.renderPass = m_filterCube.renderpass;
+	createInfo.renderPass = m_filterCube.renderpass.renderpass;
 	m_shader[1] = vkUtility->InitShaders("IBL/cubemap_prefilter-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_filterCube.pipeline));
 }
@@ -238,8 +177,8 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-	renderPassInfo.renderPass = m_irradianceCube.renderpass;
-	renderPassInfo.framebuffer = m_irradianceCube.offscreenFB;
+	renderPassInfo.renderPass = m_irradianceCube.renderpass.renderpass;
+	renderPassInfo.framebuffer = m_irradianceCube.renderpass.frameBuffer;
 	renderPassInfo.renderArea.offset = { 0,0 };
 	renderPassInfo.renderArea.extent.width = m_irradianceCube.cubeImage.width;
 	renderPassInfo.renderArea.extent.height = m_irradianceCube.cubeImage.height;
@@ -267,7 +206,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 		for (uint32_t c = 0; c < 6; ++c) {
 
 			float dim = static_cast<float>(IRRADIANCEMAP_DIM * std::pow(0.5f, m));
-			VkViewport viewport = vkUtility->InitViewPort(dim, dim, 0.0f, 1.0f);
+			VkViewport viewport = vkUtility->InitViewPort(static_cast<uint32_t>(dim), static_cast<uint32_t>(dim), 0.0f, 1.0f);
 			vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 			vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
@@ -321,8 +260,8 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-	renderPassInfo.renderPass = m_filterCube.renderpass;
-	renderPassInfo.framebuffer = m_filterCube.offscreenFB;
+	renderPassInfo.renderPass = m_filterCube.renderpass.renderpass;
+	renderPassInfo.framebuffer = m_filterCube.renderpass.frameBuffer;
 	renderPassInfo.renderArea.offset = { 0,0 };
 	renderPassInfo.renderArea.extent.width = m_filterCube.cubeImage.width;
 	renderPassInfo.renderArea.extent.height = m_filterCube.cubeImage.height;
@@ -353,7 +292,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 		for (uint32_t c = 0; c < 6; ++c) {
 
 			float dim = static_cast<float>(PREFILTERMAP_DIM * std::pow(0.5f, m));
-			VkViewport viewport = vkUtility->InitViewPort(dim, dim, 0.0f, 1.0f);
+			VkViewport viewport = vkUtility->InitViewPort(static_cast<uint32_t>(dim), static_cast<uint32_t>(dim), 0.0f, 1.0f);
 
 			vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
@@ -410,17 +349,8 @@ void VulkanIBL::Init()
 	// load the environment cube
 	LoadAssets();
 
-	// generate the image, FB and renderpass for the irradiance calculations
-	VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
-	m_irradianceCube.cubeImage.PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
-	PrepareRenderpass(format, m_irradianceCube.renderpass);
-	PrepareOffscreenFrameBuffer(format, m_irradianceCube.offscreenImage, m_irradianceCube.renderpass, IRRADIANCEMAP_DIM, m_irradianceCube.offscreenFB);
-
-	// generate the image, FB and renderpass for the pre-filtered cube
-	format = VK_FORMAT_R16G16B16A16_SFLOAT;
-	m_filterCube.cubeImage.PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, PREFILTERMAP_DIM, PREFILTERMAP_DIM, MIP_LEVELS, 6, p_vkEngine, true);
-	PrepareRenderpass(format, m_filterCube.renderpass);
-	PrepareOffscreenFrameBuffer(format, m_filterCube.offscreenImage, m_filterCube.renderpass, PREFILTERMAP_DIM, m_filterCube.offscreenFB);
+	// generate the image, FB and renderpass for the irradiance and pre-filtered calculations
+	SetupIBL();
 
 	// prepare descriptors and pipelines for both
 	PrepareIBLDescriptors();

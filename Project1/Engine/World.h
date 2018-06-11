@@ -4,19 +4,20 @@
 #include <map>
 #include <typeindex>
 
+// forward declerartions
 enum class SystemId;
 class System;
 class Engine;
 class ComponentManager;
 class ObjectManager;
 class VulkanEngine;
+class MessageHandler;
 
 class World
 {
 public:
 
-	World();
-	World(std::string name);
+	World(std::string name, MessageHandler *msg);
 	~World();
 
 	void Generate(VulkanEngine *engine);
@@ -45,6 +46,9 @@ public:
 private:
 	
 	std::string m_name;
+
+	// handle to the message handling system
+	MessageHandler *p_message;
 
 	// all the main component systems registered with this particular world space
 	std::unordered_map<std::type_index, System*> m_systems;

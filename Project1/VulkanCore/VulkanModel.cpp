@@ -23,153 +23,78 @@ void VulkanModel::Destroy()
 
 }
 
-void VulkanModel::PrepareMeshDescriptorSet()
+void VulkanModel::ImportDummyTextures()
 {
-	std::array<VkDescriptorPoolSize, 1> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;
+	std::string path("assets/models/textures/");
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_animInfo.mesh.descriptors.pool));
-
-	// scene descriptor layout
-	VkDescriptorSetLayoutBinding uboLayout = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);
-
-	VkDescriptorSetLayoutBinding sceneBind[] = { uboLayout };
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = 1;
-	layoutInfo.pBindings = sceneBind;
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.mesh.descriptors.layout));
-
-	// Create descriptor set for meshes
-	VkDescriptorSetLayout layouts[] = { m_animInfo.mesh.descriptors.layout };
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_animInfo.mesh.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = layouts;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_animInfo.mesh.descriptors.set));
-
-	VkDescriptorBufferInfo uboBuffInfo = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_ssboBuffer.block_id), m_ssboBuffer.offset, m_ssboBuffer.size);
-
-	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_animInfo.mesh.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &uboBuffInfo);
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
-}
-
-void VulkanModel::PrepareMaterialDescriptorPool(uint32_t materialCount)
-{
-	if (materialCount == 0) {
-		materialCount = 1;			// stop vulkan complaining about pool size being zero
-	}
-
-	// create descriptor pool for all models and materials
-	std::array<VkDescriptorPoolSize, 5> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = materialCount;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// diffuse
-	descrPoolSize[1].descriptorCount = materialCount;
-	descrPoolSize[2].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// normal
-	descrPoolSize[2].descriptorCount = materialCount;
-	descrPoolSize[3].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// roughness
-	descrPoolSize[3].descriptorCount = materialCount;
-	descrPoolSize[4].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;				// metallic
-	descrPoolSize[4].descriptorCount = materialCount;
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = materialCount + 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_animInfo.material.descriptors.pool));
-}
-
-void VulkanModel::PrepareMaterialDescriptorLayouts()
-{
-	// create a layout for each possible map arrangment - these will be assigned to models later
-	uint32_t bindCount = 0;
-	std::vector<VkDescriptorSetLayoutBinding> layoutBind;
-	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse
-	
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	layoutInfo.pBindings = layoutBind.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.diffLayout));
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.nomapLayout));			// no map and diffuse only use the same layout for convienence
-
-	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse + normal	
-	layoutInfo.pBindings = layoutBind.data();
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.diffnormLayout));
-
-	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		
-	layoutBind.push_back(vkUtility->InitLayoutBinding(bindCount++, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT));		// diffuse + normal + roughness + metallic (PBR)
-	layoutInfo.pBindings = layoutBind.data();
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_animInfo.descriptors.pbrLayout));
+	m_dummyTexture.diffuse.LoadTexture(path + "dummy_diffuse.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
+	m_dummyTexture.normal.LoadTexture(path + "dummy_normal.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
+	m_dummyTexture.roughness.LoadTexture(path + "dummy_roughness.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
+	m_dummyTexture.metallic.LoadTexture(path + "dummy_metallic.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
+	m_dummyTexture.ao.LoadTexture(path + "dummy_ao.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 }
 
 void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
 {
-	std::vector<VkDescriptorSetLayout> layouts;
-	std::vector<VkDescriptorImageInfo> imageInfo;
-	
-	if (material->matTypes & (int)MaterialTexture::TEX_NONE) {
+	// we are using the same layout for all models - only the textures will differ
+	std::vector<VkDescriptors::LayoutBinding> layouts =
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT },
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },		// diffuse
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },		// normal
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },		// roughness
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT },		// metallic
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }			// ao
+	};
+	material->descriptor.AddDescriptorBindings(layouts);
 
-		layouts.push_back(m_animInfo.descriptors.diffLayout);
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.nomap.imageView, material->texture.nomap.texSampler));		// no map - using dummy texture as vulkan requires an imageview
-	}
-	else if (material->matTypes & (int)MaterialTexture::TEX_PBR) {
+	// set all the textures to dummy images and override if the image contains a certain texture
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ m_dummyTexture.diffuse.texSampler, m_dummyTexture.diffuse.imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },				
+		{ m_dummyTexture.normal.texSampler, m_dummyTexture.normal.imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+		{ m_dummyTexture.roughness.texSampler, m_dummyTexture.roughness.imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+		{ m_dummyTexture.metallic.texSampler, m_dummyTexture.metallic.imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+		{ m_dummyTexture.ao.texSampler, m_dummyTexture.ao.imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+	};
 
-		layouts.push_back(m_animInfo.descriptors.pbrLayout);
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.diffuse.imageView, material->texture.diffuse.texSampler));		// diffuse texture
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.normal.imageView, material->texture.normal.texSampler));			// normal texture
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.roughness.imageView, material->texture.roughness.texSampler));	// roughness texture
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.metallic.imageView, material->texture.metallic.texSampler));		// metallic texture
-	}
-	else if (material->matTypes & (int)MaterialTexture::TEX_DIFF) {
+	// if a certain texture is found within the material, then override the dummy texture
+	if (material->matTypes != (int)MaterialTexture::TEX_NONE) {								// check that this model actually has texture info
 
-		layouts.push_back(m_animInfo.descriptors.diffLayout);
-		imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.diffuse.imageView, material->texture.diffuse.texSampler));		// diffuse texture
+		if (material->matTypes & (int)MaterialTexture::TEX_DIFF) {
 
+			imageInfo[0] = VkDescriptorImageInfo({ material->texture.diffuse.texSampler, material->texture.diffuse.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });		// diffuse texture - #1
+		}
 		if (material->matTypes & (int)MaterialTexture::TEX_NORM) {
 
-			layouts[0] = (m_animInfo.descriptors.diffnormLayout);
-			imageInfo.push_back(vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, material->texture.normal.imageView, material->texture.normal.texSampler));		// normal texture
+			imageInfo[1] = VkDescriptorImageInfo({ material->texture.normal.texSampler, material->texture.normal.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });		// normal texture - #2
+		}
+		if (material->matTypes & (int)MaterialTexture::TEX_ROUGHNESS) {
+
+			imageInfo[2] = VkDescriptorImageInfo({ material->texture.roughness.texSampler, material->texture.roughness.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });	// roughness texture - #3
+		}
+		if (material->matTypes & (int)MaterialTexture::TEX_METALLIC) {
+
+			imageInfo[3] = VkDescriptorImageInfo({ material->texture.metallic.texSampler, material->texture.metallic.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });	// metallic texture - #4
+		}
+		if (material->matTypes & (int)MaterialTexture::TEX_AO) {
+
+			imageInfo[4] = VkDescriptorImageInfo({ material->texture.ao.texSampler, material->texture.ao.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });				// ao texture - #5
 		}
 	}
+	
+	// vertex ubo -the same for all materials
+	std::vector<VkDescriptorBufferInfo> uboBuffInfo =
+	{
+		{ p_vkMemory->blockBuffer(m_ssboBuffer.block_id), m_ssboBuffer.offset, m_ssboBuffer.size }
+	};
 
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_animInfo.material.descriptors.pool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(layouts.size());
-	allocInfo.pSetLayouts = layouts.data();
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &material->descrSet));
-		
-	std::vector<VkWriteDescriptorSet> writeDescrSet;
-	writeDescrSet.resize(imageInfo.size());
-	for (uint32_t c = 0; c < imageInfo.size(); ++c) {
-
-		writeDescrSet[c] = vkUtility->InitDescriptorSet(material->descrSet, c, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[c]);
-	}
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	// generate descriptor sets dependent on the textures used by this material
+	material->descriptor.GenerateDescriptorSets(uboBuffInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void VulkanModel::PreparePipeline()
 {
-	// pipeline for materials containing diffuse and normal maps
 	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 	
 	// scene graphics pipeline
@@ -243,7 +168,7 @@ void VulkanModel::PreparePipeline()
 	dynamicInfo.pDynamicStates = states;
 	dynamicInfo.dynamicStateCount = 2;
 
-	// entity index into mesh push
+	// object index into mesh push
 	VkPushConstantRange pushConstant = {};
 	pushConstant.size = sizeof(uint32_t);
 	pushConstant.offset = 0;
@@ -256,24 +181,24 @@ void VulkanModel::PreparePipeline()
 	pushConstant2.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 	VkPushConstantRange pushConstantArray[] = { pushConstant, pushConstant2 };
-	std::vector<VkDescriptorSetLayout> descrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffnormLayout };
+	
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipelineInfo.setLayoutCount = static_cast<uint32_t>(descrLayouts.size());
-	pipelineInfo.pSetLayouts = descrLayouts.data();
+	pipelineInfo.setLayoutCount = 1;
+	pipelineInfo.pSetLayouts = &m_materials[0].descriptor.layout;
 	pipelineInfo.pPushConstantRanges = pushConstantArray;
 	pipelineInfo.pushConstantRangeCount = 2;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.diffNorm.layout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_pipelineInfo.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_animInfo.shader[0] = vkUtility->InitShaders("skinning/mesh-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_DIFFNORM-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = vkUtility->InitShaders("Model/model-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+	m_shader[1] = vkUtility->InitShaders("Model/model-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	createInfo.stageCount = 2;
-	createInfo.pStages = m_animInfo.shader.data();
+	createInfo.pStages = m_shader.data();
 	createInfo.pVertexInputState = &vertexInfo;
 	createInfo.pInputAssemblyState = &assemblyInfo;
 	createInfo.pViewportState = &viewportState;
@@ -282,44 +207,13 @@ void VulkanModel::PreparePipeline()
 	createInfo.pDepthStencilState = &depthInfo;
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
-	createInfo.layout = m_animInfo.matPipelines.diffNorm.layout;
+	createInfo.layout = m_pipelineInfo.layout;
 	createInfo.renderPass = vkDeferred->GetRenderPass();
 	createInfo.subpass = 0;												// render to G-buffer pass
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
-	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diffNorm.pipeline));
-
-	createInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;											// inform the API that we are using a pipeline derivative
-	createInfo.basePipelineHandle = m_animInfo.matPipelines.diffNorm.pipeline;
-
-	// diffuse map only pipeline
-	std::vector<VkDescriptorSetLayout> dndescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };
-	pipelineInfo.pSetLayouts = dndescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.diff.layout));
-
-	createInfo.layout = m_animInfo.matPipelines.diff.layout;
-	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_DIFF-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.diff.pipeline));
-
-	// PBR texture pipeline
-	std::vector<VkDescriptorSetLayout> pbrdescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.pbrLayout };
-	pipelineInfo.pSetLayouts = pbrdescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.pbr.layout));
-
-	createInfo.layout = m_animInfo.matPipelines.pbr.layout;
-	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_PBR-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.pbr.pipeline));
-
-	// no-material map pipeline
-	std::vector<VkDescriptorSetLayout> nomapdescrLayouts = { m_animInfo.mesh.descriptors.layout, m_animInfo.descriptors.diffLayout };		// no material map shader has a sampler bound but not used
-	pipelineInfo.pSetLayouts = nomapdescrLayouts.data();
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_animInfo.matPipelines.nomap.layout));
-
-	createInfo.layout = m_animInfo.matPipelines.nomap.layout;
-	m_animInfo.shader[1] = vkUtility->InitShaders("skinning/mesh_NOMAP-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_animInfo.matPipelines.nomap.pipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipelineInfo.pipeline));
 }
 
 void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
@@ -341,6 +235,7 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 
 			uint32_t matIndex;
 			if (!p_meshManager->m_data.materialName[m].empty()) {
+
 				matIndex = FindMaterialIndex(p_meshManager->m_data.materialName[m]);
 			}
 			else {
@@ -348,17 +243,16 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 			}
 			assert(matIndex < m_materials.size());
 
-			std::array<VkDescriptorSet, 2> descrSets = { m_animInfo.mesh.descriptors.set, m_materials[matIndex].descrSet };
-			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_materials[matIndex].pipeline : pipeline);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_materials[matIndex].layout : layout, 0, (pipeline == VK_NULL_HANDLE) ? static_cast<uint32_t>(descrSets.size()) : 1, (pipeline == VK_NULL_HANDLE) ? descrSets.data() : &set, 0, NULL);
+			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipelineInfo.pipeline : pipeline);
+			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipelineInfo.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_materials[matIndex].descriptor.set : &set, 0, NULL);
 
 			// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
 			vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indexBuffer.block_id), m_indexBuffer.offset + (model.meshes[i].indexBase * sizeof(uint32_t)), VK_INDEX_TYPE_UINT32);
 
 			if (pipeline == VK_NULL_HANDLE) {
 				uint32_t objIndex = m;			// TODO:: look up the object id between mesh and transform data 
-				vkCmdPushConstants(cmdBuffer, m_materials[matIndex].layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &objIndex);														// object index into transform buffer
-				vkCmdPushConstants(cmdBuffer,m_materials[matIndex].layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(uint32_t), sizeof(MaterialProperties), &m_materials[matIndex].properties);		// push material info per mesh
+				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &objIndex);														// object index into transform buffer
+				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(uint32_t), sizeof(MaterialProperties), &m_materials[matIndex].properties);		// push material info per mesh
 			}
 			vkCmdDrawIndexed(cmdBuffer, model.meshes[i].indexCount, 1, 0, 0, 0);
 		}
@@ -482,12 +376,10 @@ void VulkanModel::ProcessMaterials()
 			// Get the material properties
 			pipelineMat.properties.metallic = mat.Color.metallic;
 			pipelineMat.properties.roughness = mat.Color.roughness;
+			pipelineMat.properties.ao = mat.Color.ao;
 
-			if (!mat.hasTexture()) {
-				pipelineMat.matTypes |= (int)MaterialTexture::TEX_NONE;
-				 LoadMaterialTexture(mat, MaterialType::NO_TYPE, pipelineMat.texture.nomap);
-			}
-			else {
+			if (mat.hasTexture()) {
+		
 				if (mat.hasTexture(MaterialType::ALBEDO_TYPE)) {
 					LoadMaterialTexture(mat, MaterialType::ALBEDO_TYPE, pipelineMat.texture.diffuse);
 					pipelineMat.matTypes |= (int)MaterialTexture::TEX_DIFF;
@@ -498,14 +390,21 @@ void VulkanModel::ProcessMaterials()
 				}
 				if (mat.hasTexture(MaterialType::ROUGHNESS_TYPE)) {
 					LoadMaterialTexture(mat, MaterialType::ROUGHNESS_TYPE, pipelineMat.texture.roughness);
-					pipelineMat.matTypes |= (int)MaterialTexture::TEX_PBR;
+					pipelineMat.matTypes |= (int)MaterialTexture::TEX_ROUGHNESS;
 				}
 				if (mat.hasTexture(MaterialType::METALLIC_TYPE)) {
 					LoadMaterialTexture(mat, MaterialType::METALLIC_TYPE, pipelineMat.texture.metallic);
-					pipelineMat.matTypes |= (int)MaterialTexture::TEX_PBR;
+					pipelineMat.matTypes |= (int)MaterialTexture::TEX_METALLIC;
 				}
-
+				if (mat.hasTexture(MaterialType::AO_TYPE)) {
+					LoadMaterialTexture(mat, MaterialType::AO_TYPE, pipelineMat.texture.ao);
+					pipelineMat.matTypes |= (int)MaterialTexture::TEX_AO;
+				}
 			}
+			else {
+				pipelineMat.matTypes = (int)MaterialTexture::TEX_NONE;
+			}
+
 			m_materials.push_back(pipelineMat);
 		}
 	}
@@ -516,73 +415,38 @@ void VulkanModel::LoadMaterialTexture(MeshComponentManager::OMFMaterial &materia
 
 	std::string filename;
 
-	if (type == MaterialType::NO_TYPE) {
+	filename = material.GetMaterialType(type);
 
-		filename = "dummy.ktx";
+	// check whether original file is of tga format
+	size_t pos = filename.find(".tga");
+	if (pos != std::string::npos) {
+
+		filename = filename.substr(0, pos);			
+		filename = filename + ".ktx";
 	}
-	else {
+	pos = filename.find(".jpg");
+	if (pos != std::string::npos) {
 
-		filename = material.GetMaterialType(type);
-
-		// check whether original file is of tga format
-		size_t pos = filename.find(".tga");
-		if (pos != std::string::npos) {
-
-			filename = filename.substr(0, pos);			
-			filename = filename + ".ktx";
-		}
-		pos = filename.find(".jpg");
-		if (pos != std::string::npos) {
-
-			filename = filename.substr(0, pos);			
-			filename = filename + ".ktx";
-		}
-		pos = filename.find(".png");
-		if (pos != std::string::npos) {
-
-			filename = filename.substr(0, pos);
-			filename = filename + ".ktx";
-		}
+		filename = filename.substr(0, pos);			
+		filename = filename + ".ktx";
 	}
+	pos = filename.find(".png");
+	if (pos != std::string::npos) {
 
+		filename = filename.substr(0, pos);
+		filename = filename + ".ktx";
+	}
+	
 	filename = "assets/models/textures/" + filename;
 	texture.LoadTexture(filename, VK_SAMPLER_ADDRESS_MODE_REPEAT, 16, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
 
 	return;
 }
 
-void VulkanModel::AddPipelineDataToModels()
-{
-	for (auto& mat : m_materials) {
-
-		if (mat.matTypes & (int)MaterialTexture::TEX_NONE) {
-
-			mat.layout = m_animInfo.matPipelines.nomap.layout;
-			mat.pipeline = m_animInfo.matPipelines.nomap.pipeline;
-		}
-		else if (mat.matTypes & (int)MaterialTexture::TEX_PBR) {
-
-			mat.layout = m_animInfo.matPipelines.pbr.layout;
-			mat.pipeline = m_animInfo.matPipelines.pbr.pipeline;
-		}
-		else if (mat.matTypes & (int)MaterialTexture::TEX_DIFF) {
-
-			if (mat.matTypes & (int)MaterialTexture::TEX_NORM) {
-
-				mat.layout = m_animInfo.matPipelines.diffNorm.layout;
-				mat.pipeline = m_animInfo.matPipelines.diffNorm.pipeline;
-			}
-			else {
-
-				mat.layout = m_animInfo.matPipelines.diff.layout;
-				mat.pipeline = m_animInfo.matPipelines.diff.pipeline;
-			}
-		}
-	}
-}
-
 void VulkanModel::Init()
 {
+	ImportDummyTextures();
+	
 	// process meshes and trasfer to local device
 	ProcessMaterials();
 	ProcessMeshes();
@@ -590,18 +454,13 @@ void VulkanModel::Init()
 	// create uniform buffer for camera perspective info 
 	m_ssboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(SsboLayout));
 
-	// prepare descriptor sets for meshes and materials
-	PrepareMaterialDescriptorPool(m_materials.size());
-	PrepareMeshDescriptorSet();
-	PrepareMaterialDescriptorLayouts();
-
+	// prepare descriptor sets for meshes and materials	
 	for (auto& mat : m_materials) {
 
 		PrepareMaterialDescriptorSets(&mat);
 	}
 
 	PreparePipeline();
-	AddPipelineDataToModels();
 }
 
 void VulkanModel::Update(int acc_time)

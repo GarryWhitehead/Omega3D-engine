@@ -10,7 +10,8 @@ VulkanTexture::VulkanTexture() :
 	size(0),
 	mipLevels(1),
 	layers(1),
-	data(nullptr)
+	data(nullptr),
+	texSampler(VK_NULL_HANDLE)
 {
 }
 
@@ -48,7 +49,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	image_info.arrayLayers = 1;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; //  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; 
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 
@@ -58,6 +59,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	vkGetImageMemoryRequirements(vkEngine->GetDevice(), image, &mem_req);
 
 	VulkanUtility *p_vkUtility = new VulkanUtility(vkEngine);
+
 	VkMemoryAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = mem_req.size;
@@ -66,7 +68,6 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	VK_CHECK_RESULT(vkAllocateMemory(vkEngine->GetDevice(), &alloc_info, nullptr, &texMemory));
 	vkBindImageMemory(vkEngine->GetDevice(), image, texMemory, 0);
 
-	// depth image view
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	createInfo.image = image;
@@ -117,7 +118,7 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 	image_info.arrayLayers = layers;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; //  VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; 
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
 	if (isCube) {
@@ -135,12 +136,10 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 	alloc_info.allocationSize = mem_req.size;
 	alloc_info.memoryTypeIndex = p_vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	VkDeviceMemory texMemory;
 	VK_CHECK_RESULT(vkAllocateMemory(vkEngine->GetDevice(), &alloc_info, nullptr, &texMemory));
 
 	vkBindImageMemory(vkEngine->GetDevice(), image, texMemory, 0);
 
-	// depth image view
 	VkImageViewCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	createInfo.image = image;
@@ -159,6 +158,46 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 	delete p_vkUtility;
 }
 
+void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkMemoryManager *p_vkMemory, VulkanEngine *p_vkEngine)
+{
+	assert(tex_data != nullptr);
+
+	// create a temp buffer to upload the image data
+	VkBuffer staging_buff;
+	VkDeviceMemory staging_mem;
+	p_vkMemory->CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, staging_mem, staging_buff);
+
+	void *data;
+	vkMapMemory(p_vkEngine->GetDevice(), staging_mem, 0, size, 0, &data);
+	memcpy(data, tex_data, size);
+	vkUnmapMemory(p_vkEngine->GetDevice(), staging_mem);
+
+	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
+	VkCommandBuffer comm_buff = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
+
+	VkBufferImageCopy image_copy = {};
+	image_copy.imageExtent.width = width;
+	image_copy.imageExtent.height = height;
+	image_copy.imageExtent.depth = 1;
+	image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	image_copy.imageSubresource.layerCount = 1;
+
+	// transition image to transfer state
+	vkUtility->ImageTransition(VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, p_vkEngine->GetCmdPool());
+
+	// copy data to image buffer
+	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+	vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool());
+
+	// transition image to shader read state
+	vkUtility->ImageTransition(VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, p_vkEngine->GetCmdPool());
+
+	//clean up
+	vkDestroyBuffer(p_vkEngine->GetDevice(), staging_buff, nullptr);
+	vkFreeMemory(p_vkEngine->GetDevice(), staging_mem, nullptr);
+
+	delete vkUtility;
+}
 
 void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VulkanEngine *p_vkEngine, VkMemoryManager *p_vkMemory)
 {
@@ -210,7 +249,6 @@ void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode
 	alloc_info.allocationSize = mem_req.size;
 	alloc_info.memoryTypeIndex = p_vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	VkDeviceMemory texMemory;
 	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->GetDevice(), &alloc_info, nullptr, &texMemory));
 
 	vkBindImageMemory(p_vkEngine->GetDevice(), image, texMemory, 0);
@@ -310,7 +348,6 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 	alloc_info.allocationSize = mem_req.size;
 	alloc_info.memoryTypeIndex = p_vkUtility->FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 	
-	VkDeviceMemory texMemory;
 	VK_CHECK_RESULT(vkAllocateMemory(p_vkEngine->GetDevice(), &alloc_info, nullptr, &texMemory));
 
 	vkBindImageMemory(p_vkEngine->GetDevice(), image, texMemory, 0);
@@ -494,12 +531,23 @@ void VulkanTexture::CreateTextureSampler(const VkSamplerAddressMode addressMode,
 	sampler_info.compareEnable = VK_FALSE;
 	sampler_info.compareOp = VK_COMPARE_OP_NEVER;
 	sampler_info.minLod = 0.0f;
-	sampler_info.maxLod = mipLevels;
+	sampler_info.maxLod = (float)mipLevels;
 	sampler_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	sampler_info.mipLodBias = 0.0f;
 
 	VK_CHECK_RESULT(vkCreateSampler(p_vkEngine->GetDevice(), &sampler_info, nullptr, &texSampler));
 }
 
+void VulkanTexture::Destroy(VkDevice device)
+{
+	
+	if (texSampler != VK_NULL_HANDLE) {
+
+		vkDestroySampler(device, texSampler, nullptr);
+	}
+	vkDestroyImageView(device, imageView, nullptr);
+	vkDestroyImage(device, image, nullptr);
+	vkFreeMemory(device, texMemory, nullptr);
+}
 
 

@@ -41,46 +41,18 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 }
 
 void VulkanShadow::PrepareShadowDescriptors()
-{
-	// prepare descriptor sets for depth sampling - will be used in conjuction with other vulkan module sets
-	std::array<VkDescriptorPoolSize, 1> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;
+{	
+	std::vector<VkDescriptors::LayoutBinding> uboLayout = 
+	{
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT }
+	};
+	m_shadowInfo.descriptors.AddDescriptorBindings(uboLayout);
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_shadowInfo.descriptors.pool));
-
-	std::array<VkDescriptorSetLayoutBinding, 1> uboLayout = {};
-	uboLayout[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT);
-	
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.pBindings = uboLayout.data();
-	layoutInfo.bindingCount = static_cast<uint32_t>(uboLayout.size());
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_shadowInfo.descriptors.layout));
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_shadowInfo.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_shadowInfo.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_shadowInfo.descriptors.set));
-	
-	// depth descriptor - vertex ubo and fragment shader
-	std::array<VkDescriptorBufferInfo, 1> buffInfo = {};
-	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_shadowInfo.uboBuffer.block_id), m_shadowInfo.uboBuffer.offset, m_shadowInfo.uboBuffer.size);
-
-	std::array<VkWriteDescriptorSet, 1> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_shadowInfo.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffInfo[0]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	std::vector<VkDescriptorBufferInfo> buffInfo = 
+	{
+		{ p_vkMemory->blockBuffer(m_shadowInfo.uboBuffer.block_id), m_shadowInfo.uboBuffer.offset, m_shadowInfo.uboBuffer.size}
+	};
+	m_shadowInfo.descriptors.GenerateDescriptorSets(buffInfo.data(), nullptr, p_vkEngine->GetDevice());
 }
 
 void VulkanShadow::PrepareShadowPipeline()
@@ -160,12 +132,20 @@ void VulkanShadow::PrepareShadowPipeline()
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_shadowInfo.pipelineInfo.pipeline));
 }
 
-void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
+void VulkanShadow::GenerateShadowCmdBuffer()
 {
+	// if we have already generated a commnad buffer but are re-drawing, then free the present buffer
+	if (m_cmdBuffer != VK_NULL_HANDLE) {
+
+		vkFreeCommandBuffers(p_vkEngine->GetDevice(), p_vkEngine->GetCmdPool(), 1, &m_cmdBuffer);
+	}
+
 	// create a semaphore to ensure that the shadow map is updated before generating on screen commands
 	m_shadowInfo.semaphore = p_vkEngine->CreateSemaphore();
 
 	std::array<VkClearValue, 7> clearValues = {};
+
+	m_cmdBuffer = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -182,15 +162,17 @@ void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 	//vkCmdSetDepthBias(cmdBuffer, biasConstant, 0.0f, biasSlope);
 
 	VkViewport viewport = vkUtility->InitViewPort(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0.0f, 1.0f);
-	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
+	vkCmdSetViewport(m_cmdBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor = vkUtility->InitScissor(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, 0);
-	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
+	vkCmdSetScissor(m_cmdBuffer, 0, 1, &scissor);
 
 	// draw scene into each cascade layer
-	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	p_vkEngine->RenderScene(cmdBuffer, m_shadowInfo.descriptors.set, m_shadowInfo.pipelineInfo.layout, m_shadowInfo.pipelineInfo.pipeline);
-	vkCmdEndRenderPass(cmdBuffer);
+	vkCmdBeginRenderPass(m_cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	p_vkEngine->RenderScene(m_cmdBuffer, m_shadowInfo.descriptors.set, m_shadowInfo.pipelineInfo.layout, m_shadowInfo.pipelineInfo.pipeline);
+	vkCmdEndRenderPass(m_cmdBuffer);
+
+	VK_CHECK_RESULT(vkEndCommandBuffer(m_cmdBuffer));
 }
 
 

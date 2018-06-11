@@ -13,6 +13,7 @@ enum class SystemId
 
 // forward declerations
 class CameraSystem;
+class MessageHandler;
 class InputSystem;
 class VulkanEngine;
 struct GLFWwindow;
@@ -24,8 +25,8 @@ class Engine
 {
 public:
 
-	static const uint32_t SCREEN_WIDTH = 1280;
-	static const uint32_t SCREEN_HEIGHT = 768;
+	static const uint32_t SCREEN_WIDTH = 1980;
+	static const uint32_t SCREEN_HEIGHT = 1080;
 	static constexpr float CAMERA_FOV = 45.0f;
 	static constexpr float DT = 1.0f / 30.0f;
 
@@ -56,7 +57,9 @@ private:
 
 	bool m_running;
 	
+	// handles to engine dependent systems
 	VulkanEngine *p_vkEngine;
+	MessageHandler *p_message;
 
 	// a collection of worlds registered with the engine
 	std::vector<World*> m_worlds;

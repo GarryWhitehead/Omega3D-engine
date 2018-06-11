@@ -3,6 +3,8 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/VulkanRenderpass.h"
+#include "VulkanCore/VkDescriptors.h"
 #include "glm.hpp"
 
 class VulkanEngine;
@@ -56,6 +58,10 @@ public:
 
 	struct DeferredInfo
 	{
+		DeferredInfo() :
+			cmdBuffer(VK_NULL_HANDLE)
+		{}
+
 		DeferredBufferInfo position;
 		DeferredBufferInfo normal;
 		DeferredBufferInfo albedo;
@@ -64,12 +70,14 @@ public:
 		DeferredBufferInfo metallic;
 		DeferredBufferInfo roughness;
 		DeferredBufferInfo depth;
+		DeferredBufferInfo offscreen;		// used for the post-processing pipeline
 
-		std::vector<VkFramebuffer> frameBuffers;
-		VkRenderPass renderPass;
-	
+		VulkanRenderPass renderpass;
+		VkCommandBuffer cmdBuffer;
+		VkSemaphore semaphore;
+
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VulkanUtility::DescriptorInfo descriptor;
+		VkDescriptors descriptor;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 	};
 
@@ -88,17 +96,19 @@ public:
 	void Update(int acc_time) override;
 	void Destroy() override;
 
-	void CreateRenderpassAttachmentInfo(VkImageLayout finalLayout, VkFormat format, const uint32_t attachCount, VkAttachmentDescription *attachDescr);
+	void PrepareDeferredImages();
 	void PrepareDeferredFramebuffer();
-	void PrepareDeferredRenderpass();
 	void PrepareDeferredDescriptorSet();
 	void PrepareDeferredPipeline();
-	void GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer);;
+	void GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer);
+	void DrawDeferredScene();
 	void CreateUBOBuffers();
 	void PrepareFullscreenQuad();
 
 	// helper function
-	VkRenderPass GetRenderPass() const { return m_deferredInfo.renderPass; }
+	VkRenderPass GetRenderPass() const { return m_deferredInfo.renderpass.renderpass; }
+	VkImageView GetOffscreenImageView() const { return m_deferredInfo.offscreen.imageInfo.imageView; }
+	VkSampler GetOffscreenSampler() const { return m_deferredInfo.offscreen.imageInfo.texSampler; }
 
 	friend class VulkanShadow;
 	friend class VulkanEngine;

@@ -1,11 +1,14 @@
 #include "camera_system.h"
 #include "Engine/engine.h"
 #include "Engine/World.h"
+#include "Systems/input_system.h"
 #include <algorithm>
 #include <gtc/matrix_transform.hpp>
+#include "GLFW/glfw3.h"
 #include <iostream>
 
-CameraSystem::CameraSystem(World *world, glm::vec3 cameraPos, glm::vec3 cameraFront) :
+CameraSystem::CameraSystem(World *world, MessageHandler *msg, glm::vec3 cameraPos, glm::vec3 cameraFront) :
+	System(msg),
 	p_world(world),
 	m_cameraPos(cameraPos),
 	m_cameraFront(cameraFront),
@@ -20,6 +23,7 @@ CameraSystem::CameraSystem(World *world, glm::vec3 cameraPos, glm::vec3 cameraFr
 	m_zFar(0.0f)
 {
 	SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
+	p_message->AddListener(ListenerID::CAMERA_MSG, NotifyResponse());
 }
 
 CameraSystem::~CameraSystem()
@@ -33,18 +37,16 @@ void CameraSystem::SetMovementDirection(MoveDirection dir)
 	m_isMoving = true;
 }
 
-void CameraSystem::SetPitchYaw(const double xpos, const double ypos)
+void CameraSystem::SetPitchYaw(double xpos, double ypos)
 {
-	double offsetX = xpos - m_currentX;
-	double offsetY = ypos - m_currentY;
+	double offsetX = m_currentX - xpos;
+	double offsetY = m_currentY - ypos;
 
 	m_currentX = xpos;
 	m_currentY = ypos;
 
-	m_cameraYaw += offsetX * MOUSE_SENSITIVITY;
+	m_cameraYaw -= offsetX * MOUSE_SENSITIVITY;
 	m_cameraPitch -= offsetY * MOUSE_SENSITIVITY;
-
-	//m_cameraYaw = glm::mod(m_cameraYaw + offsetX, 360.0f);
 
 	if (m_cameraPitch > 89.0f) {
 		m_cameraPitch = 89.0f;
@@ -71,6 +73,17 @@ void CameraSystem::UpdateViewMatrix()
 
 void CameraSystem::Update()
 {
+	auto p_input = p_world->RequestSystem<InputSystem>();
+	
+	// check whther the left hand mouse button is pressed
+	if (p_input->ButtonState(GLFW_MOUSE_BUTTON_LEFT)) {
+
+		double xpos, ypos;
+		p_input->GetCursorPos(&xpos, &ypos);
+
+		SetPitchYaw(xpos, ypos);		// if pressed, adjust view according to changes in cursor pos
+	}
+
 	if (m_isMoving) {
 
 		//calculate the pitch and yaw vectors
@@ -105,6 +118,11 @@ void CameraSystem::Update()
 }
 
 void CameraSystem::Destroy()
+{
+
+}
+
+void CameraSystem::OnNotify(Message& msg)
 {
 
 }

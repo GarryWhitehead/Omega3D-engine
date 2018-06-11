@@ -1,6 +1,7 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VulkanRenderPass.h"
 
 class VulkanEngine;
 class CameraSystem;
@@ -10,6 +11,8 @@ class VulkanPBR : public VulkanModule
 
 public:
 
+	const int LUT_DIM = 512;
+
 	struct Vertex
 	{
 		VkVertexInputBindingDescription Vertex::GetInputBindingDescription();
@@ -17,8 +20,6 @@ public:
 
 		glm::vec2 uv;
 	};
-
-	const int LUT_DIM = 512;
 
 	VulkanPBR(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
 	~VulkanPBR();
@@ -37,11 +38,9 @@ private:
 
 	VulkanEngine * p_vkEngine;
 
-	VulkanTexture lutImage;
-	VkRenderPass m_lutRenderpass;
-	VkFramebuffer m_lutFramebuffer;
-	VkPipelineLayout m_lutLayout;
-	VkPipeline m_lutPipeline;
+	VulkanTexture m_lutImage;
+	VulkanRenderPass m_renderpass;
+	VulkanUtility::PipeLlineInfo m_pipelineInfo;
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_lutShader;
 
 };

@@ -15,7 +15,8 @@ enum class MaterialType
 	NORMAL_TYPE,
 	BUMP_TYPE,
 	ROUGHNESS_TYPE,
-	METALLIC_TYPE
+	METALLIC_TYPE,
+	AO_TYPE
 };
 
 class MeshComponentManager : public ArchivableComponentManager<MeshComponentManager>
@@ -60,6 +61,7 @@ public:
 			glm::vec3 specular;
 			float roughness;
 			float metallic;
+			float ao;
 		} Color;
 
 		struct TexMap
@@ -118,7 +120,6 @@ private:
 
 	// a index loop-up map for identifying the index of entites within the component data
 	std::unordered_map<Object, uint32_t, HashGameObj> m_indicies;
-
 };
 
 template <typename T>

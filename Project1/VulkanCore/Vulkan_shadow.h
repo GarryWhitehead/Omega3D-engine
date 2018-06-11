@@ -3,6 +3,7 @@
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VulkanRenderpass.h"
 #include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/VkDescriptors.h"
 #include <array>
 
 class VulkanEngine;
@@ -40,7 +41,7 @@ public:
 	void PrepareShadowFrameBuffer();
 	void PrepareShadowDescriptors();
 	void PrepareShadowPipeline();
-	void GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer);
+	void GenerateShadowCmdBuffer();
 
 	friend class VulkanEngine;
 	friend class VulkanTerrain;
@@ -54,7 +55,7 @@ private:
 		VulkanRenderPass renderpass;
 		VkSemaphore semaphore;
 
-		VulkanUtility::DescriptorInfo descriptors;
+		VkDescriptors descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 
 		VkMemoryManager::SegmentInfo uboBuffer;
@@ -64,8 +65,7 @@ private:
 	} m_shadowInfo;
 
 	VulkanTexture m_depthImage;
-	std::vector<VkImageView> m_csmImageViews;
-	std::vector<VkFramebuffer> m_csmFrameBuffers;
+	VkCommandBuffer m_cmdBuffer;
 
 	VulkanEngine *p_vkEngine;
 };

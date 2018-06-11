@@ -26,22 +26,22 @@ void glfw_error_callback(int error, const char* description)
 void VulkanCore::InitVulkanCore()
 {
 
-	this->CreateInstance();
-	this->InitWindowSurface();
-	this->InitPhysicalDevice();
-	this->InitQueues();
-	this->InitDevice();
+	CreateInstance();
+	PrepareWindowSurface();
+	PreparePhysicalDevice();
+	PrepareQueues();
+	PrepareDevice();
 
 	m_semaphore.image = this->CreateSemaphore();
 	m_semaphore.render = this->CreateSemaphore();
 
-	this->InitSwapChain();
+	InitSwapChain();
+}
 
-	for (int c = 0; c < m_swapchain.images.size(); ++c)
-	{
-		VkImageView imageView = this->InitImageView(m_swapchain.images[c], m_surface.format.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
-		m_imageView.images.push_back(imageView);
-	}
+void VulkanCore::InitSwapChain()
+{
+	PrepareSwapChain();
+	PrepareImageViews();
 }
 
 void VulkanCore::CreateInstance()
@@ -89,7 +89,7 @@ void VulkanCore::CreateInstance()
 	VK_CHECK_RESULT(vkCreateInstance(&createInfo, nullptr, &m_instance));
 }
 
-void VulkanCore::InitPhysicalDevice()
+void VulkanCore::PreparePhysicalDevice()
 {
 	vkEnumeratePhysicalDevices(m_instance, &m_device.count, nullptr);
 	std::vector<VkPhysicalDevice> devices(m_device.count);
@@ -111,7 +111,7 @@ void VulkanCore::InitPhysicalDevice()
 	}
 }
 
-void VulkanCore::InitQueues()
+void VulkanCore::PrepareQueues()
 {
 	uint32_t queueCount = 0;
 	VkBool32 presentQueue = false;
@@ -149,7 +149,7 @@ void VulkanCore::InitQueues()
 	}
 }
 
-void VulkanCore::InitDevice()
+void VulkanCore::PrepareDevice()
 {
 	float queuePriority = 1.0f;
 
@@ -245,13 +245,12 @@ bool VulkanCore::FindDeviceExtenisions(VkPhysicalDevice physDevice, const char* 
 	return success;
 }
 
-
-void VulkanCore::InitWindowSurface()
+void VulkanCore::PrepareWindowSurface()
 {
 	VK_CHECK_RESULT(glfwCreateWindowSurface(m_instance, m_window, nullptr, &m_surface.surface));
 }
 
-void VulkanCore::InitSwapChain()
+void VulkanCore::PrepareSwapChain()
 {
 	// Get the basic surface properties of the physical device
 	uint32_t surfaceCount;
@@ -385,16 +384,30 @@ VkImageView VulkanCore::InitImageView(VkImage image, VkFormat format, VkImageAsp
 	return imageView;
 }
 
-void VulkanCore::Release()
+void VulkanCore::PrepareImageViews()
+{
+	for (int c = 0; c < m_swapchain.images.size(); ++c)
+	{
+		VkImageView imageView = this->InitImageView(m_swapchain.images[c], m_surface.format.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D);
+		m_imageView.images.push_back(imageView);
+	}
+}
+
+void VulkanCore::DestroySwapChain()
 {
 	for (int c = 0; c < m_imageView.images.size(); ++c)
 		vkDestroyImageView(m_device.device, m_imageView.images[c], nullptr);
 
 	vkDestroySwapchainKHR(m_device.device, m_swapchain.swapChain, nullptr);
-	vkDestroySurfaceKHR(m_instance, m_surface.surface, nullptr);
+}
 
+void VulkanCore::Release()
+{
+	DestroySwapChain();
+	
 	vkDestroySemaphore(m_device.device, m_semaphore.render, nullptr);
 	vkDestroySemaphore(m_device.device, m_semaphore.image, nullptr);
 	vkDestroyDevice(m_device.device, nullptr);
+	vkDestroySurfaceKHR(m_instance, m_surface.surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 }

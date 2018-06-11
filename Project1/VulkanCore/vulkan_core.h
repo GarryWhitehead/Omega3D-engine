@@ -78,19 +78,20 @@ public:
 	VulkanCore(GLFWwindow *window);
 
 	void InitVulkanCore();
+	void InitSwapChain();
 	void Release();
+	void DestroySwapChain();
 	void CreateInstance();
-	void InitPhysicalDevice();
-	void InitQueues();
-	void InitDevice();
+	void PreparePhysicalDevice();
+	void PrepareQueues();
+	void PrepareDevice();
 	VkSemaphore CreateSemaphore();
 	bool FindDeviceExtenisions(VkPhysicalDevice physDevice, const char* reqDevice);
 	VkFence CreateFence(VkFenceCreateFlags flags);
-	void InitWindowSurface();
-	void InitSwapChain();
+	void PrepareWindowSurface();
+	void PrepareSwapChain();
+	void PrepareImageViews();
 	VkImageView InitImageView(VkImage image, VkFormat format, VkImageAspectFlagBits imageAspect, VkImageViewType type);
-
-	friend class CommandBuffers;
 
 protected:
 

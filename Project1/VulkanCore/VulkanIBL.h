@@ -1,6 +1,8 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VkDescriptors.h"
+#include "VulkanCore/VulkanRenderPass.h"
 #include "glm.hpp"
 #include <gtc/matrix_transform.hpp>
 
@@ -44,8 +46,7 @@ public:
 	{
 		VulkanTexture cubeImage;
 		VulkanTexture offscreenImage;
-		VkFramebuffer offscreenFB;
-		VkRenderPass renderpass;
+		VulkanRenderPass renderpass;
 		VkPipeline pipeline;
 	};
 
@@ -55,10 +56,9 @@ public:
 	void Init();
 	void Update(int acc_time) override;
 	void Destroy() override;
+	void SetupIBL();
 	void LoadAssets();
-	void PrepareRenderpass(VkFormat format, VkRenderPass& renderpass);
 	void PrepareIBLDescriptors();
-	void PrepareOffscreenFrameBuffer(VkFormat format, VulkanTexture& imageInfo, VkRenderPass renderpass, int dim, VkFramebuffer& framebuffer);
 	void PrepareIBLPipeline();
 	void GenerateIrrMapCmdBuffer();
 	void GeneratePreFilterCmdBuffer();
@@ -72,7 +72,7 @@ private:
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 
-	VulkanUtility::DescriptorInfo m_descriptors;
+	VkDescriptors m_descriptors;
 
 	VulkanTexture m_cubeImage;
 	VkPipelineLayout m_pipelineLayout;

@@ -5,18 +5,22 @@
 #include "VulkanCore/vulkan_core.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/vulkan_utility.h"
+#include "VulkanCore/VulkanRenderPass.h"
+#include "utility/message_handler.h"
 
+// forward class declerations
 class VulkanShadow;
 class VulkanModel;
-class VulkanAnimation;
 class VulkanDeferred;
 class VulkanTerrain;
 class CameraSystem;
 class VkMemoryManager;
+class VulkanGUI;
 class VulkanModule;
 class GraphicsSystem;
 class World;
 
+// enum used for specifying which modules to include during generation of the world engine
 enum class VkModId
 {
 	VKMOD_TERRAIN_ID,
@@ -26,7 +30,8 @@ enum class VkModId
 	VKMOD_PBR_ID,
 	VKMOD_IBL_ID,
 	VKMOD_SKYBOX_ID,
-	VKMOD_WATER_ID
+	VKMOD_WATER_ID,
+	VKMOD_POSTPROCESS_ID
 };
 
 class VulkanEngine : public VulkanCore
@@ -34,22 +39,38 @@ class VulkanEngine : public VulkanCore
 
 public:
 
-	static constexpr VkClearColorValue CLEAR_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };
+	static constexpr VkClearColorValue CLEAR_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };		// used by all command buffers
 	
-	VulkanEngine(GLFWwindow *window);
+	VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler);
 	~VulkanEngine();
 
 	void Init(World *world);
 	void Update(int acc_time);
+
+	// clean up functions
+	void DestroyPresentation();
+	void PrepareNewSwapFrame();
+	void Destroy();
+
+	// rendering functions - TODO: make these function names a little more obvious and transparent!
 	void Render();
 	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
+
+	// message handling function
+	void OnNotify(Message& msg);
+
+	// can either render with pipeline info passed through arguments - in the case of rendering shadows, etc. or using modules own pipeline 
+	void PrepareFinalFrameBuffer(bool prepareFrameBufferOnly);
+	void GenerateFinalCmdBuffer();
 
 	void RegisterVulkanModules(std::vector<VkModId> modules);
 	void RegisterGraphicsSystem(GraphicsSystem *graphics) { assert(graphics != nullptr); p_graphicsSystem = graphics; }
 	
+	// Request the poinetr of a vulkan module held by the engine. Throws an exception if no requested module is found
 	template<typename T>
 	T* VkModule();
 
+	// check whether this particular world has a certain vulkan module
 	template<typename T>
 	bool hasModule();
 
@@ -72,31 +93,57 @@ public:
 
 	World* GetCurrentWorld() { return p_world; }
 	GraphicsSystem* RequestGraphicsSystem() { assert(p_graphicsSystem != nullptr); return p_graphicsSystem; }
+	VkRenderPass GetFinalRenderPass() const { return m_renderpass.renderpass; }
+	void ClearDrawState() { drawStateChanged = true; }
+
+	// setings
+	bool drawWireframe() const;
+	uint32_t drawFog() const;		// return an int instead of a bool due to the shader setup 
+	bool displayLights() const;
+	int terrainType() const;
+	float waveAmplitude() const;
+	float choppyFactor() const;
+	float tesselationFactor() const;
+	float displacementFactor() const;
+	float tessEdgeSize() const;
 
 	friend class VulkanUtility;
 
-
 protected:
 
+	// private functions for message system
+	std::function<void(Message)> NotifyResponse();
+	void SendMessage(Message msg);
+
+	// to avoid confusion with the other draw functions, these are kept private, only Render() should be called for scene drawing
 	void SubmitFrame();
 	void DrawScene();
 
+	// pointers to objects that the engine is highly integradted with
+	MessageHandler *p_message;
 	World *p_world;
 	VkMemoryManager *p_vkMemory;
-
 	VulkanUtility *vkUtility;
-	GraphicsSystem *p_graphicsSystem;
+	GraphicsSystem *p_graphicsSystem;		// rather than keep a copy of the graphics system, call the world to obtain this info - SO REMOVE!
+	VulkanGUI *p_vkGUI;
 
+	// a map of all the vk modules linked to this world instance 
 	std::unordered_map<std::type_index, VulkanModule*> m_vkModules;
 
 	VulkanUtility::ViewPortInfo m_viewport;
-	VkCommandPool m_cmdPool;
+	VkCommandPool m_cmdPool;						// just one command pool for both graphics and compute for all modules/dependencies
 	VkCommandPool m_computeCmdPool;
 
-	VkCommandBuffer m_offscreenCmdBuffer;
+	// frame buffer and command buffer data for final pass
+	VulkanRenderPass m_renderpass;
+	std::vector<VkFramebuffer> m_frameBuffers;
 	std::vector<VkCommandBuffer> m_cmdBuffers;
+	VulkanTexture m_depthImage;
+
+	// states for drawing, displaying info, etc.
 	bool drawStateChanged;
 	bool vk_prepared;
+	bool displayGUI;
 };
 
 template <typename T>

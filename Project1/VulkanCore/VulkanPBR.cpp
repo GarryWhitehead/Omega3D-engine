@@ -13,73 +13,17 @@ VulkanPBR::~VulkanPBR()
 {
 }
 
-void VulkanPBR::PrepareLUTRenderpass()
-{
-	VkAttachmentDescription colorAttach = {};
-	colorAttach.format = VK_FORMAT_R16G16_SFLOAT;
-	colorAttach.samples = VK_SAMPLE_COUNT_1_BIT;
-	colorAttach.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	colorAttach.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	colorAttach.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-	colorAttach.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	colorAttach.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	colorAttach.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-	VkAttachmentReference colorRef = {};
-	colorRef.attachment = 0;
-	colorRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
-	std::array<VkSubpassDependency, 2> sPassDepend = {};
-	sPassDepend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[0].dstSubpass = 0;
-	sPassDepend[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	sPassDepend[1].srcSubpass = 0;
-	sPassDepend[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	VkSubpassDescription sPassDescr = {};
-	sPassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	sPassDescr.colorAttachmentCount = 1;
-	sPassDescr.pColorAttachments = &colorRef;
-
-	std::vector<VkAttachmentDescription> attach = { colorAttach };
-	VkRenderPassCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	createInfo.attachmentCount = static_cast<uint32_t>(attach.size());
-	createInfo.pAttachments = attach.data();
-	createInfo.subpassCount = 1;
-	createInfo.pSubpasses = &sPassDescr;
-	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
-	createInfo.pDependencies = sPassDepend.data();
-
-	VK_CHECK_RESULT(vkCreateRenderPass(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_lutRenderpass));
-}
-
 void VulkanPBR::PrepareLUTFramebuffer()
 {
-	lutImage.PrepareImage(VK_FORMAT_R16G16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, LUT_DIM, LUT_DIM, p_vkEngine);
+	m_lutImage.PrepareImage(VK_FORMAT_R16G16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, LUT_DIM, LUT_DIM, p_vkEngine);
 
-	PrepareLUTRenderpass();
+	// create renderpass with colour attachment
+	m_renderpass.AddAttachment(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_FORMAT_R16G16_SFLOAT);
+	m_renderpass.AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_renderpass.PrepareRenderPass(p_vkEngine->GetDevice());
 
-	VkFramebufferCreateInfo frameInfo = {};
-	frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-	frameInfo.renderPass = m_lutRenderpass;
-	frameInfo.attachmentCount = 1;
-	frameInfo.pAttachments = &lutImage.imageView;
-	frameInfo.width = lutImage.width;
-	frameInfo.height = lutImage.height;
-	frameInfo.layers = 1;
-
-	VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->GetDevice(), &frameInfo, nullptr, &m_lutFramebuffer))
+	// create offscreen framebuffer
+	m_renderpass.PrepareFramebuffer(m_lutImage.imageView, m_lutImage.width, m_lutImage.height, p_vkEngine->GetDevice());
 }
 
 void VulkanPBR::PrepareLUTPipeline()
@@ -130,7 +74,7 @@ void VulkanPBR::PrepareLUTPipeline()
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
-	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_lutLayout));
+	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_pipelineInfo.layout));
 
 	// sahders for rendering full screen quad
 	m_lutShader[0] = vkUtility->InitShaders("BDRF/lutBDRF-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
@@ -148,13 +92,13 @@ void VulkanPBR::PrepareLUTPipeline()
 	createInfo.pDepthStencilState = &depthInfo;
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
-	createInfo.layout = m_lutLayout;
-	createInfo.renderPass = m_lutRenderpass;
+	createInfo.layout = m_pipelineInfo.layout;
+	createInfo.renderPass = m_renderpass.renderpass;
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_lutPipeline));
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipelineInfo.pipeline));
 }
 
 void VulkanPBR::GenerateLUTCmdBuffer()
@@ -164,24 +108,24 @@ void VulkanPBR::GenerateLUTCmdBuffer()
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 
-	renderPassInfo.renderPass = m_lutRenderpass;
-	renderPassInfo.framebuffer = m_lutFramebuffer;
+	renderPassInfo.renderPass = m_renderpass.renderpass;
+	renderPassInfo.framebuffer = m_renderpass.frameBuffer;
 	renderPassInfo.renderArea.offset = { 0,0 };
-	renderPassInfo.renderArea.extent.width = lutImage.width;
-	renderPassInfo.renderArea.extent.height = lutImage.height;
+	renderPassInfo.renderArea.extent.width = m_lutImage.width;
+	renderPassInfo.renderArea.extent.height = m_lutImage.height;
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValue.size());
 	renderPassInfo.pClearValues = clearValue.data();
 
 	VkCommandBuffer cmdBuffer = vkUtility->CreateCmdBuffer(vkUtility->VK_PRIMARY, vkUtility->VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
 
-	VkViewport viewport = vkUtility->InitViewPort(lutImage.width, lutImage.height, 0.0f, 1.0f);
+	VkViewport viewport = vkUtility->InitViewPort(m_lutImage.width, m_lutImage.height, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
-	VkRect2D scissor = vkUtility->InitScissor(lutImage.width, lutImage.height, 0, 0);
+	VkRect2D scissor = vkUtility->InitScissor(m_lutImage.width, m_lutImage.height, 0, 0);
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_lutPipeline);
+	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.pipeline);
 	vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 	vkCmdEndRenderPass(cmdBuffer);
 

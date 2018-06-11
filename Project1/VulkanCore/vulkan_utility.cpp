@@ -21,69 +21,9 @@ void VulkanUtility::InitVulkanUtility(VulkanEngine *engine)
 }
 
 // =====================================================================================================================================================================================================================================================================================================
-// descriptor set preperation
+//  buffer tools 
 
-VkWriteDescriptorSet VulkanUtility::InitDescriptorSet(VkDescriptorSet set, uint32_t binding, VkDescriptorType type, VkDescriptorBufferInfo *info)
-{
-	VkWriteDescriptorSet descrSet = {};
-	descrSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descrSet.dstSet = set;
-	descrSet.dstBinding = binding;
-	descrSet.dstArrayElement = 0;
-	descrSet.descriptorCount = 1;
-	descrSet.descriptorType = type;
-	descrSet.pBufferInfo = info;
-
-	return descrSet;
-}
-
-VkWriteDescriptorSet VulkanUtility::InitDescriptorSet(VkDescriptorSet set, uint32_t binding, VkDescriptorType type, VkDescriptorImageInfo *info)
-{
-	VkWriteDescriptorSet descrSet = {};
-	descrSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descrSet.dstSet = set;
-	descrSet.dstBinding = binding;
-	descrSet.dstArrayElement = 0;
-	descrSet.descriptorCount = 1;
-	descrSet.descriptorType = type;
-	descrSet.pImageInfo = info;
-
-	return descrSet;
-}
-
-VkDescriptorImageInfo VulkanUtility::InitImageInfoDescriptor(VkImageLayout layout, VkImageView view, VkSampler sampler)
-{
-	VkDescriptorImageInfo imageInfo = {};
-	imageInfo.imageLayout = layout;
-	imageInfo.imageView = view;
-	imageInfo.sampler = sampler;
-
-	return imageInfo;
-}
-
-VkDescriptorBufferInfo VulkanUtility::InitBufferInfoDescriptor(VkBuffer buffer, int offset, uint32_t range)
-{
-	VkDescriptorBufferInfo bufferInfo = {};
-	bufferInfo.buffer = buffer;
-	bufferInfo.offset = offset;
-	bufferInfo.range = range;
-
-	return bufferInfo;
-}
-
-VkDescriptorSetLayoutBinding VulkanUtility::InitLayoutBinding(int binding, VkDescriptorType type, VkShaderStageFlags flags)
-{
-	VkDescriptorSetLayoutBinding layout = {};
-	layout.binding = binding;
-	layout.descriptorCount = 1;
-	layout.descriptorType = type;
-	layout.pImmutableSamplers = nullptr;
-	layout.stageFlags = flags;
-
-	return layout;
-}
-
-void VulkanUtility::CopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, VkCommandPool cmdPool, uint32_t srcOffset, uint32_t dstOffset)
+void VulkanUtility::CopyBuffer(const VkBuffer src, const VkBuffer dest, const VkDeviceSize size, const VkCommandPool cmdPool, const uint32_t srcOffset, const uint32_t dstOffset)
 {
 	VkCommandBuffer cmdBuffer = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
 
@@ -96,7 +36,7 @@ void VulkanUtility::CopyBuffer(VkBuffer src, VkBuffer dest, VkDeviceSize size, V
 	this->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue, p_vkEngine->GetCmdPool());
 }
 
-uint32_t VulkanUtility::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flags)
+uint32_t VulkanUtility::FindMemoryType(const uint32_t type, const VkMemoryPropertyFlags flags)
 {
 	VkPhysicalDeviceMemoryProperties memoryProp;
 	vkGetPhysicalDeviceMemoryProperties(p_vkEngine->m_device.physDevice, &memoryProp);
@@ -114,39 +54,7 @@ uint32_t VulkanUtility::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flag
 // ========================================================================================================================================================================================================================================================================================================
 // command buffer tools
 
-std::vector<VkFramebuffer> VulkanUtility::InitFrameBuffers(uint32_t width, uint32_t height, VkRenderPass renderPass, VkImageView imageView = VK_NULL_HANDLE)
-{
-	int imageCount = p_vkEngine->m_imageView.images.size();
-	std::vector<VkFramebuffer> frameBuffers(imageCount);
-	std::vector<VkImageView> attach;
-
-	for (int c = 0; c < imageCount; ++c) {
-
-		if (imageView == VK_NULL_HANDLE) {
-			attach.resize(1);
-			attach = { p_vkEngine->m_imageView.images[c] };
-		}
-		else {
-			attach.resize(2);
-			attach = { p_vkEngine->m_imageView.images[c], imageView };
-		}
-
-		VkFramebufferCreateInfo frameInfo = {};
-		frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		frameInfo.renderPass = renderPass;
-		frameInfo.attachmentCount = static_cast<uint32_t>(attach.size());
-		frameInfo.pAttachments = attach.data();
-		frameInfo.width = width;
-		frameInfo.height = height;
-		frameInfo.layers = 1;
-
-		VK_CHECK_RESULT(vkCreateFramebuffer(p_vkEngine->m_device.device, &frameInfo, nullptr, &frameBuffers[c]));
-	}
-
-	return frameBuffers;
-}
-
-VkCommandPool VulkanUtility::InitCommandPool(uint32_t index)
+VkCommandPool VulkanUtility::InitCommandPool(const uint32_t index)
 {
 	VkCommandPool cmdPool;
 
@@ -160,7 +68,7 @@ VkCommandPool VulkanUtility::InitCommandPool(uint32_t index)
 	return cmdPool;
 }
 
-VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, VkFramebuffer frameBuffer, VkRenderPass renderPass, VkCommandPool cmdPool)
+VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, const VkFramebuffer frameBuffer, const VkRenderPass renderPass, const VkCommandPool cmdPool)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -187,26 +95,18 @@ VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, VkF
 	return cmdBuffer;
 }
 
-void VulkanUtility::SubmitCmdBufferToQueue(VkCommandBuffer cmdBuffer, VkQueue queue, VkCommandPool cmdPool)
+void VulkanUtility::SubmitCmdBufferToQueue(const VkCommandBuffer cmdBuffer, const VkQueue queue, const VkCommandPool cmdPool)
 {
 	VK_CHECK_RESULT(vkEndCommandBuffer(cmdBuffer));
-
-	VkFence fence;
-	VkFenceCreateInfo fenceInfo = {};
-	fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-	fenceInfo.flags = 0;
-	VK_CHECK_RESULT(vkCreateFence(p_vkEngine->m_device.device, &fenceInfo, nullptr, &fence));
 
 	VkSubmitInfo submitInfo = {};
 	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &cmdBuffer;
 
-	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, fence));
+	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+	VK_CHECK_RESULT(vkQueueWaitIdle(queue));
 
-	VK_CHECK_RESULT(vkWaitForFences(p_vkEngine->m_device.device, 1, &fence, VK_TRUE, UINT64_MAX));
-
-	vkDestroyFence(p_vkEngine->m_device.device, fence, nullptr);
 	vkFreeCommandBuffers(p_vkEngine->m_device.device, cmdPool, 1, &cmdBuffer);
 }
 
@@ -224,7 +124,7 @@ bool VulkanUtility ::CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer)
 // =========================================================================================================================================================================================================================================================================================================
 // pipeline utilities
 
-VkPipelineViewportStateCreateInfo VulkanUtility::InitViewPortCreateInfo(VkViewport& viewPort, VkRect2D& scissor, uint32_t width, uint32_t height)
+VkPipelineViewportStateCreateInfo VulkanUtility::InitViewPortCreateInfo(VkViewport& viewPort, VkRect2D& scissor, const uint32_t width, const uint32_t height)
 {
 	viewPort.x = 0.0f;
 	viewPort.y = 0.0f;
@@ -247,7 +147,7 @@ VkPipelineViewportStateCreateInfo VulkanUtility::InitViewPortCreateInfo(VkViewpo
 	return viewportInfo;
 }
 
-VkViewport VulkanUtility::InitViewPort(uint32_t width, uint32_t height, float minDepth, float maxDepth )
+VkViewport VulkanUtility::InitViewPort(const uint32_t width, const uint32_t height, const float minDepth, const float maxDepth )
 {
 	VkViewport viewport = {};
 	viewport.width = width;
@@ -257,7 +157,7 @@ VkViewport VulkanUtility::InitViewPort(uint32_t width, uint32_t height, float mi
 	return viewport;
 }
 
-VkRect2D VulkanUtility::InitScissor(uint32_t width, uint32_t height, uint32_t x, uint32_t y)
+VkRect2D VulkanUtility::InitScissor(const uint32_t width, const uint32_t height, const uint32_t x, const uint32_t y)
 {
 	VkRect2D scissor;
 	scissor.extent.width = width;
@@ -267,7 +167,7 @@ VkRect2D VulkanUtility::InitScissor(uint32_t width, uint32_t height, uint32_t x,
 	return scissor;
 }
 
-VkPipelineRasterizationStateCreateInfo VulkanUtility::InitRasterzationState(VkPolygonMode polyMode, VkCullModeFlagBits cullMode, VkFrontFace frontFace)
+VkPipelineRasterizationStateCreateInfo VulkanUtility::InitRasterzationState(const VkPolygonMode polyMode, const VkCullModeFlagBits cullMode, const VkFrontFace frontFace)
 {
 	VkPipelineRasterizationStateCreateInfo rasterInfo = {};
 	rasterInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
@@ -282,7 +182,7 @@ VkPipelineRasterizationStateCreateInfo VulkanUtility::InitRasterzationState(VkPo
 	return rasterInfo;
 }
 
-VkPipelineMultisampleStateCreateInfo VulkanUtility::InitMultisampleState(VkSampleCountFlagBits flag)
+VkPipelineMultisampleStateCreateInfo VulkanUtility::InitMultisampleState(const VkSampleCountFlagBits flag)
 {
 	VkPipelineMultisampleStateCreateInfo multiInfo = {};
 	multiInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
@@ -299,7 +199,7 @@ VkPipelineMultisampleStateCreateInfo VulkanUtility::InitMultisampleState(VkSampl
 // =====================================================================================================================================================================================================================================================================================================
 // shader utilities and wrapper
 
-VkPipelineShaderStageCreateInfo VulkanUtility::InitShaders(std::string shaderFile, VkShaderStageFlagBits stage)
+VkPipelineShaderStageCreateInfo VulkanUtility::InitShaders(std::string shaderFile, const VkShaderStageFlagBits stage)
 {
 	std::vector<char> shaderData;
 	this->LoadFile(shaderFile, shaderData);
@@ -339,7 +239,7 @@ VkShaderModule VulkanUtility::CreateShaderModule(std::vector<char>& shader)
 	return shaderModule;
 }
 
-VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(VkShaderModule shader, VkShaderStageFlagBits stage)
+VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(const VkShaderModule shader, const VkShaderStageFlagBits stage)
 {
 	VkPipelineShaderStageCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -349,6 +249,7 @@ VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(VkShaderModule shade
 
 	return createInfo;
 }
+
 // ===========
 void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, uint32_t mipLevels, uint32_t layers)
 {

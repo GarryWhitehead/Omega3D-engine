@@ -1,6 +1,7 @@
 #include "vkFFT.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "utility/RandomNumber.h"
+#include "Engine/engine.h"
 
 vkFFT::vkFFT(VulkanEngine *engine, VkMemoryManager *memory) :
 	p_vkEngine(engine),
@@ -30,17 +31,8 @@ void vkFFT::CreateBuffers()
 	ssbo_pingpong = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, sizeof(glm::vec2) * (N * N * 3));
 
 	// displacement shader - texture
-	m_images.displacement.PrepareImage(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, N, N, p_vkEngine);
+	m_images.displacement.PrepareImage(VK_FORMAT_R32G32B32A32_SFLOAT, VK_SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, N, N, p_vkEngine);
 	ubo_displacement = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(DisplacementUbo));
-
-	// setup displacement ubo now as the data will be static
-	std::vector<DisplacementUbo> ubo(1);
-	ubo[0].N = N;
-	ubo[0].offset_dx = OFFSET_DX;
-	ubo[0].offset_dy = OFFSET_DY;
-	ubo[0].offset_dz = OFFSET_DZ;
-	ubo[0].choppyFactor = 1.5f;
-	p_vkMemory->MapDataToSegment<DisplacementUbo>(ubo_displacement, ubo);
 
 	// normal compute - texture storage
 	m_images.normal.PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT, N, N, p_vkEngine);
@@ -66,9 +58,12 @@ void vkFFT::GenerateButterflyCmdBuffer()
 
 	uint32_t log2N = log(N) / log(2);
 	uint32_t groupSize = N / 16;
-	uint32_t push = N;
+	
+	ButterFlyPushData pushData;
+	pushData.N = static_cast<float>(N);
+	pushData.log2N = static_cast<float>(log2N);
 
-	vkCmdPushConstants(cmdBuffer, m_fftButterfly.pipelineInfo.layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(uint32_t), &push);
+	vkCmdPushConstants(cmdBuffer, m_fftButterfly.pipelineInfo.layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(ButterFlyPushData), &pushData);
 	vkCmdDispatch(cmdBuffer, log2N, groupSize, 1);
 
 	vkUtility->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetComputeQueue(), p_vkEngine->GetComputeCmdPool());
@@ -81,7 +76,7 @@ void vkFFT::GenerateSpectrumCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftSpectrum.pipelineInfo.pipeline);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftSpectrum.pipelineInfo.layout, 0, 1, &m_fftSpectrum.descriptors.set, 0, nullptr);
 
-	uint32_t groupSize = N * N / 16;
+	uint32_t groupSize = N / 16;
 	vkCmdDispatch(cmdBuffer, groupSize, groupSize, 1);
 }
 
@@ -113,7 +108,7 @@ void vkFFT::GenerateFFTCmdBuffer(VkCommandBuffer cmdBuffer)
 
 		pushData.direction = 0.0f;	// 0 = horizontal; 1 = vertical
 		pushData.pingpong = m_pingpongID;
-		pushData.stage = c;
+		pushData.stage = (float)c;
 
 		pushData.offset = OFFSET_DY;
 		vkCmdPushConstants(cmdBuffer, m_fft.pipelineInfo.layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(FFTPushData), &pushData);
@@ -137,7 +132,7 @@ void vkFFT::GenerateFFTCmdBuffer(VkCommandBuffer cmdBuffer)
 	for (uint32_t c = 0; c < log2N; ++c) {
 		
 		pushData.pingpong = m_pingpongID;
-		pushData.stage = c;
+		pushData.stage = (float)c;
 
 		pushData.offset = OFFSET_DY;
 		vkCmdPushConstants(cmdBuffer, m_fft.pipelineInfo.layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(FFTPushData), &pushData);
@@ -176,9 +171,9 @@ void vkFFT::GeneratDisplacementCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftDisplacement.pipelineInfo.pipeline);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftDisplacement.pipelineInfo.layout, 0, 1, &m_fftDisplacement.descriptors.set, 0, nullptr);
 
-	uint32_t groupSize = N * N / 16;
+	uint32_t groupSize = N / 16;
 
-	uint32_t push = 0;		// use the last buffer called - this will depend on the FFT resolution (N)
+	uint32_t push = m_pingpongID;		// use the last buffer called - this will depend on the FFT resolution (N)
 	vkCmdPushConstants(cmdBuffer, m_fft.pipelineInfo.layout, VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(uint32_t), &push);
 	vkCmdDispatch(cmdBuffer, groupSize, groupSize, 1);
 
@@ -192,7 +187,7 @@ void vkFFT::GenerateNormalCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftNormal.pipelineInfo.pipeline);
 	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_COMPUTE, m_fftNormal.pipelineInfo.layout, 0, 1, &m_fftNormal.descriptors.set, 0, nullptr);
 
-	uint32_t groupSize = N * N / 16;
+	uint32_t groupSize = N / 16;
 	vkCmdDispatch(cmdBuffer, groupSize, groupSize, 1);
 }
 
@@ -214,288 +209,128 @@ void vkFFT::SubmitFFTCompute()
 
 void vkFFT::PrepareSpecDescriptorSets()
 {
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-	
-	// =============================================== descriptor pool =======================================================================
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;		// h0(k) and h0(-k) inputs and d(x,y,z) output
-	descrPoolSize[1].descriptorCount = 3;
+	std::vector<VkDescriptors::LayoutBinding> layoutBinding =
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// h0(k)			
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// h0(-k)
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// omega values
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// dt(x,y,z)
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT }
+	};
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
+	m_fftSpectrum.descriptors.AddDescriptorBindings(layoutBinding);
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_fftSpectrum.descriptors.pool));
+	std::vector<VkDescriptorBufferInfo> bufferInfo =
+	{
+		{ p_vkMemory->blockBuffer(h0k_map.block_id), h0k_map.offset, h0k_map.size},									// h0(k) - 
+		{ p_vkMemory->blockBuffer(h0minusk_map.block_id), h0minusk_map.offset, h0minusk_map.size },					// h0(-k)
+		{ p_vkMemory->blockBuffer(omega_map.block_id), omega_map.offset, omega_map.size },								// w * gravity (omega values)
+		{ p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size },							// h0(-k)
+		{ p_vkMemory->blockBuffer(ubo_spectrum.block_id), ubo_spectrum.offset, ubo_spectrum.size }				// ubo
+	};
 
-	// =============================================== descriptor layout ====================================================================
-	std::array<VkDescriptorSetLayoutBinding, 4> layoutBinding;
-	layoutBinding[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// h0(k)			
-	layoutBinding[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// h0(-k)
-	layoutBinding[2] = vkUtility->InitLayoutBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// dt(x,y,z)
-	layoutBinding[3] = vkUtility->InitLayoutBinding(3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);					
-																						
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBinding.size());
-	layoutInfo.pBindings = layoutBinding.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_fftSpectrum.descriptors.layout));
-
-	// ================================================ descriptor sets =====================================================================
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_fftSpectrum.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_fftSpectrum.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_fftSpectrum.descriptors.set));
-
-	std::array<VkDescriptorBufferInfo, 4> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(h0k_map.block_id), h0k_map.offset, h0k_map.size);									// h0(k) - 
-	bufferInfo[1] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(h0minusk_map.block_id), h0minusk_map.offset, h0minusk_map.size);					// h0(-k)
-	bufferInfo[2] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size);								// h0(-k)
-	bufferInfo[3] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ubo_spectrum.block_id), ubo_spectrum.offset, ubo_spectrum.size);					// ubo
-
-	std::array<VkWriteDescriptorSet, 4> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_fftSpectrum.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_fftSpectrum.descriptors.set, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[1]);
-	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_fftSpectrum.descriptors.set, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[2]);
-	writeDescrSet[3] = vkUtility->InitDescriptorSet(m_fftSpectrum.descriptors.set, 3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo[3]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
-
-	delete vkUtility;
+	m_fftSpectrum.descriptors.GenerateDescriptorSets(bufferInfo.data(), nullptr, p_vkEngine->GetDevice());
 }
 
 void vkFFT::PrepareButterflyDescriptorSets()
 {
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
+	std::vector<VkDescriptors::LayoutBinding> layoutBinding = 
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// h0(k)			
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT }			// h0(-k)
+	};
 
-	// =============================================== descriptor pool =======================================================================
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;		// bit reversed
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;		// butterfly output
-	descrPoolSize[1].descriptorCount = 1;
+	m_fftButterfly.descriptors.AddDescriptorBindings(layoutBinding);
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
+	std::vector<VkDescriptorBufferInfo> bufferInfo =
+	{
+		{ p_vkMemory->blockBuffer(bitrev_map.block_id), bitrev_map.offset, bitrev_map.size }			// h0(k) - 
+	};
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ m_images.butterfly.texSampler, m_images.butterfly.imageView,  VK_IMAGE_LAYOUT_GENERAL }
+	};
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_fftButterfly.descriptors.pool));
-
-	// =============================================== descriptor layout ====================================================================
-	std::array<VkDescriptorSetLayoutBinding, 2> layoutBinding;
-	layoutBinding[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// h0(k)			
-	layoutBinding[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);			// h0(-k)
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBinding.size());
-	layoutInfo.pBindings = layoutBinding.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_fftButterfly.descriptors.layout));
-
-	// ================================================ descriptor sets =====================================================================
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_fftButterfly.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_fftButterfly.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_fftButterfly.descriptors.set));
-
-	std::array<VkDescriptorBufferInfo, 1> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(bitrev_map.block_id), bitrev_map.offset, bitrev_map.size);														// h0(k) - 
-	std::array<VkDescriptorImageInfo, 1> imageInfo;
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, m_images.butterfly.imageView, m_images.butterfly.texSampler);
-
-	std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_fftButterfly.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_fftButterfly.descriptors.set, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &imageInfo[0]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
-
-	delete vkUtility;
+	m_fftButterfly.descriptors.GenerateDescriptorSets(bufferInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void vkFFT::PrepareFFTDescriptorSets()
 {
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-
-	// =============================================== descriptor pool =======================================================================
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;		
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	descrPoolSize[1].descriptorCount = 2;
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_fft.descriptors.pool));
-
-	// =============================================== descriptor layout ====================================================================
-	std::array<VkDescriptorSetLayoutBinding, 3> layoutBinding;
-	layoutBinding[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);			// butterfly image - input		
-	layoutBinding[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// d(x,y,z)
-	layoutBinding[2] = vkUtility->InitLayoutBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// pingpong
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBinding.size());
-	layoutInfo.pBindings = layoutBinding.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_fft.descriptors.layout));
-
-	// ================================================ descriptor sets =====================================================================
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_fft.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_fft.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_fft.descriptors.set));
-						
-	std::array<VkDescriptorBufferInfo, 2> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size);
-	bufferInfo[1] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ssbo_pingpong.block_id), ssbo_pingpong.offset, ssbo_pingpong.size);
-	std::array<VkDescriptorImageInfo, 1> imageInfo;
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, m_images.butterfly.imageView, m_images.butterfly.texSampler);		// butterfly image
-
-	std::array<VkWriteDescriptorSet, 3> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_fft.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &imageInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_fft.descriptors.set, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[0]);
-	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_fft.descriptors.set, 2, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[1]);
 	
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	std::vector<VkDescriptors::LayoutBinding> layoutBinding =
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT },			// butterfly image - input		
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },			// d(x,y,z)
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT }			// pingpong
+	};
 
-	delete vkUtility;
+	m_fft.descriptors.AddDescriptorBindings(layoutBinding);
+
+	std::vector<VkDescriptorBufferInfo> bufferInfo =
+	{
+		{ p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size },
+		{ p_vkMemory->blockBuffer(ssbo_pingpong.block_id), ssbo_pingpong.offset, ssbo_pingpong.size }
+	};
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ m_images.butterfly.texSampler, m_images.butterfly.imageView, VK_IMAGE_LAYOUT_GENERAL }		// butterfly image
+	};
+
+	m_fft.descriptors.GenerateDescriptorSets(bufferInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
+	
 }
 
 void vkFFT::PrepareDisplacementDescriptorSets()
 {
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-
-	// =============================================== descriptor pool =======================================================================
-	std::array<VkDescriptorPoolSize, 3> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	descrPoolSize[1].descriptorCount = 2;
-	descrPoolSize[2].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[2].descriptorCount = 1;
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_fftDisplacement.descriptors.pool));
-
+	
 	// =============================================== descriptor layout ====================================================================
-	std::array<VkDescriptorSetLayoutBinding, 4> layoutBinding;
-	layoutBinding[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// d(x,y,z) - aka - pingpong 0
-	layoutBinding[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// pingpong1
-	layoutBinding[2] = vkUtility->InitLayoutBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);			// displacement	-output
-	layoutBinding[3] = vkUtility->InitLayoutBinding(3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);			// ubo
+	std::vector<VkDescriptors::LayoutBinding> layoutBinding =
+	{
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },		// d(x,y,z) - aka - pingpong 0
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },		// pingpong1
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT },		// displacement	-output
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT }		// ubo
+	};
 
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBinding.size());
-	layoutInfo.pBindings = layoutBinding.data();
+	m_fftDisplacement.descriptors.AddDescriptorBindings(layoutBinding);
 
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_fftDisplacement.descriptors.layout));
+	std::vector<VkDescriptorBufferInfo> bufferInfo =
+	{
+		{ p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size },
+		{ p_vkMemory->blockBuffer(ssbo_pingpong.block_id), ssbo_pingpong.offset, ssbo_pingpong.size },
+		{ p_vkMemory->blockBuffer(ubo_displacement.block_id), ubo_displacement.offset, ubo_displacement.size }
+	};
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ m_images.displacement.texSampler, m_images.displacement.imageView, VK_IMAGE_LAYOUT_GENERAL }		// displacement
+	};
 
-	// ================================================ descriptor sets =====================================================================
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_fftDisplacement.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_fftDisplacement.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_fftDisplacement.descriptors.set));
-
-	std::array<VkDescriptorBufferInfo, 3> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ssbo_dxyz.block_id), ssbo_dxyz.offset, ssbo_dxyz.size);
-	bufferInfo[1] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ssbo_pingpong.block_id), ssbo_pingpong.offset, ssbo_pingpong.size);
-	bufferInfo[2] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ubo_displacement.block_id), ubo_displacement.offset, ubo_displacement.size);
-	std::array<VkDescriptorImageInfo, 1> imageInfo;
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, m_images.displacement.imageView, m_images.displacement.texSampler);		// displacement
-
-	std::array<VkWriteDescriptorSet, 4> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_fftDisplacement.descriptors.set, 0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_fftDisplacement.descriptors.set, 1, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, &bufferInfo[1]);
-	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_fftDisplacement.descriptors.set, 2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &imageInfo[0]);
-	writeDescrSet[3] = vkUtility->InitDescriptorSet(m_fftDisplacement.descriptors.set, 3, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo[2]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
-
-	delete vkUtility;
+	m_fftDisplacement.descriptors.GenerateDescriptorSets(bufferInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void vkFFT::PrepareNormalDescriptorSets()
 {
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
+	std::vector<VkDescriptors::LayoutBinding> layoutBinding = 
+	{
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT },				// bindings for the UBO	 
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT },				// bindings for the displacement map 
+		{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT }				// bindings for the gradient map 
+	};
 
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-	descrPoolSize[1].descriptorCount = 2;
+	m_fftNormal.descriptors.AddDescriptorBindings(layoutBinding);
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
+	std::vector<VkDescriptorBufferInfo> bufferInfo =
+	{
+		{ p_vkMemory->blockBuffer(ubo_normal.block_id), ubo_normal.offset, ubo_normal.size }				// ubo
+	};
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_fftNormal.descriptors.pool));
-
-	std::array<VkDescriptorSetLayoutBinding, 3> layoutBinding;
-	layoutBinding[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_COMPUTE_BIT);				// bindings for the UBO	 
-	layoutBinding[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);				// bindings for the displacement map 
-	layoutBinding[2] = vkUtility->InitLayoutBinding(2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, VK_SHADER_STAGE_COMPUTE_BIT);				// bindings for the gradient map 
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBinding.size());
-	layoutInfo.pBindings = layoutBinding.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_fftNormal.descriptors.layout));
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_fftNormal.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_fftNormal.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_fftNormal.descriptors.set));
-
-	std::array<VkDescriptorBufferInfo, 1> bufferInfo;
-	bufferInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(ubo_normal.block_id), ubo_normal.offset, ubo_normal.size);								// ubo
-	std::array<VkDescriptorImageInfo, 2> imageInfo;
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, m_images.displacement.imageView, m_images.displacement.texSampler);		// displacement map texture sampler
-	imageInfo[1] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_GENERAL, m_images.normal.imageView, m_images.normal.texSampler);					// gradient sampler - output
-
-	std::array<VkWriteDescriptorSet, 3> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_fftNormal.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &bufferInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_fftNormal.descriptors.set, 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &imageInfo[0]);
-	writeDescrSet[2] = vkUtility->InitDescriptorSet(m_fftNormal.descriptors.set, 2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, &imageInfo[1]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
-
-	delete vkUtility;
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ m_images.displacement.texSampler,  m_images.displacement.imageView,  VK_IMAGE_LAYOUT_GENERAL },	// displacement map texture sampler
+		{ m_images.normal.texSampler, m_images.normal.imageView, VK_IMAGE_LAYOUT_GENERAL }					// gradient sampler - output
+	};
+	
+	m_fftNormal.descriptors.GenerateDescriptorSets(bufferInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void vkFFT::PreparePipelines()
@@ -525,7 +360,7 @@ void vkFFT::PreparePipelines()
 
 	// butterfly pipeline
 	VkPushConstantRange pushConstant = {};
-	pushConstant.size = sizeof(uint32_t);
+	pushConstant.size = sizeof(ButterFlyPushData);
 	pushConstant.offset = 0;
 	pushConstant.stageFlags = VK_SHADER_STAGE_COMPUTE_BIT;
 
@@ -610,6 +445,9 @@ void vkFFT::GenerateHeightMap(uint32_t patchLength, float windSpeed, float ampli
 	std::vector<glm::vec2> h0minusk;
 	h0minusk.resize(vecSize);
 
+	std::vector<float> omega;
+	omega.resize(vecSize);
+
 	for (uint32_t y = 0; y < N; ++y) {
 
 		k.y = (-N / 2.0f + y) * (2.0f * PI / patchLength);
@@ -630,16 +468,33 @@ void vkFFT::GenerateHeightMap(uint32_t patchLength, float windSpeed, float ampli
 			h0minusk[y * N + x].x = minus_phil * p_rand->GaussRandomNumber(RAND_MAX) * 0.7071068f;
 			h0minusk[y * N + x].y = minus_phil * p_rand->GaussRandomNumber(RAND_MAX) * 0.7071068f;
 
+			// omega values = length k * GRAVITY
+			omega[y * N + x] = sqrtf(GRAVITY * glm::length(glm::vec2(k.x, k.y)));
 		}
 	}
 	delete p_rand;
 
 	// upload omega and height map to gpu - ssbo used for compute shader input
+	if (h0k_map.size > 0) {				// if regenertaing, then destroy current segment
+		p_vkMemory->DestroySegment(h0k_map);
+	}
+
+	// generate new buffer
 	h0k_map = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, vecSize * sizeof(glm::vec2));
 	p_vkMemory->MapDataToSegment<glm::vec2>(h0k_map, h0k);
 
+	if (h0minusk_map.size > 0) {					// if regenertaing, then destroy current segment
+		p_vkMemory->DestroySegment(h0minusk_map);
+	}
+
 	h0minusk_map = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, vecSize * sizeof(glm::vec2));
 	p_vkMemory->MapDataToSegment<glm::vec2>(h0minusk_map, h0minusk);
+
+	if (omega_map.size > 0) {					// if regenertaing, then destroy current segment
+		p_vkMemory->DestroySegment(omega_map);
+	}
+	omega_map = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_STATIC, vecSize * sizeof(float));
+	p_vkMemory->MapDataToSegment<float>(omega_map, omega);
 }
 
 void vkFFT::GenerateBitReversed()
@@ -673,12 +528,21 @@ void vkFFT::Update(float acc_time, uint32_t patchLength)
 	std::vector<SpecUboBuffer> ubo(1);
 	ubo[0].L = static_cast<float>(patchLength);
 	ubo[0].N = static_cast<float>(N);
-	ubo[0].time = acc_time * 0.5;
+	ubo[0].time = static_cast<float>(acc_time) * 0.4f * Engine::DT;
 	ubo[0].offset_dx = OFFSET_DX;
 	ubo[0].offset_dy = OFFSET_DY;
 	ubo[0].offset_dz = OFFSET_DZ;
 
 	p_vkMemory->MapDataToSegment<SpecUboBuffer>(ubo_spectrum, ubo);
+
+	// setup displacement ubo now as the data will be static
+	std::vector<DisplacementUbo> dispUbo(1);
+	dispUbo[0].N = N;
+	dispUbo[0].offset_dx = OFFSET_DX;
+	dispUbo[0].offset_dy = OFFSET_DY;
+	dispUbo[0].offset_dz = OFFSET_DZ;
+	dispUbo[0].choppyFactor = p_vkEngine->choppyFactor();
+	p_vkMemory->MapDataToSegment<DisplacementUbo>(ubo_displacement, dispUbo);
 }
 
 void vkFFT::Init(uint32_t patchLength, float windSpeed, float amplitude, glm::vec2 windDir)

@@ -73,12 +73,13 @@ void MeshComponentManager::Serialise(Archiver* arch, MeshComponentManager& manag
 void MeshComponentManager::Serialise(Archiver* arch, OMFMaterial& material, const Archiver::var_info& info)
 {
 	// materials colour
-	arch->Serialise(material.Color.ambient, info.name + "roughness");
-	arch->Serialise(material.Color.diffuse, info.name + "roughness");
-	arch->Serialise(material.Color.specular, info.name + "roughness");
+	arch->Serialise(material.Color.ambient, info.name + "ambient");
+	arch->Serialise(material.Color.diffuse, info.name + "diffuse");
+	arch->Serialise(material.Color.specular, info.name + "specular");
 	arch->Serialise(material.Color.roughness, info.name + "roughness");
 	arch->Serialise(material.Color.metallic, info.name + "metallic");
-	
+	arch->Serialise(material.Color.ao, info.name + "ao");
+
 	// materials texture maps
 	arch->Serialise(material.Map.albedo, info.name + "albedo");
 	arch->Serialise(material.Map.ao, info.name + "ao");
@@ -136,6 +137,9 @@ std::string MeshComponentManager::OMFMaterial::GetMaterialType(MaterialType type
 	case MaterialType::METALLIC_TYPE:
 		filename = Map.metallic;
 		break;
+	case MaterialType::AO_TYPE:
+		filename = Map.ao;
+		break;
 	}
 	return filename;
 }
@@ -157,6 +161,9 @@ bool MeshComponentManager::OMFMaterial::hasTexture(MaterialType type) const
 		break;
 	case MaterialType::METALLIC_TYPE:
 		return !Map.metallic.empty();
+		break;
+	case MaterialType::AO_TYPE:
+		return !Map.ao.empty();
 		break;
 	}
 }

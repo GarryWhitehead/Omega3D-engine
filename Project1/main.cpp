@@ -39,7 +39,7 @@ int main(int argc, char *argv[])
 		}
 
 		while (accumulator >= frameLength) {
-			engine.Update(accumulator);
+			engine.Update(elapsedTime.count());
 			
 			accumulator -= frameLength;
 			tickCount++;

@@ -22,50 +22,23 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 {
 	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>();
 
-	// skybox descriptors
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 1;
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descrPoolSize[1].descriptorCount = 1;
+	std::vector<VkDescriptors::LayoutBinding> layoutBind =
+	{
+		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT },					// bindings for the UBO	
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }			// bindings for the colour image sampler
+	};
+	m_envCube.descriptors.AddDescriptorBindings(layoutBind);
 
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
+	std::vector<VkDescriptorBufferInfo> buffInfo =
+	{
+		{ p_vkMemory->blockBuffer(m_envCube.uboBuffer.block_id), m_envCube.uboBuffer.offset, m_envCube.uboBuffer.size }
+	};
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ vkIBL->m_cubeImage.texSampler, vkIBL->m_cubeImage.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+	};
 
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_envCube.descriptors.pool));
-
-	std::array<VkDescriptorSetLayoutBinding, 2> layoutBind = {};
-	layoutBind[0] = vkUtility->InitLayoutBinding(0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT);						// bindings for the UBO	
-	layoutBind[1] = vkUtility->InitLayoutBinding(1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT);			// bindings for the colour image sampler
-
-	VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(layoutBind.size());
-	layoutInfo.pBindings = layoutBind.data();
-
-	VK_CHECK_RESULT(vkCreateDescriptorSetLayout(p_vkEngine->GetDevice(), &layoutInfo, nullptr, &m_envCube.descriptors.layout));
-
-	VkDescriptorSetAllocateInfo allocInfo = {};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = m_envCube.descriptors.pool;
-	allocInfo.descriptorSetCount = 1;
-	allocInfo.pSetLayouts = &m_envCube.descriptors.layout;
-
-	VK_CHECK_RESULT(vkAllocateDescriptorSets(p_vkEngine->GetDevice(), &allocInfo, &m_envCube.descriptors.set));
-
-	std::array<VkDescriptorBufferInfo, 1> buffInfo = {};
-	buffInfo[0] = vkUtility->InitBufferInfoDescriptor(p_vkMemory->blockBuffer(m_envCube.uboBuffer.block_id), m_envCube.uboBuffer.offset, m_envCube.uboBuffer.size);
-	std::array<VkDescriptorImageInfo, 1> imageInfo = {};
-	imageInfo[0] = vkUtility->InitImageInfoDescriptor(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, vkIBL->m_cubeImage.imageView, vkIBL->m_cubeImage.texSampler);
-
-	std::array<VkWriteDescriptorSet, 2> writeDescrSet = {};
-	writeDescrSet[0] = vkUtility->InitDescriptorSet(m_envCube.descriptors.set, 0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, &buffInfo[0]);
-	writeDescrSet[1] = vkUtility->InitDescriptorSet(m_envCube.descriptors.set, 1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, &imageInfo[0]);
-
-	vkUpdateDescriptorSets(p_vkEngine->GetDevice(), static_cast<uint32_t>(writeDescrSet.size()), writeDescrSet.data(), 0, nullptr);
+	m_envCube.descriptors.GenerateDescriptorSets(buffInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
 }
 
 void VulkanSkybox::PrepareSkyboxPipeline()

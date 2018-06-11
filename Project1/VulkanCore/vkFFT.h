@@ -6,6 +6,7 @@
 #include "VulkanCore/Vulkan_Utility.h"
 #include "VulkanCore/VkMemoryManager.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VkDescriptors.h"
 
 class VulkanEngine;
 
@@ -26,9 +27,15 @@ public:
 	struct FFTstageInfo
 	{
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VulkanUtility::DescriptorInfo descriptors;
+		VkDescriptors descriptors;
 		VkPipelineShaderStageCreateInfo shader;
 		VkMemoryManager::SegmentInfo uboBuffer;
+	};
+
+	struct ButterFlyPushData
+	{
+		float N;
+		float log2N;
 	};
 
 	struct SpecUboBuffer
@@ -100,6 +107,7 @@ private:
 	// buffers for h0(k) and h0(-k)
 	VkMemoryManager::SegmentInfo h0k_map;
 	VkMemoryManager::SegmentInfo h0minusk_map;
+	VkMemoryManager::SegmentInfo omega_map;
 	VkMemoryManager::SegmentInfo bitrev_map;
 
 	// ssbo buffers for d(x, y, z)

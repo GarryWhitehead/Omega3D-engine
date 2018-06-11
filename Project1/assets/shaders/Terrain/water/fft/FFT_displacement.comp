@@ -50,9 +50,9 @@ void main()
 	}
 	else {
 	
-		displace.x = (pingpong0[index + uint(ubo.offset_dx)].x / N_sqr) * signCorrect * ubo.choppyFactor;	// use the real number from the fft compute
-		displace.y = (pingpong0[index + uint(ubo.offset_dy)].x / N_sqr) * signCorrect * ubo.choppyFactor;
-		displace.z = (pingpong0[index + uint(ubo.offset_dz)].x / N_sqr) * signCorrect;
+		displace.x = (pingpong1[index + uint(ubo.offset_dx)].x / N_sqr) * signCorrect * ubo.choppyFactor;	// use the real number from the fft compute
+		displace.y = (pingpong1[index + uint(ubo.offset_dy)].x / N_sqr) * signCorrect * ubo.choppyFactor;
+		displace.z = (pingpong1[index + uint(ubo.offset_dz)].x / N_sqr) * signCorrect;
 	}
 	
 	imageStore(displacementMap, id, displace);

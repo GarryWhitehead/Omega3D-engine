@@ -4,8 +4,7 @@
 #include <string>
 #include "glm.hpp"
 
-// the middle-man system between the omega engine front-end graphic processes and the low-level vulkan stuff
-
+class MessageHandler;
 class VulkanEngine;
 class World;
 
@@ -13,12 +12,14 @@ class GraphicsSystem : public System
 {
 
 public:
-	GraphicsSystem(World *world, VulkanEngine *engine);
+	GraphicsSystem(World *world, MessageHandler *msg, VulkanEngine *engine);
 	~GraphicsSystem();
 
 	void Init();
 	void Update() override;
 	void Destroy() override;
+	void OnNotify(Message& msg) override;
+
 	void Render();
 	std::array<glm::mat4, 256> RequestTransformData();
 

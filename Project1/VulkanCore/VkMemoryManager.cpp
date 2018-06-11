@@ -24,7 +24,7 @@ uint32_t VkMemoryManager::AllocateBlock(MemoryType type, uint32_t size)
 
 	if (type == MemoryType::VK_BLOCK_TYPE_HOST) {
 		
-		alloc_size = (size == 0) ? ALLOC_BLOCK_SIZE_HOST : size;
+		alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST) : size;
 
 		CreateBuffer(alloc_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT | 
 			VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | 
@@ -39,7 +39,7 @@ uint32_t VkMemoryManager::AllocateBlock(MemoryType type, uint32_t size)
 	}
 	else if (type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
 
-		alloc_size = (size == 0) ? ALLOC_BLOCK_SIZE_LOCAL : size;
+		alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL) : size;
 
 		// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
 		CreateBuffer(alloc_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT | 
@@ -236,9 +236,9 @@ VkBuffer& VkMemoryManager::blockBuffer(const uint32_t id)
 }
 
 // override of the segment mapping function that allows data of type *void to be passed
-void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize)
+void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize, uint32_t offset)
 {
-	assert(segment.block_id < mem_blocks.size());
+	assert(segment.block_id < (int32_t)mem_blocks.size());
 	BlockInfo block = mem_blocks[segment.block_id];
 
 	// How we map the data depends on the memory type; 
@@ -247,7 +247,8 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_
 
 	if (block.type == MemoryType::VK_BLOCK_TYPE_HOST) {
 
-		MapData(segment.data, block.block_mem, segment.offset, segment.size, data, totalSize);
+		MapData(segment, block.block_mem, segment.offset, data, totalSize, offset);	
+		
 	}
 	else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
 
@@ -257,7 +258,7 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_
 		CreateBuffer(segment.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, temp_memory, temp_buffer);
 
 		// map data to temporary buffer
-		MapData(segment.data, temp_memory, 0, segment.size, data, totalSize);
+		MapData(segment, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 		// create cmd buffer for copy and transfer to device local memory
 		VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
@@ -271,29 +272,35 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_
 	}
 }
 
-void VkMemoryManager::MapData(void *mapped_data, VkDeviceMemory memory, const uint32_t offset, const uint32_t segment_size, void* data, uint32_t totalSize)
+void VkMemoryManager::MapData(SegmentInfo &segment, VkDeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset)
 {
-	assert(totalSize <= segment_size);
+	assert(totalSize <= segment.size);
 
-	if (mapped_data == nullptr) {
-		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->GetDevice(), memory, offset, segment_size, 0, &mapped_data));
-		memcpy(mapped_data, data, totalSize);
+	if (segment.data == nullptr) {
+
+		VK_CHECK_RESULT(vkMapMemory(p_vkEngine->GetDevice(), memory, offset, segment.size, 0, &segment.data));
+		memcpy(segment.data, data, totalSize);
 		vkUnmapMemory(p_vkEngine->GetDevice(), memory);
 	}
 	else {
-		memcpy(mapped_data, data, totalSize);
+		void *mapped = static_cast<char*>(segment.data) + mapped_offset;		// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
+		memcpy(mapped, data, totalSize);
 	}
 }
 
 void VkMemoryManager::DestroySegment(SegmentInfo &segment)
 {
+	if (segment.size <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
+		return;
+	}
+
 	// check that the segment exsists within the map
 	auto & alloc_segments = mem_blocks[segment.block_id].alloc_segments;
 	auto& iter = alloc_segments.find(segment.offset);
 
 	if (iter != alloc_segments.end()) {
 
-		// remove segment from the allocated
+		// remove segment from the allocated list
 		alloc_segments.erase(segment.offset);
 
 		// and add to the free segments pool

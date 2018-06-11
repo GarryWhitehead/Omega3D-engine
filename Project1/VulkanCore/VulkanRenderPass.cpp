@@ -43,46 +43,139 @@ void VulkanRenderPass::AddReference(const VkImageLayout layout, const uint32_t a
 	}
 }
 
+void VulkanRenderPass::AddSubPass(std::vector<VkAttachmentReference>& colorRef, std::vector<VkAttachmentReference>& inputRef, VkAttachmentReference *depthRef)
+{
+	assert(!colorRef.empty());
+	assert(!inputRef.empty());
+	
+	// override default subpass with user specified subpass
+	VkSubpassDescription subpassDescr = {};
+	subpassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	// colour attachements
+	subpassDescr.colorAttachmentCount = static_cast<uint32_t>(colorRef.size());		
+	subpassDescr.pColorAttachments = colorRef.data();
+
+	// input attachments
+	subpassDescr.inputAttachmentCount = static_cast<uint32_t>(inputRef.size());
+	subpassDescr.pInputAttachments = inputRef.data();
+
+	// depth attachment - if required
+	if (depthRef != nullptr) {
+
+		subpassDescr.pDepthStencilAttachment = depthRef;
+	}
+	
+	subpass.push_back(subpassDescr);
+}
+
+void VulkanRenderPass::AddSubPass(std::vector<VkAttachmentReference>& colorRef, VkAttachmentReference *depthRef)
+{
+	assert(!colorRef.empty());
+
+	// override default subpass with user specified subpass
+	VkSubpassDescription subpassDescr = {};
+	subpassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+	// colour attachements
+	subpassDescr.colorAttachmentCount = static_cast<uint32_t>(colorRef.size());
+	subpassDescr.pColorAttachments = colorRef.data();
+
+	// depth attachment - if required
+	if (depthRef != nullptr) {
+
+		subpassDescr.pDepthStencilAttachment = depthRef;
+	}
+
+	subpass.push_back(subpassDescr);
+}
+
+void VulkanRenderPass::AddSubpassDependency(DependencyTemplate depend_template, uint32_t srcSubpass, uint32_t dstSubpass)
+{
+	VkSubpassDependency depend = {};
+
+	if (depend_template == DependencyTemplate::TEMPLATE_TOP_OF_PIPE) {
+
+		depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+		depend.dstSubpass = 0;
+		depend.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		depend.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		depend.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	}
+	else if (depend_template == DependencyTemplate::TEMPLATE_BOTTOM_OF_PIPE) {
+
+		depend.srcSubpass = 0;
+		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+		depend.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		depend.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	}
+	else if (depend_template == DependencyTemplate::TEMPLATE_MULTI_SUBPASS) {
+
+		depend.srcSubpass = srcSubpass;
+		depend.dstSubpass = dstSubpass;
+		depend.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		depend.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	}
+	dependency.push_back(depend);
+}
+
 void VulkanRenderPass::PrepareRenderPass(const VkDevice device)
 {
-	assert(!colorReference.empty() || !depthReference.empty());
+	// if dependency container is empty, go with the default layout
+	if (dependency.empty()) {
 
-	std::array<VkSubpassDependency, 2> sPassDepend = {};
-	sPassDepend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[0].dstSubpass = 0;
-	sPassDepend[0].srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[0].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[0].srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[0].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[0].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		VkSubpassDependency depend = {};
+		depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+		depend.dstSubpass = 0;
+		depend.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		depend.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		depend.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency.push_back(depend);
 
-	sPassDepend[1].srcSubpass = 0;
-	sPassDepend[1].dstSubpass = VK_SUBPASS_EXTERNAL;
-	sPassDepend[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	sPassDepend[1].dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-	sPassDepend[1].srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-	sPassDepend[1].dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-	sPassDepend[1].dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-	VkSubpassDescription sPassDescr = {};
-	sPassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-
-	if (!colorReference.empty()) {
-		sPassDescr.colorAttachmentCount = static_cast<uint32_t>(colorReference.size());
-		sPassDescr.pColorAttachments = colorReference.data();
+		depend.srcSubpass = 0;
+		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+		depend.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		depend.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+		dependency.push_back(depend);
 	}
-	if (!depthReference.empty()) {
-		sPassDescr.pDepthStencilAttachment = depthReference.data();
+
+	// if subpass vector empty, use default subpass layout
+	if (subpass.empty()) {
+
+		VkSubpassDescription sPassDescr = {};
+		sPassDescr.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+		if (!colorReference.empty()) {
+			sPassDescr.colorAttachmentCount = static_cast<uint32_t>(colorReference.size());
+			sPassDescr.pColorAttachments = colorReference.data();
+		}
+		if (!depthReference.empty()) {
+			sPassDescr.pDepthStencilAttachment = depthReference.data();
+		}
+		subpass.push_back(sPassDescr);
 	}
 
 	VkRenderPassCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	createInfo.attachmentCount = static_cast<uint32_t>(attachment.size());
 	createInfo.pAttachments = attachment.data();
-	createInfo.subpassCount = 1;
-	createInfo.pSubpasses = &sPassDescr;
-	createInfo.dependencyCount = static_cast<uint32_t>(sPassDepend.size());
-	createInfo.pDependencies = sPassDepend.data();
+	createInfo.subpassCount = static_cast<uint32_t>(subpass.size());
+	createInfo.pSubpasses = subpass.data();
+	createInfo.dependencyCount = static_cast<uint32_t>(dependency.size());
+	createInfo.pDependencies = dependency.data();
 
 	VK_CHECK_RESULT(vkCreateRenderPass(device, &createInfo, nullptr, &renderpass));
 }
@@ -99,7 +192,24 @@ void VulkanRenderPass::PrepareFramebuffer(const VkImageView imageView, uint32_t 
 	frameInfo.pAttachments = &imageView;
 	frameInfo.width = width;
 	frameInfo.height = height;
-	frameInfo.layers = 1;
+	frameInfo.layers = layerCount;
+
+	VK_CHECK_RESULT(vkCreateFramebuffer(device, &frameInfo, nullptr, &frameBuffer))
+}
+
+void VulkanRenderPass::PrepareFramebuffer(std::vector<VkImageView>& imageView, uint32_t width, uint32_t height, const VkDevice device, uint32_t layerCount)
+{
+	assert(!imageView.empty());
+	assert(renderpass != VK_NULL_HANDLE);
+
+	VkFramebufferCreateInfo frameInfo = {};
+	frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+	frameInfo.renderPass = renderpass;
+	frameInfo.attachmentCount = static_cast<uint32_t>(imageView.size());
+	frameInfo.pAttachments = imageView.data();
+	frameInfo.width = width;
+	frameInfo.height = height;
+	frameInfo.layers = layerCount;
 
 	VK_CHECK_RESULT(vkCreateFramebuffer(device, &frameInfo, nullptr, &frameBuffer))
 }

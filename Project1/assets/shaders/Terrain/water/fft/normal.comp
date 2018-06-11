@@ -21,8 +21,8 @@ void main()
 	
 	vec3 disLeft = imageLoad(displacementMap, ivec2(id.x - 1, id.y)).xyz;
 	vec3 disRight = imageLoad(displacementMap, ivec2(id.x + 1, id.y)).xyz;
-	vec3 disFront= imageLoad(displacementMap, ivec2(id.x, id.y - 1)).xyz;
-	vec3 disBack = imageLoad(displacementMap, ivec2(id.x, id.y + 1)).xyz;
+	vec3 disFront= imageLoad(displacementMap, ivec2(id.x, id.y + 1)).xyz;
+	vec3 disBack = imageLoad(displacementMap, ivec2(id.x, id.y - 1)).xyz;
 	
 	vec2 grad = vec2(-(disRight.z - disLeft.z), -(disFront.z - disBack.z));
 	

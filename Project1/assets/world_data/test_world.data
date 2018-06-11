@@ -28,11 +28,11 @@
 <m_componentsData::[0]Data::[3].m_velocity.z> 0
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_position.x> 80
-<m_componentsData::[0]Data::[0].m_position.y> -40
-<m_componentsData::[0]Data::[0].m_position.z> 25
+<m_componentsData::[0]Data::[0].m_position.y> -30
+<m_componentsData::[0]Data::[0].m_position.z> 75
 <m_componentsData::[0]Data::[1].m_position.x> 60
 <m_componentsData::[0]Data::[1].m_position.y> -40
-<m_componentsData::[0]Data::[1].m_position.z> 10
+<m_componentsData::[0]Data::[1].m_position.z> -50
 <m_componentsData::[0]Data::[2].m_position.x> 80
 <m_componentsData::[0]Data::[2].m_position.y> -40
 <m_componentsData::[0]Data::[2].m_position.z> 10
@@ -110,15 +110,15 @@
 <m_componentsData::[0]Data::[3].m_object.m_isAlive> 1
 <m_componentsData::[0]Key::[0]> Mesh
 <m_componentsData::[0].size> 4
-<m_componentsData::[0]Data::[0].m_meshIndex> 2
-<m_componentsData::[0]Data::[1].m_meshIndex> 1
+<m_componentsData::[0]Data::[0].m_meshIndex> 1
+<m_componentsData::[0]Data::[1].m_meshIndex> 2
 <m_componentsData::[0]Data::[2].m_meshIndex> 3
 <m_componentsData::[0]Data::[3].m_meshIndex> 3
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_materialName>
 <m_componentsData::[0]Data::[0].m_materialName>scuffed_copper_mat
-<m_componentsData::[0]Data::[1].m_materialName>scuffed_titanium_mat
-<m_componentsData::[0]Data::[2].m_materialName>rock_streak_mat
+<m_componentsData::[0]Data::[1].m_materialName>
+<m_componentsData::[0]Data::[2].m_materialName>scuffed_copper_mat
 <m_componentsData::[0].size> 4
 <m_componentsData::[0]Data::[0].m_object.m_id> 0
 <m_componentsData::[0]Data::[0].m_object.m_isAlive> 1

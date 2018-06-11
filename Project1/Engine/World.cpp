@@ -1,5 +1,6 @@
 #include "World.h"
 #include "utility/file_log.h"
+#include "utility/message_handler.h"
 #include "Engine/engine.h"
 #include "Engine/ObjectResourceManager.h"
 #include "Engine/ObjectManager.h"
@@ -18,13 +19,9 @@
 #include "VulkanCore/VulkanEngine.h"
 #include <iostream>
 
-World::World() :
-	p_objectManager(nullptr)
-{
-}
-
-World::World(std::string name) : 
+World::World(std::string name, MessageHandler *msg) :
 	m_name(name),
+	p_message(msg),
 	p_objectManager(nullptr)
 {
 }
@@ -64,13 +61,13 @@ void World::RegisterSystems(std::vector<SystemId>& systemIds, Engine *engine, Vu
 
 		switch (id) {
 			case SystemId::INPUT_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(InputSystem)), new InputSystem(this, engine->Window(), Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT)));
+				m_systems.insert(std::make_pair(std::type_index(typeid(InputSystem)), new InputSystem(this, p_message, engine->Window(),  Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT)));
 				break;
 			case SystemId::CAMERA_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(CameraSystem)), new CameraSystem(this, glm::vec3(15.0f, -45.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0))));
+				m_systems.insert(std::make_pair(std::type_index(typeid(CameraSystem)), new CameraSystem(this, p_message, glm::vec3(15.0f, -45.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0))));
 				break;
 			case SystemId::GRAPHICS_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(GraphicsSystem)), new GraphicsSystem(this, vkEngine)));
+				m_systems.insert(std::make_pair(std::type_index(typeid(GraphicsSystem)), new GraphicsSystem(this, p_message, vkEngine)));
 				break;
 		}
 	}

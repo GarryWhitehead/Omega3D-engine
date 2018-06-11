@@ -1,5 +1,6 @@
 #include "Engine/engine.h"
 #include "utility/file_log.h"
+#include "utility/message_handler.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "Systems/input_system.h"
 #include "Systems/camera_system.h"
@@ -18,9 +19,11 @@ Engine::Engine() :
 Engine::Engine(const char *win_title) :	
 	m_windowTitle(win_title),
 	m_running(true),
+	p_message(nullptr),
 	p_vkEngine(nullptr)
 {
-	CreateWindow(win_title);
+
+CreateWindow(win_title);
 }
 
 Engine::~Engine()
@@ -42,7 +45,7 @@ void Engine::CreateWindow(const char *winTitle)
 	m_monitor = glfwGetPrimaryMonitor();
 	m_vmode = glfwGetVideoMode(m_monitor);
 
-	m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, winTitle, nullptr, nullptr);
+	m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, winTitle, m_monitor, nullptr);
 	if (!m_window)
 	{
 		g_filelog->WriteLog("Critical error! Unable to open window!");
@@ -52,8 +55,11 @@ void Engine::CreateWindow(const char *winTitle)
 
 void Engine::Init()
 {
+	// create message handling system
+	p_message = new MessageHandler();
+
 	// start by initialisng core vulkan components and creating a window
-	p_vkEngine = new VulkanEngine(m_window);
+	p_vkEngine = new VulkanEngine(m_window, p_message);
 
 	// Init the core vulkan framework
 	p_vkEngine->InitVulkanCore();
@@ -86,15 +92,23 @@ void Engine::Release()
 	// destroy vulkan framework
 	if (p_vkEngine != nullptr) {
 		delete p_vkEngine;
+		p_vkEngine = nullptr;
 	}
-	p_vkEngine = nullptr;
 
+	// destroy mesage handler
+	if (p_message != nullptr) {
+		delete p_message;
+		p_message = nullptr;
+	}
 	glfwTerminate();
 }
 
 void Engine::CreateWorld(std::vector<SystemId> systemIds, std::string name)
 {
-	World *world = new World(name);
+	assert(p_message != nullptr);
+	assert(p_vkEngine != nullptr);
+
+	World *world = new World(name, p_message);
 
 	// generate all data assocaited with this world through serialising from file
 	world->Generate(p_vkEngine);

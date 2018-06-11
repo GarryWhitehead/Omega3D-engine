@@ -3,6 +3,7 @@
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/TerrainUtility.h"
 #include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/VkDescriptors.h"
 #include <string>
 #include <vector>
 #include "glm.hpp"
@@ -20,11 +21,6 @@ public:
 	const uint32_t PATCH_SIZE = 128;		// 64 X 64 triangles
 	const float UV_SCALE = 1.0f;
 
-	// tessellation shader factors
-	const float TESSELLATION_DISP_FACTOR = 75.0f;
-	const float TESSELLATION_FACTOR = 0.75f;
-	const float TESSELLATION_EDGE_SIZE = 40.0f;
-
 	struct ImageInfo
 	{
 		VulkanTexture terrain;
@@ -40,6 +36,7 @@ public:
 		float disFactor;
 		float tessFactor;
 		float tessEdgeSize;
+		float _pad0;
 	};
 
 	struct TerrainData
@@ -57,8 +54,9 @@ public:
 			std::vector<TerrainUbo> uboData;
 		} data;
 
-		VulkanUtility::DescriptorInfo descrInfo;
+		VkDescriptors descrInfo;
 		VulkanUtility::PipeLlineInfo pipeline;
+		VkPipeline wirePipeline;
 		
 	};
 
@@ -75,7 +73,6 @@ public:
 	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
 	void PrepareTerrainData();
 	float GetHeightmapPixel(uint32_t x, uint32_t y);
-	void PrepareUBOBuffer();
 
 	friend class VulkanEngine;
 
