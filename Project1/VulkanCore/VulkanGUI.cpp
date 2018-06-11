@@ -198,7 +198,7 @@ void VulkanGUI::NewFrame()
 	ImGui::InputFloat3("position", &camera_pos.x, 2);
 
 	// settings window
-	ImGui::SetNextWindowSize(ImVec2(200, 200), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowSize(ImVec2(400, 400), ImGuiSetCond_FirstUseEver);
 	ImGui::Begin("OmegaEngine Settings");
 
 	// display wireframe/filled polygons
@@ -249,10 +249,9 @@ void VulkanGUI::NewFrame()
 		}
 
 	}
-
 	ImGui::End();
 
-	ImGui::SetNextWindowPos(ImVec2(650, 200), ImGuiSetCond_FirstUseEver);
+	ImGui::SetNextWindowPos(ImVec2(650, 20), ImGuiSetCond_FirstUseEver);
 	//ImGui::ShowTestWindow();
 
 	ImGui::Render();
@@ -361,7 +360,6 @@ void VulkanGUI::Update()
 	// update mouse button state
 	guiIO.MouseDown[0] = p_input->ButtonState(GLFW_MOUSE_BUTTON_LEFT);
 	guiIO.MouseDown[1] = p_input->ButtonState(GLFW_MOUSE_BUTTON_RIGHT);
-	
 }
 
 void VulkanGUI::Init(VkMemoryManager *p_vkMemory)

@@ -14,7 +14,7 @@ class InputSystem : public System
 public:
 
 	InputSystem(World *world, MessageHandler *msg, GLFWwindow *window, uint32_t width, uint32_t height);
-	~InputSystem();
+	virtual ~InputSystem();
 
 	void Update() override;
 	void Destroy() override;

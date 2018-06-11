@@ -13,7 +13,7 @@ class GraphicsSystem : public System
 
 public:
 	GraphicsSystem(World *world, MessageHandler *msg, VulkanEngine *engine);
-	~GraphicsSystem();
+	virtual ~GraphicsSystem();
 
 	void Init();
 	void Update() override;

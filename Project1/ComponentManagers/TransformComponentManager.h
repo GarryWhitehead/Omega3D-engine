@@ -26,7 +26,7 @@ public:
 	};
 
 	TransformComponentManager();
-	~TransformComponentManager();
+	virtual ~TransformComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;
 	void Update() override;

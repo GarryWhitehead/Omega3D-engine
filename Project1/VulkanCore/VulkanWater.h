@@ -86,7 +86,7 @@ public:
 	};
 
 	VulkanWater(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanWater();
+	virtual ~VulkanWater();
 	
 	void Init();
 	void Update(int acc_time) override;

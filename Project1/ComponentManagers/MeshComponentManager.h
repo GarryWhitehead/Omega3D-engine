@@ -90,7 +90,7 @@ public:
 	};
 
 	MeshComponentManager();
-	~MeshComponentManager();
+	virtual ~MeshComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;
 	void Update() override;

@@ -9,7 +9,7 @@ class VulkanTexture
 public:
 
 	VulkanTexture();
-	~VulkanTexture();
+	virtual ~VulkanTexture();
 	
 	void Destroy(VkDevice device);
 	void PrepareImage(const VkFormat f, const VkSamplerAddressMode samplerMode, const VkImageUsageFlags usageFlags, uint32_t w, uint32_t h, VulkanEngine *vkEngine, float maxAnisotropy = 1.0f, bool createSampler = true);

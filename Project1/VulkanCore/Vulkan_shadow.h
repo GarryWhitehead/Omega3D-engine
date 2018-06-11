@@ -32,7 +32,7 @@ public:
 	};
 
 	VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemoryManager *manager);
-	~VulkanShadow();
+	virtual ~VulkanShadow();
 
 	void Init();
 	void Update(int acc_time) override;

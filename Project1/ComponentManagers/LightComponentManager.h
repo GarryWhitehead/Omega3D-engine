@@ -34,7 +34,7 @@ public:
 	};
 
 	LightComponentManager();
-	~LightComponentManager();
+	virtual ~LightComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;
 	void Update() override;

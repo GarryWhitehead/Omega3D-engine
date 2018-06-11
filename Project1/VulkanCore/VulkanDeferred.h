@@ -90,7 +90,7 @@ public:
 	};
 
 	VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanDeferred();
+	virtual ~VulkanDeferred();
 
 	void Init();
 	void Update(int acc_time) override;

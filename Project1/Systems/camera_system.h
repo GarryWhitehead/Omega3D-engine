@@ -29,7 +29,7 @@ public:
 	const float MOUSE_SENSITIVITY = 0.1f;
 
 	CameraSystem(World *world, MessageHandler *msg, glm::vec3 cameraPos, glm::vec3 cameraFront);
-	~CameraSystem();
+	virtual ~CameraSystem();
 
 	void Update() override;
 	void Destroy() override;

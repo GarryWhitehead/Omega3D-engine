@@ -112,7 +112,7 @@ public:
 	};
 
 	VulkanModel(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanModel();
+	virtual ~VulkanModel();
 
 	void Init();
 	void Update(int acc_time) override;

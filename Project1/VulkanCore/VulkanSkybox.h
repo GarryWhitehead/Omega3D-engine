@@ -26,7 +26,7 @@ public:
 	};
 
 	VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanSkybox();
+	virtual ~VulkanSkybox();
 
 	void Init();
 	void Update(int acc_time) override;

@@ -61,7 +61,7 @@ public:
 	};
 
 	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanTerrain();
+	virtual ~VulkanTerrain();
 
 	void Init();
 	void Update(int acc_time) override;

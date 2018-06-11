@@ -53,7 +53,7 @@ public:
 	};
 
 	VkPostProcess(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VkPostProcess();
+	virtual ~VkPostProcess();
 
 	void Init() override;
 	void Update(int acc_time) override;

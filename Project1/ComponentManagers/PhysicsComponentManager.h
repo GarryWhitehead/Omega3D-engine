@@ -34,7 +34,7 @@ public:
 	};
 
 	PhysicsComponentManager();
-	~PhysicsComponentManager();
+	virtual ~PhysicsComponentManager();
 	
 	void Init(World *world, ObjectManager *manager) override;
 	void Update() override;

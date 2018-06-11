@@ -22,12 +22,11 @@ public:
 	};
 
 	VulkanPBR(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanPBR();
+	virtual ~VulkanPBR();
 
 	void Init();
 	void Update(int acc_time) override;
 	void Destroy() override;
-	void PrepareLUTRenderpass();
 	void PrepareLUTFramebuffer();
 	void PrepareLUTPipeline();
 	void GenerateLUTCmdBuffer();

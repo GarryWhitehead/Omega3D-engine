@@ -32,7 +32,7 @@ public:
 	};
 
 	AnimationComponentManager();
-	~AnimationComponentManager();
+	virtual ~AnimationComponentManager();
 
 	void Init(World *world, ObjectManager *manager) override;
 	void Update() override;

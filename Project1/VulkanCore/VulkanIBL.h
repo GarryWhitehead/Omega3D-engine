@@ -51,7 +51,7 @@ public:
 	};
 
 	VulkanIBL(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
-	~VulkanIBL();
+	virtual ~VulkanIBL();
 
 	void Init();
 	void Update(int acc_time) override;
