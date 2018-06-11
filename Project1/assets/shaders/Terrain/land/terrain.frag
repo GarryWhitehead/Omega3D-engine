@@ -56,9 +56,9 @@ void main()
 	
 	outNormal = vec4(inNormal, 0.0);
 
-	outBump = vec4(0.0, 0.0, -1.0, 1.0);
+	outBump = vec4(0.0);
 
-	outAo = 0.1;
+	outAo = 0.0;
 	outMetallic.r = 0.0;
 	outRoughness.r = 0.5;
 

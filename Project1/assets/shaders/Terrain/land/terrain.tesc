@@ -12,6 +12,7 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	float disFactor;
 	float tessFactor;
 	float tessEdgeSize;	
+	float _pad0;
 } ubo;
 
 layout (set = 1, binding = 1) uniform sampler2D heightSampler;
@@ -35,7 +36,7 @@ vec4 WorldToNormalSpace(vec4 vert)
 
 float ConvertToTessFactor(vec4 vert0, vec4 vert1)
 {
-	vec4 mid = (vert0 + vert1) / 2.0;
+	vec4 mid = 0.5 * (vert0 + vert1);
 	float dist = distance(vert0, vert1) / 2.0;
 	
 	vec4 view = ubo.viewMatrix * ubo.modelMatrix * mid;
