@@ -24,9 +24,6 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VulkanCore\vulkan_core.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Systems\Input_system.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -150,15 +147,21 @@
     <ClCompile Include="utility\message_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VulkanCore\VkSwapChain.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanInstance.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VulkanCore\VulkanDevice.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\file_log.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VulkanCore\vulkan_core.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Systems\input_system.h">
@@ -282,6 +285,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\message_handler.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VkSwapChain.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanDevice.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VulkanCore\VulkanInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

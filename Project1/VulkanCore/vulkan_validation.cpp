@@ -3,9 +3,10 @@
 #include "VulkanCore/vulkan_tools.h"
 #include <iostream>
 
+VkDebugReportCallbackEXT ValidationLayers::m_debug_callback;
+
 ValidationLayers::ValidationLayers() 
 {
-	
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
@@ -36,7 +37,6 @@ bool ValidationLayers::FindValidationLayers()
 				success = true;
 		}
 	}
-
 	return success;
 }
 
@@ -47,7 +47,7 @@ void ValidationLayers::InitDebugCallBack(VkInstance instance)
 	create_info.flags = VK_DEBUG_REPORT_ERROR_BIT_EXT | VK_DEBUG_REPORT_WARNING_BIT_EXT;
 	create_info.pfnCallback = DebugCallBack;
 
-	VK_CHECK_RESULT(this->CreateDebugReportCallBackEXT(instance, &create_info, nullptr, &m_debug_callback));
+	VK_CHECK_RESULT(CreateDebugReportCallBackEXT(instance, &create_info, nullptr, &m_debug_callback));
 }
 
 VkResult ValidationLayers::CreateDebugReportCallBackEXT(VkInstance instance, const VkDebugReportCallbackCreateInfoEXT* create_info_p, const VkAllocationCallbacks* alloc_p, VkDebugReportCallbackEXT* callback_p)
@@ -68,5 +68,5 @@ void ValidationLayers::DestroyDebugReportCallBackEXT(VkInstance instance, VkDebu
 
 void ValidationLayers::ReleaseValidation(VkInstance instance)
 {
-	this->DestroyDebugReportCallBackEXT(instance, m_debug_callback, nullptr);
+	DestroyDebugReportCallBackEXT(instance, m_debug_callback, nullptr);
 }

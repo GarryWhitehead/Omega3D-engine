@@ -1,4 +1,10 @@
 #include "VulkanCore/VulkanEngine.h"
+#include "VulkanCore/VulkanInstance.h"
+#include "VulkanCore/VulkanDevice.h"
+#include "VulkanCore/VkSwapChain.h"
+#include "VulkanCore/VulkanRenderPass.h"
+#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/vulkan_validation.h"
 #include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/vulkan_terrain.h"
 #include "VulkanCore/vulkan_shadow.h"
@@ -13,55 +19,62 @@
 #include "VulkanCore/VulkanGUI.h"
 #include "Systems/input_system.h"
 #include "Engine/World.h"
+#include "Engine/Engine.h"
 #include "utility/file_log.h"
 
 
 VulkanEngine::VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler) :
-	VulkanCore(window),
 	p_message(msgHandler),
 	drawStateChanged(true),
 	vk_prepared(false),
 	displayGUI(true)
 {	
-	vkUtility = new VulkanUtility(this);
+	// initialise all the core vulkan components
+	// create a new instance of vulkan
+	p_vkInstance = new VulkanInstance();
+	p_vkInstance->CreateInstance();
+	p_vkInstance->PrepareWindowSurface(window);			// prepare KHR surface
+
+	// init new physical device, queues for graphics, presentation and compute
+	p_vkDevice = new VulkanDevice();
+	p_vkDevice->Init(p_vkInstance->instance, p_vkInstance->surface);
+
+	// prepare swap chain and attached image views
+	p_vkSwapChain = new VkSwapChain(p_vkInstance->surface, p_vkDevice->device, window);
+	p_vkSwapChain->Init(p_vkDevice, p_vkInstance->instance, Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT);
+
 	p_vkMemory = new VkMemoryManager(this);
 }
 
 VulkanEngine::~VulkanEngine()
 {
+	Destroy();
 }
 
 void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 {
+	// begin by adding vulakn dependencies - these must be loaded in order
+	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanShadow)), new VulkanShadow(this, p_vkMemory)));
+	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanPBR)), new VulkanPBR(this, p_vkMemory)));
+	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanIBL)), new VulkanIBL(this, p_vkMemory)));
+	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanDeferred)), new VulkanDeferred(this, p_vkMemory)));
+	m_vkModules.insert(std::make_pair(std::type_index(typeid(VkPostProcess)), new VkPostProcess(this, p_vkMemory)));
+
+	// add optional vk modules defined by the user
 	for (auto mod : modules) {
 
 		switch (mod) {
-			case VkModId::VKMOD_SHADOW_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanShadow)), new VulkanShadow(this, vkUtility, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_PBR_ID: 
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanPBR)), new VulkanPBR(this, vkUtility, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_IBL_ID:				
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanIBL)), new VulkanIBL(this, vkUtility, p_vkMemory)));
-				break;
 			case VkModId::VKMOD_SKYBOX_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanSkybox)), new VulkanSkybox(this, vkUtility, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_DEFERRED_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanDeferred)), new VulkanDeferred(this, vkUtility, p_vkMemory)));
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanSkybox)), new VulkanSkybox(this, p_vkMemory)));
 				break;
 			case VkModId::VKMOD_TERRAIN_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanTerrain)), new VulkanTerrain(this, vkUtility, p_vkMemory)));
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanTerrain)), new VulkanTerrain(this, p_vkMemory)));
 				break;
 			case VkModId::VKMOD_WATER_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanWater)), new VulkanWater(this, vkUtility, p_vkMemory)));
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanWater)), new VulkanWater(this, p_vkMemory)));
 				break;
 			case VkModId::VKMOD_MODEL_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanModel)), new VulkanModel(this, vkUtility, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_POSTPROCESS_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VkPostProcess)), new VkPostProcess(this, vkUtility, p_vkMemory)));
+				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanModel)), new VulkanModel(this, p_vkMemory)));
 				break;
 		}
 	}
@@ -84,8 +97,8 @@ void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, V
 
 void VulkanEngine::PrepareFinalFrameBuffer(bool prepareFrameBufferOnly)
 {
-	uint32_t width = m_surface.extent.width;
-	uint32_t height = m_surface.extent.height;
+	uint32_t width = p_vkSwapChain->surfaceInfo.extent.width;
+	uint32_t height = p_vkSwapChain->surfaceInfo.extent.height;
 
 	if (!prepareFrameBufferOnly) {
 
@@ -97,37 +110,38 @@ void VulkanEngine::PrepareFinalFrameBuffer(bool prepareFrameBufferOnly)
 			VK_FORMAT_D24_UNORM_S8_UINT
 		};
 
-		VkFormat depthFormat = vkUtility->FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
-		m_depthImage.PrepareImage(depthFormat, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, width, height, this, false);
+		VkFormat depthFormat = VulkanUtility::FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, p_vkDevice->physDevice);
+		m_depthImage = new VulkanTexture(p_vkDevice->physDevice, p_vkDevice->device);
+		m_depthImage->PrepareImage(depthFormat, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, width, height, 0, false);
 
 		// create presentation renderpass/framebuffer
-		m_renderpass.AddAttachment(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, m_surface.format.format);
-		m_renderpass.AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthFormat);
+		m_renderpass = new VulkanRenderPass(p_vkDevice->device);
+		m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkSwapChain->surfaceInfo.format.format);
+		m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthFormat);
 
-		m_renderpass.AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
-		m_renderpass.AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
-		m_renderpass.PrepareRenderPass(m_device.device);
-
+		m_renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+		m_renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+		m_renderpass->PrepareRenderPass(p_vkDevice->device);
 	}
 
 	std::array<VkImageView, 2> attachments = {};
-	m_frameBuffers.resize(m_swapchain.imageCount);
+	m_frameBuffers.resize(p_vkSwapChain->imageCount);
 
 	for (uint32_t c = 0; c < m_frameBuffers.size(); ++c) {
 
-		attachments[0] = m_imageView.images[c];
-		attachments[1] = m_depthImage.imageView;
+		attachments[0] = p_vkSwapChain->imageViews[c];
+		attachments[1] = m_depthImage->imageView;
 
 		VkFramebufferCreateInfo frameInfo = {};
 		frameInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		frameInfo.renderPass = m_renderpass.renderpass;
+		frameInfo.renderPass = m_renderpass->renderpass;
 		frameInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
 		frameInfo.pAttachments = attachments.data();
 		frameInfo.width = width;
 		frameInfo.height = height;
 		frameInfo.layers = 1;
 
-		VK_CHECK_RESULT(vkCreateFramebuffer(m_device.device, &frameInfo, nullptr, &m_frameBuffers[c]));
+		VK_CHECK_RESULT(vkCreateFramebuffer(p_vkDevice->device, &frameInfo, nullptr, &m_frameBuffers[c]));
 	}
 }
 
@@ -137,7 +151,7 @@ void VulkanEngine::GenerateFinalCmdBuffer()
 	if (!m_cmdBuffers.empty()) {
 
 		for (uint32_t c = 0; c < m_cmdBuffers.size(); ++c) {
-			vkFreeCommandBuffers(m_device.device, m_cmdPool, 1, &m_cmdBuffers[c]);
+			vkFreeCommandBuffers(p_vkDevice->device, m_cmdPool, 1, &m_cmdBuffers[c]);
 		}
 	}
 
@@ -150,15 +164,15 @@ void VulkanEngine::GenerateFinalCmdBuffer()
 
 	for (uint32_t c = 0; c < m_cmdBuffers.size(); ++c) {
 
-		m_cmdBuffers[c] = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool);
+		m_cmdBuffers[c] = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, m_cmdPool, p_vkDevice->device);
 
 		VkRenderPassBeginInfo renderPassInfo = {};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.framebuffer = m_frameBuffers[c];
-		renderPassInfo.renderPass = m_renderpass.renderpass;
+		renderPassInfo.renderPass = m_renderpass->renderpass;
 		renderPassInfo.renderArea.offset = { 0,0 };
-		renderPassInfo.renderArea.extent.width = m_surface.extent.width;
-		renderPassInfo.renderArea.extent.height = m_surface.extent.height;
+		renderPassInfo.renderArea.extent.width = p_vkSwapChain->surfaceInfo.extent.width;
+		renderPassInfo.renderArea.extent.height = p_vkSwapChain->surfaceInfo.extent.height;
 		renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 		renderPassInfo.pClearValues = clearValues.data();
 
@@ -203,7 +217,7 @@ void VulkanEngine::DrawScene()
 
 void VulkanEngine::SubmitFrame()
 {
-	uint32_t imageIndex = vkUtility->InitRenderFrame();		// current swapcahin presentation index
+	uint32_t imageIndex = VulkanUtility::InitRenderFrame(p_vkDevice->device, p_vkSwapChain->swapChain, p_vkSwapChain->semaphore.image);		// current swapcahin presentation index
 	
 	// out of date swap chains are usually due to a window resize
 	if (imageIndex == VK_ERROR_OUT_OF_DATE_KHR) {
@@ -238,24 +252,24 @@ void VulkanEngine::SubmitFrame()
 	submit_info.commandBufferCount = 1;
 
 	// wait for the shadow offscreen buffer to finish	
-	submit_info.pWaitSemaphores = &m_semaphore.image;
+	submit_info.pWaitSemaphores = &p_vkSwapChain->semaphore.image;
 	submit_info.pSignalSemaphores = &vkShadow->m_shadowInfo.semaphore;
 	submit_info.pCommandBuffers = &vkShadow->m_cmdBuffer;
-	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
+	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
 	// wait for the deferred offscreen buffer
 	submit_info.pWaitSemaphores = &vkShadow->m_shadowInfo.semaphore;
 	submit_info.pSignalSemaphores = &vkDeferred->m_deferredInfo.semaphore;
 	submit_info.pCommandBuffers = &vkDeferred->m_deferredInfo.cmdBuffer;
-	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
+	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
 	// post process/swap chain presentation submit
 	submit_info.pWaitSemaphores = &vkDeferred->m_deferredInfo.semaphore;
-	submit_info.pSignalSemaphores = &m_semaphore.render;
+	submit_info.pSignalSemaphores = &p_vkSwapChain->semaphore.render;
 	submit_info.pCommandBuffers = &m_cmdBuffers[imageIndex];
-	VK_CHECK_RESULT(vkQueueSubmit(m_queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
+	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
-	vkUtility->SubmitFrame(imageIndex);
+	VulkanUtility::SubmitFrame(imageIndex, p_vkSwapChain->swapChain, p_vkSwapChain->semaphore.render, p_vkDevice->queue.presentQueue);
 }
 
 void VulkanEngine::Render()
@@ -290,10 +304,10 @@ void VulkanEngine::Init(World *world)
 	p_world = world;
 
 	// Initialise the  graphics command pool used by all modules at present
-	m_cmdPool = vkUtility->InitCommandPool(m_queue.graphIndex);
+	m_cmdPool = VulkanUtility::InitCommandPool(p_vkDevice->queue.graphIndex, p_vkDevice->device);
 
 	// and a compute command pool
-	m_computeCmdPool = vkUtility->InitCommandPool(m_queue.computeIndex);
+	m_computeCmdPool = VulkanUtility::InitCommandPool(p_vkDevice->queue.computeIndex, p_vkDevice->device);
 
 	// setup some initial memory blocks - one large 256mb block for static local data and one smaller 
 	// host-visible memory block for dynamic buffers such as uniform buffers
@@ -321,17 +335,22 @@ void VulkanEngine::Destroy()
 		delete mod.second;				// all modules will be destroyed via the destructor
 	}
 
-	m_depthImage.Destroy(m_device.device);
-	vkDestroyCommandPool(m_device.device, m_cmdPool, nullptr);			// graphics cmd pool
-	vkDestroyCommandPool(m_device.device, m_computeCmdPool, nullptr);	// compute cmd pool
+	vkDestroyCommandPool(p_vkDevice->device, m_cmdPool, nullptr);			// graphics cmd pool
+	vkDestroyCommandPool(p_vkDevice->device, m_computeCmdPool, nullptr);	// compute cmd pool
 
 	delete p_vkGUI;
 	delete p_vkMemory;		// will de-allocate all mem blocks on destruction
-	delete vkUtility;
+
+	// delete the core
+	delete p_vkSwapChain;
+
+	// destroy the validation layers
+	ValidationLayers::ReleaseValidation(p_vkInstance->instance);
+	delete p_vkDevice;
+	delete p_vkInstance;
 
 	// tidy up the shared poiners
 	p_world = nullptr;
-	p_graphicsSystem = nullptr;
 	p_message = nullptr;
 	p_vkGUI = nullptr;
 	p_vkMemory = nullptr;
@@ -340,22 +359,22 @@ void VulkanEngine::Destroy()
 void VulkanEngine::DestroyPresentation()
 {
 	for (uint32_t c = 0; c < m_frameBuffers.size(); ++c) {
-		vkDestroyFramebuffer(m_device.device, m_frameBuffers[c], nullptr);
+		vkDestroyFramebuffer(p_vkDevice->device, m_frameBuffers[c], nullptr);
 	}
 
-	vkFreeCommandBuffers(m_device.device, m_cmdPool, static_cast<uint32_t>(m_cmdBuffers.size()), m_cmdBuffers.data());
+	vkFreeCommandBuffers(p_vkDevice->device, m_cmdPool, static_cast<uint32_t>(m_cmdBuffers.size()), m_cmdBuffers.data());
 }
 
 void VulkanEngine::PrepareNewSwapFrame()
 {
-	VK_CHECK_RESULT(vkDeviceWaitIdle(m_device.device));
+	VK_CHECK_RESULT(vkDeviceWaitIdle(p_vkDevice->device));
 	
 	// destroy frame/command buffers associated with the swapchain
 	DestroyPresentation();
-	DestroySwapChain();			// destroy the actual swapchain and image views
+	p_vkSwapChain->Destroy();			// destroy the actual swapchain and image views
 
 	// re-initialise the swap chain 
-	InitSwapChain();
+	p_vkSwapChain->Init(p_vkDevice, p_vkInstance->instance, Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT);
 
 	// and re-initialise the framebuffers and cmdbuffers
 	PrepareFinalFrameBuffer(true);
@@ -438,6 +457,66 @@ float VulkanEngine::tessEdgeSize() const
 	return p_vkGUI->m_guiSettings.edgeFactor;
 }
 
+// Getter/Setter functions ==================================================================================================================================================================================================================================
 
+VkDevice VulkanEngine::GetDevice() const 
+{ 
+	return p_vkDevice->device; 
+}
+
+VkPhysicalDevice VulkanEngine::GetPhysicalDevice() const
+{ 
+	return p_vkDevice->physDevice;
+}
+
+uint32_t VulkanEngine::GetSurfaceExtentW() 
+{ 
+	return p_vkSwapChain->surfaceInfo.extent.width; 
+}
+
+uint32_t VulkanEngine::GetSurfaceExtentH() 
+{ 
+	return p_vkSwapChain->surfaceInfo.extent.height; 
+}
+
+uint32_t VulkanEngine::GetGraphQueueIndex() const 
+{
+	return p_vkDevice->queue.graphIndex;
+}
+
+VkQueue VulkanEngine::GetGraphQueue() const 
+{
+	return p_vkDevice->queue.graphQueue; 
+}
+
+uint32_t VulkanEngine::GetComputeQueueIndex() const
+{ 
+	return p_vkDevice->queue.computeIndex;
+}
+
+VkQueue VulkanEngine::GetComputeQueue() const 
+{ 
+	return p_vkDevice->queue.computeQueue;
+}
+
+uint32_t VulkanEngine::GetSwapChainImageCount() const 
+{ 
+	return p_vkSwapChain->imageCount; 
+}
+
+VkImageView VulkanEngine::GetImageView(const uint32_t index) const 
+{ 
+	return p_vkSwapChain->images[index];
+}
+
+VkFormat VulkanEngine::GetSurfaceFormat() const 
+{ 
+	return p_vkSwapChain->surfaceInfo.format.format; 
+}
+
+VkRenderPass VulkanEngine::GetFinalRenderPass() const 
+{
+	return m_renderpass->renderpass; 
+}
 
 

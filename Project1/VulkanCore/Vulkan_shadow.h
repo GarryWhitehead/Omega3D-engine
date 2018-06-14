@@ -1,14 +1,15 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VulkanRenderpass.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VkDescriptors.h"
+
 #include <array>
 
 class VulkanEngine;
 class CameraSystem;
 class VkMemoryManager;
+class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 
 class VulkanShadow : public VulkanModule
 {
@@ -31,12 +32,11 @@ public:
 		glm::mat4 mvp[256];
 	};
 
-	VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemoryManager *manager);
+	VulkanShadow(VulkanEngine* engine, VkMemoryManager *manager);
 	virtual ~VulkanShadow();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
 
 	void PrepareShadowFrameBuffer();
 	void PrepareShadowDescriptors();
@@ -50,12 +50,14 @@ public:
 
 private:
 
+	void Destroy() override;
+
 	struct OffscreenInfo
 	{
-		VulkanRenderPass renderpass;
+		VulkanRenderPass *renderpass;
 		VkSemaphore semaphore;
 
-		VkDescriptors descriptors;
+		VkDescriptors *descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 
 		VkMemoryManager::SegmentInfo uboBuffer;
@@ -64,7 +66,7 @@ private:
 
 	} m_shadowInfo;
 
-	VulkanTexture m_depthImage;
+	VulkanTexture *p_depthImage;
 	VkCommandBuffer m_cmdBuffer;
 
 	VulkanEngine *p_vkEngine;

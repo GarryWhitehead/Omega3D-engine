@@ -3,16 +3,17 @@
 // 
 #include <array>
 #include "glm.hpp"
-#include "VulkanCore/VulkanRenderPass.h"
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VkDescriptors.h"
+
 
 class VulkanEngine;
 class vkFFT;
 class CameraSystem;
 class VkMemoryManager;
+class VulkanTexture;
+class VulkanRenderPass;
+class VkDescriptors;
 
 class VulkanWater : public VulkanModule
 {
@@ -36,7 +37,7 @@ public:
 	struct WaterInfo
 	{
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VkDescriptors descriptors;
+		VkDescriptors *descriptors;
 		std::array<VkPipelineShaderStageCreateInfo, 4> shader;
 		VkPipeline wirePipeline;			// seperate pipeline for the wireframe draw
 
@@ -48,7 +49,7 @@ public:
 		uint32_t indexCount;
 
 		// textures
-		VulkanTexture noiseImage;
+		VulkanTexture *noiseImage;
 	};
 
 	struct TerrainTeseUbo
@@ -85,12 +86,11 @@ public:
 		float patchLength;
 	};
 
-	VulkanWater(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanWater(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanWater();
 	
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
 
 	// rendering functions
 	void PrepareBuffers();
@@ -107,6 +107,8 @@ public:
 	void GenerateH0Map();
 
 private:
+
+	void Destroy() override;
 
 	VulkanEngine *p_vkEngine;
 	vkFFT *p_FFT;

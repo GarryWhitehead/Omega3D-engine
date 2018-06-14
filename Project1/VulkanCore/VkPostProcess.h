@@ -1,13 +1,11 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/vulkan_utility.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VulkanRenderpass.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VkDescriptors.h"
 #include "glm.hpp"
 
 class VulkanEngine;
+class VkDescriptors;
 
 class VkPostProcess : public VulkanModule
 {
@@ -45,14 +43,14 @@ public:
 
 	struct PostProcessInfo
 	{
-		VkDescriptors descriptors;
+		VkDescriptors *descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		VkMemoryManager::SegmentInfo uboBufferVS;
 		VkMemoryManager::SegmentInfo uboBufferFS;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 	};
 
-	VkPostProcess(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VkPostProcess();
 
 	void Init() override;

@@ -3,12 +3,12 @@
 // 
 // 
 
-#include "VulkanCore/Vulkan_Utility.h"
+#include "VulkanCore/Vulkan_tools.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VkDescriptors.h"
 
 class VulkanEngine;
+class VulkanTexture;
+class VkDescriptors;
 
 class vkFFT 
 {
@@ -27,7 +27,7 @@ public:
 	struct FFTstageInfo
 	{
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VkDescriptors descriptors;
+		VkDescriptors *descriptors;
 		VkPipelineShaderStageCreateInfo shader;
 		VkMemoryManager::SegmentInfo uboBuffer;
 	};
@@ -101,6 +101,8 @@ public:
 
 private:
 
+	void Destroy();			// private to ensure the class isn't destroyed twice
+
 	VulkanEngine *p_vkEngine;
 	VkMemoryManager *p_vkMemory;
 
@@ -131,9 +133,9 @@ private:
 	// texture data
 	struct ImageInfo
 	{
-		VulkanTexture butterfly;
-		VulkanTexture displacement;
-		VulkanTexture normal;
+		VulkanTexture *butterfly;
+		VulkanTexture *displacement;
+		VulkanTexture *normal;
 	} m_images;
 
 	// command buffer and fences

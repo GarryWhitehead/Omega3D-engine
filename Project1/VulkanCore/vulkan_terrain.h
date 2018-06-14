@@ -1,9 +1,9 @@
 #pragma once
+#include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/TerrainUtility.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VkDescriptors.h"
+#include <vector>
 #include <string>
 #include <vector>
 #include "glm.hpp"
@@ -12,6 +12,9 @@ class VulkanEngine;
 class VulkanShadow;
 class CameraSystem;
 class VkMemoryManager;
+class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 
 class VulkanTerrain : public VulkanModule
 {
@@ -23,8 +26,8 @@ public:
 
 	struct ImageInfo
 	{
-		VulkanTexture terrain;
-		VulkanTexture heightMap;
+		VulkanTexture *terrain;
+		VulkanTexture *heightMap;
 	};
 
 	struct TerrainUbo
@@ -54,18 +57,17 @@ public:
 			std::vector<TerrainUbo> uboData;
 		} data;
 
-		VkDescriptors descrInfo;
+		VkDescriptors *descrInfo;
 		VulkanUtility::PipeLlineInfo pipeline;
 		VkPipeline wirePipeline;
 		
 	};
 
-	VulkanTerrain(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanTerrain(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanTerrain();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
 
 	void LoadTerrainTextures();
 	void PrepareTerrainDescriptorSets();
@@ -77,6 +79,8 @@ public:
 	friend class VulkanEngine;
 
 protected:
+
+	void Destroy() override;
 
 	struct HeightmapInfo
 	{

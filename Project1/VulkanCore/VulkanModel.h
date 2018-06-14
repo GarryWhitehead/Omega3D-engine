@@ -1,11 +1,13 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VkDescriptors.h"
 #include "ComponentManagers/MeshComponentManager.h"
+#include <vector>
 
 class VulkanEngine;
+class VkDescriptors;
+class VulkanTexture;
 class CameraSystem;
 class VkMemoryManager;
 
@@ -75,11 +77,11 @@ public:
 	struct DummyTextures
 	{
 		// dummy textures
-		VulkanTexture diffuse;
-		VulkanTexture normal;
-		VulkanTexture roughness;
-		VulkanTexture metallic;
-		VulkanTexture ao;
+		VulkanTexture *diffuse;
+		VulkanTexture *normal;
+		VulkanTexture *roughness;
+		VulkanTexture *metallic;
+		VulkanTexture *ao;
 	};
 
 	struct Material
@@ -92,15 +94,24 @@ public:
 
 		struct Textures
 		{
-			VulkanTexture diffuse;
-			VulkanTexture specular;			// same as metallic
-			VulkanTexture normal;
-			VulkanTexture roughness;		// PBR
-			VulkanTexture metallic;			// PBR
-			VulkanTexture ao;				// PBR
+			Textures() :
+				diffuse(nullptr),
+				specular(nullptr),
+				normal(nullptr),
+				roughness(nullptr),
+				metallic(nullptr),
+				ao(nullptr)
+			{}
+
+			VulkanTexture *diffuse;
+			VulkanTexture *specular;		
+			VulkanTexture *normal;
+			VulkanTexture *roughness;		// PBR
+			VulkanTexture *metallic;		// PBR
+			VulkanTexture *ao;				// PBR
 		}  texture;
 
-		VkDescriptors descriptor;			// descriptor layout the same for all materials, only imageview/samplers differ
+		VkDescriptors *descriptor;			// descriptor layout the same for all materials, only imageview/samplers differ
 	};
 
 	struct SsboLayout
@@ -111,12 +122,11 @@ public:
 		glm::mat4 boneTransform[MAX_BONES];
 	};
 
-	VulkanModel(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanModel(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanModel();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
 
 	void PrepareMaterialDescriptorSets(Material *material);
 	void PreparePipeline();
@@ -126,7 +136,7 @@ public:
 	void ImportDummyTextures();
 	void ProcessMeshes();
 	void ProcessMaterials();
-	void LoadMaterialTexture(MeshComponentManager::OMFMaterial &material, MaterialType type, VulkanTexture &texture);
+	void LoadMaterialTexture(MeshComponentManager::OMFMaterial &material, MaterialType type, VulkanTexture *texture);
 	uint8_t FindMaterialIndex(std::string matName);
 
 	// helper functions
@@ -139,6 +149,8 @@ public:
 	friend class VulkanEngine;
 
 private:
+
+	void Destroy() override;
 
 	VulkanEngine *p_vkEngine;
 

@@ -2,39 +2,36 @@
 #include <vector>
 #include <unordered_map>
 #include <typeindex>
-#include "VulkanCore/vulkan_core.h"
-#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/vulkan_utility.h"
-#include "VulkanCore/VulkanRenderPass.h"
 #include "utility/message_handler.h"
 
 // forward class declerations
+class VulkanDevice;
+class VulkanInstance;
+class VulkanRenderPass;
+class VulkanTexture;
+class VkSwapChain;
+class ValidationLayers;
 class VulkanShadow;
 class VulkanModel;
 class VulkanDeferred;
 class VulkanTerrain;
-class CameraSystem;
 class VkMemoryManager;
 class VulkanGUI;
 class VulkanModule;
-class GraphicsSystem;
 class World;
 
-// enum used for specifying which modules to include during generation of the world engine
+// enum used for specifying which modules to optional include during generation of the world engine
 enum class VkModId
 {
 	VKMOD_TERRAIN_ID,
-	VKMOD_SHADOW_ID,
 	VKMOD_MODEL_ID,
-	VKMOD_DEFERRED_ID,
-	VKMOD_PBR_ID,
-	VKMOD_IBL_ID,
 	VKMOD_SKYBOX_ID,
 	VKMOD_WATER_ID,
-	VKMOD_POSTPROCESS_ID
 };
 
-class VulkanEngine : public VulkanCore
+class VulkanEngine
 {
 
 public:
@@ -50,7 +47,6 @@ public:
 	// clean up functions
 	void DestroyPresentation();
 	void PrepareNewSwapFrame();
-	void Destroy();
 
 	// rendering functions - TODO: make these function names a little more obvious and transparent!
 	void Render();
@@ -64,7 +60,6 @@ public:
 	void GenerateFinalCmdBuffer();
 
 	void RegisterVulkanModules(std::vector<VkModId> modules);
-	void RegisterGraphicsSystem(GraphicsSystem *graphics) { assert(graphics != nullptr); p_graphicsSystem = graphics; }
 	
 	// Request the poinetr of a vulkan module held by the engine. Throws an exception if no requested module is found
 	template<typename T>
@@ -75,25 +70,24 @@ public:
 	bool hasModule();
 
 	// helper (getter) functions
-	VkDevice GetDevice() const { return m_device.device; }
-	VkPhysicalDevice GetPhysicalDevice() const { return m_device.physDevice; }
-	uint32_t GetSurfaceExtentW() { return m_surface.extent.width; }
-	uint32_t GetSurfaceExtentH() { return m_surface.extent.height; }
+	VkDevice GetDevice() const;
+	VkPhysicalDevice GetPhysicalDevice() const;
+	uint32_t GetSurfaceExtentW();
+	uint32_t GetSurfaceExtentH();
 	VkCommandPool GetCmdPool() const { return m_cmdPool; }
-	uint32_t GetGraphQueueIndex() const { return m_queue.graphIndex; }
-	VkQueue GetGraphQueue() const { return m_queue.graphQueue; }
-	uint32_t GetComputeQueueIndex() const { return m_queue.computeIndex; }
-	VkQueue GetComputeQueue() const { return m_queue.computeQueue; }
+	uint32_t GetGraphQueueIndex() const;
+	VkQueue GetGraphQueue() const;
+	uint32_t GetComputeQueueIndex() const;
+	VkQueue GetComputeQueue() const;
 	VkCommandPool GetComputeCmdPool() const { return m_computeCmdPool; }
 	VkViewport GetViewPort() const { return m_viewport.viewPort; }
 	VkRect2D GetScissor() const { return m_viewport.scissor; }
-	uint32_t GetSwapChainImageCount() const { return m_swapchain.imageCount; }
-	VkImageView GetImageView(const uint32_t index) const { return m_imageView.images[index]; }
-	VkFormat GetSurfaceFormat() const { return m_surface.format.format; }
+	uint32_t GetSwapChainImageCount() const;
+	VkImageView GetImageView(const uint32_t index) const;
+	VkFormat GetSurfaceFormat() const;
 
 	World* GetCurrentWorld() { return p_world; }
-	GraphicsSystem* RequestGraphicsSystem() { assert(p_graphicsSystem != nullptr); return p_graphicsSystem; }
-	VkRenderPass GetFinalRenderPass() const { return m_renderpass.renderpass; }
+	VkRenderPass GetFinalRenderPass() const;
 	void ClearDrawState() { drawStateChanged = true; }
 
 	// setings
@@ -107,9 +101,9 @@ public:
 	float displacementFactor() const;
 	float tessEdgeSize() const;
 
-	friend class VulkanUtility;
-
 protected:
+
+	void Destroy();
 
 	// private functions for message system
 	std::function<void(Message)> NotifyResponse();
@@ -123,9 +117,12 @@ protected:
 	MessageHandler *p_message;
 	World *p_world;
 	VkMemoryManager *p_vkMemory;
-	VulkanUtility *vkUtility;
-	GraphicsSystem *p_graphicsSystem;		// rather than keep a copy of the graphics system, call the world to obtain this info - SO REMOVE!
 	VulkanGUI *p_vkGUI;
+
+	// pointers to core components
+	VulkanDevice *p_vkDevice;
+	VulkanInstance *p_vkInstance;
+	VkSwapChain *p_vkSwapChain;
 
 	// a map of all the vk modules linked to this world instance 
 	std::unordered_map<std::type_index, VulkanModule*> m_vkModules;
@@ -135,10 +132,10 @@ protected:
 	VkCommandPool m_computeCmdPool;
 
 	// frame buffer and command buffer data for final pass
-	VulkanRenderPass m_renderpass;
+	VulkanRenderPass *m_renderpass;
 	std::vector<VkFramebuffer> m_frameBuffers;
 	std::vector<VkCommandBuffer> m_cmdBuffers;
-	VulkanTexture m_depthImage;
+	VulkanTexture *m_depthImage;
 
 	// states for drawing, displaying info, etc.
 	bool drawStateChanged;

@@ -1,11 +1,13 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VkDescriptors.h"
-#include "VulkanCore/VulkanRenderPass.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "glm.hpp"
 #include <gtc/matrix_transform.hpp>
+#include <vector>
 
+class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 class VulkanEngine;
 class CameraSystem;
 class VkMemoryManager;
@@ -44,18 +46,18 @@ public:
 
 	struct IBLInfo
 	{
-		VulkanTexture cubeImage;
-		VulkanTexture offscreenImage;
-		VulkanRenderPass renderpass;
+		VulkanTexture *cubeImage;
+		VulkanTexture *offscreenImage;
+		VulkanRenderPass *renderpass;
 		VkPipeline pipeline;
 	};
 
-	VulkanIBL(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanIBL(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanIBL();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
+
 	void SetupIBL();
 	void LoadAssets();
 	void PrepareIBLDescriptors();
@@ -68,13 +70,15 @@ public:
 
 private:
 
+	void Destroy() override;
+
 	VulkanEngine * p_vkEngine;
 
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 
-	VkDescriptors m_descriptors;
+	VkDescriptors *m_descriptors;
 
-	VulkanTexture m_cubeImage;
+	VulkanTexture *m_cubeImage;
 	VkPipelineLayout m_pipelineLayout;
 
 	IBLInfo m_irradianceCube;

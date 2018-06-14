@@ -1,8 +1,15 @@
 #pragma once
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
+#include "glm.hpp"
+
+#define GLFW_INCLUDE_VULKAN
+#include "GLFW/glfw3.h"
+
 #include <iostream>
 #include <string>
 #include <assert.h>
-#include "VulkanCore/vulkan_core.h"
+
+#define VULKAN_VALIDATION_DEBUG
 
 std::string errorString(VkResult errorCode);
 

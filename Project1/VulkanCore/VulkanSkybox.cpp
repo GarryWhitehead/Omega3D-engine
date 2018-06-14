@@ -1,4 +1,6 @@
 #include "VulkanSkybox.h"
+#include "VulkanCore/VkDescriptors.h"
+#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
 #include "VulkanCore/VulkanModel.h"
@@ -7,8 +9,8 @@
 #include "Engine/world.h"
 #include "Engine/engine.h"
 
-VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
-	VulkanModule(utility, memory),
+VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VkMemoryManager *memory) :
+	VulkanModule(memory),
 	p_vkEngine(engine)
 {
 	Init();
@@ -16,10 +18,13 @@ VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VulkanUtility *utility, VkMemor
 
 VulkanSkybox::~VulkanSkybox()
 {
+	Destroy();
 }
 
 void VulkanSkybox::PrepareSkyboxDescriptorSets()
 {
+	m_envCube.descriptors = new VkDescriptors(p_vkEngine->GetDevice());
+	
 	auto vkIBL = p_vkEngine->VkModule<VulkanIBL>();
 
 	std::vector<VkDescriptors::LayoutBinding> layoutBind =
@@ -27,7 +32,7 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_VERTEX_BIT },					// bindings for the UBO	
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }			// bindings for the colour image sampler
 	};
-	m_envCube.descriptors.AddDescriptorBindings(layoutBind);
+	m_envCube.descriptors->AddDescriptorBindings(layoutBind);
 
 	std::vector<VkDescriptorBufferInfo> buffInfo =
 	{
@@ -35,10 +40,10 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	};
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ vkIBL->m_cubeImage.texSampler, vkIBL->m_cubeImage.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ vkIBL->m_cubeImage->texSampler, vkIBL->m_cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
 	};
 
-	m_envCube.descriptors.GenerateDescriptorSets(buffInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
+	m_envCube.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
 }
 
 void VulkanSkybox::PrepareSkyboxPipeline()
@@ -61,11 +66,11 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 1> colorAttach = {};
@@ -104,15 +109,15 @@ void VulkanSkybox::PrepareSkyboxPipeline()
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
-	pipelineInfo.pSetLayouts = &m_envCube.descriptors.layout;
+	pipelineInfo.pSetLayouts = &m_envCube.descriptors->layout;
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_envCube.pipeline.layout));
 
 	// sahders for rendering full screen quad
-	m_shader[0] = vkUtility->InitShaders("skybox/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility->InitShaders("skybox/skybox-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = VulkanUtility::InitShaders("skybox/skybox-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_shader[1] = VulkanUtility::InitShaders("skybox/skybox-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, p_vkEngine->GetDevice());
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -143,16 +148,16 @@ void VulkanSkybox::GenerateSkyboxCmdBuffer(VkCommandBuffer cmdBuffer)
 
 	VkDeviceSize offsets[1]{ p_vkModel->GetVertexOffset() };
 
-	VkViewport viewport = vkUtility->InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 1.0f, 1.0f);
+	VkViewport viewport = VulkanUtility::InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 1.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.pipeline);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors.set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors->set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 
-	viewport = vkUtility->InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);
+	viewport = VulkanUtility::InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 }
 
@@ -177,5 +182,8 @@ void VulkanSkybox::Init()
 
 void VulkanSkybox::Destroy()
 {
+	vkDestroyPipeline(p_vkEngine->GetDevice(), m_envCube.pipeline.pipeline, nullptr);
+	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_envCube.pipeline.layout, nullptr);
 
+	delete m_envCube.descriptors;
 }

@@ -5,8 +5,7 @@
 #include <fstream>
 #include "gli.hpp"
 
-VulkanUtility::VulkanUtility(VulkanEngine *engine) :
-	p_vkEngine(engine)
+VulkanUtility::VulkanUtility()
 {
 }
 
@@ -15,17 +14,12 @@ VulkanUtility::~VulkanUtility()
 {
 }
 
-void VulkanUtility::InitVulkanUtility(VulkanEngine *engine)
-{
-	p_vkEngine = engine;
-}
-
 // =====================================================================================================================================================================================================================================================================================================
 //  buffer tools 
 
-void VulkanUtility::CopyBuffer(const VkBuffer src, const VkBuffer dest, const VkDeviceSize size, const VkCommandPool cmdPool, const uint32_t srcOffset, const uint32_t dstOffset)
+void VulkanUtility::CopyBuffer(const VkBuffer src, const VkBuffer dest, const VkDeviceSize size, const VkCommandPool cmdPool, VkQueue graphQueue, VkDevice device, const uint32_t srcOffset, const uint32_t dstOffset)
 {
-	VkCommandBuffer cmdBuffer = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
+	VkCommandBuffer cmdBuffer = CreateCmdBuffer(VK_PRIMARY, VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
 
 	VkBufferCopy copy = {};
 	copy.size = size;
@@ -33,13 +27,13 @@ void VulkanUtility::CopyBuffer(const VkBuffer src, const VkBuffer dest, const Vk
 	copy.srcOffset = srcOffset;
 	vkCmdCopyBuffer(cmdBuffer, src, dest, 1, &copy);
 
-	this->SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->m_queue.graphQueue, p_vkEngine->GetCmdPool());
+	SubmitCmdBufferToQueue(cmdBuffer, graphQueue, cmdPool, device);
 }
 
-uint32_t VulkanUtility::FindMemoryType(const uint32_t type, const VkMemoryPropertyFlags flags)
+uint32_t VulkanUtility::FindMemoryType(const uint32_t type, const VkMemoryPropertyFlags flags, VkPhysicalDevice physDevice)
 {
 	VkPhysicalDeviceMemoryProperties memoryProp;
-	vkGetPhysicalDeviceMemoryProperties(p_vkEngine->m_device.physDevice, &memoryProp);
+	vkGetPhysicalDeviceMemoryProperties(physDevice, &memoryProp);
 
 	for (uint32_t c = 0; c < memoryProp.memoryTypeCount; ++c)
 	{
@@ -54,7 +48,7 @@ uint32_t VulkanUtility::FindMemoryType(const uint32_t type, const VkMemoryProper
 // ========================================================================================================================================================================================================================================================================================================
 // command buffer tools
 
-VkCommandPool VulkanUtility::InitCommandPool(const uint32_t index)
+VkCommandPool VulkanUtility::InitCommandPool(const uint32_t index, VkDevice device)
 {
 	VkCommandPool cmdPool;
 
@@ -63,12 +57,12 @@ VkCommandPool VulkanUtility::InitCommandPool(const uint32_t index)
 	commandInfo.queueFamilyIndex = index;
 	commandInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-	VK_CHECK_RESULT(vkCreateCommandPool(p_vkEngine->m_device.device, &commandInfo, nullptr, &cmdPool));
+	VK_CHECK_RESULT(vkCreateCommandPool(device, &commandInfo, nullptr, &cmdPool));
 
 	return cmdPool;
 }
 
-VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, const VkFramebuffer frameBuffer, const VkRenderPass renderPass, const VkCommandPool cmdPool)
+VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, const VkFramebuffer frameBuffer, const VkRenderPass renderPass, const VkCommandPool cmdPool, VkDevice device)
 {
 	VkCommandBufferAllocateInfo allocInfo = {};
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -77,7 +71,7 @@ VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, con
 	allocInfo.commandBufferCount = 1;
 
 	VkCommandBuffer cmdBuffer;
-	VK_CHECK_RESULT(vkAllocateCommandBuffers(p_vkEngine->m_device.device, &allocInfo, &cmdBuffer));
+	VK_CHECK_RESULT(vkAllocateCommandBuffers(device, &allocInfo, &cmdBuffer));
 
 	VkCommandBufferInheritanceInfo inheritInfo = { VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO };
 	if (primary == false) {
@@ -95,7 +89,7 @@ VkCommandBuffer VulkanUtility::CreateCmdBuffer(bool primary, bool singleUse, con
 	return cmdBuffer;
 }
 
-void VulkanUtility::SubmitCmdBufferToQueue(const VkCommandBuffer cmdBuffer, const VkQueue queue, const VkCommandPool cmdPool)
+void VulkanUtility::SubmitCmdBufferToQueue(const VkCommandBuffer cmdBuffer, const VkQueue queue, const VkCommandPool cmdPool, VkDevice device)
 {
 	VK_CHECK_RESULT(vkEndCommandBuffer(cmdBuffer));
 
@@ -107,7 +101,7 @@ void VulkanUtility::SubmitCmdBufferToQueue(const VkCommandBuffer cmdBuffer, cons
 	VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 	VK_CHECK_RESULT(vkQueueWaitIdle(queue));
 
-	vkFreeCommandBuffers(p_vkEngine->m_device.device, cmdPool, 1, &cmdBuffer);
+	vkFreeCommandBuffers(device, cmdPool, 1, &cmdBuffer);
 }
 
 bool VulkanUtility ::CheckForCmdBuffers(std::vector<VkCommandBuffer>& cmdBuffer)
@@ -199,14 +193,14 @@ VkPipelineMultisampleStateCreateInfo VulkanUtility::InitMultisampleState(const V
 // =====================================================================================================================================================================================================================================================================================================
 // shader utilities and wrapper
 
-VkPipelineShaderStageCreateInfo VulkanUtility::InitShaders(std::string shaderFile, const VkShaderStageFlagBits stage)
+VkPipelineShaderStageCreateInfo VulkanUtility::InitShaders(std::string shaderFile, const VkShaderStageFlagBits stage, VkDevice device)
 {
 	std::vector<char> shaderData;
-	this->LoadFile(shaderFile, shaderData);
+	LoadFile(shaderFile, shaderData);
 
-	VkShaderModule shader = this->CreateShaderModule(shaderData);
+	VkShaderModule shader = CreateShaderModule(shaderData, device);
 
-	VkPipelineShaderStageCreateInfo shaderStage = this->CreateShader(shader, stage);
+	VkPipelineShaderStageCreateInfo shaderStage = CreateShader(shader, stage);
 
 	return shaderStage;
 }
@@ -226,7 +220,7 @@ void VulkanUtility::LoadFile(std::string filename, std::vector<char>& data)
 	file.read(data.data(), filePos);
 }
 
-VkShaderModule VulkanUtility::CreateShaderModule(std::vector<char>& shader)
+VkShaderModule VulkanUtility::CreateShaderModule(std::vector<char>& shader, VkDevice device)
 {
 	VkShaderModule shaderModule;
 	VkShaderModuleCreateInfo shaderInfo = {};
@@ -234,7 +228,7 @@ VkShaderModule VulkanUtility::CreateShaderModule(std::vector<char>& shader)
 	shaderInfo.codeSize = shader.size();
 	shaderInfo.pCode = reinterpret_cast<uint32_t*>(shader.data());
 
-	VK_CHECK_RESULT(vkCreateShaderModule(p_vkEngine->m_device.device, &shaderInfo, nullptr, &shaderModule));
+	VK_CHECK_RESULT(vkCreateShaderModule(device, &shaderInfo, nullptr, &shaderModule));
 
 	return shaderModule;
 }
@@ -251,13 +245,12 @@ VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(const VkShaderModule
 }
 
 // ===========
-void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, uint32_t mipLevels, uint32_t layers)
+void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, VkDevice device, uint32_t mipLevels, uint32_t layers)
 {
-	VulkanUtility *p_vkUtility = new VulkanUtility(p_vkEngine);
 
 	VkCommandBuffer comm_buff;
 	if (cmdBuff == VK_NULL_HANDLE) {
-		comm_buff = p_vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool);
+		comm_buff = CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
 	}
 	else {
 		comm_buff = cmdBuff;
@@ -331,16 +324,16 @@ void VulkanUtility::ImageTransition(const VkCommandBuffer cmdBuff, const VkImage
 	vkCmdPipelineBarrier(comm_buff, src_stage, dst_stage, 0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
 	if (cmdBuff == VK_NULL_HANDLE) {
-		p_vkUtility->SubmitCmdBufferToQueue(comm_buff, p_vkEngine->m_queue.graphQueue, p_vkEngine->GetCmdPool());
+
+		SubmitCmdBufferToQueue(comm_buff, graphQueue, cmdPool, device);
 	}
-	delete p_vkUtility;
 }
 
-VkFormat VulkanUtility::FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, const VkImageTiling tiling, const VkFormatFeatureFlags features)
+VkFormat VulkanUtility::FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, const VkImageTiling tiling, const VkFormatFeatureFlags features, VkPhysicalDevice physDevice)
 {
 	for (auto format : requiredFormats) {
 		VkFormatProperties props;
-		vkGetPhysicalDeviceFormatProperties(p_vkEngine->m_device.physDevice, format, &props);
+		vkGetPhysicalDeviceFormatProperties(physDevice, format, &props);
 
 		if (tiling == VK_IMAGE_TILING_LINEAR && features == (props.linearTilingFeatures & features)) {
 			return format;
@@ -355,28 +348,76 @@ VkFormat VulkanUtility::FindSupportedFormat(const std::vector<VkFormat>& require
 	}
 }
 
+VkImageView VulkanUtility::InitImageView(VkImage image, VkFormat format, VkImageAspectFlagBits imageAspect, VkImageViewType type, VkDevice device)
+{
+
+	VkImageViewCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	createInfo.image = image;
+	createInfo.viewType = type;
+	createInfo.format = format;
+	createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	createInfo.subresourceRange.aspectMask = imageAspect;
+	createInfo.subresourceRange.baseMipLevel = 0;
+	createInfo.subresourceRange.layerCount = 1;
+	createInfo.subresourceRange.levelCount = 1;
+	createInfo.subresourceRange.baseArrayLayer = 0;
+
+	VkImageView imageView;
+	VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &imageView));
+
+	return imageView;
+}
+
 // =========================================================================================================================================================================================================================================================================================================
 // Render functions
 
-uint32_t VulkanUtility::InitRenderFrame()
+uint32_t VulkanUtility::InitRenderFrame(VkDevice device, VkSwapchainKHR swapChain, VkSemaphore imageSem)
 {
 	uint32_t image_index;
-	vkAcquireNextImageKHR(p_vkEngine->m_device.device, p_vkEngine->m_swapchain.swapChain, std::numeric_limits<uint64_t>::max(), p_vkEngine->m_semaphore.image, VK_NULL_HANDLE, &image_index);
+	vkAcquireNextImageKHR(device, swapChain, std::numeric_limits<uint64_t>::max(), imageSem, VK_NULL_HANDLE, &image_index);
 
 	return image_index;
 }
 
-void VulkanUtility::SubmitFrame(uint32_t imageIndex)
+void VulkanUtility::SubmitFrame(uint32_t imageIndex, VkSwapchainKHR swapChain, VkSemaphore renderSem, VkQueue presentQueue)
 {
 	VkPresentInfoKHR present_info = {};
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 	present_info.waitSemaphoreCount = 1;
-	present_info.pWaitSemaphores = &p_vkEngine->m_semaphore.render;
+	present_info.pWaitSemaphores = &renderSem;
 	present_info.swapchainCount = 1;
-	present_info.pSwapchains = &p_vkEngine->m_swapchain.swapChain;
+	present_info.pSwapchains = &swapChain;
 	present_info.pImageIndices = &imageIndex;
 
-	VK_CHECK_RESULT(vkQueuePresentKHR(p_vkEngine->m_queue.presentQueue, &present_info));
+	VK_CHECK_RESULT(vkQueuePresentKHR(presentQueue, &present_info));
 
-	VK_CHECK_RESULT(vkQueueWaitIdle(p_vkEngine->m_queue.presentQueue));
+	VK_CHECK_RESULT(vkQueueWaitIdle(presentQueue));
+}
+
+// ==============================================================================================================================================================================================================================================================================
+// barrier tools
+VkSemaphore VulkanUtility::CreateSemaphore(VkDevice device)
+{
+	VkSemaphore semaphore;
+	VkSemaphoreCreateInfo semaphore_info = {};
+	semaphore_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphore_info, nullptr, &semaphore));
+
+	return semaphore;
+}
+
+VkFence VulkanUtility::CreateFence(VkFenceCreateFlags flags, VkDevice device)
+{
+	VkFence fence;
+	VkFenceCreateInfo createInfo = {};
+	createInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	createInfo.flags = flags;
+
+	VK_CHECK_RESULT(vkCreateFence(device, &createInfo, nullptr, &fence));
+	return fence;
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "VulkanCore/vulkan_tools.h"
+#include <vector>
 
 class VkDescriptors
 {
@@ -14,12 +15,12 @@ public:
 	};
 
 
-	VkDescriptors();
+	VkDescriptors(VkDevice dev);
 	~VkDescriptors();
 
 	void AddDescriptorBindings(std::vector<LayoutBinding>& bindings);
-	void GenerateDescriptorSets(VkDescriptorBufferInfo *bufferInfo, VkDescriptorImageInfo *imageInfo, VkDevice device);
-	void Destroy(VkDevice device);
+	void GenerateDescriptorSets(VkDescriptorBufferInfo *bufferInfo, VkDescriptorImageInfo *imageInfo);
+	void Destroy();
 
 	VkDescriptorSet set;
 	VkDescriptorSetLayout layout;
@@ -31,6 +32,8 @@ private:
 
 	// layout bindings data
 	std::vector<VkDescriptorSetLayoutBinding> layouts;
+
+	VkDevice device;
 
 };
 

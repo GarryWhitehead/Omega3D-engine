@@ -1,10 +1,10 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VulkanRenderPass.h"
 
 class VulkanEngine;
 class CameraSystem;
+class VulkanTexture;
+class VulkanRenderPass;
 
 class VulkanPBR : public VulkanModule
 {
@@ -21,12 +21,12 @@ public:
 		glm::vec2 uv;
 	};
 
-	VulkanPBR(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanPBR(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanPBR();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
+
 	void PrepareLUTFramebuffer();
 	void PrepareLUTPipeline();
 	void GenerateLUTCmdBuffer();
@@ -35,10 +35,12 @@ public:
 
 private:
 
+	void Destroy() override;
+
 	VulkanEngine * p_vkEngine;
 
-	VulkanTexture m_lutImage;
-	VulkanRenderPass m_renderpass;
+	VulkanTexture *m_lutImage;
+	VulkanRenderPass *m_renderpass;
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_lutShader;
 

@@ -8,7 +8,7 @@ class VulkanModule
 
 public:
 
-	VulkanModule(VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanModule(VkMemoryManager *memory);
 	~VulkanModule();
 
 	virtual void Init() = 0;
@@ -19,7 +19,5 @@ protected:
 
 	// all modules have access to the vulkan memory management class
 	VkMemoryManager *p_vkMemory;
-
-	VulkanUtility *vkUtility;
 };
 

@@ -1,5 +1,7 @@
 #pragma once
-#include "VulkanCore/vulkan_utility.h"
+#include "VulkanCore/vulkan_tools.h"
+#include <vector>
+#include <assert.h>
 
 enum class DependencyTemplate
 {
@@ -12,7 +14,7 @@ class VulkanRenderPass
 {
 
 public:
-	VulkanRenderPass();
+	VulkanRenderPass(VkDevice dev);
 	~VulkanRenderPass();
 
 	void AddAttachment(const VkImageLayout finalLayout, const VkFormat format);
@@ -23,7 +25,7 @@ public:
 	void PrepareRenderPass(const VkDevice device);
 	void PrepareFramebuffer(const VkImageView imageView, uint32_t width, uint32_t height, const VkDevice device, uint32_t layerCount = 1);
 	void PrepareFramebuffer(std::vector<VkImageView>& imageView, uint32_t width, uint32_t height, const VkDevice device, uint32_t layerCount = 1);
-
+	void Destroy();
 
 	VkRenderPass renderpass;
 	VkFramebuffer frameBuffer;
@@ -32,5 +34,9 @@ public:
 	std::vector<VkAttachmentReference> depthReference;
 	std::vector<VkSubpassDescription> subpass;
 	std::vector<VkSubpassDependency> dependency;
+
+private:
+
+	VkDevice device;
 };
 

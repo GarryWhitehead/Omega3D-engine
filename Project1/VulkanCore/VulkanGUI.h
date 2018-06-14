@@ -1,8 +1,10 @@
 #pragma once
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/VkDescriptors.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VkMemoryManager.h"
 
+class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 class VulkanEngine;
 
 class VulkanGUI
@@ -47,7 +49,6 @@ public:
 
 	void Init(VkMemoryManager *p_vkMemory);
 	void Update();
-	void Destroy();
 
 	void SetupGUI(VkMemoryManager *p_vkMemory);
 	void PrepareDescriptors();
@@ -59,11 +60,13 @@ public:
 
 private:
 
+	void Destroy();
+
 	VulkanEngine *p_vkEngine;
 
 	// pipeline data
-	VulkanTexture m_fontImage;
-	VkDescriptors m_descriptors;
+	VulkanTexture *m_fontImage;
+	VkDescriptors *m_descriptors;
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;

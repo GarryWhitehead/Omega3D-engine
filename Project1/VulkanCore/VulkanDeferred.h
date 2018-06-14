@@ -1,12 +1,14 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
+#include "VulkanCore/vulkan_tools.h"
 #include "ComponentManagers/LightComponentManager.h"
-#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VulkanRenderpass.h"
-#include "VulkanCore/VkDescriptors.h"
+
 #include "glm.hpp"
 
+class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 class VulkanEngine;
 class CameraSystem;
 class VkMemoryManager;
@@ -51,33 +53,28 @@ public:
 		
 	};
 
-	struct DeferredBufferInfo
-	{
-		VulkanTexture imageInfo;
-	};
-
 	struct DeferredInfo
 	{
 		DeferredInfo() :
 			cmdBuffer(VK_NULL_HANDLE)
 		{}
 
-		DeferredBufferInfo position;
-		DeferredBufferInfo normal;
-		DeferredBufferInfo albedo;
-		DeferredBufferInfo bump;
-		DeferredBufferInfo ao;
-		DeferredBufferInfo metallic;
-		DeferredBufferInfo roughness;
-		DeferredBufferInfo depth;
-		DeferredBufferInfo offscreen;		// used for the post-processing pipeline
+		VulkanTexture *position;
+		VulkanTexture *normal;
+		VulkanTexture *albedo;
+		VulkanTexture *bump;
+		VulkanTexture *ao;
+		VulkanTexture *metallic;
+		VulkanTexture *roughness;
+		VulkanTexture *depth;
+		VulkanTexture *offscreen;		// used for the post-processing pipeline
 
-		VulkanRenderPass renderpass;
+		VulkanRenderPass *renderpass;
 		VkCommandBuffer cmdBuffer;
 		VkSemaphore semaphore;
 
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VkDescriptors descriptor;
+		VkDescriptors *descriptor;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 	};
 
@@ -89,12 +86,11 @@ public:
 		VkMemoryManager::SegmentInfo indices;
 	};
 
-	VulkanDeferred(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory);
+	VulkanDeferred(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VulkanDeferred();
 
 	void Init();
 	void Update(int acc_time) override;
-	void Destroy() override;
 
 	void PrepareDeferredImages();
 	void PrepareDeferredFramebuffer();
@@ -106,15 +102,17 @@ public:
 	void PrepareFullscreenQuad();
 
 	// helper function
-	VkRenderPass GetRenderPass() const { return m_deferredInfo.renderpass.renderpass; }
-	VkImageView GetOffscreenImageView() const { return m_deferredInfo.offscreen.imageInfo.imageView; }
-	VkSampler GetOffscreenSampler() const { return m_deferredInfo.offscreen.imageInfo.texSampler; }
+	VkRenderPass GetRenderPass() const;
+	VkImageView GetOffscreenImageView() const;
+	VkSampler GetOffscreenSampler() const;
 
 	friend class VulkanShadow;
 	friend class VulkanEngine;
 	friend class VulkanSkybox;
 
 private:
+
+	void Destroy() override;
 
 	VulkanEngine * p_vkEngine;
 

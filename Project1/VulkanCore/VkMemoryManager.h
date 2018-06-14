@@ -94,7 +94,7 @@ public:
 	uint32_t FindFreeSegment(uint32_t block_id, uint32_t size);
 
 	// helper functions
-	bool CreateBuffer(const uint32_t size, const VkBufferUsageFlags flags, const VkMemoryPropertyFlags props, VkDeviceMemory& memory, VkBuffer& buffer);
+	void CreateBuffer(const uint32_t size, const VkBufferUsageFlags flags, const VkMemoryPropertyFlags props, VkDeviceMemory& memory, VkBuffer& buffer);
 	uint32_t FindMemoryType(const uint32_t type, const VkMemoryPropertyFlags flags);
 	uint32_t FindBlockType(MemoryUsage usage);
 	void DefragBlockMemory(const uint32_t id);
@@ -143,10 +143,7 @@ void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, std::vector<T> data
 		MapData(segment, temp_memory, 0, data);
 
 		// create cmd buffer for copy and transfer to device local memory
-		VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-
-		vkUtility->CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), 0, segment.offset);
-		delete vkUtility;
+		VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), p_vkEngine->GetGraphQueue(), p_vkEngine->GetDevice(), 0, segment.offset);
 
 		// clear up and we are done
 		vkDestroyBuffer(p_vkEngine->GetDevice(), temp_buffer, nullptr);

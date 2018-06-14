@@ -45,7 +45,7 @@ void Engine::CreateWindow(const char *winTitle)
 	m_monitor = glfwGetPrimaryMonitor();
 	m_vmode = glfwGetVideoMode(m_monitor);
 
-	m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, winTitle, m_monitor, nullptr);
+	m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, winTitle, nullptr, nullptr);
 	if (!m_window)
 	{
 		g_filelog->WriteLog("Critical error! Unable to open window!");
@@ -60,9 +60,6 @@ void Engine::Init()
 
 	// start by initialisng core vulkan components and creating a window
 	p_vkEngine = new VulkanEngine(m_window, p_message);
-
-	// Init the core vulkan framework
-	p_vkEngine->InitVulkanCore();
 }
 
 void Engine::Update(int acc_time)

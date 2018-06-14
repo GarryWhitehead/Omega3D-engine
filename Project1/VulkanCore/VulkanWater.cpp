@@ -1,4 +1,7 @@
 #include "VulkanWater.h"
+#include "VulkanCore/VkDescriptors.h"
+#include "VulkanCore/VulkanRenderPass.h"
+#include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
 #include "VulkanCore/TerrainUtility.h"
@@ -9,8 +12,8 @@
 #include "Engine/engine.h"
 
 
-VulkanWater::VulkanWater(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
-	VulkanModule(utility, memory),
+VulkanWater::VulkanWater(VulkanEngine *engine, VkMemoryManager *memory) :
+	VulkanModule(memory),
 	p_vkEngine(engine)
 {
 	p_FFT = new vkFFT(p_vkEngine, p_vkMemory);
@@ -29,6 +32,7 @@ VulkanWater::VulkanWater(VulkanEngine *engine, VulkanUtility *utility, VkMemoryM
 
 VulkanWater::~VulkanWater()
 {
+	Destroy();
 }
 
 void VulkanWater::PrepareBuffers()
@@ -42,20 +46,7 @@ void VulkanWater::PrepareBuffers()
 
 void VulkanWater::PrepareDescriptorSets()
 {
-	// terrain descriptors
-	std::array<VkDescriptorPoolSize, 2> descrPoolSize = {};
-	descrPoolSize[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descrPoolSize[0].descriptorCount = 3;										// fragment and tesselation con/eval shaders
-	descrPoolSize[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descrPoolSize[1].descriptorCount = 3;
-
-	VkDescriptorPoolCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	createInfo.poolSizeCount = static_cast<uint32_t>(descrPoolSize.size());
-	createInfo.pPoolSizes = descrPoolSize.data();
-	createInfo.maxSets = 1;
-
-	VK_CHECK_RESULT(vkCreateDescriptorPool(p_vkEngine->GetDevice(), &createInfo, nullptr, &m_waterInfo.descriptors.pool));
+	m_waterInfo.descriptors = new VkDescriptors(p_vkEngine->GetDevice());
 
 	std::vector<VkDescriptors::LayoutBinding> layoutBinding =
 	{
@@ -65,7 +56,7 @@ void VulkanWater::PrepareDescriptorSets()
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT | VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT },							// bindings for perlin noise texture
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT }
 	};
-	m_waterInfo.descriptors.AddDescriptorBindings(layoutBinding);
+	m_waterInfo.descriptors->AddDescriptorBindings(layoutBinding);
 
 	std::vector<VkDescriptorBufferInfo> bufferInfo =
 	{
@@ -74,12 +65,12 @@ void VulkanWater::PrepareDescriptorSets()
 	};
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ p_FFT->m_images.displacement.texSampler, p_FFT->m_images.displacement.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// displacement texture sampler - derives from compute shader computations
-		{ p_FFT->m_images.normal.texSampler, p_FFT->m_images.normal.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },					// texture sampler for normal map
-		{ m_waterInfo.noiseImage.texSampler, m_waterInfo.noiseImage.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }					// texture sampler for perlin noise
+		{ p_FFT->m_images.displacement->texSampler, p_FFT->m_images.displacement->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// displacement texture sampler - derives from compute shader computations
+		{ p_FFT->m_images.normal->texSampler, p_FFT->m_images.normal->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },					// texture sampler for normal map
+		{ m_waterInfo.noiseImage->texSampler, m_waterInfo.noiseImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }					// texture sampler for perlin noise
 	};
 
-	m_waterInfo.descriptors.GenerateDescriptorSets(bufferInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
+	m_waterInfo.descriptors->GenerateDescriptorSets(bufferInfo.data(), imageInfo.data());
 }
 
 void VulkanWater::PreparePipeline()
@@ -103,11 +94,11 @@ void VulkanWater::PreparePipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;										// used for tesselation shader draw
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 8> colorAttach = {};
@@ -164,17 +155,17 @@ void VulkanWater::PreparePipeline()
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
-	pipelineInfo.pSetLayouts = &m_waterInfo.descriptors.layout;
+	pipelineInfo.pSetLayouts = &m_waterInfo.descriptors->layout;
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_waterInfo.pipelineInfo.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_waterInfo.shader[0] = vkUtility->InitShaders("terrain/water/water-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_waterInfo.shader[1] = vkUtility->InitShaders("terrain/water/water-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	m_waterInfo.shader[2] = vkUtility->InitShaders("terrain/water/water-tesc.spv", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT);
-	m_waterInfo.shader[3] = vkUtility->InitShaders("terrain/water/water-tese.spv", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT);
+	m_waterInfo.shader[0] = VulkanUtility::InitShaders("terrain/water/water-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_waterInfo.shader[1] = VulkanUtility::InitShaders("terrain/water/water-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, p_vkEngine->GetDevice());
+	m_waterInfo.shader[2] = VulkanUtility::InitShaders("terrain/water/water-tesc.spv", VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, p_vkEngine->GetDevice());
+	m_waterInfo.shader[3] = VulkanUtility::InitShaders("terrain/water/water-tese.spv", VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, p_vkEngine->GetDevice());
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -221,7 +212,7 @@ void VulkanWater::GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_waterInfo.vertices.block_id), bgOffsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_waterInfo.indices.block_id), m_waterInfo.indices.offset, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_waterInfo.pipelineInfo.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_waterInfo.descriptors.set : &set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_waterInfo.pipelineInfo.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_waterInfo.descriptors->set : &set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, m_waterInfo.indexCount, 1, 0, 0, 0);
 }
 
@@ -263,7 +254,8 @@ void VulkanWater::GenerateMeshData()
 void VulkanWater::LoadWaterAssets()
 {
 	// import the tiling image
-	m_waterInfo.noiseImage.LoadTexture("assets/textures/perlin_noise.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine, p_vkMemory);
+	m_waterInfo.noiseImage = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
+	m_waterInfo.noiseImage->LoadTexture("assets/textures/perlin_noise.ktx", VK_SAMPLER_ADDRESS_MODE_REPEAT, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FORMAT_BC3_UNORM_BLOCK, p_vkEngine->GetCmdPool(), p_vkEngine->GetGraphQueue(), p_vkMemory);
 }
 
 void VulkanWater::Update(int acc_time)
@@ -333,11 +325,11 @@ void VulkanWater::Init()
 void VulkanWater::Destroy()
 {
 	vkDestroyPipeline(p_vkEngine->GetDevice(), m_waterInfo.pipelineInfo.pipeline, nullptr);
-	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_waterInfo.pipelineInfo.layout, nullptr);
 	vkDestroyPipeline(p_vkEngine->GetDevice(), m_waterInfo.wirePipeline, nullptr);
-
-	m_waterInfo.descriptors.Destroy(p_vkEngine->GetDevice());
-	m_waterInfo.noiseImage.Destroy(p_vkEngine->GetDevice());
+	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_waterInfo.pipelineInfo.layout, nullptr);
+	
+	delete m_waterInfo.descriptors;
+	delete m_waterInfo.noiseImage;
 
 	delete p_FFT;
 

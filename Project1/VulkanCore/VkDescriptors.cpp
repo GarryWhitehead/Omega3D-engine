@@ -1,14 +1,13 @@
 #include "VkDescriptors.h"
 
-
-
-VkDescriptors::VkDescriptors()
+VkDescriptors::VkDescriptors(VkDevice dev) :
+	device(dev)
 {
 }
 
-
 VkDescriptors::~VkDescriptors()
 {
+	Destroy();
 }
 
 void VkDescriptors::PrepareDescriptorPools(std::vector<VkDescriptorSetLayoutBinding>& bindings, VkDevice device)
@@ -102,7 +101,7 @@ void VkDescriptors::AddDescriptorBindings(std::vector<LayoutBinding>& bindings)
 	}
 }
 
-void VkDescriptors::GenerateDescriptorSets(VkDescriptorBufferInfo *bufferInfo, VkDescriptorImageInfo *imageInfo, VkDevice device)
+void VkDescriptors::GenerateDescriptorSets(VkDescriptorBufferInfo *bufferInfo, VkDescriptorImageInfo *imageInfo)
 {
 	// make sure the user has defined the layouts and descriptor info
 	assert(!layouts.empty());
@@ -157,7 +156,7 @@ void VkDescriptors::GenerateDescriptorSets(VkDescriptorBufferInfo *bufferInfo, V
 	vkUpdateDescriptorSets(device, static_cast<uint32_t>(writeSets.size()), writeSets.data(), 0, nullptr);
 }
 
-void VkDescriptors::Destroy(VkDevice device)
+void VkDescriptors::Destroy()
 {
 	vkDestroyDescriptorSetLayout(device, layout, nullptr);
 	vkDestroyDescriptorPool(device, pool, nullptr);

@@ -1,12 +1,13 @@
 #include "VkPostProcess.h"
+#include "VulkanCore/VkDescriptors.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
 #include "Systems/camera_system.h"
 #include "Engine/World.h"
 #include <gtc/matrix_transform.hpp>
 
-VkPostProcess::VkPostProcess(VulkanEngine *engine, VulkanUtility *utility, VkMemoryManager *memory) :
-	VulkanModule(utility, memory),
+VkPostProcess::VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory) :
+	VulkanModule(memory),
 	p_vkEngine(engine)
 {
 	Init();
@@ -18,10 +19,10 @@ VkPostProcess::~VkPostProcess()
 
 void VkPostProcess::GenerateCmdBuffer(VkCommandBuffer cmdBuffer)
 {
-	VkViewport viewport = vkUtility->InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);
+	VkViewport viewport = VulkanUtility::InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
-	VkRect2D scissor = vkUtility->InitScissor(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0, 0);
+	VkRect2D scissor = VulkanUtility::InitScissor(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0, 0);
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	VkDeviceSize offsets[1]{ m_vertices.offset };
@@ -29,7 +30,7 @@ void VkPostProcess::GenerateCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fogInfo.pipelineInfo.pipeline);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fogInfo.pipelineInfo.layout, 0, 1, &m_fogInfo.descriptors.set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_fogInfo.pipelineInfo.layout, 0, 1, &m_fogInfo.descriptors->set, 0, NULL);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT32);
 
 	// draw as a full-screen quad
@@ -67,6 +68,8 @@ void VkPostProcess::PrepareFullscreenQuad()
 
 void VkPostProcess::PrepareDescriptors()
 {
+	m_fogInfo.descriptors = new VkDescriptors(p_vkEngine->GetDevice());
+	
 	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 
 	std::vector<VkDescriptors::LayoutBinding> layoutBind =
@@ -75,7 +78,7 @@ void VkPostProcess::PrepareDescriptors()
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_FRAGMENT_BIT },					// bindings for the UBO	
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }					// bindings for the offscreen colour image sampler
 	};
-	m_fogInfo.descriptors.AddDescriptorBindings(layoutBind);
+	m_fogInfo.descriptors->AddDescriptorBindings(layoutBind);
 
 	std::vector<VkDescriptorBufferInfo> buffInfo =
 	{
@@ -87,7 +90,7 @@ void VkPostProcess::PrepareDescriptors()
 		{ vkDeferred->GetOffscreenSampler(), vkDeferred->GetOffscreenImageView(),  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
 	};
 
-	m_fogInfo.descriptors.GenerateDescriptorSets(buffInfo.data(), imageInfo.data(), p_vkEngine->GetDevice());
+	m_fogInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
 }
 
 void VkPostProcess::PreparePipeline()
@@ -108,11 +111,11 @@ void VkPostProcess::PreparePipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState =VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo =VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo =VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer
 	std::array<VkPipelineColorBlendAttachmentState, 1> colorAttach = {};
@@ -140,15 +143,15 @@ void VkPostProcess::PreparePipeline()
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
-	pipelineInfo.pSetLayouts = &m_fogInfo.descriptors.layout;
+	pipelineInfo.pSetLayouts = &m_fogInfo.descriptors->layout;
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_fogInfo.pipelineInfo.layout));
 
 	// sahders for rendering full screen quad
-	m_fogInfo.shader[0] = vkUtility->InitShaders("Post-Process/fog/volumetric_fog-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_fogInfo.shader[1] = vkUtility->InitShaders("Post-Process/fog/volumetric_fog-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_fogInfo.shader[0] =VulkanUtility::InitShaders("Post-Process/fog/volumetric_fog-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_fogInfo.shader[1] =VulkanUtility::InitShaders("Post-Process/fog/volumetric_fog-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, p_vkEngine->GetDevice());
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -208,7 +211,12 @@ void VkPostProcess::Init()
 
 void VkPostProcess::Destroy()
 {
+	vkDestroyPipeline(p_vkEngine->GetDevice(), m_fogInfo.pipelineInfo.pipeline, nullptr);
+	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_fogInfo.pipelineInfo.layout, nullptr);
 
+	delete m_fogInfo.descriptors;
+
+	p_vkEngine = nullptr;
 }
 
 // shader setup

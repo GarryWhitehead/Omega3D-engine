@@ -1,4 +1,6 @@
 #include "VulkanGUI.h"
+#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/VkDescriptors.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VkPostProcess.h"
 #include "VulkanCore/VulkanWater.h"
@@ -55,30 +57,31 @@ void VulkanGUI::SetupGUI(VkMemoryManager *p_vkMemory)
 	guiIO.Fonts->GetTexDataAsRGBA32(&fontData, &fontWidth, &fontHeight);		// convert to data we can use with vulkan - using default font
 
 	// create image and upload font data 
-	m_fontImage.PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, fontWidth, fontHeight, p_vkEngine, 16.0f);
-	m_fontImage.UploadDataToImage(fontData, fontWidth * fontHeight * 4 * sizeof(char), p_vkMemory, p_vkEngine);
+	m_fontImage = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
+	m_fontImage->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT, fontWidth, fontHeight, 16.0f);
+	m_fontImage->UploadDataToImage(fontData, fontWidth * fontHeight * 4 * sizeof(char), p_vkEngine->GetCmdPool(), p_vkEngine->GetGraphQueue(), p_vkMemory);
 }
 
 void VulkanGUI::PrepareDescriptors()
 {
+	m_descriptors = new VkDescriptors(p_vkEngine->GetDevice());
+	
 	std::vector<VkDescriptors::LayoutBinding> layoutBind =
 	{
 		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }			// bindings for the font image sampler
 	};
-	m_descriptors.AddDescriptorBindings(layoutBind);
+	m_descriptors->AddDescriptorBindings(layoutBind);
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ m_fontImage.texSampler, m_fontImage.imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ m_fontImage->texSampler, m_fontImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
 	};
 
-	m_descriptors.GenerateDescriptorSets(nullptr, imageInfo.data(), p_vkEngine->GetDevice());
+	m_descriptors->GenerateDescriptorSets(nullptr, imageInfo.data());
 }
 
 void VulkanGUI::PreparePipeline()
 {	
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-
 	// create pipeline cache - not normally created but being used by ImGUI API
 	VkPipelineCacheCreateInfo cacheInfo = {};
 	cacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
@@ -101,11 +104,11 @@ void VulkanGUI::PreparePipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	// colour attachment required for each colour buffer - transparency required for GUI
 	std::array<VkPipelineColorBlendAttachmentState, 1> colorAttach = {};
@@ -145,15 +148,15 @@ void VulkanGUI::PreparePipeline()
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
-	pipelineInfo.pSetLayouts = &m_descriptors.layout;
+	pipelineInfo.pSetLayouts = &m_descriptors->layout;
 	pipelineInfo.pPushConstantRanges = &pushConstant;
 	pipelineInfo.pushConstantRangeCount = 1;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_pipelineInfo.layout));
 
 	// sahders for rendering full screen quad
-	m_shader[0] = vkUtility->InitShaders("GUI/gui-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shader[1] = vkUtility->InitShaders("GUI/gui-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+	m_shader[0] = VulkanUtility::InitShaders("GUI/gui-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_shader[1] = VulkanUtility::InitShaders("GUI/gui-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, p_vkEngine->GetDevice());
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -175,8 +178,6 @@ void VulkanGUI::PreparePipeline()
 	createInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
 
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipelineInfo.pipeline));
-
-	delete vkUtility;
 }
 
 void VulkanGUI::NewFrame()
@@ -303,9 +304,7 @@ void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_
 	// check whether the buffers have chnaged in size
 	UpdateBuffers(p_vkMemory);
 
-	VulkanUtility *vkUtility = new VulkanUtility(p_vkEngine);
-
-	VkViewport viewport = vkUtility->InitViewPort(guiIO.DisplaySize.x, guiIO.DisplaySize.y, 0.0f, 1.0f);
+	VkViewport viewport = VulkanUtility::InitViewPort(guiIO.DisplaySize.x, guiIO.DisplaySize.y, 0.0f, 1.0f);
 	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 	VkDeviceSize offsets[1]{ m_vertices.offset };
@@ -315,7 +314,7 @@ void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT16);
 	
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.layout, 0, 1, &m_descriptors.set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.layout, 0, 1, &m_descriptors->set, 0, NULL);
 	
 	// push window scale constant to shader
 	PushConstant push;
@@ -335,7 +334,7 @@ void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_
 			const ImDrawCmd *cmd = &list->CmdBuffer[i];
 
 			// calculate scissor according to GUI window size - for clipping purposes
-			VkRect2D scissor = vkUtility->InitScissor(cmd->ClipRect.z - cmd->ClipRect.x, cmd->ClipRect.w - cmd->ClipRect.y, std::max(cmd->ClipRect.x, 0.0f), std::max(cmd->ClipRect.y, 0.0f));
+			VkRect2D scissor = VulkanUtility::InitScissor(cmd->ClipRect.z - cmd->ClipRect.x, cmd->ClipRect.w - cmd->ClipRect.y, std::max(cmd->ClipRect.x, 0.0f), std::max(cmd->ClipRect.y, 0.0f));
 			vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 			vkCmdDrawIndexed(cmdBuffer,cmd->ElemCount, 1, indOffset, vertOffset, 0);
 
@@ -343,7 +342,6 @@ void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_
 		}
 		vertOffset += list->VtxBuffer.Size;
 	}
-	delete vkUtility;
 }
 
 void VulkanGUI::Update()
@@ -375,9 +373,11 @@ void VulkanGUI::Destroy()
 	ImGui::DestroyContext();
 
 	// destroy vulkan related stuff
-	m_fontImage.Destroy(p_vkEngine->GetDevice());
 	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_pipelineInfo.layout, nullptr);
 	vkDestroyPipeline(p_vkEngine->GetDevice(), m_pipelineInfo.pipeline, nullptr);
+
+	delete m_descriptors;
+	delete m_fontImage;
 
 	p_vkEngine = nullptr;
 }

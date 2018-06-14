@@ -2,14 +2,17 @@
 
 
 
-VulkanRenderPass::VulkanRenderPass()
+VulkanRenderPass::VulkanRenderPass(VkDevice dev) :
+	frameBuffer(VK_NULL_HANDLE),
+	device(dev)
 {
+	assert(device != VK_NULL_HANDLE);
 }
 
 
 VulkanRenderPass::~VulkanRenderPass()
 {
-
+	Destroy();
 }
 
 void VulkanRenderPass::AddAttachment(const VkImageLayout finalLayout, const VkFormat format)
@@ -212,5 +215,16 @@ void VulkanRenderPass::PrepareFramebuffer(std::vector<VkImageView>& imageView, u
 	frameInfo.layers = layerCount;
 
 	VK_CHECK_RESULT(vkCreateFramebuffer(device, &frameInfo, nullptr, &frameBuffer))
+}
+
+void VulkanRenderPass::Destroy()
+{
+	// its not always the case that the user might create a framebuffer using this class, so check
+	if (frameBuffer != VK_NULL_HANDLE) {
+		vkDestroyFramebuffer(device, frameBuffer, nullptr);
+	}
+	vkDestroyRenderPass(device, renderpass, nullptr);
+
+	device = VK_NULL_HANDLE;
 }
 

@@ -1,4 +1,7 @@
 #include "Vulkan_shadow.h"
+#include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/Vulkanrenderpass.h"
+#include "VulkanCore/Vkdescriptors.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanModel.h"
 #include "VulkanCore/VulkanDeferred.h"
@@ -10,8 +13,8 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include <algorithm>
 
-VulkanShadow::VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemoryManager *memory) :
-	VulkanModule(utility, memory),
+VulkanShadow::VulkanShadow(VulkanEngine* engine, VkMemoryManager *memory) :
+	VulkanModule(memory),
 	p_vkEngine(engine)
 {
 	Init();
@@ -19,6 +22,7 @@ VulkanShadow::VulkanShadow(VulkanEngine* engine, VulkanUtility *utility, VkMemor
 
 VulkanShadow::~VulkanShadow()
 {
+	Destroy();
 }
 
 void VulkanShadow::PrepareShadowFrameBuffer()
@@ -29,30 +33,34 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 	int layerCount = p_lightManager->GetLightCount();
 
 	// prepare layered texture samplers 
-	m_depthImage.PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, layerCount, p_vkEngine);
+	p_depthImage = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
+	p_depthImage->PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, layerCount, p_vkEngine);
 	
 	// prepare depth renderpass
-	m_shadowInfo.renderpass.AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, format);
-	m_shadowInfo.renderpass.AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0);
-	m_shadowInfo.renderpass.PrepareRenderPass(p_vkEngine->GetDevice());
+	m_shadowInfo.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
+	m_shadowInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, format);
+	m_shadowInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0);
+	m_shadowInfo.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	// create a frambuffer for each cascade layer
-	m_shadowInfo.renderpass.PrepareFramebuffer(m_depthImage.imageView, SHADOWMAP_SIZE, SHADOWMAP_SIZE, p_vkEngine->GetDevice(), layerCount);
+	m_shadowInfo.renderpass->PrepareFramebuffer(p_depthImage->imageView, SHADOWMAP_SIZE, SHADOWMAP_SIZE, p_vkEngine->GetDevice(), layerCount);
 }
 
 void VulkanShadow::PrepareShadowDescriptors()
 {	
+	m_shadowInfo.descriptors = new VkDescriptors(p_vkEngine->GetDevice());
+	
 	std::vector<VkDescriptors::LayoutBinding> uboLayout = 
 	{
 		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT }
 	};
-	m_shadowInfo.descriptors.AddDescriptorBindings(uboLayout);
+	m_shadowInfo.descriptors->AddDescriptorBindings(uboLayout);
 
 	std::vector<VkDescriptorBufferInfo> buffInfo = 
 	{
 		{ p_vkMemory->blockBuffer(m_shadowInfo.uboBuffer.block_id), m_shadowInfo.uboBuffer.offset, m_shadowInfo.uboBuffer.size}
 	};
-	m_shadowInfo.descriptors.GenerateDescriptorSets(buffInfo.data(), nullptr, p_vkEngine->GetDevice());
+	m_shadowInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), nullptr);
 }
 
 void VulkanShadow::PrepareShadowPipeline()
@@ -74,12 +82,12 @@ void VulkanShadow::PrepareShadowPipeline()
 	assemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
 	assemblyInfo.primitiveRestartEnable = VK_FALSE;
 
-	VkPipelineViewportStateCreateInfo viewportState = vkUtility->InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
+	VkPipelineViewportStateCreateInfo viewportState = VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = vkUtility->InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
 	rasterInfo.depthBiasEnable = VK_TRUE;
 
-	VkPipelineMultisampleStateCreateInfo multiInfo = vkUtility->InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
+	VkPipelineMultisampleStateCreateInfo multiInfo = VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
 
 	VkPipelineColorBlendStateCreateInfo colorInfo = {};
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -100,16 +108,16 @@ void VulkanShadow::PrepareShadowPipeline()
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
-	pipelineInfo.pSetLayouts = &m_shadowInfo.descriptors.layout;
+	pipelineInfo.pSetLayouts = &m_shadowInfo.descriptors->layout;
 	pipelineInfo.pPushConstantRanges = 0;
 	pipelineInfo.pushConstantRangeCount = 0;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_shadowInfo.pipelineInfo.layout));
 
 	// load the shaders with tyexture samplers for material textures
-	m_shadowInfo.shader[0] = vkUtility->InitShaders("Shadow/shadow-vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-	m_shadowInfo.shader[1] = vkUtility->InitShaders("Shadow/shadow-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-	m_shadowInfo.shader[2] = vkUtility->InitShaders("Shadow/shadow-geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT);
+	m_shadowInfo.shader[0] = VulkanUtility::InitShaders("Shadow/shadow-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_shadowInfo.shader[1] = VulkanUtility::InitShaders("Shadow/shadow-frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT, p_vkEngine->GetDevice());
+	m_shadowInfo.shader[2] = VulkanUtility::InitShaders("Shadow/shadow-geom.spv", VK_SHADER_STAGE_GEOMETRY_BIT, p_vkEngine->GetDevice());
 
 	VkGraphicsPipelineCreateInfo createInfo = {};
 	createInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -124,7 +132,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	createInfo.pColorBlendState = &colorInfo;
 	createInfo.pDynamicState = &dynamicInfo;
 	createInfo.layout = m_shadowInfo.pipelineInfo.layout;
-	createInfo.renderPass = m_shadowInfo.renderpass.renderpass;
+	createInfo.renderPass = m_shadowInfo.renderpass->renderpass;
 	createInfo.subpass = 0;
 	createInfo.basePipelineIndex = -1;
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
@@ -141,17 +149,17 @@ void VulkanShadow::GenerateShadowCmdBuffer()
 	}
 
 	// create a semaphore to ensure that the shadow map is updated before generating on screen commands
-	m_shadowInfo.semaphore = p_vkEngine->CreateSemaphore();
+	m_shadowInfo.semaphore = VulkanUtility::CreateSemaphore(p_vkEngine->GetDevice());
 
 	std::array<VkClearValue, 7> clearValues = {};
 
-	m_cmdBuffer = vkUtility->CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool());
+	m_cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	
-	renderPassInfo.renderPass = m_shadowInfo.renderpass.renderpass;
-	renderPassInfo.framebuffer = m_shadowInfo.renderpass.frameBuffer;
+	renderPassInfo.renderPass = m_shadowInfo.renderpass->renderpass;
+	renderPassInfo.framebuffer = m_shadowInfo.renderpass->frameBuffer;
 	renderPassInfo.renderArea.offset = { 0,0 };
 	renderPassInfo.renderArea.extent.width = SHADOWMAP_SIZE;
 	renderPassInfo.renderArea.extent.height = SHADOWMAP_SIZE;
@@ -161,15 +169,15 @@ void VulkanShadow::GenerateShadowCmdBuffer()
 	// try and reduce artifacts
 	//vkCmdSetDepthBias(cmdBuffer, biasConstant, 0.0f, biasSlope);
 
-	VkViewport viewport = vkUtility->InitViewPort(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0.0f, 1.0f);
+	VkViewport viewport = VulkanUtility::InitViewPort(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0.0f, 1.0f);
 	vkCmdSetViewport(m_cmdBuffer, 0, 1, &viewport);
 
-	VkRect2D scissor = vkUtility->InitScissor(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, 0);
+	VkRect2D scissor = VulkanUtility::InitScissor(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, 0);
 	vkCmdSetScissor(m_cmdBuffer, 0, 1, &scissor);
 
 	// draw scene into each cascade layer
 	vkCmdBeginRenderPass(m_cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	p_vkEngine->RenderScene(m_cmdBuffer, m_shadowInfo.descriptors.set, m_shadowInfo.pipelineInfo.layout, m_shadowInfo.pipelineInfo.pipeline);
+	p_vkEngine->RenderScene(m_cmdBuffer, m_shadowInfo.descriptors->set, m_shadowInfo.pipelineInfo.layout, m_shadowInfo.pipelineInfo.pipeline);
 	vkCmdEndRenderPass(m_cmdBuffer);
 
 	VK_CHECK_RESULT(vkEndCommandBuffer(m_cmdBuffer));
@@ -213,5 +221,12 @@ void VulkanShadow::Init()
 
 void VulkanShadow::Destroy()
 {
+	vkDestroyPipeline(p_vkEngine->GetDevice(), m_shadowInfo.pipelineInfo.pipeline, nullptr);
+	vkDestroyPipelineLayout(p_vkEngine->GetDevice(), m_shadowInfo.pipelineInfo.layout, nullptr);
 
+	delete m_shadowInfo.descriptors;
+	delete m_shadowInfo.renderpass;
+	delete p_depthImage;
+
+	p_vkEngine = nullptr;
 }
