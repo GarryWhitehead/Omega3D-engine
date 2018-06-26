@@ -3,14 +3,22 @@
 #include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VkMemoryManager.h"
 #include "glm.hpp"
+#include <array>
 
 class VulkanEngine;
 class VkDescriptors;
+class VulkanTexture;
+class VulkanRenderPass;
 
 class VkPostProcess : public VulkanModule
 {
 
 public:
+
+	const float BLUR_SCALE = 1.0f;
+	const float BLUR_STRENGTH = 1.0f;
+	const uint32_t BLUR_FB_DIM = 256;
+	const uint32_t BLUR_MIP_LEVELS = 4;
 
 	const float RAY_DIRECTION = 0.8f;
 	const float SUN_DIRECTION = 0.5f;
@@ -30,10 +38,13 @@ public:
 		float rayDir;
 		float sunDir;
 		float fogDensity;
+		float exposure;			// tone mapping variables
+		float gamma;
+		float _pad0;
 		uint32_t enableFog;
 	};
 
-	struct FogUboVS
+	struct PostProcessVS		// the same vert ubo buffer is used for each pass
 	{
 		glm::mat4 projection;
 		glm::mat4 viewMatrix;
@@ -41,13 +52,29 @@ public:
 		glm::mat4 camModelView;
 	};
 
+	struct BlurUbo
+	{
+		float blurStrength;
+		float blurScale;
+	};
+
 	struct PostProcessInfo
 	{
 		VkDescriptors *descriptors;
+		VulkanRenderPass *renderpass;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VkMemoryManager::SegmentInfo uboBufferVS;
-		VkMemoryManager::SegmentInfo uboBufferFS;
+		VkMemoryManager::SegmentInfo uboBuffer;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+	};
+
+	struct BlurInfo
+	{
+		VkDescriptors *descriptors;
+		VulkanRenderPass *renderpassHoriz;
+		VulkanRenderPass *renderpassVert;
+		VulkanUtility::PipeLlineInfo pipelineInfo;
+		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+		VkMemoryManager::SegmentInfo uboBuffer;
 	};
 
 	VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory);
@@ -57,20 +84,46 @@ public:
 	void Update(int acc_time) override;
 	void Destroy() override;
 	
-	void PreparePipeline();
-	void PrepareDescriptors();
-	void GenerateCmdBuffer(VkCommandBuffer cmdBuffer);
+	void PrepareBuffers();
+	void PrepareFrameBuffers();
+	void PreparePipelines();
+	void PrepareColourPassDescriptors();
+	void PrepareBlurPassDescriptors();
+	void PrepareFinalDescriptors();
+	void GenerateColPassCmdBuffer(VkCommandBuffer cmdBuffer);
+	void GenerateBlurPassCmdBuffer(VkCommandBuffer& cmdBuffer, VkRenderPass renderpass, VkFramebuffer framebuffer, uint32_t width, uint32_t height, uint32_t direction);
+	void GenerateFinalCmdBuffer(VkCommandBuffer cmdBuffer);
+	void DrawBloom();
 	void PrepareFullscreenQuad();
+	void Submit(VkSemaphore *last_semaphore);
+
+	// helper functions
+	VkSemaphore& GetOffscreenSemaphore() { return offscreen_semaphore; }
 
 private:
 
 	VulkanEngine *p_vkEngine;
 
 	// fog data
-	PostProcessInfo m_fogInfo;
-
+	PostProcessInfo m_ppInfo;
+	PostProcessInfo m_finalInfo;
+	BlurInfo m_bloomInfo;
+		 
 	// buffers for vertices, etc.
 	VkMemoryManager::SegmentInfo m_vertices;
 	VkMemoryManager::SegmentInfo m_indices;
+	VkMemoryManager::SegmentInfo m_vertBuffer;		// vertex ubo buffer 
+
+	VkCommandBuffer offscreen_cmdBuffer;
+	VkSemaphore offscreen_semaphore;
+
+	// texture samplers for bloom/normal scene
+	struct Images
+	{
+		VulkanTexture *normalCol;
+		VulkanTexture *brightCol;
+		VulkanTexture *bloom;
+		VulkanTexture *depth;
+	} m_images;
 };
 

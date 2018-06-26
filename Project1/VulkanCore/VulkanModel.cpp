@@ -2,6 +2,7 @@
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/VkDescriptors.h"
 #include "VulkanCore/VulkanEngine.h"
+#include "VulkanCore/Vulkan_shadow.h"
 #include "ComponentManagers/TransformComponentManager.h"
 #include "VulkanCore/VulkanDeferred.h"
 #include "Systems/camera_system.h"
@@ -253,7 +254,7 @@ void VulkanModel::PreparePipeline()
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipelineInfo.pipeline));
 }
 
-void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
+void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow)
 {
 	auto p_meshManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<MeshComponentManager>();
 
@@ -261,15 +262,13 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 	for (uint32_t m = 0; m < p_meshManager->m_data.meshIndex.size(); ++m) {			
 
 		uint32_t index = p_meshManager->m_data.meshIndex[m];
-
-		// bind vertex data at offset into buffer
-		VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset + m_vertexBuffer.offset };
-		vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertexBuffer.block_id), offset);
-		
+	
 		for (uint32_t i = 0; i < m_modelInfo[index].meshes.size(); i++) {		// the number of meshes within this particular model - each mesh has its own material
 
+			// get the model data 
 			auto& model = m_modelInfo[index];
 
+			// and the material for this particluar model from the store
 			uint32_t matIndex;
 			if (!p_meshManager->m_data.materialName[m].empty()) {
 
@@ -280,17 +279,41 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptor
 			}
 			assert(matIndex < m_materials.size());
 
-			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipelineInfo.pipeline : pipeline);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_pipelineInfo.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_materials[matIndex].descriptor->set : &set, 0, NULL);
+			// the model matrix indices 
+			uint32_t objIndex = m;			// TODO:: look up the object id between mesh and transform data 
+
+			// we can either draw using the shadow or model pipeline
+			if (drawShadow) {		// use the shadow pipeline
+
+				auto shadow = p_vkEngine->VkModule<VulkanShadow>();
+
+				// try and reduce artifacts
+				vkCmdSetDepthBias(cmdBuffer, VulkanShadow::biasConstant, 0.0f, VulkanShadow::biasSlope);
+
+				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipeline());
+				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
+
+				VulkanShadow::PushConstant push;
+				push.useModelIndex = 1;					// inform the shadow shader to add the model transform to the light matrix	
+				push.modelIndex = objIndex;
+				vkCmdPushConstants(cmdBuffer, shadow->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(VulkanShadow::PushConstant), &push);
+
+			}
+			else {
+
+				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.pipeline);
+				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.layout, 0, 1, &m_materials[matIndex].descriptor->set, 0, NULL);
+
+				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &objIndex);															// object index into transform buffer
+				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(uint32_t), sizeof(MaterialProperties), &m_materials[matIndex].properties);		// push material info per mesh
+			}
+
+			// bind vertex data at offset into buffer
+			VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset + m_vertexBuffer.offset };
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertexBuffer.block_id), offset);
 
 			// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
 			vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indexBuffer.block_id), m_indexBuffer.offset + (model.meshes[i].indexBase * sizeof(uint32_t)), VK_INDEX_TYPE_UINT32);
-
-			if (pipeline == VK_NULL_HANDLE) {
-				uint32_t objIndex = m;			// TODO:: look up the object id between mesh and transform data 
-				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &objIndex);														// object index into transform buffer
-				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(uint32_t), sizeof(MaterialProperties), &m_materials[matIndex].properties);		// push material info per mesh
-			}
 			vkCmdDrawIndexed(cmdBuffer, model.meshes[i].indexCount, 1, 0, 0, 0);
 		}
 	}

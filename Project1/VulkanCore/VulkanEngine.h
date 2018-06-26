@@ -50,7 +50,7 @@ public:
 
 	// rendering functions - TODO: make these function names a little more obvious and transparent!
 	void Render();
-	void RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set = VK_NULL_HANDLE, VkPipelineLayout layout = VK_NULL_HANDLE, VkPipeline pipeline = VK_NULL_HANDLE);
+	void RenderScene(VkCommandBuffer cmdBuffer, bool drawShadow = false);
 
 	// message handling function
 	void OnNotify(Message& msg);
@@ -100,6 +100,8 @@ public:
 	float tesselationFactor() const;
 	float displacementFactor() const;
 	float tessEdgeSize() const;
+	float exposureSetting() const;
+	float gammaSetting() const;
 
 protected:
 

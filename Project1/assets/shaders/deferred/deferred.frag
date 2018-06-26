@@ -24,12 +24,13 @@ layout (location = 1) in vec3 inPosW;
 layout (location = 0) out vec4 outFrag;
 
 #define MAX_LIGHT_COUNT 5			// use uniform buffer
-#define SHADOW_FACTOR 0.85
+#define SHADOW_FACTOR 0.25
 
 #define PI 3.1415926535897932384626433832795
 
 struct Light
 {
+		mat4 viewMatrix;
 		vec4 pos;
 		vec4 direction;
 		vec4 colour;
@@ -68,8 +69,8 @@ vec3 perturbNormal(vec3 posW)
 {
 	vec3 tangentNormal = subpassLoad(bumpSampler).xyz * 2.0 - 1.0;
 
-	vec3 q1 = dFdx(inPosW);
-	vec3 q2 = dFdy(inPosW);
+	vec3 q1 = dFdx(posW);
+	vec3 q2 = dFdy(posW);
 	vec2 st1 = dFdx(inUv);
 	vec2 st2 = dFdy(inUv);
 
@@ -131,17 +132,6 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 	return colour;
 }
 
-vec3 Uncharted2Tonemap(vec3 x)
-{
-	float A = 0.15;
-	float B = 0.50;
-	float C = 0.10;
-	float D = 0.20;
-	float E = 0.02;
-	float F = 0.30;
-	return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F;
-}
-
 void main()
 {	
 	vec3 inPos = subpassLoad(positionSampler).rgb;
@@ -150,7 +140,8 @@ void main()
 	
 	vec3 N;
 	if(hasBumpMap == 1.0) {
-		N = perturbNormal(V);
+		//N = perturbNormal(inPos);
+		N = normalize(subpassLoad(normalSampler).rgb);
 	}
 	else {
 		N = normalize(subpassLoad(normalSampler).rgb);
@@ -201,23 +192,14 @@ void main()
 	vec3 finalColour = ambient + Lo;
 			
 	// shadow calculations
-	//vec3 fragPos = texelFetch(positionSampler, texUv, 0).rgb;
 	
-	//for(int i = 0; i < LIGHT_COUNT; i++) {
+	for(int i = 0; i < push.activeLightCount; i++) {
 	
-	//	vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(fragPos, 1.0);
-	//	float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
+		vec4 shadowClip	= ubo.lights[i].viewMatrix * vec4(inPos, 1.0);
+		float shadowFactor = textureProj(shadowClip, i, vec2(0.0));
 		
-	//	finalColour *= shadowFactor;
-	//}
-	
-	// tone mapping - from http://filmicworlds.com/blog/filmic-tonemapping-operators/
-	float expBias = 2.0f;
-	finalColour = Uncharted2Tonemap(expBias * finalColour);
-	
-	vec3 whiteScale = vec3(1.0 / Uncharted2Tonemap(vec3(11.2)));
-	finalColour *= whiteScale;
-	finalColour = pow(finalColour, vec3(1.0/2.2));		// to the power of 1/gamma
+		finalColour *= shadowFactor;
+	}
 	
 	outFrag = vec4(finalColour, 1.0);
 }

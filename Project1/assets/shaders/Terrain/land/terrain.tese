@@ -12,6 +12,7 @@ layout (set = 0, binding = 0) uniform UBOBuffer
 	float dispFactor;
 	float tessFactor;
 	float tessEdgeSize;
+	float _pad0;
 } ubo;
 
 layout (quads, equal_spacing, cw) in;

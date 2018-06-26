@@ -24,11 +24,12 @@ VulkanTexture::~VulkanTexture()
 }
 
 // Texture based functions
-void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode samplerMode, const VkImageUsageFlags usageFlags, uint32_t w, uint32_t h, float maxAnisotropy, bool createSampler)
+void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode samplerMode, const VkImageUsageFlags usageFlags, uint32_t w, uint32_t h, float maxAnisotropy, bool createSampler, uint32_t mips, VkFilter filter)
 {
 	width = w;
 	height = h;
 	format = f;
+	mipLevels = mips;
 
 	VkImageAspectFlags aspectFlags = 0;
 
@@ -48,7 +49,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	image_info.extent.width = width;
 	image_info.extent.height = height;
 	image_info.extent.depth = 1;
-	image_info.mipLevels = 1;
+	image_info.mipLevels = mipLevels;			// used for creating dynamic mipmaps 
 	image_info.arrayLayers = 1;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
@@ -83,7 +84,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &imageView));
 
 	if (createSampler) {
-		CreateTextureSampler(samplerMode, maxAnisotropy, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+		CreateTextureSampler(samplerMode, maxAnisotropy, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, filter);
 	}
 }
 
@@ -151,7 +152,7 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 
 	VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &imageView));
 
-	CreateTextureSampler(samplerMode, 1.0, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+	CreateTextureSampler(samplerMode, 1.0, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FILTER_LINEAR);
 }
 
 void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
@@ -190,6 +191,50 @@ void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkCommandPo
 	//clean up
 	vkDestroyBuffer(device, staging_buff, nullptr);
 	vkFreeMemory(device, staging_mem, nullptr);
+}
+
+void VulkanTexture::GenerateMipChain(uint32_t mipLevels, VkCommandPool cmdPool, VkQueue graphQueue)
+{
+	assert(image != VK_NULL_HANDLE);
+
+	// create command buffer for the blitting
+	VkCommandBuffer cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
+
+	// transition the base image to source
+	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device);
+
+	for (int32_t c = 1; c < mipLevels; ++c) {
+
+		VkImageBlit blit = {};
+		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.srcSubresource.layerCount = 1;
+		blit.srcSubresource.mipLevel = c - 1;		// previous mipmap generated used as the base for the blit
+		blit.srcOffsets[1].x = static_cast<int32_t>(width >> (c - 1));
+		blit.srcOffsets[1].y = static_cast<int32_t>(height >> (c - 1));
+		blit.srcOffsets[1].z = 1;
+
+		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.dstSubresource.layerCount = 1;
+		blit.dstSubresource.mipLevel = c;
+		blit.dstOffsets[1].x = static_cast<int32_t>(width >> c);
+		blit.dstOffsets[1].y = static_cast<int32_t>(height >> c);
+		blit.dstOffsets[1].z = 1;
+
+		// prepare base image for transfer
+		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device, 1, 1, c);
+
+		// blit image from previous to next image - image is downscaled with linear filtering
+		vkCmdBlitImage(cmdBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+
+		// prepare image for next blit
+		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device, 1, 1, c);
+	}
+
+	// finish by preparing image for shader read
+	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device, mipLevels, 1);
+
+	// flush cmd buffer
+	VulkanUtility::SubmitCmdBufferToQueue(cmdBuffer, graphQueue, cmdPool, device);
 }
 
 void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
@@ -278,7 +323,7 @@ void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode
 
 	imageView = VulkanUtility::InitImageView(image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, device);
 
-	CreateTextureSampler(addrMode, maxAnisotropy, color);
+	CreateTextureSampler(addrMode, maxAnisotropy, color, VK_FILTER_LINEAR);
 
 	vkDestroyBuffer(device, staging_buff, nullptr);
 	vkFreeMemory(device, stagingMemory, nullptr);
@@ -379,7 +424,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 	// create texture array image view
 	imageView = VulkanUtility::InitImageView(image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, device);
 
-	CreateTextureSampler(addrMode, maxAnisotropy, color);
+	CreateTextureSampler(addrMode, maxAnisotropy, color, VK_FILTER_LINEAR);
 
 	vkDestroyBuffer(device, staging_buff, nullptr);
 	vkFreeMemory(device, stagingMemory, nullptr);
@@ -491,22 +536,22 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 	createInfo.subresourceRange.baseArrayLayer = 0;
 	VK_CHECK_RESULT(vkCreateImageView(device, &createInfo, nullptr, &imageView));
 
-	CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE);
+	CreateTextureSampler(VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, 16.0f, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FILTER_LINEAR);
 
 	vkDestroyBuffer(device, staging_buff, nullptr);
 	vkFreeMemory(device, stagingMemory, nullptr);
 }
 
-void VulkanTexture::CreateTextureSampler(const VkSamplerAddressMode addressMode, float maxAnisotropy, const VkBorderColor borderColor)
+void VulkanTexture::CreateTextureSampler(const VkSamplerAddressMode addressMode, float maxAnisotropy, const VkBorderColor borderColor, VkFilter filter)
 {
 	VkSamplerCreateInfo sampler_info = {};
 	sampler_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	sampler_info.magFilter = VK_FILTER_LINEAR;
-	sampler_info.minFilter = VK_FILTER_LINEAR;
+	sampler_info.magFilter = filter;
+	sampler_info.minFilter = filter;
 	sampler_info.addressModeU = addressMode;
 	sampler_info.addressModeV = addressMode;
 	sampler_info.addressModeW = addressMode;
-	sampler_info.anisotropyEnable = VK_TRUE;
+	sampler_info.anisotropyEnable = maxAnisotropy == 0.0f ? VK_FALSE : VK_TRUE;
 	sampler_info.maxAnisotropy = maxAnisotropy;
 	sampler_info.borderColor = borderColor;
 	sampler_info.unnormalizedCoordinates = VK_FALSE;

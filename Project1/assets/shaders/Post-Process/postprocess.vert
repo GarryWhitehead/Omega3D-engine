@@ -11,10 +11,11 @@ layout (binding = 0) uniform UboBuffer
 	mat4 projection;
 	mat4 viewMatrix;
 	mat4 modelMatrix;
+	mat4 camModelView;
 } ubo;
 
 layout (location = 0) out vec2 outUv;
-layout (location = 1) out vec3 outPosW;
+layout (location = 1) out vec4 outViewSpace;
 
 out gl_PerVertex
 {
@@ -24,8 +25,7 @@ out gl_PerVertex
 void main()
 {
 	outUv = inUv;
-	outUv.t = 1.0 - inUv.t;
 	
-	outPosW = (ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
-	gl_Position = ubo.projection * ubo.viewMatrix * vec4(outPosW, 1.0);
+	outViewSpace = ubo.camModelView * vec4(inPos, 1.0);
+	gl_Position = ubo.projection * ubo.viewMatrix * ubo.modelMatrix * vec4(inPos, 1.0);
 }

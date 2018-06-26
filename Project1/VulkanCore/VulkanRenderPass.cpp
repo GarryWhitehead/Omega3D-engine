@@ -9,6 +9,16 @@ VulkanRenderPass::VulkanRenderPass(VkDevice dev) :
 	assert(device != VK_NULL_HANDLE);
 }
 
+VulkanRenderPass::VulkanRenderPass(VkDevice dev, VkRenderPass pass) :
+	frameBuffer(VK_NULL_HANDLE),
+	renderpass(pass),
+	device(dev)
+{
+	assert(device != VK_NULL_HANDLE);
+	assert(renderpass != VK_NULL_HANDLE);
+}
+
+
 
 VulkanRenderPass::~VulkanRenderPass()
 {
@@ -124,6 +134,26 @@ void VulkanRenderPass::AddSubpassDependency(DependencyTemplate depend_template, 
 		depend.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		depend.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		depend.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		depend.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	}
+	else if (depend_template == DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_BOTTOM) {
+
+		depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+		depend.dstSubpass = 0;
+		depend.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		depend.srcAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		depend.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+	}
+	else if (depend_template == DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_FRAG) {
+
+		depend.srcSubpass = 0;
+		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+		depend.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+		depend.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+		depend.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 		depend.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		depend.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 	}

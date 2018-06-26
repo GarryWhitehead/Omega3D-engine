@@ -194,25 +194,33 @@ void VulkanTerrain::PreparePipeline()
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_terrainInfo.wirePipeline));
 }
 
-void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
+void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow)
 {
-	if (pipeline == VK_NULL_HANDLE) {
-		vkCmdSetLineWidth(cmdBuffer, 1.0f);
-	}
-
 	VkDeviceSize bgOffsets[] = { m_terrainInfo.buffer.vertex.offset };
 
 	// Terrain draw
-	if (pipeline == VK_NULL_HANDLE) {
+	if (!drawShadow) {
+		vkCmdSetLineWidth(cmdBuffer, 1.0f);
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (p_vkEngine->drawWireframe()) ? m_terrainInfo.wirePipeline : m_terrainInfo.pipeline.pipeline);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_terrainInfo.pipeline.layout, 0, 1, &m_terrainInfo.descrInfo->set, 0, NULL);
 	}
 	else {
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);		// use alternate pipeline for draw
+		auto shadow = p_vkEngine->VkModule<VulkanShadow>();
+
+		// try and reduce artifacts
+		vkCmdSetDepthBias(cmdBuffer, VulkanShadow::biasConstant, 0.0f, VulkanShadow::biasSlope);
+
+		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipeline());		// use shadow pipeline for draw
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
+
+		VulkanShadow::PushConstant push;
+		push.useModelIndex = 0;					// inform the shadow shader to add the model transform to the light matrix	
+		vkCmdPushConstants(cmdBuffer, shadow->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(VulkanShadow::PushConstant), &push);
+
 	}
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_terrainInfo.buffer.vertex.block_id), bgOffsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_terrainInfo.buffer.index.block_id), m_terrainInfo.buffer.index.offset, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_terrainInfo.pipeline.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ?  &m_terrainInfo.descrInfo->set : &set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, m_terrainInfo.buffer.indexCount, 1, 0, 0, 0);
 }
 

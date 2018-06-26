@@ -245,7 +245,7 @@ VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(const VkShaderModule
 }
 
 // ===========
-void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, VkDevice device, uint32_t mipLevels, uint32_t layers)
+void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, VkDevice device, uint32_t levelCount, uint32_t layers, uint32_t mipLevel)
 {
 
 	VkCommandBuffer comm_buff;
@@ -280,8 +280,8 @@ void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuf
 
 	mem_barr.subresourceRange.baseArrayLayer = 0;
 	mem_barr.subresourceRange.layerCount = layers;
-	mem_barr.subresourceRange.baseMipLevel = 0;
-	mem_barr.subresourceRange.levelCount = mipLevels;
+	mem_barr.subresourceRange.baseMipLevel = mipLevel;
+	mem_barr.subresourceRange.levelCount = levelCount;
 
 	VkPipelineStageFlags src_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 	VkPipelineStageFlags dst_stage = VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
@@ -291,8 +291,18 @@ void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuf
 		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 	}
 
+	else if (old_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		mem_barr.srcAccessMask = 0;
+		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
 	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
 		mem_barr.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		mem_barr.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+	}
+
+	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
+		mem_barr.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 		mem_barr.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 	}
 
@@ -308,6 +318,11 @@ void VulkanUtility::ImageTransition(const VkQueue graphQueue, const VkCommandBuf
 
 	else if (old_layout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
 		mem_barr.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+	}
+
+	else if (old_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && new_layout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
+		mem_barr.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
 		mem_barr.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
 	}
 

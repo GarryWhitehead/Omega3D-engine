@@ -20,7 +20,9 @@ public:
 			terrainType(0),
 			wireframe(false),		// default settings
 			showFog(false),
-			lights(true)
+			lights(true),
+			exposure(1.0f),
+			gamma(2.2f)
 		{}
 
 		int terrainType;
@@ -36,6 +38,10 @@ public:
 		float displacement;
 		float tesselation;
 		float edgeFactor;
+
+		// tone mapping
+		float exposure;
+		float gamma;
 
 	} m_guiSettings;
 

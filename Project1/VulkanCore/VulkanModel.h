@@ -130,7 +130,7 @@ public:
 
 	void PrepareMaterialDescriptorSets(Material *material);
 	void PreparePipeline();
-	void GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
+	void GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow = false);
 
 	// mesh-material vertex preperation functions
 	void ImportDummyTextures();

@@ -57,7 +57,7 @@ public:
 	static void SubmitFrame(const uint32_t imageIndex, VkSwapchainKHR swapChain, VkSemaphore renderSem, VkQueue presentQueue);
 
 	// image
-	static void ImageTransition(const VkQueue graphQueue, const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, VkDevice device, uint32_t mipLevels = 1, uint32_t layers = 1);
+	static void ImageTransition(const VkQueue graphQueue, const VkCommandBuffer cmdBuff, const VkImage image, const VkFormat format, const VkImageLayout old_layout, const VkImageLayout new_layout, const VkCommandPool cmdPool, VkDevice device, uint32_t levelCount = 1, uint32_t layers = 1, uint32_t mipLevel = 0);
 	static VkFormat FindSupportedFormat(const std::vector<VkFormat>& requiredFormats, const VkImageTiling tiling, const VkFormatFeatureFlags features, VkPhysicalDevice physDevice);
 	static VkImageView InitImageView(VkImage image, VkFormat format, VkImageAspectFlagBits imageAspect, VkImageViewType type, VkDevice device);
 

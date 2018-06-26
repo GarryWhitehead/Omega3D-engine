@@ -6,6 +6,7 @@
 #include "VulkanCore/VulkanDeferred.h"
 #include "VulkanCore/TerrainUtility.h"
 #include "VulkanCore/VulkanTexture.h"
+#include "VulkanCore/vulkan_shadow.h"
 #include "VulkanCore/vkFFT.h"
 #include "Systems/camera_system.h"
 #include "Engine/world.h"
@@ -194,25 +195,32 @@ void VulkanWater::PreparePipeline()
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_waterInfo.wirePipeline));
 }
 
-void VulkanWater::GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
+void VulkanWater::GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow)
 {
-	if (pipeline == VK_NULL_HANDLE) {
-		vkCmdSetLineWidth(cmdBuffer, 1.0f);
-	}
-
 	VkDeviceSize bgOffsets[] = { m_waterInfo.vertices.offset };
 
-	//  draw water
-	if (pipeline == VK_NULL_HANDLE) {
+	if (!drawShadow) {
+		vkCmdSetLineWidth(cmdBuffer, 1.0f);
 		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (p_vkEngine->drawWireframe()) ? m_waterInfo.wirePipeline : m_waterInfo.pipelineInfo.pipeline);
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_waterInfo.pipelineInfo.layout, 0, 1, &m_waterInfo.descriptors->set, 0, NULL);
 	}
 	else {
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);		// use alternate pipeline for draw
+		auto shadow = p_vkEngine->VkModule<VulkanShadow>();
+
+		// try and reduce artifacts
+		vkCmdSetDepthBias(cmdBuffer, VulkanShadow::biasConstant, 0.0f, VulkanShadow::biasSlope);
+
+		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipeline());		// use shadow pipeline for draw
+		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
+
+		VulkanShadow::PushConstant push;
+		push.useModelIndex = 0;					// inform the shadow shader to add the model transform to the light matrix	
+		vkCmdPushConstants(cmdBuffer, shadow->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(VulkanShadow::PushConstant), &push);
+
 	}
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_waterInfo.vertices.block_id), bgOffsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_waterInfo.indices.block_id), m_waterInfo.indices.offset, VK_INDEX_TYPE_UINT32);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (pipeline == VK_NULL_HANDLE) ? m_waterInfo.pipelineInfo.layout : layout, 0, 1, (pipeline == VK_NULL_HANDLE) ? &m_waterInfo.descriptors->set : &set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, m_waterInfo.indexCount, 1, 0, 0, 0);
 }
 

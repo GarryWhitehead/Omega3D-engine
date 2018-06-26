@@ -17,20 +17,31 @@ class VulkanShadow : public VulkanModule
 public:
 	
 	const uint32_t SHADOWMAP_SIZE = 2048;
-	static const uint32_t CSM_COUNT = 5;
 
 	// projections values for offscreen buffer - from perspective of light
 	const float zNear = 1.0f;
-	const float zFar = 96.0f;
+	const float zFar = 64.0f;
 
 	// values used by vkCmdDepthBias to reduce mapping artefacts - dynamically set at draw time
-	float biasConstant = 1.25f;
-	float biasSlope = 1.75f;
+	static constexpr float biasConstant = 1.25f;
+	static constexpr float biasSlope = 1.75f;
 
-	struct UboLayout
+	struct SsboBufferLight
 	{
-		glm::mat4 mvp[256];
+		std::array<glm::mat4, 256> mvp;
 	};
+
+	struct SsboBufferModel
+	{
+		std::array<glm::mat4, 256> modelMatrix;
+	};
+
+	struct PushConstant
+	{
+		uint32_t useModelIndex;
+		uint32_t modelIndex;
+	};
+
 
 	VulkanShadow(VulkanEngine* engine, VkMemoryManager *manager);
 	virtual ~VulkanShadow();
@@ -41,12 +52,16 @@ public:
 	void PrepareShadowFrameBuffer();
 	void PrepareShadowDescriptors();
 	void PrepareShadowPipeline();
-	void GenerateShadowCmdBuffer();
+	void GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer);
+
+	// helper functions
+	VkPipeline& GetPipeline() { return m_shadowInfo.pipelineInfo.pipeline; }
+	VkPipelineLayout& GetPipelineLayout() { return m_shadowInfo.pipelineInfo.layout; }
+	VkDescriptorSet& GetDescriptorSet();
+	VkSampler& GetDepthSampler();
+	VkImageView& GetDepthImageView();
 
 	friend class VulkanEngine;
-	friend class VulkanTerrain;
-	friend class VulkanModel;
-	friend class VulkanDeferred;
 
 private:
 
@@ -55,19 +70,18 @@ private:
 	struct OffscreenInfo
 	{
 		VulkanRenderPass *renderpass;
-		VkSemaphore semaphore;
-
 		VkDescriptors *descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-
-		VkMemoryManager::SegmentInfo uboBuffer;
-
 		std::array<VkPipelineShaderStageCreateInfo, 3> shader;
-
 	} m_shadowInfo;
 
+	struct SsboBuffers
+	{
+		VkMemoryManager::SegmentInfo light;
+		VkMemoryManager::SegmentInfo model;
+	} ssboBuffer;
+
 	VulkanTexture *p_depthImage;
-	VkCommandBuffer m_cmdBuffer;
 
 	VulkanEngine *p_vkEngine;
 };

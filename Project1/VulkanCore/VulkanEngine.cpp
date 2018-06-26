@@ -80,18 +80,20 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 	}
 }
 
-void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline)
+void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, bool drawShadow)
 {
-	if (hasModule<VulkanTerrain>() && p_vkGUI->m_guiSettings.terrainType == 1) {
-		VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, set, layout, pipeline);
-	}
+	if (!drawShadow) {
+		if (hasModule<VulkanTerrain>() && p_vkGUI->m_guiSettings.terrainType == 1) {
+			VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, false);
+		}
 
-	if (hasModule<VulkanWater>() && p_vkGUI->m_guiSettings.terrainType == 0) {
-		VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, set, layout, pipeline);
+		if (hasModule<VulkanWater>() && p_vkGUI->m_guiSettings.terrainType == 0) {
+			VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, false);
+		}
 	}
 
 	if (hasModule<VulkanModel>()) {
-		VkModule<VulkanModel>()->GenerateModelCmdBuffer(cmdBuffer, set, layout, pipeline); 
+		VkModule<VulkanModel>()->GenerateModelCmdBuffer(cmdBuffer, drawShadow); 
 	}
 }
 
@@ -179,7 +181,7 @@ void VulkanEngine::GenerateFinalCmdBuffer()
 		vkCmdBeginRenderPass(m_cmdBuffers[c], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
 		// draw screen with post screen processing as a full screen quad
-		VkModule<VkPostProcess>()->GenerateCmdBuffer(m_cmdBuffers[c]);
+		VkModule<VkPostProcess>()->GenerateFinalCmdBuffer(m_cmdBuffers[c]);
 
 		// render GUI on top of image - if seleceted
 		if (displayGUI) {
@@ -203,13 +205,13 @@ void VulkanEngine::DrawScene()
 	VkModule<VulkanIBL>()->GenerateIrrMapCmdBuffer();
 	VkModule<VulkanIBL>()->GeneratePreFilterCmdBuffer();
 	
-	// draw shadow image into offscreen buffer
-	VkModule<VulkanShadow>()->GenerateShadowCmdBuffer();
-	
-	// draw deferred image into offscreen buffer
+	// draw deferred image into hdr offscreen buffer
 	VkModule<VulkanDeferred>()->DrawDeferredScene();
 
-	// apply post processing and draw to presentation image
+	// gnerate normal and bright hdr scene and apply bloom
+	VkModule<VkPostProcess>()->DrawBloom();
+
+	// final composition including colour pass, bloom and fog and draw to presentation image
 	GenerateFinalCmdBuffer();
 	
 	vk_prepared = true;		// ensure everyting has been initialised before submitting to the relevant queue
@@ -251,20 +253,17 @@ void VulkanEngine::SubmitFrame()
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.commandBufferCount = 1;
 
-	// wait for the shadow offscreen buffer to finish	
+	// wait for the deferred and shadow offscreen buffers
 	submit_info.pWaitSemaphores = &p_vkSwapChain->semaphore.image;
-	submit_info.pSignalSemaphores = &vkShadow->m_shadowInfo.semaphore;
-	submit_info.pCommandBuffers = &vkShadow->m_cmdBuffer;
-	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
-
-	// wait for the deferred offscreen buffer
-	submit_info.pWaitSemaphores = &vkShadow->m_shadowInfo.semaphore;
 	submit_info.pSignalSemaphores = &vkDeferred->m_deferredInfo.semaphore;
 	submit_info.pCommandBuffers = &vkDeferred->m_deferredInfo.cmdBuffer;
 	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
 
-	// post process/swap chain presentation submit
-	submit_info.pWaitSemaphores = &vkDeferred->m_deferredInfo.semaphore;
+	// render col/bright and blur into fbs
+	VkModule<VkPostProcess>()->Submit(&vkDeferred->m_deferredInfo.semaphore);
+
+	// final composition - includes fog effect
+	submit_info.pWaitSemaphores = &VkModule<VkPostProcess>()->GetOffscreenSemaphore();		// final wait before on screen render
 	submit_info.pSignalSemaphores = &p_vkSwapChain->semaphore.render;
 	submit_info.pCommandBuffers = &m_cmdBuffers[imageIndex];
 	VK_CHECK_RESULT(vkQueueSubmit(p_vkDevice->queue.graphQueue, 1, &submit_info, VK_NULL_HANDLE));
@@ -457,6 +456,16 @@ float VulkanEngine::tessEdgeSize() const
 	return p_vkGUI->m_guiSettings.edgeFactor;
 }
 
+float VulkanEngine::exposureSetting() const
+{
+	return p_vkGUI->m_guiSettings.exposure;
+}
+
+float VulkanEngine::gammaSetting() const
+{
+	return p_vkGUI->m_guiSettings.gamma;
+}
+
 // Getter/Setter functions ==================================================================================================================================================================================================================================
 
 VkDevice VulkanEngine::GetDevice() const 
@@ -518,5 +527,7 @@ VkRenderPass VulkanEngine::GetFinalRenderPass() const
 {
 	return m_renderpass->renderpass; 
 }
+
+
 
 

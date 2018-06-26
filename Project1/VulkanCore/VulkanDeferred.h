@@ -40,6 +40,7 @@ public:
 
 	struct FragLightInfo
 	{
+		glm::mat4 viewMatrix;
 		glm::vec4 pos;
 		glm::vec4 direction;
 		glm::vec4 colour;

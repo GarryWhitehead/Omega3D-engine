@@ -23,7 +23,7 @@ void LightComponentManager::Update()
 	for (uint32_t c = 0; c < m_data.lightInfo.size(); ++c) {
 
 		m_data.lightInfo[c].pos.x += 2 * Engine::DT;
-		m_data.lightInfo[c].pos.y -= 2 * Engine::DT;
+		//m_data.lightInfo[c].pos.y -= 2 * Engine::DT;
 		m_data.lightInfo[c].pos.z += 2 * Engine::DT;
 	}
 }

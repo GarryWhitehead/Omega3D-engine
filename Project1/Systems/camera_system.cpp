@@ -23,6 +23,7 @@ CameraSystem::CameraSystem(World *world, MessageHandler *msg, glm::vec3 cameraPo
 	m_zFar(0.0f)
 {
 	SetPerspective(Engine::CAMERA_FOV, static_cast<float>(Engine::SCREEN_WIDTH / Engine::SCREEN_HEIGHT), 0.1f, 512.0f);
+
 	p_message->AddListener(ListenerID::CAMERA_MSG, NotifyResponse());
 }
 

@@ -32,7 +32,7 @@ public:
 	const glm::vec4 PERLIN_GRADIENT = glm::vec4(1.4f, 1.6f, 2.2f, 0.0f);
 	const glm::vec4 PERLIN_OCTAVE = glm::vec4(1.12f, 0.59f, 0.23f, 0.0f);
 	const glm::vec4 PERLIN_AMPLITUDE = glm::vec4(35.0, 42.0, 57.0, 0.0f);
-	const float PERLIN_SPEED = 0.06f;
+	const float PERLIN_SPEED = 0.1f;
 	
 	struct WaterInfo
 	{
@@ -97,7 +97,7 @@ public:
 	void LoadWaterAssets();
 	void PrepareDescriptorSets();
 	void PreparePipeline();
-	void GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline);
+	void GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow = false);
 
 	// compute shader functions
 	void SubmitWaterCompute();

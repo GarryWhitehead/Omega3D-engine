@@ -7,7 +7,9 @@ enum class DependencyTemplate
 {
 	TEMPLATE_TOP_OF_PIPE,
 	TEMPLATE_BOTTOM_OF_PIPE,
-	TEMPLATE_MULTI_SUBPASS
+	TEMPLATE_MULTI_SUBPASS,
+	TEMPLATE_DEPTH_STENCIL_SUBPASS_BOTTOM,
+	TEMPLATE_DEPTH_STENCIL_SUBPASS_FRAG
 };
 
 class VulkanRenderPass
@@ -15,6 +17,7 @@ class VulkanRenderPass
 
 public:
 	VulkanRenderPass(VkDevice dev);
+	VulkanRenderPass(VkDevice dev, VkRenderPass pass);
 	~VulkanRenderPass();
 
 	void AddAttachment(const VkImageLayout finalLayout, const VkFormat format);

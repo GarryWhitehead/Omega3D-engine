@@ -27,33 +27,34 @@ VulkanDeferred::~VulkanDeferred()
 
 void VulkanDeferred::PrepareDeferredImages()
 {
-	uint32_t width = p_vkEngine->GetSurfaceExtentW();
-	uint32_t height = p_vkEngine->GetSurfaceExtentH();
+	uint32_t width = 2048; 
+	uint32_t height = 2048; 
 
 	// initialise the colour buffer attachments for PBR
+	// using HDR for offscreen image - this will then be used with post-process such as bloom 
 	m_deferredInfo.offscreen = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.offscreen->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, width, height);			// offscreen buffer
+	m_deferredInfo.offscreen->PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH());		// offscreen buffer
 
 	m_deferredInfo.position = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.position->PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);		// positions
+	m_deferredInfo.position->PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);					// positions
 
 	m_deferredInfo.normal = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.normal->PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);			// normals
+	m_deferredInfo.normal->PrepareImage(VK_FORMAT_R16G16B16A16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);					// normals
 
 	m_deferredInfo.albedo = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.albedo->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);				// albedo colour buffer
+	m_deferredInfo.albedo->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);							// albedo colour buffer
 
 	m_deferredInfo.bump = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.bump->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);					// bump colour buffer
+	m_deferredInfo.bump->PrepareImage(VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);							// bump colour buffer
 
 	m_deferredInfo.ao = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.ao->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);						// ao 
+	m_deferredInfo.ao->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);									// ao 
 
 	m_deferredInfo.metallic = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.metallic->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);					// metallic 
+	m_deferredInfo.metallic->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);							// metallic 
 
 	m_deferredInfo.roughness = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	m_deferredInfo.roughness->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);				// roughness 
+	m_deferredInfo.roughness->PrepareImage(VK_FORMAT_R16_SFLOAT, VK_SAMPLER_ADDRESS_MODE_REPEAT, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, width, height, 0.0f, false);							// roughness 
 
 	// initialise the G buffer
 	// required depth image format in order of preference
@@ -77,11 +78,11 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.offscreen->format);			// offscreen colour buffer	
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.position->format);			// position
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.normal->format);				// normal
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.albedo->format);				//	albedo
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.bump->format);				//	bump
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao->format);					//	ao
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic->format);			//	metallic
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness->format);			//	roughness
+	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.albedo->format);				// albedo
+	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.bump->format);				// bump
+	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao->format);					// ao
+	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic->format);			// metallic
+	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness->format);			// roughness
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, m_deferredInfo.depth->format);		// depth
 
 
@@ -197,7 +198,7 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 		{ VK_NULL_HANDLE, m_deferredInfo.ao->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
 		{ VK_NULL_HANDLE, m_deferredInfo.metallic->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
 		{ VK_NULL_HANDLE, m_deferredInfo.roughness->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ vkShadow->p_depthImage->texSampler, vkShadow->p_depthImage->imageView, VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
+		{ vkShadow->GetDepthSampler(), vkShadow->GetDepthImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
 		{ vkPBR->m_lutImage->texSampler, vkPBR->m_lutImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
 		{ vkIBL->m_irradianceCube.cubeImage->texSampler, vkIBL->m_irradianceCube.cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
 		{ vkIBL->m_filterCube.cubeImage->texSampler, vkIBL->m_filterCube.cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
@@ -318,6 +319,13 @@ void VulkanDeferred::DrawDeferredScene()
 		vkFreeCommandBuffers(p_vkEngine->GetDevice(), p_vkEngine->GetCmdPool(), 1, &m_deferredInfo.cmdBuffer);
 	}
 	
+	m_deferredInfo.cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+
+	// first pass - draw into the shadow offscreen buffer ==============================================================================================================================================
+	p_vkEngine->VkModule<VulkanShadow>()->GenerateShadowCmdBuffer(m_deferredInfo.cmdBuffer);
+
+
+	// second pass - draw into each G buffer required for calculations in the deferred shader ==========================================================================================================
 	VkClearColorValue colour = p_vkEngine->CLEAR_COLOR;
 
 	std::array<VkClearValue, 9> clearValues = {};
@@ -331,8 +339,7 @@ void VulkanDeferred::DrawDeferredScene()
 	clearValues[7].color = colour;			// roughness
 	clearValues[8].depthStencil = { 1.0f, 0 };
 
-	m_deferredInfo.cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
-
+	
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 	renderPassInfo.framebuffer = m_deferredInfo.renderpass->frameBuffer;
@@ -351,14 +358,13 @@ void VulkanDeferred::DrawDeferredScene()
 
 	vkCmdBeginRenderPass(m_deferredInfo.cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	// first pass - render the scene into the G buffers
 	p_vkEngine->RenderScene(m_deferredInfo.cmdBuffer);
 
-	// second pass - draw scene as a full screen quad
+	// third pass - draw scene as a full screen quad ===================================================================================================================================================
 	vkCmdNextSubpass(m_deferredInfo.cmdBuffer, VK_SUBPASS_CONTENTS_INLINE);
 	GenerateDeferredCmdBuffer(m_deferredInfo.cmdBuffer);
 
-	// third pass - draw skybox : this is done so it won't be affected by lighting calculations
+	// fourth pass - draw skybox : this is done so it won't be affected by lighting calculations =======================================================================================================
 	if (p_vkEngine->hasModule<VulkanSkybox>()) {
 
 		vkCmdNextSubpass(m_deferredInfo.cmdBuffer, VK_SUBPASS_CONTENTS_INLINE);
@@ -437,7 +443,7 @@ void VulkanDeferred::Update(int acc_time)
 	std::vector<FragmentUBOLayout> fragUbo(1);
 
 	uint32_t lightCount = p_lightManager->GetLightCount();
-	fragUbo[0].cameraPos = glm::vec4(camera->GetCameraPosition(), 1.0f);
+	fragUbo[0].cameraPos = glm::vec4(camera->GetCameraPosition(), 0.0f);
 	
 	// light count depends on whether light seeting is activated
 	fragUbo[0].activeLightCount = (p_vkEngine->displayLights()) ? lightCount : 0;
@@ -445,6 +451,7 @@ void VulkanDeferred::Update(int acc_time)
 	for (uint32_t c = 0; c < lightCount; ++c) {
 
 		LightComponentManager::LightInfo lightInfo = p_lightManager->GetLightData(c);
+		fragUbo[0].light[c].viewMatrix = lightInfo.viewMatrix;
 		fragUbo[0].light[c].pos = lightInfo.pos;
 		fragUbo[0].light[c].direction = lightInfo.target;
 		fragUbo[0].light[c].colour = lightInfo.colour;

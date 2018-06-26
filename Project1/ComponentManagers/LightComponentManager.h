@@ -21,6 +21,7 @@ public:
 	struct LightInfo
 	{
 		LightType type;
+		glm::mat4 viewMatrix;
 		glm::vec4 pos;
 		glm::vec4 target;
 		glm::vec4 colour;
@@ -45,6 +46,7 @@ public:
 	uint32_t GetLightCount() const { return m_data.lightInfo.size(); }
 	float GetLightFOV(const uint32_t index) const { return m_data.lightInfo[index].fov; }
 	LightInfo GetLightData(const uint32_t index) const { return m_data.lightInfo[index]; }
+	void UpdateLightViewMatrix(uint32_t i, glm::mat4 mat) { m_data.lightInfo[i].viewMatrix = mat; }
 
 	// serialisation functions 
 	void Serialise(Archiver* arch, LightComponentManager& manager, const Archiver::var_info& info);

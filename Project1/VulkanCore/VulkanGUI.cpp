@@ -215,6 +215,11 @@ void VulkanGUI::NewFrame()
 
 	ImGui::Separator();
 
+	ImGui::SliderFloat("Exposure", &m_guiSettings.exposure, 0.0f, 10.0f);
+	ImGui::SliderFloat("Gamma", &m_guiSettings.gamma, 0.0f, 5.0f);
+
+	ImGui::Separator();
+
 	// terrain type combo
 	const char *items[] = { "Water", "Land" };
 	if (ImGui::Combo("Terrain Type", &m_guiSettings.terrainType, items, IM_ARRAYSIZE(items))) {

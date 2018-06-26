@@ -72,7 +72,7 @@ public:
 	void LoadTerrainTextures();
 	void PrepareTerrainDescriptorSets();
 	void PreparePipeline();
-	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, VkDescriptorSet set, VkPipelineLayout layout, VkPipeline pipeline = VK_NULL_HANDLE);
+	void GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, bool drawShadow = false);
 	void PrepareTerrainData();
 	float GetHeightmapPixel(uint32_t x, uint32_t y);
 

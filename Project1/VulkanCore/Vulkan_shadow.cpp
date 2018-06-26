@@ -7,6 +7,7 @@
 #include "VulkanCore/VulkanDeferred.h"
 #include "VulkanCore/vulkan_terrain.h"
 #include "Systems/camera_system.h"
+#include "Systems/GraphicsSystem.h"
 #include "Engine/engine.h"
 #include <gtc/matrix_transform.hpp>
 #include "Engine/World.h"
@@ -34,12 +35,14 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 
 	// prepare layered texture samplers 
 	p_depthImage = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
-	p_depthImage->PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, layerCount, p_vkEngine);
+	p_depthImage->PrepareImageArray(format, VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, SHADOWMAP_SIZE, SHADOWMAP_SIZE, 1, layerCount);
 	
 	// prepare depth renderpass
 	m_shadowInfo.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
 	m_shadowInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, format);
 	m_shadowInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0);
+	m_shadowInfo.renderpass->AddSubpassDependency(DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_BOTTOM);
+	m_shadowInfo.renderpass->AddSubpassDependency(DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_FRAG);
 	m_shadowInfo.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	// create a frambuffer for each cascade layer
@@ -52,13 +55,15 @@ void VulkanShadow::PrepareShadowDescriptors()
 	
 	std::vector<VkDescriptors::LayoutBinding> uboLayout = 
 	{
-		{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT }
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT }
 	};
 	m_shadowInfo.descriptors->AddDescriptorBindings(uboLayout);
 
 	std::vector<VkDescriptorBufferInfo> buffInfo = 
 	{
-		{ p_vkMemory->blockBuffer(m_shadowInfo.uboBuffer.block_id), m_shadowInfo.uboBuffer.offset, m_shadowInfo.uboBuffer.size}
+		{ p_vkMemory->blockBuffer(ssboBuffer.model.block_id), ssboBuffer.model.offset, ssboBuffer.model.size},
+		{ p_vkMemory->blockBuffer(ssboBuffer.light.block_id), ssboBuffer.light.offset, ssboBuffer.light.size}
 	};
 	m_shadowInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), nullptr);
 }
@@ -93,11 +98,11 @@ void VulkanShadow::PrepareShadowPipeline()
 	colorInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
 	colorInfo.attachmentCount = 0;
 
-	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR /*VK_DYNAMIC_STATE_DEPTH_BIAS*/ };
+	VkDynamicState dynamicStates[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR, VK_DYNAMIC_STATE_DEPTH_BIAS };
 	VkPipelineDynamicStateCreateInfo dynamicInfo = {};
 	dynamicInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
 	dynamicInfo.pDynamicStates = dynamicStates;
-	dynamicInfo.dynamicStateCount = 2;
+	dynamicInfo.dynamicStateCount = 3;
 
 	VkPipelineDepthStencilStateCreateInfo depthInfo = {};
 	depthInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
@@ -105,12 +110,18 @@ void VulkanShadow::PrepareShadowPipeline()
 	depthInfo.depthWriteEnable = VK_TRUE;
 	depthInfo.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
 
+	// object index into mesh push
+	VkPushConstantRange pushConstant = {};
+	pushConstant.size = sizeof(PushConstant);
+	pushConstant.offset = 0;
+	pushConstant.stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT;
+
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineInfo.setLayoutCount = 1;
 	pipelineInfo.pSetLayouts = &m_shadowInfo.descriptors->layout;
-	pipelineInfo.pPushConstantRanges = 0;
-	pipelineInfo.pushConstantRangeCount = 0;
+	pipelineInfo.pPushConstantRanges = &pushConstant;
+	pipelineInfo.pushConstantRangeCount = 1;
 
 	VK_CHECK_RESULT(vkCreatePipelineLayout(p_vkEngine->GetDevice(), &pipelineInfo, nullptr, &m_shadowInfo.pipelineInfo.layout));
 
@@ -140,20 +151,10 @@ void VulkanShadow::PrepareShadowPipeline()
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_shadowInfo.pipelineInfo.pipeline));
 }
 
-void VulkanShadow::GenerateShadowCmdBuffer()
+void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 {
-	// if we have already generated a commnad buffer but are re-drawing, then free the present buffer
-	if (m_cmdBuffer != VK_NULL_HANDLE) {
-
-		vkFreeCommandBuffers(p_vkEngine->GetDevice(), p_vkEngine->GetCmdPool(), 1, &m_cmdBuffer);
-	}
-
-	// create a semaphore to ensure that the shadow map is updated before generating on screen commands
-	m_shadowInfo.semaphore = VulkanUtility::CreateSemaphore(p_vkEngine->GetDevice());
-
-	std::array<VkClearValue, 7> clearValues = {};
-
-	m_cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+	std::array<VkClearValue, 1> clearValues = {};
+	clearValues[0].depthStencil = { 1.0f, 0 };
 
 	VkRenderPassBeginInfo renderPassInfo = {};
 	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -165,52 +166,58 @@ void VulkanShadow::GenerateShadowCmdBuffer()
 	renderPassInfo.renderArea.extent.height = SHADOWMAP_SIZE;
 	renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
 	renderPassInfo.pClearValues = clearValues.data();
-	
-	// try and reduce artifacts
-	//vkCmdSetDepthBias(cmdBuffer, biasConstant, 0.0f, biasSlope);
 
 	VkViewport viewport = VulkanUtility::InitViewPort(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0.0f, 1.0f);
-	vkCmdSetViewport(m_cmdBuffer, 0, 1, &viewport);
+	vkCmdSetViewport(cmdBuffer, 0, 1, &viewport);
 
 	VkRect2D scissor = VulkanUtility::InitScissor(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, 0);
-	vkCmdSetScissor(m_cmdBuffer, 0, 1, &scissor);
+	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	// draw scene into each cascade layer
-	vkCmdBeginRenderPass(m_cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	p_vkEngine->RenderScene(m_cmdBuffer, m_shadowInfo.descriptors->set, m_shadowInfo.pipelineInfo.layout, m_shadowInfo.pipelineInfo.pipeline);
-	vkCmdEndRenderPass(m_cmdBuffer);
+	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+	p_vkEngine->RenderScene(cmdBuffer, true);
 
-	VK_CHECK_RESULT(vkEndCommandBuffer(m_cmdBuffer));
+	vkCmdEndRenderPass(cmdBuffer);
 }
-
 
 void VulkanShadow::Update(int acc_time)
 {	
-	auto vkDeferred = p_vkEngine->VkModule<VulkanDeferred>();
 	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
-	auto camera = p_vkEngine->GetCurrentWorld()->RequestSystem<CameraSystem>();
 
-	std::vector<UboLayout> ubo(1);
+	// update light matricies
+	std::vector<SsboBufferLight> ubo(1);
 
 	for(uint32_t c = 0; c < p_light->GetLightCount(); ++c) {
 
 		LightComponentManager::LightInfo info = p_light->GetLightData(c);
 
 		// calculate matrices for each light based on the light source viewpoint
-		glm::mat4 projection = glm::perspective(glm::radians(info.fov), 1.0f, camera->GetZNear(), camera->GetZFar());
-		glm::mat4 view = glm::lookAt(glm::vec3(info.pos), glm::vec3(info.target), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 projection = glm::perspective(glm::radians(info.fov), 1.0f, zNear, zFar);
+		//glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, zNear, zFar);
+		glm::mat4 view = glm::lookAt(glm::vec3(info.pos), /*glm::vec3(info.target)*/ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		ubo[0].mvp[c] = projection * view * model;
+		glm::mat4 mat = projection * view;
+		ubo[0].mvp[c] = mat;
+		p_light->UpdateLightViewMatrix(c, mat);
 	}
 
-	p_vkMemory->MapDataToSegment<UboLayout>(m_shadowInfo.uboBuffer, ubo);
+	p_vkMemory->MapDataToSegment<SsboBufferLight>(ssboBuffer.light, ubo);
+
+	// model matrices
+	std::vector<SsboBufferModel> ssbo(1); 
+
+	auto graphics = p_vkEngine->GetCurrentWorld()->RequestSystem<GraphicsSystem>();
+	ssbo[0].modelMatrix = graphics->RequestTransformData();		// request updated transform data
+
+	p_vkMemory->MapDataToSegment<SsboBufferModel>(ssboBuffer.model, ssbo);
+
 }
 
 void VulkanShadow::Init()
 {
 	// create ubo buffer
-	m_shadowInfo.uboBuffer = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(UboLayout));
+	ssboBuffer.light = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(SsboBufferLight));
+	ssboBuffer.model = p_vkMemory->AllocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(SsboBufferModel));
 
 	// create the cascade image layers and frame buffers
 	PrepareShadowFrameBuffer();
@@ -229,4 +236,19 @@ void VulkanShadow::Destroy()
 	delete p_depthImage;
 
 	p_vkEngine = nullptr;
+}
+
+VkDescriptorSet& VulkanShadow::GetDescriptorSet()
+{
+	return m_shadowInfo.descriptors->set;
+}
+
+VkSampler& VulkanShadow::GetDepthSampler()
+{
+	return p_depthImage->texSampler;
+}
+
+VkImageView& VulkanShadow::GetDepthImageView()
+{
+	return p_depthImage->imageView;
 }
