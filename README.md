@@ -7,6 +7,7 @@ graphical representations whilst still maintianing the real-time element.
 
 This is an on-going project and so far the following features have been implemented :
 
+- Deferred shader pipeline
 - Terrain generation using an imported heightmap
 - Ocean rendering using the fast fourier transform alogrithim - evertything calculated on the GPU
 - irradiance-based lighting model using a cube-map for environmental mapping
@@ -14,15 +15,18 @@ This is an on-going project and so far the following features have been implemen
 - shadow mapping (need to finish adding)
 - custom model format aloowing multiple models and materials to be imported into the engine - this uses an external program 
 to convert .obj and .dae files (more model formats are planned)
+- GUI - using the dear imGUI library - basic settings can be adjusted at the moment - more to be added
+- post processing effects - only fog implemeneted at the moment - needs more work
 
 And the immediate future plans (some nearly complete....):
 
-- optimise ocean rendering - the butterfly shder is causing issues!
-- add post processing effects - volumetric fog, ambient occlusion
+- some lighting issues to address
+- improve post-processing - volumetric fog, ambient occlusion
 - cross platform support
 - finish adding shadows
 - finish animation support 
 - Improve the ECS system - allow creation/deletion of objects, etc.
-- in-engine editor allowing on the fly adjustments and addtiions
 - reflection probes
+- surface light-scattering
+- MSAA
 
