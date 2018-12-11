@@ -9,12 +9,7 @@ struct VulkanDevice
 	{
 		QueueInfo() : graphIndex(-1), presentIndex(-1) {}
 
-		VkQueue graphQueue;
-		VkQueue presentQueue;
-		VkQueue computeQueue;
-		int32_t graphIndex;
-		int32_t presentIndex;
-		int32_t computeIndex;
+	
 	} queue;
 
 	VulkanDevice();
@@ -30,7 +25,7 @@ struct VulkanDevice
 	VkPhysicalDevice physDevice;
 
 	// GPU features
-	VkPhysicalDeviceFeatures features;
+	
 	VkDevice device;
 
 	std::vector<const char*> deviceExt;

@@ -76,6 +76,13 @@ public:
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 		VkMemoryManager::SegmentInfo uboBuffer;
 	};
+	
+	struct DebugInfo
+	{
+		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
+		VulkanUtility::PipeLlineInfo pipelineInfo;
+		VkDescriptors *descriptors;
+	};
 
 	VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory);
 	virtual ~VkPostProcess();
@@ -90,9 +97,11 @@ public:
 	void PrepareColourPassDescriptors();
 	void PrepareBlurPassDescriptors();
 	void PrepareFinalDescriptors();
+	void PrepareDebugDescriptors();
 	void GenerateColPassCmdBuffer(VkCommandBuffer cmdBuffer);
 	void GenerateBlurPassCmdBuffer(VkCommandBuffer& cmdBuffer, VkRenderPass renderpass, VkFramebuffer framebuffer, uint32_t width, uint32_t height, uint32_t direction);
 	void GenerateFinalCmdBuffer(VkCommandBuffer cmdBuffer);
+	void GenerateDebugCmdBuffer(VkCommandBuffer cmdBuffer);
 	void DrawBloom();
 	void PrepareFullscreenQuad();
 	void Submit(VkSemaphore *last_semaphore);
@@ -108,6 +117,7 @@ private:
 	PostProcessInfo m_ppInfo;
 	PostProcessInfo m_finalInfo;
 	BlurInfo m_bloomInfo;
+	DebugInfo m_debugInfo;
 		 
 	// buffers for vertices, etc.
 	VkMemoryManager::SegmentInfo m_vertices;

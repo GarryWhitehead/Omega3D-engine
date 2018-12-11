@@ -206,6 +206,11 @@ void VulkanGUI::NewFrame()
 	if (ImGui::Checkbox("Draw Wireframe", &m_guiSettings.wireframe)) {
 		p_vkEngine->ClearDrawState();		// regenerate command buffers 
 	}
+	if (ImGui::Checkbox("Debug Shadows", &m_guiSettings.debugShadow)) {
+		p_vkEngine->ClearDrawState();		// regenerate command buffers 
+	}
+
+	ImGui::Separator();
 
 	ImGui::Checkbox("Post process", &m_guiSettings.showFog);
 	

@@ -30,8 +30,8 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 {
 	VkFormat format = VK_FORMAT_D32_SFLOAT_S8_UINT;
 
-	auto p_lightManager = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
-	int layerCount = p_lightManager->GetLightCount();
+	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
+	uint32_t layerCount = p_light->GetLightCount();
 
 	// prepare layered texture samplers 
 	p_depthImage = new VulkanTexture(p_vkEngine->GetPhysicalDevice(), p_vkEngine->GetDevice());
@@ -55,7 +55,7 @@ void VulkanShadow::PrepareShadowDescriptors()
 	
 	std::vector<VkDescriptors::LayoutBinding> uboLayout = 
 	{
-		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT },
+		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_VERTEX_BIT },
 		{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, VK_SHADER_STAGE_GEOMETRY_BIT }
 	};
 	m_shadowInfo.descriptors->AddDescriptorBindings(uboLayout);
@@ -63,7 +63,7 @@ void VulkanShadow::PrepareShadowDescriptors()
 	std::vector<VkDescriptorBufferInfo> buffInfo = 
 	{
 		{ p_vkMemory->blockBuffer(ssboBuffer.model.block_id), ssboBuffer.model.offset, ssboBuffer.model.size},
-		{ p_vkMemory->blockBuffer(ssboBuffer.light.block_id), ssboBuffer.light.offset, ssboBuffer.light.size}
+		{ p_vkMemory->blockBuffer(ssboBuffer.light.block_id), ssboBuffer.light.offset, ssboBuffer.light.size },
 	};
 	m_shadowInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), nullptr);
 }
@@ -89,7 +89,7 @@ void VulkanShadow::PrepareShadowPipeline()
 
 	VkPipelineViewportStateCreateInfo viewportState = VulkanUtility::InitViewPortCreateInfo(p_vkEngine->GetViewPort(), p_vkEngine->GetScissor(), 1, 1);
 
-	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_CLOCKWISE);
+	VkPipelineRasterizationStateCreateInfo rasterInfo = VulkanUtility::InitRasterzationState(VK_POLYGON_MODE_FILL, VK_CULL_MODE_FRONT_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE);
 	rasterInfo.depthBiasEnable = VK_TRUE;
 
 	VkPipelineMultisampleStateCreateInfo multiInfo = VulkanUtility::InitMultisampleState(VK_SAMPLE_COUNT_1_BIT);
@@ -114,7 +114,7 @@ void VulkanShadow::PrepareShadowPipeline()
 	VkPushConstantRange pushConstant = {};
 	pushConstant.size = sizeof(PushConstant);
 	pushConstant.offset = 0;
-	pushConstant.stageFlags = VK_SHADER_STAGE_GEOMETRY_BIT;
+	pushConstant.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
 	VkPipelineLayoutCreateInfo pipelineInfo = {};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -153,6 +153,8 @@ void VulkanShadow::PrepareShadowPipeline()
 
 void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 {
+	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
+
 	std::array<VkClearValue, 1> clearValues = {};
 	clearValues[0].depthStencil = { 1.0f, 0 };
 
@@ -172,45 +174,48 @@ void VulkanShadow::GenerateShadowCmdBuffer(VkCommandBuffer cmdBuffer)
 
 	VkRect2D scissor = VulkanUtility::InitScissor(SHADOWMAP_SIZE, SHADOWMAP_SIZE, 0, 0);
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
-
-	// draw scene into each cascade layer
+	
 	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 	p_vkEngine->RenderScene(cmdBuffer, true);
 
 	vkCmdEndRenderPass(cmdBuffer);
 }
 
+
 void VulkanShadow::Update(int acc_time)
 {	
 	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
 
 	// update light matricies
-	std::vector<SsboBufferLight> ubo(1);
+	{
+		std::vector<SsboBufferLight> ssbo(1);
 
-	for(uint32_t c = 0; c < p_light->GetLightCount(); ++c) {
+		for (uint32_t c = 0; c < p_light->GetLightCount(); ++c) {
 
-		LightComponentManager::LightInfo info = p_light->GetLightData(c);
+			LightComponentManager::LightInfo info = p_light->GetLightData(c);
 
-		// calculate matrices for each light based on the light source viewpoint
-		glm::mat4 projection = glm::perspective(glm::radians(info.fov), 1.0f, zNear, zFar);
-		//glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, zNear, zFar);
-		glm::mat4 view = glm::lookAt(glm::vec3(info.pos), /*glm::vec3(info.target)*/ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+			// calculate matrices for each light based on the light source viewpoint
+			glm::mat4 projection = glm::perspective(glm::radians(info.fov), 1.0f, zNear, zFar);
+			//glm::mat4 projection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, zNear, zFar);
+			glm::mat4 view = glm::lookAt(glm::vec3(info.pos), /*glm::vec3(info.target)*/ glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
-		glm::mat4 mat = projection * view;
-		ubo[0].mvp[c] = mat;
-		p_light->UpdateLightViewMatrix(c, mat);
+			glm::mat4 mat = projection * view;
+			ssbo[0].mvp[c] = mat;
+			p_light->UpdateLightViewMatrix(c, mat);
+		}
+
+		p_vkMemory->MapDataToSegment<SsboBufferLight>(ssboBuffer.light, ssbo);
 	}
 
-	p_vkMemory->MapDataToSegment<SsboBufferLight>(ssboBuffer.light, ubo);
-
 	// model matrices
-	std::vector<SsboBufferModel> ssbo(1); 
+	{
+		std::vector<SsboBufferModel> ssbo(1);
 
-	auto graphics = p_vkEngine->GetCurrentWorld()->RequestSystem<GraphicsSystem>();
-	ssbo[0].modelMatrix = graphics->RequestTransformData();		// request updated transform data
+		auto graphics = p_vkEngine->GetCurrentWorld()->RequestSystem<GraphicsSystem>();
+		ssbo[0].modelMatrix = graphics->RequestTransformData();		// request updated transform data
 
-	p_vkMemory->MapDataToSegment<SsboBufferModel>(ssboBuffer.model, ssbo);
-
+		p_vkMemory->MapDataToSegment<SsboBufferModel>(ssboBuffer.model, ssbo);
+	}
 }
 
 void VulkanShadow::Init()

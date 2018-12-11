@@ -33,6 +33,7 @@
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
     <ClCompile Include="imgui_draw.cpp" />
+    <ClCompile Include="Engine\Omega_Global.cpp" />
     <ClCompile Include="Systems\GraphicsSystem.cpp" />
     <ClCompile Include="Systems\systems.cpp" />
     <ClCompile Include="utility\message_handler.cpp" />
@@ -53,10 +54,11 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utility\file_log.cpp" />
     <ClCompile Include="VulkanCore\VulkanWater.cpp" />
+    <ClCompile Include="VulkanCore\Vulkan_Global.cpp" />
     <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
     <ClCompile Include="VulkanCore\vulkan_validation.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_terrain.cpp" />
-    <ClCompile Include="VulkanCore\VulkanEngine.cpp" />
+    <ClCompile Include="VulkanCore\VkRenderManager.cpp" />
     <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
     <ClCompile Include="VulkanCore\VulkanIBL.cpp" />
@@ -77,6 +79,8 @@
     <ClInclude Include="Engine\ObjectManager.h" />
     <ClInclude Include="Engine\ObjectResourceManager.h" />
     <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
+    <ClInclude Include="Engine\Omega_Global.h" />
+    <ClInclude Include="VulkanCore\Vulkan_Global.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_internal.h" />
@@ -102,7 +106,7 @@
     <ClInclude Include="VulkanCore\VulkanRenderPass.h" />
     <ClInclude Include="VulkanCore\VulkanSkybox.h" />
     <ClInclude Include="VulkanCore\VulkanTexture.h" />
-    <ClInclude Include="VulkanCore\VulkanEngine.h" />
+    <ClInclude Include="VulkanCore\VkRenderManager.h" />
     <ClInclude Include="VulkanCore\vulkan_terrain.h" />
     <ClInclude Include="VulkanCore\vulkan_tools.h" />
     <ClInclude Include="VulkanCore\vulkan_validation.h" />
@@ -171,7 +175,7 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

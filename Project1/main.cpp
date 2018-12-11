@@ -1,7 +1,11 @@
 #include "utility/file_log.h"
 #include "Engine/engine.h"
 #include "windows.h"
+
 #include "GLFW/glfw3.h"
+
+#include "tiny_gltf.h"
+
 #include <memory>
 #include <algorithm>
 #include <chrono>

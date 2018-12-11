@@ -2,24 +2,11 @@
 #include "VulkanCore/vulkan_tools.h"
 #include <vector>
 
-// forward declerations
-class ValidationLayers;
-
-class VulkanInstance
+namespace VkInitilisation
 {
 
-public:
+	VkInstance CreateInstance();
+	VkSurfaceKHR PrepareWindowSurface(VkInstance instance, GLFWwindow *window);
 
-	VulkanInstance();
-	~VulkanInstance();
-
-	void CreateInstance();
-	void PrepareWindowSurface(GLFWwindow *window);
-
-	VkInstance instance;
-	VkSurfaceKHR surface;
-
-private:
-
-};
+}
 

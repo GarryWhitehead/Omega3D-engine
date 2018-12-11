@@ -4,73 +4,78 @@
 #include <unordered_map>
 #include <assert.h>
 
-enum class SystemId
+
+namespace OmegaEngine
 {
-	INPUT_SYSTEM_ID,
-	CAMERA_SYSTEM_ID,
-	GRAPHICS_SYSTEM_ID
-};
 
-// forward declerations
-class CameraSystem;
-class MessageHandler;
-class InputSystem;
-class VulkanEngine;
-struct GLFWwindow;
-struct GLFWmonitor;
-struct GLFWvidmode;
-class World;
+	enum class SystemId
+	{
+		INPUT_SYSTEM_ID,
+		CAMERA_SYSTEM_ID,
+		GRAPHICS_SYSTEM_ID
+	};
 
-class Engine
-{
-public:
+	// forward declerations
+	class CameraSystem;
+	class MessageHandler;
+	class InputSystem;
+	class VulkanEngine;
+	struct GLFWwindow;
+	struct GLFWmonitor;
+	struct GLFWvidmode;
+	class World;
 
-	static const uint32_t SCREEN_WIDTH = 1980;
-	static const uint32_t SCREEN_HEIGHT = 1080;
-	static constexpr float CAMERA_FOV = 45.0f;
-	static constexpr float DT = 1.0f / 30.0f;
+	class Engine
+	{
+	public:
 
-	Engine();
-	Engine(const char *winTitle);
-	~Engine();
+		static const uint32_t SCREEN_WIDTH = 1980;
+		static const uint32_t SCREEN_HEIGHT = 1080;
+		static constexpr float CAMERA_FOV = 45.0f;
+		static constexpr float DT = 1.0f / 30.0f;
 
-	// main core functions
-	void Init();
-	void Update(int acc_time);
-	void Release();
-	void Render(float interpolation);
-	void CreateWorld(std::vector<SystemId> systemIds, std::string name);
-	void CreateWindow(const char *winTitle);
+		Engine(const char *winTitle);
+		~Engine();
+
+		// main core functions
+		void Init();
+		void Update(int acc_time);
+		void Release();
+		void Render(float interpolation);
+		void CreateWorld(std::string filename);
+		void CreateWindow(const char *winTitle);
+
+		template <typename T>
+		T* GetSystem();
+
+		// helper functions
+		GLFWwindow* Window() const { return m_window; }
+
+	private:
+
+		GLFWwindow * m_window;
+		const char *m_windowTitle;
+		GLFWmonitor* m_monitor;
+		const GLFWvidmode* m_vmode;
+
+		bool m_running;
+
+		// handles to engine dependent systems
+		VulkanEngine *p_vkEngine;
+		MessageHandler *p_message;
+
+		// a collection of worlds registered with the engine
+		std::vector<World*> m_worlds;
+		uint32_t m_currentWorldIndex;		// current world which will be rendered, updated, etc.
+	};
 
 	template <typename T>
-	T* GetSystem();
+	T* Engine::GetSystem()
+	{
+		T* sys = static_cast<T*>(m_worlds[m_currentWorldIndex]->RequestSystem<T>());
+		assert(sys != nullptr);
+		return sys;
+	}
 
-	// helper functions
-	GLFWwindow* Window() const { return m_window; }
-
-private:
-	
-	GLFWwindow* m_window;
-	const char *m_windowTitle;
-	GLFWmonitor* m_monitor;
-	const GLFWvidmode* m_vmode;
-
-	bool m_running;
-	
-	// handles to engine dependent systems
-	VulkanEngine *p_vkEngine;
-	MessageHandler *p_message;
-
-	// a collection of worlds registered with the engine
-	std::vector<World*> m_worlds;
-	uint32_t m_currentWorldIndex;		// current world which will be rendered, updated, etc.
-};
-
-template <typename T>
-T* Engine::GetSystem()
-{
-	T* sys = static_cast<T*>(m_worlds[m_currentWorldIndex]->RequestSystem<T>());
-	assert(sys != nullptr);
-	return sys;
 }
 

@@ -26,14 +26,14 @@ public:
 	static constexpr float biasConstant = 1.25f;
 	static constexpr float biasSlope = 1.75f;
 
-	struct SsboBufferLight
-	{
-		std::array<glm::mat4, 256> mvp;
-	};
-
-	struct SsboBufferModel
+	struct SsboBufferModel			// vertex shader
 	{
 		std::array<glm::mat4, 256> modelMatrix;
+	};
+
+	struct SsboBufferLight			// geometry shader
+	{
+		std::array<glm::mat4, 256> mvp;
 	};
 
 	struct PushConstant
@@ -73,6 +73,7 @@ private:
 		VkDescriptors *descriptors;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		std::array<VkPipelineShaderStageCreateInfo, 3> shader;
+		
 	} m_shadowInfo;
 
 	struct SsboBuffers

@@ -19,10 +19,8 @@
 #include "VulkanCore/VulkanEngine.h"
 #include <iostream>
 
-World::World(std::string name, MessageHandler *msg) :
-	m_name(name),
-	p_message(msg),
-	p_objectManager(nullptr)
+World::World(std::string filename, MessageHandler *msg) :
+	m_name(name)
 {
 }
 

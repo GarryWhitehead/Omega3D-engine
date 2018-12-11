@@ -1,7 +1,7 @@
-#include "VulkanCore/VulkanEngine.h"
-#include "VulkanCore/VulkanInstance.h"
-#include "VulkanCore/VulkanDevice.h"
-#include "VulkanCore/VkSwapChain.h"
+#include "VulkanCore/VkRenderManager.h"
+#include "Vulkan_Global.h"
+
+
 #include "VulkanCore/VulkanRenderPass.h"
 #include "VulkanCore/VulkanTexture.h"
 #include "VulkanCore/vulkan_validation.h"
@@ -29,15 +29,19 @@ VulkanEngine::VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler) :
 	vk_prepared(false),
 	displayGUI(true)
 {	
-	// initialise all the core vulkan components
+	// WE are using volk, so we need to init this first before creating a vulkan instance
+	VK_CHECK_RESULT(volkInitialize());
+
 	// create a new instance of vulkan
-	p_vkInstance = new VulkanInstance();
-	p_vkInstance->CreateInstance();
-	p_vkInstance->PrepareWindowSurface(window);			// prepare KHR surface
+	VulkanGlobal::init_vkInstance();
+
+	// init this instance of vulkan with volk
+	volkLoadInstance(VulkanGlobal::vkCurrent.instance);
+
+	VulkanGlobal::init_windowSurface(window);			// prepare KHR surface
 
 	// init new physical device, queues for graphics, presentation and compute
-	p_vkDevice = new VulkanDevice();
-	p_vkDevice->Init(p_vkInstance->instance, p_vkInstance->surface);
+	VulkanGlobal::init_vkDevice();
 
 	// prepare swap chain and attached image views
 	p_vkSwapChain = new VkSwapChain(p_vkInstance->surface, p_vkDevice->device, window);
@@ -82,15 +86,15 @@ void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 
 void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, bool drawShadow)
 {
-	if (!drawShadow) {
+	//if (!drawShadow) {
 		if (hasModule<VulkanTerrain>() && p_vkGUI->m_guiSettings.terrainType == 1) {
-			VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, false);
+			VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, drawShadow);
 		}
 
 		if (hasModule<VulkanWater>() && p_vkGUI->m_guiSettings.terrainType == 0) {
-			VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, false);
+			VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, drawShadow);
 		}
-	}
+	//}
 
 	if (hasModule<VulkanModel>()) {
 		VkModule<VulkanModel>()->GenerateModelCmdBuffer(cmdBuffer, drawShadow); 
@@ -183,7 +187,13 @@ void VulkanEngine::GenerateFinalCmdBuffer()
 		// draw screen with post screen processing as a full screen quad
 		VkModule<VkPostProcess>()->GenerateFinalCmdBuffer(m_cmdBuffers[c]);
 
-		// render GUI on top of image - if seleceted
+		// debugging overlay for shadows
+		if (debugShadowSetting()) {
+
+			VkModule<VkPostProcess>()->GenerateDebugCmdBuffer(m_cmdBuffers[c]);
+		}
+
+		// render GUI on top of all images - if seleceted
 		if (displayGUI) {
 
 			p_vkGUI->GenerateCmdBuffer(m_cmdBuffers[c], p_vkMemory);
@@ -464,6 +474,11 @@ float VulkanEngine::exposureSetting() const
 float VulkanEngine::gammaSetting() const
 {
 	return p_vkGUI->m_guiSettings.gamma;
+}
+
+bool VulkanEngine::debugShadowSetting() const
+{
+	return p_vkGUI->m_guiSettings.debugShadow;
 }
 
 // Getter/Setter functions ==================================================================================================================================================================================================================================

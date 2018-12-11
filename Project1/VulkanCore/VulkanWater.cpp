@@ -215,7 +215,7 @@ void VulkanWater::GenerateWaterCmdBuffer(VkCommandBuffer cmdBuffer, bool drawSha
 
 		VulkanShadow::PushConstant push;
 		push.useModelIndex = 0;					// inform the shadow shader to add the model transform to the light matrix	
-		vkCmdPushConstants(cmdBuffer, shadow->GetPipelineLayout(), VK_SHADER_STAGE_GEOMETRY_BIT, 0, sizeof(VulkanShadow::PushConstant), &push);
+		vkCmdPushConstants(cmdBuffer, shadow->GetPipelineLayout(), VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(VulkanShadow::PushConstant), &push);
 
 	}
 

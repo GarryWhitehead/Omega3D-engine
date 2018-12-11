@@ -16,7 +16,7 @@ class LightComponentManager : public ArchivableComponentManager<LightComponentMa
 
 public:
 
-	static const uint32_t MAX_LIGHT_COUNT = 200;
+	static const uint32_t MAX_LIGHT_COUNT = 50;
 
 	struct LightInfo
 	{

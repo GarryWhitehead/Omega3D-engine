@@ -6,6 +6,8 @@
 #include "VulkanCore/vulkan_utility.h"
 #include "utility/message_handler.h"
 
+#include "volk.h"
+
 // forward class declerations
 class VulkanDevice;
 class VulkanInstance;
@@ -102,6 +104,7 @@ public:
 	float tessEdgeSize() const;
 	float exposureSetting() const;
 	float gammaSetting() const;
+	bool debugShadowSetting() const;
 
 protected:
 

@@ -4,6 +4,7 @@
 #include "VulkanCore/VulkanRenderPass.h"
 #include "VulkanCore/VulkanEngine.h"
 #include "VulkanCore/VulkanDeferred.h"
+#include "VulkanCore/Vulkan_shadow.h"
 #include "Systems/camera_system.h"
 #include "Engine/World.h"
 #include <gtc/matrix_transform.hpp>
@@ -200,6 +201,22 @@ void VkPostProcess::GenerateFinalCmdBuffer(VkCommandBuffer cmdBuffer)
 	vkCmdDrawIndexed(cmdBuffer, 6, 1, 0, 0, 0);
 }
 
+void VkPostProcess::GenerateDebugCmdBuffer(VkCommandBuffer cmdBuffer)
+{
+	// for shadow debugging - this should probably be moved to shadow module!
+	auto p_light = p_vkEngine->GetCurrentWorld()->RequestComponentManager<LightComponentManager>();
+
+	VkDeviceSize offsets[1]{ m_vertices.offset };
+
+	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_debugInfo.pipelineInfo.pipeline);
+
+	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
+	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_finalInfo.pipelineInfo.layout, 0, 1, &m_debugInfo.descriptors->set, 0, NULL);
+	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT32);
+
+	vkCmdDrawIndexed(cmdBuffer, 6, p_light->GetLightCount(), 0, 0, 0);
+}
+
 void VkPostProcess::PrepareFullscreenQuad()
 {
 	// prepare vertices
@@ -312,6 +329,27 @@ void VkPostProcess::PrepareFinalDescriptors()
 	m_finalInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
 }
 
+void VkPostProcess::PrepareDebugDescriptors()
+{
+	m_debugInfo.descriptors = new VkDescriptors(p_vkEngine->GetDevice());
+
+	std::vector<VkDescriptors::LayoutBinding> layoutBind =
+	{
+		{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, VK_SHADER_STAGE_FRAGMENT_BIT }					// shadow texture array
+	};
+
+	m_debugInfo.descriptors->AddDescriptorBindings(layoutBind);
+
+	auto p_shadow = p_vkEngine->VkModule<VulkanShadow>();
+	std::vector<VkDescriptorImageInfo> imageInfo =
+	{
+		{ p_shadow->GetDepthSampler(), p_shadow->GetDepthImageView(),  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+	
+	};
+
+	m_debugInfo.descriptors->GenerateDescriptorSets(nullptr, imageInfo.data());
+}
+
 void VkPostProcess::PreparePipelines()
 {
 	Vertex vertex;
@@ -398,6 +436,13 @@ void VkPostProcess::PreparePipelines()
 	createInfo.basePipelineHandle = VK_NULL_HANDLE;
 
 	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_finalInfo.pipelineInfo.pipeline));
+
+	// debug pipeline
+	m_debugInfo.shader[0] = VulkanUtility::InitShaders("Post-Process/postprocess-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	m_debugInfo.shader[1] = VulkanUtility::InitShaders("Post-Process/DebugShadow-frag.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
+	createInfo.pStages = m_debugInfo.shader.data();
+
+	VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_debugInfo.pipelineInfo.pipeline));
 
 	// bloom - guassian blur pipeline
 	m_bloomInfo.shader[0] = VulkanUtility::InitShaders("Post-Process/postprocess-vert.spv", VK_SHADER_STAGE_VERTEX_BIT, p_vkEngine->GetDevice());
@@ -524,6 +569,7 @@ void VkPostProcess::Init()
 	PrepareColourPassDescriptors();
 	PrepareBlurPassDescriptors();
 	PrepareFinalDescriptors();
+	PrepareDebugDescriptors();
 
 	// prepare piplines for all post-process components
 	PreparePipelines();

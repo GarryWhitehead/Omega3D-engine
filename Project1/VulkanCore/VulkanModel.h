@@ -11,10 +11,6 @@ class VulkanTexture;
 class CameraSystem;
 class VkMemoryManager;
 
-const int MAX_BONES = 64;
-const int MAX_VERTEX_BONES = 4;
-const int MAX_MODELS = 256;
-
 enum class MaterialTexture
 {
 	TEX_DIFF =			1 << 0,
@@ -29,6 +25,10 @@ class VulkanModel: public VulkanModule
 {
 
 public:
+
+	static const int MAX_BONES = 64;
+	static const int MAX_VERTEX_BONES = 4;
+	static const int MAX_MODELS = 256;
 
 	// generic vertex layout used (hopefully) by all model-based vertex shaders
 	struct ModelVertex

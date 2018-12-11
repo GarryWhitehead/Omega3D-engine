@@ -26,7 +26,12 @@ public:
 		{}
 
 		int terrainType;
+
+		// debugging
 		bool wireframe;
+		bool debugShadow;
+
+		// environmental control
 		bool showFog;
 		bool lights;
 		
