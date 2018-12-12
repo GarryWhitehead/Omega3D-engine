@@ -33,17 +33,17 @@ enum class VkModId
 	VKMOD_WATER_ID,
 };
 
-class VulkanEngine
+class VkRenderManager
 {
 
 public:
 
 	static constexpr VkClearColorValue CLEAR_COLOR = { 0.0f, 0.0f, 0.0f, 1.0f };		// used by all command buffers
 	
-	VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler);
-	~VulkanEngine();
+	VkRenderManager(GLFWwindow *window, uint32_t width, uint32_t height);
+	~VkRenderManager();
 
-	void Init(World *world);
+	/*void Init(World *world);
 	void Update(int acc_time);
 
 	// clean up functions
@@ -119,35 +119,17 @@ protected:
 	void DrawScene();
 
 	// pointers to objects that the engine is highly integradted with
-	MessageHandler *p_message;
 	World *p_world;
-	VkMemoryManager *p_vkMemory;
-	VulkanGUI *p_vkGUI;
-
-	// pointers to core components
-	VulkanDevice *p_vkDevice;
-	VulkanInstance *p_vkInstance;
-	VkSwapChain *p_vkSwapChain;
 
 	// a map of all the vk modules linked to this world instance 
 	std::unordered_map<std::type_index, VulkanModule*> m_vkModules;
 
-	VulkanUtility::ViewPortInfo m_viewport;
-	VkCommandPool m_cmdPool;						// just one command pool for both graphics and compute for all modules/dependencies
-	VkCommandPool m_computeCmdPool;
-
-	// frame buffer and command buffer data for final pass
-	VulkanRenderPass *m_renderpass;
-	std::vector<VkFramebuffer> m_frameBuffers;
-	std::vector<VkCommandBuffer> m_cmdBuffers;
-	VulkanTexture *m_depthImage;
-
 	// states for drawing, displaying info, etc.
 	bool drawStateChanged;
 	bool vk_prepared;
-	bool displayGUI;
+	bool displayGUI;*/
 };
-
+/*
 template <typename T>
 T* VulkanEngine::VkModule()
 {
@@ -165,4 +147,4 @@ bool VulkanEngine::hasModule()
 
 	auto& iter = m_vkModules.find(index);
 	return(iter != m_vkModules.end());
-}
+}*/

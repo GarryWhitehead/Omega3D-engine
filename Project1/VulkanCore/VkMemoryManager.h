@@ -3,8 +3,7 @@
 #include <unordered_map>
 #include "VulkanCore/Vulkan_utility.h"
 
-#define GLFW_INCLUDE_VULKAN
-#include "GLFW/glfw3.h"
+#include "volk.h"
 
 class VulkanEngine;
 
@@ -75,7 +74,7 @@ public:
 		VkBuffer block_buffer;
 	};
 
-	VkMemoryManager(VulkanEngine *engine);
+	VkMemoryManager();
 	~VkMemoryManager();
 
 	// no copy assignment allowed

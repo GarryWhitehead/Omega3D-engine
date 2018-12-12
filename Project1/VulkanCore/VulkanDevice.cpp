@@ -1,13 +1,16 @@
 #include "VulkanDevice.h"
 #include "utility/file_log.h"
 #include "VulkanCore/vulkan_validation.h"
+
+#include "volk.h"
+
 #include <set>
 
 namespace VkInitilisation
 {
 
-	void PrepareQueues(VkSurfaceKHR surface, VkPhysicalDevice physDevice, int& graphIndex, int& computeIndex, int& presentIndex)
-	{
+	void PrepareQueueIndices(VkSurfaceKHR surface, VkPhysicalDevice physDevice, int& graphIndex, int& presentIndex, int& computeIndex)
+	{		
 		uint32_t queueCount = 0;
 		VkBool32 presentQueue = false;
 
@@ -43,7 +46,18 @@ namespace VkInitilisation
 		else if (computeIndex < 0) {						// The preference is a sepearte compute queue, though if not found, use the graphics queue for compute shaders
 			computeIndex = graphIndex;
 		}
+
+		
 	}
+
+	void PrepareQueues(VkDevice device, int graphIndex, int presentIndex, int computeIndex, VkQueue& graphQueue, VkQueue& presentQueue, VkQueue& computeQueue)
+	{
+		// prepare queue for each type
+		vkGetDeviceQueue(device, computeIndex, 0, &computeQueue);
+		vkGetDeviceQueue(device, graphIndex, 0, &graphQueue);
+		vkGetDeviceQueue(device, presentIndex, 0, &presentQueue);
+	}
+
 
 	VkPhysicalDevice PreparePhysicalDevice(const VkInstance instance)
 	{
@@ -71,6 +85,17 @@ namespace VkInitilisation
 		return physDevice;
 	}
 	
+
+	VkPhysicalDeviceFeatures getPhysicalDeviceFeatures(VkPhysicalDevice physDevice)
+	{
+		VkPhysicalDeviceFeatures features;
+
+		vkGetPhysicalDeviceFeatures(physDevice, &features);
+
+		return features;
+	}
+
+
 	bool FindDeviceExtenisions(VkPhysicalDevice physDevice, const char* reqDevice)
 	{
 		uint32_t count;
@@ -140,22 +165,10 @@ namespace VkInitilisation
 		VkDevice device;
 		VK_CHECK_RESULT(vkCreateDevice(physDevice, &createInfo, nullptr, &device));
 
-		// Get the feature assocated with the physical device
-		vkGetPhysicalDeviceFeatures(physDevice, &features);
+		// this reduces dispatch overhead - though instigates that only one device can be used
+		volkLoadDevice(device);
 
-		// prepare queue for each type
-		vkGetDeviceQueue(device, queue.computeIndex, 0, &queue.computeQueue);
-		vkGetDeviceQueue(device, queue.graphIndex, 0, &queue.graphQueue);
-		vkGetDeviceQueue(device, queue.presentIndex, 0, &queue.presentQueue);
-	}
-
-
-
-	void VulkanDevice::Init(VkInstance instance, VkSurfaceKHR surface)
-	{
-		PreparePhysicalDevice(instance);
-		PrepareQueues(surface);
-		PrepareDevice();
+		return device;		
 	}
 
 }

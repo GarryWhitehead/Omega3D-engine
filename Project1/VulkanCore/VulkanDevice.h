@@ -2,32 +2,16 @@
 #include "VulkanCore/vulkan_tools.h"
 #include <vector>
 
-struct VulkanDevice
+namespace VkInitilisation
 {
 
-	struct QueueInfo
-	{
-		QueueInfo() : graphIndex(-1), presentIndex(-1) {}
-
-	
-	} queue;
-
-	VulkanDevice();
-	~VulkanDevice();
-
-	void Init(VkInstance instance, VkSurfaceKHR surface);
-	void PrepareDevice();
-	void PreparePhysicalDevice(const VkInstance instance);
-	void PrepareQueues(VkSurfaceKHR surface);
+	// functions
+	VkDevice PrepareDevice(VkPhysicalDevice physDevice, int graphIndex, int presentIndex, int computeIndex);
 	bool FindDeviceExtenisions(VkPhysicalDevice physDevice, const char* reqDevice);
+	VkPhysicalDeviceFeatures getPhysicalDeviceFeatures(VkPhysicalDevice physDevice);
+	VkPhysicalDevice PreparePhysicalDevice(const VkInstance instance);
+	void PrepareQueueIndices(VkSurfaceKHR surface, VkPhysicalDevice physDevice, int& graphIndex, int& presentIndex, int& computeIndex);
+	void PrepareQueues(VkDevice device, int graphIndex, int presentIndex, int computeIndex, VkQueue& graphQueue, VkQueue& presentQueue, VkQueue& computeQueue);
 
-	// GPU device handle
-	VkPhysicalDevice physDevice;
-
-	// GPU features
-	
-	VkDevice device;
-
-	std::vector<const char*> deviceExt;
 };
 

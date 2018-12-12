@@ -23,8 +23,7 @@
 #include "utility/file_log.h"
 
 
-VulkanEngine::VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler) :
-	p_message(msgHandler),
+VkRenderManager::VkRenderManager(GLFWwindow *window, uint32_t width, uint32_t height) :
 	drawStateChanged(true),
 	vk_prepared(false),
 	displayGUI(true)
@@ -41,21 +40,21 @@ VulkanEngine::VulkanEngine(GLFWwindow *window, MessageHandler *msgHandler) :
 	VulkanGlobal::init_windowSurface(window);			// prepare KHR surface
 
 	// init new physical device, queues for graphics, presentation and compute
-	VulkanGlobal::init_vkDevice();
+	VulkanGlobal::init_device();
 
-	// prepare swap chain and attached image views
-	p_vkSwapChain = new VkSwapChain(p_vkInstance->surface, p_vkDevice->device, window);
-	p_vkSwapChain->Init(p_vkDevice, p_vkInstance->instance, Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT);
+	// prepare swap chain and attached image views - so we have something to render too
+	VulkanGlobal::init_swapchain(width, height);
 
-	p_vkMemory = new VkMemoryManager(this);
+	// now we have init the current vulkan device, init all managers that will be used
+	VulkanGlobal::init_vkMemoryManager();
 }
 
-VulkanEngine::~VulkanEngine()
+VkRenderManager::~VkRenderManager()
 {
 	Destroy();
 }
 
-void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
+/*void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
 {
 	// begin by adding vulakn dependencies - these must be loaded in order
 	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanShadow)), new VulkanShadow(this, p_vkMemory)));
@@ -546,3 +545,4 @@ VkRenderPass VulkanEngine::GetFinalRenderPass() const
 
 
 
+*/

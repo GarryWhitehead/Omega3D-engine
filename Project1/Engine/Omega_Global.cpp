@@ -2,6 +2,7 @@
 #include "Omega_Global.h"
 
 #include "Utility/message_handler.h"
+#include "VulkanCore/VkRenderManager.h"
 
 #include <assert.h>
 
