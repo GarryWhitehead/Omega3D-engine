@@ -1,6 +1,7 @@
 
 #include "Omega_Global.h"
 
+#include "Utility/FileManager.h"
 #include "Utility/message_handler.h"
 #include "VulkanCore/VkRenderManager.h"
 
@@ -10,6 +11,11 @@ namespace OmegaEngine
 {
 	namespace Global
 	{
+		void init_fileManager()
+		{
+			managers.fileManager = new FileManager;
+			assert(managers.fileManager != nullptr);
+		}
 
 		void init_messageHandler()
 		{
@@ -25,8 +31,9 @@ namespace OmegaEngine
 
 		void init()
 		{
+			init_fileManager();
 			init_messageHandler();
-			init_renderManager();
+			init_vkRenderer();
 		}
 	}
 }

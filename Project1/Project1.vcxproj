@@ -26,6 +26,8 @@
     <ClCompile Include="Engine\ObjectManager.cpp" />
     <ClCompile Include="Engine\Object.cpp" />
     <ClCompile Include="Engine\ObjectResourceManager.cpp" />
+    <ClCompile Include="Engine\SceneParser.cpp" />
+    <ClCompile Include="Engine\Space.cpp" />
     <ClCompile Include="Engine\World.cpp" />
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
@@ -36,6 +38,7 @@
     <ClCompile Include="Engine\Omega_Global.cpp" />
     <ClCompile Include="Systems\GraphicsSystem.cpp" />
     <ClCompile Include="Systems\systems.cpp" />
+    <ClCompile Include="utility\FileManager.cpp" />
     <ClCompile Include="utility\message_handler.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
     <ClCompile Include="utility\serialisation.cpp" />
@@ -80,6 +83,9 @@
     <ClInclude Include="Engine\ObjectResourceManager.h" />
     <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
+    <ClInclude Include="Engine\SceneParser.h" />
+    <ClInclude Include="Engine\Space.h" />
+    <ClInclude Include="utility\FileManager.h" />
     <ClInclude Include="VulkanCore\Vulkan_Global.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
@@ -175,7 +181,7 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

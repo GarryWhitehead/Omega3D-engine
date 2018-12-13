@@ -16,12 +16,12 @@
 #include "ComponentManagers/AnimationComponentManager.h"
 #include "ComponentManagers/LightComponentManager.h"
 
-#include "VulkanCore/VulkanEngine.h"
 #include <iostream>
 
-World::World(std::string filename, MessageHandler *msg) :
+World::World(std::string filename) :
 	m_name(name)
 {
+	init_worldScene();
 }
 
 World::~World()

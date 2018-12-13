@@ -8,6 +8,7 @@
 // forward decleartions
 class MessageHandler;
 class RenderManager;
+class FileManager;
 
 namespace OmegaEngine
 {
@@ -15,6 +16,7 @@ namespace OmegaEngine
 	{
 		struct Managers
 		{
+			FileManager* fileManager;
 			MessageHandler* messageHandler;
 			VkRenderManager* renderManager;
 		};
@@ -22,6 +24,7 @@ namespace OmegaEngine
 		static Managers managers;
 
 		// all global initilisation functions for global managers
+		void init_fileManager();
 		void init_messageHandler();
 
 		void init_vkRenderer();
