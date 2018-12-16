@@ -5,13 +5,7 @@
 #include <typeindex>
 
 // forward declerartions
-enum class SystemId;
-class System;
-class Engine;
-class ComponentManager;
-class ObjectManager;
-class VulkanEngine;
-class MessageHandler;
+class Camera;
 
 class World
 {
@@ -46,6 +40,9 @@ public:
 private:
 	
 	std::string name;
+
+	// the camera used for this world 
+	std::unique_ptr<Camera> currentCamera;
 
 	// all the main component systems registered with this particular world space
 	std::unordered_map<std::type_index, System*> m_systems;

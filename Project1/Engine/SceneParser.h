@@ -4,18 +4,30 @@
 
 using namespace rapidjson;
 
-class SceneParser
+namespace OmegaEngine
 {
+	// forward declerations
+	struct CameraDataType;
 
-public:
+	class SceneParser
+	{
 
-	SceneParser();
-	~SceneParser();
+	public:
 
-	bool open(std::string filename);
+		// array element sizes
+		const uint8_t CameraDataTypeElementCount = 11;
 
-private:
+		SceneParser();
+		~SceneParser();
 
-	Document document;
-};
+		bool open(std::string filename);
+
+		bool getCameraData(CameraDataType& camera);
+
+	private:
+
+		Document document;
+	};
+
+}
 

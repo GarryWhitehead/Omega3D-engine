@@ -1,9 +1,7 @@
 #include "Engine/engine.h"
 #include "utility/file_log.h"
 #include "utility/message_handler.h"
-#include "VulkanCore/VulkanEngine.h"
-#include "Systems/input_system.h"
-#include "Systems/camera_system.h"
+#include "Systems/InputManager.h"
 #include "Systems/GraphicsSystem.h"
 #include "Engine/world.h"
 #include "Engine/Omega_Global.h"
@@ -13,23 +11,28 @@
 
 namespace OmegaEngine
 {
-	Engine::Engine(const char *win_title) :
-		m_windowTitle(win_title),
-		m_running(true)
+	Engine::Engine(const char *win_title, uint32_t width, uint32_t height) :
+		windowTitle(win_title),
+		windowWidth(width),
+		windowHeight(height),
+		isRunning(true),
 	{
 		// Create a new instance of glfw
-		CreateWindow(win_title);
+		createWindow(win_title);
 
-		// create all global instances
+		// create all global instances including managers
 		Global::init();
+		
+		//create a new instance of the input manager
+		inputManager = std::make_unique<InputManager>(window, width, height);
 	}
 
 	Engine::~Engine()
 	{
-		Release();
+		release();
 	}
 
-	void Engine::CreateWindow(const char *winTitle)
+	void Engine::createWindow(const char *winTitle)
 	{
 		//glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit())
@@ -40,27 +43,18 @@ namespace OmegaEngine
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-		m_monitor = glfwGetPrimaryMonitor();
-		m_vmode = glfwGetVideoMode(m_monitor);
+		monitor = glfwGetPrimaryMonitor();
+		vmode = glfwGetVideoMode(monitor);
 
-		m_window = glfwCreateWindow(SCREEN_WIDTH, SCREEN_HEIGHT, winTitle, nullptr, nullptr);
-		if (!m_window)
+		window = glfwCreateWindow(windowWidth, windowHeight, winTitle, nullptr, nullptr);
+		if (!window)
 		{
 			g_filelog->WriteLog("Critical error! Unable to open window!");
 			exit(EXIT_FAILURE);
 		}+
 	}
 
-	void Engine::Init()
-	{
-		// create message handling system
-		p_message = new MessageHandler();
-
-		// start by initialisng core vulkan components and creating a window
-		p_vkEngine = new VulkanEngine(m_window, p_message);
-	}
-
-	void Engine::Update(int acc_time)
+	void Engine::update(int acc_time)
 	{
 		//update component managers e.g. physics, transform, etc.
 		m_worlds[m_currentWorldIndex]->UpdateComponentManagers();
@@ -71,45 +65,25 @@ namespace OmegaEngine
 		p_vkEngine->Update(acc_time);
 	}
 
-	void Engine::Render(float interpolation)
+	void Engine::render(float interpolation)
 	{
 		auto sys = GetSystem<GraphicsSystem>();
 		sys->Render();
 	}
 
-	void Engine::Release()
+	void Engine::release()
 	{
 		// destroy all generated worlds 
 		for (auto& world : m_worlds) {
 			world->Destroy();
 		}
 
-		// destroy vulkan framework
-		if (p_vkEngine != nullptr) {
-			delete p_vkEngine;
-			p_vkEngine = nullptr;
-		}
-
-		// destroy mesage handler
-		if (p_message != nullptr) {
-			delete p_message;
-			p_message = nullptr;
-		}
 		glfwTerminate();
 	}
 
-	void Engine::CreateWorld(std::string filename)
+	void Engine::createWorld(std::string filename, std::string name)
 	{
-		assert(p_message != nullptr);
-		assert(p_vkEngine != nullptr);
-
-		std::unique_ptr<World> *world = std::make_unique<World>(filename, p_message);
-
-		// generate all data assocaited with this world through serialising from file
-		world->Generate(p_vkEngine);
-
-		// register the main engine systems required - e.g. camera, input, collision
-		world->RegisterSystems(systemIds, this, p_vkEngine);
+		std::unique_ptr<World> *world = std::make_unique<World>(filename, name);
 
 		m_worlds.push_back(world);
 		m_currentWorldIndex = m_worlds.size() - 1;

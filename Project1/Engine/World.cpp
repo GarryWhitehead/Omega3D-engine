@@ -1,6 +1,7 @@
 #include "World.h"
 
 #include "SceneParser.h"
+#include "Camera.h"
 
 #include "utility/file_log.h"
 #include "utility/message_handler.h"
@@ -29,7 +30,12 @@ World::World(std::string filename, std::string worldName) :
 		throw std::runtime_error("Unable to open scene file.");
 	}
 
-
+	// set camera - only one camera per world at the moment
+	Camera::CameraDataType cameraData;
+	if (!parser.getCameraData(cameraData)) {
+		throw std::runtime_error("Unable to initiliase camera.");
+	}
+	currentCamera = std::make_unique<Camera>(cameraData);
 }
 
 World::~World()

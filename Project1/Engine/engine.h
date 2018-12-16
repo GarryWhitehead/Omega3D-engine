@@ -7,19 +7,8 @@
 
 namespace OmegaEngine
 {
-
-	enum class SystemId
-	{
-		INPUT_SYSTEM_ID,
-		CAMERA_SYSTEM_ID,
-		GRAPHICS_SYSTEM_ID
-	};
-
 	// forward declerations
-	class CameraSystem;
-	class MessageHandler;
-	class InputSystem;
-	class VulkanEngine;
+	class InputManager;
 	struct GLFWwindow;
 	struct GLFWmonitor;
 	struct GLFWvidmode;
@@ -29,53 +18,43 @@ namespace OmegaEngine
 	{
 	public:
 
-		static const uint32_t SCREEN_WIDTH = 1980;
-		static const uint32_t SCREEN_HEIGHT = 1080;
-		static constexpr float CAMERA_FOV = 45.0f;
 		static constexpr float DT = 1.0f / 30.0f;
 
-		Engine(const char *winTitle);
+		Engine(const char *winTitle, uint32_t width, uint32_t height);
 		~Engine();
 
 		// main core functions
-		void Init();
-		void Update(int acc_time);
-		void Release();
-		void Render(float interpolation);
-		void CreateWorld(std::string filename);
-		void CreateWindow(const char *winTitle);
-
-		template <typename T>
-		T* GetSystem();
+		void init();
+		void update(int acc_time);
+		void release();
+		void render(float interpolation);
+		void createWorld(std::string filename);
+		void createWindow(const char *winTitle);
 
 		// helper functions
-		GLFWwindow* Window() const { return m_window; }
+		GLFWwindow* Window() const { return window; }
 
 	private:
 
-		GLFWwindow * m_window;
-		const char *m_windowTitle;
-		GLFWmonitor* m_monitor;
-		const GLFWvidmode* m_vmode;
+		// glfw stuff
+		GLFWwindow * window;
+		const char *windowTitle;
+		GLFWmonitor* monitor;
+		const GLFWvidmode* vmode;
+		
+		// all keyboard, mouse, gamepad, ect. inputs dealt with here
+		std::unique_ptr<InputManager> inputManager;
 
-		bool m_running;
+		// windw details set on init
+		uint32_t windowWidth;
+		uint32_t windowHeight;
 
-		// handles to engine dependent systems
-		VulkanEngine *p_vkEngine;
-		MessageHandler *p_message;
+		bool isRunning;
 
 		// a collection of worlds registered with the engine
 		std::vector<World*> m_worlds;
 		uint32_t m_currentWorldIndex;		// current world which will be rendered, updated, etc.
 	};
-
-	template <typename T>
-	T* Engine::GetSystem()
-	{
-		T* sys = static_cast<T*>(m_worlds[m_currentWorldIndex]->RequestSystem<T>());
-		assert(sys != nullptr);
-		return sys;
-	}
 
 }
 
