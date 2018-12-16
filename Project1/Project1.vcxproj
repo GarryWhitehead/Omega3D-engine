@@ -52,7 +52,7 @@
     <ClCompile Include="VulkanCore\VulkanModel.cpp" />
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
     <ClCompile Include="VulkanCore\VulkanModule.cpp" />
-    <ClCompile Include="Systems\camera_system.cpp" />
+    <ClCompile Include="Engine\Camera.cpp" />
     <ClCompile Include="Systems\Input_system.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="utility\file_log.cpp" />
@@ -76,6 +76,7 @@
     <ClInclude Include="ComponentManagers\LightComponentManager.h" />
     <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
     <ClInclude Include="ComponentManagers\ComponentManager.h" />
+    <ClInclude Include="Engine\Camera.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="Engine\Object.h" />
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
@@ -105,7 +106,6 @@
     <ClInclude Include="VulkanCore\VulkanGUI.h" />
     <ClInclude Include="VulkanCore\VulkanModel.h" />
     <ClInclude Include="VulkanCore\VulkanModule.h" />
-    <ClInclude Include="Systems\camera_system.h" />
     <ClInclude Include="Systems\input_system.h" />
     <ClInclude Include="utility\file_log.h" />
     <ClInclude Include="VulkanCore\VulkanPBR.h" />

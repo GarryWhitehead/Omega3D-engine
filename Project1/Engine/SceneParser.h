@@ -1,5 +1,9 @@
 #pragma once
 
+#include "rapidjson/document.h"
+
+using namespace rapidjson;
+
 class SceneParser
 {
 
@@ -12,5 +16,6 @@ public:
 
 private:
 
+	Document document;
 };
 

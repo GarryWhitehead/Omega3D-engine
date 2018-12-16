@@ -1,4 +1,7 @@
 #include "World.h"
+
+#include "SceneParser.h"
+
 #include "utility/file_log.h"
 #include "utility/message_handler.h"
 #include "Engine/engine.h"
@@ -16,12 +19,17 @@
 #include "ComponentManagers/AnimationComponentManager.h"
 #include "ComponentManagers/LightComponentManager.h"
 
-#include <iostream>
+#include <stdexcept>
 
-World::World(std::string filename) :
-	m_name(name)
+World::World(std::string filename, std::string worldName) :
+	name(worldName)
 {
-	init_worldScene();
+	SceneParser parser;
+	if (!parser.open(filename)) {
+		throw std::runtime_error("Unable to open scene file.");
+	}
+
+
 }
 
 World::~World()
@@ -31,8 +39,7 @@ World::~World()
 
 void World::Generate(VulkanEngine *vkEngine)
 {
-	// create entity manager for this world which will keep track of all entites that are alive
-	p_objectManager = new ObjectManager();
+
 
 	// deserialise data into world space from binary file
 	ObjectResourceManager resource(this);

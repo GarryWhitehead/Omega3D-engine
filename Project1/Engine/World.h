@@ -17,7 +17,7 @@ class World
 {
 public:
 
-	World(std::string name, MessageHandler *msg);
+	World(std::string filename, std::string worldName);
 	~World();
 
 	void Generate(VulkanEngine *engine);
@@ -45,17 +45,12 @@ public:
 
 private:
 	
-	std::string m_name;
-
-	// handle to the message handling system
-	MessageHandler *p_message;
+	std::string name;
 
 	// all the main component systems registered with this particular world space
 	std::unordered_map<std::type_index, System*> m_systems;
 
 	std::unordered_map<std::type_index, ComponentManager*> m_managers;
-
-	ObjectManager *p_objectManager;
 	
 };
 

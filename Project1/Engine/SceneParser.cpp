@@ -1,6 +1,5 @@
 #include "SceneParser.h"
 
-#include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "Omega_Global.h"
 #include "Utility/FileManager.h"
@@ -21,11 +20,10 @@ bool SceneParser::open(std::string filename)
 		return false;
 	}
 
-	rapidjson::Document documnent;
-	if (documnent.Parse(json.c_str()).HasParseError()) {
+
+	if (document.Parse(json.c_str()).HasParseError()) {
 		return false;
 	}
-
-
-
+	
+	return true;
 }
