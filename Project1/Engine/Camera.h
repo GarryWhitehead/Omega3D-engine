@@ -1,28 +1,10 @@
 #pragma once
-#include "Systems/system.h"
+#include "Managers/EventManager.h"
+
 #include "glm.hpp"
 
-class World;
-
-enum class CameraType
+namespace OmegaEngine
 {
-	FirstPerson,
-	ThirdPerson
-};
-
-enum class MoveDirection
-{
-	MOVE_FORWARD,
-	MOVE_BACKWARD,
-	MOVE_LEFT,
-	MOVE_RIGHT,
-	NO_MOVEMENT
-};
-
-class Camera
-{
-
-public:
 
 	struct CameraDataType
 	{
@@ -31,43 +13,75 @@ public:
 		float zFar;
 		float velocity;
 		CameraType type;
+		glm::vec3 position;
+		glm::vec3 cameraUp;
 	};
 
+	enum class CameraType
+	{
+		FirstPerson,
+		ThirdPerson
+	};
 
-	Camera(CameraDataType camera, uint32_t width, uint32_t height);
+	enum class MoveDirection
+	{
+		MOVE_FORWARD,
+		MOVE_BACKWARD,
+		MOVE_LEFT,
+		MOVE_RIGHT,
+		NO_MOVEMENT
+	};
 
-	void SetMovementDirection(MoveDirection dir);
-	void SetPitchYaw(double xpos, double ypos);
-	void setPerspective(float fov, float aspect, float zNear, float zFar);
-	void updateViewMatrix();
+	// classes for event types
+	struct LeftButtonEvent : public Event
+	{
+		double xpos;
+		double ypos;
+	};
 
-	// helper functions
-	float GetZNear() const { return zNear; }
-	float GetZFar() const { return zFar; }
-	glm::vec3 GetCameraPosition() const { return m_cameraPos; }
+	class Camera
+	{
 
-private:
+	public:
 
-	glm::mat4 currentProjMatrix;
-	glm::mat4 currentViewMatrix;
+		
+		Camera(CameraDataType camera, uint32_t width, uint32_t height);
 
-	MoveDirection m_currentDir;
+		void setMovementDirection(MoveDirection dir);
+		void left_button_event(LeftButtonEvent& event);
+		void setPerspective(float fov, float aspect, float zNear, float zFar);
+		void updateViewMatrix();
 
-	glm::vec3 m_cameraPos;
-	glm::vec3 m_cameraFront;
-	glm::vec3 m_cameraUp;
-	float m_cameraYaw;
-	float m_cameraPitch;
+		// helper functions
+		float getZNear() const { return zNear; }
+		float getZFar() const { return zFar; }
+		glm::vec3 getCameraPosition() const { return cameraPos; }
 
-	double m_currentX;
-	double m_currentY;
-	bool m_isMoving;
+	private:
 
-	// Values set on init
-	float zNear;
-	float zFar;
-	float fov;
-	float velocity;
-	CameraType type;
-};
+		glm::mat4 currentProjMatrix;
+		glm::mat4 currentViewMatrix;
+
+		MoveDirection direction;
+		float yaw;
+		float pitch;
+
+		double currentX;
+		double currentY;
+		bool isMoving;
+
+		// Values set on init
+		float zNear;
+		float zFar;
+		float fov;
+		float velocity;
+		CameraType type;
+
+		glm::vec3 position;
+		glm::vec3 frontVec;
+		glm::vec3 upVec;
+	};
+}
+
+
 

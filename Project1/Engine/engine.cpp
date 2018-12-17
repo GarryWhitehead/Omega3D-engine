@@ -15,7 +15,7 @@ namespace OmegaEngine
 		windowTitle(win_title),
 		windowWidth(width),
 		windowHeight(height),
-		isRunning(true),
+		isRunning(true)
 	{
 		// Create a new instance of glfw
 		createWindow(win_title);
@@ -83,10 +83,10 @@ namespace OmegaEngine
 
 	void Engine::createWorld(std::string filename, std::string name)
 	{
-		std::unique_ptr<World> *world = std::make_unique<World>(filename, name);
+		std::unique_ptr<World> world = std::make_unique<World>(filename, name);
 
-		m_worlds.push_back(world);
-		m_currentWorldIndex = m_worlds.size() - 1;
+		worlds.push_back(world);
+		currentWorldIndex = worlds.size() - 1;
 	}
 }
 

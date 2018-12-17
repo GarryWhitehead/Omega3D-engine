@@ -6,18 +6,21 @@
 #pragma once
 
 // forward decleartions
-class MessageHandler;
-class RenderManager;
+
+class VkRenderManager;
 class FileManager;
 
 namespace OmegaEngine
 {
+	class EventManager;
+
 	namespace Global
 	{
+		
 		struct Managers
 		{
 			FileManager* fileManager;
-			MessageHandler* messageHandler;
+			EventManager* eventManger;
 			VkRenderManager* renderManager;
 		};
 
@@ -25,8 +28,7 @@ namespace OmegaEngine
 
 		// all global initilisation functions for global managers
 		void init_fileManager();
-		void init_messageHandler();
-
+		void init_eventManager();
 		void init_vkRenderer();
 
 		void init();

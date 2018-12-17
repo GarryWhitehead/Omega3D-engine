@@ -1,8 +1,8 @@
 
 #include "Omega_Global.h"
 
-#include "Utility/FileManager.h"
-#include "Utility/message_handler.h"
+#include "Managers/FileManager.h"
+#include "Managers/EventManager.h"
 #include "VulkanCore/VkRenderManager.h"
 
 #include <assert.h>
@@ -17,10 +17,10 @@ namespace OmegaEngine
 			assert(managers.fileManager != nullptr);
 		}
 
-		void init_messageHandler()
+		void init_eventManager()
 		{
-			managers.messageHandler = new MessageHandler;
-			assert(managers.messageHandler != nullptr);
+			managers.eventManger = new EventManager;
+			assert(managers.eventManger != nullptr);
 		}
 
 		void init_vkRenderer()
@@ -32,7 +32,7 @@ namespace OmegaEngine
 		void init()
 		{
 			init_fileManager();
-			init_messageHandler();
+			init_eventManager();
 			init_vkRenderer();
 		}
 	}

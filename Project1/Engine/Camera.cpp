@@ -1,9 +1,13 @@
 #include "Camera.h"
 
+#include "Omega_Global.h"
+#include "Managers/EventManager.h"
 #include <gtc/matrix_transform.hpp>
 #include "GLFW/glfw3.h"
 
 #include <algorithm>
+
+using namespace OmegaEngine;
 
 namespace OmegaEngine
 {
@@ -26,6 +30,9 @@ namespace OmegaEngine
 		type = camera.type;
 
 		setPerspective(camera.fov, static_cast<float>(width / height), camera.zNear, camera.zFar);
+
+		// set up events
+		Global::managers.eventManger->registerListener<Camera, LeftButtonEvent>(this, left_button_event);
 	}
 
 	void Camera::setMovementDirection(MoveDirection dir)
@@ -34,13 +41,13 @@ namespace OmegaEngine
 		isMoving = true;
 	}
 
-	void Camera::setPitchYaw(double xpos, double ypos)
+	void Camera::left_button_event(LeftButtonEvent& event)
 	{
-		double offsetX = currentX - xpos;
-		double offsetY = currentY - ypos;
+		double offsetX = currentX - event.xpos;
+		double offsetY = currentY - event.ypos;
 
-		currentX = xpos;
-		currentY = ypos;
+		currentX = event.xpos;
+		currentY = event.ypos;
 
 		yaw -= offsetX * MOUSE_SENSITIVITY;
 		pitch -= offsetY * MOUSE_SENSITIVITY;
@@ -63,17 +70,7 @@ namespace OmegaEngine
 
 	void Camera::update()
 	{
-		auto p_input = p_world->RequestSystem<InputSystem>();
-
-		// check whther the left hand mouse button is pressed
-		if (p_input->ButtonState(GLFW_MOUSE_BUTTON_LEFT)) {
-
-			double xpos, ypos;
-			p_input->GetCursorPos(&xpos, &ypos);
-
-			SetPitchYaw(xpos, ypos);		// if pressed, adjust view according to changes in cursor pos
-		}
-
+		
 		if (m_isMoving) {
 
 			//calculate the pitch and yaw vectors

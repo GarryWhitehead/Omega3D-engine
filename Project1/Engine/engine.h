@@ -4,15 +4,15 @@
 #include <unordered_map>
 #include <assert.h>
 
+// forward declerations
+class InputManager;
+struct GLFWwindow;
+struct GLFWmonitor;
+struct GLFWvidmode;
+class World;
 
 namespace OmegaEngine
 {
-	// forward declerations
-	class InputManager;
-	struct GLFWwindow;
-	struct GLFWmonitor;
-	struct GLFWvidmode;
-	class World;
 
 	class Engine
 	{
@@ -28,7 +28,7 @@ namespace OmegaEngine
 		void update(int acc_time);
 		void release();
 		void render(float interpolation);
-		void createWorld(std::string filename);
+		void createWorld(std::string filename, std::string name);
 		void createWindow(const char *winTitle);
 
 		// helper functions
@@ -52,8 +52,8 @@ namespace OmegaEngine
 		bool isRunning;
 
 		// a collection of worlds registered with the engine
-		std::vector<World*> m_worlds;
-		uint32_t m_currentWorldIndex;		// current world which will be rendered, updated, etc.
+		std::vector<std::unique_ptr<World> > worlds;
+		uint32_t currentWorldIndex;							// current world which will be rendered, updated, etc.
 	};
 
 }
