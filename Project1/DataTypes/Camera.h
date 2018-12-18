@@ -23,52 +23,52 @@ namespace OmegaEngine
 		ThirdPerson
 	};
 
-	enum class MoveDirection
-	{
-		MOVE_FORWARD,
-		MOVE_BACKWARD,
-		MOVE_LEFT,
-		MOVE_RIGHT,
-		NO_MOVEMENT
-	};
-
 	// classes for event types
-	struct LeftButtonEvent : public Event
+	struct MouseButtonEvent : public Event
 	{
 		double xpos;
 		double ypos;
 	};
+
+	struct KeyboardPressEvent : public Event
+	{
+		bool isMovingLeft = false;
+		bool isMovingRight = false;
+		bool isMovingForward = false;
+		bool isMovingBackward = false;
+		bool isMoving = false;
+	};
+
 
 	class Camera
 	{
 
 	public:
 
-		
 		Camera(CameraDataType camera, uint32_t width, uint32_t height);
 
-		void setMovementDirection(MoveDirection dir);
-		void left_button_event(LeftButtonEvent& event);
+		void setNearFarPlane(float near, float far);
 		void setPerspective(float fov, float aspect, float zNear, float zFar);
 		void updateViewMatrix();
+
+		// event functions
+		void keyboard_press_event(KeyboardPressEvent& event);
+		void mouse_button_event(MouseButtonEvent& event);
 
 		// helper functions
 		float getZNear() const { return zNear; }
 		float getZFar() const { return zFar; }
-		glm::vec3 getCameraPosition() const { return cameraPos; }
+		glm::vec3 getCameraPosition() const { return position; }
 
 	private:
 
 		glm::mat4 currentProjMatrix;
 		glm::mat4 currentViewMatrix;
 
-		MoveDirection direction;
 		float yaw;
 		float pitch;
-
 		double currentX;
 		double currentY;
-		bool isMoving;
 
 		// Values set on init
 		float zNear;

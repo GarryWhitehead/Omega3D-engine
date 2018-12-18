@@ -6,9 +6,8 @@
 #pragma once
 
 // forward decleartions
-
 class VkRenderManager;
-class FileManager;
+class FileLog;
 
 namespace OmegaEngine
 {
@@ -19,20 +18,33 @@ namespace OmegaEngine
 		
 		struct Managers
 		{
-			FileManager* fileManager;
-			EventManager* eventManger;
+			EventManager* eventManager;
 			VkRenderManager* renderManager;
 		};
 
 		static Managers managers;
 
 		// all global initilisation functions for global managers
-		void init_fileManager();
 		void init_eventManager();
 		void init_vkRenderer();
 
 		void init();
+
+		// for file logging purposes
+		FileLog* fileLog;
+
+		// current state of the application
+		struct ProgramState
+		{
+			bool isRunning = false;
+			float dt;
+		};
+
+		static ProgramState programState;
 	}
 }
+
+#define LOGGER(x) { OmegaEngine::Global::fileLog << x }
+
 
 

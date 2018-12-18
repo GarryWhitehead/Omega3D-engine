@@ -1,6 +1,7 @@
 
 #include "Omega_Global.h"
 
+#include "Utility/file_log.h"
 #include "Managers/FileManager.h"
 #include "Managers/EventManager.h"
 #include "VulkanCore/VkRenderManager.h"
@@ -11,16 +12,16 @@ namespace OmegaEngine
 {
 	namespace Global
 	{
-		void init_fileManager()
+		void init_logger()
 		{
-			managers.fileManager = new FileManager;
-			assert(managers.fileManager != nullptr);
+			fileLog = new FileLog;
+			assert(fileLog != nullptr);
 		}
 
 		void init_eventManager()
 		{
-			managers.eventManger = new EventManager;
-			assert(managers.eventManger != nullptr);
+			managers.eventManager = new EventManager;
+			assert(managers.eventManager != nullptr);
 		}
 
 		void init_vkRenderer()
@@ -31,7 +32,7 @@ namespace OmegaEngine
 
 		void init()
 		{
-			init_fileManager();
+			init_logger();
 			init_eventManager();
 			init_vkRenderer();
 		}

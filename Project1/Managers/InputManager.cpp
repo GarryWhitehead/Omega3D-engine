@@ -1,6 +1,8 @@
 #include "InputManager.h"
 
-
+#include "Engine/Camera.h"
+#include "Engine/Omega_Global.h"
+#include "EventManager.h"
 #include "GLFW/glfw3.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32
@@ -43,27 +45,33 @@ namespace OmegaEngine
 
 	void InputManager::keyResponse(int key, int scan_code, int action, int mode)
 	{
-		auto p_cameraSystem = p_world->RequestSystem<CameraSystem>();
+		KeyboardPressEvent event;
 
 		if (key == GLFW_KEY_W) {							// forwrards (z-axis)
-			p_cameraSystem->SetMovementDirection(MoveDirection::MOVE_FORWARD);
+			event.isMovingForward = true;
 		}
 		if (key == GLFW_KEY_S) {							// backwards (z-axis)
-			p_cameraSystem->SetMovementDirection(MoveDirection::MOVE_BACKWARD);
+			event.isMovingBackward = true;
 		}
 		if (key == GLFW_KEY_A) {							// leftwards movement (x-axis)
-			p_cameraSystem->SetMovementDirection(MoveDirection::MOVE_LEFT);
+			event.isMovingLeft = true;
 		}
 		if (key == GLFW_KEY_D) {							// rightwards movement (x-axis)
-			p_cameraSystem->SetMovementDirection(MoveDirection::MOVE_RIGHT);
+			event.isMovingRight = true;
 		}
-		if (key == GLFW_KEY_H && action == GLFW_PRESS) {							// enable/disable GUI
+		/*if (key == GLFW_KEY_H && action == GLFW_PRESS) {							// enable/disable GUI
 
 			p_message->AddMessage({ "SwitchGUI", ListenerID::VULKAN_MSG });
-		}
+		}*/
 		if (key == GLFW_KEY_ESCAPE) {												// exit
 
 			glfwSetWindowShouldClose(p_window, true);
+		}
+
+		if (Global::managers.eventManger) {
+
+			// update the camera position instantly so we reduce the chnace of lag
+			Global::managers.eventManger->instantNotification<KeyboardPressEvent>(event);
 		}
 	}
 

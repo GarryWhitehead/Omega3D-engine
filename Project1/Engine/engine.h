@@ -13,7 +13,6 @@ class World;
 
 namespace OmegaEngine
 {
-
 	class Engine
 	{
 	public:
@@ -48,8 +47,6 @@ namespace OmegaEngine
 		// windw details set on init
 		uint32_t windowWidth;
 		uint32_t windowHeight;
-
-		bool isRunning;
 
 		// a collection of worlds registered with the engine
 		std::vector<std::unique_ptr<World> > worlds;

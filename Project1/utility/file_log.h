@@ -6,8 +6,6 @@
 
 class FileLog;
 
-extern FileLog *g_filelog;
-
 enum class FileLogFlags
 {
 	FILELOG_WRITE_DATE_INIT = 1 << 0,

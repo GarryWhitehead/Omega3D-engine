@@ -2,8 +2,9 @@
 #include "Camera.h"
 
 #include "rapidjson/stringbuffer.h"
-#include "Omega_Global.h"
-#include "Utility/FileManager.h"
+#include "Engine/Omega_Global.h"
+#include "Managers/FileManager.h"
+#include "Engine/Space.h"
 
 namespace OmegaEngine
 {
@@ -20,7 +21,7 @@ namespace OmegaEngine
 	bool SceneParser::open(std::string filename)
 	{
 		std::string json;
-		if (OmegaEngine::Global::managers.fileManager->readFileIntoBuffer(filename, json)) {
+		if (!FileUtil::readFileIntoBuffer(filename, json)) {
 			return false;
 		}
 
@@ -35,7 +36,7 @@ namespace OmegaEngine
 	bool SceneParser::getCameraData(CameraDataType& cameraData)
 	{
 		// it's essential that the world doc has a camera type
-		if (document.HasMember("Camera")) {
+		if (!document.HasMember("Camera")) {
 			return false;
 		}
 		const Value& cam = document["Camera"];
@@ -63,4 +64,28 @@ namespace OmegaEngine
 
 	}
 
+	bool SceneParser::getSceneFileList(std::vector<std::string>& spaceFilenames)
+	{
+		std::string error, warning;
+		std::string ext;
+
+		if (!document.HasMember("Space")) {
+			throw std::runtime_error("No spaces found within world file.");
+		}
+
+		// parse all the spaces out of the array
+		const Value& spaceArray = document["Spaces"];
+		if (spaceArray.Empty()) {
+			throw std::runtime_error("No spaces found within array.");
+		}
+
+		spaceFilenames.resize(spaceArray.Size());
+		for (uint32_t i = 0; i < spaceArray.Size(); ++i) {
+			spaceFilenames[i] = spaceArray[i].GetString;
+		}
+
+		return true;
+	}
+
+	
 }
