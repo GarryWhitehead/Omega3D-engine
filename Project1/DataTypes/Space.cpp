@@ -1,5 +1,6 @@
 #include "Space.h"
-#include "Managers/FileManager.h"
+#include "Utility/FileUtil.h"
+#include "Utility/logger.h"
 #include "Engine/Omega_Global.h"
 #include "tiny_gltf.h"
 
@@ -33,12 +34,12 @@ namespace OmegaEngine
 
 		// we can continue if we have just a warning for now
 		if (!warn.empty()) {
-			LOGGER("Problem whilst parsing gltf file: %s", warn);
+			LOGGER_INFO("Problem whilst parsing gltf file: %s. Going to hope for the best...", warn);
 		}
 
 		// Although, if there's an error of any kind, time to quit
 		if (!err.empty()) {
-			LOGGER("Error whilst parsing gltf file: %s", err);
+			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
 			throw std::runtime_error("Unable to load scene data.");
 		}
 		if (!ret) {

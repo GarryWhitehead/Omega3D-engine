@@ -23,9 +23,9 @@ namespace OmegaEngine
 			MappedTexture mappedTex;
 			const auto& image = model.images[texture.source];
 			int imageSize = image.width * image.height;
-			
+
 			mappedTex.loadPngTexture(imageSize, image.image.data());
-			textures.insert(std::make_pair(image.name.c_str(), mappedTex));
+			textures.insert(std::make_pair(texture.source, mappedTex));
 		}
 	}
 

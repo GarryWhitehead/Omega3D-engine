@@ -259,21 +259,7 @@ void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode
 	memcpy(data, tex2d.data(), size);
 	vkUnmapMemory(device, stagingMemory);
 
-	VkImageCreateInfo image_info = {};
-	image_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-	image_info.format = format;
-	image_info.imageType = VK_IMAGE_TYPE_2D;
-	image_info.extent.width = width;
-	image_info.extent.height = height;
-	image_info.extent.depth = 1;
-	image_info.mipLevels = mipLevels;
-	image_info.arrayLayers = 1;
-	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	image_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
-	image_info.flags = 0;
+	
 
 	VK_CHECK_RESULT(vkCreateImage(device, &image_info, nullptr, &image));
 

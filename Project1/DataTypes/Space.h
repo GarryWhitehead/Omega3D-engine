@@ -1,6 +1,9 @@
 #pragma once
 #include "tiny_gltf.h"
 
+// forward declerations
+class MappedTexture;
+
 namespace OmegaEngine
 {
 	class Space
@@ -17,6 +20,8 @@ namespace OmegaEngine
 
 		// Everything model wise needed for this space
 		tinygltf::Model model;
+
+		
 	};
 
 }

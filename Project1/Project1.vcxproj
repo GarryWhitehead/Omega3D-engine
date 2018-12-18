@@ -32,6 +32,7 @@
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\MeshComponentManager.cpp" />
+    <ClCompile Include="GltfParser.cpp" />
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
@@ -58,7 +59,6 @@
     <ClCompile Include="DataTypes\Camera.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="utility\file_log.cpp" />
     <ClCompile Include="VulkanCore\VulkanWater.cpp" />
     <ClCompile Include="VulkanCore\Vulkan_Global.cpp" />
     <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
@@ -115,11 +115,13 @@
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\SceneParser.h" />
     <ClInclude Include="DataTypes\Space.h" />
+    <ClInclude Include="GltfParser.h" />
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MeshManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="utility\FileUtil.h" />
     <ClInclude Include="utility\GeneralUtil.h" />
+    <ClInclude Include="utility\Logger.h" />
     <ClInclude Include="VulkanCore\Vulkan_Global.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
@@ -138,7 +140,6 @@
     <ClInclude Include="VulkanCore\VulkanModel.h" />
     <ClInclude Include="VulkanCore\VulkanModule.h" />
     <ClInclude Include="Managers\InputManager.h" />
-    <ClInclude Include="utility\file_log.h" />
     <ClInclude Include="VulkanCore\VulkanPBR.h" />
     <ClInclude Include="VulkanCore\VulkanRenderPass.h" />
     <ClInclude Include="VulkanCore\VulkanSkybox.h" />

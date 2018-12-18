@@ -23,7 +23,7 @@ namespace OmegaEngine
 
 	private:
 
-		std::unordered_map<const char*, MappedTexture> textures;
+		std::unordered_map<int, MappedTexture> textures;
 	};
 
 }

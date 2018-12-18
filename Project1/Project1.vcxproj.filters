@@ -18,9 +18,6 @@
     <ClCompile Include="VulkanCore\vulkan_validation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utility\file_log.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -255,12 +252,12 @@
     <ClCompile Include="DataTypes\TextureType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="GltfParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\file_log.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\vulkan_tools.h">
@@ -492,6 +489,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataTypes\TextureType.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GltfParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
