@@ -36,6 +36,7 @@
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
     <ClCompile Include="Managers\TextureManager.cpp" />
+    <ClCompile Include="DataTypes\TextureType.cpp" />
     <ClCompile Include="utility\GeneralUtil.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -73,12 +74,38 @@
     <ClCompile Include="VulkanCore\VulkanRenderPass.cpp" />
     <ClCompile Include="VulkanCore\VulkanGUI.cpp" />
     <ClCompile Include="VulkanCore\VulkanInstance.cpp" />
+    <ClCompile Include="Vulkan\TerrainUtility.cpp" />
+    <ClCompile Include="Vulkan\VkDescriptors.cpp" />
+    <ClCompile Include="Vulkan\vkFFT.cpp" />
+    <ClCompile Include="Vulkan\VkMemoryManager.cpp" />
+    <ClCompile Include="Vulkan\VkPostProcess.cpp" />
+    <ClCompile Include="Vulkan\VkRenderManager.cpp" />
+    <ClCompile Include="Vulkan\VkSwapChain.cpp" />
+    <ClCompile Include="Vulkan\VulkanDeferred.cpp" />
+    <ClCompile Include="Vulkan\VulkanDevice.cpp" />
+    <ClCompile Include="Vulkan\VulkanGUI.cpp" />
+    <ClCompile Include="Vulkan\VulkanIBL.cpp" />
+    <ClCompile Include="Vulkan\VulkanInstance.cpp" />
+    <ClCompile Include="Vulkan\VulkanModel.cpp" />
+    <ClCompile Include="Vulkan\VulkanModule.cpp" />
+    <ClCompile Include="Vulkan\VulkanPBR.cpp" />
+    <ClCompile Include="Vulkan\VulkanRenderPass.cpp" />
+    <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
+    <ClCompile Include="Vulkan\VulkanTexture.cpp" />
+    <ClCompile Include="Vulkan\VulkanWater.cpp" />
+    <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
+    <ClCompile Include="Vulkan\Vulkan_shadow.cpp" />
+    <ClCompile Include="Vulkan\Vulkan_terrain.cpp" />
+    <ClCompile Include="Vulkan\vulkan_tools.cpp" />
+    <ClCompile Include="Vulkan\vulkan_utility.cpp" />
+    <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ComponentManagers\LightComponentManager.h" />
     <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
     <ClInclude Include="ComponentManagers\ComponentManager.h" />
     <ClInclude Include="DataTypes\Camera.h" />
+    <ClInclude Include="DataTypes\TextureType.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="DataTypes\Object.h" />
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
@@ -128,6 +155,31 @@
     <ClInclude Include="VulkanCore\VulkanWater.h" />
     <ClInclude Include="VulkanCore\VulkanDevice.h" />
     <ClInclude Include="VulkanCore\VulkanInstance.h" />
+    <ClInclude Include="Vulkan\TerrainUtility.h" />
+    <ClInclude Include="Vulkan\VkDescriptors.h" />
+    <ClInclude Include="Vulkan\vkFFT.h" />
+    <ClInclude Include="Vulkan\VkMemoryManager.h" />
+    <ClInclude Include="Vulkan\VkPostProcess.h" />
+    <ClInclude Include="Vulkan\VkRenderManager.h" />
+    <ClInclude Include="Vulkan\VkSwapChain.h" />
+    <ClInclude Include="Vulkan\VulkanDeferred.h" />
+    <ClInclude Include="Vulkan\VulkanDevice.h" />
+    <ClInclude Include="Vulkan\VulkanGUI.h" />
+    <ClInclude Include="Vulkan\VulkanIBL.h" />
+    <ClInclude Include="Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Vulkan\VulkanModel.h" />
+    <ClInclude Include="Vulkan\VulkanModule.h" />
+    <ClInclude Include="Vulkan\VulkanPBR.h" />
+    <ClInclude Include="Vulkan\VulkanRenderPass.h" />
+    <ClInclude Include="Vulkan\VulkanSkybox.h" />
+    <ClInclude Include="Vulkan\VulkanTexture.h" />
+    <ClInclude Include="Vulkan\VulkanWater.h" />
+    <ClInclude Include="Vulkan\Vulkan_Global.h" />
+    <ClInclude Include="Vulkan\Vulkan_shadow.h" />
+    <ClInclude Include="Vulkan\vulkan_terrain.h" />
+    <ClInclude Include="Vulkan\vulkan_tools.h" />
+    <ClInclude Include="Vulkan\vulkan_utility.h" />
+    <ClInclude Include="Vulkan\vulkan_validation.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
@@ -185,7 +237,7 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\stb;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Visual Studio\glm;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\VulkanSDK\1.0.65.0\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

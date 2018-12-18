@@ -1,10 +1,11 @@
 #include "SceneParser.h"
-#include "Camera.h"
+#include "DataTypes/Camera.h"
+#include "DataTypes/Space.h"
+
+#include "Engine/Omega_Global.h"
+#include "Utility/FileUtil.h"
 
 #include "rapidjson/stringbuffer.h"
-#include "Engine/Omega_Global.h"
-#include "Managers/FileManager.h"
-#include "Engine/Space.h"
 
 namespace OmegaEngine
 {
@@ -87,5 +88,4 @@ namespace OmegaEngine
 		return true;
 	}
 
-	
 }

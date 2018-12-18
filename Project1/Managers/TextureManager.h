@@ -1,8 +1,30 @@
 #pragma once
-class TextureManager
+
+#include <vector>
+#include <unordered_map>
+#include "tiny_gltf.h"
+
+// forward declerations
+class MappedTexture;
+
+namespace OmegaEngine
 {
-public:
-	TextureManager();
-	~TextureManager();
-};
+	
+
+	class TextureManager
+	{
+	public:
+
+		TextureManager();
+
+		~TextureManager();
+
+		void parseGltfTextures(tinygltf::Model& model);
+
+	private:
+
+		std::unordered_map<const char*, MappedTexture> textures;
+	};
+
+}
 
