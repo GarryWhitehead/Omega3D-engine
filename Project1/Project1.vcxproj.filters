@@ -255,6 +255,12 @@
     <ClCompile Include="GltfParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Managers\MaterialManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utility\OEMaths.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
@@ -495,6 +501,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\Logger.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\MaterialManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\OEMaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
