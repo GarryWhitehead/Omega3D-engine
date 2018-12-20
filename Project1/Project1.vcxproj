@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="ComponentManagers\LightComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
@@ -39,7 +40,6 @@
     <ClCompile Include="Managers\TextureManager.cpp" />
     <ClCompile Include="DataTypes\TextureType.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
-    <ClCompile Include="utility\OEMaths.cpp" />
     <ClCompile Include="utility\GeneralUtil.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -118,14 +118,16 @@
     <ClInclude Include="Engine\SceneParser.h" />
     <ClInclude Include="DataTypes\Space.h" />
     <ClInclude Include="GltfParser.h" />
+    <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MaterialManager.h" />
     <ClInclude Include="Managers\MeshManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
+    <ClInclude Include="OEMaths\OEMaths_Quat.h" />
     <ClInclude Include="utility\FileUtil.h" />
     <ClInclude Include="utility\GeneralUtil.h" />
     <ClInclude Include="utility\Logger.h" />
-    <ClInclude Include="utility\OEMaths.h" />
+    <ClInclude Include="OEMaths\OEMaths.h" />
     <ClInclude Include="VulkanCore\Vulkan_Global.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />

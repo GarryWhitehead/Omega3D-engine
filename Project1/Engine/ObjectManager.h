@@ -1,33 +1,56 @@
 #pragma once
 #include <vector>
 #include <deque>
-// The main purpose of the entity mnanager is to keep a track of all the entites that are alive
 
-#include "Engine/Object.h"
+#include "DataTypes/Object.h"
 
-class Archiver;
+#define MINIMUM_FREE_IDS 100
 
-class ObjectManager
+namespace OmegaEngine
 {
-public:
 
-	const int MINIMUM_FREE_IDS = 100;
+	struct HashObject
+	{
+		size_t operator()(const Object& obj) const
+		{
+			return(std::hash<uint32_t>()(obj.getId()));
+		}
+	};
 
-	ObjectManager();
-	~ObjectManager();
+	class ObjectManager
+	{
+	public:
 
-	Object CreateObject();
-	void DestroyObject(Object obj);
+		ObjectManager();
 
-	void Serialise(Archiver *arch, std::vector<Object>& vec, Archiver::var_info &info);
+		Object& createObject();
+		void destroyObject(Object& obj);
 
-private:
+		// registers a single manager with a entity
+		bool registerManager(Object& obj, uint32_t managerId, uint32_t objIndex);
+		bool registerManager(Object& obj, RegisteredManager manager);
 
-	uint32_t m_nextId;
+		void removeManager(Object& obj, uint32_t managerId);
 
-	std::vector<Object> m_objects;
-	std::deque<uint32_t> m_freeIds;
-};
+		// registers a list of managers with a entity
+		template <typename... Ts>
+		void registerManager(Object& obj, Ts... ts)
+		{
+			std::vector<ComponentDataType> = { ts... };
+		}
+
+	private:
+
+		uint32_t nextId;
+
+		// using a hash map here for faster look up for entites and their managers 
+		// this is defines all the component manages that this entity is registered with and the index into each of their buffers
+		// component manager are determined by unique ids.
+		std::unordered_map<Object, std::vector<RegisteredManager, HashObject> > objects;
+		std::deque<uint32_t> freeIds;
+	};
+
+}
 
 
 

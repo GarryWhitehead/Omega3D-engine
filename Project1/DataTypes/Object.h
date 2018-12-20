@@ -1,39 +1,38 @@
 #pragma once
 #include <stdint.h>
 #include <unordered_map>
-#include "utility/serialisation.h"
 
-class Archiver;
-
-class Object
+namespace OmegaEngine
 {
-public:
 
-	Object();
-	Object(const Object &obj);
-	Object(uint32_t id);
-	~Object();
-
-	bool operator==(const Object& obj) const;
-
-	// helper functions
-	uint32_t GetId() const { return m_id; }
-	bool IsAlive() const { return m_isAlive;  }
-
-	void SerialiseObject(Archiver *arch, Object& obj, Archiver::var_info &info);
-
-private:
-
-	uint32_t m_id;
-	bool m_isAlive;
-};
-
-struct HashGameObj
-{
-	size_t operator()(const Object& obj) const
+	struct RegisteredManager
 	{
-		return(std::hash<uint32_t>()(obj.GetId()));
-	}
-};
+		uint32_t managerId;
+		uint32_t index;
+	};
+
+	class Object
+	{
+	public:
+
+		Object();
+
+		bool operator==(const Object& obj) const;
+
+		// helper functions
+		uint64_t getId() const { return id; }
+		void setId(const uint64_t _id) { id = _id; }
+		bool isAlive() const { return isAlive; }
+
+	private:
+
+		uint64_t id;
+
+		bool isAlive;
+	};
+
+}
+
+
 
 

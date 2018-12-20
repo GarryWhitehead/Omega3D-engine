@@ -1,48 +1,76 @@
 #include "Engine/ObjectManager.h"
-#include "Engine/Object.h"
+#include "DataTypes/Object.h"
 
-
-ObjectManager::ObjectManager()
+namespace OmegaEngine
 {
-}
 
-
-ObjectManager::~ObjectManager()
-{
-}
-
-Object ObjectManager::CreateObject()
-{
-	uint32_t id = 0;
-	if (m_freeIds.size() > MINIMUM_FREE_IDS) {
-
-		id = m_freeIds.front();
-		m_freeIds.pop_front();
-		m_objects.push_back(id);
+	ObjectManager::ObjectManager()
+	{
 	}
-	else {
 
-		id = ++m_nextId;
-		m_objects.push_back(id);
+	Object& ObjectManager::createObject()
+	{
+		Object newObject;
+
+		uint32_t id = 0;
+		if (freeIds.size() > MINIMUM_FREE_IDS) {
+
+			id = freeIds.front();
+			freeIds.pop_front();
+		}
+		else {
+			id = ++nextId;
+		}
+
+		// set id and all managers that this entity is already registered with
+		newObject.setId(id);
+		RegisteredManager emptyManager;
+		objects.insert(std::make_pair(newObject, emptyManager));
 	}
-	return Object(id);
-}
 
-void ObjectManager::DestroyObject(Object obj)
-{
-	uint32_t id = obj.GetId();
-	m_objects.erase(m_objects.begin() + id);
-	m_freeIds.push_front(id);
-}
-
-void ObjectManager::Serialise(Archiver *arch, std::vector<Object>& vec, Archiver::var_info &info)
-{
-	uint32_t vecSize = static_cast<uint32_t>(vec.size());
-	arch->Serialise(vecSize, Archiver::var_info(info.name + ".size"));
-	vec.resize(vecSize);
-
-	for (uint32_t c = 0; c < vecSize; ++c) {
-
-		vec[c].SerialiseObject(arch, vec[c], Archiver::var_info(info.name + "[" + std::to_string(c) + "]"));
+	void ObjectManager::destroyObject(Object& obj)
+	{
+		uint32_t id = obj.getId();
+		objects.erase(obj);
+		freeIds.push_front(id);
 	}
+
+	bool ObjectManager::registerManager(Object& obj, uint32_t managerId, uint32_t objIndex)
+	{
+		if (objects.find(obj) == objects.end()) {
+			return false;
+		}
+
+		RegisteredManager manager{ managerId, objIndex };
+		auto iter = objects.find(obj);
+		iter->second.push_back(manager);
+		return true;
+	}
+
+	bool ObjectManager::registerManager(Object& obj, RegisteredManager manager)
+	{
+		if (objects.find(obj) == objects.end()) {
+			return false;
+		}
+
+		auto iter = objects.find(obj);
+		iter->second.push_back(manager);
+		return true;
+	}
+
+	void ObjectManager::removeManager(Object& obj, uint32_t managerId)
+	{
+		if (objects.find(obj) != objects.end()) {
+			
+			auto iter = objects.find(obj);
+			uint32_t count = 0;
+			for (auto reg : iter->second) {
+				if (reg.managerId == managerId) {
+					iter->second.erase(iter->second.begin() + count);
+				}
+				++count;
+			}
+		}
+	}
+
 }

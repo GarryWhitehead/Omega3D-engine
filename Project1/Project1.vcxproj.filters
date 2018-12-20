@@ -258,7 +258,7 @@
     <ClCompile Include="Managers\MaterialManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utility\OEMaths.cpp">
+    <ClCompile Include="Managers\AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -506,7 +506,13 @@
     <ClInclude Include="Managers\MaterialManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="utility\OEMaths.h">
+    <ClInclude Include="OEMaths\OEMaths.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Quat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Managers\AnimationManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
