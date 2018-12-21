@@ -13,9 +13,6 @@ namespace OmegaEngine
 	
 	World::World(std::string filename)
 	{
-		// init all the managers required to generate the world
-		initComponentManagers();
-		
 		SceneParser parser;
 		if (!parser.open(filename)) {
 			throw std::runtime_error("Unable to open scene file.");
@@ -36,9 +33,12 @@ namespace OmegaEngine
 		if (!parser.getSceneFileList(filenames)) {
 			throw std::runtime_error("Error parsing gltf scene files.");
 		}
-		for (auto& filename : filenames) {
-			sceneInfo.push_back({ filename.c_str() });
-		}
+		
+		sceneManager = std::make_unique<SceneManager>(filenames, cameraData);
+		assert(sceneManager != nullptr);
+
+		// nowe init scene manager and load into memory the pre-determined number of spaces
+		sceneManager->loadSpaces()
 	}
 
 	World::~World()
@@ -46,24 +46,10 @@ namespace OmegaEngine
 		
 	}
 
-	void World::initComponentManagers()
-	{
-		lightManager = std::make_unique<LightManager>();
-		meshManager = std::make_unique<MeshManager>();
-		animManager = std::make_unique<AnimationManager>();
-		sceneManager = std::make_unique<SceneManager>();
-		textureManager = std::make_unique<TextureManager>();
-
-		assert(lightManager != nullptr);
-		assert(meshManager != nullptr);
-		assert(animManager != nullptr);
-		assert(sceneManager != nullptr);
-		assert(textureManager != nullptr);
-	}
-
 	void World::Update()
 	{
-
+		// Check whether new spaces need to be loaded into memory or removed - if so, do this on spertate threads
+		// this depends on the max number of spaces that can be hosted on the CPU - determined by mem size
 	}
 
 	

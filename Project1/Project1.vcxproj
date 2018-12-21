@@ -40,6 +40,8 @@
     <ClCompile Include="Managers\TextureManager.cpp" />
     <ClCompile Include="DataTypes\TextureType.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
+    <ClCompile Include="Threading\ThreadUtil.cpp" />
+    <ClCompile Include="Threading\ThreadPool.cpp" />
     <ClCompile Include="utility\GeneralUtil.cpp" />
     <ClCompile Include="imgui.cpp" />
     <ClCompile Include="imgui_demo.cpp" />
@@ -124,6 +126,8 @@
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
     <ClInclude Include="Managers\SceneManager.h" />
+    <ClInclude Include="Threading\ThreadPool.h" />
+    <ClInclude Include="Threading\ThreadUtil.h" />
     <ClInclude Include="utility\FileUtil.h" />
     <ClInclude Include="utility\GeneralUtil.h" />
     <ClInclude Include="utility\Logger.h" />
