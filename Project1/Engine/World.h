@@ -1,89 +1,64 @@
 #pragma once
 #include <string>
-#include <unordered_map>
-#include <map>
-#include <typeindex>
+#include <vector>
 
-// forward declerartions
-class Camera;
-
-class World
+namespace OmegaEngine
 {
-public:
+	// forward declerartions
+	class Camera;
+	class AnimationManager;
+	class MeshManager;
+	class SceneManager;
+	class LightManager;
+	class TextureManager;
 
-	World(std::string filename, std::string worldName);
-	~World();
+	class World
+	{
+	public:
 
-	void Generate(VulkanEngine *engine);
+		struct SceneInfo
+		{
+			SceneInfo(const char* name) :
+				filename(name)
+			{}
 
-	// main system functions
-	void UpdateSystems();
-	void RegisterSystems(std::vector<SystemId>& systemIds,  Engine *engine, VulkanEngine *vkEngine);
-	void UpdateComponentManagers();
-	void Destroy();
+			const char* filename;
+			bool isLoaded = false;
+			bool isActive = false;
+			uint32_t spaceId;
+		};
 
-	// component manager functions
-	void World::InitComponentManagers();
-	std::type_index RegisterComponentManager(std::string id);
+		struct WorldInfo
+		{
+			const char* name;
+			
+			// this refers to the scene grid dimensions 
+			uint32_t width;
+			uint32_t height;
 
-	template <typename T>
-	bool HasSystem();
+			uint32_t totalSpaces;
+		};
 
-	template <typename T>
-	T *RequestSystem();
+		World(std::string filename);
+		~World();
 
-	template <typename T>
-	T* RequestComponentManager();
+		void initComponentManagers();
 
-	friend class ObjectResourceManager;
+		void update();
 
-private:
-	
-	std::string name;
+	private:
 
-	// the camera used for this world 
-	std::unique_ptr<Camera> currentCamera;
+		WorldInfo worldInfo;
 
-	// all the main component systems registered with this particular world space
-	std::unordered_map<std::type_index, System*> m_systems;
+		// maangers
+		std::unique_ptr<AnimationManager> animManager;
+		std::unique_ptr<MeshManager> meshManager;
+		std::unique_ptr<SceneManager> sceneManager;
+		std::unique_ptr<LightManager> lightManager;
+		std::unique_ptr<TextureManager> textureManager;
 
-	std::unordered_map<std::type_index, ComponentManager*> m_managers;
-	
-};
+		// list of all gltf filenames that are associated with this world. Not all scenes will be loaded in at once depending on the machine specs, etc.
+		std::vector<SceneInfo> sceneInfo;
+	};
 
-template <typename T>
-T* World::RequestComponentManager()
-{
-	std::type_index index(typeid(T));
-
-	auto& manager = m_managers.find(index);
-	if (manager != m_managers.end()) {
-
-		return static_cast<T*>(m_managers[index]);
-	}
-
-	return nullptr;
 }
-
-template <typename T>
-T* World::RequestSystem()
-{
-	std::type_index index(typeid(T));
-
-	auto& sys = m_systems.find(index);
-	if (sys != m_systems.end()) {
-
-		return static_cast<T*>(m_systems[index]);
-	}
-	return nullptr;
-}
-
-template <typename T>
-bool World::HasSystem()
-{
-	std::type_index index(typeid(T));
-
-	auto& sys = m_systems.find(index);
-	return (sys != m_systems.end());
-}
-

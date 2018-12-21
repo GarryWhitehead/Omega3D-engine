@@ -1,5 +1,8 @@
 #include "MeshManager.h"
 #include "Utility/logger.h"
+#include "Utility/GeneralUtil.h"
+#include "Engine/Omega_Global.h"
+#include "Managers/ObjectManager.h"
 
 namespace OmegaEngine
 {
@@ -15,25 +18,16 @@ namespace OmegaEngine
 
 	void MeshManager::parseGltfFile(uint32_t spaceId, tinygltf::Model& model)
 	{
-		std::vector<Vertex> vertexBuf;
-		std::vector<uint32_t> indexBuf;
-		std::vector<StaticMesh> meshBuf;
-		std::vector<Node> nodeBuf;
-		std::vector<Node> linearBuf;
-		
 		// we are going to parse the node recursively to get all the info required for the space
 		tinygltf::Scene &scene = model.scenes[model.defaultScene];
 		for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
+
+			// create a new entity for each node
+			Object newObj = Global::managers.objectManager->createObject();
+			
 			tinygltf::Node node = model.nodes[scene.nodes[i]];
 			parseNode(-1, node, model, vertexBuf, indexBuf, meshBuf, nodeBuf, linearBuf, spaceId);
 		}
-
-		// add the data obtained from the nodes to the main buffers
-		vertexBuffer.insert(std::make_pair(spaceId, vertexBuf));
-		indexBuffer.insert(std::make_pair(spaceId, indexBuf));
-		meshBuffer.insert(std::make_pair(spaceId, meshBuf));
-		nodeBuffer.insert(std::make_pair(spaceId, nodeBuf));
-		linearNodeBuffer.insert(std::make_pair(spaceId, linearBuf));
 	}
 
 	void MeshManager::parseNode(uint32_t parentNode, 
@@ -209,5 +203,10 @@ namespace OmegaEngine
 			nodeBuffer.push_back(newNode);
 			linearBuffer.push_back(newNode);
 		}
+	}
+
+	uint32_t MeshManager::getManagerId()
+	{
+		return Util::event_type_id<MeshManager>();
 	}
 }

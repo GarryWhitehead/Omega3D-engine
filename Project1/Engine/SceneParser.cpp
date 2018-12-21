@@ -4,6 +4,7 @@
 
 #include "Engine/Omega_Global.h"
 #include "Utility/FileUtil.h"
+#include "Engine/World.h"
 
 #include "rapidjson/stringbuffer.h"
 
@@ -42,11 +43,6 @@ namespace OmegaEngine
 		}
 		const Value& cam = document["Camera"];
 
-		// check that we have all the elements required to create a camera
-		if (cam.Size() != CameraDataTypeElementCount) {
-			return false;
-		}
-
 		// read the camera values from the array
 		cameraData.zNear = cam[0].GetFloat();
 		cameraData.zFar = cam[1].GetFloat();
@@ -62,22 +58,37 @@ namespace OmegaEngine
 		cameraData.cameraUp.z = cam[9].GetFloat();
 
 		cameraData.type = (CameraType)cam[10].GetInt();
+	}
 
+	bool SceneParser::getWorldInfo(World::WorldInfo& worldInfo)
+	{
+		// it's essential that the world doc has a camera type
+		if (document.HasMember("World Name")) {
+			worldInfo.name = document["World Name"].GetString();
+		}
+		if (document.HasMember("World Width")) {
+			worldInfo.width = document["World Width"].GetInt();
+		}
+		if (document.HasMember("World Height")) {
+			worldInfo.height = document["World Height"].GetInt();
+		}
+		if (document.HasMember("World Size")) {
+			worldInfo.totalSpaces = document["World Size"].GetInt();
+		}
+
+		return true;
 	}
 
 	bool SceneParser::getSceneFileList(std::vector<std::string>& spaceFilenames)
 	{
-		std::string error, warning;
-		std::string ext;
-
 		if (!document.HasMember("Space")) {
-			throw std::runtime_error("No spaces found within world file.");
+			return false;
 		}
 
 		// parse all the spaces out of the array
 		const Value& spaceArray = document["Spaces"];
 		if (spaceArray.Empty()) {
-			throw std::runtime_error("No spaces found within array.");
+			return false;
 		}
 
 		spaceFilenames.resize(spaceArray.Size());
@@ -87,5 +98,6 @@ namespace OmegaEngine
 
 		return true;
 	}
+
 
 }

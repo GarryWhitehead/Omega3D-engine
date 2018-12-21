@@ -12,14 +12,12 @@ namespace OmegaEngine
 	// forward declerations
 	struct CameraDataType;
 	struct Space;
+	struct WorldInfo;
 
 	class SceneParser
 	{
 
 	public:
-
-		// array element sizes
-		const uint8_t CameraDataTypeElementCount = 11;
 
 		SceneParser();
 		~SceneParser();
@@ -28,6 +26,7 @@ namespace OmegaEngine
 
 		bool getCameraData(CameraDataType& camera);
 		bool getSceneFileList(std::vector<std::string>& spaceFilenames);
+		bool getWorldInfo(World::WorldInfo& worldInfo);
 
 	private:
 

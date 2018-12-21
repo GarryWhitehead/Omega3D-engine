@@ -24,9 +24,8 @@
     <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
-    <ClCompile Include="Engine\ObjectManager.cpp" />
+    <ClCompile Include="Managers\ObjectManager.cpp" />
     <ClCompile Include="DataTypes\Object.cpp" />
-    <ClCompile Include="Engine\ObjectResourceManager.cpp" />
     <ClCompile Include="Engine\SceneParser.cpp" />
     <ClCompile Include="DataTypes\Space.cpp" />
     <ClCompile Include="Engine\World.cpp" />
@@ -37,6 +36,7 @@
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
+    <ClCompile Include="Managers\SceneManager.cpp" />
     <ClCompile Include="Managers\TextureManager.cpp" />
     <ClCompile Include="DataTypes\TextureType.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
@@ -76,12 +76,13 @@
     <ClCompile Include="VulkanCore\VulkanRenderPass.cpp" />
     <ClCompile Include="VulkanCore\VulkanGUI.cpp" />
     <ClCompile Include="VulkanCore\VulkanInstance.cpp" />
+    <ClCompile Include="Vulkan\VulkanMain.cpp" />
     <ClCompile Include="Vulkan\TerrainUtility.cpp" />
     <ClCompile Include="Vulkan\VkDescriptors.cpp" />
     <ClCompile Include="Vulkan\vkFFT.cpp" />
     <ClCompile Include="Vulkan\VkMemoryManager.cpp" />
     <ClCompile Include="Vulkan\VkPostProcess.cpp" />
-    <ClCompile Include="Vulkan\VkRenderManager.cpp" />
+    <ClCompile Include="Rendering\RenderManager.cpp" />
     <ClCompile Include="Vulkan\VkSwapChain.cpp" />
     <ClCompile Include="Vulkan\VulkanDeferred.cpp" />
     <ClCompile Include="Vulkan\VulkanDevice.cpp" />
@@ -98,7 +99,6 @@
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
     <ClCompile Include="Vulkan\Vulkan_shadow.cpp" />
     <ClCompile Include="Vulkan\Vulkan_terrain.cpp" />
-    <ClCompile Include="Vulkan\vulkan_tools.cpp" />
     <ClCompile Include="Vulkan\vulkan_utility.cpp" />
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
@@ -111,8 +111,6 @@
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="DataTypes\Object.h" />
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
-    <ClInclude Include="Engine\ObjectManager.h" />
-    <ClInclude Include="Engine\ObjectResourceManager.h" />
     <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\SceneParser.h" />
@@ -122,8 +120,10 @@
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MaterialManager.h" />
     <ClInclude Include="Managers\MeshManager.h" />
+    <ClInclude Include="Managers\ObjectManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
+    <ClInclude Include="Managers\SceneManager.h" />
     <ClInclude Include="utility\FileUtil.h" />
     <ClInclude Include="utility\GeneralUtil.h" />
     <ClInclude Include="utility\Logger.h" />
@@ -167,13 +167,14 @@
     <ClInclude Include="Vulkan\vkFFT.h" />
     <ClInclude Include="Vulkan\VkMemoryManager.h" />
     <ClInclude Include="Vulkan\VkPostProcess.h" />
-    <ClInclude Include="Vulkan\VkRenderManager.h" />
+    <ClInclude Include="Rendering\RenderManager.h" />
     <ClInclude Include="Vulkan\VkSwapChain.h" />
     <ClInclude Include="Vulkan\VulkanDeferred.h" />
     <ClInclude Include="Vulkan\VulkanDevice.h" />
     <ClInclude Include="Vulkan\VulkanGUI.h" />
     <ClInclude Include="Vulkan\VulkanIBL.h" />
     <ClInclude Include="Vulkan\VulkanInstance.h" />
+    <ClInclude Include="Vulkan\VulkanMain.h" />
     <ClInclude Include="Vulkan\VulkanModel.h" />
     <ClInclude Include="Vulkan\VulkanModule.h" />
     <ClInclude Include="Vulkan\VulkanPBR.h" />
@@ -184,7 +185,6 @@
     <ClInclude Include="Vulkan\Vulkan_Global.h" />
     <ClInclude Include="Vulkan\Vulkan_shadow.h" />
     <ClInclude Include="Vulkan\vulkan_terrain.h" />
-    <ClInclude Include="Vulkan\vulkan_tools.h" />
     <ClInclude Include="Vulkan\vulkan_utility.h" />
     <ClInclude Include="Vulkan\vulkan_validation.h" />
   </ItemGroup>

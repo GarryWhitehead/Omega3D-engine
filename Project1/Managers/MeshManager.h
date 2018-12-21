@@ -107,7 +107,7 @@ namespace OmegaEngine
 			uint32_t spaceId);
 
 		template <typename T>
-		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<T>& indiciesBuffer, uint32_t indexStart)
+		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<uint32_t>& indiciesBuffer, uint32_t indexStart)
 		{
 			T* buf = new T[accessor.count];
 			memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(T));
@@ -120,15 +120,15 @@ namespace OmegaEngine
 			delete buf;
 		}
 
+		uint32_t getManagerId();
+
 	private:
 
-		// the mega buffers containing all the model data. The number of spaces that will be loaded at once depends on the specs of the system 
-		std::unordered_map<uint32_t, std::vector<Vertex> > vertexBuffer;
-		std::unordered_map<uint32_t, std::vector<uint32_t> > indexBuffer;
-		std::unordered_map<uint32_t, std::vector<StaticMesh> > meshBuffer;
+		// the buffers containing all the model data. The number of spaces that will be loaded at once depends on the specs of the system 
+		std::vector<Vertex> vertexBuffer;
+		std::vector<uint32_t> indexBuffer;
+		std::vector<StaticMesh> meshBuffer;
 
-		std::unordered_map<uint32_t, std::vector<Node> > nodeBuffer;
-		std::unordered_map<uint32_t, std::vector<Node> > linearNodeBuffer;
 	};
 
 }

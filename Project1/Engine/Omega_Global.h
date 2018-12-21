@@ -12,6 +12,7 @@ class FileLog;
 namespace OmegaEngine
 {
 	class EventManager;
+	class ObjectManager;
 
 	namespace Global
 	{
@@ -20,6 +21,7 @@ namespace OmegaEngine
 		{
 			EventManager* eventManager;
 			VkRenderManager* renderManager;
+			ObjectManager* objectManager;
 		};
 
 		static Managers managers;
@@ -27,6 +29,7 @@ namespace OmegaEngine
 		// all global initilisation functions for global managers
 		void init_eventManager();
 		void init_vkRenderer();
+		void init_objectManager();
 
 		void init();
 
@@ -44,7 +47,6 @@ namespace OmegaEngine
 	}
 }
 
-#define LOGGER(x) { OmegaEngine::Global::fileLog << x }
 
 
 

@@ -1,13 +1,7 @@
 #pragma once
-#define GLM_FORCE_DEPTH_ZERO_TO_ONE
-#include "glm.hpp"
 
-#define GLFW_INCLUDE_VULKAN
-#include "GLFW/glfw3.h"
-
-#include <iostream>
+#include "volk.h"
 #include <string>
-#include <assert.h>
 
 #define VULKAN_VALIDATION_DEBUG
 
@@ -56,3 +50,23 @@ static std::string errorString(VkResult errorCode)
 		return "UNKNOWN_ERROR";
 	}
 }
+
+namespace Vulkan
+{
+	//forward decleartion
+	struct GLFWwindow;
+
+	class VulkanMain
+	{
+
+	public:
+
+		VulkanMain(GLFWwindow *window, uint32_t width, uint32_t height);
+		~VulkanMain();
+
+	private:
+
+	};
+
+}
+

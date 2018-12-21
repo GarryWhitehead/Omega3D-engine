@@ -1,150 +1,71 @@
 #include "World.h"
+#include "Engine/SceneParser.h"
+#include "DataTypes/Camera.h"
 
-#include "SceneParser.h"
-#include "Camera.h"
+#include "Managers/LightManager.h"
+#include "Managers/MeshManager.h"
+#include "Managers/TextureManager.h"
+#include "Managers/SceneManager.h"
+#include "Managers/AnimationManager.h"
 
-#include "utility/file_log.h"
-#include "utility/message_handler.h"
-#include "Engine/engine.h"
-#include "Engine/ObjectResourceManager.h"
-#include "Engine/ObjectManager.h"
-#include "Systems/system.h"
-#include "Systems/input_system.h"
-#include "Systems/camera_system.h"
-#include "Systems/GraphicsSystem.h"
-
-#include "ComponentManagers/ComponentManager.h"
-#include "ComponentManagers/PhysicsComponentManager.h"
-#include "ComponentManagers/TransformComponentManager.h"
-#include "ComponentManagers/MeshComponentManager.h"
-#include "ComponentManagers/AnimationComponentManager.h"
-#include "ComponentManagers/LightComponentManager.h"
-
-#include <stdexcept>
-
-World::World(std::string filename, std::string worldName) :
-	name(worldName)
+namespace OmegaEngine
 {
-	SceneParser parser;
-	if (!parser.open(filename)) {
-		throw std::runtime_error("Unable to open scene file.");
-	}
+	
+	World::World(std::string filename)
+	{
+		// init all the managers required to generate the world
+		initComponentManagers();
+		
+		SceneParser parser;
+		if (!parser.open(filename)) {
+			throw std::runtime_error("Unable to open scene file.");
+		}
 
-	// set camera - only one camera per world at the moment
-	Camera::CameraDataType cameraData;
-	if (!parser.getCameraData(cameraData)) {
-		throw std::runtime_error("Unable to initiliase camera.");
-	}
-	currentCamera = std::make_unique<Camera>(cameraData);
-}
+		// set camera - only one camera per world at the moment
+		CameraDataType cameraData;
+		if (!parser.getCameraData(cameraData)) {
+			throw std::runtime_error("Unable to initiliase camera.");
+		}
+		sceneManager->setCurrentCamera(cameraData);
 
-World::~World()
-{
-	Destroy();
-}
+		// the scenes are ordered according to their spatial representation in the world, i.e in a nXn grid. 
+		parser.getWorldInfo(worldInfo);
 
-void World::Generate(VulkanEngine *vkEngine)
-{
-
-
-	// deserialise data into world space from binary file
-	ObjectResourceManager resource(this);
-	resource.LoadObjectData("assets/world_data/test_world.data");
-
-	InitComponentManagers();
-
-	// de-serialiase model data for this world using mesh manager
-	auto p_meshManager = RequestComponentManager<MeshComponentManager>();
-	p_meshManager->ImportOMFFile("assets/models/model_data.omf");
-}
-
-void World::UpdateSystems()
-{
-	for (auto system : m_systems) {
-
-		system.second->Update();
-	}
-}
-
-void World::RegisterSystems(std::vector<SystemId>& systemIds, Engine *engine, VulkanEngine *vkEngine)
-{
-	for (auto& id : systemIds) {
-
-		switch (id) {
-			case SystemId::INPUT_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(InputSystem)), new InputSystem(this, p_message, engine->Window(),  Engine::SCREEN_WIDTH, Engine::SCREEN_HEIGHT)));
-				break;
-			case SystemId::CAMERA_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(CameraSystem)), new CameraSystem(this, p_message, glm::vec3(15.0f, -45.0f, 0.0f), glm::vec3(0.0, 1.0, 0.0))));
-				break;
-			case SystemId::GRAPHICS_SYSTEM_ID:
-				m_systems.insert(std::make_pair(std::type_index(typeid(GraphicsSystem)), new GraphicsSystem(this, p_message, vkEngine)));
-				break;
+		// get all the scene filnames (gltf format)
+		std::vector<std::string> filenames;
+		if (!parser.getSceneFileList(filenames)) {
+			throw std::runtime_error("Error parsing gltf scene files.");
+		}
+		for (auto& filename : filenames) {
+			sceneInfo.push_back({ filename.c_str() });
 		}
 	}
-}
 
-std::type_index World::RegisterComponentManager(std::string id)
-{
-	if (id == " Physics") {
-		std::type_index index(typeid(PhysicsComponentManager));
-		m_managers.insert(std::make_pair(index, new PhysicsComponentManager()));
-		return index;
+	World::~World()
+	{
+		
 	}
-	else if (id == " Transform") {
-		std::type_index index(typeid(TransformComponentManager));
-		m_managers.insert(std::make_pair(index, new TransformComponentManager()));
-		return index;
-	}
-	else if (id == " Mesh") {
-		std::type_index index(typeid(MeshComponentManager));
-		m_managers.insert(std::make_pair(index, new MeshComponentManager()));
-		return index;
-	}
-	else if (id == " Animation") {
-		std::type_index index(typeid(AnimationComponentManager));
-		m_managers.insert(std::make_pair(index, new AnimationComponentManager()));
-		return index;
-	}
-	else if (id == " Light") {
-		std::type_index index(typeid(LightComponentManager));
-		m_managers.insert(std::make_pair(index, new LightComponentManager()));
-		return index;
-	}
-}
 
-void World::InitComponentManagers()
-{
-	for (auto& manager : m_managers) {
+	void World::initComponentManagers()
+	{
+		lightManager = std::make_unique<LightManager>();
+		meshManager = std::make_unique<MeshManager>();
+		animManager = std::make_unique<AnimationManager>();
+		sceneManager = std::make_unique<SceneManager>();
+		textureManager = std::make_unique<TextureManager>();
 
-		manager.second->Init(this, p_objectManager);
+		assert(lightManager != nullptr);
+		assert(meshManager != nullptr);
+		assert(animManager != nullptr);
+		assert(sceneManager != nullptr);
+		assert(textureManager != nullptr);
 	}
-}
 
-void World::UpdateComponentManagers()
-{
-	for (auto& manager : m_managers) {
+	void World::Update()
+	{
 
-		manager.second->Update();
 	}
-}
 
-void World::Destroy()
-{
-	// Destroy all systems associated with this world
-	for (auto& system : m_systems) {
-		system.second->Destroy();
-	}
-	m_systems.clear();
+	
 
-	// and all component managers
-	for (auto& manager : m_managers) {
-		manager.second->Destroy();
-	}
-	m_managers.clear();
-
-	if (p_objectManager != nullptr) {
-		delete p_objectManager;
-	}
-	p_objectManager = nullptr;
 }

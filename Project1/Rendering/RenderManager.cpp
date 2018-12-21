@@ -1,52 +1,14 @@
-#include "VulkanCore/VkRenderManager.h"
-#include "Vulkan_Global.h"
+#include "Rendering/RenderManager.h"
 
 
-#include "VulkanCore/VulkanRenderPass.h"
-#include "VulkanCore/VulkanTexture.h"
-#include "VulkanCore/vulkan_validation.h"
-#include "VulkanCore/VulkanModel.h"
-#include "VulkanCore/vulkan_terrain.h"
-#include "VulkanCore/vulkan_shadow.h"
-#include "VulkanCore/vulkan_tools.h"
-#include "VulkanCore/VulkanDeferred.h"
-#include "VulkanCore/VulkanPBR.h"
-#include "VulkanCore/VulkanIBL.h"
-#include "VulkanCore/VulkanSkybox.h"
-#include "VulkanCore/VulkanWater.h"
-#include "VulkanCore/VkMemoryManager.h"
-#include "VulkanCore/VkPostProcess.h"
-#include "VulkanCore/VulkanGUI.h"
-#include "Systems/input_system.h"
 #include "Engine/World.h"
 #include "Engine/Engine.h"
-#include "utility/file_log.h"
 
 
-VkRenderManager::VkRenderManager(GLFWwindow *window, uint32_t width, uint32_t height) :
-	drawStateChanged(true),
-	vk_prepared(false),
-	displayGUI(true)
+RenderManager:kRenderManager() :
+
 {	
-	// WE are using volk, so we need to init this first before creating a vulkan instance
-	VK_CHECK_RESULT(volkInitialize());
-
-	// create a new instance of vulkan
-	VulkanGlobal::init_vkInstance();
-
-	// init this instance of vulkan with volk
-	volkLoadInstance(VulkanGlobal::vkCurrent.instance);
-
-	VulkanGlobal::init_windowSurface(window);			// prepare KHR surface
-
-	// init new physical device, queues for graphics, presentation and compute
-	VulkanGlobal::init_device();
-
-	// prepare swap chain and attached image views - so we have something to render too
-	VulkanGlobal::init_swapchain(width, height);
-
-	// now we have init the current vulkan device, init all managers that will be used
-	VulkanGlobal::init_vkMemoryManager();
+	
 }
 
 VkRenderManager::~VkRenderManager()
@@ -54,51 +16,9 @@ VkRenderManager::~VkRenderManager()
 	Destroy();
 }
 
-/*void VulkanEngine::RegisterVulkanModules(std::vector<VkModId> modules)
-{
-	// begin by adding vulakn dependencies - these must be loaded in order
-	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanShadow)), new VulkanShadow(this, p_vkMemory)));
-	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanPBR)), new VulkanPBR(this, p_vkMemory)));
-	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanIBL)), new VulkanIBL(this, p_vkMemory)));
-	m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanDeferred)), new VulkanDeferred(this, p_vkMemory)));
-	m_vkModules.insert(std::make_pair(std::type_index(typeid(VkPostProcess)), new VkPostProcess(this, p_vkMemory)));
 
-	// add optional vk modules defined by the user
-	for (auto mod : modules) {
 
-		switch (mod) {
-			case VkModId::VKMOD_SKYBOX_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanSkybox)), new VulkanSkybox(this, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_TERRAIN_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanTerrain)), new VulkanTerrain(this, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_WATER_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanWater)), new VulkanWater(this, p_vkMemory)));
-				break;
-			case VkModId::VKMOD_MODEL_ID:
-				m_vkModules.insert(std::make_pair(std::type_index(typeid(VulkanModel)), new VulkanModel(this, p_vkMemory)));
-				break;
-		}
-	}
-}
-
-void VulkanEngine::RenderScene(VkCommandBuffer cmdBuffer, bool drawShadow)
-{
-	//if (!drawShadow) {
-		if (hasModule<VulkanTerrain>() && p_vkGUI->m_guiSettings.terrainType == 1) {
-			VkModule<VulkanTerrain>()->GenerateTerrainCmdBuffer(cmdBuffer, drawShadow);
-		}
-
-		if (hasModule<VulkanWater>() && p_vkGUI->m_guiSettings.terrainType == 0) {
-			VkModule<VulkanWater>()->GenerateWaterCmdBuffer(cmdBuffer, drawShadow);
-		}
-	//}
-
-	if (hasModule<VulkanModel>()) {
-		VkModule<VulkanModel>()->GenerateModelCmdBuffer(cmdBuffer, drawShadow); 
-	}
-}
+/*
 
 void VulkanEngine::PrepareFinalFrameBuffer(bool prepareFrameBufferOnly)
 {
