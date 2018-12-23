@@ -19,8 +19,6 @@ namespace OmegaEngine
 
 		~TextureManager();
 
-		void parseGltfTextures(tinygltf::Model& model);
-
 	private:
 
 		std::unordered_map<int, MappedTexture> textures;

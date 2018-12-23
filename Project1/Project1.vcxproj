@@ -19,10 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\Descriptors.cpp" />
     <ClCompile Include="Managers\AnimationManager.cpp" />
-    <ClCompile Include="ComponentManagers\LightComponentManager.cpp" />
-    <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp" />
-    <ClCompile Include="ComponentManagers\ComponentManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
     <ClCompile Include="Managers\ObjectManager.cpp" />
     <ClCompile Include="DataTypes\Object.cpp" />
@@ -31,8 +29,7 @@
     <ClCompile Include="Engine\World.cpp" />
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
     <ClCompile Include="ComponentManagers\TransformComponentManager.cpp" />
-    <ClCompile Include="ComponentManagers\MeshComponentManager.cpp" />
-    <ClCompile Include="GltfParser.cpp" />
+    <ClCompile Include="Engine\GltfParser.cpp" />
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
@@ -105,19 +102,16 @@
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ComponentManagers\LightComponentManager.h" />
-    <ClInclude Include="ComponentManagers\AnimationComponentManager.h" />
-    <ClInclude Include="ComponentManagers\ComponentManager.h" />
     <ClInclude Include="DataTypes\Camera.h" />
     <ClInclude Include="DataTypes\TextureType.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="DataTypes\Object.h" />
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
-    <ClInclude Include="ComponentManagers\MeshComponentManager.h" />
+    <ClInclude Include="Engine\GltfParser.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\SceneParser.h" />
     <ClInclude Include="DataTypes\Space.h" />
-    <ClInclude Include="GltfParser.h" />
+    <ClInclude Include="Omega_Common.h" />
     <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MaterialManager.h" />
@@ -166,6 +160,7 @@
     <ClInclude Include="VulkanCore\VulkanWater.h" />
     <ClInclude Include="VulkanCore\VulkanDevice.h" />
     <ClInclude Include="VulkanCore\VulkanInstance.h" />
+    <ClInclude Include="Vulkan\Descriptors.h" />
     <ClInclude Include="Vulkan\TerrainUtility.h" />
     <ClInclude Include="Vulkan\VkDescriptors.h" />
     <ClInclude Include="Vulkan\vkFFT.h" />

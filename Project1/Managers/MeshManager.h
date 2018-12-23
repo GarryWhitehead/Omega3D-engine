@@ -4,131 +4,77 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
+#include "Vulkan/Descriptors.h"
+
 #include <memory>
 #include <tuple>
+#include <unordered_map>
+
 
 namespace OmegaEngine
 {
+	// forard decleartions
+	struct GltfVertex;
+	struct GltfStaticMeshInfo;
+	class ObjectManager;
+	class MaterialManager;
 
 	class MeshManager
 	{
 
 	public:
 
-		struct Dimensions
-		{
-			OEMaths::vec3f min;
-			OEMaths::vec3f max;
-			OEMaths::vec3f size;
-			OEMaths::vec3f center;
-			float radius;
-
-			void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
-		};
-
 		struct Vertex
 		{
 			OEMaths::vec4f position;
 			OEMaths::vec3f normal;
 			OEMaths::vec2f uv;
+		};
+
+		struct SkinnedVertex : public Vertex
+		{
 			OEMaths::vec4f joint;
-			OEMaths::vec4f weight;
+			float weight;
 		};
 
+		struct Mesh
+		{
+			uint32_t indexOffset = 0;
+			uint32_t indexSize = 0;
+			uint32_t vertextCount = 0;
+
+			// vulkan info 
+			Vulkan::Descriptors descriptors;
+		};
 		
-		struct PrimitiveInfo
+		struct StaticMesh : public Mesh
 		{
-			PrimitiveInfo(uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
-				indiciesOffset(offset),
-				indiciesSize(size),
-				materialId(matid)
-			{
-				dimensions.initDimensions(min, max);
-			}
 			
-			Dimensions dimensions;
-			
-			// index offsets
-			uint32_t indiciesOffset;
-			uint32_t indiciesSize;
-
-			// material id
-			uint32_t materialId;
 		};
 
-
-		struct StaticMesh
+		struct SkinnedMesh : public Mesh
 		{
-			Dimensions dimensions;
-
-			// vertex offsets
-			uint32_t vertexOffset;
-			uint32_t vertexSize;
-
-			// primitives assoicated with this mesh
-			std::vector<PrimitiveInfo> primitives;
 
 		};
 
-		struct Node
-		{
-			const char* name;
-			uint32_t index;
-
-			// rather than using pointers and lots of buffers, to improve cacahe performance, nodes are all stored in one large buffer and referenced via indicies into the buffer
-			uint32_t parentIndex = -1;
-			std::vector<uint32_t> children;
-
-			std::tuple<uint32_t, uint32_t> meshIndex;
-
-			// transforms associated with this node
-			OEMaths::mat4f matrix;
-			OEMaths::vec3f translation;
-			OEMaths::vec3f scale{ 1.0f };
-			OEMaths::mat4f rotation;
-
-			// skinning info
-			uint32_t skinIndex;
-
-		};
 
 		MeshManager();
 		~MeshManager();
 
-		void parseGltfFile(uint32_t spaceId, tinygltf::Model& model);
-		void parseNode(uint32_t parentNode, 
-			tinygltf::Node& node, 
-			tinygltf::Model& model,
-			std::vector<Vertex>& vertexBuffer, 
-			std::vector<uint32_t>& indexBuffer, 
-			std::vector<StaticMesh>& meshBuffer, 
-			std::vector<Node>& nodeBuffer,
-			std::vector<Node>& linearBuffer, 
-			uint32_t spaceId);
-
-		template <typename T>
-		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<uint32_t>& indiciesBuffer, uint32_t indexStart)
-		{
-			T* buf = new T[accessor.count];
-			memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(T));
-
-			// copy the data to our indices buffer at the correct offset
-			for (uint32_t j = 0; j < indAccessor.count; ++j) {
-				indiciesBuffer.push_back(buf[j] + indexStart);
-			}
-
-			delete buf;
-		}
-
 		uint32_t getManagerId();
+		void addData(std::vector<GltfVertex>& vertBuf, std::vector<uint32_t>& indBuf, std::vector<GltfStaticMeshInfo>& meshBuf, std::unique_ptr<ObjectManager>& objectManager, SpaceInfo& space);
 
 	private:
 
-		// the buffers containing all the model data. The number of spaces that will be loaded at once depends on the specs of the system 
+		// the buffers containing all the model data for all spaces that are loaded. 
+		std::unordered_map<uint32_t, std::vector<Mesh> > staticMeshBuffer;
+		std::unordered_map<uint32_t, std::vector<SkinnedMesh> > skinnedMeshBuffer;
+
+		// all vertex and index data is stored in one long continous buffer accessed by offsets for each space. This allows for this data to be used by all spaces
 		std::vector<Vertex> vertexBuffer;
 		std::vector<uint32_t> indexBuffer;
-		std::vector<StaticMesh> meshBuffer;
 
+		std::unique_ptr<MaterialManager> materialManager;
 	};
 
 }

@@ -1,5 +1,4 @@
 #pragma once
-#include <chrono>
 #include <vector>
 #include <queue>
 #include <atomic>
@@ -13,12 +12,25 @@ class ThreadPool
 
 public:
 
-	ThreadPool();
+	ThreadPool(uint8_t numThreads);
 	~ThreadPool();
+
+	void submitTask(std::function<void()> func);
+	bool isFinished();
+	void stopThread();
 
 private:
 
+	void worker();
+
 	std::vector<std::thread> threads;
-	std::queue
+	std::queue<std::function<void()> > tasks;
+
+	// threading stuff
+	std::mutex mut;
+	std::atomic<bool> isComplete{ false };
+	std::atomic<int> taskCount{ 0 };
+	std::condition_variable_any con_var;
+
 };
 

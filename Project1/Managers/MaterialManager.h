@@ -7,58 +7,45 @@
 
 namespace OmegaEngine
 {
-
-	enum class AlphaMode
-	{
-		Blend,
-		Mask,
-		None
-	};
+	// forward declerations
+	class TextureManager;
 
 	class MaterialManager
 	{
 
 	public:
 
-		struct MaterialExt
+		// in a format for sending immediately to the shader as a push
+		struct MaterialPushBlock
 		{
-			int specularGlossiness;
-			int diffuse;
-			float specularGlossinessFactor = 0.0f;
-			float diffuseFactor = 0.0f;
+			float emissiveFactor;
+			float baseColourFactor;
+			float roughnessFactor;
+			float diffuseFactor;
+			float metallicFactor;
+			float specularFactor;
+			float alphaMask;
+			float alphaMaskCutOff;
+
 		};
 
-		struct Material
+		struct MaterialInfo
 		{
-			float roughnessFactor = 0.0f;
-			float metallicFactor = 0.0f;
-			float baseColorFactor = 0.0f;
-			glm::vec3 emissiveFactor = glm::vec3(0.0f);
-
-			AlphaMode alphaMode = AlphaMode::None;
-			float alphaCutOff = 0.0f;
-
-			struct TextureIndex
-			{
-				int baseColor;
-				int metallicRoughness;
-				int normal;
-				int emissive;
-				int occlusion;
-			} textureIndicies;
-
-			std::unique_ptr<MaterialExt> extension;
+			// all the info required by the shader for PBR rendering
+			MaterialPushBlock pushBlock;
 
 		};
 
 		MaterialManager();
 		~MaterialManager();
 
-		void parseGltfFile(uint32_t spaceId, tinygltf::Model& model);
+		void addData();
 
 	private:
 
 		std::unordered_map<uint32_t, std::vector<Material> > materials;
+
+		std::unique_ptr<TextureManager> textureManager;
 	};
 
 }

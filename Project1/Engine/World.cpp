@@ -34,11 +34,11 @@ namespace OmegaEngine
 			throw std::runtime_error("Error parsing gltf scene files.");
 		}
 		
-		sceneManager = std::make_unique<SceneManager>(filenames, cameraData);
+		sceneManager = std::make_unique<SceneManager>(filenames, cameraData, worldInfo);
 		assert(sceneManager != nullptr);
 
 		// nowe init scene manager and load into memory the pre-determined number of spaces
-		sceneManager->loadSpaces()
+		sceneManager->loadSpaces();
 	}
 
 	World::~World()

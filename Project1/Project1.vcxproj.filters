@@ -39,9 +39,6 @@
     <ClCompile Include="Engine\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentManagers\ComponentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -51,19 +48,10 @@
     <ClCompile Include="utility\serialisation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentManagers\MeshComponentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VulkanCore\VulkanModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentManagers\AnimationComponentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentManagers\LightComponentManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VulkanCore\VulkanIBL.cpp">
@@ -240,9 +228,6 @@
     <ClCompile Include="DataTypes\TextureType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="GltfParser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Managers\MaterialManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -265,6 +250,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Threading\ThreadPool.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Engine\GltfParser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Descriptors.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -290,9 +281,6 @@
     <ClInclude Include="VulkanCore\vulkan_terrain.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentManagers\ComponentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -302,19 +290,10 @@
     <ClInclude Include="utility\serialisation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentManagers\MeshComponentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanCore\VulkanModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentManagers\AnimationComponentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="VulkanCore\VulkanDeferred.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentManagers\LightComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\VulkanIBL.h">
@@ -491,9 +470,6 @@
     <ClInclude Include="DataTypes\TextureType.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="GltfParser.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utility\Logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -525,6 +501,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Threading\ThreadPool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Omega_Common.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Engine\GltfParser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Descriptors.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -6,22 +6,21 @@ class MappedTexture;
 
 namespace OmegaEngine
 {
-	class Space
+	struct SpaceInfo
 	{
 
-	public:
+		SpaceInfo(const char* name) : 
+			filename(name)
+		{}
 
-		Space();
-		~Space();
-		
-		bool loadModelData(std::string filename);
 
-	private:
+		const char* filename;
+		bool isLoaded = false;
+		bool isActive = false;
+		uint32_t spaceId;
 
-		// Everything model wise needed for this space
-		tinygltf::Model model;
-
-		
+		uint32_t vertexOffset;
+		uint32_t indexOffset;
 	};
 
 }

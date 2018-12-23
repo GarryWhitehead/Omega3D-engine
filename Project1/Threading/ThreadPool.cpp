@@ -27,37 +27,37 @@ void ThreadPool::worker()
 
 		std::unique_lock<std::mutex> lock(mut);
 		con_var.wait(lock, [this]() {
-			return isComplete || !workers.empty();
+			return isComplete || !tasks.empty();
 		});
 
 		if (isComplete) {
 			break;
 		}
 
-		if (!workers.empty()) {
-			func = workers.front();
-			workers.pop();
-			workerCount++;
+		if (!tasks.empty()) {
+			func = tasks.front();
+			tasks.pop();
+			taskCount++;
 		}
 
 		if (workerReady) {
 			func();
-			--workerCount;
+			--taskCount;
 		}
 	}
 }
 
-void ThreadPool::submitWorker(std::function<void()> func)
+void ThreadPool::submitTask(std::function<void()> func)
 {
 	std::lock_guard<std::mutex> guard(mut);
-	workers.push(func);
+	tasks.push(func);
 	con_var.notify_one();
 }
 
 bool ThreadPool::isFinished()
 {
 	std::lock_guard<std::mutex> guard(mut);
-	return workerCount == 0 && workers.empty();
+	return taskCount == 0 && tasks.empty();
 }
 
 void ThreadPool::stopThread()
