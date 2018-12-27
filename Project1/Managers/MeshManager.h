@@ -39,9 +39,10 @@ namespace OmegaEngine
 
 		struct Mesh
 		{
-			uint32_t indexOffset = 0;
-			uint32_t indexSize = 0;
-			uint32_t vertextCount = 0;
+			uint32_t indexBase = 0;
+			uint32_t indexCount = 0;
+
+			uint32_t MaterialIndex;
 
 			// vulkan info 
 			Vulkan::Descriptors descriptors;

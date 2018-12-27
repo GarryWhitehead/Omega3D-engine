@@ -91,7 +91,7 @@ namespace OmegaEngine
 			OEMaths::mat4f rotation;
 
 			// skinning info
-			uint32_t skinIndex;
+			uint32_t skinIndex = -1;
 
 		};
 

@@ -1,7 +1,7 @@
 #include "World.h"
-#include "Engine/SceneParser.h"
+#include "Engine/Omega_SceneParser.h"
 #include "DataTypes/Camera.h"
-
+#include "ComponentSystem/ComponentSystem.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
@@ -11,34 +11,20 @@
 namespace OmegaEngine
 {
 	
-	World::World(std::string filename)
+	World::World(Managers managers)
 	{
-		SceneParser parser;
-		if (!parser.open(filename)) {
-			throw std::runtime_error("Unable to open scene file.");
-		}
-
-		// set camera - only one camera per world at the moment
-		CameraDataType cameraData;
-		if (!parser.getCameraData(cameraData)) {
-			throw std::runtime_error("Unable to initiliase camera.");
-		}
-		sceneManager->setCurrentCamera(cameraData);
-
-		// the scenes are ordered according to their spatial representation in the world, i.e in a nXn grid. 
-		parser.getWorldInfo(worldInfo);
-
-		// get all the scene filnames (gltf format)
-		std::vector<std::string> filenames;
-		if (!parser.getSceneFileList(filenames)) {
-			throw std::runtime_error("Error parsing gltf scene files.");
-		}
+		compSystem = std::make_unique<ComponentSystem>();
 		
-		sceneManager = std::make_unique<SceneManager>(filenames, cameraData, worldInfo);
-		assert(sceneManager != nullptr);
-
-		// nowe init scene manager and load into memory the pre-determined number of spaces
-		sceneManager->loadSpaces();
+		// register all components managers required for this world
+		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
+			compSystem->registerManager<MeshManager>();
+		}
+		if (managers & Managers::OE_MANAGERS_ANIMATION || managers & Managers::OE_MANAGERS_ALL) {
+			compSystem->registerManager<AnimationManager>();
+		}
+		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
+			compSystem->registerManager<LightManager>();
+		}
 	}
 
 	World::~World()
@@ -46,11 +32,26 @@ namespace OmegaEngine
 		
 	}
 
-	void World::Update()
+	bool World::create(const char* filename)
+	{
+		SceneParser parser;
+		if (!parser.parse(filename)) {
+			throw std::runtime_error("Unable to parse omega engine scene file.");
+		}
+
+		// add the data parsed from the scene file to the appropiate managers
+		auto& meshManager = compSystem->getManager<MeshManager>();
+		meshManager->addData();
+
+	}
+
+	void World::update()
 	{
 		// Check whether new spaces need to be loaded into memory or removed - if so, do this on spertate threads
 		// this depends on the max number of spaces that can be hosted on the CPU - determined by mem size
 	}
+
+
 
 	
 

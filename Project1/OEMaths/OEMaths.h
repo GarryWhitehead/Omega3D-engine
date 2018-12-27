@@ -25,8 +25,6 @@ namespace OEMaths
 			y(in_y)
 		{}
 
-	private:
-
 		Typename x;
 		Typename y;
 	};
@@ -59,8 +57,6 @@ namespace OEMaths
 			y(in_y),
 			z(in_z)
 		{}
-
-	private:
 
 		Typename x;
 		Typename y;
@@ -106,8 +102,6 @@ namespace OEMaths
 			z(in_z),
 			w(in_w)
 		{}
-
-	private:
 
 		Typename x;
 		Typename y;

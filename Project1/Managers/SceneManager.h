@@ -18,7 +18,7 @@ namespace OmegaEngine
 	class LightManager;
 	class TextureManager;
 	class ObjectManager;
-	struct SpaceInfo;
+	struct Mesh;
 
 	
 	class SceneManager
@@ -26,19 +26,25 @@ namespace OmegaEngine
 
 	public:
 
-		struct WorldInfo
+		struct ModelNode
 		{
-			const char* name;
+			// index to child nodes
+			std::vector<uint32_t> children;		
+			uint32_t meshIndex;
 
-			// this refers to the scene grid dimensions 
-			uint32_t width;
-			uint32_t height;
+			OEMaths::mat4f local_transform;
+		};
 
-			// tells the scene manager the max number of spaces that can be loaded at one time. 
-			// This is the stating a grid n*n - i.e. 3, 5, 7, 9, 11... Note: cannot be 1
-			uint32_t gridSizeToLoad;
-			uint32_t startingId;
-			uint32_t totalSpaces;
+		struct Model
+		{
+			uint32_t verticesOffset;
+			uint32_t indicesOffset;
+			
+			ModelNode node;
+			
+			OEMaths::mat4f world_transform;
+
+			// vulkan stuff
 		};
 
 		SceneManager(std::vector<std::string>& filenames, CameraDataType& cameraData);
@@ -50,9 +56,6 @@ namespace OmegaEngine
 
 	private:
 
-		// this contains all we need to know to construct the spaces and their dimensions
-		WorldInfo worldInfo;
-
 		std::unique_ptr<LightManager> lightManager;
 		std::unique_ptr<AnimationManager> animManager;
 		std::unique_ptr<MeshManager> meshManager;
@@ -61,8 +64,8 @@ namespace OmegaEngine
 		std::unique_ptr<Camera> currentCamera;
 
 		// list of all gltf filenames that are associated with this world. This is linearised for faster lookup
-		std::vector<SpaceInfo> spaces;
-		std::vector<uint32_t> loadedSpaces;
+		std::vector<Model> models;
+
 
 		// let's us know whether this world has actually any spaces loaded
 		bool isInit = false;

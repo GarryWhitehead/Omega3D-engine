@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ComponentSystem\ComponentSystem.cpp" />
+    <ClCompile Include="Managers\TransformManager.cpp" />
     <ClCompile Include="Vulkan\Descriptors.cpp" />
     <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
-    <ClCompile Include="Managers\ObjectManager.cpp" />
+    <ClCompile Include="ComponentSystem\ObjectManager.cpp" />
     <ClCompile Include="DataTypes\Object.cpp" />
-    <ClCompile Include="Engine\SceneParser.cpp" />
+    <ClCompile Include="Engine\Omega_SceneParser.cpp" />
     <ClCompile Include="DataTypes\Space.cpp" />
     <ClCompile Include="Engine\World.cpp" />
     <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp" />
@@ -102,6 +104,7 @@
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ComponentSystem\ComponentSystem.h" />
     <ClInclude Include="DataTypes\Camera.h" />
     <ClInclude Include="DataTypes\TextureType.h" />
     <ClInclude Include="Engine\engine.h" />
@@ -109,14 +112,15 @@
     <ClInclude Include="ComponentManagers\PhysicsComponentManager.h" />
     <ClInclude Include="Engine\GltfParser.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
-    <ClInclude Include="Engine\SceneParser.h" />
+    <ClInclude Include="Engine\Omega_SceneParser.h" />
     <ClInclude Include="DataTypes\Space.h" />
+    <ClInclude Include="Managers\TransformManager.h" />
     <ClInclude Include="Omega_Common.h" />
     <ClInclude Include="Managers\AnimationManager.h" />
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MaterialManager.h" />
     <ClInclude Include="Managers\MeshManager.h" />
-    <ClInclude Include="Managers\ObjectManager.h" />
+    <ClInclude Include="ComponentSystem\ObjectManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
     <ClInclude Include="Managers\SceneManager.h" />
