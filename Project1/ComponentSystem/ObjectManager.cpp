@@ -23,6 +23,28 @@ namespace OmegaEngine
 		}
 		
 		newObject.setId(id);
+		objects.push_back(newObject);
+		return newObject;
+	}
+
+	Object& ObjectManager::createChildObject(Object& obj)
+	{
+		// create a new object as usual but not added to the list of active objects as this is a child object and is part of another 
+		Object newObject;
+
+		uint32_t id = 0;
+		if (freeIds.size() > MINIMUM_FREE_IDS) {
+
+			id = freeIds.front();
+			freeIds.pop_front();
+		}
+		else {
+			id = ++nextId;
+		}
+
+		newObject.setId(id);
+		obj.addChild(newObject);
+
 		return newObject;
 	}
 

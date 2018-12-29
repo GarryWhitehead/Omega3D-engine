@@ -98,7 +98,7 @@ namespace OmegaEngine
 				Object obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				loadGltfNode(-1, node, obj);
+				loadGltfNode(model, node, world_mat, objectManager, obj, false);
 			}
 		}
 		else {
@@ -107,7 +107,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void World::loadGltfNode(uint32_t parentNode, tinygltf::Node& node, Object& obj)
+	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject)
 	{
 		NodeInfo newNode;
 
@@ -117,43 +117,28 @@ namespace OmegaEngine
 
 		// add all local and world transforms to the transform manager 
 		auto &transform_man = compSystem->getManager<TransformManager>();
-		transform_man->addData();
+		transform_man->addGltfTransform(node, obj, world_transform);
 
-		if (node.translation.size() == 3) {
-			newNode.translation = OEMaths::convert_vec3((float*)node.translation.data());
+		Object parentObject;
+		if (childObject) {
+			parentObject = objManager->createChildObject(obj);
 		}
-		if (node.scale.size() == 3) {
-			newNode.scale = OEMaths::convert_vec3((float*)node.scale.data());
-		}
-		if (node.rotation.size() == 4) {
-			OEMaths::quatf q = OEMaths::convert_quat((float*)node.rotation.data());
-			newNode.rotation = OEMaths::quat_to_mat4(q);
-		}
-		if (node.matrix.size() == 16) {
-			newNode.matrix = OEMaths::convert_mat4((float*)node.rotation.data());
+		else {
+			parentObject = obj;
 		}
 
 		// if this node has children, recursively extract their info
 		if (!node.children.empty()) {
 			for (uint32_t i = 0; node.children.size(); ++i) {
-				parseNodeRecursive(newNode.index, model.nodes[node.children[i]]);
+				loadGltfNode(model, model.nodes[node.children[i]], world_transform, objManager, parentObject, true);
 			}
 		}
 
 		// if the node has mesh data...
 		if (node.mesh > -1) {
-
+			auto& mesh_manager = compSystem->getManager<MeshManager>();
+			mesh_manager->addGltfData(model, node, obj);
 			
-		}
-
-		if (parentNode > -1) {
-			nodeBuffer[parentNode].children.push_back(newNode.index);
-			nodeBuffer.push_back(newNode);
-			linearBuffer.push_back(newNode);
-		}
-		else {
-			nodeBuffer.push_back(newNode);
-			linearBuffer.push_back(newNode);
 		}
 	}
 

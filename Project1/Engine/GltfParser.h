@@ -18,16 +18,7 @@ namespace OmegaEngine
 	public:
 
 		// mesh / nodes
-		struct Dimensions
-		{
-			OEMaths::vec3f min;
-			OEMaths::vec3f max;
-			OEMaths::vec3f size;
-			OEMaths::vec3f center;
-			float radius;
-
-			void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
-		};
+		
 
 		struct GltfVertex
 		{

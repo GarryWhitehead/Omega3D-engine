@@ -68,7 +68,7 @@ namespace OmegaEngine
 		bool create(const char* filename);
 		void update();
 		void addGltfData(const char* filename, OEMaths::mat4f world_mat);
-		void loadGltfNode(uint32_t parentNode, tinygltf::Node& node, Object& obj);
+		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject);
 
 	private:
 

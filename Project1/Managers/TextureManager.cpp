@@ -28,8 +28,9 @@ namespace OmegaEngine
 	{
 		if (textures.find(name) != textures.end()) {
 			auto iter = textures.find(name);
-			
+			return std::distance(textures.begin(), iter);
 		}
+		return -1;
 	}
 
 }

@@ -1,34 +1,36 @@
 #include "DataTypes/Object.h"
 #include "Engine/engine.h"
 
-Object::Object()
+namespace OmegaEngine
 {
+	Object::Object()
+	{
+	}
 
-}
+	bool Object::operator==(const Object& obj) const
+	{
+		return id == obj.id;
+	}
 
-Object::Object(uint32_t id) :
-	m_id(id),
-	m_isAlive(true)
-{
-}
+	void Object::addChild(Object& obj)
+	{
+		children.push_back(obj);
+	}
 
-Object::Object(const Object &obj)
-{
-	m_id = obj.m_id;
-	m_isAlive = obj.m_isAlive;
-}
+	// helper functions
+	uint64_t Object::getId() const
+	{
+		return id;
+	}
 
-Object::~Object() 
-{
-}
+	void Object::setId(const uint64_t _id)
+	{
+		id = _id;
+	}
 
-bool Object::operator==(const Object& obj) const
-{
-	return m_id == obj.m_id;
-}
+	bool Object::isAlive() 
+	{
+		return isAlive;
+	}
 
-void Object::SerialiseObject(Archiver *arch, Object& obj, Archiver::var_info &info)
-{
-	arch->Serialise(obj.m_id, Archiver::var_info(info.name + ".m_id"));
-	arch->Serialise(obj.m_isAlive, Archiver::var_info(info.name + ".m_isAlive"));
 }

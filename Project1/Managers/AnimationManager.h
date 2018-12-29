@@ -7,6 +7,8 @@
 
 namespace OmegaEngine
 {
+	// forward declerations
+	class Object;
 
 	class AnimationManager
 	{
@@ -14,7 +16,7 @@ namespace OmegaEngine
 	public:
 
 		// skins
-		struct GltfSkinInfo
+		struct SkinInfo
 		{
 			const char* name;
 			uint32_t skeletonIndex;
@@ -55,7 +57,7 @@ namespace OmegaEngine
 
 		};
 
-		struct GltfAnimationInfo
+		struct AnimationInfo
 		{
 			const char* name;
 			float start;
@@ -68,10 +70,13 @@ namespace OmegaEngine
 		AnimationManager();
 		~AnimationManager();
 
+		void addGltfAnimation(tinygltf::Model& model, Object& obj);
+		void addGltfSkin(tinygltf::Model& model);
+
 	private:
 
-		std::unordered_map<uint32_t, std::vector<AnimationInfo> > animationBuffer;
-		std::unordered_map<uint32_t, std::vector<SkinInfo> >skinBuffer;
+		std::vector<AnimationInfo> animationBuffer;
+		std::vector<SkinInfo> skinBuffer;
 	};
 
 }

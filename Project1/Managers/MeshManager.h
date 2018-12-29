@@ -26,6 +26,26 @@ namespace OmegaEngine
 
 	public:
 		
+		struct Dimensions
+		{
+			OEMaths::vec3f min;
+			OEMaths::vec3f max;
+			OEMaths::vec3f size;
+			OEMaths::vec3f center;
+			float radius;
+
+			void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
+		};
+
+		struct Vertex
+		{
+			OEMaths::vec4f position;
+			OEMaths::vec3f normal;
+			OEMaths::vec2f uv;
+			OEMaths::vec4f weight;
+			OEMaths::vec4f joint;
+		};
+
 		struct PrimitiveMesh
 		{
 			PrimitiveMesh(uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
@@ -47,19 +67,9 @@ namespace OmegaEngine
 			uint32_t materialId;
 		};
 
-
 		struct StaticMesh
 		{
 			Dimensions dimensions;
-
-			struct Vertex
-			{
-				OEMaths::vec4f position;
-				OEMaths::vec3f normal;
-				OEMaths::vec2f uv;
-				OEMaths::vec4f weight;
-				OEMaths::vec4f joint;
-			};
 
 			uint32_t verticesOffset = 0;
 			uint32_t indicesOffset = 0;
@@ -93,7 +103,6 @@ namespace OmegaEngine
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> staticMeshBuffer;
-		std::vector<SkinnedMesh> skinnedMeshBuffer;
 
 		// all vertex and index data is stored in one long continous buffer accessed by offsets for each space
 		std::vector<Vertex> vertexBuffer;

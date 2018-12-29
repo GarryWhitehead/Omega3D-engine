@@ -24,7 +24,7 @@ namespace OmegaEngine
 		ObjectManager();
 
 		Object& createObject();
-
+		Object& createChildObject(Object& object);
 		void destroyObject(Object& obj);
 
 	private:

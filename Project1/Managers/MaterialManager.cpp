@@ -1,4 +1,5 @@
 #include "MaterialManager.h"
+#include "Managers/TextureManager.h"
 
 namespace OmegaEngine
 {
@@ -17,10 +18,10 @@ namespace OmegaEngine
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index - we can then use this and the space id to get the required textures when needed
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.baseColorIndex = gltf_mat.values["baseColorTexture"].TextureIndex();
+			mat.baseColorIndex = textureManager->findTexture("baseColorTexture");
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
-			mat.metallicRoughnessIndex = gltf_mat.values["metallicRoughnessTexture"].TextureIndex();
+			mat.metallicRoughnessIndex = textureManager->findTexture("metallicRoughnessTexture");
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
 			mat.pushBlock.baseColorFactor = gltf_mat.values["baseColorFactor"].Factor();
@@ -31,13 +32,13 @@ namespace OmegaEngine
 
 		// any additional textures?
 		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) {
-			mat.normalIndex = gltf_mat.additionalValues["normalTexture"].TextureIndex();
+			mat.normalIndex = textureManager->findTexture("normalTexture");
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
-			mat.emissiveIndex = gltf_mat.additionalValues["emissiveTexture"].TextureIndex();
+			mat.emissiveIndex = textureManager->findTexture("emissiveTexture");
 		}
 		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) {
-			mat.occlusionIndex = gltf_mat.additionalValues["occlusionTexture"].TextureIndex();
+			mat.occlusionIndex = textureManager->findTexture("occlusionTexture");
 		}
 
 		// check for aplha modes

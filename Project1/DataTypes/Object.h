@@ -22,6 +22,7 @@ namespace OmegaEngine
 
 		Object();
 
+		// operator overloads
 		bool operator==(const Object& obj) const;
 
 		template <typename T>
@@ -31,26 +32,17 @@ namespace OmegaEngine
 			components[id].push_back(index);
 		}
 
+		void addChild(Object& obj);
+
 		// helper functions
-		uint64_t getId() const 
-		{
-			return id; 
-		}
-
-		void setId(const uint64_t _id) 
-		{ 
-			id = _id; 
-		}
-
-		bool isAlive() const 
-		{
-			return isAlive; 
-		}
+		uint64_t getId() const;
+		void setId(const uint64_t _id);
+		bool isAlive();
 
 	private:
 
 		uint64_t id;
-		std::vector<uint64_t> children;
+		std::vector<Object> children;
 
 		// a list of all the indicies that this object is registered with for a particular manager. The idea is that pointers to components aren't used so cache performance should be improved
 		std::unordered_map<ComponentManagerId, std::vector<uint32_t> > components;

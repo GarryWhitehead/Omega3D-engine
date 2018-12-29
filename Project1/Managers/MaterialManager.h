@@ -43,11 +43,11 @@ namespace OmegaEngine
 			MaterialPushBlock pushBlock;
 
 			// material image indicies
-			int baseColorIndex;
-			int metallicRoughnessIndex;
-			int normalIndex;
-			int emissiveIndex;
-			int occlusionIndex;
+			int32_t baseColorIndex;
+			int32_t metallicRoughnessIndex;
+			int32_t normalIndex;
+			int32_t emissiveIndex;
+			int32_t occlusionIndex;
 
 			bool usingExtension = false;
 		};
