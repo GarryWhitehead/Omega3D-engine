@@ -69,6 +69,21 @@ namespace OmegaEngine
 		bool loadEnvironamnetData();
 		bool loadLights();
 
+		const char* getFilenames(uint32_t index)
+		{
+			return models[index].gltfFilename;
+		}
+
+		uint32_t modelCount() const
+		{
+			return models.size();
+		}
+
+		OEMaths::mat4f getWorldMatrix(uint32_t index)
+		{
+			return models[index].world_scale * models[index].world_rot * models[index].world_translation;
+		}
+
 	private:
 
 		Document document;

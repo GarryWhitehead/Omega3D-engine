@@ -28,8 +28,7 @@ namespace OmegaEngine
 
 		struct ModelNode
 		{
-			// index to child nodes
-			std::vector<uint32_t> children;		
+			// index to child nodes	
 			uint32_t meshIndex;
 
 			OEMaths::mat4f local_transform;
@@ -59,10 +58,7 @@ namespace OmegaEngine
 		std::unique_ptr<LightManager> lightManager;
 		std::unique_ptr<AnimationManager> animManager;
 		std::unique_ptr<MeshManager> meshManager;
-		std::unique_ptr<ObjectManager> objectManager;
-
-		std::unique_ptr<Camera> currentCamera;
-
+		
 		// list of all gltf filenames that are associated with this world. This is linearised for faster lookup
 		std::vector<Model> models;
 

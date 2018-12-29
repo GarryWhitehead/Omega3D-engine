@@ -40,7 +40,7 @@ namespace OmegaEngine
 		struct ProgramState
 		{
 			bool isRunning = false;
-			float dt;
+			float dt = 30.0f;
 		};
 
 		static ProgramState programState;

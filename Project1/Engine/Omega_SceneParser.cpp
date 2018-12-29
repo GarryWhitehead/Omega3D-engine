@@ -105,26 +105,24 @@ namespace OmegaEngine
 
 		models.resize(modelArray.Size());
 		for (uint32_t i = 0; i < modelArray.Size(); ++i) {
-			ModelInfo model;
 			auto& arr = modelArray[i];
-			model.gltfFilename = arr["Filename"].GetString();
+			models[i].gltfFilename = arr["Filename"].GetString();
 			
 			auto& rot = arr["Rotation"];
-			model.world_rot.x = rot[0].GetFloat();
-			model.world_rot.y = rot[1].GetFloat();
-			model.world_rot.z = rot[2].GetFloat();
+			models[i].world_rot.x = rot[0].GetFloat();
+			models[i].world_rot.y = rot[1].GetFloat();
+			models[i].world_rot.z = rot[2].GetFloat();
 
 			auto& sca = arr["Scale"];
-			model.world_scale.x = sca[0].GetFloat();
-			model.world_scale.y = sca[1].GetFloat();
-			model.world_scale.z = sca[2].GetFloat();
+			models[i].world_scale.x = sca[0].GetFloat();
+			models[i].world_scale.y = sca[1].GetFloat();
+			models[i].world_scale.z = sca[2].GetFloat();
 
 			auto& tran = arr["Translation"];
-			model.world_translation.x = tran[0].GetFloat();
-			model.world_translation.y = tran[1].GetFloat();
-			model.world_translation.z = tran[2].GetFloat();
-			model.world_translation.w = tran[3].GetFloat();
-
+			models[i].world_translation.x = tran[0].GetFloat();
+			models[i].world_translation.y = tran[1].GetFloat();
+			models[i].world_translation.z = tran[2].GetFloat();
+			models[i].world_translation.w = tran[3].GetFloat();
 		}
 
 		return true;

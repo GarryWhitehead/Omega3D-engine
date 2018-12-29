@@ -1,12 +1,18 @@
 #include "World.h"
+#include "Utility/logger.h"
+#include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
 #include "DataTypes/Camera.h"
 #include "ComponentSystem/ComponentSystem.h"
+#include "ComponentSystem/ObjectManager.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
 #include "Managers/SceneManager.h"
 #include "Managers/AnimationManager.h"
+#include "Managers/TransformManager.h"
+#include "Threading/ThreadPool.h"
+#include "Omega_Common.h"
 
 namespace OmegaEngine
 {
@@ -25,6 +31,9 @@ namespace OmegaEngine
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
 			compSystem->registerManager<LightManager>();
 		}
+		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL) {
+			compSystem->registerManager<TransformManager>();
+		}
 	}
 
 	World::~World()
@@ -39,16 +48,113 @@ namespace OmegaEngine
 			throw std::runtime_error("Unable to parse omega engine scene file.");
 		}
 
-		// add the data parsed from the scene file to the appropiate managers
-		auto& meshManager = compSystem->getManager<MeshManager>();
-		meshManager->addData();
+		// load and distribute the gltf data between the appropiate systems.
+#ifdef OMEGA_ENGINE_THREADED
+		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);
 
+		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
+			threads.submitTask([&parser, this, i]() { 
+				this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i)); 
+			});
+		}
+#else
+		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
+				compSystem->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
+		}
+#endif
 	}
 
 	void World::update()
 	{
 		// Check whether new spaces need to be loaded into memory or removed - if so, do this on spertate threads
 		// this depends on the max number of spaces that can be hosted on the CPU - determined by mem size
+	}
+
+	void World::addGltfData(const char* filename, OEMaths::mat4f world_mat)
+	{
+		// open the gltf file
+		tinygltf::Model model;
+		tinygltf::TinyGLTF loader;
+
+		std::string err, warn;
+		std::string ext;
+
+		FileUtil::GetFileExtension(filename, ext);
+		bool ret = false;
+		if (ext.compare("glb") == 0) {
+			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
+		}
+		else {
+			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
+		}
+
+		if (ret) {
+
+			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
+			// data will be passed to all the relevant managers for this object and components added automatically
+			tinygltf::Scene &scene = model.scenes[model.defaultScene];
+			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
+
+				Object obj = objectManager->createObject();
+
+				tinygltf::Node node = model.nodes[scene.nodes[i]];
+				loadGltfNode(-1, node, obj);
+			}
+		}
+		else {
+			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
+			throw std::runtime_error("Unable to parse gltf file.");
+		}
+	}
+
+	void World::loadGltfNode(uint32_t parentNode, tinygltf::Node& node, Object& obj)
+	{
+		NodeInfo newNode;
+
+		newNode.parentIndex = parentNode;
+		newNode.name = node.name.c_str();
+		newNode.skinIndex = node.skin;
+
+		// add all local and world transforms to the transform manager 
+		auto &transform_man = compSystem->getManager<TransformManager>();
+		transform_man->addData();
+
+		if (node.translation.size() == 3) {
+			newNode.translation = OEMaths::convert_vec3((float*)node.translation.data());
+		}
+		if (node.scale.size() == 3) {
+			newNode.scale = OEMaths::convert_vec3((float*)node.scale.data());
+		}
+		if (node.rotation.size() == 4) {
+			OEMaths::quatf q = OEMaths::convert_quat((float*)node.rotation.data());
+			newNode.rotation = OEMaths::quat_to_mat4(q);
+		}
+		if (node.matrix.size() == 16) {
+			newNode.matrix = OEMaths::convert_mat4((float*)node.rotation.data());
+		}
+
+		// if this node has children, recursively extract their info
+		if (!node.children.empty()) {
+			for (uint32_t i = 0; node.children.size(); ++i) {
+				parseNodeRecursive(newNode.index, model.nodes[node.children[i]]);
+			}
+		}
+
+		// if the node has mesh data...
+		if (node.mesh > -1) {
+
+			
+		}
+
+		if (parentNode > -1) {
+			nodeBuffer[parentNode].children.push_back(newNode.index);
+			nodeBuffer.push_back(newNode);
+			linearBuffer.push_back(newNode);
+		}
+		else {
+			nodeBuffer.push_back(newNode);
+			linearBuffer.push_back(newNode);
+		}
 	}
 
 

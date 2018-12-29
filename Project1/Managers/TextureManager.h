@@ -17,11 +17,12 @@ namespace OmegaEngine
 
 		TextureManager();
 
-		~TextureManager();
+		void addGltfImage(tinygltf::Image& image);
+		uint32_t findTexture(const char* name);
 
 	private:
 
-		std::unordered_map<int, MappedTexture> textures;
+		std::unordered_map<const char*, MappedTexture> textures;
 	};
 
 }

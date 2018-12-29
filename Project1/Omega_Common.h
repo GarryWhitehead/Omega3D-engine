@@ -5,3 +5,4 @@
 
 // number of threads allocated to various tasks
 #define ASSET_LOAD_THREAD_COUNT 2
+#define SCENE_LOAD_THREAD_COUNT 2

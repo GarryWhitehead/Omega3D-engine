@@ -1,9 +1,10 @@
 #pragma once
 
 #include <memory>
+#include <unordered_map>
 
+#include "OEMaths/OEMaths.h"
 #include "tiny_gltf.h"
-#include "glm.hpp"
 
 namespace OmegaEngine
 {
@@ -15,10 +16,11 @@ namespace OmegaEngine
 
 	public:
 
-		// in a format for sending immediately to the shader as a push
+		// in a format for sending immediately to the shader as a push if using vulkan as a renderer
 		struct MaterialPushBlock
 		{
-			float emissiveFactor;
+			OEMaths::vec3f emissiveFactor;
+			float specularGlossinessFactor;
 			float baseColourFactor;
 			float roughnessFactor;
 			float diffuseFactor;
@@ -26,24 +28,38 @@ namespace OmegaEngine
 			float specularFactor;
 			float alphaMask;
 			float alphaMaskCutOff;
-
 		};
 
 		struct MaterialInfo
 		{
-			// all the info required by the shader for PBR rendering
+			enum class AlphaMode
+			{
+				Blend,
+				Mask,
+				None
+			};
+
+			AlphaMode alphaMode = AlphaMode::None;
 			MaterialPushBlock pushBlock;
 
+			// material image indicies
+			int baseColorIndex;
+			int metallicRoughnessIndex;
+			int normalIndex;
+			int emissiveIndex;
+			int occlusionIndex;
+
+			bool usingExtension = false;
 		};
 
 		MaterialManager();
 		~MaterialManager();
 
-		void addData();
+		void addGltfMaterial(tinygltf::Material& gltf_mat);
 
 	private:
 
-		std::unordered_map<uint32_t, std::vector<Material> > materials;
+		std::unordered_map<const char*, MaterialInfo> materials;
 
 		std::unique_ptr<TextureManager> textureManager;
 	};

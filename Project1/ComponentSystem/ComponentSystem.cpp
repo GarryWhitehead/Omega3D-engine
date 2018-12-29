@@ -1,12 +1,15 @@
 #include "ComponentSystem.h"
 
-
-
-ComponentSystem::ComponentSystem()
+namespace OmegaEngine
 {
-}
+
+	ComponentSystem::ComponentSystem()
+	{
+	}
 
 
-ComponentSystem::~ComponentSystem()
-{
+	ComponentSystem::~ComponentSystem()
+	{
+	}
+
 }
