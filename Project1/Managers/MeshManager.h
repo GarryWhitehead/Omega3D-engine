@@ -3,8 +3,7 @@
 #include "tiny_gltf.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
-
-#include "Engine/GltfParser.h"
+#include "ComponentInterface/ComponentManagerBase.h"
 
 #include <memory>
 #include <tuple>
@@ -14,14 +13,11 @@
 namespace OmegaEngine
 {
 	// forard decleartions
-	struct GltfVertex;
-	struct GltfStaticMeshInfo;
-	struct GltfNodeInfo;
 	class ObjectManager;
 	class MaterialManager;
 	class Object;
 
-	class MeshManager
+	class MeshManager : public ComponentManagerBase
 	{
 
 	public:
@@ -71,8 +67,9 @@ namespace OmegaEngine
 		{
 			Dimensions dimensions;
 
-			uint32_t verticesOffset = 0;
-			uint32_t indicesOffset = 0;
+			// all vertex and index data for this mesh
+			std::vector<Vertex> vertexBuffer;
+			std::vector<uint32_t> indexBuffer;
 
 			// primitives assoicated with this mesh
 			std::vector<PrimitiveMesh> primitives;
@@ -84,6 +81,8 @@ namespace OmegaEngine
 		~MeshManager();
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj);
+
+		StaticMesh& getStaticMesh(Object& obj);
 
 		template <typename T>
 		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<uint32_t>& indiciesBuffer, uint32_t indexStart)
@@ -103,10 +102,6 @@ namespace OmegaEngine
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> staticMeshBuffer;
-
-		// all vertex and index data is stored in one long continous buffer accessed by offsets for each space
-		std::vector<Vertex> vertexBuffer;
-		std::vector<uint32_t> indexBuffer;
 
 		std::unique_ptr<MaterialManager> materialManager;
 	};

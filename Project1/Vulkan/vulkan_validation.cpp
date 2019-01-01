@@ -3,17 +3,13 @@
 #include "VulkanCore/vulkan_tools.h"
 #include <iostream>
 
-VkDebugReportCallbackEXT ValidationLayers::m_debug_callback;
+
 
 ValidationLayers::ValidationLayers() 
 {
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
-{
-	std::cerr << "Validation Layer: " << msg << "\n";
-	return VK_FALSE;
-}
+
 
 bool ValidationLayers::FindValidationLayers()
 {

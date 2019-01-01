@@ -1,25 +1,31 @@
 #pragma once
-#include "VulkanCore/vulkan_tools.h"
+#include "volk.h"
+#include "vulkan/vulkan.hpp"
 #include <vector>
 
-namespace VkInitilisation
+namespace VulkanAPI
 {
-	// functions 
-	std::vector<VkImage> PrepareSwapchain(VkDevice device,
-		VkPhysicalDevice physDevice,
-		VkInstance instance,
-		VkSurfaceKHR surface,
-		int graphIndex,
-		int presentIndex,
-		VkSurfaceFormatKHR& format,
-		VkPresentModeKHR& mode,
-		VkExtent2D& extent,
-		VkSwapchainKHR& swapChain,
-		uint32_t screenWidth,
-		uint32_t screenHeight);
+	class SwapchainKHR
+	{
+	
+	public:
 
-	std::vector<VkImageView> PrepareImageViews(VkDevice device, std::vector<VkImage>& images, VkSurfaceFormatKHR format);
-	void PrepareSemaphores(VkDevice device, VkSemaphore image, VkSemaphore present);
-	void DestroySwapChain(VkDevice device, VkSwapchainKHR swapChain, std::vector<VkImageView> imageViews);
+		SwapchainKHR(vk::Device device,
+			vk::PhysicalDevice gpu,
+			vk::Instance instance,
+			int graphIndex,
+			int presentIndex,
+			uint32_t screenWidth,
+			uint32_t screenHeight);
+
+		~SwapchainKHR();
+
+	private:
+
+		vk::SurfaceKHR surface;
+		vk::Extent2D extent;
+		vk::SwapchainKHR swapchain;
+		std::vector<vk::ImageView> image_views;
+	};
 }
 

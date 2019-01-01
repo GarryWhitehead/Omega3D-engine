@@ -9,8 +9,9 @@
 namespace OmegaEngine
 {
 	// forward declerartions
-	class ComponentSystem;
+	class ComponentInterface;
 	class ObjectManager;
+	class Camera;
 	struct Object;
 
 	enum class Managers
@@ -74,7 +75,8 @@ namespace OmegaEngine
 
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
-		std::unique_ptr<ComponentSystem> compSystem;
+		std::unique_ptr<ComponentInterface> compSystem;
+		std::unique_ptr<RenderManager> renderManager;
 
 		// cameras registered with this world
 		std::vector<std::unique_ptr<Camera> > cameras;

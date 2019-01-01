@@ -2,6 +2,8 @@
 #include <vector>
 #include <memory>
 
+#include "Engine/Omega_Config.h"
+
 // forward declerations
 class InputManager;
 struct GLFWwindow;
@@ -14,24 +16,6 @@ namespace OmegaEngine
 	class Engine
 	{
 	public:
-
-		struct EngineConfig
-		{
-			bool useSSAO = false;
-			bool useMSAA = false;
-			bool shadowsEnabled = true;
-			bool bloomEnabled = true;
-			bool fogEnabled = true;
-			bool showUi = false;
-
-			enum class AntiAlaisingMode
-			{
-
-			};
-			AntiAlaisingMode aaMode;
-
-			float targetFrameRate = 30.0f;
-		};
 
 		Engine(const char *winTitle, uint32_t width, uint32_t height);
 		~Engine();

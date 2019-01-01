@@ -2,7 +2,7 @@
 #include "Utility/logger.h"
 #include "Utility/GeneralUtil.h"
 #include "Engine/Omega_Global.h"
-#include "ComponentSystem/ObjectManager.h"
+#include "ComponentInterface/ObjectManager.h"
 #include "DataTypes/Space.h"
 
 namespace OmegaEngine
@@ -22,9 +22,6 @@ namespace OmegaEngine
 
 		tinygltf::Mesh mesh = model.meshes[node.mesh];
 		StaticMesh staticMesh;
-
-		staticMesh.verticesOffset = vertexBuffer.size();
-		staticMesh.indicesOffset = indexBuffer.size();
 
 		// get all the primitives associated with this mesh
 		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
@@ -84,7 +81,7 @@ namespace OmegaEngine
 
 			// now convert the data to a form that we can use with Vulkan
 			for (uint32_t j = 0; j < posAccessor.count; ++j) {
-				StaticMesh::Vertex vertex;
+				Vertex vertex;
 				vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3(&posBuffer[j * 3]), 1.0f);
 
 				if (normBuffer) {
@@ -101,7 +98,7 @@ namespace OmegaEngine
 					vertex.joint = OEMaths::convert_vec4(&jointBuffer[j * 4]);
 					vertex.weight = OEMaths::convert_vec4(&weightBuffer[j * 4]);
 				}
-				vertexBuffer.push_back(vertex);
+				staticMesh.vertexBuffer.push_back(vertex);
 			}
 
 			// Now obtain the indicies data from the gltf file
@@ -110,20 +107,20 @@ namespace OmegaEngine
 			tinygltf::Buffer indBuffer = model.buffers[indBufferView.buffer];
 
 			uint32_t indexCount = indAccessor.count;
-			uint32_t indexOffset = indexBuffer.size();
+			uint32_t indexOffset = staticMesh.indexBuffer.size();
 
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
 			switch (indAccessor.componentType) {
 			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
-				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, indexBuffer, indexOffset);
+				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
 			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
-				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, indexBuffer, indexOffset);
+				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
 			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
-				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, indexBuffer, indexOffset);
+				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
 			default:
@@ -140,4 +137,13 @@ namespace OmegaEngine
 		obj.addComponent<MeshManager>(staticMeshBuffer.size() - 1);
 	}
 
+	MeshManager::StaticMesh& MeshManager::getStaticMesh(Object& obj)
+	{
+		auto iter = objects.find(obj);
+		if (iter == objects.end()) {
+			return {};
+		}
+		uint32_t index = iter->second;
+		return staticMeshBuffer[index];
+	}
 }

@@ -1,74 +1,64 @@
 #include "VkSwapChain.h"
-#include "VulkanCore/VulkanDevice.h"
-#include "VulkanCore/vulkan_utility.h"
-#include "utility/file_log.h"
+
+#include "Utility/logger.h"
 #include <algorithm>
 
-namespace VkInitilisation
+namespace VulkanAPI
 {
-	std::vector<VkImage> PrepareSwapchain(VkDevice device,
-		VkPhysicalDevice physDevice,
-		VkInstance instance,
-		VkSurfaceKHR surface,
+	SwapchainKHR::SwapchainKHR(vk::Device device,
+		vk::PhysicalDevice gpu,
+		vk::Instance instance,
 		int graphIndex,
 		int presentIndex,
-		VkSurfaceFormatKHR& format,
-		VkPresentModeKHR& mode,
-		VkExtent2D& extent,
-		VkSwapchainKHR& swapChain,
 		uint32_t screenWidth,
 		uint32_t screenHeight)
 	{
 		// Get the basic surface properties of the physical device
 		uint32_t surfaceCount;
-		VkSurfaceCapabilitiesKHR capabilities;
+		
 
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physDevice, surface, &capabilities);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(physDevice, surface, &surfaceCount, nullptr);
+		VK_CHECK_RESULT(glfwCreateWindowSurface(instance, window, nullptr, &surface));
 
-		std::vector<VkSurfaceFormatKHR> formats(surfaceCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(physDevice, surface, &surfaceCount, formats.data());
-
-		// And then get the presentation modes available for this device
-		uint32_t presentCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(physDevice, surface, &presentCount, nullptr);
-
-		std::vector<VkPresentModeKHR> modes(presentCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(physDevice, surface, &presentCount, modes.data());
+		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
+		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(surface);
+		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(surface);
 
 		// make sure that we have suitable swap chain extensions available before continuing
-		if (formats.empty() || modes.empty()) {
-			g_filelog->WriteLog("Critcal error! Unable to locate suitable swap chains on device.");
-			exit(EXIT_FAILURE);
+		if (formats.empty() || present_modes.empty()) {
+			LOGGER_ERROR("Critcal error! Unable to locate suitable swap chains on device.");
+			throw std::runtime_error("Unable to initialise KHR swapchain");
 		}
 
 		// Next step is to determine the surface format. Ideally undefined format is preffered so we can set our own, otherwise
 		// we will go with one that suits our colour needs - i.e. 8bitBGRA and SRGB.
-		if ((formats.size() > 0) && (formats[0].format == VK_FORMAT_UNDEFINED))
+		vk::SurfaceFormatKHR req_surf_format;
+
+		if ((formats.size() > 0) && (formats[0].format == vk::Format::eUndefined))
 		{
-			format.format = VK_FORMAT_B8G8R8A8_UNORM;
-			format.colorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR;
+			req_surf_format.format = vk::Format::eB8G8R8A8Unorm;
+			req_surf_format.colorSpace = vk::ColorSpaceKHR::eSrgbNonlinear;
 		}
 		else
 		{
 			for (auto& format : formats)
-				if (format.format == VK_FORMAT_B8G8R8A8_UNORM && format.colorSpace == VK_COLORSPACE_SRGB_NONLINEAR_KHR)
+				if (format.format == vk::Format::eB8G8R8A8Unorm && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
 				{
-					format = format;
+					req_surf_format = format;
 					break;
 				}
 		}
 
 		// And then the presentation format - the preferred format is triple buffering
-		for (auto& mode : modes)
-			if (mode == VK_PRESENT_MODE_MAILBOX_KHR)													// our preferred triple buffering mode
+		vk::PresentModeKHR req_mode;
+		for (auto& mode : present_modes)
+			if (mode == vk::PresentModeKHR::eMailbox)													// our preferred triple buffering mode
 			{
-				mode = mode;
+				req_mode = mode;
 				break;
 			}
-			else if (mode == VK_PRESENT_MODE_IMMEDIATE_KHR)
+			else if (mode == vk::PresentModeKHR::eImmediate)
 			{
-				mode = mode;																	// immediate mode is only supported on some drivers.
+				req_mode = mode;																	// immediate mode is only supported on some drivers.
 				break;
 			}
 
@@ -85,75 +75,51 @@ namespace VkInitilisation
 
 		// Get the number of possible images we can send to the queue
 		uint32_t imageCount = capabilities.minImageCount + 1;								 // adding one as we would like to implement triple buffering
-		if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
+		if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount) {
 			imageCount = capabilities.maxImageCount;
-
-		VkSwapchainCreateInfoKHR createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = surface;
-		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = format.format;
-		createInfo.imageColorSpace = format.colorSpace;
-		createInfo.imageExtent = extent;
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		createInfo.preTransform = capabilities.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.presentMode = mode;
-		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
+		}
 
 		// if the graphics and presentation aren't the same then use concurrent sharing mode
-		uint32_t queueIndicies[] = { graphIndex, presentIndex };
+		std::vector<uint32_t> queue_family_indicies;
+		vk::SharingMode sharing_mode = vk::SharingMode::eExclusive;
 
 		if (graphIndex != presentIndex)
 		{
-			createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-			createInfo.queueFamilyIndexCount = 2;
-			createInfo.pQueueFamilyIndices = queueIndicies;
+			sharing_mode = vk::SharingMode::eConcurrent;
+			queue_family_indicies.push_back(graphIndex);
+			queue_family_indicies.push_back(presentIndex);
 		}
-		else
-		{
-			createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-			createInfo.queueFamilyIndexCount = 0;
-			createInfo.pQueueFamilyIndices = nullptr;
-		}
+
+		vk::SwapchainCreateInfoKHR createInfo({},
+			surface,
+			imageCount,
+			req_surf_format.format,
+			req_surf_format.colorSpace,
+			extent,
+			1, vk::ImageUsageFlagBits::eColorAttachment,
+			sharing_mode,
+			queue_family_indicies.empty() ? 0 : static_cast<uint32_t>(queue_family_indicies.size()),
+			queue_family_indicies.empty() ? nullptr : queue_family_indicies.data(),
+			capabilities.currentTransform,
+			vk::CompositeAlphaFlagBitsKHR::eOpaque,
+			req_mode, VK_TRUE, VK_NULL_HANDLE);
 
 		// And finally, create the swap chain
-		VK_CHECK_RESULT(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain));
+		VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain));
 
 		// Get the image loactions created when creating the swap chains
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, nullptr);
-
-		std::vector<VkImage> images(imageCount);
-		vkGetSwapchainImagesKHR(device, swapChain, &imageCount, images.data());
-
-		return images;
-	}
-
-	std::vector<VkImageView> PrepareImageViews(VkDevice device, std::vector<VkImage>& images, VkSurfaceFormatKHR format)
-	{
-		std::vector<VkImageView> imageViews;
+		std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
 
 		for (int c = 0; c < images.size(); ++c)
 		{
-			VkImageView imageView = VulkanUtility::InitImageView(images[c], format.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, device);
-			imageViews.push_back(imageView);
+			vk::ImageView imageView = VulkanUtility::InitImageView(images[c], req_surf_format.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, device);
+			image_views.push_back(imageView);
 		}
-
-		return imageViews;
 	}
 
-	void PrepareSemaphores(VkDevice device, VkSemaphore image, VkSemaphore present)
+	SwapchainKHR::~SwapchainKHR()
 	{
-		image = VulkanUtility::CreateSemaphore(device);
-		present = VulkanUtility::CreateSemaphore(device);
-	}
-
-
-	void DestroySwapChain(VkDevice device, VkSwapchainKHR swapChain, std::vector<VkImageView> imageViews)
-	{
-		for (int c = 0; c < imageViews.size(); ++c)
+		for (int c = 0; c < image_views.size(); ++c)
 			vkDestroyImageView(device, imageViews[c], nullptr);
 
 		vkDestroySwapchainKHR(device, swapChain, nullptr);

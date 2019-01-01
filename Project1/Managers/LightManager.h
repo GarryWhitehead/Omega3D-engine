@@ -1,11 +1,12 @@
 #pragma once
 
+#include "ComponentInterface/ComponentManagerBase.h"
 #include "tiny_gltf.h"
 
 namespace OmegaEngine
 {
 
-	class LightManager
+	class LightManager : public ComponentManagerBase
 	{
 
 	public:

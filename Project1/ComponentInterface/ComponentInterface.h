@@ -9,25 +9,17 @@
 namespace OmegaEngine
 {
 
-	class ComponentBase
-	{
-	public:
+	// forward declearations
+	class Object;
+	class ComponentBase;
 
-		// abstract functions
-		virtual void Update() = 0;
-
-	private:
-
-		uint32_t id;
-	};
-
-	class ComponentSystem
+	class ComponentInterface
 	{
 
 	public:
 
-		ComponentSystem();
-		~ComponentSystem();
+		ComponentInterface();
+		~ComponentInterface();
 
 		template<typename T, typename... Args>
 		void registerManager()
@@ -65,6 +57,16 @@ namespace OmegaEngine
 				return true;
 			}
 			return false;
+		}
+
+		template <typename T>
+		void addComponentToObject(Object& obj)
+		{
+			uint32_t man_id = Util::event_type_id<T>();
+			if (managers.find(man_id) == manager.end()) {
+				return;
+			}
+			managers[man_id]->addObject(obj);
 		}
 
 	protected:

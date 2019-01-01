@@ -3,6 +3,7 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
+#include "ComponentInterface/ComponentManagerBase.h"
 #include "tiny_gltf.h"
 
 namespace OmegaEngine
@@ -10,7 +11,7 @@ namespace OmegaEngine
 	// forward declerations
 	class Object;
 
-	class AnimationManager
+	class AnimationManager : public ComponentManagerBase
 	{
 
 	public:

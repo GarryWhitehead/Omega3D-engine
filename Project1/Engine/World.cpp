@@ -3,14 +3,15 @@
 #include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
 #include "DataTypes/Camera.h"
-#include "ComponentSystem/ComponentSystem.h"
-#include "ComponentSystem/ObjectManager.h"
+#include "ComponentInterface/ComponentInterface.h"
+#include "ComponentInterface/ObjectManager.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
 #include "Managers/SceneManager.h"
 #include "Managers/AnimationManager.h"
 #include "Managers/TransformManager.h"
+#include "Rendering/RenderManager.h"
 #include "Threading/ThreadPool.h"
 #include "Omega_Common.h"
 
@@ -19,8 +20,9 @@ namespace OmegaEngine
 	
 	World::World(Managers managers)
 	{
-		compSystem = std::make_unique<ComponentSystem>();
-		
+		compSystem = std::make_unique<ComponentInterface>();
+		renderManager = std::make_unique<RenderManager>();
+
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
 			compSystem->registerManager<MeshManager>();
@@ -98,7 +100,11 @@ namespace OmegaEngine
 				Object obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
+		
 				loadGltfNode(model, node, world_mat, objectManager, obj, false);
+
+				// add as renderable targets
+				renderManager->getInterface()->addRenderable(compSystem, obj);
 			}
 		}
 		else {

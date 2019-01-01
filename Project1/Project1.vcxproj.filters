@@ -189,16 +189,10 @@
     <ClCompile Include="Vulkan\VulkanDeferred.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\VulkanDevice.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vulkan\VulkanGUI.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\VulkanIBL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\VulkanModel.cpp">
@@ -258,10 +252,19 @@
     <ClCompile Include="Managers\TransformManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentSystem\ObjectManager.cpp">
+    <ClCompile Include="ComponentInterface\ComponentInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentSystem\ComponentSystem.cpp">
+    <ClCompile Include="ComponentInterface\ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\Renderer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RenderInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Device.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -437,16 +440,10 @@
     <ClInclude Include="Vulkan\VulkanDeferred.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\VulkanDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\VulkanGUI.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\VulkanIBL.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanInstance.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\VulkanModel.h">
@@ -518,10 +515,31 @@
     <ClInclude Include="Managers\TransformManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentSystem\ObjectManager.h">
+    <ClInclude Include="Engine\Omega_Config.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ComponentSystem\ComponentSystem.h">
+    <ClInclude Include="ComponentInterface\ComponentInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInterface\ComponentManagerBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ComponentInterface\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\Renderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderableTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Device.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

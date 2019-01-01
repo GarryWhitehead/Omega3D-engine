@@ -1,4 +1,5 @@
-#include "ComponentSystem/ObjectManager.h"
+#include "ComponentInterface/ObjectManager.h"
+
 #include "DataTypes/Object.h"
 
 namespace OmegaEngine

@@ -4,16 +4,25 @@
 #include "Engine/World.h"
 #include "Engine/Engine.h"
 
-
-RenderManager:kRenderManager() :
-
-{	
-	
-}
-
-VkRenderManager::~VkRenderManager()
+namespace OmegaEngine
 {
-	Destroy();
+
+	RenderManager::RenderManager(RenderConfig& config) :
+		renderConfig(config)
+	{
+		render_interface = std::make_unique<RenderInterface>();
+		
+		// initiliase the graphical backend - we are solely using Vulkan 
+
+
+		// now initialise all the core graphical modules such as the deferred shader, etc. in conjuction with the render configs
+
+	}
+	 RenderManager::~RenderManager()
+	{
+
+	}
+
 }
 
 

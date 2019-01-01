@@ -1,6 +1,7 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
+#include "ComponentInterface/ComponentManagerBase.h"
 
 #include "tiny_gltf.h"
 
@@ -9,7 +10,7 @@ namespace OmegaEngine
 	// forward decleartions
 	class Object;
 
-	class TransformManager
+	class TransformManager : public ComponentManagerBase
 	{
 
 	public:
@@ -31,7 +32,7 @@ namespace OmegaEngine
 		TransformManager();
 		~TransformManager();
 
-		void addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
+		uint32_t addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
 
 	private:
 

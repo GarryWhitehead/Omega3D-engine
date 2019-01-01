@@ -13,7 +13,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
+	uint32_t TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
 	{
 		TransformData transform;
 		
@@ -37,7 +37,7 @@ namespace OmegaEngine
 		}
 		transformBuffer.push_back(transform);
 
-		// add transform mananager to the object
-		obj.addComponent<TransformManager>(transformBuffer.size() - 1);
+		// add to the list of entites
+		objects[obj] = transformBuffer.size() - 1;
 	}
 }
