@@ -18,10 +18,10 @@
 namespace OmegaEngine
 {
 	
-	World::World(Managers managers)
+	World::World(Managers managers, VulkanAPI::Device device)
 	{
-		compSystem = std::make_unique<ComponentInterface>();
-		renderManager = std::make_unique<RenderManager>();
+		compSystem = std::make_unique<ComponentInterface>(device);
+		render_interface = std::make_unique<RenderInterface>();
 
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {

@@ -12,10 +12,7 @@ namespace OmegaEngine
 	{
 		render_interface = std::make_unique<RenderInterface>();
 		
-		// initiliase the graphical backend - we are solely using Vulkan 
-
-
-		// now initialise all the core graphical modules such as the deferred shader, etc. in conjuction with the render configs
+		
 
 	}
 	 RenderManager::~RenderManager()

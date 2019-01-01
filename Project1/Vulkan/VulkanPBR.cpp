@@ -4,7 +4,7 @@
 #include "VulkanCore/VulkanEngine.h"
 #include "Systems/camera_system.h"
 
-VulkanPBR::VulkanPBR(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanPBR::VulkanPBR(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

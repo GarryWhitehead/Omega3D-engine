@@ -2,7 +2,7 @@
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/vulkan_tools.h"
 #include "ComponentManagers/LightComponentManager.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 
 #include "glm.hpp"
 
@@ -11,7 +11,7 @@ class VulkanTexture;
 class VulkanRenderPass;
 class VulkanEngine;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 
 class VulkanDeferred : public VulkanModule
 {
@@ -81,13 +81,13 @@ public:
 
 	struct BufferInfo
 	{
-		VkMemoryManager::SegmentInfo vertexUbo;
-		VkMemoryManager::SegmentInfo fragmentUbo;
-		VkMemoryManager::SegmentInfo vertices;
-		VkMemoryManager::SegmentInfo indices;
+		MemoryAllocator::SegmentInfo vertexUbo;
+		MemoryAllocator::SegmentInfo fragmentUbo;
+		MemoryAllocator::SegmentInfo vertices;
+		MemoryAllocator::SegmentInfo indices;
 	};
 
-	VulkanDeferred(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanDeferred(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanDeferred();
 
 	void Init();

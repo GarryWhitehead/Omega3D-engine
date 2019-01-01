@@ -10,6 +10,21 @@ namespace VulkanAPI
 
 	class Device
 	{
+	
+	public:
+		enum class QueueType
+		{
+			Graphics,
+			Present,
+			Compute,
+			Count
+		};
+
+		enum class SurfaceType
+		{
+			SurfaceKHR,
+			None
+		};
 
 		struct Extensions
 		{
@@ -18,17 +33,42 @@ namespace VulkanAPI
 			bool has_debug_utils = false;
 		};
 
-	public:
 
 		Device();
 		~Device();
 
-		void CreateInstance(const char **glfwExtension, uint32_t extCount);
-		void prepareQueueIndices();
-		void prepareQueues();
-		void preparePhysicalDevice();
-		void getPhysicalDeviceFeatures();
+		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();
+
+		vk::Instance& getInstance()
+		{
+			return instance;
+		}
+
+		vk::Device& getDevice()
+		{
+			return device;
+		}
+
+		vk::PhysicalDevice& getPhysicalDevice()
+		{
+			return physical;
+		}
+
+		vk::SurfaceKHR& getSurface()
+		{
+			return surface;
+		}
+
+		uint32_t getQueueIndex(QueueType type) const;
+		vk::Queue& getQueue(QueueType type);
+
+		void set_window_surface(vk::SurfaceKHR surface, SurfaceType type = SurfaceType::SurfaceKHR)
+		{
+			assert(surface != VK_NULL_HANDLE);
+			win_surface = surface;
+			surface_type = type;
+		}
 
 	private:
 
@@ -58,16 +98,22 @@ namespace VulkanAPI
 			vk::SwapchainKHR swapchain;
 		} swapchain;
 
+		// the images views for rendering via the framebuffer
 		std::vector<VkImageView> imageViews;
 
 		// and syncig semaphores for the swapchain
 		vk::Semaphore imageSemaphore;
 		vk::Semaphore presentSemaphore;
 
-		// extensions
+		// supported extensions
 		Extensions device_ext;
 
+		// validation layers
 		std::vector<const char*> layers;
+
+		// the window surface that is linked to this device
+		SurfaceType surface_type;
+		vk::SurfaceKHR win_surface;
 	};
 
 }

@@ -13,7 +13,7 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include <gtc/matrix_transform.hpp>
 
-VulkanDeferred::VulkanDeferred(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanDeferred::VulkanDeferred(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

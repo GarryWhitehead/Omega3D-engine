@@ -1,24 +1,20 @@
 #pragma once
 #include "volk.h"
 #include "vulkan/vulkan.hpp"
+#include "Vulkan/Device.h"
 #include <vector>
 
 namespace VulkanAPI
 {
-	class SwapchainKHR
+	class Swapchain
 	{
 	
 	public:
 
-		SwapchainKHR(vk::Device device,
-			vk::PhysicalDevice gpu,
-			vk::Instance instance,
-			int graphIndex,
-			int presentIndex,
-			uint32_t screenWidth,
-			uint32_t screenHeight);
-
-		~SwapchainKHR();
+		Swapchain();
+		~Swapchain();
+		
+		void create(VulkanAPI::Device& device, const uint32_t screenWidth, const uint32_t screenHeight);
 
 	private:
 

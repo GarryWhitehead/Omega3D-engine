@@ -14,7 +14,7 @@
 #include "ComponentManagers/LightComponentManager.h"
 #include <algorithm>
 
-VulkanShadow::VulkanShadow(VulkanEngine* engine, VkMemoryManager *memory) :
+VulkanShadow::VulkanShadow(VulkanEngine* engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

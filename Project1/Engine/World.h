@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+#include "Vulkan/Device.h"
 #include "OEMaths/OEMaths.h"
 #include "tiny_gltf.h"
 
@@ -63,7 +64,7 @@ namespace OmegaEngine
 
 		};
 
-		World(Managers managers);
+		World(Managers managers, VulkanAPI::Device device);
 		~World();
 
 		bool create(const char* filename);
@@ -76,7 +77,7 @@ namespace OmegaEngine
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> compSystem;
-		std::unique_ptr<RenderManager> renderManager;
+		std::unique_ptr<RenderInterface> render_interface;
 
 		// cameras registered with this world
 		std::vector<std::unique_ptr<Camera> > cameras;

@@ -1,6 +1,6 @@
 #include "VulkanTexture.h"
 #include "VulkanCore/VulkanEngine.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 #include "utility/file_log.h"
 
 
@@ -155,7 +155,7 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 	CreateTextureSampler(samplerMode, 1.0, VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE, VK_FILTER_LINEAR);
 }
 
-void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
+void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkCommandPool cmdPool, VkQueue graphQueue, MemoryAllocator *p_vkMemory)
 {
 	assert(tex_data != nullptr);
 
@@ -237,7 +237,7 @@ void VulkanTexture::GenerateMipChain(uint32_t mipLevels, VkCommandPool cmdPool, 
 	VulkanUtility::SubmitCmdBufferToQueue(cmdBuffer, graphQueue, cmdPool, device);
 }
 
-void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
+void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, MemoryAllocator *p_vkMemory)
 {	
 	gli::texture2d tex2d(gli::load(filename.c_str()));
 	if (tex2d.size() == 0) {
@@ -250,72 +250,10 @@ void VulkanTexture::LoadTexture(std::string filename, const VkSamplerAddressMode
 	size = static_cast<uint32_t>(tex2d.size());
 	mipLevels = static_cast<uint32_t>(tex2d.levels());
 
-	VkDeviceMemory stagingMemory;
-	VkBuffer staging_buff;
-	p_vkMemory->CreateBuffer(size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, stagingMemory, staging_buff);
-
-	void *data;
-	vkMapMemory(device, stagingMemory, 0, size, 0, &data);
-	memcpy(data, tex2d.data(), size);
-	vkUnmapMemory(device, stagingMemory);
-
 	
-
-	VK_CHECK_RESULT(vkCreateImage(device, &image_info, nullptr, &image));
-
-	VkMemoryRequirements mem_req;
-	vkGetImageMemoryRequirements(device, image, &mem_req);
-
-	VkMemoryAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	alloc_info.allocationSize = mem_req.size;
-	alloc_info.memoryTypeIndex = VulkanUtility::FindMemoryType(mem_req.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, physDevice);
-
-	VK_CHECK_RESULT(vkAllocateMemory(device, &alloc_info, nullptr, &texMemory));
-
-	vkBindImageMemory(device, image, texMemory, 0);
-
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device, mipLevels, 1);
-
-	// copy image
-	VkCommandBuffer comm_buff = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
-
-	std::vector<VkBufferImageCopy> imageCopyBuffers;
-	uint32_t offset = 0;
-
-	for (uint32_t level = 0; level < mipLevels; ++level) {
-
-		VkBufferImageCopy image_copy = {};
-		image_copy.imageExtent.width = static_cast<uint32_t>(tex2d[level].extent().x);
-		image_copy.imageExtent.height = static_cast<uint32_t>(tex2d[level].extent().y);
-		image_copy.imageExtent.depth = 1;
-		image_copy.bufferOffset = 0;
-		image_copy.bufferRowLength = 0;
-		image_copy.bufferImageHeight = 0;
-		image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		image_copy.imageSubresource.mipLevel = level;
-		image_copy.imageSubresource.layerCount = 1;
-		image_copy.imageSubresource.baseArrayLayer = 0;
-		image_copy.imageOffset = { 0,0,0 };
-		imageCopyBuffers.emplace_back(image_copy);
-
-		offset += static_cast<uint32_t>(tex2d[level].size());
-	}
-
-	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
-	VulkanUtility::SubmitCmdBufferToQueue(comm_buff, graphQueue, cmdPool, device);
-
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device, mipLevels, 1);
-
-	imageView = VulkanUtility::InitImageView(image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, device);
-
-	CreateTextureSampler(addrMode, maxAnisotropy, color, VK_FILTER_LINEAR);
-
-	vkDestroyBuffer(device, staging_buff, nullptr);
-	vkFreeMemory(device, stagingMemory, nullptr);
 }
 
-void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
+void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddressMode addrMode, float maxAnisotropy, const VkBorderColor color, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, MemoryAllocator *p_vkMemory)
 {	
 	gli::texture2d_array tex2d(gli::load(filename.c_str()));
 	if (tex2d.size() == 0) {
@@ -417,7 +355,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 
 }
 
-void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, VkMemoryManager *p_vkMemory)
+void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, const VkCommandPool cmdPool, VkQueue graphQueue, MemoryAllocator *p_vkMemory)
 {
 	gli::texture_cube tex(gli::load(filename.c_str()));
 	if (tex.size() == 0) {

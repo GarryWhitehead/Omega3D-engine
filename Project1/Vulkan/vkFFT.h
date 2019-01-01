@@ -4,7 +4,7 @@
 // 
 
 #include "VulkanCore/Vulkan_tools.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 
 class VulkanEngine;
 class VulkanTexture;
@@ -29,7 +29,7 @@ public:
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		VkDescriptors *descriptors;
 		VkPipelineShaderStageCreateInfo shader;
-		VkMemoryManager::SegmentInfo uboBuffer;
+		MemoryAllocator::SegmentInfo uboBuffer;
 	};
 
 	struct ButterFlyPushData
@@ -73,7 +73,7 @@ public:
 		float gridLength;
 	};
 
-	vkFFT(VulkanEngine *engine, VkMemoryManager *memory);
+	vkFFT(VulkanEngine *engine, MemoryAllocator *memory);
 	~vkFFT();
 
 	void Update(float acc_time, uint32_t patchLength);
@@ -104,24 +104,24 @@ private:
 	void Destroy();			// private to ensure the class isn't destroyed twice
 
 	VulkanEngine *p_vkEngine;
-	VkMemoryManager *p_vkMemory;
+	MemoryAllocator *p_vkMemory;
 
 	// buffers for h0(k) and h0(-k)
-	VkMemoryManager::SegmentInfo h0k_map;
-	VkMemoryManager::SegmentInfo h0minusk_map;
-	VkMemoryManager::SegmentInfo omega_map;
-	VkMemoryManager::SegmentInfo bitrev_map;
+	MemoryAllocator::SegmentInfo h0k_map;
+	MemoryAllocator::SegmentInfo h0minusk_map;
+	MemoryAllocator::SegmentInfo omega_map;
+	MemoryAllocator::SegmentInfo bitrev_map;
 
 	// ssbo buffers for d(x, y, z)
-	VkMemoryManager::SegmentInfo ssbo_dxyz;
+	MemoryAllocator::SegmentInfo ssbo_dxyz;
 
 	// pingpong buffers
-	VkMemoryManager::SegmentInfo ssbo_pingpong;
+	MemoryAllocator::SegmentInfo ssbo_pingpong;
 
 	// ubo buffers
-	VkMemoryManager::SegmentInfo ubo_spectrum;
-	VkMemoryManager::SegmentInfo ubo_displacement;
-	VkMemoryManager::SegmentInfo ubo_normal;
+	MemoryAllocator::SegmentInfo ubo_spectrum;
+	MemoryAllocator::SegmentInfo ubo_displacement;
+	MemoryAllocator::SegmentInfo ubo_normal;
 
 	// pipeline data
 	FFTstageInfo m_fftSpectrum;

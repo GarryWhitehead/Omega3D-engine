@@ -1,27 +1,19 @@
 #pragma once
 
-#include "volk.h"
 #include <string>
+#include <iostream>
 
-#define VULKAN_VALIDATION_DEBUG
+#include "vulkan/vulkan.hpp"
+#include "volk.h"
 
-std::string errorString(VkResult errorCode);
+// sets whether we should use validation layers for debugging
+#define VULKAN_VALIDATION_DEBUG 1
 
-#define VK_CHECK_RESULT(f)																				\
-{																										\
-	VkResult res = (f);																					\
-	if (res != VK_SUCCESS)																				\
-	{																									\
-		std::cout << "Fatal : VkResult is \"" << errorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
-		assert(res == VK_SUCCESS);																		\
-	}																									\
-}
-
-static std::string errorString(VkResult errorCode)
+static std::string errorString(vk::Result errorCode)
 {
 	switch (errorCode)
 	{
-#define STR(r) case VK_ ##r: return #r
+#define STR(r) case ##r: return #r
 		STR(NOT_READY);
 		STR(TIMEOUT);
 		STR(EVENT_SET);
@@ -51,22 +43,12 @@ static std::string errorString(VkResult errorCode)
 	}
 }
 
-namespace Vulkan
-{
-	//forward decleartion
-	struct GLFWwindow;
-
-	class VulkanMain
-	{
-
-	public:
-
-		VulkanMain(GLFWwindow *window, uint32_t width, uint32_t height);
-		~VulkanMain();
-
-	private:
-
-	};
-
+#define VK_CHECK_RESULT(f)																				\
+{																										\
+	vk::Result res = (f);																					\
+	if (res != vk::Result::eSuccess)																				\
+	{																									\
+		std::cout << "Fatal : VkResult is \"" << errorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
+		assert(res == vk::Result::eSuccess);																		\
+	}																									\
 }
-

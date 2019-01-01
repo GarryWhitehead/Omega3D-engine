@@ -5,7 +5,7 @@
 #include "utility/RandomNumber.h"
 #include "Engine/engine.h"
 
-vkFFT::vkFFT(VulkanEngine *engine, VkMemoryManager *memory) :
+vkFFT::vkFFT(VulkanEngine *engine, MemoryAllocator *memory) :
 	p_vkEngine(engine),
 	p_vkMemory(memory)
 {

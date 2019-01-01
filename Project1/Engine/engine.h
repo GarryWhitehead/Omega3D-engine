@@ -47,7 +47,11 @@ namespace OmegaEngine
 
 		// a collection of worlds registered with the engine
 		std::vector<std::unique_ptr<World> > worlds;
-		uint32_t currentWorldIndex;							
+		uint32_t currentWorldIndex;		
+
+		// a list of all grpahics devices that are available
+		std::vector<VulkanAPI::Device> gfx_devices;
+		uint8_t current_gfx_device;
 	};
 
 }

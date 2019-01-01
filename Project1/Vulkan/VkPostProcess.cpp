@@ -9,7 +9,7 @@
 #include "Engine/World.h"
 #include <gtc/matrix_transform.hpp>
 
-VkPostProcess::VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory) :
+VkPostProcess::VkPostProcess(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine),
 	offscreen_cmdBuffer(VK_NULL_HANDLE)

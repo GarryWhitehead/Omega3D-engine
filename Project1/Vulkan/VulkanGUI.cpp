@@ -26,7 +26,7 @@ VulkanGUI::~VulkanGUI()
 	Destroy();
 }
 
-void VulkanGUI::SetupGUI(VkMemoryManager *p_vkMemory)
+void VulkanGUI::SetupGUI(MemoryAllocator *p_vkMemory)
 {
 	
 	// setup imGui to be used with GLFW and Vulkan
@@ -268,7 +268,7 @@ void VulkanGUI::NewFrame()
 	ImGui::Render();
 }
 
-void VulkanGUI::UpdateBuffers(VkMemoryManager *p_vkMemory)
+void VulkanGUI::UpdateBuffers(MemoryAllocator *p_vkMemory)
 {
 	ImDrawData *guiDraw = ImGui::GetDrawData();
 
@@ -304,7 +304,7 @@ void VulkanGUI::UpdateBuffers(VkMemoryManager *p_vkMemory)
 	}
 }
 
-void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_vkMemory)
+void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, MemoryAllocator *p_vkMemory)
 {
 	ImGuiIO &guiIO = ImGui::GetIO();
 
@@ -370,7 +370,7 @@ void VulkanGUI::Update()
 	guiIO.MouseDown[1] = p_input->ButtonState(GLFW_MOUSE_BUTTON_RIGHT);
 }
 
-void VulkanGUI::Init(VkMemoryManager *p_vkMemory)
+void VulkanGUI::Init(MemoryAllocator *p_vkMemory)
 {
 	SetupGUI(p_vkMemory);
 	PrepareDescriptors();

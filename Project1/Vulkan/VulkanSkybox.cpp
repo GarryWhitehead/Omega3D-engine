@@ -9,7 +9,7 @@
 #include "Engine/world.h"
 #include "Engine/engine.h"
 
-VulkanSkybox::VulkanSkybox(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanSkybox::VulkanSkybox(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

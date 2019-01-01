@@ -21,7 +21,7 @@ public:
 		glm::vec2 uv;
 	};
 
-	VulkanPBR(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanPBR(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanPBR();
 
 	void Init();

@@ -1,7 +1,7 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/vulkan_tools.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 #include "glm.hpp"
 #include <array>
 
@@ -63,7 +63,7 @@ public:
 		VkDescriptors *descriptors;
 		VulkanRenderPass *renderpass;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		VkMemoryManager::SegmentInfo uboBuffer;
+		MemoryAllocator::SegmentInfo uboBuffer;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 	};
 
@@ -74,7 +74,7 @@ public:
 		VulkanRenderPass *renderpassVert;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
-		VkMemoryManager::SegmentInfo uboBuffer;
+		MemoryAllocator::SegmentInfo uboBuffer;
 	};
 	
 	struct DebugInfo
@@ -84,7 +84,7 @@ public:
 		VkDescriptors *descriptors;
 	};
 
-	VkPostProcess(VulkanEngine *engine, VkMemoryManager *memory);
+	VkPostProcess(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VkPostProcess();
 
 	void Init() override;
@@ -120,9 +120,9 @@ private:
 	DebugInfo m_debugInfo;
 		 
 	// buffers for vertices, etc.
-	VkMemoryManager::SegmentInfo m_vertices;
-	VkMemoryManager::SegmentInfo m_indices;
-	VkMemoryManager::SegmentInfo m_vertBuffer;		// vertex ubo buffer 
+	MemoryAllocator::SegmentInfo m_vertices;
+	MemoryAllocator::SegmentInfo m_indices;
+	MemoryAllocator::SegmentInfo m_vertBuffer;		// vertex ubo buffer 
 
 	VkCommandBuffer offscreen_cmdBuffer;
 	VkSemaphore offscreen_semaphore;

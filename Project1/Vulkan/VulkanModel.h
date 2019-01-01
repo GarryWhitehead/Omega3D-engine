@@ -1,7 +1,7 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/vulkan_tools.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 #include "ComponentManagers/MeshComponentManager.h"
 #include <vector>
 
@@ -9,7 +9,7 @@ class VulkanEngine;
 class VkDescriptors;
 class VulkanTexture;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 
 enum class MaterialTexture
 {
@@ -122,7 +122,7 @@ public:
 		glm::mat4 boneTransform[MAX_BONES];
 	};
 
-	VulkanModel(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanModel(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanModel();
 
 	void Init();
@@ -155,9 +155,9 @@ private:
 	VulkanEngine *p_vkEngine;
 
 	// buffer info for the "mega" buffer which holds all the models and are referenced via offsets
-	VkMemoryManager::SegmentInfo m_vertexBuffer;
-	VkMemoryManager::SegmentInfo m_indexBuffer;
-	VkMemoryManager::SegmentInfo m_ssboBuffer;
+	MemoryAllocator::SegmentInfo m_vertexBuffer;
+	MemoryAllocator::SegmentInfo m_indexBuffer;
+	MemoryAllocator::SegmentInfo m_ssboBuffer;
 
 	// pipeline data
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;

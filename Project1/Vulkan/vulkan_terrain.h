@@ -2,7 +2,7 @@
 #include "VulkanCore/vulkan_tools.h"
 #include "VulkanCore/VulkanModule.h"
 #include "VulkanCore/TerrainUtility.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 #include <vector>
 #include <string>
 #include <vector>
@@ -11,7 +11,7 @@
 class VulkanEngine;
 class VulkanShadow;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 class VkDescriptors;
 class VulkanTexture;
 class VulkanRenderPass;
@@ -46,9 +46,9 @@ public:
 	{
 		struct BufferInfo
 		{
-			VkMemoryManager::SegmentInfo index;
-			VkMemoryManager::SegmentInfo vertex;
-			VkMemoryManager::SegmentInfo ubo;
+			MemoryAllocator::SegmentInfo index;
+			MemoryAllocator::SegmentInfo vertex;
+			MemoryAllocator::SegmentInfo ubo;
 			uint32_t indexCount;
 		} buffer;
 
@@ -63,7 +63,7 @@ public:
 		
 	};
 
-	VulkanTerrain(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanTerrain(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanTerrain();
 
 	void Init();

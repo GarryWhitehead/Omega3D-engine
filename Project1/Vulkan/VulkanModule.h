@@ -1,14 +1,14 @@
 #pragma once
 #include "VulkanCore/vulkan_utility.h"
 
-class VkMemoryManager;
+class MemoryAllocator;
 
 class VulkanModule
 {
 
 public:
 
-	VulkanModule(VkMemoryManager *memory);
+	VulkanModule(MemoryAllocator *memory);
 	~VulkanModule();
 
 	virtual void Init() = 0;
@@ -18,6 +18,6 @@ public:
 protected:
 
 	// all modules have access to the vulkan memory management class
-	VkMemoryManager *p_vkMemory;
+	MemoryAllocator *p_vkMemory;
 };
 

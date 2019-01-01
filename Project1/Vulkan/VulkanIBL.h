@@ -10,7 +10,7 @@ class VulkanTexture;
 class VulkanRenderPass;
 class VulkanEngine;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 
 class VulkanIBL : public VulkanModule
 {
@@ -52,7 +52,7 @@ public:
 		VkPipeline pipeline;
 	};
 
-	VulkanIBL(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanIBL(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanIBL();
 
 	void Init();

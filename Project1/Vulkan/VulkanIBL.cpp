@@ -7,7 +7,7 @@
 #include "VulkanCore/VulkanModel.h"
 #include "Systems/camera_system.h"
 
-VulkanIBL::VulkanIBL(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanIBL::VulkanIBL(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

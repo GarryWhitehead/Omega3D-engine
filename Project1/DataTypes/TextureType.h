@@ -2,27 +2,68 @@
 
 #include "volk.h"
 
-class MappedTexture
+namespace OmegaEngine
 {
-	
-public:
 
-	MappedTexture();
+	class MappedTexture
+	{
 
-	bool loadPngTexture(int size, const unsigned char* imageData);
+	public:
 
-private:
+		MappedTexture();
 
-	// This could probably be public but I am paranoid about unwanted chnages to texture data!
-	// info from gltf
-	int width;
-	int height;
-	int numComponents;
+		bool loadPngTexture(int size, const unsigned char* imageData);
 
-	// the texture binary
-	unsigned char* bin;
+		int size() const
+		{
+			return width * height * numComponents;
+		}
 
-	// vulkan info that is associated with this texture
-	VkImageCreateInfo vkImageInfo = {};
-};
+		void* data()
+		{
+			return bin;
+		}
+
+		int mipmapCount() const
+		{
+			return numMipMaps;
+		}
+
+		int tex_width() const
+		{
+			return width;
+		}
+
+		int tex_height() const
+		{
+			return height;
+		}
+
+		int tex_layers() const
+		{
+			return numComponents;
+		}
+
+		vk::Format& format()
+		{
+			return tex_format;
+		}
+
+	private:
+
+		// This could probably be public but I am paranoid about unwanted chnages to texture data!
+		// info from gltf
+		int width;
+		int height;
+		int numComponents;
+		int numMipMaps;
+
+		// the texture binary
+		unsigned char* bin;
+
+		// vulkan info that is associated with this texture
+		vk::Format tex_format;
+	};
+
+}
 

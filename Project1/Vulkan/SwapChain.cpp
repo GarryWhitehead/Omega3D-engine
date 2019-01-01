@@ -1,24 +1,24 @@
-#include "VkSwapChain.h"
-
+#include "SwapChain.h"
+#include "Vulkan/Common.h"
 #include "Utility/logger.h"
 #include <algorithm>
 
 namespace VulkanAPI
 {
-	SwapchainKHR::SwapchainKHR(vk::Device device,
-		vk::PhysicalDevice gpu,
-		vk::Instance instance,
-		int graphIndex,
-		int presentIndex,
-		uint32_t screenWidth,
-		uint32_t screenHeight)
+	Swapchain::Swapchain()
+	{
+	}
+	
+	Swapchain::~Swapchain()
+	{
+	}
+
+	void Swapchain::create(VulkanAPI::Device& device, const uint32_t screen_width, const uint32_t screen_height)
 	{
 		// Get the basic surface properties of the physical device
 		uint32_t surfaceCount;
-		
 
-		VK_CHECK_RESULT(glfwCreateWindowSurface(instance, window, nullptr, &surface));
-
+		auto& gpu = device.getPhysicalDevice();
 		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
 		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(surface);
 		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(surface);
@@ -68,7 +68,7 @@ namespace VulkanAPI
 			extent = capabilities.currentExtent;									// go with the automatic settings
 		else
 		{
-			extent = { screenWidth, screenHeight };
+			extent = { screen_width, screen_height };
 			extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, extent.width));
 			extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, extent.height));
 		}
@@ -82,6 +82,9 @@ namespace VulkanAPI
 		// if the graphics and presentation aren't the same then use concurrent sharing mode
 		std::vector<uint32_t> queue_family_indicies;
 		vk::SharingMode sharing_mode = vk::SharingMode::eExclusive;
+
+		auto graphIndex = device.getQueueIndex(Device::QueueType::Graphics);
+		auto presentIndex = device.getQueueIndex(Device::QueueType::Present);
 
 		if (graphIndex != presentIndex)
 		{
@@ -104,11 +107,13 @@ namespace VulkanAPI
 			vk::CompositeAlphaFlagBitsKHR::eOpaque,
 			req_mode, VK_TRUE, VK_NULL_HANDLE);
 
+		auto& dev = device.getDevice();
+
 		// And finally, create the swap chain
-		VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain));
+		VK_CHECK_RESULT(dev.createSwapchainKHR(&createInfo, nullptr, &swapchain));
 
 		// Get the image loactions created when creating the swap chains
-		std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
+		std::vector<vk::Image> images = dev.getSwapchainImagesKHR(swapchain);
 
 		for (int c = 0; c < images.size(); ++c)
 		{

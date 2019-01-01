@@ -13,7 +13,7 @@
 #include "Engine/engine.h"
 
 
-VulkanWater::VulkanWater(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanWater::VulkanWater(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

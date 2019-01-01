@@ -11,7 +11,7 @@
 #include "gli.hpp"
 #include <math.h>
 
-VulkanTerrain::VulkanTerrain(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanTerrain::VulkanTerrain(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {

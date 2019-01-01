@@ -1,18 +1,20 @@
-#include "VkMemoryManager.h"
-#include "Vulkan_Global.h"
+#include "MemoryAllocator.h"
 
-namespace Vulkan
+
+namespace VulkanAPI
 {
-	VkMemoryManager::VkMemoryManager()
+	MemoryAllocator::MemoryAllocator(vk::Device dev, vk::PhysicalDevice physical) :
+		device(dev),
+		gpu(physical)
 	{
 	}
 
-	VkMemoryManager::~VkMemoryManager()
+	MemoryAllocator::~MemoryAllocator()
 	{
-		DestroyAllBlocks();
+		destroyAllBlocks();
 	}
 
-	uint32_t VkMemoryManager::AllocateBlock(MemoryType type, uint32_t size)
+	uint32_t MemoryAllocator::allocateBlock(MemoryType type, uint32_t size)
 	{
 		// default block allocation is as follows: 
 		// host visisble buffers are allocated with a default page size of 64mb and are intened for dynamic data handling
@@ -25,12 +27,11 @@ namespace Vulkan
 
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST) : size;
 
-			CreateBuffer(alloc_size, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT |
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT |
-				VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			createBuffer(alloc_size, vk::BufferUsageFlagBits::eUniformBuffer |
+				vk::BufferUsageFlagBits::eStorageBuffer |
+				vk::BufferUsageFlagBits::eVertexBuffer |
+				vk::BufferUsageFlagBits::eIndexBuffer,
+				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 				block.block_mem,
 				block.block_buffer);
 
@@ -41,11 +42,11 @@ namespace Vulkan
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL) : size;
 
 			// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
-			CreateBuffer(alloc_size, VK_BUFFER_USAGE_TRANSFER_DST_BIT |
-				VK_BUFFER_USAGE_STORAGE_BUFFER_BIT |
-				VK_BUFFER_USAGE_VERTEX_BUFFER_BIT |
-				VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
-				VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			createBuffer(alloc_size, vk::BufferUsageFlagBits::eTransferDst |
+				vk::BufferUsageFlagBits::eStorageBuffer |
+				vk::BufferUsageFlagBits::eVertexBuffer |
+				vk::BufferUsageFlagBits::eIndexBuffer,
+				vk::MemoryPropertyFlagBits::eDeviceLocal,
 				block.block_mem,
 				block.block_buffer);
 
@@ -59,88 +60,80 @@ namespace Vulkan
 		return block.block_id;
 	}
 
-	uint32_t VkMemoryManager::AllocateBlock(MemoryUsage usage)
+	uint32_t MemoryAllocator::allocateBlock(MemoryUsage usage)
 	{
 		uint32_t block_id;
 
 		if (usage & MemoryUsage::VK_BUFFER_DYNAMIC) {
 
-			block_id = AllocateBlock(MemoryType::VK_BLOCK_TYPE_HOST);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST);
 		}
 		else if (usage & MemoryUsage::VK_BUFFER_STATIC) {
 
-			block_id = AllocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL);
 		}
 
 		return block_id;
 	}
 
-	VkMemoryManager::SegmentInfo VkMemoryManager::AllocateSegment(MemoryUsage usage, uint32_t size)
+	MemoryAllocator::SegmentInfo MemoryAllocator::allocateSegment(MemoryUsage usage, uint32_t size)
 	{
 		uint32_t block_id = 0;
 
 		// Ensure that the user has already alloacted a block of memory. If not, then allocate for them using the default parameters for memory type and size
 		if (mem_blocks.empty()) {
 
-			block_id = AllocateBlock(usage);
+			block_id = allocateBlock(usage);
 		}
 		else {
-			block_id = FindBlockType(usage);
+			block_id = findBlockType(usage);
 			if (block_id == UINT32_MAX) {
 
-				block_id = AllocateBlock(usage);
+				block_id = allocateBlock(usage);
 			}
 		}
 
 		// Vulkan expects buffers to be aligned to a minimum buffer size which is set by the specification and at present is 256bytes
 		// segments which are smaller than this value will be adjusted accordingly and aligned
-		VkPhysicalDeviceProperties properties;
-		vkGetPhysicalDeviceProperties(VulkanGlobal::vkCurrent.physicalDevice, &properties);
+		vk::PhysicalDeviceProperties properties = gpu.getProperties();
 
 		size_t minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
 		uint32_t segment_size = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
 
 		// ensure that there is enough free space in this particular block to accomodate the data segment
-		uint32_t offset = FindFreeSegment(block_id, segment_size);
+		uint32_t offset = findFreeSegment(block_id, segment_size);
 
 		// if error code returned, allocate another block of memory of the required type
 		if (offset == UINT32_MAX) {
 
-			block_id = AllocateBlock(usage);
-			offset = FindFreeSegment(block_id, segment_size);
+			block_id = allocateBlock(usage);
+			offset = findFreeSegment(block_id, segment_size);
 		}
 
 		SegmentInfo segment;
 		return segment = { block_id, offset, segment_size };
 	}
 
-	void VkMemoryManager::CreateBuffer(const uint32_t size, const VkBufferUsageFlags flags, const VkMemoryPropertyFlags props, VkDeviceMemory& memory, VkBuffer& buffer)
+	void MemoryAllocator::createBuffer(const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
 	{
-		VkBufferCreateInfo createInfo = {};
-		createInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-		createInfo.size = size;
-		createInfo.usage = flags;
-		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
-		VK_CHECK_RESULT(vkCreateBuffer(VulkanGlobal::vkCurrent.device, &createInfo, nullptr, &buffer));
+		VK_CHECK_RESULT(device.createBuffer(&createInfo, nullptr, &buffer));
 
-		VkMemoryRequirements memoryReq;
-		vkGetBufferMemoryRequirements(VulkanGlobal::vkCurrent.device, buffer, &memoryReq);
+		vk::MemoryRequirements memoryReq;
+		device.getBufferMemoryRequirements(buffer, &memoryReq);
 
-		VkMemoryAllocateInfo memoryInfo = {};
-		memoryInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		memoryInfo.allocationSize = memoryReq.size;
-		memoryInfo.memoryTypeIndex = FindMemoryType(memoryReq.memoryTypeBits, props);
+		uint32_t mem_type = findMemoryType(memoryReq.memoryTypeBits, props);
 
-		VK_CHECK_RESULT(vkAllocateMemory(VulkanGlobal::vkCurrent.device, &memoryInfo, nullptr, &memory));
+		vk::MemoryAllocateInfo memoryInfo(memoryReq.size, mem_type);
 
-		VK_CHECK_RESULT(vkBindBufferMemory(VulkanGlobal::vkCurrent.device, buffer, memory, 0));
+		VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
+		device.bindBufferMemory(buffer, memory, 0);
 	}
 
-	uint32_t VkMemoryManager::FindMemoryType(uint32_t type, VkMemoryPropertyFlags flags)
+	uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags flags)
 	{
-		VkPhysicalDeviceMemoryProperties memoryProp;
-		vkGetPhysicalDeviceMemoryProperties(VulkanGlobal::vkCurrent.physicalDevice, &memoryProp);
+		vk::PhysicalDeviceMemoryProperties memoryProp = gpu.getMemoryProperties();
 
 		for (uint32_t c = 0; c < memoryProp.memoryTypeCount; ++c)
 		{
@@ -152,7 +145,7 @@ namespace Vulkan
 		return UINT32_MAX;
 	}
 
-	uint32_t VkMemoryManager::FindBlockType(MemoryUsage usage)
+	uint32_t MemoryAllocator::findBlockType(MemoryUsage usage)
 	{
 		uint32_t id = UINT32_MAX;
 
@@ -170,7 +163,7 @@ namespace Vulkan
 		return id;
 	}
 
-	uint32_t VkMemoryManager::FindFreeSegment(const uint32_t id, const uint32_t segment_size)
+	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segment_size)
 	{
 		if (segment_size > mem_blocks[id].total_size) {
 			return UINT32_MAX;
@@ -221,13 +214,13 @@ namespace Vulkan
 		return offset;
 	}
 
-	void VkMemoryManager::DefragBlockMemory(const uint32_t id)
+	void MemoryAllocator::defragBlockMemory(const uint32_t id)
 	{
 		//BlockInfo block = mem_blo
 		//auto iter = 
 	}
 
-	VkBuffer& VkMemoryManager::blockBuffer(const uint32_t id)
+	vk::Buffer& MemoryAllocator::blockBuffer(const uint32_t id)
 	{
 		assert(id < mem_blocks.size());
 
@@ -235,7 +228,7 @@ namespace Vulkan
 	}
 
 	// override of the segment mapping function that allows data of type *void to be passed
-	void VkMemoryManager::MapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize, uint32_t offset)
+	void MemoryAllocator::mapDataToSegment(SegmentInfo &segment, void *data, uint32_t totalSize, uint32_t offset)
 	{
 		assert(segment.block_id < (int32_t)mem_blocks.size());
 		BlockInfo block = mem_blocks[segment.block_id];
@@ -246,46 +239,30 @@ namespace Vulkan
 
 		if (block.type == MemoryType::VK_BLOCK_TYPE_HOST) {
 
-			MapData(segment, block.block_mem, segment.offset, data, totalSize, offset);
+			segment.map(block.block_mem, segment.offset, data, totalSize, offset);
 
 		}
 		else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
 
 			// start by creating host-visible buffers
-			VkBuffer temp_buffer;
-			VkDeviceMemory temp_memory;
-			CreateBuffer(segment.size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, temp_memory, temp_buffer);
+			vk::Buffer temp_buffer;
+			vk::DeviceMemory temp_memory;
+			createBuffer(segment.size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
 
 			// map data to temporary buffer
-			MapData(segment, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
+			segment.map(temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
 
 			VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), VulkanGlobal::vkCurrent.graphQueue, VulkanGlobal::vkCurrent.device, 0, segment.offset);
 
 			// clear up and we are done
-			vkDestroyBuffer(p_vkEngine->GetDevice(), temp_buffer, nullptr);
-			vkFreeMemory(p_vkEngine->GetDevice(), temp_memory, nullptr);
+			device.destroyBuffer(temp_buffer, nullptr);
+			device.freeMemory(temp_memory, nullptr);
 		}
 	}
 
-	void VkMemoryManager::MapData(SegmentInfo &segment, VkDeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset)
-	{
-		assert(totalSize <= segment.size);
-
-		if (segment.data == nullptr) {
-
-			VK_CHECK_RESULT(vkMapMemory(VulkanGlobal::vkCurrent.device, memory, offset, segment.size, 0, &segment.data));
-			memcpy(segment.data, data, totalSize);
-			vkUnmapMemory(VulkanGlobal::vkCurrent.device, memory);
-		}
-		else {
-			void *mapped = static_cast<char*>(segment.data) + mapped_offset;		// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
-			memcpy(mapped, data, totalSize);
-		}
-	}
-
-	void VkMemoryManager::DestroySegment(SegmentInfo &segment)
+	void MemoryAllocator::destroySegment(SegmentInfo &segment)
 	{
 		if (segment.size <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
 			return;
@@ -305,27 +282,42 @@ namespace Vulkan
 		}
 	}
 
-	void VkMemoryManager::DestroyBlock(uint32_t id)
+	void MemoryAllocator::destroyBlock(uint32_t id)
 	{
 		if (id < mem_blocks.size()) {
 
 			// handle the vulkan side first
-			vkDestroyBuffer(VulkanGlobal::vkCurrent.device, mem_blocks[id].block_buffer, nullptr);
-			vkFreeMemory(VulkanGlobal::vkCurrent.device, mem_blocks[id].block_mem, nullptr);
+			device.destroyBuffer(mem_blocks[id].block_buffer, nullptr);
+			device.freeMemory(mem_blocks[id].block_mem, nullptr);
 
 			// and remove from the memory block pool
 			mem_blocks.erase(mem_blocks.begin() + (id + 1));
 		}
 	}
 
-	void VkMemoryManager::DestroyAllBlocks()
+	void MemoryAllocator::destroyAllBlocks()
 	{
 		for (auto &block : mem_blocks) {
 
-			DestroyBlock(block.block_id);
+			destroyBlock(block.block_id);
 		}
 	}
 
 	// ================================================================ segmentInfo functions ====================================================================================================================
 
+	void MemoryAllocator::SegmentInfo::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data_to_copy, uint32_t totalSize, uint32_t mapped_offset)
+	{
+		assert(totalSize <= size);
+
+		if (data == nullptr) {
+
+			VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, 0, &data));
+			memcpy(data, data_to_copy, totalSize);
+			dev.unmapMemory(memory);
+		}
+		else {
+			void *mapped = static_cast<char*>(data) + mapped_offset;		// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
+			memcpy(mapped, data, totalSize);
+		}
+	}
 }

@@ -1,12 +1,12 @@
 #pragma once
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 
 #include <array>
 
 class VulkanEngine;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 class VkDescriptors;
 class VulkanTexture;
 class VulkanRenderPass;
@@ -43,7 +43,7 @@ public:
 	};
 
 
-	VulkanShadow(VulkanEngine* engine, VkMemoryManager *manager);
+	VulkanShadow(VulkanEngine* engine, MemoryAllocator *manager);
 	virtual ~VulkanShadow();
 
 	void Init();
@@ -78,8 +78,8 @@ private:
 
 	struct SsboBuffers
 	{
-		VkMemoryManager::SegmentInfo light;
-		VkMemoryManager::SegmentInfo model;
+		MemoryAllocator::SegmentInfo light;
+		MemoryAllocator::SegmentInfo model;
 	} ssboBuffer;
 
 	VulkanTexture *p_depthImage;

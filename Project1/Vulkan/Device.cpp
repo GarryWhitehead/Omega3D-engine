@@ -22,7 +22,7 @@ namespace VulkanAPI
 		return VK_FALSE;
 	}
 
-	void Device::CreateInstance(const char **glfwExtension, uint32_t extCount)
+	void Device::createInstance(const char **glfwExtension, uint32_t extCount)
 	{
 		vk::ApplicationInfo appInfo(
 			"OmegaOne",
@@ -118,6 +118,11 @@ namespace VulkanAPI
 
 	void Device::prepareDevice()
 	{
+		if (instance == VK_NULL_HANDLE) {
+			LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
+			throw std::runtime_error("Error whilst initialising device");
+		}
+
 		// find a suitable gpu - at the moment this is pretty basic - find a gpu and that will do. In the future, find the best match
 		std::vector<vk::PhysicalDevice> gpus = instance.enumeratePhysicalDevices();
 		for (auto const& gpu : gpus)
@@ -242,5 +247,39 @@ namespace VulkanAPI
 		device.getQueue(queue.computeIndex, 0, &queue.computeQueue);
 		device.getQueue(queue.graphIndex, 0, &queue.graphQueue);
 		device.getQueue(queue.presentIndex, 0, &queue.presentQueue);
+	}
+
+	uint32_t Device::getQueueIndex(QueueType type) const
+	{
+		switch (type) {
+		case QueueType::Graphics:
+			return queue.graphIndex;
+			break;
+		case QueueType::Present:
+			return queue.presentIndex;
+			break;
+		case QueueType::Compute:
+			return queue.computeIndex;
+			break;
+		default:
+			return -1;
+		}
+	}
+
+	vk::Queue& Device::getQueue(QueueType type)
+	{
+		switch (type) {
+		case QueueType::Graphics:
+			return queue.graphQueue;
+			break;
+		case QueueType::Present:
+			return queue.presentQueue;
+			break;
+		case QueueType::Compute:
+			return queue.computeQueue;
+			break;
+		default:
+			return {};
+		}
 	}
 }

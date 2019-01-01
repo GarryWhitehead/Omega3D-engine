@@ -4,13 +4,13 @@
 #include <array>
 #include "glm.hpp"
 #include "VulkanCore/VulkanModule.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 
 
 class VulkanEngine;
 class vkFFT;
 class CameraSystem;
-class VkMemoryManager;
+class MemoryAllocator;
 class VulkanTexture;
 class VulkanRenderPass;
 class VkDescriptors;
@@ -42,10 +42,10 @@ public:
 		VkPipeline wirePipeline;			// seperate pipeline for the wireframe draw
 
 		// buffers
-		VkMemoryManager::SegmentInfo uboTese;
-		VkMemoryManager::SegmentInfo uboFrag;
-		VkMemoryManager::SegmentInfo vertices;
-		VkMemoryManager::SegmentInfo indices;
+		MemoryAllocator::SegmentInfo uboTese;
+		MemoryAllocator::SegmentInfo uboFrag;
+		MemoryAllocator::SegmentInfo vertices;
+		MemoryAllocator::SegmentInfo indices;
 		uint32_t indexCount;
 
 		// textures
@@ -86,7 +86,7 @@ public:
 		float patchLength;
 	};
 
-	VulkanWater(VulkanEngine *engine, VkMemoryManager *memory);
+	VulkanWater(VulkanEngine *engine, MemoryAllocator *memory);
 	virtual ~VulkanWater();
 	
 	void Init();

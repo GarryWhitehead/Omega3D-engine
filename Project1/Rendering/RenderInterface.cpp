@@ -8,8 +8,12 @@
 namespace OmegaEngine
 {
 
-	RenderInterface::RenderInterface()
+	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height)
 	{
+		// initiliase the graphical backend - we are solely using Vulkan 
+		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
+
+		// now initialise all the core graphical modules such as the deferred shader, etc. in conjuction with the render configs
 	}
 
 

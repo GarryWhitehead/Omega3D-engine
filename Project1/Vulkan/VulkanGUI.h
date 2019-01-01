@@ -1,6 +1,6 @@
 #pragma once
 #include "VulkanCore/vulkan_tools.h"
-#include "VulkanCore/VkMemoryManager.h"
+#include "VulkanCore/MemoryAllocator.h"
 
 class VkDescriptors;
 class VulkanTexture;
@@ -58,15 +58,15 @@ public:
 	VulkanGUI(VulkanEngine *engine);
 	~VulkanGUI();
 
-	void Init(VkMemoryManager *p_vkMemory);
+	void Init(MemoryAllocator *p_vkMemory);
 	void Update();
 
-	void SetupGUI(VkMemoryManager *p_vkMemory);
+	void SetupGUI(MemoryAllocator *p_vkMemory);
 	void PrepareDescriptors();
 	void PreparePipeline();
 	void NewFrame();
-	void UpdateBuffers(VkMemoryManager *p_vkMemory);
-	void GenerateCmdBuffer(VkCommandBuffer cmdBuffer, VkMemoryManager *p_vkMemory);
+	void UpdateBuffers(MemoryAllocator *p_vkMemory);
+	void GenerateCmdBuffer(VkCommandBuffer cmdBuffer, MemoryAllocator *p_vkMemory);
 	void PrepareGUIVertex(VkVertexInputBindingDescription& bindDescr, std::array<VkVertexInputAttributeDescription, 3>& attrDescr);
 
 private:
@@ -81,8 +81,8 @@ private:
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;
-	VkMemoryManager::SegmentInfo m_vertices;
-	VkMemoryManager::SegmentInfo m_indices;
+	MemoryAllocator::SegmentInfo m_vertices;
+	MemoryAllocator::SegmentInfo m_indices;
 
 	// keep track of vertex/index sizes for buffer management
 	uint32_t m_vertCount;

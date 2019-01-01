@@ -24,6 +24,7 @@
     <ClCompile Include="Managers\TransformManager.cpp" />
     <ClCompile Include="Rendering\Renderer.cpp" />
     <ClCompile Include="Rendering\RenderInterface.cpp" />
+    <ClCompile Include="Vulkan\DataTypes\Texture.cpp" />
     <ClCompile Include="Vulkan\Descriptors.cpp" />
     <ClCompile Include="Managers\AnimationManager.cpp" />
     <ClCompile Include="Engine\engine.cpp" />
@@ -80,14 +81,14 @@
     <ClCompile Include="VulkanCore\VulkanGUI.cpp" />
     <ClCompile Include="VulkanCore\VulkanInstance.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
-    <ClCompile Include="Vulkan\VulkanMain.cpp" />
+    <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\TerrainUtility.cpp" />
     <ClCompile Include="Vulkan\VkDescriptors.cpp" />
     <ClCompile Include="Vulkan\vkFFT.cpp" />
-    <ClCompile Include="Vulkan\VkMemoryManager.cpp" />
+    <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
     <ClCompile Include="Vulkan\VkPostProcess.cpp" />
     <ClCompile Include="Rendering\RenderManager.cpp" />
-    <ClCompile Include="Vulkan\VkSwapChain.cpp" />
+    <ClCompile Include="Vulkan\SwapChain.cpp" />
     <ClCompile Include="Vulkan\VulkanDeferred.cpp" />
     <ClCompile Include="Vulkan\VulkanGUI.cpp" />
     <ClCompile Include="Vulkan\VulkanIBL.cpp" />
@@ -98,7 +99,6 @@
     <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
     <ClCompile Include="Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="Vulkan\VulkanWater.cpp" />
-    <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
     <ClCompile Include="Vulkan\Vulkan_shadow.cpp" />
     <ClCompile Include="Vulkan\Vulkan_terrain.cpp" />
     <ClCompile Include="Vulkan\vulkan_utility.cpp" />
@@ -110,6 +110,7 @@
     <ClInclude Include="ComponentInterface\ObjectManager.h" />
     <ClInclude Include="DataTypes\Camera.h" />
     <ClInclude Include="DataTypes\TextureType.h" />
+    <ClInclude Include="Vulkan\DataTypes\Texture.h" />
     <ClInclude Include="Vulkan\Device.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="DataTypes\Object.h" />
@@ -119,7 +120,6 @@
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\Omega_SceneParser.h" />
     <ClInclude Include="DataTypes\Space.h" />
-    <ClInclude Include="Header.h" />
     <ClInclude Include="Rendering\RenderableTypes.h" />
     <ClInclude Include="Managers\TransformManager.h" />
     <ClInclude Include="Omega_Common.h" />
@@ -176,14 +176,14 @@
     <ClInclude Include="Vulkan\TerrainUtility.h" />
     <ClInclude Include="Vulkan\VkDescriptors.h" />
     <ClInclude Include="Vulkan\vkFFT.h" />
-    <ClInclude Include="Vulkan\VkMemoryManager.h" />
+    <ClInclude Include="Vulkan\MemoryAllocator.h" />
     <ClInclude Include="Vulkan\VkPostProcess.h" />
     <ClInclude Include="Rendering\RenderManager.h" />
-    <ClInclude Include="Vulkan\VkSwapChain.h" />
+    <ClInclude Include="Vulkan\SwapChain.h" />
     <ClInclude Include="Vulkan\VulkanDeferred.h" />
     <ClInclude Include="Vulkan\VulkanGUI.h" />
     <ClInclude Include="Vulkan\VulkanIBL.h" />
-    <ClInclude Include="Vulkan\VulkanMain.h" />
+    <ClInclude Include="Vulkan\Interface.h" />
     <ClInclude Include="Vulkan\VulkanModel.h" />
     <ClInclude Include="Vulkan\VulkanModule.h" />
     <ClInclude Include="Vulkan\VulkanPBR.h" />
@@ -191,7 +191,7 @@
     <ClInclude Include="Vulkan\VulkanSkybox.h" />
     <ClInclude Include="Vulkan\VulkanTexture.h" />
     <ClInclude Include="Vulkan\VulkanWater.h" />
-    <ClInclude Include="Vulkan\Vulkan_Global.h" />
+    <ClInclude Include="Vulkan\Common.h" />
     <ClInclude Include="Vulkan\Vulkan_shadow.h" />
     <ClInclude Include="Vulkan\vulkan_terrain.h" />
     <ClInclude Include="Vulkan\vulkan_utility.h" />

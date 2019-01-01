@@ -10,7 +10,7 @@
 #include "Engine/engine.h"
 #include "Engine/World.h"
 
-VulkanModel::VulkanModel(VulkanEngine *engine, VkMemoryManager *memory) :
+VulkanModel::VulkanModel(VulkanEngine *engine, MemoryAllocator *memory) :
 	VulkanModule(memory),
 	p_vkEngine(engine)
 {
