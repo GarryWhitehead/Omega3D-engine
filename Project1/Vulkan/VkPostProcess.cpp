@@ -66,12 +66,12 @@ void VkPostProcess::PrepareFrameBuffers()
 	
 	// create a seperate renderpass with two colour attachments - one for the normal colour scene and one for the bright/bloom scene
 	m_ppInfo.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
-	m_ppInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_ppInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_ppInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, depthFormat);
+	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
 	m_ppInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);		// normal
 	m_ppInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);		// bloom
-	m_ppInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 2);
+	m_ppInfo.renderpass->AddReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 2);
 	m_ppInfo.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	// and the FB with the two buffer attachmentsa
@@ -267,7 +267,7 @@ void VkPostProcess::PrepareColourPassDescriptors()
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ vkDeferred->GetOffscreenSampler(), vkDeferred->GetOffscreenImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ vkDeferred->GetOffscreenSampler(), vkDeferred->GetOffscreenImageView(), vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	m_ppInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
@@ -294,7 +294,7 @@ void VkPostProcess::PrepareBlurPassDescriptors()
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ m_images.brightCol->texSampler, m_images.brightCol->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ m_images.brightCol->texSampler, m_images.brightCol->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	m_bloomInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
@@ -322,8 +322,8 @@ void VkPostProcess::PrepareFinalDescriptors()
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ m_images.normalCol->texSampler, m_images.normalCol->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ m_images.bloom->texSampler, m_images.bloom->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ m_images.normalCol->texSampler, m_images.normalCol->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ m_images.bloom->texSampler, m_images.bloom->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	m_finalInfo.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());
@@ -343,7 +343,7 @@ void VkPostProcess::PrepareDebugDescriptors()
 	auto p_shadow = p_vkEngine->VkModule<VulkanShadow>();
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ p_shadow->GetDepthSampler(), p_shadow->GetDepthImageView(),  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ p_shadow->GetDepthSampler(), p_shadow->GetDepthImageView(),  vk::ImageLayout::eShaderReadOnlyOptimal }
 	
 	};
 

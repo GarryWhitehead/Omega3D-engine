@@ -1,4 +1,5 @@
 #pragma once
+#include "Vulkan/TextureManager.h"
 
 namespace OmegaEngine
 {

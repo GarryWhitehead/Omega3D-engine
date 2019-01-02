@@ -67,8 +67,8 @@ void VulkanTerrain::PrepareTerrainDescriptorSets()
 
 	std::vector<VkDescriptorImageInfo> imageInfo = 
 	{
-		{ m_images.heightMap->texSampler, m_images.heightMap->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// height map texture sampler
-		{ m_images.terrain->texSampler, m_images.terrain->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }				// texture array texture sampler
+		{ m_images.heightMap->texSampler, m_images.heightMap->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },		// height map texture sampler
+		{ m_images.terrain->texSampler, m_images.terrain->imageView, vk::ImageLayout::eShaderReadOnlyOptimal }				// texture array texture sampler
 	};
 	m_terrainInfo.descrInfo->GenerateDescriptorSets(uboBuffInfo.data(), imageInfo.data());
 }

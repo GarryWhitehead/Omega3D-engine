@@ -40,7 +40,7 @@ void VulkanSkybox::PrepareSkyboxDescriptorSets()
 	};
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ vkIBL->m_cubeImage->texSampler, vkIBL->m_cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ vkIBL->m_cubeImage->texSampler, vkIBL->m_cubeImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	m_envCube.descriptors->GenerateDescriptorSets(buffInfo.data(), imageInfo.data());

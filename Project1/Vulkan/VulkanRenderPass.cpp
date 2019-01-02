@@ -34,7 +34,7 @@ void VulkanRenderPass::AddAttachment(const VkImageLayout finalLayout, const VkFo
 	attachDescr.storeOp = VK_ATTACHMENT_STORE_OP_STORE;				// IMPORTANT: this needs to be set to store operations for this to work!!!
 	attachDescr.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	attachDescr.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	attachDescr.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachDescr.initialLayout = vk::ImageLayout::eUndefined;
 	attachDescr.finalLayout = finalLayout;
 
 	attachment.push_back(attachDescr);
@@ -44,9 +44,9 @@ void VulkanRenderPass::AddReference(const VkImageLayout layout, const uint32_t a
 {
 	VkAttachmentReference ref = {};
 	
-	if (layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL) {
+	if (layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
 		ref.attachment = attachId;
-		ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+		ref.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 		depthReference.push_back(ref);
 	}
 	else {

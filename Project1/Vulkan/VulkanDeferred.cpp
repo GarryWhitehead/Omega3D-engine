@@ -83,10 +83,10 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao->format);					// ao
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic->format);			// metallic
 	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness->format);			// roughness
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, m_deferredInfo.depth->format);		// depth
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, m_deferredInfo.depth->format);		// depth
 
 
-	VkAttachmentReference depthRef = { 8, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL };
+	VkAttachmentReference depthRef = { 8, vk::ImageLayout::eDepthStencilAttachmentOptimal };
 
 	// ================================ subpass one - fill G-buffers
 	std::vector<VkAttachmentReference> colorRef1 = 
@@ -111,13 +111,13 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 
 	std::vector<VkAttachmentReference> inputRef = 
 	{
-		{ 1, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// position
-		{ 2, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// normal
-		{ 3, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// albedo
-		{ 4, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// bump
-		{ 5, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// ao
-		{ 6, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// metallic
-		{ 7, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }			// roughness
+		{ 1, vk::ImageLayout::eShaderReadOnlyOptimal },		// position
+		{ 2, vk::ImageLayout::eShaderReadOnlyOptimal },		// normal
+		{ 3, vk::ImageLayout::eShaderReadOnlyOptimal },		// albedo
+		{ 4, vk::ImageLayout::eShaderReadOnlyOptimal },		// bump
+		{ 5, vk::ImageLayout::eShaderReadOnlyOptimal },		// ao
+		{ 6, vk::ImageLayout::eShaderReadOnlyOptimal },		// metallic
+		{ 7, vk::ImageLayout::eShaderReadOnlyOptimal }			// roughness
 	};
 	m_deferredInfo.renderpass->AddSubPass(colorRef2, inputRef, &depthRef);
 
@@ -191,17 +191,17 @@ void VulkanDeferred::PrepareDeferredDescriptorSet()
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ VK_NULL_HANDLE, m_deferredInfo.position->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.normal->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.albedo->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.bump->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.ao->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.metallic->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ VK_NULL_HANDLE, m_deferredInfo.roughness->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
+		{ VK_NULL_HANDLE, m_deferredInfo.position->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.normal->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.albedo->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.bump->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.ao->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.metallic->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ VK_NULL_HANDLE, m_deferredInfo.roughness->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
 		{ vkShadow->GetDepthSampler(), vkShadow->GetDepthImageView(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL },
-		{ vkPBR->m_lutImage->texSampler, vkPBR->m_lutImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ vkIBL->m_irradianceCube.cubeImage->texSampler, vkIBL->m_irradianceCube.cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ vkIBL->m_filterCube.cubeImage->texSampler, vkIBL->m_filterCube.cubeImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ vkPBR->m_lutImage->texSampler, vkPBR->m_lutImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ vkIBL->m_irradianceCube.cubeImage->texSampler, vkIBL->m_irradianceCube.cubeImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ vkIBL->m_filterCube.cubeImage->texSampler, vkIBL->m_filterCube.cubeImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 	m_deferredInfo.descriptor->GenerateDescriptorSets(bufferInfo.data(), imageInfo.data());
 	

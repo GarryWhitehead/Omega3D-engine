@@ -66,9 +66,9 @@ void VulkanWater::PrepareDescriptorSets()
 	};
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ p_FFT->m_images.displacement->texSampler, p_FFT->m_images.displacement->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },		// displacement texture sampler - derives from compute shader computations
-		{ p_FFT->m_images.normal->texSampler, p_FFT->m_images.normal->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },					// texture sampler for normal map
-		{ m_waterInfo.noiseImage->texSampler, m_waterInfo.noiseImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }					// texture sampler for perlin noise
+		{ p_FFT->m_images.displacement->texSampler, p_FFT->m_images.displacement->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },		// displacement texture sampler - derives from compute shader computations
+		{ p_FFT->m_images.normal->texSampler, p_FFT->m_images.normal->imageView, vk::ImageLayout::eShaderReadOnlyOptimal },					// texture sampler for normal map
+		{ m_waterInfo.noiseImage->texSampler, m_waterInfo.noiseImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal }					// texture sampler for perlin noise
 	};
 
 	m_waterInfo.descriptors->GenerateDescriptorSets(bufferInfo.data(), imageInfo.data());

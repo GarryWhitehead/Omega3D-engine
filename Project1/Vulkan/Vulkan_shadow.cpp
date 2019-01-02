@@ -40,7 +40,7 @@ void VulkanShadow::PrepareShadowFrameBuffer()
 	// prepare depth renderpass
 	m_shadowInfo.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
 	m_shadowInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, format);
-	m_shadowInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 0);
+	m_shadowInfo.renderpass->AddReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 0);
 	m_shadowInfo.renderpass->AddSubpassDependency(DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_BOTTOM);
 	m_shadowInfo.renderpass->AddSubpassDependency(DependencyTemplate::TEMPLATE_DEPTH_STENCIL_SUBPASS_FRAG);
 	m_shadowInfo.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());

@@ -74,7 +74,7 @@ void VulkanGUI::PrepareDescriptors()
 
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ m_fontImage->texSampler, m_fontImage->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ m_fontImage->texSampler, m_fontImage->imageView, vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	m_descriptors->GenerateDescriptorSets(nullptr, imageInfo.data());

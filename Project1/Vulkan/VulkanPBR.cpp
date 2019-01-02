@@ -23,7 +23,7 @@ void VulkanPBR::PrepareLUTFramebuffer()
 
 	// create renderpass with colour attachment
 	m_renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
-	m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_FORMAT_R16G16_SFLOAT);
+	m_renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16_SFLOAT);
 	m_renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
 	m_renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 

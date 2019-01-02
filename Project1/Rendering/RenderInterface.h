@@ -8,7 +8,7 @@
 #include <memory>
 
 namespace OmegaEngine
-{
+{	
 	// forward decleartions
 	class ComponentInterface;
 	class Object;

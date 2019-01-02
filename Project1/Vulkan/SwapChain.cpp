@@ -117,7 +117,7 @@ namespace VulkanAPI
 
 		for (int c = 0; c < images.size(); ++c)
 		{
-			vk::ImageView imageView = VulkanUtility::InitImageView(images[c], req_surf_format.format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D, device);
+			vk::ImageView imageView = VulkanUtility::InitImageView(images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, VK_IMAGE_VIEW_TYPE_2D, device);
 			image_views.push_back(imageView);
 		}
 	}

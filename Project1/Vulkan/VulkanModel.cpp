@@ -89,11 +89,11 @@ void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
 	// set all the textures to dummy images and override if the image contains a certain texture
 	std::vector<VkDescriptorImageInfo> imageInfo =
 	{
-		{ m_dummyTexture.diffuse->texSampler, m_dummyTexture.diffuse->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },				
-		{ m_dummyTexture.normal->texSampler, m_dummyTexture.normal->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ m_dummyTexture.roughness->texSampler, m_dummyTexture.roughness->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ m_dummyTexture.metallic->texSampler, m_dummyTexture.metallic->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL },
-		{ m_dummyTexture.ao->texSampler, m_dummyTexture.ao->imageView,  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL }
+		{ m_dummyTexture.diffuse->texSampler, m_dummyTexture.diffuse->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal },				
+		{ m_dummyTexture.normal->texSampler, m_dummyTexture.normal->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ m_dummyTexture.roughness->texSampler, m_dummyTexture.roughness->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ m_dummyTexture.metallic->texSampler, m_dummyTexture.metallic->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal },
+		{ m_dummyTexture.ao->texSampler, m_dummyTexture.ao->imageView,  vk::ImageLayout::eShaderReadOnlyOptimal }
 	};
 
 	// if a certain texture is found within the material, then override the dummy texture
@@ -101,23 +101,23 @@ void VulkanModel::PrepareMaterialDescriptorSets(Material *material)
 
 		if (material->matTypes & (int)MaterialTexture::TEX_DIFF) {
 
-			imageInfo[0] = VkDescriptorImageInfo({ material->texture.diffuse->texSampler, material->texture.diffuse->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });		// diffuse texture - #1
+			imageInfo[0] = VkDescriptorImageInfo({ material->texture.diffuse->texSampler, material->texture.diffuse->imageView, vk::ImageLayout::eShaderReadOnlyOptimal });		// diffuse texture - #1
 		}
 		if (material->matTypes & (int)MaterialTexture::TEX_NORM) {
 
-			imageInfo[1] = VkDescriptorImageInfo({ material->texture.normal->texSampler, material->texture.normal->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });		// normal texture - #2
+			imageInfo[1] = VkDescriptorImageInfo({ material->texture.normal->texSampler, material->texture.normal->imageView, vk::ImageLayout::eShaderReadOnlyOptimal });		// normal texture - #2
 		}
 		if (material->matTypes & (int)MaterialTexture::TEX_ROUGHNESS) {
 
-			imageInfo[2] = VkDescriptorImageInfo({ material->texture.roughness->texSampler, material->texture.roughness->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });	// roughness texture - #3
+			imageInfo[2] = VkDescriptorImageInfo({ material->texture.roughness->texSampler, material->texture.roughness->imageView, vk::ImageLayout::eShaderReadOnlyOptimal });	// roughness texture - #3
 		}
 		if (material->matTypes & (int)MaterialTexture::TEX_METALLIC) {
 
-			imageInfo[3] = VkDescriptorImageInfo({ material->texture.metallic->texSampler, material->texture.metallic->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });	// metallic texture - #4
+			imageInfo[3] = VkDescriptorImageInfo({ material->texture.metallic->texSampler, material->texture.metallic->imageView, vk::ImageLayout::eShaderReadOnlyOptimal });	// metallic texture - #4
 		}
 		if (material->matTypes & (int)MaterialTexture::TEX_AO) {
 
-			imageInfo[4] = VkDescriptorImageInfo({ material->texture.ao->texSampler, material->texture.ao->imageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL });				// ao texture - #5
+			imageInfo[4] = VkDescriptorImageInfo({ material->texture.ao->texSampler, material->texture.ao->imageView, vk::ImageLayout::eShaderReadOnlyOptimal });				// ao texture - #5
 		}
 	}
 	

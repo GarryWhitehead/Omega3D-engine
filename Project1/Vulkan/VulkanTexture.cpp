@@ -37,7 +37,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 		aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 	}
 	else {
-		aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		aspectFlags = vk::ImageAspectFlagBits::eColor;
 	}
 
 	assert(aspectFlags > 0);
@@ -52,7 +52,7 @@ void VulkanTexture::PrepareImage(const VkFormat f, const VkSamplerAddressMode sa
 	image_info.mipLevels = mipLevels;			// used for creating dynamic mipmaps 
 	image_info.arrayLayers = 1;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.initialLayout = vk::ImageLayout::eUndefined;
 	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; 
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -102,7 +102,7 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 		aspectFlags = VK_IMAGE_ASPECT_DEPTH_BIT;
 	}
 	else {
-		aspectFlags = VK_IMAGE_ASPECT_COLOR_BIT;
+		aspectFlags = vk::ImageAspectFlagBits::eColor;
 	}
 
 	assert(aspectFlags > 0);
@@ -117,7 +117,7 @@ void VulkanTexture::PrepareImageArray(const VkFormat f, const VkSamplerAddressMo
 	image_info.mipLevels = mipLevels;
 	image_info.arrayLayers = layers;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.initialLayout = vk::ImageLayout::eUndefined;
 	image_info.usage = usageFlags | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT; 
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -175,18 +175,18 @@ void VulkanTexture::UploadDataToImage(void* tex_data, uint32_t size, VkCommandPo
 	image_copy.imageExtent.width = width;
 	image_copy.imageExtent.height = height;
 	image_copy.imageExtent.depth = 1;
-	image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	image_copy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 	image_copy.imageSubresource.layerCount = 1;
 
 	// transition image to transfer state
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device);
+	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdPool, device);
 
 	// copy data to image buffer
-	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_copy);
 	VulkanUtility::SubmitCmdBufferToQueue(comm_buff, graphQueue, cmdPool, device);
 
 	// transition image to shader read state
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device);
+	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdPool, device);
 
 	//clean up
 	vkDestroyBuffer(device, staging_buff, nullptr);
@@ -201,19 +201,19 @@ void VulkanTexture::GenerateMipChain(uint32_t mipLevels, VkCommandPool cmdPool, 
 	VkCommandBuffer cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
 
 	// transition the base image to source
-	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device);
+	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, vk::ImageLayout::eUndefined, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device);
 
 	for (int32_t c = 1; c < mipLevels; ++c) {
 
 		VkImageBlit blit = {};
-		blit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 		blit.srcSubresource.layerCount = 1;
 		blit.srcSubresource.mipLevel = c - 1;		// previous mipmap generated used as the base for the blit
 		blit.srcOffsets[1].x = static_cast<int32_t>(width >> (c - 1));
 		blit.srcOffsets[1].y = static_cast<int32_t>(height >> (c - 1));
 		blit.srcOffsets[1].z = 1;
 
-		blit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		blit.dstSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 		blit.dstSubresource.layerCount = 1;
 		blit.dstSubresource.mipLevel = c;
 		blit.dstOffsets[1].x = static_cast<int32_t>(width >> c);
@@ -221,17 +221,17 @@ void VulkanTexture::GenerateMipChain(uint32_t mipLevels, VkCommandPool cmdPool, 
 		blit.dstOffsets[1].z = 1;
 
 		// prepare base image for transfer
-		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device, 1, 1, c);
+		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdPool, device, 1, 1, c);
 
 		// blit image from previous to next image - image is downscaled with linear filtering
-		vkCmdBlitImage(cmdBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &blit, VK_FILTER_LINEAR);
+		vkCmdBlitImage(cmdBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, image, vk::ImageLayout::eTransferDstOptimal, 1, &blit, VK_FILTER_LINEAR);
 
 		// prepare image for next blit
-		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device, 1, 1, c);
+		VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, vk::ImageLayout::eTransferDstOptimal, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, cmdPool, device, 1, 1, c);
 	}
 
 	// finish by preparing image for shader read
-	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device, mipLevels, 1);
+	VulkanUtility::ImageTransition(graphQueue, cmdBuffer, image, format, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk::ImageLayout::eShaderReadOnlyOptimal, cmdPool, device, mipLevels, 1);
 
 	// flush cmd buffer
 	VulkanUtility::SubmitCmdBufferToQueue(cmdBuffer, graphQueue, cmdPool, device);
@@ -287,7 +287,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 	image_info.mipLevels = mipLevels;
 	image_info.arrayLayers = layers;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.initialLayout = vk::ImageLayout::eUndefined;
 	image_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -309,7 +309,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 	vkBindImageMemory(device, image, texMemory, 0);
 
 	// transition image form undefined to destination transfer
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device, mipLevels, layers);
+	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdPool, device, mipLevels, layers);
 
 	// copy image
 	VkCommandBuffer comm_buff = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_SINGLE_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, cmdPool, device);
@@ -328,7 +328,7 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 			image_copy.bufferOffset = offset;
 			image_copy.bufferRowLength = 0;
 			image_copy.bufferImageHeight = 0;
-			image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			image_copy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 			image_copy.imageSubresource.mipLevel = level;
 			image_copy.imageSubresource.layerCount = 1;
 			image_copy.imageSubresource.baseArrayLayer = layer;
@@ -339,14 +339,14 @@ void VulkanTexture::LoadTextureArray(std::string filename, const VkSamplerAddres
 		}
 	}
 
-	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
+	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
 	VulkanUtility::SubmitCmdBufferToQueue(comm_buff, graphQueue, cmdPool, device);
 
 	// now transition image to shader read
-	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device, mipLevels, layers);
+	VulkanUtility::ImageTransition(graphQueue, VK_NULL_HANDLE, image, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdPool, device, mipLevels, layers);
 
 	// create texture array image view
-	imageView = VulkanUtility::InitImageView(image, format, VK_IMAGE_ASPECT_COLOR_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, device);
+	imageView = VulkanUtility::InitImageView(image, format, vk::ImageAspectFlagBits::eColor, VK_IMAGE_VIEW_TYPE_2D_ARRAY, device);
 
 	CreateTextureSampler(addrMode, maxAnisotropy, color, VK_FILTER_LINEAR);
 
@@ -389,7 +389,7 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 	image_info.mipLevels = mipLevels;
 	image_info.arrayLayers = 6;
 	image_info.tiling = VK_IMAGE_TILING_OPTIMAL;
-	image_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	image_info.initialLayout = vk::ImageLayout::eUndefined;
 	image_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	image_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	image_info.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -426,7 +426,7 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 			image_copy.bufferOffset = offset;
 			image_copy.bufferRowLength = 0;
 			image_copy.bufferImageHeight = 0;
-			image_copy.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			image_copy.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 			image_copy.imageSubresource.mipLevel = level;
 			image_copy.imageSubresource.layerCount = 1;
 			image_copy.imageSubresource.baseArrayLayer = layer;
@@ -438,12 +438,12 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 	}
 
 	// transition image form undefined to destination transfer
-	VulkanUtility::ImageTransition(graphQueue, comm_buff, image, format, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, cmdPool, device, mipLevels, 6);
+	VulkanUtility::ImageTransition(graphQueue, comm_buff, image, format, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdPool, device, mipLevels, 6);
 
-	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
+	vkCmdCopyBufferToImage(comm_buff, staging_buff, image, vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(imageCopyBuffers.size()), imageCopyBuffers.data());
 
 	// now transition image to shader read
-	VulkanUtility::ImageTransition(graphQueue, comm_buff, image, format, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, cmdPool, device, mipLevels, layers);
+	VulkanUtility::ImageTransition(graphQueue, comm_buff, image, format, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdPool, device, mipLevels, layers);
 	VulkanUtility::SubmitCmdBufferToQueue(comm_buff, graphQueue, cmdPool, device);
 
 	// create texture array image view
@@ -453,7 +453,7 @@ void VulkanTexture::LoadCubeMap(std::string filename, const VkFormat format, con
 	createInfo.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
 	createInfo.format = format;
 	createInfo.components = { VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY };
-	createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	createInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 	createInfo.subresourceRange.baseMipLevel = 0;
 	createInfo.subresourceRange.layerCount = 6;
 	createInfo.subresourceRange.levelCount = mipLevels;

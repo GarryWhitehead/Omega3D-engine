@@ -51,7 +51,7 @@ void VulkanEngine::PrepareFinalFrameBuffer(bool prepareFrameBufferOnly)
 		m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthFormat);
 
 		m_renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
-		m_renderpass->AddReference(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, 1);
+		m_renderpass->AddReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 1);
 		m_renderpass->PrepareRenderPass(p_vkDevice->device);
 	}
 

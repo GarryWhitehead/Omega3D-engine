@@ -19,6 +19,11 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\TextureManager.cpp" />
+    <ClCompile Include="Vulkan\Sampler.cpp" />
+    <ClCompile Include="Vulkan\Image.cpp" />
+    <ClCompile Include="Vulkan\CommandBuffer.cpp" />
+    <ClCompile Include="Vulkan\Buffer.cpp" />
     <ClCompile Include="ComponentInterface\ComponentInterface.cpp" />
     <ClCompile Include="ComponentInterface\ObjectManager.cpp" />
     <ClCompile Include="Managers\TransformManager.cpp" />
@@ -105,11 +110,13 @@
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />
     <ClInclude Include="ComponentInterface\ComponentManagerBase.h" />
     <ClInclude Include="ComponentInterface\ObjectManager.h" />
     <ClInclude Include="DataTypes\Camera.h" />
     <ClInclude Include="DataTypes\TextureType.h" />
+    <ClInclude Include="Vulkan\CommandBuffer.h" />
     <ClInclude Include="Vulkan\DataTypes\Texture.h" />
     <ClInclude Include="Vulkan\Device.h" />
     <ClInclude Include="Engine\engine.h" />
@@ -173,7 +180,10 @@
     <ClInclude Include="VulkanCore\VulkanDevice.h" />
     <ClInclude Include="VulkanCore\VulkanInstance.h" />
     <ClInclude Include="Vulkan\Descriptors.h" />
+    <ClInclude Include="Vulkan\Image.h" />
+    <ClInclude Include="Vulkan\Sampler.h" />
     <ClInclude Include="Vulkan\TerrainUtility.h" />
+    <ClInclude Include="Vulkan\TextureManager.h" />
     <ClInclude Include="Vulkan\VkDescriptors.h" />
     <ClInclude Include="Vulkan\vkFFT.h" />
     <ClInclude Include="Vulkan\MemoryAllocator.h" />
@@ -196,6 +206,9 @@
     <ClInclude Include="Vulkan\vulkan_terrain.h" />
     <ClInclude Include="Vulkan\vulkan_utility.h" />
     <ClInclude Include="Vulkan\vulkan_validation.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="cpp.hint" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
