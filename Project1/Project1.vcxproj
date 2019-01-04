@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\PipelineInterface.cpp" />
+    <ClCompile Include="Vulkan\Shader.cpp" />
     <ClCompile Include="Vulkan\TextureManager.cpp" />
     <ClCompile Include="Vulkan\Sampler.cpp" />
     <ClCompile Include="Vulkan\Image.cpp" />
@@ -110,6 +112,9 @@
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
+    <ClInclude Include="Vulkan\PipelineInterface.h" />
+    <ClInclude Include="Vulkan\Shader.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />
     <ClInclude Include="ComponentInterface\ComponentManagerBase.h" />
@@ -266,7 +271,7 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\CLibs\stb;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Vulkan 1.1.92.1\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\SPIRV-Cross-master\;C:\CLibs\stb;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Vulkan 1.1.92.1\Include;$(IncludePath)</IncludePath>
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">

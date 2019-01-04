@@ -14,7 +14,6 @@ namespace OmegaEngine
 {
 	// forard decleartions
 	class ObjectManager;
-	class MaterialManager;
 	class Object;
 
 	class MeshManager : public ComponentManagerBase
@@ -103,7 +102,6 @@ namespace OmegaEngine
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> staticMeshBuffer;
 
-		std::unique_ptr<MaterialManager> materialManager;
 	};
 
 }

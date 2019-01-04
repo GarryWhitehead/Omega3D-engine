@@ -11,24 +11,20 @@ namespace OmegaEngine
 	// forward declerations
 	class TextureManager;
 
+	enum class PbrMaterials 
+	{
+		BaseColor,
+		MetallicRoughness,
+		Normal,
+		Emissive,
+		Occlusion,
+		Count
+	};
+
 	class MaterialManager
 	{
 
 	public:
-
-		// in a format for sending immediately to the shader as a push if using vulkan as a renderer
-		struct MaterialPushBlock
-		{
-			OEMaths::vec3f emissiveFactor;
-			float specularGlossinessFactor;
-			float baseColourFactor;
-			float roughnessFactor;
-			float diffuseFactor;
-			float metallicFactor;
-			float specularFactor;
-			float alphaMask;
-			float alphaMaskCutOff;
-		};
 
 		struct MaterialInfo
 		{
@@ -40,14 +36,21 @@ namespace OmegaEngine
 			};
 
 			AlphaMode alphaMode = AlphaMode::None;
-			MaterialPushBlock pushBlock;
+			struct Factors
+			{
+				OEMaths::vec3f emissive;
+				float specularGlossiness;
+				float baseColour;
+				float roughness;
+				float diffuse;
+				float metallic;
+				float specular;
+				float alphaMask;
+				float alphaMaskCutOff;
+			} factors;
 
 			// material image indicies
-			int32_t baseColorIndex;
-			int32_t metallicRoughnessIndex;
-			int32_t normalIndex;
-			int32_t emissiveIndex;
-			int32_t occlusionIndex;
+			std::array<uint32_t, static_cast<int>(PbrMaterials::Count) > textures;
 
 			bool usingExtension = false;
 		};
@@ -56,12 +59,12 @@ namespace OmegaEngine
 		~MaterialManager();
 
 		void addGltfMaterial(tinygltf::Material& gltf_mat);
+		MaterialInfo& get(uint32_t index);
 
 	private:
 
-		std::unordered_map<const char*, MaterialInfo> materials;
+		std::vector<MaterialInfo> materials;
 
-		std::unique_ptr<TextureManager> textureManager;
 	};
 
 }

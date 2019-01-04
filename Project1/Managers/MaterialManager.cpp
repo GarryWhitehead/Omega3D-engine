@@ -18,7 +18,7 @@ namespace OmegaEngine
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index - we can then use this and the space id to get the required textures when needed
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.baseColorIndex = textureManager->findTexture("baseColorTexture");
+			mat.textures[(int)PbrMaterials::BaseColor] = textureManager->get_texture(gltf_mat.values["baseColorTexture"].TextureIndex());
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
 			mat.metallicRoughnessIndex = textureManager->findTexture("metallicRoughnessTexture");
@@ -68,5 +68,11 @@ namespace OmegaEngine
 		}*/
 
 		materials.insert(std::make_pair(gltf_mat.name.c_str(), mat));
+	}
+
+	MaterialManager::MaterialInfo& MaterialManager::get(uint32_t index)
+	{
+		assert(index < materials.size());
+		return materials[index];
 	}
 }

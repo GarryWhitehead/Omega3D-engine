@@ -1,19 +1,35 @@
 #pragma once
 #include "Vulkan/TextureManager.h"
+#include "Vulkan/MemoryAllocator.h"
 
 namespace OmegaEngine
 {
 
 	// abstract base class
-	class RenderableType
+	struct RenderableType
 	{
 
 	};
 
 	// renderable object types
-	class RenderableMesh : public RenderableType
+	struct RenderableMesh : public RenderableType
 	{
-		// allocated GPU buffer 
+		struct PrimitiveMesh
+		{
+			uint32_t index_offset;
+			uint32_t index_count;
+
+			VulkanAPI::MaterialPushBlock push_block;
+
+			std::array<vk::ImageView, (int)PbrMaterials::Count> image_views;
+	
+		};
 		
+		// allocated GPU buffer 
+		VulkanAPI::MemoryAllocator::SegmentInfo vertices;
+		VulkanAPI::MemoryAllocator::SegmentInfo indicies;
+
+		// primitive meshes - indices data and materials
+		std::vector<PrimitiveMesh> primitives;
 	};
 }

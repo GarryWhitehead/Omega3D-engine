@@ -19,6 +19,11 @@ namespace VulkanAPI
 		Interface(VulkanAPI::Device device, uint32_t win_width, uint32_t win_height);
 		~Interface();
 
+		std::unique_ptr<MemoryAllocator>& get_mem_alloc()
+		{
+			return mem_allocator;
+		}
+
 	private:
 
 		vk::Device device;

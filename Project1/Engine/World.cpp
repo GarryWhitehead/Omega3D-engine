@@ -11,6 +11,8 @@
 #include "Managers/SceneManager.h"
 #include "Managers/AnimationManager.h"
 #include "Managers/TransformManager.h"
+#include "Managers/MaterialManager.h"
+#include "Managers/TextureManager.h"
 #include "Rendering/RenderManager.h"
 #include "Threading/ThreadPool.h"
 #include "Omega_Common.h"
@@ -26,6 +28,10 @@ namespace OmegaEngine
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
 			compSystem->registerManager<MeshManager>();
+
+			// the mesh manager also requires the material and texture managers
+			compSystem->registerManager<MaterialManager>();
+			compSystem->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_ANIMATION || managers & Managers::OE_MANAGERS_ALL) {
 			compSystem->registerManager<AnimationManager>();
@@ -91,6 +97,16 @@ namespace OmegaEngine
 		}
 
 		if (ret) {
+
+			// first get all materials and textures associated with this model
+			for (auto& tex : model.textures) {
+				tinygltf::Image image = model.images[tex.source];
+				textureManager->addGltfImage(image);
+			}
+
+			for (auto& mat : model.materials) {
+				materialManager->addGltfMaterial(mat);
+			}
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
 			// data will be passed to all the relevant managers for this object and components added automatically

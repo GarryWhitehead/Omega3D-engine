@@ -33,6 +33,8 @@ namespace VulkanAPI
 		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 
+		vk::ImageView& get_image_view();
+
 	private:
 
 		vk::Device device;

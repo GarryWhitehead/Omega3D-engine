@@ -14,10 +14,14 @@ namespace VulkanAPI
 
 		void create(std::unique_ptr<Image>& image);
 
+		vk::ImageView& get_imageView()
+		{
+			return image_view;
+		}
+
 	private:
 
 		vk::Device device;
-
 		vk::ImageView image_view;
 
 	};

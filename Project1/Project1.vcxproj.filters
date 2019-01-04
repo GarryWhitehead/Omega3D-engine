@@ -282,6 +282,12 @@
     <ClCompile Include="Vulkan\TextureManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Vulkan\PipelineInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
@@ -570,6 +576,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\TextureManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\PipelineInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\DataTypes\PushBlocks.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

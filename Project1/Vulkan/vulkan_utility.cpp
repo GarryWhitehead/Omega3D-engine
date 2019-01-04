@@ -190,59 +190,7 @@ VkPipelineMultisampleStateCreateInfo VulkanUtility::InitMultisampleState(const V
 	return multiInfo;
 }
 
-// =====================================================================================================================================================================================================================================================================================================
-// shader utilities and wrapper
 
-VkPipelineShaderStageCreateInfo VulkanUtility::InitShaders(std::string shaderFile, const VkShaderStageFlagBits stage, VkDevice device)
-{
-	std::vector<char> shaderData;
-	LoadFile(shaderFile, shaderData);
-
-	VkShaderModule shader = CreateShaderModule(shaderData, device);
-
-	VkPipelineShaderStageCreateInfo shaderStage = CreateShader(shader, stage);
-
-	return shaderStage;
-}
-
-void VulkanUtility::LoadFile(std::string filename, std::vector<char>& data)
-{
-	std::string shaderDir("assets/shaders/");
-	std::ifstream file(shaderDir + filename, std::ios_base::ate | std::ios_base::binary);
-	if (!file.is_open())
-	{
-		g_filelog->WriteLog("Critical Error! Unable to open file " + filename);
-		exit(EXIT_FAILURE);
-	}
-	std::ifstream::pos_type filePos = file.tellg();
-	data.resize(filePos);
-	file.seekg(0, std::ios_base::beg);
-	file.read(data.data(), filePos);
-}
-
-VkShaderModule VulkanUtility::CreateShaderModule(std::vector<char>& shader, VkDevice device)
-{
-	VkShaderModule shaderModule;
-	VkShaderModuleCreateInfo shaderInfo = {};
-	shaderInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	shaderInfo.codeSize = shader.size();
-	shaderInfo.pCode = reinterpret_cast<uint32_t*>(shader.data());
-
-	VK_CHECK_RESULT(vkCreateShaderModule(device, &shaderInfo, nullptr, &shaderModule));
-
-	return shaderModule;
-}
-
-VkPipelineShaderStageCreateInfo VulkanUtility::CreateShader(const VkShaderModule shader, const VkShaderStageFlagBits stage)
-{
-	VkPipelineShaderStageCreateInfo createInfo = {};
-	createInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	createInfo.stage = stage;
-	createInfo.module = shader;
-	createInfo.pName = "main";
-
-	return createInfo;
-}
 
 
 

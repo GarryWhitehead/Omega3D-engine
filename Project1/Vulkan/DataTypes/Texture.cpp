@@ -99,4 +99,10 @@ namespace VulkanAPI
 			}
 		}
 	}
+
+	vk::ImageView& Texture::get_image_view()
+	{
+		return tex_imageView->get_imageView();
+	}
+
 }

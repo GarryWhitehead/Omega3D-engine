@@ -542,7 +542,7 @@ void VulkanModel::Update(int acc_time)
 	ssbo[0].modelMatrix = graphics->RequestTransformData();		// request updated transform data
 	
 	p_vkMemory->MapDataToSegment<SsboLayout>(m_ssboBuffer, ssbo); 
-
+	 
 	// update bone animation transforms for each model
 	/* for (auto& model : p_modelManager->m_colladaModels) {
 		

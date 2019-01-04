@@ -49,6 +49,11 @@ namespace OmegaEngine
 			return tex_format;
 		}
 
+		void set_name(const char* name)
+		{
+			this->name = name;
+		}
+
 	private:
 
 		// This could probably be public but I am paranoid about unwanted chnages to texture data!
@@ -57,6 +62,7 @@ namespace OmegaEngine
 		int height;
 		int numComponents;
 		int numMipMaps;
+		const char* name;
 
 		// the texture binary
 		unsigned char* bin;

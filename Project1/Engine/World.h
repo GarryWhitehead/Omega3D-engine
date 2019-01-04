@@ -10,6 +10,8 @@
 namespace OmegaEngine
 {
 	// forward declerartions
+	class MaterialManager;
+	class TextureManager;
 	class ComponentInterface;
 	class ObjectManager;
 	class Camera;
@@ -78,6 +80,10 @@ namespace OmegaEngine
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> compSystem;
 		std::unique_ptr<RenderInterface> render_interface;
+
+		// other managers 
+		std::unique_ptr<MaterialManager> materialManager;
+		std::unique_ptr<TextureManager> textureManager;
 
 		// cameras registered with this world
 		std::vector<std::unique_ptr<Camera> > cameras;
