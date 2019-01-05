@@ -17,7 +17,6 @@ namespace OmegaEngine
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
 
-		// now initialise all the core graphical modules such as the deferred shader, etc. in conjuction with the render configs
 	}
 
 
@@ -49,7 +48,7 @@ namespace OmegaEngine
 			auto& mat = comp_interface->getManager<MaterialManager>()->get(prim.materialId);
 
 			// set up the push block 
-
+			r_prim.push_block.create(mat);
 
 			// map all of the pbr materials for this primitive mesh to the gpu
 			for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
