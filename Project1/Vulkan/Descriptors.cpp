@@ -3,17 +3,17 @@
 namespace VulkanAPI
 {
 
-	Descriptors::Descriptors(vk::Device dev) :
+	DescriptorLayout::DescriptorLayout(vk::Device dev) :
 		device(dev)
 	{
 	}
 
 
-	Descriptors::~Descriptors()
+	DescriptorLayout::~DescriptorLayout()
 	{
 	}
 
-	void Descriptors::add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags)
+	void DescriptorLayout::add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags)
 	{
 		vk::DescriptorSetLayoutBinding layout(
 			binding, 
@@ -35,7 +35,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void Descriptors::create_descriptor_pools()
+	void DescriptorLayout::create_descriptor_pools()
 	{
 		std::vector<vk::DescriptorPoolSize> pools;
 
@@ -66,7 +66,12 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
 	}
 
-	void Descriptors::add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type)
+	DescriptorSet::DescriptorSet(vk::Device device)
+	{
+
+	}
+
+	void DescriptorSet::add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type)
 	{
 		vk::WriteDescriptorSet descrSet = {};
 		descrSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

@@ -4,7 +4,7 @@
 namespace VulkanAPI
 {
 
-	class Descriptors
+	class DescriptorLayout
 	{
 
 	public:
@@ -20,12 +20,12 @@ namespace VulkanAPI
 			uint32_t storage_image_count = 0;
 		};
 
-		Descriptors(vk::Device device);
-		~Descriptors();
+		DescriptorLayout(vk::Device device);
+		~DescriptorLayout();
 
 		void add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
 		void create_descriptor_pools();
-		void add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type);
+		
 
 	private:
 
@@ -33,8 +33,21 @@ namespace VulkanAPI
 
 		vk::DescriptorPool pool;
 		VkDescriptorSetAllocateInfo info;
-		std::vector<vk::WriteDescriptorSet> sets;
 		LayoutBindings layout_bind;
+	};
+
+	class DescriptorSet
+	{
+
+	public:
+		
+		DescriptorSet(vk::Device device);
+
+		void add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type);
+	
+	private:
+
+		std::vector<vk::WriteDescriptorSet> sets;
 	};
 
 }

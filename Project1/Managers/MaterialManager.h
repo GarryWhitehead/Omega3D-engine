@@ -35,6 +35,12 @@ namespace OmegaEngine
 				None
 			};
 
+			struct Texture
+			{
+				uint32_t sampler;
+				uint32_t image;
+			};
+
 			AlphaMode alphaMode = AlphaMode::None;
 			struct Factors
 			{
@@ -50,7 +56,7 @@ namespace OmegaEngine
 			} factors;
 
 			// material image indicies
-			std::array<uint32_t, static_cast<int>(PbrMaterials::Count) > textures;
+			std::array<Texture, static_cast<int>(PbrMaterials::Count) > textures;
 
 			bool usingExtension = false;
 		};

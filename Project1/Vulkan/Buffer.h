@@ -8,6 +8,15 @@ namespace VulkanAPI
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
 	}
 
+	// forward decleartions
+
+	enum class BufferType
+	{
+		Uniform,
+		Storage,
+		Count
+	};
+
 	class Buffer
 	{
 
@@ -18,6 +27,10 @@ namespace VulkanAPI
 
 	private:
 
+		uint32_t offset;
+		uint32_t segment_id;		// indiactes which segemnt this buffer is stored in 
+		BufferType type;
+		bool isInit = false;
 	};
 
 }
