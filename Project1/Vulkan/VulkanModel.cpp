@@ -290,8 +290,8 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, bool drawSha
 				// try and reduce artifacts
 				vkCmdSetDepthBias(cmdBuffer, VulkanShadow::biasConstant, 0.0f, VulkanShadow::biasSlope);
 
-				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipeline());
-				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
+				vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, shadow->GetPipeline());
+				vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
 
 				VulkanShadow::PushConstant push;
 				push.useModelIndex = 1;					// inform the shadow shader to add the model transform to the light matrix	
@@ -301,8 +301,8 @@ void VulkanModel::GenerateModelCmdBuffer(VkCommandBuffer cmdBuffer, bool drawSha
 			}
 			else {
 
-				vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.pipeline);
-				vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.layout, 0, 1, &m_materials[matIndex].descriptor->set, 0, NULL);
+				vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineInfo.pipeline);
+				vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineInfo.layout, 0, 1, &m_materials[matIndex].descriptor->set, 0, NULL);
 
 				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(uint32_t), &objIndex);															// object index into transform buffer
 				vkCmdPushConstants(cmdBuffer, m_pipelineInfo.layout, VK_SHADER_STAGE_FRAGMENT_BIT, sizeof(uint32_t), sizeof(MaterialProperties), &m_materials[matIndex].properties);		// push material info per mesh

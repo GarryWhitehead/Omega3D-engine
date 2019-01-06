@@ -104,7 +104,7 @@
     <ClCompile Include="Vulkan\VulkanModel.cpp" />
     <ClCompile Include="Vulkan\VulkanModule.cpp" />
     <ClCompile Include="Vulkan\VulkanPBR.cpp" />
-    <ClCompile Include="Vulkan\VulkanRenderPass.cpp" />
+    <ClCompile Include="Vulkan\RenderPass.cpp" />
     <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
     <ClCompile Include="Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="Vulkan\VulkanWater.cpp" />
@@ -205,7 +205,7 @@
     <ClInclude Include="Vulkan\VulkanModel.h" />
     <ClInclude Include="Vulkan\VulkanModule.h" />
     <ClInclude Include="Vulkan\VulkanPBR.h" />
-    <ClInclude Include="Vulkan\VulkanRenderPass.h" />
+    <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\VulkanSkybox.h" />
     <ClInclude Include="Vulkan\VulkanTexture.h" />
     <ClInclude Include="Vulkan\VulkanWater.h" />

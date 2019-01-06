@@ -195,9 +195,6 @@
     <ClCompile Include="Vulkan\VulkanPBR.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\VulkanRenderPass.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vulkan\VulkanSkybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -292,6 +289,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\PipelineInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\RenderPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -473,9 +473,6 @@
     <ClInclude Include="Vulkan\VulkanPBR.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\VulkanRenderPass.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\VulkanSkybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -594,6 +591,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\BufferManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\RenderPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

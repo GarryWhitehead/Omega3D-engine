@@ -201,8 +201,8 @@ void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, bool dra
 	// Terrain draw
 	if (!drawShadow) {
 		vkCmdSetLineWidth(cmdBuffer, 1.0f);
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, (p_vkEngine->drawWireframe()) ? m_terrainInfo.wirePipeline : m_terrainInfo.pipeline.pipeline);
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_terrainInfo.pipeline.layout, 0, 1, &m_terrainInfo.descrInfo->set, 0, NULL);
+		vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, (p_vkEngine->drawWireframe()) ? m_terrainInfo.wirePipeline : m_terrainInfo.pipeline.pipeline);
+		vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_terrainInfo.pipeline.layout, 0, 1, &m_terrainInfo.descrInfo->set, 0, NULL);
 	}
 	else {
 		auto shadow = p_vkEngine->VkModule<VulkanShadow>();
@@ -210,8 +210,8 @@ void VulkanTerrain::GenerateTerrainCmdBuffer(VkCommandBuffer cmdBuffer, bool dra
 		// try and reduce artifacts
 		vkCmdSetDepthBias(cmdBuffer, VulkanShadow::biasConstant, 0.0f, VulkanShadow::biasSlope);
 
-		vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipeline());		// use shadow pipeline for draw
-		vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
+		vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, shadow->GetPipeline());		// use shadow pipeline for draw
+		vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, shadow->GetPipelineLayout(), 0, 1, &shadow->GetDescriptorSet(), 0, NULL);
 
 		VulkanShadow::PushConstant push;
 		push.useModelIndex = 0;					// inform the shadow shader to add the model transform to the light matrix	

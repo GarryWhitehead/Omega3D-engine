@@ -50,7 +50,7 @@ void VulkanEngine::PrepareFinalFrameBuffer(bool prepareFrameBufferOnly)
 		m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, p_vkSwapChain->surfaceInfo.format.format);
 		m_renderpass->AddAttachment(VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL, depthFormat);
 
-		m_renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+		m_renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 		m_renderpass->AddReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 1);
 		m_renderpass->PrepareRenderPass(p_vkDevice->device);
 	}
@@ -181,7 +181,7 @@ void VulkanEngine::SubmitFrame()
 	}
 
 	VkSubmitInfo submit_info = {};
-	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkPipelineStageFlags flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 	submit_info.pWaitDstStageMask = &flags;
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.waitSemaphoreCount = 1;

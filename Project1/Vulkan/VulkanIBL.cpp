@@ -45,16 +45,16 @@ void VulkanIBL::SetupIBL()
 	// irradiance cube renderpass and framebuffer
 	// create renderpass with colour attachment
 	m_irradianceCube.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
-	m_irradianceCube.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_FORMAT_R32G32B32A32_SFLOAT);
-	m_irradianceCube.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_irradianceCube.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, VK_FORMAT_R32G32B32A32_SFLOAT);
+	m_irradianceCube.renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 	m_irradianceCube.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	m_irradianceCube.renderpass->PrepareFramebuffer(m_irradianceCube.offscreenImage->imageView, IRRADIANCEMAP_DIM, IRRADIANCEMAP_DIM, p_vkEngine->GetDevice());
 
 	// create offscreen frame buffer for pre-filtered cube
 	m_filterCube.renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
-	m_filterCube.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_filterCube.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_filterCube.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_filterCube.renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 	m_filterCube.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	m_filterCube.renderpass->PrepareFramebuffer(m_filterCube.offscreenImage->imageView, PREFILTERMAP_DIM, PREFILTERMAP_DIM, p_vkEngine->GetDevice());
@@ -63,10 +63,10 @@ void VulkanIBL::SetupIBL()
 	VkCommandBuffer cmdBuffer = VulkanUtility::CreateCmdBuffer(VulkanUtility::VK_PRIMARY, VulkanUtility::VK_MULTI_USE, VK_NULL_HANDLE, VK_NULL_HANDLE, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 	// irradiance transition
-	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, vk::ImageLayout::eUndefined, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 	// pre-filter transition
-	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, vk::ImageLayout::eUndefined, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 	VulkanUtility::SubmitCmdBufferToQueue(cmdBuffer, p_vkEngine->GetGraphQueue(), p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 }
@@ -226,8 +226,8 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 
 			vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_irradianceCube.pipeline);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors->set, 0, NULL);
+			vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_irradianceCube.pipeline);
+			vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptors->set, 0, NULL);
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
 			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 
@@ -240,7 +240,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 
-			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, vk::ImageLayout::eColorAttachmentOptimal, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 			VkImageCopy imageCopy = {};
 			imageCopy.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -260,7 +260,7 @@ void VulkanIBL::GenerateIrrMapCmdBuffer()
 
 			vkCmdCopyImage(cmdBuffer, m_irradianceCube.offscreenImage->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_irradianceCube.cubeImage->image, vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
 
-			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.offscreenImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk::ImageLayout::eColorAttachmentOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 		}
 	}
 	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_irradianceCube.cubeImage->image, VK_FORMAT_R32G32B32A32_SFLOAT, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice(), MIP_LEVELS, 6);
@@ -313,8 +313,8 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 
 			vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-			vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_filterCube.pipeline);
-			vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineLayout, 0, 1, &m_descriptors->set, 0, NULL);
+			vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_filterCube.pipeline);
+			vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineLayout, 0, 1, &m_descriptors->set, 0, NULL);
 			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
 			vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
 
@@ -327,7 +327,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 			vkCmdEndRenderPass(cmdBuffer);
 
 			// copy each of the cubemap faces 
-			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, vk::ImageLayout::eColorAttachmentOptimal, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 
 			VkImageCopy imageCopy = {};
 			imageCopy.srcSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
@@ -347,7 +347,7 @@ void VulkanIBL::GeneratePreFilterCmdBuffer()
 
 			vkCmdCopyImage(cmdBuffer, m_filterCube.offscreenImage->image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_filterCube.cubeImage->image, vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
 
-			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
+			VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.offscreenImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, vk::ImageLayout::eColorAttachmentOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice());
 		}
 	}
 	VulkanUtility::ImageTransition(p_vkEngine->GetGraphQueue(), cmdBuffer, m_filterCube.cubeImage->image, VK_FORMAT_R16G16B16A16_SFLOAT, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, p_vkEngine->GetCmdPool(), p_vkEngine->GetDevice(), MIP_LEVELS, 6);

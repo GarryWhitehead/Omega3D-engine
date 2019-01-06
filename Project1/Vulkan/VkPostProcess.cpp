@@ -69,8 +69,8 @@ void VkPostProcess::PrepareFrameBuffers()
 	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
 	m_ppInfo.renderpass->AddAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
-	m_ppInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);		// normal
-	m_ppInfo.renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 1);		// bloom
+	m_ppInfo.renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);		// normal
+	m_ppInfo.renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 1);		// bloom
 	m_ppInfo.renderpass->AddReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 2);
 	m_ppInfo.renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
@@ -86,8 +86,8 @@ void VkPostProcess::PrepareFrameBuffers()
 
 	// create renderpass and FB for bloom blur
 	m_bloomInfo.renderpassHoriz = new VulkanRenderPass(p_vkEngine->GetDevice());
-	m_bloomInfo.renderpassHoriz->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_FORMAT_R16G16B16A16_SFLOAT);
-	m_bloomInfo.renderpassHoriz->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);		
+	m_bloomInfo.renderpassHoriz->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, VK_FORMAT_R16G16B16A16_SFLOAT);
+	m_bloomInfo.renderpassHoriz->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);		
 	m_bloomInfo.renderpassHoriz->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	m_bloomInfo.renderpassVert = new VulkanRenderPass(p_vkEngine->GetDevice(), m_bloomInfo.renderpassHoriz->renderpass);		// use the same renderpass as the horizontal, only the FB differs
@@ -126,10 +126,10 @@ void VkPostProcess::GenerateColPassCmdBuffer(VkCommandBuffer cmdBuffer)
 	VkDeviceSize offsets[1]{ m_vertices.offset };
 	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppInfo.pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_ppInfo.pipelineInfo.pipeline);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_ppInfo.pipelineInfo.layout, 0, 1, &m_ppInfo.descriptors->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_ppInfo.pipelineInfo.layout, 0, 1, &m_ppInfo.descriptors->set, 0, NULL);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT32);
 
 	// draw as a full-screen quad as our models, terrain, etc. have already been generated
@@ -165,9 +165,9 @@ void VkPostProcess::GenerateBlurPassCmdBuffer(VkCommandBuffer& cmdBuffer, VkRend
 	VkDeviceSize offsets[1]{ m_vertices.offset };
 	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bloomInfo.pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_bloomInfo.pipelineInfo.pipeline);
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_bloomInfo.pipelineInfo.layout, 0, 1, &m_bloomInfo.descriptors->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_bloomInfo.pipelineInfo.layout, 0, 1, &m_bloomInfo.descriptors->set, 0, NULL);
 
 	// send horizontal key to shader
 	uint32_t push = direction;
@@ -191,10 +191,10 @@ void VkPostProcess::GenerateFinalCmdBuffer(VkCommandBuffer cmdBuffer)
 
 	VkDeviceSize offsets[1]{ m_vertices.offset };
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_finalInfo.pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_finalInfo.pipelineInfo.pipeline);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_finalInfo.pipelineInfo.layout, 0, 1, &m_finalInfo.descriptors->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_finalInfo.pipelineInfo.layout, 0, 1, &m_finalInfo.descriptors->set, 0, NULL);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT32);
 
 	// draw as a full-screen quad
@@ -208,10 +208,10 @@ void VkPostProcess::GenerateDebugCmdBuffer(VkCommandBuffer cmdBuffer)
 
 	VkDeviceSize offsets[1]{ m_vertices.offset };
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_debugInfo.pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_debugInfo.pipelineInfo.pipeline);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_finalInfo.pipelineInfo.layout, 0, 1, &m_debugInfo.descriptors->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_finalInfo.pipelineInfo.layout, 0, 1, &m_debugInfo.descriptors->set, 0, NULL);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT32);
 
 	vkCmdDrawIndexed(cmdBuffer, 6, p_light->GetLightCount(), 0, 0, 0);
@@ -512,7 +512,7 @@ void VkPostProcess::DrawBloom()
 void VkPostProcess::Submit(VkSemaphore *last_semaphore)
 {
 	VkSubmitInfo submit_info = {};
-	VkPipelineStageFlags flags = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	VkPipelineStageFlags flags = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 	submit_info.pWaitDstStageMask = &flags;
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 	submit_info.waitSemaphoreCount = 1;

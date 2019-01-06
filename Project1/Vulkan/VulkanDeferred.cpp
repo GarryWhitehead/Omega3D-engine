@@ -75,14 +75,14 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	
 	// Create renderpass attachment info for all G buffers
 	std::array<VkAttachmentDescription, 9> attachDescr = {};
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.offscreen->format);			// offscreen colour buffer	
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.position->format);			// position
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.normal->format);				// normal
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.albedo->format);				// albedo
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.bump->format);				// bump
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.ao->format);					// ao
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.metallic->format);			// metallic
-	m_deferredInfo.renderpass->AddAttachment(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, m_deferredInfo.roughness->format);			// roughness
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.offscreen->format);			// offscreen colour buffer	
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.position->format);			// position
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.normal->format);				// normal
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.albedo->format);				// albedo
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.bump->format);				// bump
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.ao->format);					// ao
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.metallic->format);			// metallic
+	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eColorAttachmentOptimal, m_deferredInfo.roughness->format);			// roughness
 	m_deferredInfo.renderpass->AddAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, m_deferredInfo.depth->format);		// depth
 
 
@@ -91,14 +91,14 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	// ================================ subpass one - fill G-buffers
 	std::vector<VkAttachmentReference> colorRef1 = 
 	{
-		{ 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// offscreen colour buffer
-		{ 1, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// position
-		{ 2, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// normal
-		{ 3, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// albedo
-		{ 4, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// bump/normal
-		{ 5, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// ao
-		{ 6, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// metallic
-		{ 7, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },		// roughness
+		{ 0, vk::ImageLayout::eColorAttachmentOptimal },		// offscreen colour buffer
+		{ 1, vk::ImageLayout::eColorAttachmentOptimal },		// position
+		{ 2, vk::ImageLayout::eColorAttachmentOptimal },		// normal
+		{ 3, vk::ImageLayout::eColorAttachmentOptimal },		// albedo
+		{ 4, vk::ImageLayout::eColorAttachmentOptimal },		// bump/normal
+		{ 5, vk::ImageLayout::eColorAttachmentOptimal },		// ao
+		{ 6, vk::ImageLayout::eColorAttachmentOptimal },		// metallic
+		{ 7, vk::ImageLayout::eColorAttachmentOptimal },		// roughness
 		
 	};
 	m_deferredInfo.renderpass->AddSubPass(colorRef1, &depthRef);
@@ -106,7 +106,7 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	// =============================== subpass two - draw scene into offscreen
 	std::vector<VkAttachmentReference> colorRef2 = 
 	{
-		{ 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },	
+		{ 0, vk::ImageLayout::eColorAttachmentOptimal },	
 	};
 
 	std::vector<VkAttachmentReference> inputRef = 
@@ -124,7 +124,7 @@ void VulkanDeferred::PrepareDeferredFramebuffer()
 	// =============================== subpass three - draw skybox 
 	std::vector<VkAttachmentReference> colorRef3 =
 	{
-		{ 0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL },
+		{ 0, vk::ImageLayout::eColorAttachmentOptimal },
 	};
 	m_deferredInfo.renderpass->AddSubPass(colorRef3, &depthRef);
 
@@ -298,9 +298,9 @@ void VulkanDeferred::GenerateDeferredCmdBuffer(VkCommandBuffer cmdBuffer)
 {
 	VkDeviceSize offsets[1]{ m_buffers.vertices.offset };
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_deferredInfo.pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_deferredInfo.pipelineInfo.pipeline);
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_buffers.vertices.block_id), offsets);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_deferredInfo.pipelineInfo.layout, 0, 1, &m_deferredInfo.descriptor->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_deferredInfo.pipelineInfo.layout, 0, 1, &m_deferredInfo.descriptor->set, 0, NULL);
 
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_buffers.indices.block_id), m_buffers.indices.offset, VK_INDEX_TYPE_UINT32);
 

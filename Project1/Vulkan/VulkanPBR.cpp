@@ -24,7 +24,7 @@ void VulkanPBR::PrepareLUTFramebuffer()
 	// create renderpass with colour attachment
 	m_renderpass = new VulkanRenderPass(p_vkEngine->GetDevice());
 	m_renderpass->AddAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, VK_FORMAT_R16G16_SFLOAT);
-	m_renderpass->AddReference(VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, 0);
+	m_renderpass->AddReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 	m_renderpass->PrepareRenderPass(p_vkEngine->GetDevice());
 
 	// create offscreen framebuffer
@@ -130,7 +130,7 @@ void VulkanPBR::GenerateLUTCmdBuffer()
 	vkCmdSetScissor(cmdBuffer, 0, 1, &scissor);
 
 	vkCmdBeginRenderPass(cmdBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineInfo.pipeline);
 	vkCmdDraw(cmdBuffer, 3, 1, 0, 0);
 	vkCmdEndRenderPass(cmdBuffer);
 

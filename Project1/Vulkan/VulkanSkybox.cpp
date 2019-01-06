@@ -153,8 +153,8 @@ void VulkanSkybox::GenerateSkyboxCmdBuffer(VkCommandBuffer cmdBuffer)
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkModel->GetVertexBuffer(), offsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkModel->GetIndexBuffer(), p_vkModel->GetIndexOffset(), VK_INDEX_TYPE_UINT32);
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.pipeline);
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors->set, 0, NULL);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_envCube.pipeline.pipeline);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_envCube.pipeline.layout, 0, 1, &m_envCube.descriptors->set, 0, NULL);
 	vkCmdDrawIndexed(cmdBuffer, model.meshes[0].indexCount, 1, 0, 0, 0);
 
 	viewport = VulkanUtility::InitViewPort(p_vkEngine->GetSurfaceExtentW(), p_vkEngine->GetSurfaceExtentH(), 0.0f, 1.0f);

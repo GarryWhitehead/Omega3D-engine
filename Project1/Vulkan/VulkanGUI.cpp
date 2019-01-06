@@ -319,12 +319,12 @@ void VulkanGUI::GenerateCmdBuffer(VkCommandBuffer cmdBuffer, MemoryAllocator *p_
 
 	VkDeviceSize offsets[1]{ m_vertices.offset };
 
-	vkCmdBindPipeline(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.pipeline);
+	vkCmdBindPipeline(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineInfo.pipeline);
 
 	vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertices.block_id), offsets);
 	vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indices.block_id), m_indices.offset, VK_INDEX_TYPE_UINT16);
 	
-	vkCmdBindDescriptorSets(cmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipelineInfo.layout, 0, 1, &m_descriptors->set, 0, NULL);
+	vkCmdBindDescriptorSets(cmdBuffer, vk::PipelineBindPoint::eGraphics, m_pipelineInfo.layout, 0, 1, &m_descriptors->set, 0, NULL);
 	
 	// push window scale constant to shader
 	PushConstant push;
