@@ -1,6 +1,9 @@
 #include "Shader.h"
 #include "utility/logger.h"
+#include "Vulkan/Descriptors.h"
+#include "Vulkan/Pipeline.h"
 
+#include "spirv_cross.hpp"
 #include <fstream>
 
 namespace VulkanAPI
@@ -84,5 +87,59 @@ namespace VulkanAPI
 		vk::ShaderStageFlagBits stage = get_stage_flag_bits(type);
 		vk::PipelineShaderStageCreateInfo createInfo({}, stage, modules[(int)type], "main", nullptr);
 		wrappers[(int)type] = createInfo;
+	}
+
+	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info)
+	{
+		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+
+		auto shader_res = compiler.get_shader_resources();
+
+		// sampler 2D
+		for (auto& image : shader_res.sampled_images) {
+
+			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+			descr_layout.add_layout(binding, vk::DescriptorType::eSampler, get_stage_flag_bits(type));
+		}
+
+		// ubo
+		for (auto& ubo : shader_res.uniform_buffers) {
+
+			uint32_t set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+			uint32_t binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+			descr_layout.add_layout(binding, vk::DescriptorType::eUniformBuffer, get_stage_flag_bits(type));
+		}
+
+		// storage
+		for (auto& ssbo : shader_res.storage_buffers) {
+
+			uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
+			uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
+			descr_layout.add_layout(binding, vk::DescriptorType::eStorageBuffer, get_stage_flag_bits(type));
+		}
+
+		// image storage
+		for (auto& image : shader_res.storage_images) {
+
+			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+			descr_layout.add_layout(binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(type));
+		}
+
+		// get the number of input and output stages
+		for (auto& input : shader_res.stage_inputs) {
+
+			p_info.input_counts[(int)type] = compiler.get_decoration(input.id, spv::DecorationLocation);
+		}
+		for (auto& output : shader_res.stage_outputs) {
+
+			p_info.output_counts[(int)type] = compiler.get_decoration(output.id, spv::DecorationLocation);
+		}
+
+		// get push constants struct sizes if any
+		if (!shader_res.push_constant_buffers.empty()) {
+			p_info.push_constant_sizes[(int)type] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
+		}
 	}
 }

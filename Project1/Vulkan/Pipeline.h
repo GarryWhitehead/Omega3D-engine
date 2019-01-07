@@ -1,7 +1,5 @@
 #pragma once
 #include "Vulkan/Common.h"
-#include "Rendering/RenderableTypes.h"
-#include "spirv_cross.hpp"
 
 namespace VulkanAPI
 {
@@ -53,6 +51,8 @@ namespace VulkanAPI
 	{
 	public:
 
+		PipelineLayout();
+
 		void create(OmegaEngine::RenderTypes type);
 
 	private:
@@ -66,27 +66,6 @@ namespace VulkanAPI
 		std::array<uint32_t, (int)StageType::Count> push_constant_sizes = {};
 
 		vk::PipelineLayout layout;
-	};
-
-	class PipelineInterface
-	{
-
-	public:
-
-		PipelineInterface(vk::Device device);
-		~PipelineInterface();
-
-		void shader_reflection(Shader& shader, StageType type, PipelineLayout& p_info);
-		void add_shader(OmegaEngine::RenderTypes type);
-
-	private:
-
-		vk::Device device;
-
-		std::array<Shader, (int)OmegaEngine::RenderTypes::Count> shaders;
-
-		std::array<PipelineLayout, (int)OmegaEngine::RenderTypes::Count> pipeline_layouts;
-		std::array<Pipeline, (int)OmegaEngine::RenderTypes::Count> pipeline_layouts;
 	};
 
 }

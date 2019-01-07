@@ -217,15 +217,14 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer))
 	}
 
-	void RenderPass::prepareFramebuffer(std::vector<vk::ImageView>& imageView, uint32_t width, uint32_t height, uint32_t layerCount)
+	void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount)
 	{
 		assert(!imageView.empty());
 		assert(renderpass != VK_NULL_HANDLE);
 
 		vk::FramebufferCreateInfo frameInfo({},
 		renderpass,
-		static_cast<uint32_t>(imageView.size()),
-		imageView.data(),
+		size, imageView,
 		width, height,
 		layerCount);
 

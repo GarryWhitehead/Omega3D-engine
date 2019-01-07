@@ -21,7 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Rendering\RenderableTypes.cpp" />
     <ClCompile Include="Vulkan\BufferManager.cpp" />
-    <ClCompile Include="Vulkan\PipelineInterface.cpp" />
+    <ClCompile Include="Vulkan\Pipeline.cpp" />
     <ClCompile Include="Vulkan\Shader.cpp" />
     <ClCompile Include="Vulkan\TextureManager.cpp" />
     <ClCompile Include="Vulkan\Sampler.cpp" />
@@ -116,7 +116,7 @@
   <ItemGroup>
     <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
-    <ClInclude Include="Vulkan\PipelineInterface.h" />
+    <ClInclude Include="Vulkan\Pipeline.h" />
     <ClInclude Include="Vulkan\Shader.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />

@@ -35,6 +35,7 @@ namespace VulkanAPI
 		bool loadShaderBinary(const char* filename, StageType type);
 		void createModule(vk::Device device, StageType type);
 		void createWrapper(StageType type);
+		void reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info);
 
 		std::array<vk::PipelineShaderStageCreateInfo, (int)StageType::Count> wrappers;
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;

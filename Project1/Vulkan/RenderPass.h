@@ -31,7 +31,7 @@ namespace VulkanAPI
 		void addReference(const vk::ImageLayout layout, const uint32_t attachId);
 		void prepareRenderPass();
 		void prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
-		void prepareFramebuffer(std::vector<vk::ImageView>& imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
+		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 		void destroy();
 
 

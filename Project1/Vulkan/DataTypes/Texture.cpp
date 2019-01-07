@@ -21,6 +21,17 @@ namespace VulkanAPI
 	{
 	}
 
+	void Texture::create_empty_image(vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags)
+	{
+		// create an empty image
+		tex_image = std::make_unique<Image>(device);
+		tex_image->create(format, width, height, mip_levels, 1, TextureType::Normal);
+
+		// and a image view of the empty image
+		tex_imageView = std::make_unique<ImageView>(device);
+		tex_imageView->create(tex_image);
+	}
+
 	void Texture::map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc)
 	{
 		vk::DeviceMemory stagingMemory;

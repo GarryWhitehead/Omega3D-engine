@@ -17,6 +17,10 @@ namespace OmegaEngine
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
 
+		// initlaise all shaders that will be used which is dependent on the number of renderable types
+		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
+			this->add_shader((RenderTypes)r_type);
+		}
 	}
 
 
@@ -64,5 +68,22 @@ namespace OmegaEngine
 			
 		}
 	} 
+
+	void RenderInterface::add_shader(RenderTypes type)
+	{
+		VulkanAPI::Shader shader;
+		switch (type) {
+		case OmegaEngine::RenderTypes::Mesh:
+			shader.add(device, "models/model.vert", VulkanAPI::StageType::Vertex, "models/model.frag", VulkanAPI::StageType::Fragment);
+			break;
+		case OmegaEngine::RenderTypes::Skybox:
+			shader.add(device, "env/skybox.vert", VulkanAPI::StageType::Vertex, "env/skybox.frag", VulkanAPI::StageType::Fragment);
+			break;
+		default:
+			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
+		}
+
+		pipelines[(int)type].shader = shader;
+	}
 
 }

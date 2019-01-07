@@ -288,10 +288,10 @@
     <ClCompile Include="Vulkan\BufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\PipelineInterface.cpp">
+    <ClCompile Include="Vulkan\RenderPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\RenderPass.cpp">
+    <ClCompile Include="Vulkan\Pipeline.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -581,9 +581,6 @@
     <ClInclude Include="Vulkan\TextureManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\PipelineInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -594,6 +591,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\RenderPass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Pipeline.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
