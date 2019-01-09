@@ -35,8 +35,10 @@ namespace VulkanAPI
 		}
 	}
 
-	void DescriptorLayout::create_descriptor_pools()
+	void DescriptorLayout::create()
 	{
+		// initialise descriptor pool first based on layouts that have been added
+		
 		std::vector<vk::DescriptorPoolSize> pools;
 
 		if (layout_bind.ubo_count) {
@@ -62,23 +64,34 @@ namespace VulkanAPI
 
 		assert(!pools.empty());
 		vk::DescriptorPoolCreateInfo createInfo({}, 1, static_cast<uint32_t>(pools.size()), pools.data());
-
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
+
+		// and create the descriptor layout
+		vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(layout_bind.layouts.size()), layout_bind.layouts.data());
+		VK_CHECK_RESULT(device.createDescriptorSetLayout(&layoutInfo, nullptr, &layout));
 	}
 
-	DescriptorSet::DescriptorSet(vk::Device device)
+	DescriptorSet::DescriptorSet(vk::Device device, vk::DescriptorPool& pool, vk::DescriptorSetLayout& layout)
 	{
-
+		vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &layout);
+		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &set));
 	}
 
-	void DescriptorSet::add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type)
+	void DescriptorSet::update_set(uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range)
 	{
-		vk::WriteDescriptorSet descrSet = {};
-		descrSet.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descrSet.dstSet = set;
-		descrSet.dstBinding = c;
-		descrSet.dstArrayElement = 0;
-		descrSet.descriptorCount = 1;
-		descrSet.descriptorType = layouts[c].descriptorType;
+		vk::DescriptorBufferInfo buffer_info(buffer, offset, range);
+		vk::WriteDescriptorSet write_set(set, binding, 0, 1, type, nullptr, &buffer_info, nullptr);
+	}
+
+	void DescriptorSet::update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout)
+	{
+		vk::DescriptorImageInfo image_info(sampler, image_view, layout);
+		vk::WriteDescriptorSet write_set(set, binding, 0, 1, type, &image_info, nullptr, nullptr);
+	}
+
+	void DescriptorSet::update(vk::Device device)
+	{
+		assert(!write_sets.empty());
+		device.updateDescriptorSets(static_cast<uint32_t>(write_sets.size()), write_sets.data(), 0, nullptr);
 	}
 }

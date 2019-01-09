@@ -92,7 +92,6 @@
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\TerrainUtility.cpp" />
-    <ClCompile Include="Vulkan\VkDescriptors.cpp" />
     <ClCompile Include="Vulkan\vkFFT.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
     <ClCompile Include="Vulkan\VkPostProcess.cpp" />
@@ -108,6 +107,7 @@
     <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
     <ClCompile Include="Vulkan\VulkanTexture.cpp" />
     <ClCompile Include="Vulkan\VulkanWater.cpp" />
+    <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
     <ClCompile Include="Vulkan\Vulkan_shadow.cpp" />
     <ClCompile Include="Vulkan\Vulkan_terrain.cpp" />
     <ClCompile Include="Vulkan\vulkan_utility.cpp" />
@@ -192,7 +192,6 @@
     <ClInclude Include="Vulkan\Sampler.h" />
     <ClInclude Include="Vulkan\TerrainUtility.h" />
     <ClInclude Include="Vulkan\TextureManager.h" />
-    <ClInclude Include="Vulkan\VkDescriptors.h" />
     <ClInclude Include="Vulkan\vkFFT.h" />
     <ClInclude Include="Vulkan\MemoryAllocator.h" />
     <ClInclude Include="Vulkan\VkPostProcess.h" />
@@ -214,6 +213,7 @@
     <ClInclude Include="Vulkan\vulkan_terrain.h" />
     <ClInclude Include="Vulkan\vulkan_utility.h" />
     <ClInclude Include="Vulkan\vulkan_validation.h" />
+    <ClInclude Include="Vulkan\Vulkan_Global.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

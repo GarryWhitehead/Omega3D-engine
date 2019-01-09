@@ -57,12 +57,6 @@ namespace VulkanAPI
 
 	private:
 
-		DescriptorLayout descriptor;
-
-		// number of input and output stages
-		std::array<uint8_t, (int)StageType::Count> input_counts = {};
-		std::array<uint8_t, (int)StageType::Count> output_counts = {};
-
 		std::array<uint32_t, (int)StageType::Count> push_constant_sizes = {};
 
 		vk::PipelineLayout layout;

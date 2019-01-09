@@ -1,6 +1,6 @@
 #pragma once
 #include "Vulkan/Common.h"
-
+#include <unordered_map>
 namespace VulkanAPI
 {
 
@@ -11,7 +11,7 @@ namespace VulkanAPI
 
 		struct LayoutBindings
 		{
-			std::vector<vk::DescriptorSetLayoutBinding> layouts;
+			std::unordered_map<vk::DescriptorType, vk::DescriptorSetLayoutBinding> layouts;
 
 			// running counts of each descriptor type - required for creating descriptor pools
 			uint32_t ubo_count = 0;
@@ -24,7 +24,7 @@ namespace VulkanAPI
 		~DescriptorLayout();
 
 		void add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
-		void create_descriptor_pools();
+		void create();
 		
 
 	private:
@@ -32,7 +32,7 @@ namespace VulkanAPI
 		vk::Device device;
 
 		vk::DescriptorPool pool;
-		VkDescriptorSetAllocateInfo info;
+		vk::DescriptorSetLayout layout;
 		LayoutBindings layout_bind;
 	};
 
@@ -41,13 +41,17 @@ namespace VulkanAPI
 
 	public:
 		
-		DescriptorSet(vk::Device device);
+		DescriptorSet(vk::Device device, vk::DescriptorPool& pool, vk::DescriptorSetLayout& layout);
 
-		void add_descriptor_set(uint32_t set, uint32_t binding, vk::DescriptorType bind_type);
-	
+		void update_set(uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range);
+		void update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
+		void update(vk::Device device);
+
 	private:
 
-		std::vector<vk::WriteDescriptorSet> sets;
+		vk::DescriptorSet set;
+
+		std::vector<vk::WriteDescriptorSet> write_sets;
 	};
 
 }

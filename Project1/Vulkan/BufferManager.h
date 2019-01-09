@@ -35,9 +35,9 @@ namespace VulkanAPI
 		BufferManager();
 		~BufferManager();
 
-		void allocate_segment(std::unique_ptr<MemoryAllocator>& mem_alloc, BufferType buff_type, BufferMemoryType mem_type, uint64_t block_size);
+		void allocate_segment(BufferType buff_type, BufferMemoryType mem_type, uint64_t block_size);
 
-		void add_buffer(Buffer& buffer, BufferMemoryType mem_type, uint64_t size);
+		Buffer create(uint64_t size);
 
 	private:
 

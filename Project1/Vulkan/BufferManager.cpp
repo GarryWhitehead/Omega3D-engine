@@ -1,5 +1,7 @@
 #include "BufferManager.h"
 #include "Utility/logger.h"
+#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/Buffer.h"
 
 namespace VulkanAPI
 {
@@ -13,7 +15,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void BufferManager::allocate_segment(std::unique_ptr<MemoryAllocator>& mem_alloc, BufferType buff_type, BufferMemoryType mem_type, uint64_t block_size)
+	void BufferManager::allocate_segment(BufferType buff_type, BufferMemoryType mem_type, uint64_t block_size)
 	{
 		BufferSegmentInfo segment;
 		
@@ -22,10 +24,10 @@ namespace VulkanAPI
 
 		switch (mem_type) {
 		case BufferMemoryType::Local:
-			segment.buffer = mem_alloc->allocateSegment(MemoryUsage::VK_BUFFER_STATIC, block_size);
+			segment.buffer = Global::vk_managers.mem_allocator->allocateSegment(MemoryUsage::VK_BUFFER_STATIC, block_size);
 			break;
 		case BufferMemoryType::Host:
-			segment.buffer = mem_alloc->allocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, block_size);
+			segment.buffer = Global::vk_managers.mem_allocator->allocateSegment(MemoryUsage::VK_BUFFER_DYNAMIC, block_size);
 			break;
 		}
 		
@@ -42,8 +44,12 @@ namespace VulkanAPI
 		buffer_segments[mem_type] = segment;
 	}
 
-	void BufferManager::add_buffer(Buffer& buffer, BufferMemoryType mem_type, uint64_t size)
+	Buffer BufferManager::create(uint64_t size)
 	{
+		Buffer& buffer;
+
+		// check size and whether its under the vulkan struct size limit
+
 		// check whether the buffer is alreay init and we are updating
 
 		// otherwise create a new buffer

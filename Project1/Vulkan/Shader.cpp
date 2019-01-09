@@ -89,7 +89,7 @@ namespace VulkanAPI
 		wrappers[(int)type] = createInfo;
 	}
 
-	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info)
+	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline)
 	{
 		spirv_cross::Compiler compiler(std::move(data[(int)type]));
 
@@ -130,11 +130,18 @@ namespace VulkanAPI
 		// get the number of input and output stages
 		for (auto& input : shader_res.stage_inputs) {
 
-			p_info.input_counts[(int)type] = compiler.get_decoration(input.id, spv::DecorationLocation);
+			uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+			auto& base_type = compiler.get_type(input.base_type_id);
+			auto& member = compiler.get_type(base_type.self);
+
+			if (member.vecsize && member.columns == 1) {
+				uint32_t vec_size = compiler.type_struct_member_matrix_stride(member, 0);
+				
+			}
 		}
 		for (auto& output : shader_res.stage_outputs) {
 
-			p_info.output_counts[(int)type] = compiler.get_decoration(output.id, spv::DecorationLocation);
+			uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
 		}
 
 		// get push constants struct sizes if any

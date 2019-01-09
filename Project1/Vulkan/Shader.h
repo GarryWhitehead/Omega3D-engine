@@ -3,6 +3,10 @@
 
 namespace VulkanAPI
 {
+	// forward decleartions
+	class DescriptorLayout;
+	class PipelineLayout;
+	
 	static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
 	enum class StageType
@@ -24,6 +28,7 @@ namespace VulkanAPI
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
+		void reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info);
 		
 		std::vector<uint32_t> getData(StageType type)
 		{
@@ -35,8 +40,7 @@ namespace VulkanAPI
 		bool loadShaderBinary(const char* filename, StageType type);
 		void createModule(vk::Device device, StageType type);
 		void createWrapper(StageType type);
-		void reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info);
-
+		
 		std::array<vk::PipelineShaderStageCreateInfo, (int)StageType::Count> wrappers;
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;
 		std::array<std::vector<uint32_t>, (int)StageType::Count > data;
