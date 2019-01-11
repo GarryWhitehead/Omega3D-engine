@@ -3,6 +3,9 @@
 #include "Engine/Omega_Global.h"
 #include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/BufferManager.h"
+#include "Vulkan/Renderpass.h"
+#include "Vulkan/Sampler.h"
+
 
 namespace OmegaEngine
 {
@@ -17,9 +20,11 @@ namespace OmegaEngine
 		// setup the renderer pipeline
 		switch (r_type) {
 		case RendererType::Deferred:
+		{
 			def_renderer = std::make_unique<DeferredInfo>();
 			def_renderer->create(device, width, height);
 			break;
+		}
 		default:
 			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
 			break;
@@ -33,67 +38,70 @@ namespace OmegaEngine
 
 	void Renderer::DeferredInfo::create(vk::Device device, uint32_t width, uint32_t height)
 	{
-		struct AttachedFormat
-		{
-			DeferredAttachments type;
-			vk::Format format;
-		};
-
 		// a list of the formats required for each buffer
-		std::vector<AttachedFormat> attached = 
+		vk::Format depth_format = VulkanAPI::Util::get_depth_format();
+
+		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments = 
 		{
-			{ DeferredAttachments::Position, vk::Format::eR16G16B16A16Sfloat },
-			{ DeferredAttachments::Albedo, vk::Format::eR8G8B8A8Unorm },
-			{ DeferredAttachments::Normal,  vk::Format::eR16G16B16A16Sfloat },
-			{ DeferredAttachments::Bump, vk::Format::eR8G8B8A8Unorm },
-			{ DeferredAttachments::Occlusion, vk::Format::eR16Sfloat },
-			{ DeferredAttachments::Metallic, vk::Format::eR16Sfloat },
-			{ DeferredAttachments::Roughness, vk::Format::eR16Sfloat },
+			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// position
+			{ vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eColorAttachmentOptimal },			// Albedo
+			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// Normal
+			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
+			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
+
 		};
 
-		for (auto& attach : attached) {
-			images[(int)attach.type].create_empty_image(attach.format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment);
+		// create a empty texture for each state - these will be filled by the shader
+		for (uint8_t i = 0; i < attachments.size() - 1; ++i) {
+			images[i].create_empty_image(attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment);
 		}
 
-		// and the g-buffer
-		vk::Format depth_format = VulkanAPI::Util::get_depth_format();
+		// and the depth g-buffer
 		images[(int)DeferredAttachments::Depth].create_empty_image(depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// now create the renderpasses and frame buffers
-		// attachments and subpass colour references
-		for (auto& attach : attached) {
-			renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, attach.format);
-			renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, static_cast<uint32_t>(attach.type));
-		}
-		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
-		renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, static_cast<uint32_t>(DeferredAttachments::Depth));
-
-		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::Top_Of_Pipe);
-		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::Bottom_Of_Pipe);
-		renderpass.prepareRenderPass();
+		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
+		renderpass = std::make_unique<VulkanAPI::RenderPass>(attachments, dependencies);
 
 		// tie the image-views to the frame buffer
 		std::array<vk::ImageView, (int)DeferredAttachments::Count> image_views;
-		for (auto& attach : attached) {
-			int index = static_cast<int>(attach.type);
-			image_views[index] = images[index].get_image_view();
+
+		for (uint8_t i = 0; i < attachments.size(); ++i) {
+			image_views[i] = images[i].get_image_view();
 		}
-		renderpass.prepareFramebuffer(image_views.size(), image_views.data(), Global::programState.width, Global::programState.height);
+		renderpass->prepareFramebuffer(image_views.size(), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment);
-		shader.reflection(VulkanAPI::StageType::Vertex, descr_layout, pl_layout);
+
+		std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
+		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
+		shader.reflection(VulkanAPI::StageType::Vertex, descr_layout, pl_layout, pipeline, sampler_layout, buffer_layout);
+
+		assert(!sampler_layout.empty());
+		assert(!buffer_layout.empty());
 
 		// setup buffers required by the shaders
 		vert_buffer = VulkanAPI::Global::vk_managers.buff_manager->create(sizeof(VertBuffer));
 		frag_buffer = VulkanAPI::Global::vk_managers.buff_manager->create(sizeof(FragBuffer));
 
 		// descriptor sets for all the deferred buffers samplers
-		for (uint8_t bind = 0; bind < (uint8_t)DeferredAttachments::Count; ++bind) {
-			
-			descr_set.update_set(bind, vk::DescriptorType::eSampler, Sampler::get_default_sampler(), image_views[bind]);
+		// using a linear sampler for all deferred buffers
+		linear_sampler = std::make_unique<VulkanAPI::Sampler>(VulkanAPI::SamplerType::LinearClamp);
+		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
+			descr_set.update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler->get_sampler(), image_views[i], attachments[i].layout);
 		}
-
+		for (uint8_t i = 0; i < buffer_layout.size(); ++i) {
+			descr_set.update_set(i, vk::DescriptorType::eSampler, image_views[i], attachments[i].layout);
+		}
+		
+		// and finally create the pipeline
+		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
+		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
+		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		pipeline.add_colour_attachment(VK_FALSE);
+		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
+		pipeline.create();
 	}
 
 

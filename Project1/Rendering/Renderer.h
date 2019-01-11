@@ -1,5 +1,4 @@
 #pragma once
-#include "Vulkan/RenderPass.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/DataTypes/Texture.h"
@@ -8,9 +7,16 @@
 #include "OEMaths/OEMaths.h"
 #include <vector>
 
+namespace VulkanAPI
+{
+	// forward declearions
+	class Sampler;
+	class RenderPass;
+}
+
 namespace OmegaEngine
 {
-
+	
 	// Note: only deferred renderer is supported at the moment. More to follow....
 	enum class RendererType
 	{
@@ -55,15 +61,17 @@ namespace OmegaEngine
 			void create(vk::Device device, uint32_t width, uint32_t height);
 
 		private:
-			VulkanAPI::RenderPass renderpass;
+			std::unique_ptr<VulkanAPI::RenderPass> renderpass;
 			VulkanAPI::Shader shader;
 			VulkanAPI::PipelineLayout pl_layout;
 			VulkanAPI::Pipeline pipeline;
 			VulkanAPI::DescriptorLayout descr_layout;
 			VulkanAPI::DescriptorSet descr_set;
+
 			VulkanAPI::Buffer vert_buffer;
 			VulkanAPI::Buffer frag_buffer;
 
+			std::unique_ptr<VulkanAPI::Sampler> linear_sampler;
 			std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
 		};
 

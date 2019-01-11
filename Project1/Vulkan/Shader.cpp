@@ -89,7 +89,7 @@ namespace VulkanAPI
 		wrappers[(int)type] = createInfo;
 	}
 
-	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline)
+	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout)
 	{
 		spirv_cross::Compiler compiler(std::move(data[(int)type]));
 
@@ -101,6 +101,7 @@ namespace VulkanAPI
 			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
 			descr_layout.add_layout(binding, vk::DescriptorType::eSampler, get_stage_flag_bits(type));
+			image_layout.push_back({ binding, set, image.name.c_str() });
 		}
 
 		// ubo
@@ -109,6 +110,7 @@ namespace VulkanAPI
 			uint32_t set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
 			uint32_t binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
 			descr_layout.add_layout(binding, vk::DescriptorType::eUniformBuffer, get_stage_flag_bits(type));
+			buffer_layout.push_back({ ShaderBufferLayout::LayoutType::UniformBuffer, binding, set, ubo.name.c_str() });
 		}
 
 		// storage
@@ -117,6 +119,7 @@ namespace VulkanAPI
 			uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
 			uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
 			descr_layout.add_layout(binding, vk::DescriptorType::eStorageBuffer, get_stage_flag_bits(type));
+			buffer_layout.push_back({ ShaderBufferLayout::LayoutType::StorageBuffer, binding, set, ssbo.name.c_str() });
 		}
 
 		// image storage
@@ -148,5 +151,7 @@ namespace VulkanAPI
 		if (!shader_res.push_constant_buffers.empty()) {
 			p_info.push_constant_sizes[(int)type] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
 		}
+
+		return layout_info;
 	}
 }

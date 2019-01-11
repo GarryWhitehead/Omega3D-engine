@@ -37,13 +37,41 @@ namespace OmegaEngine
 		FileLog* fileLog;
 
 		// current state of the application
-		struct ProgramState
+		class ProgramState
 		{
+		public:
+
+			bool is_running() const
+			{
+				return isRunning;
+			}
+
+			float get_dt() const
+			{
+				return dt;
+			}
+
+			uint32_t get_win_width() const
+			{
+				return win_width;
+			}
+
+			uint32_t get_win_height() const
+			{
+				return win_height;
+			}
+
+		private:
+
 			bool isRunning = false;
 			float dt = 30.0f;
+
+			// window dimensions
+			uint32_t win_width = 800;
+			uint32_t win_height = 600;
 		};
 
-		static ProgramState programState;
+		static ProgramState program_state;
 	}
 }
 

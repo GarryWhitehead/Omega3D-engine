@@ -6,6 +6,7 @@
 namespace VulkanAPI
 {
 
+
 	enum class DependencyTemplate
 	{
 		Top_Of_Pipe,
@@ -20,8 +21,19 @@ namespace VulkanAPI
 	{
 
 	public:
+
+		struct AttachedFormat
+		{
+			vk::Format format;
+			vk::ImageLayout layout;
+		};
+
 		RenderPass(vk::Device dev);
 		RenderPass(vk::Device dev, vk::RenderPass pass);
+
+		// create a pass from a list of info in one shot
+		RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies);
+
 		~RenderPass();
 
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
@@ -30,6 +42,8 @@ namespace VulkanAPI
 		void addSubpassDependency(DependencyTemplate depend_template, uint32_t srcSubpass = 0, uint32_t dstSubpass = 0);											// templated version
 		void addReference(const vk::ImageLayout layout, const uint32_t attachId);
 		void prepareRenderPass();
+
+		// frame buffer functions
 		void prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 		void destroy();

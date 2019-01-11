@@ -1,4 +1,5 @@
 #include "RenderPass.h"
+#include "Vulkan/Device.h"
 
 namespace VulkanAPI
 {
@@ -15,7 +16,18 @@ namespace VulkanAPI
 		assert(renderpass != VK_NULL_HANDLE);
 	}
 
+	RenderPass::RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
+	{
+		for (uint32_t i = 0; i < attach.size(); ++i) {
+			this->addAttachment(attach[i].layout, attach[i].format);
+			this->addReference(attach[i].layout, i);
+		}
 
+		for (auto& depend : dependencies) {
+			this->addSubpassDependency(depend);
+		}
+		this->prepareRenderPass();
+	}
 
 	RenderPass::~RenderPass()
 	{
