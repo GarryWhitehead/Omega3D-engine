@@ -1,6 +1,7 @@
 #include "RenderableTypes.h"
 #include "Vulkan/BufferManager.h"
-#include "Vulkan/PipelineInterface.h"
+#include "Vulkan/Pipeline.h"
+#include "Rendering/RenderInterface.h"
 
 namespace OmegaEngine
 {
@@ -8,23 +9,24 @@ namespace OmegaEngine
 	RenderableMesh::RenderableMesh(RenderTypes type) :
 		RenderableBase(type)
 	{
-		// setup descriptor sets for each material
-
-		// create ssbo buffer
-
-		// build the graphics pipeline 
-
 	}
-
-	void RenderableMesh::build_graphics_pipeline(std::unique_ptr<PipelineInterface>& p_interface)
+	
+	RenderPipeline create_mesh_pipeline(vk::Device device)
 	{
-		VulkanAPI::Pipeline pipeline;
+		RenderPipeline pipeline_info;
+		
+		// load shaders
+		pipeline_info.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
 
-		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-	}
+		// get pipeline layout and vertedx attributes by reflection of shader
+		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
+		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
+		pipeline_info.shader.reflection(VulkanAPI::StageType::Vertex, *pipeline_info.descr_layout, pipeline_info.pl_layout, pipeline_info.pipeline, image_layout, buffer_layout);
+		pipeline_info.shader.reflection(VulkanAPI::StageType::Fragment, *pipeline_info.descr_layout, pipeline_info.pl_layout, pipeline_info.pipeline, image_layout, buffer_layout);
 
-	void RenderableMesh::create_descriptor_set()
-	{
+		// descriptor sets
+
+		// finally create the actuasl graphics pipeline
 
 	}
 

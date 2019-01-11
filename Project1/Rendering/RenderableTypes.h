@@ -2,7 +2,6 @@
 #include "Vulkan/TextureManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Buffer.h"
-#include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/PushBlocks.h"
 
@@ -65,9 +64,8 @@ namespace OmegaEngine
 		
 		RenderableMesh(RenderTypes type);
 
-		void build_graphics_pipeline(std::unique_ptr<PipelineInterface>& p_interface) override;
+		static RenderPipeline create_mesh_pipeline(vk::Device device);
 
-		void create_descriptor_set();
 		void update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man);
 
 	private:

@@ -5,8 +5,15 @@
 #include "Vulkan/Interface.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
+
 #include <vector>
 #include <memory>
+
+// forward decleartions
+namespace VulkanAPI
+{
+	class DescriptorLayout;
+};
 
 namespace OmegaEngine
 {	
@@ -15,12 +22,12 @@ namespace OmegaEngine
 	class Object;
 	enum class RenderableType;
 
-	struct PipelineInfo
+	struct RenderPipeline
 	{
 		VulkanAPI::Shader shader;
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
-		VulkanAPI::DescriptorLayout descr_layout;
+		std::unique_ptr<VulkanAPI::DescriptorLayout> descr_layout;
 	};
 
 	class RenderInterface
@@ -44,7 +51,7 @@ namespace OmegaEngine
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 
 		// all the pipelines and shaders for each renderable type
-		std::array<PipelineInfo, (int)OmegaEngine::RenderTypes::Count> pipelines;
+		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> pipelines;
 	};
 
 }
