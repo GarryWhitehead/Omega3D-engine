@@ -3,6 +3,7 @@
 #include "DataTypes/TextureType.h"
 #include "stb_image.h"
 #include "Utility/logger.h"
+#include "Vulkan/Sampler.h"
 
 namespace OmegaEngine
 {
@@ -66,13 +67,24 @@ namespace OmegaEngine
 
 	void TextureManager::addGltfSampler(tinygltf::Sampler& gltf_sampler)
 	{
-		Sampler sampler;
-		sampler.addressModeU = get_wrap_mode(gltf_sampler.wrapS);
-		sampler.addressModeV = get_wrap_mode(gltf_sampler.wrapT);
-		sampler.addressModeV = sampler.addressModeV;
-		sampler.minFilter = get_filter_mode(gltf_sampler.minFilter);
-		sampler.magFilter = get_filter_mode(gltf_sampler.magFilter);
-		samplers.push_back(sampler);
+		VulkanAPI::SamplerType type;
+		vk::SamplerAddressMode mode = get_wrap_mode(gltf_sampler.wrapS);
+		vk::Filter filter = get_filter_mode(gltf_sampler.minFilter);
+		
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) {
+			type = VulkanAPI::SamplerType::LinearWrap;
+		}
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear) {
+			type = VulkanAPI::SamplerType::LinearClamp;
+		}
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest) {
+			type = VulkanAPI::SamplerType::Clamp;
+		}
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) {
+			type = VulkanAPI::SamplerType::Wrap;
+		}
+
+		samplers.push_back(type);
 	}
 
 	void TextureManager::addGltfImage(tinygltf::Image& image)
@@ -87,8 +99,14 @@ namespace OmegaEngine
 
 	MappedTexture& TextureManager::get_texture(uint32_t index)
 	{
-		assert(index > textures.size());
+		assert(index < textures.size());
 		return textures[index];
+	}
+
+	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t index)
+	{
+		assert(index < samplers.size());
+		return samplers[index];
 	}
 
 }

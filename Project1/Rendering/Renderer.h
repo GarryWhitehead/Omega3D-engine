@@ -12,6 +12,7 @@ namespace VulkanAPI
 	// forward declearions
 	class Sampler;
 	class RenderPass;
+	class CommandBuffer;
 }
 
 namespace OmegaEngine
@@ -43,46 +44,50 @@ namespace OmegaEngine
 
 	public:
 
-		class DeferredInfo
+		struct VertBuffer
 		{
-		public:
-
-			struct VertBuffer
-			{
-				OEMaths::mat4f mvp;
-			};
-
-			struct FragBuffer
-			{
-				OEMaths::vec4f cameraPos;
-				Light lights[MAX_LIGHT_COUNT];
-			};
-
-			void create(vk::Device device, uint32_t width, uint32_t height);
-
-		private:
-			std::unique_ptr<VulkanAPI::RenderPass> renderpass;
-			VulkanAPI::Shader shader;
-			VulkanAPI::PipelineLayout pl_layout;
-			VulkanAPI::Pipeline pipeline;
-			VulkanAPI::DescriptorLayout descr_layout;
-			VulkanAPI::DescriptorSet descr_set;
-
-			VulkanAPI::Buffer vert_buffer;
-			VulkanAPI::Buffer frag_buffer;
-
-			std::unique_ptr<VulkanAPI::Sampler> linear_sampler;
-			std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
+			OEMaths::mat4f mvp;
 		};
 
-		Renderer(RendererType type = RendererType::Deferred);
+		Renderer(vk::Device device, RendererType type = RendererType::Deferred);
 		~Renderer();
+
+		vk::RenderPass& get_renderpass()
+		{
+			return renderpass->get();
+		}
+
+		uint8_t get_attach_count() const
+		{
+			return renderpass->get_attach_count();
+		}
+
+		void create_deferred(vk::Device device, uint32_t width, uint32_t height);
+
+		void begin_renderpass();
+		void render();
 
 	private:
 
 		RendererType type;
 
-		std::unique_ptr<DeferredInfo> def_renderer;
+		// for the rendering pipeline
+		std::unique_ptr<VulkanAPI::RenderPass> renderpass;
+		VulkanAPI::Shader shader;
+		VulkanAPI::PipelineLayout pl_layout;
+		VulkanAPI::Pipeline pipeline;
+		VulkanAPI::DescriptorLayout descr_layout;
+		VulkanAPI::DescriptorSet descr_set;
+
+		VulkanAPI::Buffer vert_buffer;
+		VulkanAPI::Buffer frag_buffer;
+
+		std::unique_ptr<VulkanAPI::Sampler> linear_sampler;
+		std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
+
+		// command buffer 
+		std::unique_ptr<VulkanAPI::CommandBuffer> cmd_buffer;
+
 	};
 
 }

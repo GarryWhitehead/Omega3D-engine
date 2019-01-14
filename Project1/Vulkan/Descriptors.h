@@ -47,6 +47,11 @@ namespace VulkanAPI
 		void update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
 		void update(vk::Device device);
 
+		vk::DescriptorSet& get()
+		{
+			return set;
+		}
+
 	private:
 
 		vk::DescriptorSet set;

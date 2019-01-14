@@ -4,6 +4,11 @@
 #include "Vulkan/Common.h"
 #include "tiny_gltf.h"
 
+namespace VulkanAPI
+{
+	enum class SamplerType;
+}
+
 namespace OmegaEngine
 {
 	// forward declerations
@@ -31,11 +36,12 @@ namespace OmegaEngine
 		vk::Filter get_filter_mode(int32_t filter);
 
 		MappedTexture& get_texture(uint32_t index);
+		VulkanAPI::SamplerType get_sampler(uint32_t index);
 
 	private:
 
 		std::vector<MappedTexture> textures;
-		std::vector<Sampler> samplers;
+		std::vector<VulkanAPI::SamplerType> samplers;
 	};
 
 }

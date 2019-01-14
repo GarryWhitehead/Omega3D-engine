@@ -5,6 +5,8 @@ namespace VulkanAPI
 {
 	enum class SamplerType
 	{
+		Clamp,
+		Wrap,
 		TrilinearWrap,
 		LinearWrap,
 		TriLinearClamp,

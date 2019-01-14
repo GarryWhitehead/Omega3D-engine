@@ -20,7 +20,8 @@ namespace OmegaEngine
 	// forward decleartions
 	class ComponentInterface;
 	class Object;
-	enum class RenderableType;
+	class Renderer;
+	enum class RenderTypes;
 
 	struct RenderPipeline
 	{
@@ -39,16 +40,23 @@ namespace OmegaEngine
 		~RenderInterface();
 
 		// renderable type creation
-		void add_static_mesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+		template <typename T, typename... Args>
+		void add_renderable(Args&&... args)
+		{
+			T renderable(std::forward<Args>(args));
+			renderables.push_back(renderable);
+		}
 
-		// shader init for eacg renderable type
+		// shader init for each renderable type
 		void add_shader(RenderTypes type);
 
 	private:
 
-		std::vector<RenderableType> renderables;
-
+		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
+
+		// contains all objects that are renderable to the screen
+		std::vector<RenderableType> renderables;
 
 		// all the pipelines and shaders for each renderable type
 		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> pipelines;

@@ -226,13 +226,17 @@ namespace VulkanAPI
 		width, height,
 		layerCount);
 
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer))
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer))
 	}
 
 	void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount)
 	{
-		assert(!imageView.empty());
+		assert(imageView);
 		assert(renderpass != VK_NULL_HANDLE);
+
+		// store locally the screen extents for use later
+		win_width = width;
+		win_height = height;
 
 		vk::FramebufferCreateInfo frameInfo({},
 		renderpass,
@@ -240,14 +244,29 @@ namespace VulkanAPI
 		width, height,
 		layerCount);
 
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer))
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer))
+	}
+
+	vk::RenderPassBeginInfo& RenderPass::get_begin_info(vk::ClearColorValue& bg_colour)
+	{
+		// set up clear colour for each colour attachment
+		std::vector<vk::ClearValue> clear_values(attachment.size());
+		std::fill(clear_values.begin(), clear_values.end(), bg_colour);
+		
+		vk::RenderPassBeginInfo begin_info(
+			renderpass, framebuffer,
+			{ { 0, 0 }, { win_width, win_height } },
+			static_cast<uint32_t>(clear_values.size()),
+			clear_values.data());
+
+		return begin_info;
 	}
 
 	void RenderPass::destroy()
 	{
 		// its not always the case that the user might create a framebuffer using this class, so check
-		if (frameBuffer != VK_NULL_HANDLE) {
-			device.destroyFramebuffer(frameBuffer, nullptr);
+		if (framebuffer != VK_NULL_HANDLE) {
+			device.destroyFramebuffer(framebuffer, nullptr);
 		}
 		device.destroyRenderPass(renderpass, nullptr);
 

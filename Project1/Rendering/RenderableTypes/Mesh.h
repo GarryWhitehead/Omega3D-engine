@@ -1,4 +1,5 @@
 #pragma once
+#include "RenderableBase.h"
 #include "Vulkan/TextureManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Buffer.h"
@@ -9,38 +10,15 @@
 namespace VulkanAPI
 {
 	class BufferManager;
+	class Sampler;
 }
 
 namespace OmegaEngine
 {
 	// forward declerations
 	class PipelineInterface;
-
-	enum class RenderTypes
-	{
-		Mesh,
-		Skybox,
-		Ocean,
-		Terrain,
-		Count
-	};
-
-	// abstract base class
-	class RenderableBase
-	{
-	public:
-
-		RenderableBase(RenderTypes t) :
-			type(t)
-		{
-		}
-
-		virtual void build_graphics_pipeline(std::unique_ptr<PipelineInterface>& p_interface) = 0;
-
-	protected:
-
-		RenderTypes type;
-	};
+	class Renderer;
+	class ComponentInterface;
 
 	// renderable object types
 	class RenderableMesh : public RenderableBase
@@ -57,14 +35,14 @@ namespace OmegaEngine
 
 			// descriptor sets for each mesh
 			VulkanAPI::DescriptorSet decscriptor_set;
-
-			// and the image views required to create the descriptor sets
-			std::array<vk::ImageView, (int)PbrMaterials::Count> image_views;
+			std::unique_ptr<VulkanAPI::Sampler> sampler;
 		};
 		
-		RenderableMesh(RenderTypes type);
+		RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
 
-		static RenderPipeline create_mesh_pipeline(vk::Device device);
+		void render();
+
+		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<Renderer>& renderer);
 
 		void update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man);
 

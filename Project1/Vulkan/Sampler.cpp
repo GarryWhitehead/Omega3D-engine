@@ -7,6 +7,12 @@ namespace VulkanAPI
 		device(dev)
 	{
 		switch (type) {
+		case SamplerType::Clamp:
+			create(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+			break;
+		case SamplerType::Wrap:
+			create(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+			break;
 		case SamplerType::LinearClamp:
 			create(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
 			break;

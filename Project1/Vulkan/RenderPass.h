@@ -36,6 +36,16 @@ namespace VulkanAPI
 
 		~RenderPass();
 
+		vk::RenderPass& get()
+		{
+			return renderpass;
+		}
+
+		uint8_t get_attach_count() const
+		{
+			return attachment.size();
+		}
+
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef = nullptr);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, vk::AttachmentReference *depthRef = nullptr);																		// override without input attachments
@@ -48,14 +58,18 @@ namespace VulkanAPI
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 		void destroy();
 
-
+		// for generating cmd buffer
+		vk::RenderPassBeginInfo& get_begin_info(vk::ClearColorValue& bg_colour);
 
 	private:
 
 		vk::Device device;
 
 		vk::RenderPass renderpass;
-		vk::Framebuffer frameBuffer;
+		vk::Framebuffer framebuffer;
+
+		uint32_t win_width, win_height;
+
 		std::vector<vk::AttachmentDescription> attachment;
 		std::vector<vk::AttachmentReference> colorReference;
 		std::vector<vk::AttachmentReference> depthReference;

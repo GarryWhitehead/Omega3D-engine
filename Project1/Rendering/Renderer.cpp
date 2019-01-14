@@ -5,15 +5,18 @@
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/Renderpass.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/CommandBuffer.h"
 
 
 namespace OmegaEngine
 {
 
-	Renderer::Renderer(RendererType r_type) :
+	Renderer::Renderer(vk::Device device, RendererType r_type) :
 		type(r_type)
 	{
 		
+		cmd_buffer = std::make_unique<VulkanAPI::CommandBuffer>(device);
+
 		// let's do all the initilisations required ready for importing objects for rendering
 		// load in the renderer_config file
 		
@@ -21,8 +24,7 @@ namespace OmegaEngine
 		switch (r_type) {
 		case RendererType::Deferred:
 		{
-			def_renderer = std::make_unique<DeferredInfo>();
-			def_renderer->create(device, width, height);
+			create_deferred(device, width, height);
 			break;
 		}
 		default:
@@ -36,7 +38,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void Renderer::DeferredInfo::create(vk::Device device, uint32_t width, uint32_t height)
+	void Renderer::create_deferred(vk::Device device, uint32_t width, uint32_t height)
 	{
 		// a list of the formats required for each buffer
 		vk::Format depth_format = VulkanAPI::Util::get_depth_format();
@@ -104,5 +106,24 @@ namespace OmegaEngine
 		pipeline.create();
 	}
 
+	void Renderer::begin_renderpass()
+	{
+		cmd_buffer->create();
 
+		// begin the renderpass 
+		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info();
+		cmd_buffer->begin_renderpass(begin_info);
+	}
+
+	void Renderer::render()
+	{
+		// bind everything required to draw
+		cmd_buffer->bind_pipeline(pipeline);
+		cmd_buffer->bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+
+		// set push constants for light variables
+
+		// render full screen quad to screen
+		cmd_buffer->draw_indexed_quad();
+	}
 }

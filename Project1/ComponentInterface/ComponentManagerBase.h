@@ -13,7 +13,7 @@ namespace OmegaEngine
 	public:
 
 		// abstract functions
-		virtual void Update() = 0;
+		virtual void update() = 0;
 
 		void addObject(Object& obj, uint64_t index)
 		{

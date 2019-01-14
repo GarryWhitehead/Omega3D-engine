@@ -29,8 +29,9 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &pipeline_layouts[(int)type]));
 	}
 
-	Pipeline::Pipeline(vk::Device dev) :
-		device(dev)
+	Pipeline::Pipeline(vk::Device dev, PipelineType t) :
+		device(dev),
+		type(t)
 	{
 		// setup defualt pipeline states
 		add_dynamic_state(vk::DynamicState::eScissor);
@@ -58,11 +59,13 @@ namespace VulkanAPI
 		assembly_state.topology = topology;
 	}
 
-	void Pipeline::add_colour_attachment(bool blend_factor)
+	void Pipeline::add_colour_attachment(bool blend_factor, uint8_t attach_count)
 	{
-		vk::PipelineColorBlendAttachmentState colour;
-		colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-		color_attach_state.push_back(colour);
+		for (uint8_t i = 0; i < attach_count; ++i) {
+			vk::PipelineColorBlendAttachmentState colour;
+			colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+			color_attach_state.push_back(colour);
+	}
 
 		if (blend_factor == VK_TRUE) {
 
@@ -88,8 +91,16 @@ namespace VulkanAPI
 		depth_stencil_state.depthCompareOp = compare;
 	}
 
+	void Pipeline::set_renderpass(vk::RenderPass r_pass)
+	{
+		assert(r_pass != VK_NULL_HANDLE);
+		renderpass = r_pass;
+	}
+
 	void Pipeline::create()
 	{
+		assert(renderpass != VK_NULL_HANDLE);
+		
 		vk::GraphicsPipelineCreateInfo createInfo({}, 
 		2, m_shader.data(),
 		&vertex_input_state,
