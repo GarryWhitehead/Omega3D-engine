@@ -32,6 +32,61 @@ namespace VulkanAPI
 		return static_cast<MemoryUsage>(static_cast<int>(a) | static_cast<int>(b));
 	}
 
+	class MemorySegment
+	{
+	public:
+
+		MemorySegment() {}
+
+		MemorySegment(uint32_t id, uint32_t os, uint32_t sz) :
+			block_id(id),
+			offset(os),
+			size(sz),
+			data(nullptr)
+		{}
+
+		uint32_t get_offset() const
+		{
+			return offset;
+		}
+
+		uint32_t get_size() const
+		{
+			return size;
+		}
+
+		int32_t get_id() const
+		{
+			return block_id;
+		}
+
+	private:
+
+		// memory mapping functions
+		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset);		// for data types of *void
+
+		template <typename T>
+		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, std::vector<T>& data_src)
+		{
+			uint32_t data_size = sizeof(T) * data.size();
+			assert(data_size <= size);
+
+			if (data == nullptr) {
+				VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, 0, &data));
+				memcpy(data, data_src.data(), data_size);
+				dev.unmapMemory(memory);
+			}
+			else {
+				memcpy(data, data_src.data(), data_size);
+			}
+		}
+
+		int32_t block_id = -1;			// index into memory block container
+		uint32_t offset = 0;
+		uint32_t size = 0;
+		void *data = nullptr;
+	};
+
 	class MemoryAllocator
 	{
 
@@ -41,46 +96,27 @@ namespace VulkanAPI
 		static constexpr float ALLOC_BLOCK_SIZE_LOCAL = 2.56e+8f;			// each default device local block is 256mb
 		static constexpr float ALLOC_BLOCK_SIZE_HOST = 6.4e+7f;				// host block deaults to 64mb
 
-		class MemorySegment
-		{
-		public:
+		MemoryAllocator();
+		~MemoryAllocator();
 
-			MemorySegment() {}
+		// no copy assignment allowed
+		MemoryAllocator(const MemoryAllocator&) = delete;
+		MemoryAllocator& operator=(const MemoryAllocator&) = delete;
 
-			MemorySegment(uint32_t id, uint32_t os, uint32_t sz) :
-				block_id(id),
-				offset(os),
-				size(sz),
-				data(nullptr)
-			{}
+		void init(vk::Device dev, vk::PhysicalDevice physical);
 
-			// memory mapping functions
-			void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset);		// for data types of *void
+		// helper functions
+		static void createBuffer(vk::Device device, const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
+		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
+		vk::Buffer& get_memory_buffer(const uint32_t id);
 
-			template <typename T>
-			void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, std::vector<T>& data_src)
-			{
-				uint32_t data_size = sizeof(T) * data.size();
-				assert(data_size <= size);
-
-				if (data == nullptr) {
-					VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, 0, &data));
-					memcpy(data, data_src.data(), data_size);
-					dev.unmapMemory(memory);
-				}
-				else {
-					memcpy(data, data_src.data(), data_size);
-				}
-			}
-
-		private:
-
-			int32_t block_id = -1;			// index into memory block container
-			uint32_t offset = 0;
-			uint32_t size = 0;
-			void *data = nullptr;
-
-		};
+		// Segment allocation functions and mapping
+		MemorySegment& allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size);
+		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
+		
+		//void defragBlockMemory(const uint32_t id);
+		
+	private:
 
 		struct MemoryBlock
 		{
@@ -96,26 +132,6 @@ namespace VulkanAPI
 			vk::DeviceMemory block_mem;
 			vk::Buffer block_buffer;
 		};
-
-		MemoryAllocator(vk::Device dev, vk::PhysicalDevice physical);
-		~MemoryAllocator();
-
-		// no copy assignment allowed
-		MemoryAllocator(const MemoryAllocator&) = delete;
-		MemoryAllocator& operator=(const MemoryAllocator&) = delete;
-
-		// helper functions
-		static void createBuffer(vk::Device device, const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
-		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
-		static vk::Buffer& blockBuffer(const uint32_t id);
-
-		// Segment allocation functions and mapping
-		MemorySegment& allocate(MemoryUsage usage, uint32_t size);
-		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
-		
-		//void defragBlockMemory(const uint32_t id);
-		
-	private:
 
 		// Block allocation functions
 		uint32_t allocateBlock(MemoryType type, vk::BufferUsageFlagBits usage, uint32_t size = 0);

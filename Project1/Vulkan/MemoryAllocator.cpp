@@ -3,9 +3,7 @@
 
 namespace VulkanAPI
 {
-	MemoryAllocator::MemoryAllocator(vk::Device dev, vk::PhysicalDevice physical) :
-		device(dev),
-		gpu(physical)
+	MemoryAllocator::MemoryAllocator()
 	{
 	}
 
@@ -45,10 +43,15 @@ namespace VulkanAPI
 		device.bindBufferMemory(buffer, memory, 0);
 	}
 
-	vk::Buffer& MemoryAllocator::blockBuffer(const uint32_t id)
+	void MemoryAllocator::init(vk::Device dev, vk::PhysicalDevice physical)
+	{
+		device = dev;
+		gpu = physical;
+	}
+
+	vk::Buffer& MemoryAllocator::get_memory_buffer(const uint32_t id)
 	{
 		assert(id < mem_blocks.size());
-
 		return mem_blocks[id].block_buffer;
 	}
 
@@ -108,8 +111,11 @@ namespace VulkanAPI
 		return block_id;
 	}
 
-	MemoryAllocator::MemorySegment& MemoryAllocator::allocate(MemoryUsage usage, uint32_t size)
+	MemorySegment& MemoryAllocator::allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
 	{
+		assert(device != VK_NULL_HANDLE);
+		assert(gpu != VK_NULL_HANDLE);
+		
 		uint32_t block_id = 0;
 
 		// Ensure that the user has already alloacted a block of memory. If not, then allocate for them using the default parameters for memory type and size
@@ -142,8 +148,7 @@ namespace VulkanAPI
 			offset = findFreeSegment(block_id, segment_size);
 		}
 
-		MemorySegment segment;
-		return segment = { block_id, offset, segment_size };
+		return { block_id, offset, segment_size };
 	}
 
 	uint32_t MemoryAllocator::findBlockType(MemoryUsage usage)

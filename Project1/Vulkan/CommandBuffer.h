@@ -1,5 +1,6 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/MemoryAllocator.h"
 
 namespace VulkanAPI
 {
@@ -29,12 +30,14 @@ namespace VulkanAPI
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
 
 		void bind_pipeline(Pipeline& pipeline);
-		void bind_vertex_buffer(Buffer& vertex_buffer);
-		void bind_index_buffer(Buffer& index_buffer);
+		void bind_vertex_buffer(MemorySegment& vertex_buffer);
+		void bind_index_buffer(MemorySegment& index_buffer);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
 
 		void draw_indexed_quad();
+
+		void create_quad_data();
 
 	private:
 
@@ -42,6 +45,13 @@ namespace VulkanAPI
 		vk::CommandBuffer cmd_buffer;
 		vk::Viewport view_port;
 		vk::Rect2D scissor;
+
+		// full screen quad buffers
+		struct QuadBuffers
+		{
+			VulkanAPI::MemorySegment vertex_buffer;
+			VulkanAPI::MemorySegment index_buffer;
+		} quad_buffers;
 	};
 
 }

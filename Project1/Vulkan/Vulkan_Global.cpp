@@ -6,17 +6,18 @@ namespace VulkanAPI
 {
 	namespace Global
 	{
-		void init_memory_allocator(vk::Device dev, vk::PhysicalDevice gpu)
+		namespace Managers
 		{
-			vk_managers.mem_allocator = new MemoryAllocator(dev, gpu);
-			assert(vk_managers.mem_allocator);
-		}
+			void init_memory_allocator(vk::Device dev, vk::PhysicalDevice gpu)
+			{
+				mem_allocator.init(dev, gpu);
+			}
 
-		void init_buffer_manager()
-		{
-			vk_managers.buff_manager = new BufferManager();
-			assert(vk_managers.buff_manager);
+			void init_buffer_manager()
+			{
+				buff_manager = new BufferManager();
+				assert(buff_manager);
+			}
 		}
-		
 	}
 }
