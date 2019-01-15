@@ -78,8 +78,8 @@ private:
 
 	struct SsboBuffers
 	{
-		MemoryAllocator::SegmentInfo light;
-		MemoryAllocator::SegmentInfo model;
+		MemoryAllocator::MemorySegment light;
+		MemoryAllocator::MemorySegment model;
 	} ssboBuffer;
 
 	VulkanTexture *p_depthImage;

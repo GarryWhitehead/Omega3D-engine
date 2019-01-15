@@ -25,9 +25,9 @@ namespace VulkanAPI
 
 	public:
 
-		struct BufferSegmentInfo
+		struct BufferMemorySegment
 		{
-			MemoryAllocator::SegmentInfo buffer;
+			MemoryAllocator::MemorySegment buffer;
 			BufferType buffer_type;
 			uint64_t size;
 		};
@@ -43,7 +43,7 @@ namespace VulkanAPI
 
 		vk::Device device;
 
-		std::unordered_map<BufferMemoryType, std::vector<BufferSegmentInfo> > buffer_segments;
+		std::unordered_map<BufferMemoryType, std::vector<BufferMemorySegment> > buffer_segments;
 	};
 
 }

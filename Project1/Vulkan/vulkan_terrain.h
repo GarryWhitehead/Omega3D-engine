@@ -46,9 +46,9 @@ public:
 	{
 		struct BufferInfo
 		{
-			MemoryAllocator::SegmentInfo index;
-			MemoryAllocator::SegmentInfo vertex;
-			MemoryAllocator::SegmentInfo ubo;
+			MemoryAllocator::MemorySegment index;
+			MemoryAllocator::MemorySegment vertex;
+			MemoryAllocator::MemorySegment ubo;
 			uint32_t indexCount;
 		} buffer;
 

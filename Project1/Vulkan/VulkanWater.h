@@ -42,10 +42,10 @@ public:
 		VkPipeline wirePipeline;			// seperate pipeline for the wireframe draw
 
 		// buffers
-		MemoryAllocator::SegmentInfo uboTese;
-		MemoryAllocator::SegmentInfo uboFrag;
-		MemoryAllocator::SegmentInfo vertices;
-		MemoryAllocator::SegmentInfo indices;
+		MemoryAllocator::MemorySegment uboTese;
+		MemoryAllocator::MemorySegment uboFrag;
+		MemoryAllocator::MemorySegment vertices;
+		MemoryAllocator::MemorySegment indices;
 		uint32_t indexCount;
 
 		// textures

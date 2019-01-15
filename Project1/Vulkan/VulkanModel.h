@@ -155,9 +155,9 @@ private:
 	VulkanEngine *p_vkEngine;
 
 	// buffer info for the "mega" buffer which holds all the models and are referenced via offsets
-	MemoryAllocator::SegmentInfo m_vertexBuffer;
-	MemoryAllocator::SegmentInfo m_indexBuffer;
-	MemoryAllocator::SegmentInfo m_ssboBuffer;
+	MemoryAllocator::MemorySegment m_vertexBuffer;
+	MemoryAllocator::MemorySegment m_indexBuffer;
+	MemoryAllocator::MemorySegment m_ssboBuffer;
 
 	// pipeline data
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;

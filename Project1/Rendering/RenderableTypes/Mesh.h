@@ -49,8 +49,8 @@ namespace OmegaEngine
 	private:
 
 		// allocated GPU buffer 
-		VulkanAPI::MemoryAllocator::SegmentInfo vertices;
-		VulkanAPI::MemoryAllocator::SegmentInfo indicies;
+		VulkanAPI::MemoryAllocator::MemorySegment vertices;
+		VulkanAPI::MemoryAllocator::MemorySegment indicies;
 
 		// primitive meshes - indices data and materials
 		std::vector<PrimitiveMesh> primitives;

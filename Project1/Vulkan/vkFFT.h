@@ -29,7 +29,7 @@ public:
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		VkDescriptors *descriptors;
 		VkPipelineShaderStageCreateInfo shader;
-		MemoryAllocator::SegmentInfo uboBuffer;
+		MemoryAllocator::MemorySegment uboBuffer;
 	};
 
 	struct ButterFlyPushData
@@ -107,21 +107,21 @@ private:
 	MemoryAllocator *p_vkMemory;
 
 	// buffers for h0(k) and h0(-k)
-	MemoryAllocator::SegmentInfo h0k_map;
-	MemoryAllocator::SegmentInfo h0minusk_map;
-	MemoryAllocator::SegmentInfo omega_map;
-	MemoryAllocator::SegmentInfo bitrev_map;
+	MemoryAllocator::MemorySegment h0k_map;
+	MemoryAllocator::MemorySegment h0minusk_map;
+	MemoryAllocator::MemorySegment omega_map;
+	MemoryAllocator::MemorySegment bitrev_map;
 
 	// ssbo buffers for d(x, y, z)
-	MemoryAllocator::SegmentInfo ssbo_dxyz;
+	MemoryAllocator::MemorySegment ssbo_dxyz;
 
 	// pingpong buffers
-	MemoryAllocator::SegmentInfo ssbo_pingpong;
+	MemoryAllocator::MemorySegment ssbo_pingpong;
 
 	// ubo buffers
-	MemoryAllocator::SegmentInfo ubo_spectrum;
-	MemoryAllocator::SegmentInfo ubo_displacement;
-	MemoryAllocator::SegmentInfo ubo_normal;
+	MemoryAllocator::MemorySegment ubo_spectrum;
+	MemoryAllocator::MemorySegment ubo_displacement;
+	MemoryAllocator::MemorySegment ubo_normal;
 
 	// pipeline data
 	FFTstageInfo m_fftSpectrum;

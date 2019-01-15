@@ -81,8 +81,8 @@ private:
 	std::array<VkPipelineShaderStageCreateInfo, 2> m_shader;
 
 	VulkanUtility::PipeLlineInfo m_pipelineInfo;
-	MemoryAllocator::SegmentInfo m_vertices;
-	MemoryAllocator::SegmentInfo m_indices;
+	MemoryAllocator::MemorySegment m_vertices;
+	MemoryAllocator::MemorySegment m_indices;
 
 	// keep track of vertex/index sizes for buffer management
 	uint32_t m_vertCount;

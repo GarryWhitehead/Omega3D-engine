@@ -16,7 +16,7 @@ public:
 	{
 		VulkanUtility::PipeLlineInfo pipeline;
 		VkDescriptors *descriptors;
-		MemoryAllocator::SegmentInfo uboBuffer;
+		MemoryAllocator::MemorySegment uboBuffer;
 	};
 
 	struct SkyboxUbo

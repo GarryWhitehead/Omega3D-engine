@@ -63,7 +63,7 @@ public:
 		VkDescriptors *descriptors;
 		VulkanRenderPass *renderpass;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
-		MemoryAllocator::SegmentInfo uboBuffer;
+		MemoryAllocator::MemorySegment uboBuffer;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
 	};
 
@@ -74,7 +74,7 @@ public:
 		VulkanRenderPass *renderpassVert;
 		VulkanUtility::PipeLlineInfo pipelineInfo;
 		std::array<VkPipelineShaderStageCreateInfo, 2> shader;
-		MemoryAllocator::SegmentInfo uboBuffer;
+		MemoryAllocator::MemorySegment uboBuffer;
 	};
 	
 	struct DebugInfo
@@ -120,9 +120,9 @@ private:
 	DebugInfo m_debugInfo;
 		 
 	// buffers for vertices, etc.
-	MemoryAllocator::SegmentInfo m_vertices;
-	MemoryAllocator::SegmentInfo m_indices;
-	MemoryAllocator::SegmentInfo m_vertBuffer;		// vertex ubo buffer 
+	MemoryAllocator::MemorySegment m_vertices;
+	MemoryAllocator::MemorySegment m_indices;
+	MemoryAllocator::MemorySegment m_vertBuffer;		// vertex ubo buffer 
 
 	VkCommandBuffer offscreen_cmdBuffer;
 	VkSemaphore offscreen_semaphore;

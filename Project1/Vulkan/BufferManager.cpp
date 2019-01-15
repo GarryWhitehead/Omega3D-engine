@@ -17,7 +17,7 @@ namespace VulkanAPI
 
 	void BufferManager::allocate_segment(BufferType buff_type, BufferMemoryType mem_type, uint64_t block_size)
 	{
-		BufferSegmentInfo segment;
+		BufferMemorySegment segment;
 		
 		segment.size = block_size;
 		segment.buffer_type = buff_type;

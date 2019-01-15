@@ -81,10 +81,10 @@ public:
 
 	struct BufferInfo
 	{
-		MemoryAllocator::SegmentInfo vertexUbo;
-		MemoryAllocator::SegmentInfo fragmentUbo;
-		MemoryAllocator::SegmentInfo vertices;
-		MemoryAllocator::SegmentInfo indices;
+		MemoryAllocator::MemorySegment vertexUbo;
+		MemoryAllocator::MemorySegment fragmentUbo;
+		MemoryAllocator::MemorySegment vertices;
+		MemoryAllocator::MemorySegment indices;
 	};
 
 	VulkanDeferred(VulkanEngine *engine, MemoryAllocator *memory);
