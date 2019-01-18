@@ -13,7 +13,8 @@
 #include "Managers/TransformManager.h"
 #include "Managers/MaterialManager.h"
 #include "Managers/TextureManager.h"
-#include "Rendering/RenderManager.h"
+#include "Rendering/RenderInterface.h"
+#include "Rendering/RenderableTypes/Mesh.h"
 #include "Threading/ThreadPool.h"
 #include "Omega_Common.h"
 
@@ -74,8 +75,7 @@ namespace OmegaEngine
 
 	void World::update()
 	{
-		// Check whether new spaces need to be loaded into memory or removed - if so, do this on spertate threads
-		// this depends on the max number of spaces that can be hosted on the CPU - determined by mem size
+
 	}
 
 	void World::addGltfData(const char* filename, OEMaths::mat4f world_mat)
@@ -101,11 +101,11 @@ namespace OmegaEngine
 			// first get all materials and textures associated with this model
 			for (auto& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				textureManager->addGltfImage(image);
+				compSystem->getManager<TextureManager>()->addGltfImage(image);
 			}
 
 			for (auto& mat : model.materials) {
-				materialManager->addGltfMaterial(mat);
+				compSystem->getManager<MaterialManager>()->addGltfMaterial(mat);
 			}
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
@@ -120,7 +120,7 @@ namespace OmegaEngine
 				loadGltfNode(model, node, world_mat, objectManager, obj, false);
 
 				// add as renderable targets
-				renderManager->getInterface()->addRenderable(compSystem, obj);
+				render_interface->addObjectAndChildren<RenderableMesh>(compSystem, obj);
 			}
 		}
 		else {

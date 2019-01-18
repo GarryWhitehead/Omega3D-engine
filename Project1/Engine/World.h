@@ -79,11 +79,9 @@ namespace OmegaEngine
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> compSystem;
-		std::unique_ptr<RenderInterface> render_interface;
 
-		// other managers 
-		std::unique_ptr<MaterialManager> materialManager;
-		std::unique_ptr<TextureManager> textureManager;
+		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
+		std::unique_ptr<RenderInterface> render_interface;
 
 		// cameras registered with this world
 		std::vector<std::unique_ptr<Camera> > cameras;

@@ -39,12 +39,6 @@
     <ClCompile Include="Engine\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ComponentManagers\PhysicsComponentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="ComponentManagers\TransformComponentManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="utility\serialisation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -315,12 +309,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\vulkan_terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentManagers\PhysicsComponentManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ComponentManagers\TransformComponentManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\serialisation.h">

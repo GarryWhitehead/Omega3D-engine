@@ -18,8 +18,6 @@ namespace VulkanAPI
 		// prepare swap chain and attached image views - so we have something to render too
 		swapchain_khr.create(dev, win_width, win_height);
 	
-		// now we have init the current vulkan device, init all managers that will be used
-		mem_allocator = std::make_unique<MemoryAllocator>(device, gpu);
 	}
 
 

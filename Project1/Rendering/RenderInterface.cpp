@@ -35,21 +35,22 @@ namespace OmegaEngine
 	{
 	}
 
+
 	void RenderInterface::add_shader(RenderTypes type)
 	{
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::Mesh:
-			pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device());
+			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device());
 			break;
 		case OmegaEngine::RenderTypes::Skybox:
-			shader.add(device, "env/skybox.vert", VulkanAPI::StageType::Vertex, "env/skybox.frag", VulkanAPI::StageType::Fragment);
+			shader.add(vk_interface->get_device(), "env/skybox.vert", VulkanAPI::StageType::Vertex, "env/skybox.frag", VulkanAPI::StageType::Fragment);
 			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
 		}
 
-		pipelines[(int)type].shader = shader;
+		render_pipelines[(int)type].shader = shader;
 	}
 
 	void RenderInterface::render()
@@ -66,7 +67,7 @@ namespace OmegaEngine
 
 			switch (renderable->get_type()) {
 			case RenderTypes::Mesh:
-				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool);
+				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
 			}
 		}
 	}

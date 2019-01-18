@@ -8,8 +8,6 @@
 
 namespace VulkanAPI
 {
-	//forward decleartions
-	class MemoryAllocator;
 
 	class Interface
 	{
@@ -19,9 +17,14 @@ namespace VulkanAPI
 		Interface(VulkanAPI::Device device, uint32_t win_width, uint32_t win_height);
 		~Interface();
 
-		std::unique_ptr<MemoryAllocator>& get_mem_alloc()
+		vk::Device& get_device()
 		{
-			return mem_allocator;
+			return device;
+		}
+
+		vk::PhysicalDevice& get_gpu()
+		{
+			return gpu;
 		}
 
 	private:
@@ -33,8 +36,6 @@ namespace VulkanAPI
 		vk::Queue compute_queue;
 
 		VulkanAPI::Swapchain swapchain_khr;
-
-		std::unique_ptr<MemoryAllocator> mem_allocator;
 	};
 
 }
