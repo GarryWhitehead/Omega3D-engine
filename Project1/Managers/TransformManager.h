@@ -28,9 +28,16 @@ namespace OmegaEngine
 
 		public:
 
+			struct LocalTRS
+			{
+				OEMaths::vec3f trans;
+				OEMaths::vec3f scale;
+				OEMaths::mat4f rot;
+			};
+
 			OEMaths::mat4f& get_local()
 			{
-				return OEMaths::translate(OEMaths::mat4f(), local_decomposed.trans) * local_decomposed.rot * OEMaths::scale(OEMaths::mat4f(), local_decomposed.scale) * local;
+				return OEMaths::translate(OEMaths::mat4f(), local_trs.trans) * local_trs.rot * OEMaths::scale(OEMaths::mat4f(), local_trs.scale) * local;
 			}
 
 			OEMaths::mat4f& get_transform()
@@ -38,15 +45,29 @@ namespace OmegaEngine
 				return transform;
 			}
 
+			void set_transform(const OEMaths::mat4f& trans)
+			{
+				transform = trans;
+			}
+
+			void set_world(const OEMaths::mat4f& mat)
+			{
+				world = mat;
+			}
+
+			void set_trs(const LocalTRS& trs)
+			{
+				local_trs = trs;
+			}
+
+			void set_local(const OEMaths::mat4f& mat)
+			{
+				local = mat;
+			}
+
 		private:
 
-			struct LocalDecomposition
-			{
-				OEMaths::vec3f trans;
-				OEMaths::vec3f scale;
-				OEMaths::mat4f rot;
-
-			} local_decomposed;
+			LocalTRS local_trs;
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;

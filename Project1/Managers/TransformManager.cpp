@@ -16,24 +16,26 @@ namespace OmegaEngine
 	uint32_t TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
 	{
 		TransformData transform;
-		
+		TransformData::LocalTRS local_trs;
+
 		// we will save the matrix and the decomposed form
 		if (node.translation.size() == 3) {
-			transform.local_decomposed.trans = OEMaths::convert_vec3((float*)node.translation.data());
+			local_trs.trans = OEMaths::convert_vec3((float*)node.translation.data());
 		}
 		if (node.scale.size() == 3) {
-			transform.local_decomposed.scale = OEMaths::convert_vec3((float*)node.scale.data());
+			local_trs.scale = OEMaths::convert_vec3((float*)node.scale.data());
 		}
 		if (node.rotation.size() == 4) {
 			OEMaths::quatf q = OEMaths::convert_quat((float*)node.rotation.data());
-			transform.local_decomposed.rot = OEMaths::quat_to_mat4(q);
+			local_trs.rot = OEMaths::quat_to_mat4(q);
 		}
+		transform.set_trs(local_trs);
 
 		// world transform is obtained from the omega scene file
-		transform.world = world_transform;
+		transform.set_world(world_transform);
 
 		if (node.matrix.size() == 16) {
-			transform.local = OEMaths::convert_mat4((float*)node.rotation.data());
+			transform.set_local(OEMaths::convert_mat4((float*)node.rotation.data()));
 		}
 		transformBuffer.push_back(transform);
 
@@ -45,18 +47,19 @@ namespace OmegaEngine
 	{
 		for (auto obj : objects) {
 
-			uint32_t index = transformData[obj.second];
-			OEMaths::mat4f mat = transformData[index].get_local();
+			Object object = obj.first;
 
-			uint64_t parent_index = obj.first.get_parent();
+			OEMaths::mat4f mat = transformBuffer[obj.second].get_local();
+
+			uint64_t parent_index = object.get_parent();
 			while (parent_index != UINT64_MAX) {
-				mat = transformData[parent_index].get_local * mat;
+				mat = transformBuffer[parent_index].get_local * mat;
 			}
 
-			transformData[obj.second].transform = mat;
+			transformBuffer[obj.second].set_transform(mat);
 
 			// now update all child nodes too - TODO: do this without recursion
-			auto& children = obj.get_children();
+			auto& children = object.get_children();
 
 			for (auto& child : children) {
 				generate_static_transform();

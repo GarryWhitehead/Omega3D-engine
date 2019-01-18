@@ -38,7 +38,7 @@ namespace VulkanAPI
 
 		void create_primary();
 
-		SecondaryHandle begin_secondary();
+		void begin_secondary(uint32_t index);
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
 
 		// primary binding functions
@@ -52,9 +52,12 @@ namespace VulkanAPI
 		// secondary binding functions
 		void secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle);
 		void secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle);
+		void secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets, SecondaryHandle handle);
+		void secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle);
 
 		// drawing functions
 		void draw_indexed_quad();
+		void secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle);
 
 		void create_quad_data();
 

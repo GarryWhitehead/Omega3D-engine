@@ -66,7 +66,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
 	}
 
-	SecondaryHandle CommandBuffer::begin_secondary()
+	void CommandBuffer::begin_secondary(uint32_t index)
 	{
 		vk::CommandBufferInheritanceInfo inheritance_info(
 			renderpass, 0,
@@ -80,8 +80,7 @@ namespace VulkanAPI
 		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
 		VK_CHECK_RESULT(secondary_cmd_buffer.begin(&begin_info));
 
-		secondary_cmd_buffers.push_back(secondary_cmd_buffer);
-		return secondary_cmd_buffers.size() - 1;
+		secondary_cmd_buffers[index] = secondary_cmd_buffer;
 	}
 
 	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info)
@@ -159,7 +158,31 @@ namespace VulkanAPI
 		sec_cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
 	}
 
+	void CommandBuffer::secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offset, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		sec_cmd_buffer.bindVertexBuffers(0, 1, &mem_alloc.get_memory_buffer(vertex_buffer.get_id()), &offset);
+	}
+
+	void CommandBuffer::secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		sec_cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), offset, vk::IndexType::eUint32);
+	}
+
 	// drawing functions ========
+	void CommandBuffer::secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle)
+	{
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.drawIndexed(index_count, 1, 0, 0, 0);
+	}
+
 	void CommandBuffer::draw_indexed_quad()
 	{
 		// bind quad vertices and indices

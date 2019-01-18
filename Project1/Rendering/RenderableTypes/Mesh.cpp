@@ -1,4 +1,5 @@
 #include "Mesh.h"
+#include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Sampler.h"
@@ -10,6 +11,7 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/Renderer.h"
 #include "ComponentInterface/ComponentInterface.h"
+#include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
 {
@@ -17,15 +19,15 @@ namespace OmegaEngine
 	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
 		RenderableBase(RenderTypes::Mesh)
 	{
-		auto &transform_man = comp_interface->getManager<TransformManager>();
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
 		MeshManager::StaticMesh mesh = mesh_man->getStaticMesh(obj);
 
 		assert(!mesh.vertexBuffer.empty());
 		assert(!mesh.indexBuffer.empty());
-
-		vk_interface->get_mem_alloc()->mapDataToSegment<MeshManager::Vertex>(vertices, vertexBuffer);
-		vk_interface->get_mem_alloc()->mapDataToSegment<uint32_t>(indicies, indexBuffer);
+		
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		mem_alloc.mapDataToSegment(vertices, mesh.vertexBuffer.data(), mesh.vertexBuffer.size());
+		mem_alloc.mapDataToSegment(indicies, mesh.indexBuffer.data(), mesh.indexBuffer.size());
 
 		// sort index offsets and materials ready for rendering
 		for (auto& prim : mesh.primitives) {
@@ -40,7 +42,7 @@ namespace OmegaEngine
 
 			// map all of the pbr materials for this primitive mesh to the gpu
 			for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-				tex.map(comp_interface->getManager<TextureManager>()->get_texture(mat.textures[i].image), vk_interface->get_mem_alloc());
+				tex.map(comp_interface->getManager<TextureManager>()->get_texture(mat.textures[i].image));
 
 				// now update the decscriptor set with the texture info 
 				r_prim.sampler = std::make_unique<VulkanAPI::Sampler>(comp_interface->getManager<TextureManager>()->get_sampler(mat.textures[i].sampler));
@@ -80,35 +82,43 @@ namespace OmegaEngine
 		
 	}
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool)
+	void RenderableMesh::render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, uint32_t start_index, uint32_t end_index, uint32_t thread)
 	{
-		// each mesh will have a secondary cmd buffer which will be dispatched on seperate threads
-		// each primitive will be drawn on the same thread
-		VulkanAPI::SecondaryHandle secondary_cmd_buffer = cmd_buffer.begin_secondary();
+		// create a secondary command buffer for each thread. This also creates a thread-specific command pool 
+		cmd_buffer.begin_secondary(thread);
+		
+		for (uint32_t i = start_index; i < end_index; ++i) {
 
-		uint32_t thread_count = 0;
-		for (uint32_t i = 0; i < primitives.size(); ++i) {
+			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, primitives[i].decscriptor_set, VulkanAPI::PipelineType::Graphics, thread);
+			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(primitives[i].push_block), &primitives[i].push_block, thread);
 
-			if (i + 1 >= thread_group_size) {
-				
-				thread_pool.submitTask([&]() {
-
-				});
-			}
+			vk::DeviceSize offset = {0};
+			cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);
+			cmd_buffer.secondary_bind_index_buffer(indicies, primitives[i].index_offset, thread);
+			cmd_buffer.secondary_draw_indexed(primitives[i].index_count, thread);
 		}
+	}
 
-		for (auto& prim : primitives) {
+	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size)
+	{
+		
+		uint32_t thread_count = 0;
+		for (uint32_t i = 0; i < primitives.size(); i += thread_group_size) {
 
-			
-			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, prim.decscriptor_set, VulkanAPI::PipelineType::Graphics, secondary_cmd_buffer);
-			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(prim.push_block), &prim.push_block, secondary_cmd_buffer);
+			// if we have no more threads left, then draw every mesh that is remaining
+			if (i + 1 >= num_threads) {
+		
+				thread_pool.submitTask([&]() {
+					render_threaded(cmd_buffer, mesh_pipeline, i, primitives.size(), thread_count);
+				});
+				break;
+			}
 
-			VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset + m_vertexBuffer.offset };
-			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertexBuffer.block_id), offset);
+			thread_pool.submitTask([&]() {
+				render_threaded(cmd_buffer, mesh_pipeline, i, i + thread_group_size, thread_count);
+			});
 
-			// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
-			vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indexBuffer.block_id), m_indexBuffer.offset + (model.meshes[i].indexBase * sizeof(uint32_t)), VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(cmdBuffer, model.meshes[i].indexCount, 1, 0, 0, 0);
+			++thread_count;
 		}
 	}
 }
