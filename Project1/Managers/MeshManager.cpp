@@ -138,13 +138,5 @@ namespace OmegaEngine
 		obj.addComponent<MeshManager>(staticMeshBuffer.size() - 1);
 	}
 
-	MeshManager::StaticMesh& MeshManager::getStaticMesh(Object& obj)
-	{
-		auto iter = objects.find(obj);
-		if (iter == objects.end()) {
-			return {};
-		}
-		uint32_t index = iter->second;
-		return staticMeshBuffer[index];
-	}
+	
 }

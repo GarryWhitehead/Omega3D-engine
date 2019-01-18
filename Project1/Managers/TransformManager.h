@@ -60,7 +60,7 @@ namespace OmegaEngine
 
 		void generate_static_transform();
 
-		OEMaths::mat4f& get_transform(Object& obj)
+		OEMaths::mat4f& get_transform(Object obj)
 		{
 			if (objects.find(obj) == objects.end()) {
 				// just log a warning here that we are looking for something that doesn't exsist (obviously bad!)

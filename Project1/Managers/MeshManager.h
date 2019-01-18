@@ -4,6 +4,8 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "ComponentInterface/ComponentManagerBase.h"
+#include "DataTypes/Object.h"
+#include "Utility/logger.h"
 
 #include <memory>
 #include <tuple>
@@ -14,7 +16,6 @@ namespace OmegaEngine
 {
 	// forard decleartions
 	class ObjectManager;
-	class Object;
 
 	class MeshManager : public ComponentManagerBase
 	{
@@ -75,13 +76,35 @@ namespace OmegaEngine
 
 		};
 
+		struct SkinnedMesh : public StaticMesh
+		{
+
+		};
+
 
 		MeshManager();
 		~MeshManager();
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj);
 
-		StaticMesh& getStaticMesh(Object& obj);
+		StaticMesh& get_static_mesh(Object& obj)
+		{
+			auto iter = objects.find(obj);
+			if (iter == objects.end()) {
+				return {};
+			}
+			uint32_t index = iter->second;
+			return staticMeshBuffer[index];
+		}
+
+		SkinnedMesh& get_skinned_mesh(Object& obj)
+		{
+			if (skinned_objects.find(obj) == skinned_objects.end()) {
+				LOGGER_INFO("Unable to find object with id %i in skinned lookup buffer");
+			}
+
+			return skinnedMeshBuffer[skinned_objects[obj]];
+		}
 
 		template <typename T>
 		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<uint32_t>& indiciesBuffer, uint32_t indexStart)
@@ -99,8 +122,13 @@ namespace OmegaEngine
 
 	private:
 
+		// a list of all objects associated with this manager and their position within the main data buffer
+		std::unordered_map<Object, uint32_t> static_objects;
+		std::unordered_map<Object, uint32_t> skinned_objects;
+
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> staticMeshBuffer;
+		std::vector<SkinnedMesh> skinnedMeshBuffer;
 
 	};
 

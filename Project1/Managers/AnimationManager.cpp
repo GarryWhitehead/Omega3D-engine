@@ -1,5 +1,6 @@
 #include "AnimationManager.h"
 
+#include "Managers/TransformManager.h"
 #include "Utility/logger.h"
 #include "DataTypes/Object.h"
 
@@ -175,19 +176,29 @@ namespace OmegaEngine
 	{
 		for (auto obj : objects) {
 
-			OEMaths::mat4f mat = transform_man->get_transform(obj);
-			uint32_t index = objects[obj];
+			Object object = obj.first;
+			
+			OEMaths::mat4f mat = transform_man->get_transform(object);
+			uint32_t index = objects[object];
+
+			// prepare fianl output matrices buffer
+			uint32_t joint_size = std::min(skinBuffer[index].joints.size(), MAX_NUM_JOINTS);
+			skinBuffer[index].joint_matrices.resize(joint_size);
 
 			// transform to local space
 			OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
 
-			uint32_t joint_size = std::min(skinBuffer[index].joints.size(), MAX_NUM_JOINTS);
+			
 			for (uint32_t i = 0; i < joint_size; ++i) {
-
+				Object joint_obj = skinBuffer[index].joints[i];
+				OEMaths::mat4f joint_mat = transform_man->get_transform(joint_obj) * skinBuffer[index].invBindMatrices[i];
+				
+				// transform joint to local (joint) space
+				skinBuffer[index].joint_matrices[i] = inv_mat * joint_mat;
 			}
 
 			// now update all child nodes too - TODO: do this without recursion
-			auto& children = obj.get_children();
+			auto& children = object.get_children();
 
 			for (auto& child : children) {
 				update(transform_man);

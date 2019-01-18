@@ -2,14 +2,18 @@
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
+#include "DataTypes/object.h"
 
 #include "ComponentInterface/ComponentManagerBase.h"
 #include "tiny_gltf.h"
+
+#define MAX_NUM_JOINTS 128
 
 namespace OmegaEngine
 {
 	// forward declerations
 	class Object;
+	class TransformManager;
 
 	class AnimationManager : public ComponentManagerBase
 	{
@@ -22,8 +26,9 @@ namespace OmegaEngine
 			const char* name;
 			uint32_t skeletonIndex;
 
-			std::vector<uint32_t> joints;
+			std::vector<Object> joints;
 			std::vector<OEMaths::mat4f> invBindMatrices;
+			std::vector<OEMaths::mat4f> joint_matrices;
 		};
 
 
@@ -79,7 +84,7 @@ namespace OmegaEngine
 	private:
 
 		// a list of all objects associated with this manager and their position within the main data buffer
-		std::unordered_map<Object, uint32_t> objects;
+		std::unordered_map<Object, uint32_t, HashObject> objects;
 
 		std::vector<AnimationInfo> animationBuffer;
 		std::vector<SkinInfo> skinBuffer;

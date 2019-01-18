@@ -38,4 +38,9 @@ namespace OmegaEngine
 		return is_alive;
 	}
 
+	std::vector<Object>& Object::get_children()
+	{
+		return children;
+	}
+
 }

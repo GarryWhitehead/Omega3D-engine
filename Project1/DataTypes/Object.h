@@ -12,6 +12,14 @@ namespace OmegaEngine
 	{
 	public:
 
+		struct HashObject
+		{
+			size_t operator()(const Object& obj) const
+			{
+				return(std::hash<uint32_t>()(obj.get_id()));
+			}
+		};
+
 		struct ComponentManagerInfo
 		{
 			uint32_t managerId;
@@ -32,6 +40,8 @@ namespace OmegaEngine
 		void set_id(const uint64_t _id);
 		uint64_t get_parent() const;
 		bool is_alive();
+
+		std::vector<Object>& get_children();
 
 	private:
 
