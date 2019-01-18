@@ -11,6 +11,7 @@ namespace VulkanAPI
 {
 	class BufferManager;
 	class Sampler;
+	class CommandBuffer;
 }
 
 namespace OmegaEngine
@@ -19,6 +20,7 @@ namespace OmegaEngine
 	class PipelineInterface;
 	class Renderer;
 	class ComponentInterface;
+	class ThreadPool;
 
 	// renderable object types
 	class RenderableMesh : public RenderableBase
@@ -40,7 +42,7 @@ namespace OmegaEngine
 		
 		RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
 
-		void render();
+		void render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool);
 
 		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<Renderer>& renderer);
 
@@ -49,8 +51,8 @@ namespace OmegaEngine
 	private:
 
 		// allocated GPU buffer 
-		VulkanAPI::MemoryAllocator::MemorySegment vertices;
-		VulkanAPI::MemoryAllocator::MemorySegment indicies;
+		VulkanAPI::MemorySegment vertices;
+		VulkanAPI::MemorySegment indicies;
 
 		// primitive meshes - indices data and materials
 		std::vector<PrimitiveMesh> primitives;

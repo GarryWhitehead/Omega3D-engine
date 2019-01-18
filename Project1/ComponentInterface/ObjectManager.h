@@ -16,7 +16,7 @@ namespace OmegaEngine
 	{
 		size_t operator()(const Object& obj) const
 		{
-			return(std::hash<uint32_t>()(obj.getId()));
+			return(std::hash<uint32_t>()(obj.get_id()));
 		}
 	};
 
@@ -31,11 +31,23 @@ namespace OmegaEngine
 
 		void destroyObject(Object& obj);
 
+		Object& get_obj(uint64_t index)
+		{
+			if (objects.find(index) == objects.end()) {
+				return {};
+			}
+
+			return objects[index];
+		}
+
 	private:
 
 		uint32_t nextId;
 
-		std::vector<Object> objects;
+		// this is an unordered map so we can quickly find objects based on their id. Saves having to iterate through a vector which
+		// could be costly time-wise
+		std::unordered_map<uint64_t, Object> objects;
+
 		std::deque<uint32_t> freeIds;
 	};
 

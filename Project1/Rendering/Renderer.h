@@ -64,7 +64,7 @@ namespace OmegaEngine
 
 		void create_deferred(vk::Device device, uint32_t width, uint32_t height);
 
-		void begin_renderpass();
+		VulkanAPI::CommandBuffer& begin();
 		void render();
 
 	private:

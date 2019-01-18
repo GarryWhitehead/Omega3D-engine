@@ -40,4 +40,27 @@ namespace OmegaEngine
 		// add to the list of entites
 		objects[obj] = transformBuffer.size() - 1;
 	}
+
+	void TransformManager::generate_static_transform()
+	{
+		for (auto obj : objects) {
+
+			uint32_t index = transformData[obj.second];
+			OEMaths::mat4f mat = transformData[index].get_local();
+
+			uint64_t parent_index = obj.first.get_parent();
+			while (parent_index != UINT64_MAX) {
+				mat = transformData[parent_index].get_local * mat;
+			}
+
+			transformData[obj.second].transform = mat;
+
+			// now update all child nodes too - TODO: do this without recursion
+			auto& children = obj.get_children();
+
+			for (auto& child : children) {
+				generate_static_transform();
+			}
+		}
+	}
 }

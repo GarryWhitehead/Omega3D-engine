@@ -2,6 +2,7 @@
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/CommandBuffer.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
 #include "Managers/MaterialManager.h"
@@ -76,14 +77,38 @@ namespace OmegaEngine
 
 	void RenderableMesh::update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man)
 	{
-		// transforms and camera hosted on ssbo - so will need updating
-
-		// upload buffer to gpu
-		buffer_man->add_buffer(ssbo, VulkanAPI::BufferMemoryType::Host, sizeof(MeshSSboBuffer));
+		
 	}
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer)
+	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool)
 	{
+		// each mesh will have a secondary cmd buffer which will be dispatched on seperate threads
+		// each primitive will be drawn on the same thread
+		VulkanAPI::SecondaryHandle secondary_cmd_buffer = cmd_buffer.begin_secondary();
 
+		uint32_t thread_count = 0;
+		for (uint32_t i = 0; i < primitives.size(); ++i) {
+
+			if (i + 1 >= thread_group_size) {
+				
+				thread_pool.submitTask([&]() {
+
+				});
+			}
+		}
+
+		for (auto& prim : primitives) {
+
+			
+			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, prim.decscriptor_set, VulkanAPI::PipelineType::Graphics, secondary_cmd_buffer);
+			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(prim.push_block), &prim.push_block, secondary_cmd_buffer);
+
+			VkDeviceSize offset[]{ m_modelInfo[index].verticesOffset + m_vertexBuffer.offset };
+			vkCmdBindVertexBuffers(cmdBuffer, 0, 1, &p_vkMemory->blockBuffer(m_vertexBuffer.block_id), offset);
+
+			// bind index data derived from face indices - draw each face with one draw call as material differ between each and we will be pushing the material data per draw call
+			vkCmdBindIndexBuffer(cmdBuffer, p_vkMemory->blockBuffer(m_indexBuffer.block_id), m_indexBuffer.offset + (model.meshes[i].indexBase * sizeof(uint32_t)), VK_INDEX_TYPE_UINT32);
+			vkCmdDrawIndexed(cmdBuffer, model.meshes[i].indexCount, 1, 0, 0, 0);
+		}
 	}
 }

@@ -1,6 +1,7 @@
 #include "RenderInterface.h"
 #include "RenderableTypes/RenderableBase.h"
 #include "RenderableTypes/Mesh.h"
+#include "Rendering/Renderer.h"
 #include "ComponentInterface/ComponentInterface.h"
 #include "DataTypes/Object.h"
 #include "Managers/TransformManager.h"
@@ -10,7 +11,10 @@
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/CommandBuffer.h"
+#include "Vulkan/Common.h"
 #include "Utility/logger.h"
+#include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
 {
@@ -46,6 +50,25 @@ namespace OmegaEngine
 		}
 
 		pipelines[(int)type].shader = shader;
+	}
+
+	void RenderInterface::render()
+	{
+		uint32_t num_threads = Util::HardWareConcurrency();
+		ThreadPool thread_pool(num_threads);
+
+		uint32_t threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
+
+		// begin the renderer and get the cmd_buffer
+		VulkanAPI::CommandBuffer cmd_buffer = renderer->begin();
+
+		for (auto& renderable : renderables) {
+
+			switch (renderable->get_type()) {
+			case RenderTypes::Mesh:
+				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool);
+			}
+		}
 	}
 
 }

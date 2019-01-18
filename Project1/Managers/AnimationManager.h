@@ -74,7 +74,12 @@ namespace OmegaEngine
 		void addGltfAnimation(tinygltf::Model& model, Object& obj);
 		void addGltfSkin(tinygltf::Model& model);
 
+		void update(std::unique_ptr<TransformManager>& transform_man);
+
 	private:
+
+		// a list of all objects associated with this manager and their position within the main data buffer
+		std::unordered_map<Object, uint32_t> objects;
 
 		std::vector<AnimationInfo> animationBuffer;
 		std::vector<SkinInfo> skinBuffer;

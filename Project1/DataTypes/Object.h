@@ -25,20 +25,21 @@ namespace OmegaEngine
 		// operator overloads
 		bool operator==(const Object& obj) const;
 
-		void addChild(Object& obj);
+		void add_child(Object& obj);
 
 		// helper functions
-		uint64_t getId() const;
-		void setId(const uint64_t _id);
-		bool isAlive();
+		uint64_t get_id() const;
+		void set_id(const uint64_t _id);
+		uint64_t get_parent() const;
+		bool is_alive();
 
 	private:
 
 		uint64_t id;
+		uint64_t parent_id;
 		std::vector<Object> children;
 
 		bool isAlive = true;
-		bool isRenderable = false;
 	};
 
 }

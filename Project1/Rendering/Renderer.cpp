@@ -106,13 +106,15 @@ namespace OmegaEngine
 		pipeline.create();
 	}
 
-	void Renderer::begin_renderpass()
+	VulkanAPI::CommandBuffer& Renderer::begin()
 	{
-		cmd_buffer->create();
+		cmd_buffer->create_primary();
 
 		// begin the renderpass 
 		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info();
 		cmd_buffer->begin_renderpass(begin_info);
+
+		return cmd_buffer;
 	}
 
 	void Renderer::render()

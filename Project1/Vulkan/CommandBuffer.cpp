@@ -56,8 +56,43 @@ namespace VulkanAPI
 	{
 	}
 
+	void CommandBuffer::create_primary()
+	{	
+		vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::ePrimary, 1);
+
+		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
+
+		vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, 0);
+		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
+	}
+
+	SecondaryHandle CommandBuffer::begin_secondary()
+	{
+		vk::CommandBufferInheritanceInfo inheritance_info(
+			renderpass, 0,
+			framebuffer, VK_FALSE,
+			(vk::QueryControlFlagBits)0, 
+			(vk::QueryPipelineStatisticFlagBits)0);
+
+		vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::eSecondary, 1);
+		
+		vk::CommandBuffer secondary_cmd_buffer;
+		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
+		VK_CHECK_RESULT(secondary_cmd_buffer.begin(&begin_info));
+
+		secondary_cmd_buffers.push_back(secondary_cmd_buffer);
+		return secondary_cmd_buffers.size() - 1;
+	}
+
 	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info)
 	{
+		// stor the renderpass and framebuffer locally
+		renderpass = begin_info.renderPass;
+		framebuffer = begin_info.framebuffer;
+
+		assert(renderpass != VK_NULL_HANDLE);
+		assert(framebuffer != VK_NULL_HANDLE);
+		
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
 		vk::Viewport view_port(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
 			begin_info.renderArea.extent.width, begin_info.renderArea.extent.height,
@@ -99,6 +134,29 @@ namespace VulkanAPI
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, 1, &descr_set.get(), offset_count, offsets);
+	}
+
+	void CommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
+	{
+		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
+	}
+
+	// secondary command buffer functions ===========================
+	void CommandBuffer::secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(type);
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, 1, &descr_set.get(), 0, nullptr);
+	}
+
+	void CommandBuffer::secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		sec_cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
 	}
 
 	// drawing functions ========

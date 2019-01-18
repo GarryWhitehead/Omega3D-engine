@@ -170,4 +170,28 @@ namespace OmegaEngine
 			skinBuffer.push_back(skinInfo);
 		}
 	}
+
+	void AnimationManager::update(std::unique_ptr<TransformManager>& transform_man)
+	{
+		for (auto obj : objects) {
+
+			OEMaths::mat4f mat = transform_man->get_transform(obj);
+			uint32_t index = objects[obj];
+
+			// transform to local space
+			OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
+
+			uint32_t joint_size = std::min(skinBuffer[index].joints.size(), MAX_NUM_JOINTS);
+			for (uint32_t i = 0; i < joint_size; ++i) {
+
+			}
+
+			// now update all child nodes too - TODO: do this without recursion
+			auto& children = obj.get_children();
+
+			for (auto& child : children) {
+				update(transform_man);
+			}
+		}
+	}
 }

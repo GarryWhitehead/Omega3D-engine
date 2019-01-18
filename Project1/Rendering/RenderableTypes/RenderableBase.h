@@ -22,7 +22,12 @@ namespace OmegaEngine
 		{
 		}
 
-		virtual void render() = 0;
+		//virtual void render() = 0;
+
+		RenderTypes get_type() const
+		{
+			return type;
+		}
 
 	protected:
 

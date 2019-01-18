@@ -12,25 +12,30 @@ namespace OmegaEngine
 		return id == obj.id;
 	}
 
-	void Object::addChild(Object& obj)
+	void Object::add_child(Object& obj)
 	{
 		children.push_back(obj);
 	}
 
 	// helper functions
-	uint64_t Object::getId() const
+	uint64_t Object::get_id() const
 	{
 		return id;
 	}
 
-	void Object::setId(const uint64_t _id)
+	void Object::set_id(const uint64_t _id)
 	{
 		id = _id;
 	}
 
-	bool Object::isAlive() 
+	uint64_t Object::get_parent() const
 	{
-		return isAlive;
+		return parent_id;
+	}
+
+	bool Object::is_alive() 
+	{
+		return is_alive;
 	}
 
 }

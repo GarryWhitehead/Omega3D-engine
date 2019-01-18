@@ -9,6 +9,10 @@
 // sets whether we should use validation layers for debugging
 #define VULKAN_VALIDATION_DEBUG 1
 
+// threading info
+#define VULKAN_THREADED 1
+#define VULKAN_THREADED_GROUP_SIZE 512
+
 static std::string errorString(vk::Result errorCode)
 {
 	switch (errorCode)

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Rendering/RenderableTypes.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Interface.h"
 #include "Vulkan/Shader.h"
@@ -22,6 +21,7 @@ namespace OmegaEngine
 	class Object;
 	class Renderer;
 	enum class RenderTypes;
+	class RenderableBase;
 
 	struct RenderPipeline
 	{
@@ -50,16 +50,19 @@ namespace OmegaEngine
 		// shader init for each renderable type
 		void add_shader(RenderTypes type);
 
+		void render();
+
+
 	private:
 
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 
 		// contains all objects that are renderable to the screen
-		std::vector<RenderableType> renderables;
+		std::vector<std::unique_ptr<RenderableBase> > renderables;
 
 		// all the pipelines and shaders for each renderable type
-		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> pipelines;
+		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
 	};
 
 }
