@@ -252,6 +252,26 @@ namespace OEMaths
 			data[row * 3 + 3] = vec.w;
 		}
 
+		mat4<Typename>& operator*(const mat4<Typename>& other)
+		{
+			for (int y = 0; y < 3; ++y) {
+				for (int x = 0; x < 3; ++x) {
+					data[y * 3 + x] = other.data[y * 3 + x];
+				}
+			}
+			return *this;
+		}
+
+		friend mat4<Typename> operator*(mat4f<Typename> lhs, const mat4<Typename>& rhs)
+		{
+			for (int y = 0; y < 3; ++y) {
+				for (int x = 0; x < 3; ++x) {
+					lhs.data[y * 3 + x] = rhs.data[y * 3 + x];
+				}
+			}
+			return lhs;
+		}
+
 	private:
 
 		Typename data[16];
@@ -290,13 +310,13 @@ namespace OEMaths
 
 	// Vector math functions
 	template <typename Typename>
-	inline vec3<Typename> length_vec3(vec4<Typename> v3)
+	inline vec3<Typename> length_vec3(vec4<Typename>& v3)
 	{
 		return std::sqrt(v3.x * v3.x + v3.y * v3.y + v3.z * v3.z);
 	}
 
 	template <typename Typename>
-	inline vec4<Typename> length_vec4(vec4<Typename> v4)
+	inline vec4<Typename> length_vec4(vec4<Typename>& v4)
 	{
 		return std::sqrt(v4.x * v4.x + v4.y * v4.y + v4.z * v4.z + v4.w * v4.w);
 	}
@@ -315,7 +335,7 @@ namespace OEMaths
 	}
 
 	template <typename Typename>
-	vec4<Typename> normalise_vec4(vec4<Typename>& v4)
+	inline vec4<Typename> normalise_vec4(vec4<Typename>& v4)
 	{
 		vec4<Typename> retVec;
 		Typename length = length_vec4(v4);
@@ -326,6 +346,30 @@ namespace OEMaths
 		retVec.z = v4.z * invLength;
 		retVec.w = v4.w * invLength;
 		return retVec;
+	}
+
+	template <typename Typename>
+	inline mat4<Typename> translate(mat4<Typename>& mat, vec3<Typename>& trans)
+	{
+		mat4<Typename> retMat = mat;
+
+		retMat(0, 3) = trans.x;
+		retMat(1, 3) = trans.y;
+		retMat(2, 3) = trans.x;
+		retMat(3, 3) = 1.0f;
+		return retMat;
+	}
+
+	template <typename Typename>
+	inline mat4<Typename> scale(mat4<Typename>& mat, vec3<Typename>& scale)
+	{
+		mat4<Typename> retMat = mat;
+
+		retMat(0, 0) = scale.x;
+		retMat(1, 1) = scale.y;
+		retMat(2, 2) = scale.x;
+		retMat(3, 3) = 1.0f;
+		return retMat;
 	}
 }
 

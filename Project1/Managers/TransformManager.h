@@ -30,7 +30,7 @@ namespace OmegaEngine
 
 			OEMaths::mat4f& get_local()
 			{
-				return OEMaths::translate(OEMaths::mat4f, local_decomposed.trans) * local_decomposed.rot * OEMaths::scale(OEMaths::mat4f, local_decomposed.scale) * local;
+				return OEMaths::translate(OEMaths::mat4f(), local_decomposed.trans) * local_decomposed.rot * OEMaths::scale(OEMaths::mat4f(), local_decomposed.scale) * local;
 			}
 
 			OEMaths::mat4f& get_transform()
