@@ -10,8 +10,7 @@
 namespace OmegaEngine
 {
 	// forward declerartions
-	class MaterialManager;
-	class TextureManager;
+	class RenderInterface;
 	class ComponentInterface;
 	class ObjectManager;
 	class Camera;
@@ -70,7 +69,10 @@ namespace OmegaEngine
 		~World();
 
 		bool create(const char* filename);
-		void update();
+		void update(double time, double dt);
+		void render(double interpolation);
+
+		// gltf based stuff. Will probably be moved into its own sperate file at some point
 		void addGltfData(const char* filename, OEMaths::mat4f world_mat);
 		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject);
 

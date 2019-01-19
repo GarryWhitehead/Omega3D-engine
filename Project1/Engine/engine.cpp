@@ -1,7 +1,8 @@
 #include "Engine/engine.h"
 #include "utility/logger.h"
 #include "Utility/FileUtil.h"
-#include "Engine/world.h"
+#include "Utility/Timer.h"
+#include "Engine/World.h"
 #include "Engine/Omega_Global.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Common.h"
@@ -25,7 +26,7 @@ namespace OmegaEngine
 		Global::init();
 		
 		// load config file if there is one, otherwise use default settings
-		loadConfigFile(engine_config);
+		loadConfigFile();
 
 		//create a new instance of the input manager
 		inputManager = std::make_unique<InputManager>(window, width, height);
@@ -84,7 +85,7 @@ namespace OmegaEngine
 		currentWorldIndex = worlds.size() - 1;
 	}
 
-	void Engine::loadConfigFile(EngineConfig& config)
+	void Engine::loadConfigFile()
 	{
 		std::string json;
 		const char filename[] = "omega_engine_config.ini";		// probably need to check the current dir here
@@ -96,6 +97,11 @@ namespace OmegaEngine
 		rapidjson::Document doc;
 		if (doc.Parse(json.c_str()).HasParseError()) {
 			return;			
+		}
+
+		// general engine settings
+		if (doc.HasMember("FPS")) {
+			engine_config.fps = doc["FPS"].GetDouble();
 		}
 
 		if (doc.HasMember("General Gfx Settings")) {
@@ -114,38 +120,31 @@ namespace OmegaEngine
 
 	void Engine::start_loop()
 	{
-		// fixed-step game loop
-		float interpolation = 0;
-		int accumulator = 0;
-		long frameCount = 0, longestTime = 0, tickCount = 0, fpsElapsedTime = 0;
-		auto endTime = std::chrono::steady_clock::now();
-		
+		// convert delta time to ms
+		const double dt = 1000 / engine_config.fps;
+
+		// fixed-step loop
+		double accumulator = 0.0;
+		double total_time = 0.0;
+
+		Timer timer;
+		timer.start_timer();
+
 		while (Global::program_state.is_running())
 		{
-			auto startTime = std::chrono::steady_clock::now();
-			auto elapsedTime = std::chrono::duration_cast<std::chrono::milliseconds>(startTime - endTime);
-			endTime = startTime;
-			accumulator += static_cast<int>(elapsedTime.count());
-			if (elapsedTime.count() == 0) {
-				Sleep(5);			// TODO:: Get rid of this - not an ideal way to use up ticks!
+			auto elapsed_time = timer.get_time_elapsed(true);
+			accumulator += static_cast<int>(elapsed_time.count());
+			
+			auto& world = worlds[currentWorldIndex];
+			while (accumulator >= dt) {
+				world->update(total_time, static_cast<double>(elapsed_time.count()));
+
+				total_time += dt;
+				accumulator -= dt;
 			}
 
-			while (accumulator >= frameLength) {
-				engine.Update(elapsedTime.count());
-
-				accumulator -= frameLength;
-				tickCount++;
-			}
-
-			engine.Render(interpolation);
-			frameCount++;
-
-			fpsElapsedTime += static_cast<long>(elapsedTime.count());
-			if (fpsElapsedTime >= 1000) {
-				std::cout << "Frame count = " << frameCount << "\t\tTick count = " << tickCount << "\n";
-				frameCount = 0; tickCount = 0; fpsElapsedTime = 0;
-			}
-
+			double interpolation = accumulator / dt;
+			world->render(interpolation);
 		}
 	}
 }

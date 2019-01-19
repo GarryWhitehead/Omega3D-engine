@@ -73,7 +73,12 @@ namespace OmegaEngine
 #endif
 	}
 
-	void World::update()
+	void World::update(double time, double dt)
+	{
+
+	}
+
+	void World::render(double interpolation)
 	{
 
 	}

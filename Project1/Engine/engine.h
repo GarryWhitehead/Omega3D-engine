@@ -5,14 +5,16 @@
 #include "Engine/Omega_Config.h"
 
 // forward declerations
-class InputManager;
 struct GLFWwindow;
 struct GLFWmonitor;
 struct GLFWvidmode;
-class World;
 
 namespace OmegaEngine
 {
+	// forward declerations
+	class World;
+	class InputManager;
+
 	class Engine
 	{
 	public:
@@ -22,7 +24,7 @@ namespace OmegaEngine
 
 		void createWorld(std::string filename, std::string name);
 		void createWindow(const char *winTitle);
-		void loadConfigFile(EngineConfig& config);
+		void loadConfigFile();
 
 		void start_loop();
 

@@ -14,8 +14,7 @@
 
 int main(int argc, char *argv[])
 {
-	const int fps = 60;
-	const int frameLength = 1000 / fps;
+	
 	
 	Engine engine("Omega3D v1.0");
 	FileLog filelog("test-log", (int)FileLogFlags::FILELOG_CLOSE_AFTER_EACH_WRITE);

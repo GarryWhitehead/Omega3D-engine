@@ -12,20 +12,9 @@ namespace OmegaEngine
 		bool fogEnabled = true;
 	};
 
-	struct OmageaConfig
+	struct EngineConfig
 	{
-		
-		RenderConfig renderConfig;
-
-		bool showUi = false;
-
-		enum class AntiAlaisingMode
-		{
-
-		};
-		AntiAlaisingMode aaMode;
-
-		float targetFrameRate = 30.0f;
+		float fps = 30.0f;
 	};
 
 }
