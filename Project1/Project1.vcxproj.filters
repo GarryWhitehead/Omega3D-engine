@@ -288,6 +288,9 @@
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utility\Timer.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
@@ -585,6 +588,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\Timer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

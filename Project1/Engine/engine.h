@@ -24,6 +24,8 @@ namespace OmegaEngine
 		void createWindow(const char *winTitle);
 		void loadConfigFile(EngineConfig& config);
 
+		void start_loop();
+
 		// helper functions
 		GLFWwindow* Window() const { return window; }
 
