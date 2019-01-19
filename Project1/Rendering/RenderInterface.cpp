@@ -65,10 +65,15 @@ namespace OmegaEngine
 
 		for (auto& renderable : renderables[stage]) {
 
-
+			// Note: this is in a specific order in whcih renderable should be drawn
 			switch (renderable->get_type()) {
+			case RenderTypes::Skybox:
+				break;
 			case RenderTypes::Mesh:
 				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
+				break;
+			default:
+				LOGGER_INFO("Error whilst rendering. Unsupported renderable detected.");
 			}
 		}
 

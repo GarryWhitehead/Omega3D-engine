@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
+    <ClCompile Include="Rendering\RenderUtil.cpp" />
     <ClCompile Include="utility\Timer.cpp" />
     <ClCompile Include="Vulkan\BufferManager.cpp" />
     <ClCompile Include="Vulkan\Pipeline.cpp" />
@@ -115,6 +116,7 @@
   <ItemGroup>
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
+    <ClInclude Include="Rendering\RenderUtil.h" />
     <ClInclude Include="utility\Timer.h" />
     <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />

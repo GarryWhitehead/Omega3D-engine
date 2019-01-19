@@ -196,6 +196,11 @@ namespace VulkanAPI
 		sec_cmd_buffer.drawIndexed(index_count, 1, 0, 0, 0);
 	}
 
+	void CommandBuffer::draw_quad()
+	{
+		cmd_buffer.draw(3, 1, 0, 0);
+	}
+
 	void CommandBuffer::draw_indexed_quad()
 	{
 		// bind quad vertices and indices
