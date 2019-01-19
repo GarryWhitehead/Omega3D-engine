@@ -23,25 +23,25 @@ namespace OmegaEngine
 	
 	World::World(Managers managers, VulkanAPI::Device device)
 	{
-		compSystem = std::make_unique<ComponentInterface>(device);
+		component_interface = std::make_unique<ComponentInterface>(device);
 		render_interface = std::make_unique<RenderInterface>();
 
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
-			compSystem->registerManager<MeshManager>();
+			component_interface->registerManager<MeshManager>();
 
 			// the mesh manager also requires the material and texture managers
-			compSystem->registerManager<MaterialManager>();
-			compSystem->registerManager<TextureManager>();
+			component_interface->registerManager<MaterialManager>();
+			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_ANIMATION || managers & Managers::OE_MANAGERS_ALL) {
-			compSystem->registerManager<AnimationManager>();
+			component_interface->registerManager<AnimationManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
-			compSystem->registerManager<LightManager>();
+			component_interface->registerManager<LightManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL) {
-			compSystem->registerManager<TransformManager>();
+			component_interface->registerManager<TransformManager>();
 		}
 	}
 
@@ -68,19 +68,19 @@ namespace OmegaEngine
 		}
 #else
 		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
-				compSystem->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
+				component_interface->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
 		}
 #endif
 	}
 
 	void World::update(double time, double dt)
 	{
-
+		component_interface->update_managers(time, dt);
 	}
 
 	void World::render(double interpolation)
 	{
-
+		render_interface->render(interpolation);
 	}
 
 	void World::addGltfData(const char* filename, OEMaths::mat4f world_mat)
@@ -106,11 +106,11 @@ namespace OmegaEngine
 			// first get all materials and textures associated with this model
 			for (auto& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				compSystem->getManager<TextureManager>()->addGltfImage(image);
+				component_interface->getManager<TextureManager>()->addGltfImage(image);
 			}
 
 			for (auto& mat : model.materials) {
-				compSystem->getManager<MaterialManager>()->addGltfMaterial(mat);
+				component_interface->getManager<MaterialManager>()->addGltfMaterial(mat);
 			}
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
@@ -125,7 +125,7 @@ namespace OmegaEngine
 				loadGltfNode(model, node, world_mat, objectManager, obj, false);
 
 				// add as renderable targets
-				render_interface->addObjectAndChildren<RenderableMesh>(compSystem, obj);
+				render_interface->addObjectAndChildren<RenderableMesh>(component_interface, obj);
 			}
 		}
 		else {
@@ -143,7 +143,7 @@ namespace OmegaEngine
 		newNode.skinIndex = node.skin;
 
 		// add all local and world transforms to the transform manager 
-		auto &transform_man = compSystem->getManager<TransformManager>();
+		auto &transform_man = component_interface->getManager<TransformManager>();
 		transform_man->addGltfTransform(node, obj, world_transform);
 
 		Object parentObject;
@@ -163,7 +163,7 @@ namespace OmegaEngine
 
 		// if the node has mesh data...
 		if (node.mesh > -1) {
-			auto& mesh_manager = compSystem->getManager<MeshManager>();
+			auto& mesh_manager = component_interface->getManager<MeshManager>();
 			mesh_manager->addGltfData(model, node, obj);
 			
 		}

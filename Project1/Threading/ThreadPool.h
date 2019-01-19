@@ -20,6 +20,7 @@ namespace OmegaEngine
 
 		void submitTask(std::function<void()> func);
 		bool isFinished();
+		void wait_for_all();
 		void stopThread();
 
 	private:

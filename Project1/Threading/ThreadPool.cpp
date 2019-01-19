@@ -63,6 +63,13 @@ namespace OmegaEngine
 		return taskCount == 0 && tasks.empty();
 	}
 
+	void ThreadPool::wait_for_all()
+	{
+		while (!isFinished()) {
+
+		}
+	}
+
 	void ThreadPool::stopThread()
 	{
 		isComplete = true;

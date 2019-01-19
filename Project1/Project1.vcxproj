@@ -114,6 +114,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
+    <ClInclude Include="Rendering\RenderConfig.h" />
     <ClInclude Include="utility\Timer.h" />
     <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />

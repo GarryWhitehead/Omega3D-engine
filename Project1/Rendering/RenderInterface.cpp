@@ -53,7 +53,7 @@ namespace OmegaEngine
 		render_pipelines[(int)type].shader = shader;
 	}
 
-	void RenderInterface::render()
+	void RenderInterface::render_stage(double interpolation, const RenderStage stage)
 	{
 		uint32_t num_threads = Util::HardWareConcurrency();
 		ThreadPool thread_pool(num_threads);
@@ -63,12 +63,31 @@ namespace OmegaEngine
 		// begin the renderer and get the cmd_buffer
 		VulkanAPI::CommandBuffer cmd_buffer = renderer->begin();
 
-		for (auto& renderable : renderables) {
+		for (auto& renderable : renderables[stage]) {
+
 
 			switch (renderable->get_type()) {
 			case RenderTypes::Mesh:
 				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
 			}
+		}
+
+		// check that all threads are finshed before executing the cmd buffers
+		thread_pool.wait_for_all();
+
+		cmd_buffer.secondary_execute_commands();
+		cmd_buffer.end();
+	}
+
+	void RenderInterface::render(double interpolation)
+	{
+		// render the stages in the correct order - i.e deferred rendering to offscreen g-buffers must come before post-render effects
+		for (uint8_t stage = 0; stage < (uint8_t)RenderStage::Count; ++stage) {
+		
+			if (stage == (uint8_t)RenderStage::Deferred && render_config.general.renderer != RendererType::Deferred) {
+				continue;
+			}
+			render_stage(interpolation, static_cast<RenderStage>(stage));
 		}
 	}
 

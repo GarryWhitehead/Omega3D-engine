@@ -4,6 +4,7 @@
 #include "Vulkan/Interface.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
+#include "RenderConfig.h"
 
 #include <vector>
 #include <memory>
@@ -31,6 +32,14 @@ namespace OmegaEngine
 		std::unique_ptr<VulkanAPI::DescriptorLayout> descr_layout;
 	};
 
+	// contain each stage of the render pipeline in the order in which to execute - both offscreen and surface render
+	enum class RenderStage
+	{
+		Deferred,
+		Forward,
+		Count
+	};
+
 	class RenderInterface
 	{
 
@@ -41,10 +50,10 @@ namespace OmegaEngine
 
 		// renderable type creation
 		template <typename T, typename... Args>
-		void add_renderable(Args&&... args)
+		void add_renderable(RenderStage stage, Args&&... args)
 		{
 			std::unique_ptr<T> renderable = make_unique<T>(std::forward<Args>(args));
-			renderables.push_back(std::move(renderable));
+			renderables[stage].push_back(std::move(renderable));
 		}
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
@@ -63,16 +72,18 @@ namespace OmegaEngine
 		// shader init for each renderable type
 		void add_shader(RenderTypes type);
 
-		void render();
-
+		void render(double interpolation);
+		void render_stage(double interpolation, const RenderStage stage);
 
 	private:
+
+		RenderConfig render_config;
 
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 
 		// contains all objects that are renderable to the screen
-		std::vector<std::unique_ptr<RenderableBase> > renderables;
+		std::unordered_map<RenderStage, std::vector<std::unique_ptr<RenderableBase> > > renderables;
 
 		// all the pipelines and shaders for each renderable type
 		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> render_pipelines;

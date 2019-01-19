@@ -21,6 +21,8 @@ namespace OmegaEngine
 		ComponentInterface();
 		~ComponentInterface();
 
+		void update_managers(double time, double dt);
+		
 		template<typename T, typename... Args>
 		void registerManager()
 		{
@@ -71,7 +73,7 @@ namespace OmegaEngine
 
 	protected:
 
-		std::unordered_map<uint32_t, std::unique_ptr<ComponentBase> > managers;
+		std::unordered_map<uint32_t, std::unique_ptr<ComponentManagerBase> > managers;
 	};
 
 }

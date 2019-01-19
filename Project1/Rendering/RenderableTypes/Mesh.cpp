@@ -120,5 +120,7 @@ namespace OmegaEngine
 
 			++thread_count;
 		}
+
+
 	}
 }

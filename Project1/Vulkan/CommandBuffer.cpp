@@ -103,6 +103,13 @@ namespace VulkanAPI
 		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
 	}
 
+	void CommandBuffer::end()
+	{
+		// this function ends both the renderpass and cmd_buffer. Call individual commands if this isn't the correct action wanted
+		cmd_buffer.endRenderPass();
+		cmd_buffer.end();
+	}
+
 	void CommandBuffer::bind_pipeline(Pipeline& pipeline)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(pipeline.get_pipeline_type());
@@ -174,6 +181,12 @@ namespace VulkanAPI
 
 		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		sec_cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), offset, vk::IndexType::eUint32);
+	}
+
+	void CommandBuffer::secondary_execute_commands()
+	{
+		assert(!secondary_cmd_buffers.empty());
+		cmd_buffer.executeCommands(secondary_cmd_buffers.size(), secondary_cmd_buffers.data());
 	}
 
 	// drawing functions ========

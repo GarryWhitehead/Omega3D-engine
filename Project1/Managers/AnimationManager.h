@@ -83,9 +83,6 @@ namespace OmegaEngine
 
 	private:
 
-		// a list of all objects associated with this manager and their position within the main data buffer
-		std::unordered_map<Object, uint32_t, HashObject> objects;
-
 		std::vector<AnimationInfo> animationBuffer;
 		std::vector<SkinInfo> skinBuffer;
 	};

@@ -80,7 +80,7 @@ namespace OmegaEngine
 
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
-		std::unique_ptr<ComponentInterface> compSystem;
+		std::unique_ptr<ComponentInterface> component_interface;
 
 		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
 		std::unique_ptr<RenderInterface> render_interface;
