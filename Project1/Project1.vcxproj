@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Vulkan\Queue.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
     <ClCompile Include="Rendering\RenderUtil.cpp" />
     <ClCompile Include="utility\Timer.cpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
     <ClInclude Include="Vulkan\Pipeline.h" />
+    <ClInclude Include="Vulkan\Queue.h" />
     <ClInclude Include="Vulkan\Shader.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />

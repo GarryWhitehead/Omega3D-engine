@@ -30,6 +30,9 @@ namespace VulkanAPI
 
 		void set_depth_state(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
 		void set_renderpass(vk::RenderPass r_pass);
+		void add_shader(Shader& shader);
+		void add_layout(vk::PipelineLayout pl);
+		void add_empty_layout();
 
 		void create();
 	
@@ -59,7 +62,9 @@ namespace VulkanAPI
 		std::vector<vk::DynamicState> dynamic_states;
 		vk::PipelineDynamicStateCreateInfo dynamic_create_state;
 
+		std::vector<vk::PipelineShaderStageCreateInfo> shaders;
 		vk::RenderPass renderpass;
+		vk::PipelineLayout pl_layout;
 		vk::Pipeline pipeline;
 
 		PipelineType type;

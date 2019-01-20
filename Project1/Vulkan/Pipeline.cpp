@@ -97,27 +97,44 @@ namespace VulkanAPI
 		renderpass = r_pass;
 	}
 
+	void Pipeline::add_shader(Shader& shader)
+	{
+		auto wrap = shader.get_wrappers();
+		assert(!wrap.empty());
+		shaders.reserve(wrap.size());
+		std::copy(wrap.begin(), wrap.end(), shaders.begin());
+	}
+
+	void Pipeline::add_layout(vk::PipelineLayout pl)
+	{
+		assert(pl != VK_NULL_HANDLE);
+		pl_layout = pl;
+	}
+
+	void Pipeline::add_empty_layout()
+	{
+		vk::PipelineLayoutCreateInfo create_info;
+		VK_CHECK_RESULT(device.createPipelineLayout(&create_info, nullptr, &pl_layout));
+	}
+
 	void Pipeline::create()
 	{
-		assert(renderpass != VK_NULL_HANDLE);
-		
 		vk::GraphicsPipelineCreateInfo createInfo({}, 
-		2, m_shader.data(),
+		static_cast<uint32_t>(shaders.size()), shaders.data(),
 		&vertex_input_state,
 		&assembly_state,
+		nullptr,
 		&viewport_state,
 		&raster_state,
 		&multi_sample_state,
 		&depth_stencil_state,
 		&color_blend_state,
 		&dynamic_create_state,
-		 m_pipelineInfo.layout,
-		vkDeferred->GetRenderPass(),
-		0;												// render to G-buffer pass
-		createInfo.basePipelineIndex = -1;
-		createInfo.basePipelineHandle = VK_NULL_HANDLE;
+		pl_layout,
+		renderpass,
+		0, nullptr, -1);
 
-		VK_CHECK_RESULT(vkCreateGraphicsPipelines(p_vkEngine->GetDevice(), VK_NULL_HANDLE, 1, &createInfo, nullptr, &m_pipelineInfo.pipeline));
+		VK_CHECK_RESULT(device.createGraphicsPipelines(VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
 	}
 
 }

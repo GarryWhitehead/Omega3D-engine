@@ -34,8 +34,9 @@ namespace VulkanAPI
 		Image(vk::Device dev);
 		~Image();
 
-		void create(vk::Format format, uint32_t width, uint32_t height, uint32_t mipmapCount, uint32_t layers, TextureType type);
+		void create(vk::Format format, uint32_t width, uint32_t height, TextureType type);
 		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, int levelCount, vk::CommandBuffer cmdBuff = VK_NULL_HANDLE, vk::Queue graphQueue = VK_NULL_HANDLE, vk::CommandPool cmdPool = VK_NULL_HANDLE);
+		void generate_mipmap(vk::CommandBuffer cmd_buffer);
 
 		vk::Image& get()
 		{
@@ -58,8 +59,12 @@ namespace VulkanAPI
 
 		vk::Image image;
 		vk::Format image_format;
+
+		uint32_t image_width;
+		uint32_t image_height;
 		int image_layers = 1;
-		int image_mipLevels = 0;
+		int image_mip_levels = 0;
+
 		TextureType type;
 	};
 

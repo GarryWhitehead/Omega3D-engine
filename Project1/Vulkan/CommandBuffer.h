@@ -27,12 +27,6 @@ namespace VulkanAPI
 
 	public:
 
-		struct ThreadedInfo
-		{
-			vk::CommandPool pool;
-
-		};
-
 		CommandBuffer(vk::Device device);
 		~CommandBuffer();
 
@@ -63,6 +57,11 @@ namespace VulkanAPI
 		void secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle);
 
 		void create_quad_data();
+
+		vk::CommandBuffer& get()
+		{
+			return cmd_buffer;
+		}
 
 	private:
 

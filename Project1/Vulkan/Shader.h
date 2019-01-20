@@ -66,13 +66,19 @@ namespace VulkanAPI
 			return data[(int)type];
 		}
 
+		std::vector<vk::PipelineShaderStageCreateInfo> get_wrappers()
+		{
+			return wrappers;
+		}
+
 	private:
 
 		bool loadShaderBinary(const char* filename, StageType type);
 		void createModule(vk::Device device, StageType type);
 		void createWrapper(StageType type);
 		
-		std::array<vk::PipelineShaderStageCreateInfo, (int)StageType::Count> wrappers;
+		std::vector<vk::PipelineShaderStageCreateInfo> wrappers;
+
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;
 		std::array<std::vector<uint32_t>, (int)StageType::Count > data;
 	};

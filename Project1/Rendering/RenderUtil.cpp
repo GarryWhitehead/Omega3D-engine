@@ -4,13 +4,14 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/Shader.h"
+#include "Vulkan/Queue.h"
 
 namespace OmegaEngine
 {
 	namespace RenderUtil
 	{
 
-		vk::ImageView& generate_bdrf(vk::Device device)
+		VulkanAPI::Texture generate_bdrf(vk::Device device, VulkanAPI::Queue& graph_queue)
 		{
 			const float lut_dim = 512;
 			const vk::Format lut_format = vk::Format::eR16G16Sfloat;
@@ -37,7 +38,7 @@ namespace OmegaEngine
 			pipeline.add_shader(shader);
 			pipeline.set_renderpass(renderpass.get());
 			pipeline.add_colour_attachment(VK_FALSE);
-			pipeline.add_layout();
+			pipeline.add_empty_layout();
 			pipeline.create();
 
 			// and finally the command buffers
@@ -48,10 +49,10 @@ namespace OmegaEngine
 			cmd_buffer.bind_pipeline(pipeline);
 			cmd_buffer.draw_quad();
 
-			// push straight to the render queue
-			cmd_buffer.submit_to_queue();
+			// push straight to the graphics queue
+			graph_queue.submit_cmd_buffer(cmd_buffer.get());
 
-			return texture.get_image_view();
+			return texture;
 		}
 	
 	}

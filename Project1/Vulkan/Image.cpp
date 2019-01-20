@@ -65,15 +65,17 @@ namespace VulkanAPI
 	{
 	}
 
-	void Image::create(vk::Format format, uint32_t width, uint32_t height, uint32_t mipmapCount, uint32_t layers, TextureType type)
+	void Image::create(vk::Format format, uint32_t width, uint32_t height, TextureType type)
 	{
 		image_format = format;
-		image_layers = layers;
-		image_mipLevels = mipmapCount;
+		image_layers = 1;
+		image_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1.0);
+		image_width = width;
+		image_height = height;
 
 		vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, format, 
 			{ width, height, 1 },
-			mipmapCount, layers,
+			image_mip_levels, 1,
 			vk::SampleCountFlagBits::e1,
 			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
@@ -155,7 +157,7 @@ namespace VulkanAPI
 			old_layout, new_layout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
-			{ mask, image_mipLevels, levelCount, 0, image_layers });
+			{ mask, image_mip_levels, levelCount, 0, image_layers });
 
 		comm_buff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
@@ -165,4 +167,60 @@ namespace VulkanAPI
 		}
 	}
 
+	// image-based functions =======
+	void Image::generate_mipmap(vk::CommandBuffer cmd_buffer)
+	{
+		for (uint8_t i = 0; i < image_mip_levels; ++i) {
+
+			// source
+			vk::ImageSubresourceLayers src(
+				vk::ImageAspectFlagBits::eColor,
+				i - 1,
+				0, 0);
+			vk::Offset3D src_offset(
+				image_width >> (i - 1),
+				image_height >> (i - 1),
+				1);
+
+			// destination
+			vk::ImageSubresourceLayers dst(
+				vk::ImageAspectFlagBits::eColor,
+				i,
+				0, 0);
+			vk::Offset3D dst_offset(
+				image_width >> i,
+				image_height >> i,
+				1);
+
+			vk::ImageBlit image_blit(
+				src,
+				);
+
+			// sub range required for barrier
+			vk::ImageSubresourceLayers mip_subrange(
+				vk::ImageAspectFlagBits::eColor,
+				i,
+				1, 1);
+
+			// create image barrier - transition image to transfer 
+			vk::ImageMemoryBarrier mem_barrier(
+				0, vk::AccessFlagBits::eTransferWrite,
+				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
+				0, 0,
+				image, mip_subrange);
+
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+
+			// blit the image
+			cmd_buffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
+
+			vk::ImageMemoryBarrier mem_barrier(
+				vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
+				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal,
+				0, 0,
+				image, mip_subrange);
+
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+		}
+	}
 }

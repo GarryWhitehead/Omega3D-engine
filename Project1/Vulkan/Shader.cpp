@@ -86,7 +86,7 @@ namespace VulkanAPI
 	{
 		vk::ShaderStageFlagBits stage = get_stage_flag_bits(type);
 		vk::PipelineShaderStageCreateInfo createInfo({}, stage, modules[(int)type], "main", nullptr);
-		wrappers[(int)type] = createInfo;
+		wrappers.push_back(createInfo);
 	}
 
 	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout)
