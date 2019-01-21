@@ -12,7 +12,8 @@
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/CommandBuffer.h"
-#include "Vulkan/Common.h"
+#include "Vulkan/Queue.h"
+#include "PostProcess/PostProcessInterface.h"
 #include "Utility/logger.h"
 #include "Threading/ThreadPool.h"
 
@@ -21,8 +22,14 @@ namespace OmegaEngine
 
 	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height)
 	{
+		// load the render config file if it exsists
+		
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
+
+		// initialise pre and post renderers
+		renderer = std::make_unique<Renderer>(device, render_config.general.renderer);
+		postprocess_interface = std::make_unique<PostProcessInterface>(device);
 
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
 		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
@@ -53,17 +60,20 @@ namespace OmegaEngine
 		render_pipelines[(int)type].shader = shader;
 	}
 
-	void RenderInterface::render_stage(double interpolation, const RenderStage stage)
+	void RenderInterface::submit_to_graphics_queue(const RenderStage stage)
+	{
+		VulkanAPI::Queue graph_queue = vk_interface->get_graph_queue();
+		graph_queue.submit_cmd_buffer(cmd_buffers[(int)stage].get(), semaphores[s)
+	}
+
+	void RenderInterface::render_components(VulkanAPI::CommandBuffer& cmd_buffer, double interpolation)
 	{
 		uint32_t num_threads = Util::HardWareConcurrency();
 		ThreadPool thread_pool(num_threads);
 
 		uint32_t threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
 
-		// begin the renderer and get the cmd_buffer
-		VulkanAPI::CommandBuffer cmd_buffer = renderer->begin();
-
-		for (auto& renderable : renderables[stage]) {
+		for (auto& renderable : renderables) {
 
 			// Note: this is in a specific order in whcih renderable should be drawn
 			switch (renderable->get_type()) {
@@ -86,14 +96,34 @@ namespace OmegaEngine
 
 	void RenderInterface::render(double interpolation)
 	{
-		// render the stages in the correct order - i.e deferred rendering to offscreen g-buffers must come before post-render effects
-		for (uint8_t stage = 0; stage < (uint8_t)RenderStage::Count; ++stage) {
+		// Note: only deferred supported at the moment but this will change once Forward rendering is added
+		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
+		VulkanAPI::CommandBuffer cmd_buffer = cmd_buffers[(int)RenderStage::Deferred];
+		cmd_buffer.init(device);
+		cmd_buffer.create_primary();
+
+		// begin the renderpass 
+		vk::RenderPassBeginInfo begin_info = renderer->get_renderpass()->get_begin_info();
+		cmd_buffer.begin_renderpass(begin_info);
+
+		// render the components
+		render_components(cmd_buffer, interpolation);
 		
-			if (stage == (uint8_t)RenderStage::Deferred && render_config.general.renderer != RendererType::Deferred) {
-				continue;
-			}
-			render_stage(interpolation, static_cast<RenderStage>(stage));
-		}
+		// and render the deffered pass - lights and IBL
+		renderer->render(cmd_buffer);
+		
+		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
+		VulkanAPI::CommandBuffer cmd_buffer = cmd_buffers[(int)RenderStage::PostProcess];
+		cmd_buffer.init(device);
+		cmd_buffer.create_primary();
+
+		vk::RenderPassBeginInfo begin_info = renderer->get_renderpass()->get_begin_info();
+		cmd_buffer.begin_renderpass(begin_info);
+
+		postprocess_interface->render(cmd_buffer);
+
+		// now submit the command buffers to the graphic queue
+		submit_to_graphics_queue();
 	}
 
 }

@@ -4,6 +4,7 @@
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Buffer.h"
+#include "Vulkan/RenderPass.h"
 #include "OEMaths/OEMaths.h"
 #include <vector>
 
@@ -52,9 +53,9 @@ namespace OmegaEngine
 		Renderer(vk::Device device, RendererType type = RendererType::Deferred);
 		~Renderer();
 
-		vk::RenderPass& get_renderpass()
+		std::unique_ptr<VulkanAPI::RenderPass>& get_renderpass()
 		{
-			return renderpass->get();
+			return renderpass;
 		}
 
 		uint8_t get_attach_count() const
@@ -64,8 +65,7 @@ namespace OmegaEngine
 
 		void create_deferred(vk::Device device, uint32_t width, uint32_t height);
 
-		VulkanAPI::CommandBuffer& begin();
-		void render();
+		void render(VulkanAPI::CommandBuffer& cmd_buffer);
 
 	private:
 
@@ -84,9 +84,6 @@ namespace OmegaEngine
 
 		std::unique_ptr<VulkanAPI::Sampler> linear_sampler;
 		std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
-
-		// command buffer 
-		std::unique_ptr<VulkanAPI::CommandBuffer> cmd_buffer;
 
 	};
 

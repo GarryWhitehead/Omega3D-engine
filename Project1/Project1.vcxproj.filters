@@ -183,9 +183,6 @@
     <ClCompile Include="Vulkan\VulkanModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\VulkanPBR.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vulkan\VulkanSkybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -295,6 +292,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\Queue.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PostProcess\PostProcessInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\SemaphoreManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -464,9 +467,6 @@
     <ClInclude Include="Vulkan\VulkanModule.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\VulkanPBR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\VulkanSkybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -606,6 +606,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\Queue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcess\PostProcessInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\SemaphoreManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

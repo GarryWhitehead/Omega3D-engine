@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "Vulkan/Swapchain.h"
+#include "Vulkan/Queue.h"
 
 namespace VulkanAPI
 {
@@ -27,13 +28,23 @@ namespace VulkanAPI
 			return gpu;
 		}
 
+		Queue& get_graph_queue()
+		{
+			return graphics_queue;
+		}
+
+		Queue& get_present_queue()
+		{
+			return present_queue;
+		}
+
 	private:
 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		vk::Queue graphics_queue;
-		vk::Queue present_queue;
-		vk::Queue compute_queue;
+		Queue graphics_queue;
+		Queue present_queue;
+		Queue compute_queue;
 
 		VulkanAPI::Swapchain swapchain_khr;
 	};

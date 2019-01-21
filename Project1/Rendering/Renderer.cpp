@@ -106,26 +106,15 @@ namespace OmegaEngine
 		pipeline.create();
 	}
 
-	VulkanAPI::CommandBuffer& Renderer::begin()
-	{
-		cmd_buffer->create_primary();
-
-		// begin the renderpass 
-		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info();
-		cmd_buffer->begin_renderpass(begin_info);
-
-		return cmd_buffer;
-	}
-
-	void Renderer::render()
+	void Renderer::render(VulkanAPI::CommandBuffer& cmd_buffer)
 	{
 		// bind everything required to draw
-		cmd_buffer->bind_pipeline(pipeline);
-		cmd_buffer->bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_pipeline(pipeline);
+		cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
 
 		// set push constants for light variables
 
 		// render full screen quad to screen
-		cmd_buffer->draw_indexed_quad();
+		cmd_buffer.draw_indexed_quad();
 	}
 }

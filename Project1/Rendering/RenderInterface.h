@@ -23,6 +23,7 @@ namespace OmegaEngine
 	class Renderer;
 	enum class RenderTypes;
 	class RenderableBase;
+	class PostProcessInterface;
 
 	struct RenderPipeline
 	{
@@ -32,11 +33,11 @@ namespace OmegaEngine
 		std::unique_ptr<VulkanAPI::DescriptorLayout> descr_layout;
 	};
 
-	// contain each stage of the render pipeline in the order in which to execute - both offscreen and surface render
+	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer
 	enum class RenderStage
 	{
 		Deferred,
-		Forward,
+		PostProcess,
 		Count
 	};
 
@@ -73,7 +74,8 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type);
 
 		void render(double interpolation);
-		void render_stage(double interpolation, const RenderStage stage);
+		void render_components(VulkanAPI::CommandBuffer& cmd_buffer, double interpolation);
+		void submit_to_graphics_queue(const RenderStage stage);
 
 	private:
 
@@ -81,6 +83,10 @@ namespace OmegaEngine
 
 		std::unique_ptr<Renderer> renderer;
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
+		std::unique_ptr<PostProcessInterface> postprocess_interface;
+
+		// each render stage has it's own cmd buffer
+		std::array<VulkanAPI::CommandBuffer, (int)RenderStage::Count> cmd_buffers;
 
 		// contains all objects that are renderable to the screen
 		std::unordered_map<RenderStage, std::vector<std::unique_ptr<RenderableBase> > > renderables;

@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
+    <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
     <ClCompile Include="Rendering\RenderUtil.cpp" />
@@ -103,7 +105,6 @@
     <ClCompile Include="Vulkan\VulkanIBL.cpp" />
     <ClCompile Include="Vulkan\VulkanModel.cpp" />
     <ClCompile Include="Vulkan\VulkanModule.cpp" />
-    <ClCompile Include="Vulkan\VulkanPBR.cpp" />
     <ClCompile Include="Vulkan\RenderPass.cpp" />
     <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
     <ClCompile Include="Vulkan\VulkanTexture.cpp" />
@@ -115,6 +116,7 @@
     <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="PostProcess\PostProcessInterface.h" />
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
     <ClInclude Include="Rendering\RenderUtil.h" />
@@ -123,6 +125,7 @@
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
     <ClInclude Include="Vulkan\Pipeline.h" />
     <ClInclude Include="Vulkan\Queue.h" />
+    <ClInclude Include="Vulkan\SemaphoreManager.h" />
     <ClInclude Include="Vulkan\Shader.h" />
     <ClInclude Include="Vulkan\Buffer.h" />
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />
@@ -207,7 +210,6 @@
     <ClInclude Include="Vulkan\Interface.h" />
     <ClInclude Include="Vulkan\VulkanModel.h" />
     <ClInclude Include="Vulkan\VulkanModule.h" />
-    <ClInclude Include="Vulkan\VulkanPBR.h" />
     <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\VulkanSkybox.h" />
     <ClInclude Include="Vulkan\VulkanTexture.h" />
