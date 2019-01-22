@@ -52,6 +52,11 @@ namespace VulkanAPI
 			tex_type = type;
 		}
 
+		Image& get_image()
+		{
+			return *tex_image;
+		}
+
 	private:
 
 		vk::Device device;

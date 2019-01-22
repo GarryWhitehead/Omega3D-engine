@@ -13,7 +13,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void PostProcessInterface::render(VulkanAPI::CommandBuffer& cmd_buffer)
+	void PostProcessInterface::render()
 	{
 
 	}

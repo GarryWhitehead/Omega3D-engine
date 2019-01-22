@@ -15,6 +15,7 @@ namespace VulkanAPI
 	class Pipeline;
 	class DescriptorLayout;
 	class DescriptorSet;
+	class Interface;
 }
 
 namespace OmegaEngine
@@ -44,20 +45,10 @@ namespace OmegaEngine
 		DeferredRenderer(vk::Device device);
 		~DeferredRenderer();
 
-		std::unique_ptr<VulkanAPI::RenderPass>& get_renderpass()
-		{
-			return renderpass;
-		}
-
-		uint8_t get_attach_count() const
-		{
-			return renderpass->get_attach_count();
-		}
-
 		void create(uint32_t width, uint32_t height);
 
-		void render(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
-		void DeferredRenderer::render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
+		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
+		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 
 		std::function<void()> set_render_callback(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 

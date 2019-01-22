@@ -9,7 +9,7 @@
 #include "Managers/MaterialManager.h"
 #include "Managers/TransformManager.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/DeferredRenderer.h"
 #include "ComponentInterface/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
 

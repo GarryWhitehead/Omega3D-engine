@@ -22,6 +22,8 @@ namespace OmegaEngine
 		{
 		}
 
+		virtual ~RenderableBase() {}
+
 		//virtual void render() = 0;
 
 		RenderTypes get_type() const

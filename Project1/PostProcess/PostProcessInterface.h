@@ -18,12 +18,13 @@ namespace OmegaEngine
 		PostProcessInterface(vk::Device dev);
 		~PostProcessInterface();
 
-		void render(VulkanAPI::CommandBuffer& cmd_buffer);
+		void render();
 
 	private:
 
 		vk::Device device;
 
+		VulkanAPI::CommandBuffer& cmd_buffer;
 	};
 
 }

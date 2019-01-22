@@ -92,7 +92,7 @@ namespace OmegaEngine
 		pipeline->create();
 	}
 
-	void DeferredRenderer::render(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
+	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
 	{
 		cmd_buffer.init(device);
 		cmd_buffer.create_primary();
@@ -123,13 +123,13 @@ namespace OmegaEngine
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 		vk::Semaphore deferred_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
-		render(vk_interface->get_graph_queue, vk_interface->get_swapchain_semaphore, deferred_semaphore);
+		render_deferred(vk_interface->get_graph_queue, vk_interface->get_swapchain_semaphore, deferred_semaphore);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {
 
 			vk::Semaphore post_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
-			pp_interface->render(cmd_buffers[(int)RenderStage::PostProcess]);
+			pp_interface->render();
 		}
 		else {
 			// if post-processing isn't wanted, render the final composition as a full-screen quad
