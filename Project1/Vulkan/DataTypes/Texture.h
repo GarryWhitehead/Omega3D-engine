@@ -26,6 +26,7 @@ namespace VulkanAPI
 
 	public:
 
+		Texture();
 		Texture(TextureType type);
 		~Texture();
 
@@ -44,6 +45,11 @@ namespace VulkanAPI
 		TextureType type() const
 		{
 			return tex_type;
+		}
+
+		void setType(const TextureType type)
+		{
+			tex_type = type;
 		}
 
 	private:

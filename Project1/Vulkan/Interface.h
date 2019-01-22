@@ -38,6 +38,16 @@ namespace VulkanAPI
 			return present_queue;
 		}
 
+		vk::Semaphore& get_swapchain_semaphore()
+		{
+			return graphics_semaphore;
+		}
+
+		vk::Semaphore& get_present_semaphore()
+		{
+			return present_semaphore;
+		}
+
 	private:
 
 		vk::Device device;
@@ -45,6 +55,10 @@ namespace VulkanAPI
 		Queue graphics_queue;
 		Queue present_queue;
 		Queue compute_queue;
+
+		// semaphore used for graphics and presentation queues
+		vk::Semaphore graphics_semaphore;
+		vk::Semaphore present_semaphore;
 
 		VulkanAPI::Swapchain swapchain_khr;
 	};

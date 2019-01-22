@@ -36,7 +36,7 @@
     <ClCompile Include="ComponentInterface\ComponentInterface.cpp" />
     <ClCompile Include="ComponentInterface\ObjectManager.cpp" />
     <ClCompile Include="Managers\TransformManager.cpp" />
-    <ClCompile Include="Rendering\Renderer.cpp" />
+    <ClCompile Include="Rendering\DeferredRenderer.cpp" />
     <ClCompile Include="Rendering\RenderInterface.cpp" />
     <ClCompile Include="Vulkan\DataTypes\Texture.cpp" />
     <ClCompile Include="Vulkan\Descriptors.cpp" />
@@ -153,7 +153,7 @@
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
     <ClInclude Include="Managers\SceneManager.h" />
-    <ClInclude Include="Rendering\Renderer.h" />
+    <ClInclude Include="Rendering\DeferredRenderer.h" />
     <ClInclude Include="Rendering\RenderInterface.h" />
     <ClInclude Include="Threading\ThreadPool.h" />
     <ClInclude Include="Threading\ThreadUtil.h" />

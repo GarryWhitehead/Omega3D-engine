@@ -231,9 +231,6 @@
     <ClCompile Include="ComponentInterface\ObjectManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Rendering\RenderInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -298,6 +295,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\SemaphoreManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\DeferredRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -533,9 +533,6 @@
     <ClInclude Include="ComponentInterface\ObjectManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\Renderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Rendering\RenderInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -612,6 +609,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\SemaphoreManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\DeferredRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

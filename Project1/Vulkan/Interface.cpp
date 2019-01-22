@@ -1,6 +1,8 @@
 #include "Interface.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/MemoryAllocator.h"
+#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/SemaphoreManager.h"
 
 namespace VulkanAPI
 {
@@ -17,7 +19,10 @@ namespace VulkanAPI
 
 		// prepare swap chain and attached image views - so we have something to render too
 		swapchain_khr.create(dev, win_width, win_height);
-	
+		
+		// create seamphores for the queues
+		graphics_semaphore = Global::Managers::semaphore_manager.get_semaphore();
+		present_semaphore = Global::Managers::semaphore_manager.get_semaphore();
 	}
 
 

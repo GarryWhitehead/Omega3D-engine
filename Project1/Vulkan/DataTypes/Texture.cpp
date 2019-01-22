@@ -10,6 +10,10 @@
 
 namespace VulkanAPI
 {
+	Texture::Texture()
+	{
+
+	}
 
 	Texture::Texture(TextureType type) :
 		tex_type(type)

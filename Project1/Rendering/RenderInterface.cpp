@@ -1,7 +1,7 @@
 #include "RenderInterface.h"
 #include "RenderableTypes/RenderableBase.h"
 #include "RenderableTypes/Mesh.h"
-#include "Rendering/Renderer.h"
+#include "Rendering/DeferredRenderer.h"
 #include "ComponentInterface/ComponentInterface.h"
 #include "DataTypes/Object.h"
 #include "Managers/TransformManager.h"
@@ -12,6 +12,8 @@
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/SemaphoreManager.h"
 #include "Vulkan/Queue.h"
 #include "PostProcess/PostProcessInterface.h"
 #include "Utility/logger.h"
@@ -27,9 +29,19 @@ namespace OmegaEngine
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
 
-		// initialise pre and post renderers
-		renderer = std::make_unique<Renderer>(device, render_config.general.renderer);
-		postprocess_interface = std::make_unique<PostProcessInterface>(device);
+		// setup the renderer pipeline
+		switch (static_cast<RendererType>(render_config.general.renderer)) {
+		case RendererType::Deferred:
+		{
+			def_renderer = std::make_unique<DeferredRenderer>(device);
+			def_renderer->create(win_width, win_height);
+			render_callback = def_renderer->set_render_callback(this, vk_interface);
+			break;
+		}
+		default:
+			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
+			break;
+		}
 
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
 		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
@@ -60,27 +72,21 @@ namespace OmegaEngine
 		render_pipelines[(int)type].shader = shader;
 	}
 
-	void RenderInterface::submit_to_graphics_queue(const RenderStage stage)
-	{
-		VulkanAPI::Queue graph_queue = vk_interface->get_graph_queue();
-		graph_queue.submit_cmd_buffer(cmd_buffers[(int)stage].get(), semaphores[s)
-	}
-
-	void RenderInterface::render_components(VulkanAPI::CommandBuffer& cmd_buffer, double interpolation)
+	void RenderInterface::render_components()
 	{
 		uint32_t num_threads = Util::HardWareConcurrency();
 		ThreadPool thread_pool(num_threads);
 
 		uint32_t threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
 
-		for (auto& renderable : renderables) {
+		for (auto& info : renderables) {
 
 			// Note: this is in a specific order in whcih renderable should be drawn
-			switch (renderable->get_type()) {
+			switch (info.renderable->get_type()) {
 			case RenderTypes::Skybox:
 				break;
 			case RenderTypes::Mesh:
-				static_cast<RenderableMesh*>(renderable.get())->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
+				dynamic_cast<RenderableMesh*>(info.renderable)->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
 				break;
 			default:
 				LOGGER_INFO("Error whilst rendering. Unsupported renderable detected.");
@@ -96,34 +102,7 @@ namespace OmegaEngine
 
 	void RenderInterface::render(double interpolation)
 	{
-		// Note: only deferred supported at the moment but this will change once Forward rendering is added
-		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
-		VulkanAPI::CommandBuffer cmd_buffer = cmd_buffers[(int)RenderStage::Deferred];
-		cmd_buffer.init(device);
-		cmd_buffer.create_primary();
-
-		// begin the renderpass 
-		vk::RenderPassBeginInfo begin_info = renderer->get_renderpass()->get_begin_info();
-		cmd_buffer.begin_renderpass(begin_info);
-
-		// render the components
-		render_components(cmd_buffer, interpolation);
-		
-		// and render the deffered pass - lights and IBL
-		renderer->render(cmd_buffer);
-		
-		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
-		VulkanAPI::CommandBuffer cmd_buffer = cmd_buffers[(int)RenderStage::PostProcess];
-		cmd_buffer.init(device);
-		cmd_buffer.create_primary();
-
-		vk::RenderPassBeginInfo begin_info = renderer->get_renderpass()->get_begin_info();
-		cmd_buffer.begin_renderpass(begin_info);
-
-		postprocess_interface->render(cmd_buffer);
-
-		// now submit the command buffers to the graphic queue
-		submit_to_graphics_queue();
+		render_callback();
 	}
 
 }

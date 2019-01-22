@@ -5,14 +5,17 @@
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
 #include "RenderConfig.h"
+#include "RenderableTypes/RenderableBase.h"
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 // forward decleartions
 namespace VulkanAPI
 {
 	class DescriptorLayout;
+	class CommandBuffer;
 };
 
 namespace OmegaEngine
@@ -20,7 +23,7 @@ namespace OmegaEngine
 	// forward decleartions
 	class ComponentInterface;
 	class Object;
-	class Renderer;
+	class DeferredRenderer;
 	enum class RenderTypes;
 	class RenderableBase;
 	class PostProcessInterface;
@@ -36,15 +39,31 @@ namespace OmegaEngine
 	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer
 	enum class RenderStage
 	{
-		Deferred,
-		PostProcess,
+		GBuffer,		// offscreen g-buffer fill
+		Deferred,		// renders to present queue if post-process not required
+		PostProcess,	// rendered in a forward_pass
 		Count
 	};
+
+	// Note: only deferred renderer is supported at the moment. More to follow....
+	enum class RendererType
+	{
+		Deferred,
+		Tile_Based,
+		Count
+	};
+
 
 	class RenderInterface
 	{
 
 	public:
+
+		// expand the renderables to include other associated components
+		struct RenderableInfo
+		{
+			RenderableBase* renderable;
+		};
 
 		RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height);
 		~RenderInterface();
@@ -74,25 +93,30 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type);
 
 		void render(double interpolation);
-		void render_components(VulkanAPI::CommandBuffer& cmd_buffer, double interpolation);
-		void submit_to_graphics_queue(const RenderStage stage);
+		void render_components();
+
 
 	private:
 
 		RenderConfig render_config;
 
-		std::unique_ptr<Renderer> renderer;
+		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
+		std::unique_ptr<DeferredRenderer> def_renderer;
+
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;
 
-		// each render stage has it's own cmd buffer
-		std::array<VulkanAPI::CommandBuffer, (int)RenderStage::Count> cmd_buffers;
-
 		// contains all objects that are renderable to the screen
-		std::unordered_map<RenderStage, std::vector<std::unique_ptr<RenderableBase> > > renderables;
+		std::vector<RenderableInfo> renderables;
 
 		// all the pipelines and shaders for each renderable type
 		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
+
+		// the rendering call to use determined by which renderer is specified
+		std::function<void()> render_callback;
+
+		// Vulkan stuff for rendering the compoennts
+		VulkanAPI::CommandBuffer& cmd_buffer;
 	};
 
 }
