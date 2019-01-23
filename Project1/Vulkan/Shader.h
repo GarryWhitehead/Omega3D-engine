@@ -6,6 +6,7 @@ namespace VulkanAPI
 	// forward decleartions
 	class DescriptorLayout;
 	class PipelineLayout;
+	class Pipeline;
 	
 	static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
@@ -59,8 +60,10 @@ namespace VulkanAPI
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
-		void reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout);
-		
+		void descriptor_reflection(StageType type, DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout);
+		void pipeline_layout_reflect(PipelineLayout& p_info);
+		void pipeline_reflection(Pipeline& pipeline);
+
 		std::vector<uint32_t> getData(StageType type)
 		{
 			return data[(int)type];

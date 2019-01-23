@@ -89,7 +89,7 @@ namespace VulkanAPI
 		wrappers.push_back(createInfo);
 	}
 
-	void Shader::reflection(StageType type, DescriptorLayout& descr_layout, PipelineLayout& p_info, Pipeline& pipeline, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout)
+	void Shader::descriptor_reflection(StageType type, DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout)
 	{
 		spirv_cross::Compiler compiler(std::move(data[(int)type]));
 
@@ -129,6 +129,26 @@ namespace VulkanAPI
 			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
 			descr_layout.add_layout(binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(type));
 		}
+	}
+
+	void Shader::pipeline_layout_reflect(PipelineLayout& p_info)
+	{
+		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+
+		auto shader_res = compiler.get_shader_resources();
+
+		// get push constants struct sizes if any
+		if (!shader_res.push_constant_buffers.empty()) {
+			p_info.push_constant_sizes[(int)type] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
+		}
+
+	}
+
+	void Shader::pipeline_reflection(Pipeline& pipeline)
+	{
+		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+
+		auto shader_res = compiler.get_shader_resources();
 
 		// get the number of input and output stages
 		for (auto& input : shader_res.stage_inputs) {
@@ -139,19 +159,12 @@ namespace VulkanAPI
 
 			if (member.vecsize && member.columns == 1) {
 				uint32_t vec_size = compiler.type_struct_member_matrix_stride(member, 0);
-				
+
 			}
 		}
 		for (auto& output : shader_res.stage_outputs) {
 
 			uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
 		}
-
-		// get push constants struct sizes if any
-		if (!shader_res.push_constant_buffers.empty()) {
-			p_info.push_constant_sizes[(int)type] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
-		}
-
-		return layout_info;
 	}
 }
