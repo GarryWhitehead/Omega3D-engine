@@ -3,6 +3,8 @@
 #include <string>
 #include <iostream>
 
+#define VULKAN_NO_PROTOTYPES 1
+
 #include "vulkan/vulkan.hpp"
 #include "volk.h"
 

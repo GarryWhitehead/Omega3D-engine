@@ -2,6 +2,7 @@
 #include "volk.h"
 #include "vulkan/vulkan.hpp"
 #include "Vulkan/Device.h"
+#include "Vulkan/Image.h"
 #include <vector>
 
 namespace VulkanAPI
@@ -18,10 +19,12 @@ namespace VulkanAPI
 
 	private:
 
+		vk::Device dev;
+
 		vk::SurfaceKHR surface;
 		vk::Extent2D extent;
 		vk::SwapchainKHR swapchain;
-		std::vector<vk::ImageView> image_views;
+		std::vector<VulkanAPI::ImageView> image_views;
 	};
 }
 

@@ -39,9 +39,6 @@
     <ClCompile Include="Engine\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="utility\serialisation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VulkanCore\VulkanModule.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -135,9 +132,6 @@
     <ClCompile Include="DataTypes\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DataTypes\Space.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Managers\LightManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -147,51 +141,6 @@
     <ClCompile Include="Managers\TextureManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\TerrainUtility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\vkFFT.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VkPostProcess.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\Vulkan_shadow.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\Vulkan_terrain.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\vulkan_utility.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\vulkan_validation.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanDeferred.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanGUI.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanIBL.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanModel.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanModule.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanSkybox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\VulkanWater.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DataTypes\TextureType.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -199,9 +148,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Managers\AnimationManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Managers\SceneManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RenderManager.cpp">
@@ -258,9 +204,6 @@
     <ClCompile Include="Vulkan\Sampler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Vulkan\TextureManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vulkan\Shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -271,9 +214,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\Pipeline.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\Vulkan_Global.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp">
@@ -297,6 +237,12 @@
     <ClCompile Include="Rendering\DeferredRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Vulkan\TextureManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\Vulkan_Global.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="VulkanCore\vulkan_validation.h">
@@ -318,9 +264,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\vulkan_terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="utility\serialisation.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="VulkanCore\VulkanModule.h">
@@ -416,9 +359,6 @@
     <ClInclude Include="DataTypes\Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DataTypes\Space.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Managers\LightManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -426,51 +366,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\TextureManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\TerrainUtility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\vkFFT.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VkPostProcess.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\Vulkan_shadow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\vulkan_terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\vulkan_utility.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\vulkan_validation.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanDeferred.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanGUI.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanIBL.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanModel.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanModule.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanSkybox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\VulkanWater.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DataTypes\TextureType.h">
@@ -489,9 +384,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\AnimationManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Managers\SceneManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderManager.h">
@@ -560,9 +452,6 @@
     <ClInclude Include="Vulkan\Sampler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\TextureManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -576,9 +465,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\Pipeline.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\Vulkan_Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderableTypes\Mesh.h">
@@ -606,6 +492,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\DeferredRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\TextureManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\Vulkan_Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

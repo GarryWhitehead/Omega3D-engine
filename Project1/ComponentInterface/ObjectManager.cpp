@@ -9,6 +9,10 @@ namespace OmegaEngine
 	{
 	}
 
+	ObjectManager::~ObjectManager()
+	{
+	}
+
 	Object& ObjectManager::createObject()
 	{
 		Object newObject;
@@ -52,7 +56,7 @@ namespace OmegaEngine
 	void ObjectManager::destroyObject(Object& obj)
 	{
 		uint32_t id = obj.get_id();
-		objects.erase(obj);
+		objects.erase(id);
 		freeIds.push_front(id);
 	}
 

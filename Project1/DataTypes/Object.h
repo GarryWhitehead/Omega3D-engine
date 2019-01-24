@@ -10,20 +10,14 @@ namespace OmegaEngine
 
 	class Object
 	{
+
 	public:
 
 		using ManagerId = uint32_t;
 		using ManagerIndex = uint32_t;
 
-		struct HashObject
-		{
-			size_t operator()(const Object& obj) const
-			{
-				return(std::hash<uint32_t>()(obj.get_id()));
-			}
-		};
-
 		Object();
+		~Object();
 
 		// operator overloads
 		bool operator==(const Object& obj) const;

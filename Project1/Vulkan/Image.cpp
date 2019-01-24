@@ -11,10 +11,23 @@ namespace VulkanAPI
 
 	}
 
-	void ImageView::create(std::unique_ptr<Image>& image)
+	void ImageView::create(vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type)
+	{
+		vk::ImageViewCreateInfo createInfo({},
+			image, type, format,
+			{ vk::ComponentSwizzle::eIdentity,
+			vk::ComponentSwizzle::eIdentity,
+			vk::ComponentSwizzle::eIdentity,
+			vk::ComponentSwizzle::eIdentity },
+			{ aspect, 0, 1, 1, 0 });
+
+		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
+	}
+
+	void ImageView::create(Image& image)
 	{
 		vk::ImageViewType type;
-		switch (image->textureType) {
+		switch (image.textureType) {
 		case TextureType::Normal:
 			type = vk::ImageViewType::e2D;
 			break;
@@ -33,7 +46,7 @@ namespace VulkanAPI
 
 		// making assumptions here based on the image format used
 		vk::ImageAspectFlags aspect;
-		switch (image->format) {
+		switch (image.format) {
 		case vk::Format::eD32SfloatS8Uint:
 		[[ __fallthrough ]]
 		case vk::Format::eD24UnormS8Uint:
@@ -44,7 +57,7 @@ namespace VulkanAPI
 		}
 
 		vk::ImageViewCreateInfo createInfo({},
-			image->get(), type, image->format(),
+			image.get(), type, image.format(),
 			{ vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity,

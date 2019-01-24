@@ -28,7 +28,6 @@
     <ClCompile Include="Vulkan\BufferManager.cpp" />
     <ClCompile Include="Vulkan\Pipeline.cpp" />
     <ClCompile Include="Vulkan\Shader.cpp" />
-    <ClCompile Include="Vulkan\TextureManager.cpp" />
     <ClCompile Include="Vulkan\Sampler.cpp" />
     <ClCompile Include="Vulkan\Image.cpp" />
     <ClCompile Include="Vulkan\CommandBuffer.cpp" />
@@ -44,12 +43,10 @@
     <ClCompile Include="Engine\engine.cpp" />
     <ClCompile Include="DataTypes\Object.cpp" />
     <ClCompile Include="Engine\Omega_SceneParser.cpp" />
-    <ClCompile Include="DataTypes\Space.cpp" />
     <ClCompile Include="Engine\World.cpp" />
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
-    <ClCompile Include="Managers\SceneManager.cpp" />
     <ClCompile Include="Managers\TextureManager.cpp" />
     <ClCompile Include="DataTypes\TextureType.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
@@ -62,7 +59,6 @@
     <ClCompile Include="Engine\Omega_Global.cpp" />
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
-    <ClCompile Include="utility\serialisation.cpp" />
     <ClCompile Include="VulkanCore\VkSwapChain.cpp" />
     <ClCompile Include="VulkanCore\VkDescriptors.cpp" />
     <ClCompile Include="VulkanCore\VkMemoryManager.cpp" />
@@ -93,26 +89,12 @@
     <ClCompile Include="VulkanCore\VulkanInstance.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
-    <ClCompile Include="Vulkan\TerrainUtility.cpp" />
-    <ClCompile Include="Vulkan\vkFFT.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
-    <ClCompile Include="Vulkan\VkPostProcess.cpp" />
     <ClCompile Include="Rendering\RenderManager.cpp" />
     <ClCompile Include="Vulkan\SwapChain.cpp" />
-    <ClCompile Include="Vulkan\VulkanDeferred.cpp" />
-    <ClCompile Include="Vulkan\VulkanGUI.cpp" />
-    <ClCompile Include="Vulkan\VulkanIBL.cpp" />
-    <ClCompile Include="Vulkan\VulkanModel.cpp" />
-    <ClCompile Include="Vulkan\VulkanModule.cpp" />
     <ClCompile Include="Vulkan\RenderPass.cpp" />
-    <ClCompile Include="Vulkan\VulkanSkybox.cpp" />
-    <ClCompile Include="Vulkan\VulkanTexture.cpp" />
-    <ClCompile Include="Vulkan\VulkanWater.cpp" />
+    <ClCompile Include="Vulkan\TextureManager.cpp" />
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
-    <ClCompile Include="Vulkan\Vulkan_shadow.cpp" />
-    <ClCompile Include="Vulkan\Vulkan_terrain.cpp" />
-    <ClCompile Include="Vulkan\vulkan_utility.cpp" />
-    <ClCompile Include="Vulkan\vulkan_validation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="PostProcess\PostProcessInterface.h" />
@@ -140,7 +122,6 @@
     <ClInclude Include="Engine\Omega_Config.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\Omega_SceneParser.h" />
-    <ClInclude Include="DataTypes\Space.h" />
     <ClInclude Include="Rendering\RenderableTypes\Mesh.h" />
     <ClInclude Include="Managers\TransformManager.h" />
     <ClInclude Include="Omega_Common.h" />
@@ -150,7 +131,6 @@
     <ClInclude Include="Managers\MeshManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
-    <ClInclude Include="Managers\SceneManager.h" />
     <ClInclude Include="Rendering\DeferredRenderer.h" />
     <ClInclude Include="Rendering\RenderInterface.h" />
     <ClInclude Include="Threading\ThreadPool.h" />
@@ -170,7 +150,6 @@
     <ClInclude Include="VulkanCore\vkFFT.h" />
     <ClInclude Include="VulkanCore\TerrainUtility.h" />
     <ClInclude Include="utility\RandomNumber.h" />
-    <ClInclude Include="utility\serialisation.h" />
     <ClInclude Include="VulkanCore\VkMemoryManager.h" />
     <ClInclude Include="VulkanCore\VulkanGUI.h" />
     <ClInclude Include="VulkanCore\VulkanModel.h" />
@@ -195,28 +174,13 @@
     <ClInclude Include="Vulkan\Descriptors.h" />
     <ClInclude Include="Vulkan\Image.h" />
     <ClInclude Include="Vulkan\Sampler.h" />
-    <ClInclude Include="Vulkan\TerrainUtility.h" />
-    <ClInclude Include="Vulkan\TextureManager.h" />
-    <ClInclude Include="Vulkan\vkFFT.h" />
     <ClInclude Include="Vulkan\MemoryAllocator.h" />
-    <ClInclude Include="Vulkan\VkPostProcess.h" />
     <ClInclude Include="Rendering\RenderManager.h" />
     <ClInclude Include="Vulkan\SwapChain.h" />
-    <ClInclude Include="Vulkan\VulkanDeferred.h" />
-    <ClInclude Include="Vulkan\VulkanGUI.h" />
-    <ClInclude Include="Vulkan\VulkanIBL.h" />
     <ClInclude Include="Vulkan\Interface.h" />
-    <ClInclude Include="Vulkan\VulkanModel.h" />
-    <ClInclude Include="Vulkan\VulkanModule.h" />
     <ClInclude Include="Vulkan\RenderPass.h" />
-    <ClInclude Include="Vulkan\VulkanSkybox.h" />
-    <ClInclude Include="Vulkan\VulkanTexture.h" />
-    <ClInclude Include="Vulkan\VulkanWater.h" />
     <ClInclude Include="Vulkan\Common.h" />
-    <ClInclude Include="Vulkan\Vulkan_shadow.h" />
-    <ClInclude Include="Vulkan\vulkan_terrain.h" />
-    <ClInclude Include="Vulkan\vulkan_utility.h" />
-    <ClInclude Include="Vulkan\vulkan_validation.h" />
+    <ClInclude Include="Vulkan\TextureManager.h" />
     <ClInclude Include="Vulkan\Vulkan_Global.h" />
   </ItemGroup>
   <ItemGroup>
@@ -282,7 +246,7 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\tiny-gltf;C:\CLibs\SPIRV-Cross-master\include;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\Visual Studio\stb-master;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>

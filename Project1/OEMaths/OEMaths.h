@@ -75,14 +75,14 @@ namespace OEMaths
 			w(static_cast<Typename>(0))
 		{}
 
-		vec4(vec2<Typename> vec, Typename _z, typname _w) :
+		vec4(vec2<Typename> vec, Typename _z, Typename _w) :
 			x(vec.x),
 			y(vec.y),
 			z(_z),
 			w(_w)
 		{}
 
-		vec4(vec3<Typename> vec, typname _w) :
+		vec4(vec3<Typename> vec, Typename _w) :
 			x(vec.x),
 			y(vec.y),
 			z(vec.z),
@@ -262,7 +262,7 @@ namespace OEMaths
 			return *this;
 		}
 
-		friend mat4<Typename> operator*(mat4f<Typename> lhs, const mat4<Typename>& rhs)
+		friend mat4<Typename> operator*(mat4<Typename> lhs, const mat4<Typename>& rhs)
 		{
 			for (int y = 0; y < 3; ++y) {
 				for (int x = 0; x < 3; ++x) {

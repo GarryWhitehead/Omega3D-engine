@@ -104,18 +104,6 @@ namespace OmegaEngine
 			engine_config.fps = doc["FPS"].GetDouble();
 		}
 
-		if (doc.HasMember("General Gfx Settings")) {
-			auto& settings = doc["General Gfx Settings"];
-			if (doc.HasMember("Shadows Enabled")) {
-				config.shadowsEnabled = doc["Shadows Enabled"].GetBool();
-			}
-			if (doc.HasMember("Bloom Enabled")) {
-				config.bloomEnabled = doc["Bloom Enabled"].GetBool();
-			}
-			if (doc.HasMember("Fog Enabled")) {
-				config.fogEnabled = doc["Fog Enabled"].GetBool();
-			}
-		}
 	}
 
 	void Engine::start_loop()

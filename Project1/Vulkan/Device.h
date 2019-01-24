@@ -1,7 +1,6 @@
 #pragma once
-#include "volk.h"
-
-#include "vulkan/vulkan.hpp"
+#include "Vulkan/Common.h"
+#include "Vulkan/Queue.h"
 #include <vector>
 #include <set>
 
@@ -61,7 +60,7 @@ namespace VulkanAPI
 		}
 
 		uint32_t getQueueIndex(QueueType type) const;
-		vk::Queue& getQueue(QueueType type);
+		VulkanAPI::Queue& getQueue(QueueType type);
 
 		void set_window_surface(vk::SurfaceKHR surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{
@@ -84,9 +83,9 @@ namespace VulkanAPI
 			int computeIndex = -1;
 			int presentIndex = -1;
 			int graphIndex = -1;
-			vk::Queue graphQueue;
-			vk::Queue presentQueue;
-			vk::Queue computeQueue;
+			VulkanAPI::Queue graphQueue;
+			VulkanAPI::Queue presentQueue;
+			VulkanAPI::Queue computeQueue;
 		} queue;
 
 		// info on this device's swapchain

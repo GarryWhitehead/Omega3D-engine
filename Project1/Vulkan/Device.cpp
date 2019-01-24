@@ -244,9 +244,16 @@ namespace VulkanAPI
 		volkLoadDevice(device.operator VkDevice);
 
 		// prepare queue for each type
-		device.getQueue(queue.computeIndex, 0, &queue.computeQueue);
-		device.getQueue(queue.graphIndex, 0, &queue.graphQueue);
-		device.getQueue(queue.presentIndex, 0, &queue.presentQueue);
+		vk::Queue computeQueue, graphQueue, presentQueue;
+
+		device.getQueue(queue.computeIndex, 0, &computeQueue);
+		device.getQueue(queue.graphIndex, 0, &graphQueue);
+		device.getQueue(queue.presentIndex, 0, &presentQueue);
+
+		// init vulkan api queue wrapper
+		queue.graphQueue.create(graphQueue, device);
+		queue.presentQueue.create(presentQueue, device);
+		queue.computeQueue.create(computeQueue, device);
 	}
 
 	uint32_t Device::getQueueIndex(QueueType type) const
@@ -266,7 +273,7 @@ namespace VulkanAPI
 		}
 	}
 
-	vk::Queue& Device::getQueue(QueueType type)
+	VulkanAPI::Queue& Device::getQueue(QueueType type)
 	{
 		switch (type) {
 		case QueueType::Graphics:

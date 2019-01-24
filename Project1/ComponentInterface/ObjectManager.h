@@ -25,6 +25,7 @@ namespace OmegaEngine
 	public:
 
 		ObjectManager();
+		~ObjectManager();
 
 		Object& createObject();
 		Object& createChildObject(Object& object);
@@ -34,7 +35,8 @@ namespace OmegaEngine
 		Object& get_object(uint64_t index)
 		{
 			if (objects.find(index) == objects.end()) {
-				return {};
+				Object obj;
+				return obj;
 			}
 
 			return objects[index];

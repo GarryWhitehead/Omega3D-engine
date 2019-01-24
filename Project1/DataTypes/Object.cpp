@@ -7,6 +7,10 @@ namespace OmegaEngine
 	{
 	}
 
+	Object::~Object()
+	{
+	}
+
 	bool Object::operator==(const Object& obj) const
 	{
 		return id == obj.id;

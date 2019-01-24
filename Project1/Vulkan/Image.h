@@ -12,7 +12,9 @@ namespace VulkanAPI
 
 		ImageView(vk::Device dev);
 
-		void create(std::unique_ptr<Image>& image);
+		void create(Image& image);
+
+		void create(vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type);
 
 		vk::ImageView& get_imageView()
 		{

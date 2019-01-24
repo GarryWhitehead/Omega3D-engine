@@ -1,12 +1,7 @@
 #include "ThreadUtil.h"
 
-
-
-ThreadUtil::ThreadUtil()
+namespace ThreadUtil
 {
-}
 
 
-ThreadUtil::~ThreadUtil()
-{
 }

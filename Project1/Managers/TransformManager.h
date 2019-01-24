@@ -85,7 +85,7 @@ namespace OmegaEngine
 
 		OEMaths::mat4f& get_transform(uint32_t transform_index)
 		{
-			assert(transform_index < transBuffer.size());
+			assert(transform_index < transformBuffer.size());
 			return transformBuffer[transform_index].get_transform;
 		}
 

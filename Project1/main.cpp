@@ -1,9 +1,6 @@
-#include "utility/file_log.h"
 #include "Engine/engine.h"
-#include "windows.h"
 
 #include "GLFW/glfw3.h"
-
 #include "tiny_gltf.h"
 
 #include <memory>
@@ -12,22 +9,19 @@
 #include <iostream>
 #include <vector>
 
+// super simple example which loads a scene file and plays it
+
 int main(int argc, char *argv[])
 {
+	// You can either init the engine with window title and window dimensions, or with an empty constructor
+	// which will then use the config file
+	OmegaEngine::Engine engine("Omega3D v1.0", 1280, 700);
 	
-	
-	Engine engine("Omega3D v1.0");
-	FileLog filelog("test-log", (int)FileLogFlags::FILELOG_CLOSE_AFTER_EACH_WRITE);
-	
-	// initiliases the window and vulkan main framework
-	engine.Init();
+	// for this example we are going to load a omega scene file
+	engine.createWorld("/assets/demo-world.oes", "demo world");
 
-	// the engine stores all the worlds which have there own designated systems but can share entities and data
-	engine.CreateWorld({ SystemId::CAMERA_SYSTEM_ID, SystemId::INPUT_SYSTEM_ID, SystemId::GRAPHICS_SYSTEM_ID  }, "main_world");
-	
+	// we could load multiple world here, but for this example we will stick with one
+	// now set the loop running
+	engine.start_loop();
 
-	
-	
-
-	engine.Release();
 }

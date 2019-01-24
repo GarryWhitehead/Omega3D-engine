@@ -8,13 +8,11 @@ namespace VulkanAPI
 	Swapchain::Swapchain()
 	{
 	}
-	
-	Swapchain::~Swapchain()
-	{
-	}
 
 	void Swapchain::create(VulkanAPI::Device& device, const uint32_t screen_width, const uint32_t screen_height)
 	{
+		dev = device.getDevice();
+
 		// Get the basic surface properties of the physical device
 		uint32_t surfaceCount;
 
@@ -117,16 +115,17 @@ namespace VulkanAPI
 
 		for (int c = 0; c < images.size(); ++c)
 		{
-			vk::ImageView imageView = VulkanUtility::InitImageView(images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, VK_IMAGE_VIEW_TYPE_2D, device);
+			VulkanAPI::ImageView imageView(device.getDevice()); 
+		    imageView.create(images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
 			image_views.push_back(imageView);
 		}
 	}
 
-	SwapchainKHR::~SwapchainKHR()
+	Swapchain::~Swapchain()
 	{
 		for (int c = 0; c < image_views.size(); ++c)
-			vkDestroyImageView(device, imageViews[c], nullptr);
+			dev.destroyImageView(image_views[c].get_imageView(), nullptr);
 
-		vkDestroySwapchainKHR(device, swapChain, nullptr);
+		dev.destroySwapchainKHR(swapchain, nullptr);
 	}
 }

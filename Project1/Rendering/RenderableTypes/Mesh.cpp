@@ -20,7 +20,9 @@ namespace OmegaEngine
 		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_man->getStaticMesh(obj);
+		
+		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
+		MeshManager::StaticMesh mesh = mesh_man->get_mesh(mesh_index);
 
 		assert(!mesh.vertexBuffer.empty());
 		assert(!mesh.indexBuffer.empty());
@@ -32,7 +34,7 @@ namespace OmegaEngine
 		// sort index offsets and materials ready for rendering
 		for (auto& prim : mesh.primitives) {
 
-			PrimitiveMesh r_prim;
+			PrimitiveData r_prim;
 
 			VulkanAPI::Texture tex(VulkanAPI::TextureType::Normal);
 			auto& mat = comp_interface->getManager<MaterialManager>()->get(prim.materialId);

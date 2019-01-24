@@ -3,12 +3,12 @@
 #include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
 #include "DataTypes/Camera.h"
+#include "DataTypes/Object.h"
 #include "ComponentInterface/ComponentInterface.h"
 #include "ComponentInterface/ObjectManager.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
-#include "Managers/SceneManager.h"
 #include "Managers/AnimationManager.h"
 #include "Managers/TransformManager.h"
 #include "Managers/MaterialManager.h"
@@ -168,9 +168,5 @@ namespace OmegaEngine
 			
 		}
 	}
-
-
-
-	
 
 }

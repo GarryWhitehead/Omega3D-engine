@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Engine/Omega_Config.h"
+#include "Vulkan/Device.h"
 
 // forward declerations
 struct GLFWwindow;

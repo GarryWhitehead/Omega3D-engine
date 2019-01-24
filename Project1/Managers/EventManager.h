@@ -2,6 +2,7 @@
 #include <unordered_map>
 #include <queue>
 #include <functional>
+#include <memory>
 
 #include "Utility/GeneralUtil.h"
 

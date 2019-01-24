@@ -1,6 +1,7 @@
 #pragma once
 
 #include "volk.h"
+#include "Vulkan/Common.h"
 
 namespace OmegaEngine
 {
@@ -26,7 +27,7 @@ namespace OmegaEngine
 
 		int mipmapCount() const
 		{
-			return numMipMaps;
+			return mip_levels;
 		}
 
 		int tex_width() const
@@ -37,11 +38,6 @@ namespace OmegaEngine
 		int tex_height() const
 		{
 			return height;
-		}
-
-		int tex_layers() const
-		{
-			return numComponents;
 		}
 
 		vk::Format& format()

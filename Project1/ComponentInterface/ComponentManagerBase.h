@@ -10,6 +10,8 @@ namespace OmegaEngine
 
 	public:
 
+		virtual ~ComponentManagerBase() {}
+
 		// abstract functions
 		virtual void update() = 0;
 

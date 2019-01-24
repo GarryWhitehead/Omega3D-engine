@@ -1,7 +1,6 @@
 #pragma once
 #include "RenderableBase.h"
 #include "Vulkan/MemoryAllocator.h"
-#include "Vulkan/Buffer.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/PushBlocks.h"
 
@@ -28,7 +27,7 @@ namespace OmegaEngine
 
 	public:
 
-		struct PrimitiveMesh
+		struct PrimitiveData
 		{
 			uint32_t index_offset;
 			uint32_t index_count;
@@ -56,9 +55,6 @@ namespace OmegaEngine
 		VulkanAPI::MemorySegment indicies;
 
 		// primitive meshes - indices data and materials
-		std::vector<PrimitiveMesh> primitives;
-
-		// buffers
-		VulkanAPI::Buffer ssbo;
+		std::vector<PrimitiveData> primitives;
 	};
 }
