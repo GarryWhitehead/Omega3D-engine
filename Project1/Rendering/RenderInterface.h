@@ -89,6 +89,8 @@ namespace OmegaEngine
 			}
 		}
 
+		void load_render_config();
+
 		// shader init for each renderable type
 		void add_shader(RenderTypes type);
 

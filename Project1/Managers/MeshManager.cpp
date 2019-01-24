@@ -10,8 +10,6 @@ namespace OmegaEngine
 
 	MeshManager::MeshManager()
 	{
-		
-
 	}
 
 
@@ -132,10 +130,10 @@ namespace OmegaEngine
 			staticMesh.primitives.push_back(prim);
 		}
 
-		staticMeshBuffer.push_back(staticMesh);
+		meshBuffer.push_back(staticMesh);
 		
 		// add mesh component to current object
-		obj.addComponent<MeshManager>(staticMeshBuffer.size() - 1);
+		obj.add_manager<MeshManager>(meshBuffer.size() - 1);
 	}
 
 	

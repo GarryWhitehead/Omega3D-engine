@@ -1,5 +1,6 @@
 #include "TransformManager.h"
 #include "DataTypes/Object.h"
+#include "ComponentInterface/ObjectManager.h"
 
 namespace OmegaEngine
 {
@@ -40,30 +41,35 @@ namespace OmegaEngine
 		transformBuffer.push_back(transform);
 
 		// add to the list of entites
-		objects[obj] = transformBuffer.size() - 1;
+		obj.add_manager<TransformManager>(transformBuffer.size() - 1);
 	}
 
-	void TransformManager::generate_static_transform()
+	void TransformManager::update_static_recursive(uint32_t transform_index, Object& obj)
 	{
-		for (auto obj : objects) {
+		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
-			Object object = obj.first;
+		uint64_t parent_index = obj.get_parent();
+		while (parent_index != UINT64_MAX) {
+			mat = transformBuffer[parent_index].get_local * mat;
+		}
 
-			OEMaths::mat4f mat = transformBuffer[obj.second].get_local();
+		transformBuffer[transform_index].set_transform(mat);
 
-			uint64_t parent_index = object.get_parent();
-			while (parent_index != UINT64_MAX) {
-				mat = transformBuffer[parent_index].get_local * mat;
-			}
+		// now update all child nodes too - TODO: do this without recursion
+		auto children = obj.get_children();
 
-			transformBuffer[obj.second].set_transform(mat);
+		for (auto& child : children) {
+			update_static_recursive(child.get_manager_index<TransformManager>(), child);
+		}
+	}
 
-			// now update all child nodes too - TODO: do this without recursion
-			auto& children = object.get_children();
+	void TransformManager::update_static(std::unique_ptr<ObjectManager>& obj_manager)
+	{
+		auto object_list = obj_manager->get_objects_list();
 
-			for (auto& child : children) {
-				generate_static_transform();
-			}
+		for (auto obj : object_list) {
+
+			update_static_recursive(obj.second.get_manager_index<TransformManager>(), obj.second);
 		}
 	}
 }

@@ -81,29 +81,15 @@ namespace OmegaEngine
 
 		};
 
-
 		MeshManager();
 		~MeshManager();
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj);
 
-		StaticMesh& get_static_mesh(Object& obj)
+		StaticMesh& get_mesh(uint32_t index)
 		{
-			auto iter = objects.find(obj);
-			if (iter == objects.end()) {
-				return {};
-			}
-			uint32_t index = iter->second;
-			return staticMeshBuffer[index];
-		}
-
-		SkinnedMesh& get_skinned_mesh(Object& obj)
-		{
-			if (skinned_objects.find(obj) == skinned_objects.end()) {
-				LOGGER_INFO("Unable to find object with id %i in skinned lookup buffer");
-			}
-
-			return skinnedMeshBuffer[skinned_objects[obj]];
+			assert(index < meshBuffer.size());
+			return meshBuffer[index];
 		}
 
 		template <typename T>
@@ -122,13 +108,8 @@ namespace OmegaEngine
 
 	private:
 
-		// a list of all objects associated with this manager and their position within the main data buffer
-		std::unordered_map<Object, uint32_t> static_objects;
-		std::unordered_map<Object, uint32_t> skinned_objects;
-
 		// the buffers containing all the model data 
-		std::vector<StaticMesh> staticMeshBuffer;
-		std::vector<SkinnedMesh> skinnedMeshBuffer;
+		std::vector<StaticMesh> meshBuffer;
 
 	};
 

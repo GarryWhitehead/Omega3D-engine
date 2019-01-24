@@ -16,7 +16,7 @@ namespace OmegaEngine
 
 		int size() const
 		{
-			return width * height * numComponents;
+			return width * height * 4;		// must be rgba
 		}
 
 		void* data()
@@ -60,8 +60,7 @@ namespace OmegaEngine
 		// info from gltf
 		int width;
 		int height;
-		int numComponents;
-		int numMipMaps;
+		int mip_levels;
 		const char* name;
 
 		// the texture binary

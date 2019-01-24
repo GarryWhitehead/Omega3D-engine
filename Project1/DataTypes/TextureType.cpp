@@ -3,6 +3,7 @@
 #include "stb_image.h"
 
 #include <string>
+#include <algorithm>
 
 namespace OmegaEngine
 {
@@ -21,7 +22,7 @@ namespace OmegaEngine
 
 		width = w;
 		height = h;
-		numComponents = c;
+		mip_levels = static_cast<uint8_t>(std::floor(std::log2(std::max(w, h))) + 1.0);
 
 		// copy image to local store
 		memcpy(bin, buffer, width * height * 4);

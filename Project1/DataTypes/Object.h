@@ -12,6 +12,9 @@ namespace OmegaEngine
 	{
 	public:
 
+		using ManagerId = uint32_t;
+		using ManagerIndex = uint32_t;
+
 		struct HashObject
 		{
 			size_t operator()(const Object& obj) const
@@ -19,14 +22,6 @@ namespace OmegaEngine
 				return(std::hash<uint32_t>()(obj.get_id()));
 			}
 		};
-
-		struct ComponentManagerInfo
-		{
-			uint32_t managerId;
-			uint32_t index;
-		};
-
-		using ComponentManagerId = uint32_t;
 
 		Object();
 
@@ -41,6 +36,31 @@ namespace OmegaEngine
 		uint64_t get_parent() const;
 		bool is_alive();
 
+		template <typename T>
+		uint32_t get_manager_index()
+		{
+			uint32_t man_id = Util::event_type_id<T>();
+			assert(components.find(man_id) != components.end);
+			return components[man_id];
+		}
+
+		template <typename T>
+		uint32_t add_manager(uint32_t index)
+		{
+			uint32_t man_id = Util::event_type_id<T>();
+			components[man_id] = index;
+		}
+
+		template <typename T>
+		bool hasComponent()
+		{
+			uint32_t man_id = Util::event_type_id<T>();
+			if (components.find(man_id) == components.end()) {
+				return false;
+			}
+			return true;
+		}
+
 		std::vector<Object>& get_children();
 
 	private:
@@ -48,6 +68,8 @@ namespace OmegaEngine
 		uint64_t id;
 		uint64_t parent_id;
 		std::vector<Object> children;
+
+		std::unordered_map<ManagerId, ManagerIndex> components;
 
 		bool isAlive = true;
 	};

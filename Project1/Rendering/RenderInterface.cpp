@@ -17,7 +17,11 @@
 #include "Vulkan/Queue.h"
 #include "PostProcess/PostProcessInterface.h"
 #include "Utility/logger.h"
+#include "Utility/FileUtil.h"
 #include "Threading/ThreadPool.h"
+
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/document.h"
 
 namespace OmegaEngine
 {
@@ -25,7 +29,8 @@ namespace OmegaEngine
 	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height)
 	{
 		// load the render config file if it exsists
-		
+		load_render_config();
+
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
 
@@ -54,6 +59,28 @@ namespace OmegaEngine
 	{
 	}
 
+	void RenderInterface::load_render_config()
+	{
+		std::string json;
+		const char filename[] = "render_config.ini";		// probably need to check the current dir here
+		if (!FileUtil::readFileIntoBuffer(filename, json)) {
+			return;
+		}
+
+		// if we cant parse the confid, then go with the default values
+		rapidjson::Document doc;
+		if (doc.Parse(json.c_str()).HasParseError()) {
+			LOGGER_INFO("Unable to find render_config file. Using default settings...")
+			return;
+		}
+
+		// general render settings
+		if (doc.HasMember("Renderer")) {
+			int renderer = doc["Renderer"].GetInt();
+			render_config.general.renderer = static_cast<RendererType>(renderer);
+		}
+		
+	}
 
 	void RenderInterface::add_shader(RenderTypes type)
 	{

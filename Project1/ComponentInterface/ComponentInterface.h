@@ -59,17 +59,7 @@ namespace OmegaEngine
 				return true;
 			}
 			return false;
-		}
-
-		template <typename T>
-		void addComponentToObject(Object& obj)
-		{
-			uint32_t man_id = Util::event_type_id<T>();
-			if (managers.find(man_id) == manager.end()) {
-				return;
-			}
-			managers[man_id]->addObject(obj);
-		}
+		}}
 
 	protected:
 

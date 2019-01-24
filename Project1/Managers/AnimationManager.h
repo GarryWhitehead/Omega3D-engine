@@ -14,6 +14,7 @@ namespace OmegaEngine
 	// forward declerations
 	class Object;
 	class TransformManager;
+	class ObjectManager;
 
 	class AnimationManager : public ComponentManagerBase
 	{
@@ -79,7 +80,8 @@ namespace OmegaEngine
 		void addGltfAnimation(tinygltf::Model& model, Object& obj);
 		void addGltfSkin(tinygltf::Model& model);
 
-		void update(std::unique_ptr<TransformManager>& transform_man);
+		void update(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager);
+		void update_recursive(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager, uint32_t anim_index, Object& obj);
 
 	private:
 

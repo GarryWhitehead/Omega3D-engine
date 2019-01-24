@@ -1,6 +1,7 @@
 #include "AnimationManager.h"
 
 #include "Managers/TransformManager.h"
+#include "ComponentInterface/ObjectManager.h"
 #include "Utility/logger.h"
 #include "DataTypes/Object.h"
 
@@ -134,7 +135,7 @@ namespace OmegaEngine
 			animationBuffer.push_back(animInfo);
 
 			// add animation component to object for this particular anim
-			obj.addComponent<AnimationManager>(animationBuffer.size() - 1);
+			obj.add_manager<AnimationManager>(animationBuffer.size() - 1);
 		}
 
 		 
@@ -172,37 +173,49 @@ namespace OmegaEngine
 		}
 	}
 
-	void AnimationManager::update(std::unique_ptr<TransformManager>& transform_man)
+	void AnimationManager::update_recursive(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager, uint32_t anim_index, Object& obj)
 	{
-		for (auto obj : objects) {
+		
+		uint32_t transform_index = obj.get_manager_index<TransformManager>();
 
-			Object object = obj.first;
-			
-			OEMaths::mat4f mat = transform_man->get_transform(object);
-			uint32_t index = objects[object];
+		OEMaths::mat4f mat = transform_man->get_transform(transform_index);
 
-			// prepare fianl output matrices buffer
-			uint32_t joint_size = std::min(skinBuffer[index].joints.size(), MAX_NUM_JOINTS);
-			skinBuffer[index].joint_matrices.resize(joint_size);
+		// prepare fianl output matrices buffer
+		uint32_t joint_size = std::min(skinBuffer[anim_index].joints.size(), MAX_NUM_JOINTS);
+		skinBuffer[anim_index].joint_matrices.resize(joint_size);
 
-			// transform to local space
-			OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
+		// transform to local space
+		OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
 
-			
-			for (uint32_t i = 0; i < joint_size; ++i) {
-				Object joint_obj = skinBuffer[index].joints[i];
-				OEMaths::mat4f joint_mat = transform_man->get_transform(joint_obj) * skinBuffer[index].invBindMatrices[i];
-				
-				// transform joint to local (joint) space
-				skinBuffer[index].joint_matrices[i] = inv_mat * joint_mat;
-			}
 
-			// now update all child nodes too - TODO: do this without recursion
-			auto& children = object.get_children();
+		for (uint32_t i = 0; i < joint_size; ++i) {
+			Object joint_obj = skinBuffer[anim_index].joints[i];
 
-			for (auto& child : children) {
-				update(transform_man);
-			}
+			uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
+			OEMaths::mat4f joint_mat = transform_man->get_transform(joint_index) * skinBuffer[anim_index].invBindMatrices[i];
+
+			// transform joint to local (joint) space
+			skinBuffer[anim_index].joint_matrices[i] = inv_mat * joint_mat;
 		}
+
+		// now update all child nodes too - TODO: do this without recursion
+		auto& children = obj.get_children();
+
+		for (auto& child : children) {
+			update_recursive(transform_man, obj_manager, child.get_manager_index<AnimationManager>(), child);
+		}
+	
+	}
+
+	void AnimationManager::update(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager)
+	{
+		auto object_list = obj_manager->get_objects_list();
+
+		for (auto obj : object_list) {
+
+			update_recursive(transform_man, obj_manager, obj.second.get_manager_index<AnimationManager>(), obj.second);
+		}
+
+			
 	}
 }

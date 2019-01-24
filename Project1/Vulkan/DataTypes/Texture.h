@@ -65,6 +65,9 @@ namespace VulkanAPI
 		// texture info
 		TextureType tex_type;
 		vk::Format tex_format;
+		uint32_t tex_width = 0;
+		uint32_t tex_height = 0;
+		uint8_t tex_layers = 0;
 
 		std::unique_ptr<Image> tex_image;
 		std::unique_ptr<ImageView> tex_imageView;

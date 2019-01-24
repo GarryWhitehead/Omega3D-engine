@@ -46,7 +46,6 @@
     <ClCompile Include="Engine\Omega_SceneParser.cpp" />
     <ClCompile Include="DataTypes\Space.cpp" />
     <ClCompile Include="Engine\World.cpp" />
-    <ClCompile Include="Engine\GltfParser.cpp" />
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
@@ -138,7 +137,6 @@
     <ClInclude Include="Vulkan\Device.h" />
     <ClInclude Include="Engine\engine.h" />
     <ClInclude Include="DataTypes\Object.h" />
-    <ClInclude Include="Engine\GltfParser.h" />
     <ClInclude Include="Engine\Omega_Config.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\Omega_SceneParser.h" />

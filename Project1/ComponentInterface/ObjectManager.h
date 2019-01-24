@@ -31,13 +31,18 @@ namespace OmegaEngine
 
 		void destroyObject(Object& obj);
 
-		Object& get_obj(uint64_t index)
+		Object& get_object(uint64_t index)
 		{
 			if (objects.find(index) == objects.end()) {
 				return {};
 			}
 
 			return objects[index];
+		}
+
+		std::unordered_map<uint64_t, Object>& get_objects_list()
+		{
+			return objects;
 		}
 
 	private:

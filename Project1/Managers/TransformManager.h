@@ -9,6 +9,7 @@ namespace OmegaEngine
 {
 	// forward decleartions
 	class Object;
+	class ObjectManager;
 
 	class TransformManager : public ComponentManagerBase
 	{
@@ -79,21 +80,16 @@ namespace OmegaEngine
 
 		uint32_t addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
 
-		void generate_static_transform();
+		void update_static(std::unique_ptr<ObjectManager>& obj_manager);
+		void update_static_recursive(uint32_t index, Object& obj);
 
-		OEMaths::mat4f& get_transform(Object obj)
+		OEMaths::mat4f& get_transform(uint32_t transform_index)
 		{
-			if (objects.find(obj) == objects.end()) {
-				// just log a warning here that we are looking for something that doesn't exsist (obviously bad!)
-				LOGGER_INFO("Unable to find object with id: %i\n", obj.get_id());
-			}
-			return transformBuffer[objects[obj]].get_transform();
+			assert(transform_index < transBuffer.size());
+			return transformBuffer[transform_index].get_transform;
 		}
 
 	private:
-
-		// a list of all objects associated with this manager and their position within the main data buffer
-		std::unordered_map<Object, uint32_t, HashObject> objects;
 
 		std::vector<TransformData> transformBuffer;
 	};

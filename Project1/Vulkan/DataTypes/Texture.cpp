@@ -38,6 +38,11 @@ namespace VulkanAPI
 
 	void Texture::map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc)
 	{
+		// store some of the texture attributes locally
+		tex_width = tex.tex_width;
+		tex_height = tex.tex_height;
+		tex_layers = tex.tex_layers;
+		
 		vk::DeviceMemory stagingMemory;
 		vk::Buffer staging_buff;
 		mem_alloc->createBuffer(tex.size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingMemory, staging_buff);
@@ -90,10 +95,10 @@ namespace VulkanAPI
 			vk::BufferImageCopy image_copy(0, 0, 0,
 				{ vk::ImageAspectFlagBits::eColor, level, 1, 0 },
 				{ 0, 0, 0 },
-				{ static_cast<uint32_t>(tex.tex_width()), static_cast<uint32_t>(tex.tex_height()), 1 });
+				{tex_width, tex_height, 1 });
 			copy_buffers.emplace_back(image_copy);
 
-			offset += static_cast<uint32_t>(tex2d[level].size());
+			offset += (tex_width >> level) * (tex_height >> level);
 		}
 	}
 
@@ -107,10 +112,11 @@ namespace VulkanAPI
 				vk::BufferImageCopy image_copy(0, 0, 0,
 					{ vk::ImageAspectFlagBits::eColor, level, 1, layer },
 					{ 0, 0, 0 },
-					{ static_cast<uint32_t>(tex.tex_width()), static_cast<uint32_t>(tex.tex_height()), 1 });
+					{ tex_width, tex_height, 1 });
 				copy_buffers.emplace_back(image_copy);
 
-				offset += static_cast<uint32_t>(tex2d[layer][level].size());
+
+				offset += (tex_width >> level) * (tex_height >> level);
 			}
 		}
 	}
