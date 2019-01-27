@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
@@ -69,7 +70,6 @@
     <ClCompile Include="VulkanCore\VulkanModel.cpp" />
     <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
     <ClCompile Include="VulkanCore\VulkanModule.cpp" />
-    <ClCompile Include="DataTypes\Camera.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="VulkanCore\VulkanWater.cpp" />
@@ -97,6 +97,7 @@
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Managers\CameraManager.h" />
     <ClInclude Include="PostProcess\PostProcessInterface.h" />
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
@@ -112,7 +113,6 @@
     <ClInclude Include="ComponentInterface\ComponentInterface.h" />
     <ClInclude Include="ComponentInterface\ComponentManagerBase.h" />
     <ClInclude Include="ComponentInterface\ObjectManager.h" />
-    <ClInclude Include="DataTypes\Camera.h" />
     <ClInclude Include="DataTypes\TextureType.h" />
     <ClInclude Include="Vulkan\CommandBuffer.h" />
     <ClInclude Include="Vulkan\DataTypes\Texture.h" />
