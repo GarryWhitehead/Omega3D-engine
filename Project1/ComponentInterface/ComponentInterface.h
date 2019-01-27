@@ -59,7 +59,7 @@ namespace OmegaEngine
 				return true;
 			}
 			return false;
-		}}
+		}
 
 	protected:
 

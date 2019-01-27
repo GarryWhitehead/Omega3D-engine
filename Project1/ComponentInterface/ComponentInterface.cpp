@@ -19,7 +19,7 @@ namespace OmegaEngine
 	void ComponentInterface::update_managers(double time, double dt)
 	{
 		for (auto& manager : managers) {
-			manager.second->update();
+			manager.second->update(time, dt);
 		}
 	}
 }

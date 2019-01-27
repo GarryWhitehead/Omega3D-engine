@@ -35,40 +35,52 @@ namespace OmegaEngine
 
 		pitch = std::max(pitch, 89.0f);
 		pitch = std::min(pitch, -89.0f);
-
-		isMoving = true;
 	}
 
 	void CameraManager::keyboard_press_event(KeyboardPressEvent& event)
 	{
+		Camera& camera = cameras[camera_index];
 
 		if (event.isMoving) {
 
 			//calculate the pitch and yaw vectors
-			frontVec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-			frontVec.y = sin(glm::radians(pitch));
-			frontVec.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-			frontVec = OEMaths::normalise(frontVec);
+			front_vec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+			front_vec.y = sin(glm::radians(pitch));
+			front_vec.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+			front_vec = OEMaths::normalise_vec3(front_vec);
+
+			float velocity = camera.get_Velocity();
 
 			// check for forwards and strafe movement
 			if (event.isMovingForward) {
-				position += frontVec * velocity * Engine::DT;
+				current_pos += front_vec * velocity * Engine::DT;
 			}
 			if (event.isMovingBackward) {
-				position -= frontVec * velocity * Engine::DT;
+				current_pos -= front_vec * velocity * Engine::DT;
 			}
 			if (event.isMovingLeft) {
-				position -= glm::normalize(glm::cross(frontVec, upVec)) * velocity * Engine::DT;
+				current_pos -= OEMaths::normalise_vec3(OEMaths::cross(front_vec, camera.get_up_vec())) * velocity;
 			}
 			if (event.isMovingRight) {
-				position += glm::normalize(glm::cross(frontVec, upVec)) * velocity * Engine::DT;
+				current_pos += OEMaths::normalise_vec3(OEMaths::cross(front_vec, camera.get_up_vec())) * velocity;
 			}
 
 			updateViewMatrix();
-
-			isMoving = false;
 		}
 
+	}
+
+	void CameraManager::update(double time, double dt)
+	{
+		if (isDirty) {
+
+			// update everything in the buffer
+			buffer_info.camera_pos = current_pos;
+			buffer_info.projection = currentProjMatrix;
+			buffer_info.view = currentViewMatrix;
+			buffer_info.zNear = cameras[camera_index].getZNear();
+			buffer_info.zFar = cameras[camera_index].getZFar();
+		}
 	}
 
 }
