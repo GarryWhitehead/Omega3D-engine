@@ -3,7 +3,6 @@
 #include "Utility/GeneralUtil.h"
 #include "Engine/Omega_Global.h"
 #include "ComponentInterface/ObjectManager.h"
-#include "DataTypes/Space.h"
 
 namespace OmegaEngine
 {

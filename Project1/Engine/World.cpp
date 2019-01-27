@@ -116,17 +116,26 @@ namespace OmegaEngine
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
 			// data will be passed to all the relevant managers for this object and components added automatically
 			tinygltf::Scene &scene = model.scenes[model.defaultScene];
+
+			// we also need to keep a linerised form of the objects for matching up joint indices later
+			std::vector<Object> linearised_objects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
 
 				Object obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-		
-				loadGltfNode(model, node, world_mat, objectManager, obj, false);
+				
+				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
 
 				// add as renderable targets
 				render_interface->addObjectAndChildren<RenderableMesh>(component_interface, obj);
 			}
+
+			// skinning info
+			component_interface->getManager<TransformManager>()->addGltfSkin(model, linearised_objects);
+
+			// animation
+			component_interface->getManager<AnimationManager>()->addGltfAnimation(model);
 		}
 		else {
 			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
@@ -134,15 +143,10 @@ namespace OmegaEngine
 		}
 	}
 
-	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject)
+	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject)
 	{
-		NodeInfo newNode;
 
-		newNode.parentIndex = parentNode;
-		newNode.name = node.name.c_str();
-		newNode.skinIndex = node.skin;
-
-		// add all local and world transforms to the transform manager 
+		// add all local and world transforms to the transform manager - also combines skinning info
 		auto &transform_man = component_interface->getManager<TransformManager>();
 		transform_man->addGltfTransform(node, obj, world_transform);
 
@@ -157,7 +161,7 @@ namespace OmegaEngine
 		// if this node has children, recursively extract their info
 		if (!node.children.empty()) {
 			for (uint32_t i = 0; node.children.size(); ++i) {
-				loadGltfNode(model, model.nodes[node.children[i]], world_transform, objManager, parentObject, true);
+				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, parentObject, true);
 			}
 		}
 
@@ -165,8 +169,10 @@ namespace OmegaEngine
 		if (node.mesh > -1) {
 			auto& mesh_manager = component_interface->getManager<MeshManager>();
 			mesh_manager->addGltfData(model, node, obj);
-			
 		}
+
+		// create the linearised list of objects - parents and children
+		linearised_objects.push_back(obj);
 	}
 
 }

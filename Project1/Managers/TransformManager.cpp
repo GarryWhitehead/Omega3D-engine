@@ -30,21 +30,26 @@ namespace OmegaEngine
 			OEMaths::quatf q = OEMaths::convert_quat((float*)node.rotation.data());
 			local_trs.rot = OEMaths::quat_to_mat4(q);
 		}
-		transform.set_trs(local_trs);
+		transform.local_trs = local_trs;
 
 		// world transform is obtained from the omega scene file
-		transform.set_world(world_transform);
+		transform.world = world_transform;
 
 		if (node.matrix.size() == 16) {
-			transform.set_local(OEMaths::convert_mat4((float*)node.rotation.data()));
+			transform.local = OEMaths::convert_mat4((float*)node.rotation.data());
 		}
+		
+		// also add index to skinning information in applicable
+		assert(!skinBuffer.empty());
+		transform.skin_index = node.skin;
+
 		transformBuffer.push_back(transform);
 
 		// add to the list of entites
 		obj.add_manager<TransformManager>(transformBuffer.size() - 1);
 	}
 
-	void TransformManager::addGltfSkin(tinygltf::Model& model)
+	void TransformManager::addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects)
 	{
 		for (tinygltf::Skin& skin : model.skins) {
 			SkinInfo skinInfo;
@@ -52,14 +57,16 @@ namespace OmegaEngine
 
 			// Is this the skeleton root node?
 			if (skin.skeleton > -1) {
-				skinInfo.skeletonIndex = skin.skeleton;
+				assert(skin.skeleton < linearised_objects.size());
+				skinInfo.skeletonIndex = linearised_objects[skin.skeleton];
 			}
 
 			// Does this skin have joint nodes?
 			for (auto& jointIndex : skin.joints) {
 
 				// we will check later if this node actually exsists
-				skinInfo.joints.push_back(jointIndex);
+				assert(jointIndex < linearised_objects.size() && jointIndex > -1);
+				skinInfo.joints.push_back(linearised_objects[jointIndex]);
 			}
 
 			// get the inverse bind matricies, if there are any
@@ -76,8 +83,9 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_static_recursive(uint32_t transform_index, Object& obj)
+	void TransformManager::update_transform_recursive(uint32_t transform_index, Object& obj)
 	{
+		TransformBufferInfo buffer_info;
 		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
 		uint64_t parent_index = obj.get_parent();
@@ -85,84 +93,64 @@ namespace OmegaEngine
 			mat = transformBuffer[parent_index].get_local * mat;
 		}
 
-		transformBuffer[transform_index].set_transform(mat);
+		transformBuffer[transform_index].transform = mat;
+		buffer_info.model_matrix = mat;
+
+		if (transformBuffer[transform_index].skin_index > -1) {
+			
+			SkinnedBufferInfo skinned_info;
+			// prepare fianl output matrices buffer
+			uint32_t joint_size = std::min(skinBuffer[skin_index].joints.size(), MAX_NUM_JOINTS);
+			skinBuffer[skin_index].joint_matrices.resize(joint_size);
+			
+			skinned_info.joint_count = joint_size;
+
+			// transform to local space
+			OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
+
+			for (uint32_t i = 0; i < joint_size; ++i) {
+				Object joint_obj = skinBuffer[skin_index].joints[i];
+
+				uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
+				OEMaths::mat4f joint_mat = transformBuffer[joint_index].get_local() * skinBuffer[skin_index].invBindMatrices[i];
+
+				// transform joint to local (joint) space
+				OEMaths::mat4f local_mat = inv_mat * joint_mat;
+				skinBuffer[skin_index].joint_matrices[i] = local_mat;
+				skinned_info.joint_matrices[i] = local_mat;
+			}
+		}
 
 		// now update all child nodes too - TODO: do this without recursion
 		auto children = obj.get_children();
 
 		for (auto& child : children) {
-			update_static_recursive(child.get_manager_index<TransformManager>(), child);
+			update_transform_recursive(child.get_manager_index<TransformManager>(), child);
 		}
 	}
 
-	void TransformManager::update_static(std::unique_ptr<ObjectManager>& obj_manager)
+	void TransformManager::update_transform(std::unique_ptr<ObjectManager>& obj_manager)
 	{
 		auto object_list = obj_manager->get_objects_list();
 
 		for (auto obj : object_list) {
 
-			update_static_recursive(obj.second.get_manager_index<TransformManager>(), obj.second);
+			update_transform_recursive(obj.second.get_manager_index<TransformManager>(), obj.second);
 		}
-	}
-
-	void TransformManager::update_skinned_recursive(std::unique_ptr<ObjectManager>& obj_manager, uint32_t anim_index, Object& obj)
-	{
-
-		uint32_t transform_index = obj.get_manager_index<TransformManager>();
-		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
-
-		// prepare fianl output matrices buffer
-		uint32_t joint_size = std::min(skinBuffer[anim_index].joints.size(), MAX_NUM_JOINTS);
-		skinBuffer[anim_index].joint_matrices.resize(joint_size);
-
-		// transform to local space
-		OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
-
-
-		for (uint32_t i = 0; i < joint_size; ++i) {
-			Object joint_obj = skinBuffer[anim_index].joints[i];
-
-			uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
-			OEMaths::mat4f joint_mat = transformBuffer[joint_index].get_local() * skinBuffer[anim_index].invBindMatrices[i];
-
-			// transform joint to local (joint) space
-			skinBuffer[anim_index].joint_matrices[i] = inv_mat * joint_mat;
-		}
-
-		// now update all child nodes too - TODO: do this without recursion
-		auto& children = obj.get_children();
-
-		for (auto& child : children) {
-			update_skinned_recursive(obj_manager, child.get_manager_index<AnimationManager>(), child);
-		}
-
-	}
-
-	void TransformManager::update_skinned(std::unique_ptr<ObjectManager>& obj_manager)
-	{
-		auto object_list = obj_manager->get_objects_list();
-
-		for (auto obj : object_list) {
-
-			update_skinned_recursive(obj_manager, obj.second.get_manager_index<AnimationManager>(), obj.second);
-		}
-
-
 	}
 
 	void TransformManager::update_frame(double time, double dt)
 	{
 		// check whether static data need updating
-		if (is_static_dirty) {
+		if (is_dirty) {
 
-			update_static();
-			is_static_dirty = false;
+			// generate new transform and skinned data for all objects
+			transform_buffer_info.clear();
+			skinned_buffer_info.clear();
+
+			update_transform();
+			is_dirty = false;
 		}
 
-		if (is_skinned_dirty) {
-
-			update_skinned();
-			is_skinned_dirty = false;
-		}
 	}
 }

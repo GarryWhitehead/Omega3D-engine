@@ -65,16 +65,11 @@ namespace OmegaEngine
 		AnimationManager();
 		~AnimationManager();
 
-		void addGltfAnimation(tinygltf::Model& model, Object& obj);
-		void addGltfSkin(tinygltf::Model& model);
-
-		void update(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager);
-		void update_recursive(std::unique_ptr<TransformManager>& transform_man, std::unique_ptr<ObjectManager>& obj_manager, uint32_t anim_index, Object& obj);
+		void addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects);
 
 	private:
 
 		std::vector<AnimationInfo> animationBuffer;
-		std::vector<SkinInfo> skinBuffer;
 	};
 
 }

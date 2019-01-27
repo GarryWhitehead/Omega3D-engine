@@ -17,7 +17,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void AnimationManager::addGltfAnimation(tinygltf::Model& model, Object& obj)
+	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects)
 	{
 
 		for (tinygltf::Animation& anim : model.animations) {
