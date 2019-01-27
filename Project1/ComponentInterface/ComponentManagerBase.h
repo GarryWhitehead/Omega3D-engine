@@ -13,7 +13,7 @@ namespace OmegaEngine
 		virtual ~ComponentManagerBase() {}
 
 		// abstract functions
-		virtual void update(double time, double dt) = 0;
+		virtual void update_frame(double time, double dt) = 0;
 
 	protected:
 

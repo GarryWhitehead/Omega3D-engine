@@ -21,18 +21,6 @@ namespace OmegaEngine
 
 	public:
 
-		// skins
-		struct SkinInfo
-		{
-			const char* name;
-			uint32_t skeletonIndex;
-
-			std::vector<Object> joints;
-			std::vector<OEMaths::mat4f> invBindMatrices;
-			std::vector<OEMaths::mat4f> joint_matrices;
-		};
-
-
 		// animation
 		struct Sampler
 		{

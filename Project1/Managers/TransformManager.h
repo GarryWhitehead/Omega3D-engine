@@ -29,6 +29,7 @@ namespace OmegaEngine
 
 		public:
 
+			// static 
 			struct LocalTRS
 			{
 				OEMaths::vec3f trans;
@@ -75,13 +76,33 @@ namespace OmegaEngine
 			OEMaths::mat4f transform;
 		};
 
+		// skins
+		struct SkinInfo
+		{
+			const char* name;
+			uint32_t skeletonIndex;
+
+			std::vector<Object> joints;
+			std::vector<OEMaths::mat4f> invBindMatrices;
+			std::vector<OEMaths::mat4f> joint_matrices;
+		};
+
 		TransformManager();
 		~TransformManager();
 
+		void update_frame(double time, double dt) override;
+
+		// gltf loading - The skinning data is going in the transform manager for now as is needed most here for calculating skinning transforms
+		void addGltfSkin(tinygltf::Model& model);
 		uint32_t addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
 
+		// static update
 		void update_static(std::unique_ptr<ObjectManager>& obj_manager);
 		void update_static_recursive(uint32_t index, Object& obj);
+
+		// skinned update
+		void update_skinned(std::unique_ptr<ObjectManager>& obj_manager);
+		void update_skinned_recursive(std::unique_ptr<ObjectManager>& obj_manager, uint32_t anim_index, Object& obj);
 
 		OEMaths::mat4f& get_transform(uint32_t transform_index)
 		{
@@ -91,7 +112,15 @@ namespace OmegaEngine
 
 	private:
 
+		// transform data for static meshes
 		std::vector<TransformData> transformBuffer;
+
+		// skinned transform data
+		std::vector<SkinInfo> skinBuffer;
+
+		// flag which tells us whether we need to update the static data
+		bool is_static_dirty = true;
+		bool is_skinned_dirty = true;
 	};
 
 }
