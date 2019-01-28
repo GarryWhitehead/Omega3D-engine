@@ -67,14 +67,21 @@ namespace OmegaEngine
 		TransformManager();
 		~TransformManager();
 
+		// update per frame 
 		void update_frame(double time, double dt) override;
 
 		// gltf loading - The skinning data is going in the transform manager for now as is needed most here for calculating skinning transforms
 		void addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects);
 		uint32_t addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
 
+		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
 		void update_transform_recursive(uint32_t index, Object& obj);
+
+		// object update functions
+		void update_obj_translation(Object& obj, OEMaths::vec4f trans);
+		void update_obj_scale(Object& obj, OEMaths::vec4f scale);
+		void update_obj_rotation(Object& obj, OEMaths::quatf rot);
 
 		OEMaths::mat4f& get_transform(uint32_t transform_index)
 		{

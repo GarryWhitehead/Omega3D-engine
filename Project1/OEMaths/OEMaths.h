@@ -349,6 +349,27 @@ namespace OEMaths
 	}
 
 	template <typename Typename>
+	inline vec4<Typename> mix_vec3(vec3<Typename>& v1, vec3<Typename>& v2, float u)
+	{
+		vec3<Typename> retVec;
+		retVec.x = v1.x * (1 - u) + v2.x * u;
+		retVec.y = v1.y * (1 - u) + v2.y * u;
+		retVec.z = v1.z * (1 - u) + v2.z * u;
+		return retVec;
+	}
+
+	template <typename Typename>
+	inline vec4<Typename> mix_vec4(vec4<Typename>& v1, vec4<Typename>& v2, float u)
+	{
+		vec4<Typename> retVec;
+		retVec.x = v1.x * (1 - u) + v2.x * u;
+		retVec.y = v1.y * (1 - u) + v2.y * u;
+		retVec.z = v1.z * (1 - u) + v2.z * u;
+		retVec.w = v1.w * (1 - u) + v2.w * u;
+		return retVec;
+	}
+
+	template <typename Typename>
 	inline mat4<Typename> translate(mat4<Typename>& mat, vec3<Typename>& trans)
 	{
 		mat4<Typename> retMat = mat;
@@ -371,5 +392,7 @@ namespace OEMaths
 		retMat(3, 3) = 1.0f;
 		return retMat;
 	}
+
+
 }
 

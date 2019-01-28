@@ -118,7 +118,7 @@ namespace OmegaEngine
 					memcpy(buffer, &timeBuffer.data[timeAccessor.byteOffset + timeBufferView.byteOffset], timeAccessor.count * sizeof(float));
 
 					for (uint32_t i = 0; i < timeAccessor.count; ++i) {
-						samplerInfo.inputs.push_back(buffer[i]);
+						samplerInfo.time_stamps.push_back(buffer[i]);
 					}
 					delete buffer;
 					break;
@@ -129,7 +129,7 @@ namespace OmegaEngine
 				}
 
 				// time and end points
-				for (auto input : samplerInfo.inputs) {
+				for (auto input : samplerInfo.time_stamps) {
 					if (input < animInfo.start) {
 						animInfo.start = input;
 					}
@@ -215,14 +215,15 @@ namespace OmegaEngine
 					quat1.w = sampler.outputs[time_index].w;
 
 					OEMaths::quatf quat2;
-					quat2.x = sampler.outputs[time_index].x;
-					quat2.y = sampler.outputs[time_index].y;
-					quat2.z = sampler.outputs[time_index].z;
-					quat2.w = sampler.outputs[time_index].w;
+					quat2.x = sampler.outputs[time_index + 1].x;
+					quat2.y = sampler.outputs[time_index + 1].y;
+					quat2.z = sampler.outputs[time_index + 1].z;
+					quat2.w = sampler.outputs[time_index + 1].w;
 
-					OEMaths::quatf rot = OEMaths::slerp_quat(quat1, quat2, phase);
+					// TODO: add cubic and step interpolation
+					OEMaths::quatf rot = OEMaths::linear_mix_quat(quat1, quat2, phase);
 					OEMaths::normalise_quat(rot);
-					transform_man->update_obj_rotation(obj, scale);
+					transform_man->update_obj_rotation(obj, rot);
 					break;
 				}
 				case Channel::PathType::CubicScale:

@@ -153,4 +153,27 @@ namespace OmegaEngine
 		}
 
 	}
+	
+	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)
+	{
+		uint32_t index = obj.get_manager_index<TransformManager>();
+		transformBuffer[index].local_trs.trans = OEMaths::vec3f(trans.x, trans.y, trans.z);
+
+		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
+		is_dirty = true;		
+	}
+
+	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
+	{
+		uint32_t index = obj.get_manager_index<TransformManager>();
+		transformBuffer[index].local_trs.trans = OEMaths::vec3f(scale.x, scale.y, scale.z);
+		is_dirty = true;
+	}
+
+	void TransformManager::update_obj_rotation(Object& obj, OEMaths::quatf rot)
+	{
+		uint32_t index = obj.get_manager_index<TransformManager>();
+		transformBuffer[index].local_trs.rot = OEMaths::quat_to_mat4(rot);
+		is_dirty = true;
+	}
 }
