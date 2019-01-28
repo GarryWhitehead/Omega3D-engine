@@ -16,7 +16,7 @@ namespace OmegaEngine
 	class TransformManager;
 	class ObjectManager;
 
-	class AnimationManager : public ComponentManagerBase
+	class AnimationManager
 	{
 
 	public:
@@ -28,13 +28,15 @@ namespace OmegaEngine
 			{
 				Linear,
 				Step,
-				CubicSpline,
-				Count
+				CubicSpline
 			} interpolationType;
 
 
-			std::vector<float> inputs;
+			std::vector<float> time_stamps;
 			std::vector<OEMaths::vec4f> outputs;
+
+			uint32_t index_from_time(float time);
+			float get_phase(float time);
 		};
 
 		struct Channel
@@ -44,10 +46,11 @@ namespace OmegaEngine
 				Translation,
 				Rotation,
 				Scale,
-				Count
+				CublicTranslation,
+				CubicScale
 			} pathType;
 
-			uint32_t nodeIndex;
+			Object object;
 			uint32_t samplerIndex;
 
 		};
@@ -66,6 +69,8 @@ namespace OmegaEngine
 		~AnimationManager();
 
 		void addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects);
+
+		void update_anim(double time, std::unique_ptr<TransformManager>& transform_man);
 
 	private:
 

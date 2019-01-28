@@ -16,14 +16,6 @@ namespace OmegaEngine
 
 	public:
 
-		struct HashObject
-		{
-			size_t operator()(const Object& obj) const
-			{
-				return(std::hash<uint32_t>()(obj.get_id()));
-			}
-		};
-
 		struct TransformData
 		{
 			// static 

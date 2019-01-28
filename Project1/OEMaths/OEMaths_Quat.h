@@ -29,8 +29,6 @@ namespace OEMaths
 			w(in_w)
 		{}
 
-	private:
-
 		Typename x;
 		Typename y;
 		Typename z;
