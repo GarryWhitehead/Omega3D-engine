@@ -1,7 +1,6 @@
 #include "CameraManager.h"
 #include "Engine/Omega_Global.h"
 
-
 namespace OmegaEngine
 {
 
@@ -10,6 +9,10 @@ namespace OmegaEngine
 		// set up events
 		Global::managers.eventManager->registerListener<Camera, MouseButtonEvent>(this, mouse_button_event);
 		Global::managers.eventManager->registerListener<Camera, KeyboardPressEvent>(this, keyboard_press_event);
+
+		// allocate gpu memory now for the ubo buffer as the size will remain static
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(buffer_info));
 	}
 
 
@@ -44,11 +47,11 @@ namespace OmegaEngine
 		if (event.isMoving) {
 
 			//calculate the pitch and yaw vectors
-			front_vec.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-			front_vec.y = sin(glm::radians(pitch));
-			front_vec.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+			front_vec.x = cos(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
+			front_vec.y = sin(OEMaths::radians(pitch));
+			front_vec.z = sin(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
 			front_vec = OEMaths::normalise_vec3(front_vec);
-
+			
 			float velocity = camera.get_Velocity();
 
 			// check for forwards and strafe movement
@@ -65,14 +68,16 @@ namespace OmegaEngine
 				current_pos += OEMaths::normalise_vec3(OEMaths::cross(front_vec, camera.get_up_vec())) * velocity;
 			}
 
-			updateViewMatrix();
+			isDirty = true;
 		}
 
 	}
 
-	void CameraManager::update(double time, double dt)
+	void CameraManager::update_frame(double time, double dt)
 	{
 		if (isDirty) {
+
+			updateViewMatrix();
 
 			// update everything in the buffer
 			buffer_info.camera_pos = current_pos;
@@ -80,6 +85,12 @@ namespace OmegaEngine
 			buffer_info.view = currentViewMatrix;
 			buffer_info.zNear = cameras[camera_index].getZNear();
 			buffer_info.zFar = cameras[camera_index].getZFar();
+
+			// now update on the gpu side
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			mem_alloc.mapDataToSegment(ubo_buffer, &buffer_info, sizeof(buffer_info));
+
+			isDirty = false;
 		}
 	}
 

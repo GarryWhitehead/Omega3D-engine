@@ -2,7 +2,6 @@
 #include "Utility/logger.h"
 #include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
-#include "DataTypes/Camera.h"
 #include "DataTypes/Object.h"
 #include "ComponentInterface/ComponentInterface.h"
 #include "ComponentInterface/ObjectManager.h"
@@ -13,6 +12,7 @@
 #include "Managers/TransformManager.h"
 #include "Managers/MaterialManager.h"
 #include "Managers/TextureManager.h"
+#include "Managers/CameraManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Threading/ThreadPool.h"
@@ -25,6 +25,7 @@ namespace OmegaEngine
 	{
 		component_interface = std::make_unique<ComponentInterface>(device);
 		render_interface = std::make_unique<RenderInterface>();
+		animation_manager = std::make_unique<AnimationManager>();
 
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
@@ -34,15 +35,16 @@ namespace OmegaEngine
 			component_interface->registerManager<MaterialManager>();
 			component_interface->registerManager<TextureManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_ANIMATION || managers & Managers::OE_MANAGERS_ALL) {
-			component_interface->registerManager<AnimationManager>();
-		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
 			component_interface->registerManager<LightManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL) {
 			component_interface->registerManager<TransformManager>();
 		}
+		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) {
+			component_interface->registerManager<CameraManager>();
+		}
+		
 	}
 
 	World::~World()
@@ -75,6 +77,8 @@ namespace OmegaEngine
 
 	void World::update(double time, double dt)
 	{
+		// update frame 
+		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
 		component_interface->update_managers(time, dt);
 	}
 
@@ -124,7 +128,6 @@ namespace OmegaEngine
 				Object obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				
 				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
 
 				// add as renderable targets
@@ -135,7 +138,7 @@ namespace OmegaEngine
 			component_interface->getManager<TransformManager>()->addGltfSkin(model, linearised_objects);
 
 			// animation
-			component_interface->getManager<AnimationManager>()->addGltfAnimation(model);
+			animation_manager->addGltfAnimation(model, linearised_objects);
 		}
 		else {
 			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);

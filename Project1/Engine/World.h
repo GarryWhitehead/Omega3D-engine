@@ -12,8 +12,8 @@ namespace OmegaEngine
 	// forward declerartions
 	class RenderInterface;
 	class ComponentInterface;
+	class AnimationManager;
 	class ObjectManager;
-	class Camera;
 	struct Object;
 
 	enum class Managers
@@ -21,7 +21,7 @@ namespace OmegaEngine
 		OE_MANAGERS_MESH	  	 = 1 << 0,
 		OE_MANAGERS_LIGHT		 = 1 << 1,
 		OE_MANAGERS_TRANSFORM	 = 1 << 2,
-		OE_MANAGERS_ANIMATION	 = 1 << 3,
+		OE_MANAGERS_CAMERA		 = 1 << 3,
 		OE_MANAGERS_PHYSICS		 = 1 << 4,
 		OE_MANAGERS_COLLISION	 = 1 << 5,
 		OE_MANAGERS_TRANSFORM	 = 1 << 6,
@@ -81,13 +81,10 @@ namespace OmegaEngine
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> component_interface;
+		std::unique_ptr<AnimationManager> animation_manager;
 
 		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
 		std::unique_ptr<RenderInterface> render_interface;
-
-		// cameras registered with this world
-		std::vector<std::unique_ptr<Camera> > cameras;
-		uint8_t currentCameraIndex;
 	};
 
 }

@@ -2,6 +2,8 @@
 #include "ComponentInterface/ComponentManagerBase.h"
 #include "Managers/EventManager.h"
 #include "OEMaths/OEMaths.h"
+#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/MemoryAllocator.h"
 
 namespace OmegaEngine 
 {
@@ -105,7 +107,7 @@ namespace OmegaEngine
 		CameraManager();
 		~CameraManager();
 
-		void update(double time, double dt) override;
+		void update_frame(double time, double dt) override;
 
 		void updateViewMatrix();
 
@@ -135,6 +137,8 @@ namespace OmegaEngine
 		// the current camera info for sending to vulkan
 		CameraBufferInfo buffer_info;
 
+		// info for the gpu side
+		VulkanAPI::MemorySegment ubo_buffer;
 
 		// signfys whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;

@@ -97,6 +97,12 @@
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="OEMaths\OEMaths_vec2.h" />
+    <ClInclude Include="OEMaths\OEMaths_mat2.h" />
+    <ClInclude Include="OEMaths\OEMaths_mat3.h" />
+    <ClInclude Include="OEMaths\OEMaths_mat4.h" />
+    <ClInclude Include="OEMaths\OEMaths_vec4.h" />
+    <ClInclude Include="OEMaths\OEMaths_vec3.h" />
     <ClInclude Include="Managers\CameraManager.h" />
     <ClInclude Include="PostProcess\PostProcessInterface.h" />
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
