@@ -55,6 +55,11 @@ namespace OmegaEngine
 			return velocity;
 		}
 
+		OEMaths::vec3f get_position() const
+		{
+			return start_position;
+		}
+
 	private:
 
 		float fov;

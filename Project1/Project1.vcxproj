@@ -60,33 +60,8 @@
     <ClCompile Include="Engine\Omega_Global.cpp" />
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
-    <ClCompile Include="VulkanCore\VkSwapChain.cpp" />
-    <ClCompile Include="VulkanCore\VkDescriptors.cpp" />
-    <ClCompile Include="VulkanCore\VkMemoryManager.cpp" />
-    <ClCompile Include="VulkanCore\vkFFT.cpp" />
-    <ClCompile Include="VulkanCore\TerrainUtility.cpp" />
-    <ClCompile Include="VulkanCore\VkPostProcess.cpp" />
-    <ClCompile Include="VulkanCore\VulkanDevice.cpp" />
-    <ClCompile Include="VulkanCore\VulkanModel.cpp" />
-    <ClCompile Include="VulkanCore\VulkanDeferred.cpp" />
-    <ClCompile Include="VulkanCore\VulkanModule.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="VulkanCore\VulkanWater.cpp" />
-    <ClCompile Include="VulkanCore\Vulkan_Global.cpp" />
-    <ClCompile Include="VulkanCore\vulkan_tools.cpp" />
-    <ClCompile Include="VulkanCore\vulkan_validation.cpp" />
-    <ClCompile Include="VulkanCore\Vulkan_terrain.cpp" />
-    <ClCompile Include="VulkanCore\VkRenderManager.cpp" />
-    <ClCompile Include="VulkanCore\vulkan_utility.cpp" />
-    <ClCompile Include="VulkanCore\Vulkan_shadow.cpp" />
-    <ClCompile Include="VulkanCore\VulkanIBL.cpp" />
-    <ClCompile Include="VulkanCore\VulkanPBR.cpp" />
-    <ClCompile Include="VulkanCore\VulkanSkybox.cpp" />
-    <ClCompile Include="VulkanCore\VulkanTexture.cpp" />
-    <ClCompile Include="VulkanCore\VulkanRenderPass.cpp" />
-    <ClCompile Include="VulkanCore\VulkanGUI.cpp" />
-    <ClCompile Include="VulkanCore\VulkanInstance.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
@@ -97,12 +72,8 @@
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OEMaths\OEMaths_vec2.h" />
-    <ClInclude Include="OEMaths\OEMaths_mat2.h" />
-    <ClInclude Include="OEMaths\OEMaths_mat3.h" />
-    <ClInclude Include="OEMaths\OEMaths_mat4.h" />
-    <ClInclude Include="OEMaths\OEMaths_vec4.h" />
-    <ClInclude Include="OEMaths\OEMaths_vec3.h" />
+    <ClInclude Include="OEMaths\OEMaths.h" />
+    <ClInclude Include="OEMaths\OEMaths_transform.h" />
     <ClInclude Include="Managers\CameraManager.h" />
     <ClInclude Include="PostProcess\PostProcessInterface.h" />
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
@@ -144,7 +115,7 @@
     <ClInclude Include="utility\FileUtil.h" />
     <ClInclude Include="utility\GeneralUtil.h" />
     <ClInclude Include="utility\Logger.h" />
-    <ClInclude Include="OEMaths\OEMaths.h" />
+    <ClInclude Include="OEMaths\OEMaths_convert.h" />
     <ClInclude Include="VulkanCore\Vulkan_Global.h" />
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
@@ -156,27 +127,8 @@
     <ClInclude Include="VulkanCore\vkFFT.h" />
     <ClInclude Include="VulkanCore\TerrainUtility.h" />
     <ClInclude Include="utility\RandomNumber.h" />
-    <ClInclude Include="VulkanCore\VkMemoryManager.h" />
-    <ClInclude Include="VulkanCore\VulkanGUI.h" />
-    <ClInclude Include="VulkanCore\VulkanModel.h" />
-    <ClInclude Include="VulkanCore\VulkanModule.h" />
     <ClInclude Include="Managers\InputManager.h" />
-    <ClInclude Include="VulkanCore\VulkanPBR.h" />
-    <ClInclude Include="VulkanCore\VulkanRenderPass.h" />
-    <ClInclude Include="VulkanCore\VulkanSkybox.h" />
-    <ClInclude Include="VulkanCore\VulkanTexture.h" />
-    <ClInclude Include="VulkanCore\VkRenderManager.h" />
-    <ClInclude Include="VulkanCore\vulkan_terrain.h" />
-    <ClInclude Include="VulkanCore\vulkan_tools.h" />
-    <ClInclude Include="VulkanCore\vulkan_validation.h" />
-    <ClInclude Include="VulkanCore\vulkan_utility.h" />
-    <ClInclude Include="VulkanCore\Vulkan_shadow.h" />
     <ClInclude Include="Engine\World.h" />
-    <ClInclude Include="VulkanCore\VulkanDeferred.h" />
-    <ClInclude Include="VulkanCore\VulkanIBL.h" />
-    <ClInclude Include="VulkanCore\VulkanWater.h" />
-    <ClInclude Include="VulkanCore\VulkanDevice.h" />
-    <ClInclude Include="VulkanCore\VulkanInstance.h" />
     <ClInclude Include="Vulkan\Descriptors.h" />
     <ClInclude Include="Vulkan\Image.h" />
     <ClInclude Include="Vulkan\Sampler.h" />
@@ -196,7 +148,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{9BA80102-3AA1-417F-8026-49BFB44F190C}</ProjectGuid>
     <RootNamespace>Project1</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

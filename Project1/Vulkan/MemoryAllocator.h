@@ -60,8 +60,6 @@ namespace VulkanAPI
 			return block_id;
 		}
 
-	private:
-
 		// memory mapping functions
 		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset);		// for data types of *void
 
@@ -80,6 +78,8 @@ namespace VulkanAPI
 				memcpy(data, data_src.data(), data_size);
 			}
 		}
+
+	private:
 
 		int32_t block_id = -1;			// index into memory block container
 		uint32_t offset = 0;
@@ -106,8 +106,8 @@ namespace VulkanAPI
 		void init(vk::Device dev, vk::PhysicalDevice physical);
 
 		// helper functions
-		static void createBuffer(vk::Device device, const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
-		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
+		static void createBuffer(const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
+		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
 		vk::Buffer& get_memory_buffer(const uint32_t id);
 
 		// Segment allocation functions and mapping

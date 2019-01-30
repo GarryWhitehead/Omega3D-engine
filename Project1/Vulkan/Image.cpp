@@ -98,7 +98,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createImage(&image_info, nullptr, &image));
 	}
 
-	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, int levelCount, vk::CommandBuffer cmdBuff = VK_NULL_HANDLE, vk::Queue graphQueue = VK_NULL_HANDLE, vk::CommandPool cmdPool = VK_NULL_HANDLE)
+	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool)
 	{
 		vk::CommandBuffer comm_buff;
 		if (cmdBuff == VK_NULL_HANDLE) {

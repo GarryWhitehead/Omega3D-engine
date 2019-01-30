@@ -1,5 +1,6 @@
 #include "MaterialManager.h"
 #include "Managers/TextureManager.h"
+#include "OEMaths/OEMaths_transform.h"
 
 namespace OmegaEngine
 {
@@ -13,7 +14,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat)
+	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat, std::unique_ptr<TextureManager>& textureManager)
 	{
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index - we can then use this and the space id to get the required textures when needed

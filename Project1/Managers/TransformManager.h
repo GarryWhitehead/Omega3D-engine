@@ -1,9 +1,12 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
+#include "OEMaths/OEMaths_transform.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "ComponentInterface/ComponentManagerBase.h"
 #include "Utility/logger.h"
-#include "tiny_gltf.h"
+#include "Omega_Common.h"
+
+#include <vector>
 
 namespace OmegaEngine
 {

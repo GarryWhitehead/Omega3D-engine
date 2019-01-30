@@ -1,11 +1,11 @@
 #pragma once
 
-#include <string>
-#include <vector>
-
 #include "Vulkan/Device.h"
 #include "OEMaths/OEMaths.h"
-#include "tiny_gltf.h"
+
+#include <string>
+#include <vector>
+#include <memory>
 
 namespace OmegaEngine
 {

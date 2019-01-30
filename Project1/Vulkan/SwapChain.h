@@ -1,6 +1,6 @@
 #pragma once
-#include "volk.h"
-#include "vulkan/vulkan.hpp"
+
+#include "Vulkan/Common.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Image.h"
 #include <vector>

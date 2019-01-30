@@ -35,7 +35,7 @@ namespace VulkanAPI
 		}
 	}
 
-	static vk::PipelineBindPoint create_bind_point(PipelineType type)
+	vk::PipelineBindPoint create_bind_point(PipelineType type)
 	{
 		switch (type) {
 		case PipelineType::Graphics:
@@ -45,6 +45,11 @@ namespace VulkanAPI
 			return vk::PipelineBindPoint::eCompute;
 			break;
 		}
+	}
+
+	CommandBuffer::CommandBuffer()
+	{
+
 	}
 
 	CommandBuffer::CommandBuffer(vk::Device device)

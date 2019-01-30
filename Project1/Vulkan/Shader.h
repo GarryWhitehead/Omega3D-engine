@@ -7,6 +7,7 @@ namespace VulkanAPI
 	class DescriptorLayout;
 	class PipelineLayout;
 	class Pipeline;
+	enum class StageType;
 	
 	static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 

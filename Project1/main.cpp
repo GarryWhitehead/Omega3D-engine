@@ -1,13 +1,5 @@
 #include "Engine/engine.h"
 
-#include "GLFW/glfw3.h"
-#include "tiny_gltf.h"
-
-#include <memory>
-#include <algorithm>
-#include <chrono>
-#include <iostream>
-#include <vector>
 
 // super simple example which loads a scene file and plays it
 

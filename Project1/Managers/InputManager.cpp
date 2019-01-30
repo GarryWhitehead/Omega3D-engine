@@ -1,6 +1,4 @@
 #include "InputManager.h"
-
-#include "Engine/Camera.h"
 #include "Engine/Omega_Global.h"
 #include "EventManager.h"
 #include "GLFW/glfw3.h"

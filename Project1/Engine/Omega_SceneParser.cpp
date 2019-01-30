@@ -1,6 +1,4 @@
 #include "Omega_SceneParser.h"
-#include "DataTypes/Camera.h"
-#include "DataTypes/Space.h"
 
 #include "Engine/Omega_Global.h"
 #include "Utility/FileUtil.h"

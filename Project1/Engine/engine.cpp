@@ -7,10 +7,10 @@
 #include "Vulkan/Device.h"
 #include "Vulkan/Common.h"
 
-#include "glfw/glfw3.h"
-
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
+
+#include "glfw/glfw3.h"
 
 namespace OmegaEngine
 {

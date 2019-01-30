@@ -4,9 +4,9 @@
 #include "Vulkan/Buffer.h"
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/CommandBuffer.h"
-#include "OEMaths/OEMaths.h"
 
 #include <vector>
+#include <functional>
 
 namespace VulkanAPI
 {

@@ -5,6 +5,7 @@ namespace VulkanAPI
 {
 	// forward decleartions
 	enum class TextureType;
+	class Image;
 
 	class ImageView
 	{
@@ -37,7 +38,7 @@ namespace VulkanAPI
 		~Image();
 
 		void create(vk::Format format, uint32_t width, uint32_t height, TextureType type);
-		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, int levelCount, vk::CommandBuffer cmdBuff = VK_NULL_HANDLE, vk::Queue graphQueue = VK_NULL_HANDLE, vk::CommandPool cmdPool = VK_NULL_HANDLE);
+		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
 
 		vk::Image& get()

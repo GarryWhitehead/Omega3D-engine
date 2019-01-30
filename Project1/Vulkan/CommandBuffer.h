@@ -27,6 +27,7 @@ namespace VulkanAPI
 
 	public:
 
+		CommandBuffer();
 		CommandBuffer(vk::Device device);
 		~CommandBuffer();
 

@@ -1,9 +1,8 @@
 #include "TextureManager.h"
-
 #include "DataTypes/TextureType.h"
-#include "stb_image.h"
 #include "Utility/logger.h"
 #include "Vulkan/Sampler.h"
+#include "Omega_Common.h"
 
 namespace OmegaEngine
 {

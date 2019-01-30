@@ -2,6 +2,8 @@
 #include "DataTypes/Object.h"
 #include "ComponentInterface/ObjectManager.h"
 
+#include "Omega_Common.h"
+
 namespace OmegaEngine
 {
 
@@ -98,6 +100,8 @@ namespace OmegaEngine
 
 		if (transformBuffer[transform_index].skin_index > -1) {
 			
+			uint32_t skin_index = transformBuffer[transform_index].skin_index;
+
 			SkinnedBufferInfo skinned_info;
 			// prepare fianl output matrices buffer
 			uint32_t joint_size = std::min(skinBuffer[skin_index].joints.size(), MAX_NUM_JOINTS);

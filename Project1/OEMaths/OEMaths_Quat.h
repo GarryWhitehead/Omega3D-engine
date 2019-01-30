@@ -3,36 +3,36 @@
 namespace OEMaths
 {
 
-	template <typename Typename>
+	template <typename T>
 	class quat
 	{
 	public:
 
 		quat() :
-			x(static_cast<Typename>(0)),
-			y(static_cast<Typename>(0)),
-			z(static_cast<Typename>(0)),
-			w(static_cast<Typename>(0))
+			x(static_cast<T>(0)),
+			y(static_cast<T>(0)),
+			z(static_cast<T>(0)),
+			w(static_cast<T>(0))
 		{}
 
-		quat(Typename n) :
+		quat(T n) :
 			x(n),
 			y(n),
 			z(n),
 			w(n)
 		{}
 
-		quat(Typename in_x, Typename in_y, Typename in_z, Typename in_w) :
+		quat(T in_x, T in_y, T in_z, T in_w) :
 			x(in_x),
 			y(in_y),
 			z(in_z),
 			w(in_w)
 		{}
 
-		Typename x;
-		Typename y;
-		Typename z;
-		Typename w;
+		T x;
+		T y;
+		T z;
+		T w;
 	};
 
 	using quatf = quat<float>;
@@ -40,47 +40,47 @@ namespace OEMaths
 
 
 	// conversion functions
-	template <typename Typename>
-	quat<Typename> convert_quat(Typename* data)
+	template <typename T>
+	quat<T> convert_quat(T* data)
 	{
 		assert(data != nullptr);
 
-		vec4<Typename> qt;
+		vec4<T> qt;
 		qt.x = *data;
-		data += sizeof(Typename);
+		data += sizeof(T);
 		qt.y = *data;
-		data += sizeof(Typename);
+		data += sizeof(T);
 		qt.z = *data;
-		data += sizeof(Typename);
+		data += sizeof(T);
 		qt.w = *data;
 		return qt;
 	}
 
 	// conversion
-	template <typename Typename>
-	inline mat4<Typename> quat_to_mat4(quat<Typename> q)
+	template <typename T>
+	inline mat4<T> quat_to_mat4(quat<T> q)
 	{
-		mat4<Typename> mat;
+		mat4<T> mat;
 
-		Typename twoX = static_cast<Typename>(2.0) * q.x;
-		Typename twoY = static_cast<Typename>(2.0) * q.y;
-		Typename twoZ = static_cast<Typename>(2.0) * q.z;
+		T twoX = static_cast<T>(2.0) * q.x;
+		T twoY = static_cast<T>(2.0) * q.y;
+		T twoZ = static_cast<T>(2.0) * q.z;
 
-		Typename twoXX = twoX * q.x;
-		Typename twoXY = twoX * q.y;
-		Typename twoXZ = twoX * q.z;
-		Typename twoXW = twoX * q.w;
+		T twoXX = twoX * q.x;
+		T twoXY = twoX * q.y;
+		T twoXZ = twoX * q.z;
+		T twoXW = twoX * q.w;
 
-		Typename twoYY = twoY * q.y;
-		Typename twoYZ = twoY * q.z;
-		Typename twoYW = twoY * q.w;
+		T twoYY = twoY * q.y;
+		T twoYZ = twoY * q.z;
+		T twoYW = twoY * q.w;
 
-		Typename twoZZ = twoZ * q.z;
-		Typename twoZW = twoZ * q.w;
+		T twoZZ = twoZ * q.z;
+		T twoZW = twoZ * q.w;
 
-		vec4f v0{ static_cast<Typename>(1.0) - (twoYY + twoZZ), twoXY - twoZW, twoXZ + twoYW, 0.0f };
-		vec4f v1{ twoXY + twoZW, static_cast<Typename>(1.0) - (twoXX + twoZZ), twoYZ - twoXW, 0.0f };
-		vec4f v2{ twoXZ - twoYW, twoYZ + twoXW, static_cast<Typename>(1.0) - (twoXX + twoYY), 0.0f };
+		vec4f v0{ static_cast<T>(1.0) - (twoYY + twoZZ), twoXY - twoZW, twoXZ + twoYW, 0.0f };
+		vec4f v1{ twoXY + twoZW, static_cast<T>(1.0) - (twoXX + twoZZ), twoYZ - twoXW, 0.0f };
+		vec4f v2{ twoXZ - twoYW, twoYZ + twoXW, static_cast<T>(1.0) - (twoXX + twoYY), 0.0f };
 		vec4f v3{ 0.0f, 0.0f, 0.0f, 1.0f };
 
 		mat(v0, 0);
@@ -90,18 +90,18 @@ namespace OEMaths
 		return mat;
 	}
 
-	template <typename Typename>
-	inline quat<Typename> length_quat(quat<Typename>& q)
+	template <typename T>
+	inline quat<T> length_quat(quat<T>& q)
 	{
 		return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 	}
 
-	template <typename Typename>
-	inline quat<Typename> normalise_quat(quat<Typename>& q)
+	template <typename T>
+	inline quat<T> normalise_quat(quat<T>& q)
 	{
-		vec4<Typename> retVec;
-		Typename length = length_quat(q);
-		Typename invLength = static_cast<Typename>(1) / length;
+		vec4<T> retVec;
+		T length = length_quat(q);
+		T invLength = static_cast<T>(1) / length;
 
 		retVec.x = q.x * invLength;
 		retVec.y = q.y * invLength;
@@ -110,10 +110,10 @@ namespace OEMaths
 		return retVec;
 	}
 
-	template <typename Typename>
-	inline quat<Typename> linear_mix_quat(quat<Typename>& q1, quat<Typename>& q2, float u)
+	template <typename T>
+	inline quat<T> linear_mix_quat(quat<T>& q1, quat<T>& q2, float u)
 	{
-		quat<Typename> retVec;
+		quat<T> retVec;
 		retVec.x = q1.x * (1 - u) + q2.x * u;
 		retVec.y = q1.y * (1 - u) + q2.y * u;
 		retVec.z = q1.z * (1 - u) + q2.z * u;
@@ -121,11 +121,11 @@ namespace OEMaths
 		return retVec;
 	}
 
-	template <typename Typename>
-	inline quat<Typename> cubic_mix_quat(quat<Typename>& q1, quat<Typename>& q2, quat<Typename>& q3, quat<Typename>& q4, float u)
+	template <typename T>
+	inline quat<T> cubic_mix_quat(quat<T>& q1, quat<T>& q2, quat<T>& q3, quat<T>& q4, float u)
 	{
-		quat<Typename> retVec;
-		Typename a0, a1, a2, a3, u_sqr;
+		quat<T> retVec;
+		T a0, a1, a2, a3, u_sqr;
 		u_sqr = u * u;
 
 		// x

@@ -2,7 +2,7 @@
 
 #include <vector>
 #include "Vulkan/Common.h"
-#include "tiny_gltf.h"
+#include "Omega_Common.h"
 
 namespace VulkanAPI
 {

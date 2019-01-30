@@ -1,6 +1,5 @@
 #pragma once
 
-#include "volk.h"
 #include "Vulkan/Common.h"
 
 namespace OmegaEngine

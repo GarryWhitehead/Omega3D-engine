@@ -1,11 +1,11 @@
 #pragma once
 
-#include "volk.h"
-#include <string>
-#include <memory>
-
+#include "Vulkan/Common.h"
 #include "Vulkan/Swapchain.h"
 #include "Vulkan/Queue.h"
+
+#include <string>
+#include <memory>
 
 namespace VulkanAPI
 {

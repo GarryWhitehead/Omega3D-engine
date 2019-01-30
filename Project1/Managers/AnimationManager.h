@@ -5,7 +5,9 @@
 #include "DataTypes/object.h"
 
 #include "ComponentInterface/ComponentManagerBase.h"
-#include "tiny_gltf.h"
+#include "Omega_Common.h"
+
+#include <memory>
 
 #define MAX_NUM_JOINTS 128
 

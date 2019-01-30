@@ -1,11 +1,11 @@
 #pragma once
 
-#include "tiny_gltf.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "ComponentInterface/ComponentManagerBase.h"
 #include "DataTypes/Object.h"
 #include "Utility/logger.h"
+#include "Omega_Common.h"
 
 #include <memory>
 #include <tuple>

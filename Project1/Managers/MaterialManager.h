@@ -4,7 +4,7 @@
 #include <unordered_map>
 
 #include "OEMaths/OEMaths.h"
-#include "tiny_gltf.h"
+#include "Omega_Common.h"
 
 namespace OmegaEngine
 {
@@ -64,7 +64,7 @@ namespace OmegaEngine
 		MaterialManager();
 		~MaterialManager();
 
-		void addGltfMaterial(tinygltf::Material& gltf_mat);
+		void addGltfMaterial(tinygltf::Material& gltf_mat, std::unique_ptr<TextureManager>& textureManager);
 		MaterialInfo& get(uint32_t index);
 
 	private:

@@ -1,11 +1,12 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/Shader.h"
+#include "Rendering/RenderableTypes/RenderableBase.h"
 
 namespace VulkanAPI
 {
 	// forward declearions
 	class Shader;
-	enum class StageType;
 
 	enum class PipelineType
 	{
@@ -87,7 +88,7 @@ namespace VulkanAPI
 
 	private:
 
-		std::array<uint32_t, (int)StageType::Count> push_constant_sizes = {};
+		std::array<uint32_t, (const int)StageType::Count> push_constant_sizes = {};
 
 		vk::PipelineLayout layout;
 	};

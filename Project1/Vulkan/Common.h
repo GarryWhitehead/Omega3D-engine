@@ -1,12 +1,11 @@
 #pragma once
 
 #include <string>
-#include <iostream>
 
-#define VULKAN_NO_PROTOTYPES 1
-
+#define VULKAN_HPP_TYPESAFE_CONVERSION 
+//#include "vulkan/vulkan.h"
 #include "vulkan/vulkan.hpp"
-#include "volk.h"
+//#include "volk.h"
 
 // sets whether we should use validation layers for debugging
 #define VULKAN_VALIDATION_DEBUG 1
@@ -49,12 +48,12 @@ static std::string errorString(vk::Result errorCode)
 	}
 }
 
-#define VK_CHECK_RESULT(f)																				\
-{																										\
-	vk::Result res = (f);																					\
-	if (res != vk::Result::eSuccess)																				\
-	{																									\
-		std::cout << "Fatal : VkResult is \"" << errorString(res) << "\" in " << __FILE__ << " at line " << __LINE__ << std::endl; \
-		assert(res == vk::Result::eSuccess);																		\
-	}																									\
+#define VK_CHECK_RESULT(f) \
+{ \
+	vk::Result res = (f); \
+	if (res != vk::Result::eSuccess) \
+	{	\
+		printf("Fatal : VkResult is %s in %s at line %i.\n", errorString(res).c_str(), __FILE__ , __LINE__ ); \
+		assert(res == vk::Result::eSuccess); \
+	} \
 }

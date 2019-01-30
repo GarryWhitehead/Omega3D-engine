@@ -1,5 +1,5 @@
 #include "LightManager.h"
-
+#include "Omega_Common.h"
 
 namespace OmegaEngine
 {

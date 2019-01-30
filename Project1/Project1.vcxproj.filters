@@ -374,9 +374,6 @@
     <ClInclude Include="Managers\MaterialManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OEMaths\OEMaths_Quat.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -500,22 +497,13 @@
     <ClInclude Include="Managers\CameraManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_vec4.h">
+    <ClInclude Include="OEMaths\OEMaths_transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_mat4.h">
+    <ClInclude Include="OEMaths\OEMaths_convert.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_vec3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_mat2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_mat3.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_vec2.h">
+    <ClInclude Include="OEMaths\OEMaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

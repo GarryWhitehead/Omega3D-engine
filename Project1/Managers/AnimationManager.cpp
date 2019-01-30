@@ -54,7 +54,7 @@ namespace OmegaEngine
 				++end_time;
 			}
 			uint32_t index = end_time - 1;
-			phase = (time - time_stamps[index]) / time_stamps[end_time] - time_stamps[index]);
+			phase = (time - time_stamps[index]) / (time_stamps[end_time] - time_stamps[index]);
 		}
 		return phase;
 	}

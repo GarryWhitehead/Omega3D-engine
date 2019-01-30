@@ -69,10 +69,6 @@ namespace OmegaEngine
 		assert(!sampler_layout.empty());
 		assert(!buffer_layout.empty());
 
-		// setup buffers required by the shaders
-		vert_buffer = VulkanAPI::Global::vk_managers.buff_manager->create(sizeof(VertBuffer));
-		frag_buffer = VulkanAPI::Global::vk_managers.buff_manager->create(sizeof(FragBuffer));
-
 		// descriptor sets for all the deferred buffers samplers
 		// using a linear sampler for all deferred buffers
 		linear_sampler = std::make_unique<VulkanAPI::Sampler>(VulkanAPI::SamplerType::LinearClamp);

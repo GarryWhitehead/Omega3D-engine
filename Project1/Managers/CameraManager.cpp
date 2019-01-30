@@ -1,5 +1,7 @@
 #include "CameraManager.h"
 #include "Engine/Omega_Global.h"
+#include "OEMaths/OEMaths_transform.h"
+#include "OEMaths/OEMaths_convert.h"
 
 namespace OmegaEngine
 {
@@ -7,8 +9,8 @@ namespace OmegaEngine
 	CameraManager::CameraManager()
 	{
 		// set up events
-		Global::managers.eventManager->registerListener<Camera, MouseButtonEvent>(this, mouse_button_event);
-		Global::managers.eventManager->registerListener<Camera, KeyboardPressEvent>(this, keyboard_press_event);
+		Global::managers.eventManager->registerListener<CameraManager, MouseButtonEvent>(this, mouse_button_event);
+		Global::managers.eventManager->registerListener<CameraManager, KeyboardPressEvent>(this, keyboard_press_event);
 
 		// allocate gpu memory now for the ubo buffer as the size will remain static
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
@@ -22,7 +24,8 @@ namespace OmegaEngine
 
 	void CameraManager::updateViewMatrix()
 	{
-		currentViewMatrix = OEMaths::lookAt(position, position + frontVec, upVec);
+		Camera& camera = cameras[camera_index];
+		currentViewMatrix = OEMaths::lookAt(camera.get_position(), camera.get_position() + front_vec, camera.get_up_vec());
 	}
 
 	void CameraManager::mouse_button_event(MouseButtonEvent& event)
@@ -52,7 +55,7 @@ namespace OmegaEngine
 			front_vec.z = sin(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
 			front_vec = OEMaths::normalise_vec3(front_vec);
 			
-			float velocity = camera.get_Velocity();
+			float velocity = camera.get_velocity();
 
 			// check for forwards and strafe movement
 			if (event.isMovingForward) {
@@ -62,10 +65,10 @@ namespace OmegaEngine
 				current_pos -= front_vec * velocity * Engine::DT;
 			}
 			if (event.isMovingLeft) {
-				current_pos -= OEMaths::normalise_vec3(OEMaths::cross(front_vec, camera.get_up_vec())) * velocity;
+				current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.get_up_vec())) * velocity;
 			}
 			if (event.isMovingRight) {
-				current_pos += OEMaths::normalise_vec3(OEMaths::cross(front_vec, camera.get_up_vec())) * velocity;
+				current_pos += OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.get_up_vec())) * velocity;
 			}
 
 			isDirty = true;

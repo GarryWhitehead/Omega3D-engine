@@ -12,7 +12,7 @@ namespace VulkanAPI
 		destroyAllBlocks();
 	}
 
-	uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu)
+	uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags flags)
 	{
 		vk::PhysicalDeviceMemoryProperties memoryProp = gpu.getMemoryProperties();
 
@@ -26,7 +26,7 @@ namespace VulkanAPI
 		return UINT32_MAX;
 	}
 
-	void MemoryAllocator::createBuffer(vk::Device device, uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
+	void MemoryAllocator::createBuffer(uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
 	{
 		vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
@@ -68,7 +68,7 @@ namespace VulkanAPI
 
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST) : size;
 
-			createBuffer(device, alloc_size, usage | vk::BufferUsageFlagBits::eTransferDst,
+			createBuffer(alloc_size, usage | vk::BufferUsageFlagBits::eTransferDst,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 				block.block_mem,
 				block.block_buffer);
@@ -111,7 +111,7 @@ namespace VulkanAPI
 		return block_id;
 	}
 
-	MemorySegment& MemoryAllocator::allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
+	MemorySegment& MemoryAllocator::allocate(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
 	{
 		assert(device != VK_NULL_HANDLE);
 		assert(gpu != VK_NULL_HANDLE);
@@ -121,13 +121,13 @@ namespace VulkanAPI
 		// Ensure that the user has already alloacted a block of memory. If not, then allocate for them using the default parameters for memory type and size
 		if (mem_blocks.empty()) {
 
-			block_id = allocateBlock(usage);
+			block_id = allocateBlock(mem_usage, buffer_usage);
 		}
 		else {
-			block_id = findBlockType(usage);
+			block_id = findBlockType(mem_usage);
 			if (block_id == UINT32_MAX) {
 
-				block_id = allocateBlock(usage);
+				block_id = allocateBlock(mem_usage, buffer_usage);
 			}
 		}
 
@@ -144,7 +144,7 @@ namespace VulkanAPI
 		// if error code returned, allocate another block of memory of the required type
 		if (offset == UINT32_MAX) {
 
-			block_id = allocateBlock(usage);
+			block_id = allocateBlock(mem_usage, buffer_usage);
 			offset = findFreeSegment(block_id, segment_size);
 		}
 
@@ -220,17 +220,11 @@ namespace VulkanAPI
 		return offset;
 	}
 
-	void MemoryAllocator::defragBlockMemory(const uint32_t id)
-	{
-		//MemoryBlock block = mem_blo
-		//auto iter = 
-	}
-
 	// override of the segment mapping function that allows data of type *void to be passed
 	void MemoryAllocator::mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset)
 	{
-		assert(segment.block_id < (int32_t)mem_blocks.size());
-		MemoryBlock block = mem_blocks[segment.block_id];
+		assert(segment.get_id() < (int32_t)mem_blocks.size());
+		MemoryBlock block = mem_blocks[segment.get_id()];
 
 		// How we map the data depends on the memory type; 
 		// For host-visible memory, the memory is mapped and the data is just mem-copied across
@@ -238,7 +232,7 @@ namespace VulkanAPI
 
 		if (block.type == MemoryType::VK_BLOCK_TYPE_HOST) {
 
-			segment.map(block.block_mem, segment.offset, data, totalSize, offset);
+			segment.map(device, block.block_mem, segment.get_offset(), data, totalSize, offset);
 
 		}
 		else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL) {
@@ -246,13 +240,12 @@ namespace VulkanAPI
 			// start by creating host-visible buffers
 			vk::Buffer temp_buffer;
 			vk::DeviceMemory temp_memory;
-			createBuffer(device, segment.size, vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
+			createBuffer(device, segment.get_size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
 
 			// map data to temporary buffer
-			segment.map(temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
+			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
-
 			VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), VulkanGlobal::vkCurrent.graphQueue, VulkanGlobal::vkCurrent.device, 0, segment.offset);
 
 			// clear up and we are done
@@ -263,21 +256,21 @@ namespace VulkanAPI
 
 	void MemoryAllocator::destroySegment(MemorySegment &segment)
 	{
-		if (segment.size <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
+		if (segment.get_size() <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
 			return;
 		}
 
 		// check that the segment exsists within the map
-		auto & alloc_segments = mem_blocks[segment.block_id].alloc_segments;
-		auto& iter = alloc_segments.find(segment.offset);
+		auto & alloc_segments = mem_blocks[segment.get_id()].alloc_segments;
+		auto& iter = alloc_segments.find(segment.get_offset());
 
 		if (iter != alloc_segments.end()) {
 
 			// remove segment from the allocated list
-			alloc_segments.erase(segment.offset);
+			alloc_segments.erase(segment.get_offset());
 
 			// and add to the free segments pool
-			mem_blocks[segment.block_id].free_segments.insert(std::make_pair(segment.offset, segment.size));
+			mem_blocks[segment.get_id()].free_segments.insert(std::make_pair(segment.get_offset(), segment.get_size()));
 		}
 	}
 
@@ -304,13 +297,13 @@ namespace VulkanAPI
 
 	// ================================================================ MemorySegment functions ====================================================================================================================
 
-	void MemoryAllocator::MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data_to_copy, uint32_t totalSize, uint32_t mapped_offset)
+	void MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data_to_copy, uint32_t totalSize, uint32_t mapped_offset)
 	{
 		assert(totalSize <= size);
 
 		if (data == nullptr) {
 
-			VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, 0, &data));
+			VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, (vk::MemoryMapFlags)0 , &data));
 			memcpy(data, data_to_copy, totalSize);
 			dev.unmapMemory(memory);
 		}
