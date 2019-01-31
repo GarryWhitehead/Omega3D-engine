@@ -28,7 +28,7 @@ namespace VulkanAPI
 			cmdBuffer.end();
 
 			vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
-			VK_CHECK_RESULT(queue.submit(1, &submitInfo, VK_NULL_HANDLE));
+			VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
 			queue.waitIdle();
 
 			device.freeCommandBuffers(cmdPool, 1, &cmdBuffer);
@@ -49,7 +49,8 @@ namespace VulkanAPI
 
 	CommandBuffer::CommandBuffer()
 	{
-
+		// automatically create a cmd pool for this buffer
+		create_cmd_pool();
 	}
 
 	CommandBuffer::CommandBuffer(vk::Device device)
@@ -61,9 +62,15 @@ namespace VulkanAPI
 	{
 	}
 
+	void CommandBuffer::init(vk::Device dev)
+	{
+		device = dev;
+		create_cmd_pool();
+	}
+
 	void CommandBuffer::create_primary()
 	{	
-		vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::ePrimary, 1);
+		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::ePrimary, 1);
 
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
 
@@ -79,7 +86,7 @@ namespace VulkanAPI
 			(vk::QueryControlFlagBits)0, 
 			(vk::QueryPipelineStatisticFlagBits)0);
 
-		vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::eSecondary, 1);
+		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
 		
 		vk::CommandBuffer secondary_cmd_buffer;
 		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
@@ -94,8 +101,8 @@ namespace VulkanAPI
 		renderpass = begin_info.renderPass;
 		framebuffer = begin_info.framebuffer;
 
-		assert(renderpass != VK_NULL_HANDLE);
-		assert(framebuffer != VK_NULL_HANDLE);
+		assert(renderpass);
+		assert(framebuffer);
 		
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
 		vk::Viewport view_port(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
@@ -257,5 +264,16 @@ namespace VulkanAPI
 		// map indices
 		quad_buffers.index_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * indices.size());
 		mem_alloc.mapDataToSegment(quad_buffers.index_buffer, indices.data(), indices.size());
+	}
+
+	// command pool functions =====================================================================
+
+	void CommandBuffer::create_cmd_pool()
+	{
+		vk::CommandPoolCreateInfo create_info(
+			vk::CommandPoolCreateFlagBits::eTransient,
+			queue_family_index);
+
+		device.createCommandPool(&create_info, nullptr, &cmd_pool);
 	}
 }

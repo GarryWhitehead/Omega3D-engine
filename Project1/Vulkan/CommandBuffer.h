@@ -27,10 +27,17 @@ namespace VulkanAPI
 
 	public:
 
+		enum class BufferType
+		{
+			Primary,
+			Secondary
+		};
+
 		CommandBuffer();
-		CommandBuffer(vk::Device device);
+		CommandBuffer(vk::Device dev);
 		~CommandBuffer();
 
+		void init(vk::Device dev);
 		void create_primary();
 
 		void begin_secondary(uint32_t index);
@@ -59,15 +66,28 @@ namespace VulkanAPI
 
 		void create_quad_data();
 
+		// command pool
+		void create_cmd_pool();
+
+		// helper funcs
 		vk::CommandBuffer& get()
 		{
 			return cmd_buffer;
 		}
 
+		vk::CommandPool& get_pool()
+		{
+			return cmd_pool;
+		}
+
 	private:
 
 		vk::Device device;
+		uint64_t queue_family_index;
+
+		// primary command buffer
 		vk::CommandBuffer cmd_buffer;
+		
 		vk::Viewport view_port;
 		vk::Rect2D scissor;
 
@@ -77,6 +97,12 @@ namespace VulkanAPI
 
 		// if were using, then store all secondary command buffers for dispatching on each thread
 		std::vector<vk::CommandBuffer> secondary_cmd_buffers;
+
+		// primary cmd pool for this buffer
+		vk::CommandPool cmd_pool;
+
+		// the command pools for secondary buffers - one per thread
+		std::vector<vk::CommandPool> secondary_cmd_pools;
 
 		// full screen quad buffers
 		struct QuadBuffers

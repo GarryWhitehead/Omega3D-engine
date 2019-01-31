@@ -2,7 +2,8 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "OEMaths/OEMaths_Quat.h"
-#include "ComponentInterface/ComponentManagerBase.h"
+#include "Managers/ManagerBase.h"
+#include "Objects/Object.h"
 #include "Utility/logger.h"
 #include "Omega_Common.h"
 
@@ -11,10 +12,9 @@
 namespace OmegaEngine
 {
 	// forward decleartions
-	class Object;
 	class ObjectManager;
 
-	class TransformManager : public ComponentManagerBase
+	class TransformManager : public ManagerBase
 	{
 
 	public:

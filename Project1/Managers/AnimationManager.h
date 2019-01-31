@@ -2,9 +2,8 @@
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
-#include "DataTypes/object.h"
+#include "Objects/object.h"
 
-#include "ComponentInterface/ComponentManagerBase.h"
 #include "Omega_Common.h"
 
 #include <memory>

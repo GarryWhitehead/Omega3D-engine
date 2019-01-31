@@ -1,14 +1,15 @@
 #pragma once
-#include "DeferredRenderer.h"
 
 namespace OmegaEngine
 {
+	// forward declerations
+	enum class RendererType;
 
 	struct RenderConfig
 	{
 		struct General
 		{
-			RendererType renderer = RendererType::Deferred;
+			RendererType renderer;
 
 		} general;
 	};

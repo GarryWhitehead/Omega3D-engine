@@ -17,29 +17,29 @@ namespace OmegaEngine
 	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat, std::unique_ptr<TextureManager>& textureManager)
 	{
 		MaterialInfo mat;
-		// go through each material type and see if they exsist - we are only saving the index - we can then use this and the space id to get the required textures when needed
+		// go through each material type and see if they exsist - we are only saving the index
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::BaseColor] = textureManager->get_texture(gltf_mat.values["baseColorTexture"].TextureIndex());
+			mat.textures[(int)PbrMaterials::BaseColor].image = textureManager->get_texture_index("baseColorTexture");
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
-			mat.metallicRoughnessIndex = textureManager->findTexture("metallicRoughnessTexture");
+			mat.textures[(int)PbrMaterials::MetallicRoughness].image = textureManager->get_texture_index("metallicRoughnessTexture");
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
-			mat.pushBlock.baseColorFactor = gltf_mat.values["baseColorFactor"].Factor();
+			mat.factors.baseColour = gltf_mat.values["baseColorFactor"].Factor();
 		}
 		if (gltf_mat.values.find("metallicRoughnessFactor") != gltf_mat.values.end()) {
-			mat.pushBlock.metallicFactor = gltf_mat.values["metallicRoughnessFactor"].Factor();
+			mat.factors.metallic = gltf_mat.values["metallicRoughnessFactor"].Factor();
 		}
 
 		// any additional textures?
 		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) {
-			mat.normalIndex = textureManager->findTexture("normalTexture");
+			mat.textures[(int)PbrMaterials::Normal].image = textureManager->get_texture_index("normalTexture");
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
-			mat.emissiveIndex = textureManager->findTexture("emissiveTexture");
+			mat.textures[(int)PbrMaterials::Emissive].image = textureManager->get_texture_index("emissiveTexture");
 		}
 		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) {
-			mat.occlusionIndex = textureManager->findTexture("occlusionTexture");
+			mat.textures[(int)PbrMaterials::Occlusion].image = textureManager->get_texture_index("occlusionTexture");
 		}
 
 		// check for aplha modes
@@ -53,10 +53,10 @@ namespace OmegaEngine
 			}
 		}
 		if (gltf_mat.additionalValues.find("alphaCutOff") != gltf_mat.additionalValues.end()) {
-			mat.pushBlock.alphaCutOff = gltf_mat.additionalValues["alphaCutOff"].Factor();
+			mat.factors.alphaMaskCutOff = gltf_mat.additionalValues["alphaCutOff"].Factor();
 		}
 		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end()) {
-			mat.pushBlock.emissiveFactor = OEMaths::convert_vec3((float*)gltf_mat.additionalValues["emssiveFactor"].ColorFactor().data());
+			mat.factors.emissive = OEMaths::convert_vec3((float*)gltf_mat.additionalValues["emssiveFactor"].ColorFactor().data());
 		}
 
 		// check for extensions
@@ -68,7 +68,7 @@ namespace OmegaEngine
 			}
 		}*/
 
-		materials.insert(std::make_pair(gltf_mat.name.c_str(), mat));
+		materials.push_back(mat);
 	}
 
 	MaterialManager::MaterialInfo& MaterialManager::get(uint32_t index)

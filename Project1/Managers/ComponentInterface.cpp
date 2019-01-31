@@ -1,5 +1,5 @@
 #include "ComponentInterface.h"
-#include "ComponentManagerBase.h"
+#include "Managers/ManagerBase.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
 

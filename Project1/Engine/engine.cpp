@@ -57,7 +57,7 @@ namespace OmegaEngine
 			throw std::runtime_error("Unable to open glfw window");
 		}
 
-		VK_CHECK_RESULT(volkInitialize());
+		//VK_CHECK_RESULT(volkInitialize());
 
 		// now prepare the graphics device -  we can have multiple devices though this isn't fully implemented yet
 		VulkanAPI::Device device;

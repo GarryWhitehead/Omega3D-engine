@@ -4,7 +4,7 @@
 
 #include <string>
 #include <vector>
-
+#include "Managers/CameraManager.h"
 #include "OEMaths/OEMaths.h"
 
 using namespace rapidjson;
@@ -12,9 +12,6 @@ using namespace rapidjson;
 namespace OmegaEngine
 {
 	// forward declerations
-	struct CameraDataType;
-	struct Space;
-	struct WorldInfo;
 	struct Model;
 
 	class SceneParser
@@ -29,12 +26,6 @@ namespace OmegaEngine
 			// this refers to the scene grid dimensions 
 			uint32_t width;
 			uint32_t height;
-
-			// tells the scene manager the max number of spaces that can be loaded at one time. 
-			// This is the stating a grid n*n - i.e. 3, 5, 7, 9, 11... Note: cannot be 1
-			uint32_t gridSizeToLoad;
-			uint32_t startingId;
-			uint32_t totalSpaces;
 		};
 
 		struct ModelInfo
@@ -62,12 +53,12 @@ namespace OmegaEngine
 
 		bool parse(std::string filename);
 
-		bool loadCameraData();
-		bool loadModels();
-		bool loadWorldInfo();
-		bool loadTerrainData();
-		bool loadEnvironamnetData();
-		bool loadLights();
+		void loadCameraData();
+		void loadModels();
+		void loadWorldInfo();
+		void loadTerrainData();
+		void loadEnvironamnetData();
+		void loadLights();
 
 		const char* getFilenames(uint32_t index)
 		{
@@ -88,10 +79,10 @@ namespace OmegaEngine
 
 		Document document;
 
-		std::unique_ptr<CameraDataType> camera;
-		std::unique_ptr<WorldInfo> worldInfo;
+		Camera camera;
+		WorldInfo worldInfo;
 
-		std::vector<ModelInfo>& models;
+		std::vector<ModelInfo> models;
 	};
 
 }

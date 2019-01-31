@@ -3,7 +3,6 @@
 #include "Rendering/RenderInterface.h"
 #include "Engine/Omega_Global.h"
 #include "Vulkan/Vulkan_Global.h"
-#include "Vulkan/BufferManager.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Queue.h"
@@ -119,7 +118,7 @@ namespace OmegaEngine
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 		vk::Semaphore deferred_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
-		render_deferred(vk_interface->get_graph_queue, vk_interface->get_swapchain_semaphore, deferred_semaphore);
+		render_deferred(vk_interface->get_graph_queue(), vk_interface->get_swapchain_semaphore(), deferred_semaphore);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {

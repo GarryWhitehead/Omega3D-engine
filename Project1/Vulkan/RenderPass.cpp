@@ -13,7 +13,7 @@ namespace VulkanAPI
 		renderpass(pass),
 		device(dev)
 	{
-		assert(renderpass != VK_NULL_HANDLE);
+		assert(renderpass);
 	}
 
 	RenderPass::RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
@@ -217,8 +217,8 @@ namespace VulkanAPI
 
 	void RenderPass::prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount)
 	{
-		assert(imageView != VK_NULL_HANDLE);
-		assert(renderpass != VK_NULL_HANDLE);
+		assert(imageView);
+		assert(renderpass);
 
 		vk::FramebufferCreateInfo frameInfo({},
 		renderpass, 
@@ -232,7 +232,7 @@ namespace VulkanAPI
 	void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount)
 	{
 		assert(imageView);
-		assert(renderpass != VK_NULL_HANDLE);
+		assert(renderpass);
 
 		// store locally the screen extents for use later
 		win_width = width;
@@ -265,12 +265,10 @@ namespace VulkanAPI
 	void RenderPass::destroy()
 	{
 		// its not always the case that the user might create a framebuffer using this class, so check
-		if (framebuffer != VK_NULL_HANDLE) {
+		if (framebuffer) {
 			device.destroyFramebuffer(framebuffer, nullptr);
 		}
 		device.destroyRenderPass(renderpass, nullptr);
-
-		device = VK_NULL_HANDLE;
 	}
 
 }

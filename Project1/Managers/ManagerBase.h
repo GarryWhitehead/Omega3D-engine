@@ -5,12 +5,12 @@ namespace OmegaEngine
 
 	// forward declearations
 
-	class ComponentManagerBase
+	class ManagerBase
 	{
 
 	public:
 
-		virtual ~ComponentManagerBase() {}
+		virtual ~ManagerBase() {}
 
 		// abstract functions
 		virtual void update_frame(double time, double dt) = 0;

@@ -1,7 +1,6 @@
 #include "Vulkan_Global.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/SemaphoreManager.h"
-#include "Vulkan/BufferManager.h"
 
 namespace VulkanAPI
 {
@@ -19,11 +18,6 @@ namespace VulkanAPI
 				semaphore_manager.init(dev);
 			}
 
-			void init_buffer_manager()
-			{
-				buff_manager = new BufferManager();
-				assert(buff_manager);
-			}
 		}
 	}
 }

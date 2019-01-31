@@ -103,7 +103,7 @@ namespace VulkanAPI
 			queue_family_indicies.empty() ? nullptr : queue_family_indicies.data(),
 			capabilities.currentTransform,
 			vk::CompositeAlphaFlagBitsKHR::eOpaque,
-			req_mode, VK_TRUE, VK_NULL_HANDLE);
+			req_mode, VK_TRUE, {});
 
 		auto& dev = device.getDevice();
 

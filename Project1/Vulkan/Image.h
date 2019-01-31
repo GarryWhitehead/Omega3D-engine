@@ -11,11 +11,11 @@ namespace VulkanAPI
 	{
 	public:
 
-		ImageView(vk::Device dev);
+		ImageView();
 
-		void create(Image& image);
+		void create(vk::Device dev, Image& image);
 
-		void create(vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type);
+		void create(vk::Device dev, vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type);
 
 		vk::ImageView& get_imageView()
 		{
@@ -34,10 +34,10 @@ namespace VulkanAPI
 
 	public:
 
-		Image(vk::Device dev);
+		Image();
 		~Image();
 
-		void create(vk::Format format, uint32_t width, uint32_t height, TextureType type);
+		void create(vk::Device dev, vk::Format format, uint32_t width, uint32_t height, TextureType type);
 		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
 

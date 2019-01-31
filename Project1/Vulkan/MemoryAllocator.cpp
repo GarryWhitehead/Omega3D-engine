@@ -80,7 +80,7 @@ namespace VulkanAPI
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL) : size;
 
 			// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
-			createBuffer(device, alloc_size, vk::BufferUsageFlagBits::eTransferDst | usage,
+			createBuffer(alloc_size, vk::BufferUsageFlagBits::eTransferDst | usage,
 				vk::MemoryPropertyFlagBits::eDeviceLocal,
 				block.block_mem,
 				block.block_buffer);
@@ -113,8 +113,8 @@ namespace VulkanAPI
 
 	MemorySegment& MemoryAllocator::allocate(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
 	{
-		assert(device != VK_NULL_HANDLE);
-		assert(gpu != VK_NULL_HANDLE);
+		assert(device);
+		assert(gpu);
 		
 		uint32_t block_id = 0;
 
@@ -240,13 +240,13 @@ namespace VulkanAPI
 			// start by creating host-visible buffers
 			vk::Buffer temp_buffer;
 			vk::DeviceMemory temp_memory;
-			createBuffer(device, segment.get_size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
+			createBuffer(segment.get_size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
 
 			// map data to temporary buffer
 			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
-			VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), VulkanGlobal::vkCurrent.graphQueue, VulkanGlobal::vkCurrent.device, 0, segment.offset);
+			///VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), VulkanGlobal::vkCurrent.graphQueue, VulkanGlobal::vkCurrent.device, 0, segment.offset);
 
 			// clear up and we are done
 			device.destroyBuffer(temp_buffer, nullptr);

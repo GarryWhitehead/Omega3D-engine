@@ -91,6 +91,13 @@ namespace OEMaths
 			return *this;
 		}
 
+		vec3& operator*(const vec3& other)
+		{
+			x = x * other.x;
+			y = y * other.y;
+			z = z * other.z;
+		}
+
 		vec3& operator*(const float& other)
 		{
 			x = x * other;
@@ -222,9 +229,9 @@ namespace OEMaths
 
 		mat3()
 		{
-			data[0] = static_cast<T>(1);
-			data[4] = static_cast<T>(1);
-			data[8] = static_cast<T>(1);
+			data[0] = 1;
+			data[4] = 1;
+			data[8] = 1;
 		}
 
 		T& operator()(const uint8_t& a, const uint8_t& b)
@@ -232,7 +239,7 @@ namespace OEMaths
 			return data[a * 2 + b];
 		}
 
-		mat3<T>& operator()(const vec3<T>& vec, const uint8_t& row)
+		mat3& operator()(const vec3<T>& vec, const uint8_t& row)
 		{
 			data[row * 2] = vec.x;
 			data[row * 2 + 1] = vec.y;

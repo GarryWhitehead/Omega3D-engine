@@ -2,7 +2,8 @@
 #include "Utility/logger.h"
 #include "Utility/GeneralUtil.h"
 #include "Engine/Omega_Global.h"
-#include "ComponentInterface/ObjectManager.h"
+#include "Objects/ObjectManager.h"
+#include "Objects/Object.h"
 #include "OEMaths/OEMaths_transform.h"
 
 namespace OmegaEngine

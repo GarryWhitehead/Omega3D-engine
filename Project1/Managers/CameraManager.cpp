@@ -55,7 +55,7 @@ namespace OmegaEngine
 			front_vec.z = sin(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
 			front_vec = OEMaths::normalise_vec3(front_vec);
 			
-			float velocity = camera.get_velocity();
+			float velocity = camera.velocity;
 
 			// check for forwards and strafe movement
 			if (event.isMovingForward) {
@@ -65,10 +65,10 @@ namespace OmegaEngine
 				current_pos -= front_vec * velocity * Engine::DT;
 			}
 			if (event.isMovingLeft) {
-				current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.get_up_vec())) * velocity;
+				current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
 			}
 			if (event.isMovingRight) {
-				current_pos += OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.get_up_vec())) * velocity;
+				current_pos += OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
 			}
 
 			isDirty = true;
@@ -86,8 +86,8 @@ namespace OmegaEngine
 			buffer_info.camera_pos = current_pos;
 			buffer_info.projection = currentProjMatrix;
 			buffer_info.view = currentViewMatrix;
-			buffer_info.zNear = cameras[camera_index].getZNear();
-			buffer_info.zFar = cameras[camera_index].getZFar();
+			buffer_info.zNear = cameras[camera_index].zNear;
+			buffer_info.zFar = cameras[camera_index].zFar;
 
 			// now update on the gpu side
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;

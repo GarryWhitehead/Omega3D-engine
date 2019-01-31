@@ -1,6 +1,6 @@
 #include "TransformManager.h"
-#include "DataTypes/Object.h"
-#include "ComponentInterface/ObjectManager.h"
+#include "Objects/Object.h"
+#include "Objects/ObjectManager.h"
 
 #include "Omega_Common.h"
 

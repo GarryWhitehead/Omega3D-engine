@@ -1,5 +1,5 @@
 #pragma once
-#include "ComponentInterface/ComponentManagerBase.h"
+#include "Managers/ManagerBase.h"
 #include "Managers/EventManager.h"
 #include "OEMaths/OEMaths.h"
 #include "Vulkan/Vulkan_Global.h"
@@ -8,59 +8,18 @@
 namespace OmegaEngine 
 {
 
-	class Camera
+	struct Camera
 	{
-	public:
-
 		enum class CameraType
 		{
 			FirstPerson,
 			ThirdPerson
 		};
 
-		void setNearFarPlane(float near, float far)
-		{
-			zNear = near;
-			zFar = far;
-		}
-
 		OEMaths::mat4f getPerspectiveMat()
 		{
 			return OEMaths::perspective(fov, aspect, zNear, zFar);
 		}
-
-		OEMaths::vec3f get_up_vec() const
-		{
-			return camera_up;
-		}
-		
-		// helper functions
-		float getZNear() const
-		{
-			return zNear; 
-		}
-
-		float getZFar() const
-		{
-			return zFar; 
-		}
-
-		OEMaths::vec3f getCameraPosition() const
-		{
-			return start_position; 
-		}
-
-		float get_velocity() const
-		{
-			return velocity;
-		}
-
-		OEMaths::vec3f get_position() const
-		{
-			return start_position;
-		}
-
-	private:
 
 		float fov;
 		float zNear;
@@ -91,7 +50,7 @@ namespace OmegaEngine
 		bool isMoving = false;
 	};
 
-	class CameraManager : public ComponentManagerBase
+	class CameraManager : public ManagerBase
 	{
 
 	public:

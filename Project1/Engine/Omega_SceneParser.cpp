@@ -2,8 +2,9 @@
 
 #include "Engine/Omega_Global.h"
 #include "Utility/FileUtil.h"
+#include "Utility/Logger.h"
 #include "Engine/World.h"
-
+#include "Managers/CameraManager.h"
 #include "rapidjson/stringbuffer.h"
 
 namespace OmegaEngine
@@ -25,80 +26,81 @@ namespace OmegaEngine
 			return false;
 		}
 
-
 		if (document.Parse(json.c_str()).HasParseError()) {
 			return false;
 		}
 
+		// read the json now were all ready to go.
+		// all data is optional. If not present then default values will be used
+		loadCameraData();
+		loadWorldInfo();
+		loadModels();
+		loadLights();
+
 		return true;
 	}
 
-	bool SceneParser::loadCameraData()
+	void SceneParser::loadCameraData()
 	{
-		// it's essential that the world doc has a camera type
 		if (!document.HasMember("Camera")) {
-			return false;
+			LOGGER_INFO("No camera found in scene file. Using default calibration.");
+			return;
 		}
 		const Value& cam = document["Camera"];
 		
-		camera = std::make_unique<CameraDataType>();
+		Camera camera;
 
 		// read the camera values from the array
-		camera->zNear = cam["Znear"].GetFloat();
-		camera->zFar = cam["ZFar"].GetFloat();
-		camera->velocity = cam["Velocity"].GetFloat();
-		camera->fov = cam["fov"].GetFloat();
+		camera.zNear = cam["Znear"].GetFloat();
+		camera.zFar = cam["ZFar"].GetFloat();
+		camera.velocity = cam["Velocity"].GetFloat();
+		camera.fov = cam["fov"].GetFloat();
 
 		auto &pos = cam["Position"];
-		camera->position.x = pos[0].GetFloat();
-		camera->position.y = pos[1].GetFloat();
-		camera->position.z = pos[2].GetFloat();
+		camera.start_position.x = pos[0].GetFloat();
+		camera.start_position.y = pos[1].GetFloat();
+		camera.start_position.z = pos[2].GetFloat();
 
 		auto &up = cam["CameraUp"];
-		camera->cameraUp.x = up[0].GetFloat();
-		camera->cameraUp.y = up[1].GetFloat();
-		camera->cameraUp.z = up[2].GetFloat();
+		camera.camera_up.x = up[0].GetFloat();
+		camera.camera_up.y = up[1].GetFloat();
+		camera.camera_up.z = up[2].GetFloat();
 
 		std::string type = cam["Type"].GetString();
 		if (type == "FPS") {
-			camera->type = CameraType::FirstPerson;
+			camera.type = Camera::CameraType::FirstPerson;
 		}
 		else if (type == "Third Person") {
-			camera->type = CameraType::ThirdPerson;
+			camera.type = Camera::CameraType::ThirdPerson;
 		}
-
-		return true;
 	}
 
-	bool SceneParser::loadWorldInfo()
+	void SceneParser::loadWorldInfo()
 	{
-		// it's essential that the world doc has a camera type
+
 		if (document.HasMember("World Name")) {
-			worldInfo->name = document["World Name"].GetString();
+			worldInfo.name = document["World Name"].GetString();
 		}
 		if (document.HasMember("World Width")) {
-			worldInfo->width = document["World Width"].GetInt();
+			worldInfo.width = document["World Width"].GetInt();
 		}
 		if (document.HasMember("World Height")) {
-			worldInfo->height = document["World Height"].GetInt();
+			worldInfo.height = document["World Height"].GetInt();
 		}
-		if (document.HasMember("World Size")) {
-			worldInfo->totalSpaces = document["World Size"].GetInt();
-		}
-
-		return true;
+		
 	}
 
-	bool SceneParser::loadModels()
+	void SceneParser::loadModels()
 	{
 		if (!document.HasMember("Models")) {
-			return false;
+			LOGGER_INFO("No model data found in scene file. Assuming using object component system to fill world?");
+			return;
 		}
 
 		// parse all the spaces out of the array
 		const Value& modelArray = document["Models"];
 		if (modelArray.Empty()) {
-			return false;
+			return;
 		}
 
 		models.resize(modelArray.Size());
@@ -122,21 +124,19 @@ namespace OmegaEngine
 			models[i].world_translation.z = tran[2].GetFloat();
 			models[i].world_translation.w = tran[3].GetFloat();
 		}
-
-		return true;
 	}
 
-	bool SceneParser::loadTerrainData()
+	void SceneParser::loadTerrainData()
 	{
 
 	}
 
-	bool SceneParser::loadLights()
+	void SceneParser::loadLights()
 	{
 
 	}
 
-	bool SceneParser::loadEnvironamnetData()
+	void SceneParser::loadEnvironamnetData()
 	{
 
 	}

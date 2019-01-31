@@ -1,6 +1,5 @@
 #include "Mesh.h"
 #include "Vulkan/Vulkan_Global.h"
-#include "Vulkan/BufferManager.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/CommandBuffer.h"
@@ -10,7 +9,7 @@
 #include "Managers/TransformManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/DeferredRenderer.h"
-#include "ComponentInterface/ComponentInterface.h"
+#include "Managers/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
@@ -57,7 +56,7 @@ namespace OmegaEngine
 		}
 	}
 	
-	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, std::unique_ptr<Renderer>& renderer)
+	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer)
 	{
 		RenderPipeline pipeline_info;
 		

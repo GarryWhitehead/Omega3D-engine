@@ -1,9 +1,9 @@
 #include "AnimationManager.h"
 
 #include "Managers/TransformManager.h"
-#include "ComponentInterface/ObjectManager.h"
+#include "Objects/ObjectManager.h"
 #include "Utility/logger.h"
-#include "DataTypes/Object.h"
+#include "Objects/Object.h"
 
 namespace OmegaEngine
 {

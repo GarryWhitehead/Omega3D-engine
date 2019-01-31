@@ -2,6 +2,7 @@
 
 #include "Vulkan/Device.h"
 #include "Vulkan/Interface.h"
+#include "Vulkan/Descriptors.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
 #include "RenderConfig.h"
@@ -14,7 +15,6 @@
 // forward decleartions
 namespace VulkanAPI
 {
-	class DescriptorLayout;
 	class CommandBuffer;
 };
 
@@ -33,7 +33,7 @@ namespace OmegaEngine
 		VulkanAPI::Shader shader;
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
-		std::unique_ptr<VulkanAPI::DescriptorLayout> descr_layout;
+		VulkanAPI::DescriptorLayout descr_layout;
 	};
 
 	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer

@@ -4,7 +4,7 @@
 #include <memory>
 
 #include "Utility/GeneralUtil.h"
-#include "DataTypes/Object.h"
+#include "Objects/Object.h"
 
 #define MINIMUM_FREE_IDS 100
 

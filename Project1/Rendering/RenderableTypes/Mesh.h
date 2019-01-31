@@ -16,7 +16,7 @@ namespace OmegaEngine
 {
 	// forward declerations
 	class PipelineInterface;
-	class Renderer;
+	class DeferredRenderer;
 	class ComponentInterface;
 	class ThreadPool;
 	class RenderPipeline;
@@ -44,7 +44,7 @@ namespace OmegaEngine
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size);
 		void render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, uint32_t start_index, uint32_t end_index, uint32_t thread);
 
-		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<Renderer>& renderer);
+		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer);	// TODO: this will need thinking about when other renderer types are added
 
 		void update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man);
 

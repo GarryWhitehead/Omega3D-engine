@@ -4,6 +4,7 @@
 #include "Vulkan/Buffer.h"
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/Pipeline.h"
 
 #include <vector>
 #include <functional>

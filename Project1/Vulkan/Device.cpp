@@ -118,7 +118,7 @@ namespace VulkanAPI
 
 	void Device::prepareDevice()
 	{
-		if (instance == VK_NULL_HANDLE) {
+		if (!instance) {
 			LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
 			throw std::runtime_error("Error whilst initialising device");
 		}
@@ -134,7 +134,7 @@ namespace VulkanAPI
 			}
 		}
 
-		if (physical == VK_NULL_HANDLE)
+		if (!physical)
 		{
 			LOGGER_ERROR("Critcal error! No Vulkan supported GPU devices were found.");
 			throw std::runtime_error("Unable to find any vulkan-supported GPUs");
@@ -241,7 +241,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 
 		// this reduces dispatch overhead - though instigates that only one device can be used
-		volkLoadDevice(device.operator VkDevice);
+		//volkLoadDevice(device.operator VkDevice);
 
 		// prepare queue for each type
 		vk::Queue computeQueue, graphQueue, presentQueue;

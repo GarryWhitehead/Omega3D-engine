@@ -4,15 +4,15 @@
 
 namespace VulkanAPI
 {
-
-	ImageView::ImageView(vk::Device dev) :
-		device(dev)
+	ImageView::ImageView()
 	{
 
 	}
 
-	void ImageView::create(vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type)
+	void ImageView::create(vk::Device dev, vk::Image& image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type)
 	{
+		device = dev;
+
 		vk::ImageViewCreateInfo createInfo({},
 			image, type, format,
 			{ vk::ComponentSwizzle::eIdentity,
@@ -24,8 +24,10 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
 	}
 
-	void ImageView::create(Image& image)
+	void ImageView::create(vk::Device dev, Image& image)
 	{
+		device = dev;
+
 		vk::ImageViewType type;
 		switch (image.textureType) {
 		case TextureType::Normal:
@@ -46,6 +48,7 @@ namespace VulkanAPI
 
 		// making assumptions here based on the image format used
 		vk::ImageAspectFlags aspect;
+
 		switch (image.format) {
 		case vk::Format::eD32SfloatS8Uint:
 		[[ __fallthrough ]]
@@ -67,19 +70,19 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
 	}
 
-
-	Image::Image(vk::Device dev) :
-		device(dev)
+	Image::Image()
 	{
-	}
 
+	}
 
 	Image::~Image()
 	{
 	}
 
-	void Image::create(vk::Format format, uint32_t width, uint32_t height, TextureType type)
+	void Image::create(vk::Device dev, vk::Format format, uint32_t width, uint32_t height, TextureType type)
 	{
+		device = dev;
+
 		image_format = format;
 		image_layers = 1;
 		image_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1.0);
@@ -101,10 +104,10 @@ namespace VulkanAPI
 	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool)
 	{
 		vk::CommandBuffer comm_buff;
-		if (cmdBuff == VK_NULL_HANDLE) {
+		if (!cmdBuff) {
 
-			assert(cmdPool != VK_NULL_HANDLE);
-			assert(graphQueue != VK_NULL_HANDLE);
+			assert(cmdPool);
+			assert(graphQueue);
 			comm_buff = Util::beginSingleCmdBuffer(cmdPool, device);
 		}
 		else {
@@ -170,11 +173,11 @@ namespace VulkanAPI
 			old_layout, new_layout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
-			{ mask, image_mip_levels, levelCount, 0, image_layers });
+			{ mask, static_cast<uint32_t>(image_mip_levels), levelCount, 0, image_layers });
 
 		comm_buff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
-		if (cmdBuff == VK_NULL_HANDLE) {
+		if (!cmdBuff) {
 
 			Util::submitToQueue(comm_buff, graphQueue, cmdPool, device);
 		}
@@ -210,19 +213,19 @@ namespace VulkanAPI
 				);
 
 			// sub range required for barrier
-			vk::ImageSubresourceLayers mip_subrange(
+			vk::ImageSubresourceRange mip_subrange(
 				vk::ImageAspectFlagBits::eColor,
 				i,
 				1, 1);
 
 			// create image barrier - transition image to transfer 
 			vk::ImageMemoryBarrier mem_barrier(
-				0, vk::AccessFlagBits::eTransferWrite,
+				(vk::AccessFlags)0, vk::AccessFlagBits::eTransferWrite,
 				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
 				0, 0,
 				image, mip_subrange);
 
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
 
 			// blit the image
 			cmd_buffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
@@ -233,7 +236,7 @@ namespace VulkanAPI
 				0, 0,
 				image, mip_subrange);
 
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, 0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
 		}
 	}
 }

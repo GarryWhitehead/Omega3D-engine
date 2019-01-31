@@ -44,6 +44,11 @@ namespace OmegaEngine
 			return tex_format;
 		}
 
+		const char* get_name()
+		{
+			return name;
+		}
+
 		void set_name(const char* name)
 		{
 			this->name = name;

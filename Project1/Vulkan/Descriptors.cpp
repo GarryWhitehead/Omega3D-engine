@@ -3,11 +3,10 @@
 namespace VulkanAPI
 {
 
-	DescriptorLayout::DescriptorLayout(vk::Device dev) :
-		device(dev)
+	DescriptorLayout::DescriptorLayout()
 	{
-	}
 
+	}
 
 	DescriptorLayout::~DescriptorLayout()
 	{
@@ -35,10 +34,12 @@ namespace VulkanAPI
 		}
 	}
 
-	void DescriptorLayout::create()
+	void DescriptorLayout::create(vk::Device dev)
 	{
+		// store for destructor
+		device = dev;
+
 		// initialise descriptor pool first based on layouts that have been added
-		
 		std::vector<vk::DescriptorPoolSize> pools;
 
 		if (layout_bind.ubo_count) {

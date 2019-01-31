@@ -1,6 +1,7 @@
 #include "InputManager.h"
 #include "Engine/Omega_Global.h"
-#include "EventManager.h"
+#include "Managers/CameraManager.h"
+#include "Managers/EventManager.h"
 #include "GLFW/glfw3.h"
 
 #define GLFW_EXPOSE_NATIVE_WIN32

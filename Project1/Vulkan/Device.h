@@ -64,7 +64,7 @@ namespace VulkanAPI
 
 		void set_window_surface(vk::SurfaceKHR surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{
-			assert(surface != VK_NULL_HANDLE);
+			assert(surface);
 			win_surface = surface;
 			surface_type = type;
 		}

@@ -22,8 +22,8 @@ namespace VulkanAPI
 		};
 
 		LayoutType type;
-		uint8_t binding;
-		uint8_t set;
+		uint32_t binding;
+		uint32_t set;
 		const char* name;
 
 		ShaderBufferLayout(LayoutType t, uint8_t bind, uint8_t s, const char* n) :
@@ -33,11 +33,11 @@ namespace VulkanAPI
 
 	struct ShaderImageLayout
 	{
-		uint8_t binding;
-		uint8_t set;
+		uint32_t binding;
+		uint32_t set;
 		const char* name;
 
-		ShaderImageLayout(uint8_t bind, uint8_t s, const char* n) :
+		ShaderImageLayout(uint32_t bind, uint32_t s, const char* n) :
 			 binding(bind), set(s), name(n)
 		{}
 	};

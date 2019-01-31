@@ -20,8 +20,8 @@ namespace VulkanAPI
 
 	void Queue::begin_frame()
 	{
-		assert(swap_chain != VK_NULL_HANDLE);
-		device.acquireNextImageKHR(swap_chain, std::numeric_limits<uint64_t>::max(), image_semaphore, VK_NULL_HANDLE, &image_index);
+		assert(swap_chain);
+		device.acquireNextImageKHR(swap_chain, std::numeric_limits<uint64_t>::max(), image_semaphore, {}, &image_index);
 	}
 
 	void Queue::submit_frame()
@@ -46,7 +46,7 @@ namespace VulkanAPI
 			static_cast<uint32_t>(cmd_buffers.size()), cmd_buffers.data(),
 			static_cast<uint32_t>(signal_semaphores.size()), signal_semaphores.data());
 
-		VK_CHECK_RESULT(queue.submit(1, &submit_info, VK_NULL_HANDLE));
+		VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
 		queue.waitIdle();
 	}
 
@@ -54,11 +54,11 @@ namespace VulkanAPI
 	{
 		vk::SubmitInfo submit_info(
 			1, &wait_semaphore,
-			stage_flag,
+			&stage_flag,
 			1, &cmd_buffer,
 			1, &signal_semaphore);
 
-		VK_CHECK_RESULT(queue.submit(1, &submit_info, VK_NULL_HANDLE));
+		VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
 		queue.waitIdle();
 	}
 
@@ -69,7 +69,7 @@ namespace VulkanAPI
 			1, &cmd_buffer,
 			0, nullptr);
 
-		VK_CHECK_RESULT(queue.submit(1, &submit_info, VK_NULL_HANDLE));
+		VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
 		queue.waitIdle();
 	}
 

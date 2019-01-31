@@ -18,6 +18,7 @@ namespace OmegaEngine
 	{
 	public:
 
+
 		struct Sampler
 		{
 			vk::SamplerAddressMode addressModeU;
@@ -35,6 +36,7 @@ namespace OmegaEngine
 		vk::SamplerAddressMode get_wrap_mode(int32_t wrap);
 		vk::Filter get_filter_mode(int32_t filter);
 
+		uint32_t get_texture_index(const char* name);
 		MappedTexture& get_texture(uint32_t index);
 		VulkanAPI::SamplerType get_sampler(uint32_t index);
 

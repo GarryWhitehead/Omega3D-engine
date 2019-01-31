@@ -23,14 +23,14 @@ namespace VulkanAPI
 
 		void create(vk::Queue q, vk::Device dev)
 		{
-			assert(q != VK_NULL_HANDLE);
+			assert(q);
 			queue = q;
 			device = dev;
 		}
 
 		void set_swapchain(vk::SwapchainKHR& sc)
 		{
-			assert(sc != VK_NULL_HANDLE);
+			assert(sc);
 			swap_chain = sc;
 		}
 

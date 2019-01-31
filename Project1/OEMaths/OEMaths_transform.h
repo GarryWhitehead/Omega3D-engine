@@ -10,7 +10,7 @@ namespace OEMaths
 	// vec2 conversion ================================================================
 
 	template <typename T>
-	vec2<T> convert_vec2(T* data)
+	inline vec2<T> convert_vec2(T* data)
 	{
 		assert(data != nullptr);
 
@@ -24,7 +24,7 @@ namespace OEMaths
 	// vec3 transform functions ========================================================================================================
 	
 	template <typename T>
-	vec3<T> convert_vec3(T* data)
+	inline vec3<T> convert_vec3(T* data)
 	{
 		assert(data != nullptr);
 
@@ -40,7 +40,7 @@ namespace OEMaths
 
 	// coversion from one vec type to another
 	template <typename T>
-	vec4<T> vec3_to_vec4(vec3<T> v3, T w)
+	inline vec4<T> vec3_to_vec4(vec3<T> v3, T w)
 	{
 		vec4<T> v4;
 		v4.x = v3.x;
@@ -81,6 +81,11 @@ namespace OEMaths
 		return retVec;
 	}
 
+	template <typename T>
+	inline T dot_vec3(vec3<T>& v1, vec3<T>& v2)
+	{
+		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+	}
 
 	// interpolation ===================================================================
 
@@ -98,7 +103,7 @@ namespace OEMaths
 	// vec4 transform functions ========================================================================
 
 	template <typename T>
-	vec4<T> convert_vec4(T* data)
+	inline vec4<T> convert_vec4(T* data)
 	{
 		assert(data != nullptr);
 
@@ -136,7 +141,7 @@ namespace OEMaths
 	// interpolation =========================================================
 
 	template <typename T>
-	vec4<T> mix_vec4(vec4<T>& v1, vec4<T>& v2, float u)
+	inline vec4<T> mix_vec4(vec4<T>& v1, vec4<T>& v2, float u)
 	{
 		vec4<T> retVec;
 		retVec.x = v1.x * (1 - u) + v2.x * u;
@@ -149,7 +154,7 @@ namespace OEMaths
 	// matrix conversion  ===============================================================================
 
 	template <typename T>
-	mat4<T> convert_mat4(T* data)
+	inline mat4<T> convert_mat4(T* data)
 	{
 		assert(data != nullptr);
 

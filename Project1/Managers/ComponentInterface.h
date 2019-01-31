@@ -63,7 +63,7 @@ namespace OmegaEngine
 
 	protected:
 
-		std::unordered_map<uint32_t, std::unique_ptr<ComponentManagerBase> > managers;
+		std::unordered_map<uint32_t, std::unique_ptr<ManagerBase> > managers;
 	};
 
 }

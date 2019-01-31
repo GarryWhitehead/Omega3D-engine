@@ -96,6 +96,17 @@ namespace OmegaEngine
 		textures.push_back(mappedTex);	
 	}
 
+	uint32_t TextureManager::get_texture_index(const char* name)
+	{
+		for (uint32_t i = 0; i < textures.size(); ++i) {
+
+			if (strcmp(name, textures[i].get_name()) == 0) {
+				return i;
+			}
+		}
+		return UINT32_MAX;
+	}
+
 	MappedTexture& TextureManager::get_texture(uint32_t index)
 	{
 		assert(index < textures.size());

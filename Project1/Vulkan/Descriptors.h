@@ -1,6 +1,7 @@
 #pragma once
 #include "Vulkan/Common.h"
 #include <unordered_map>
+
 namespace VulkanAPI
 {
 
@@ -20,11 +21,11 @@ namespace VulkanAPI
 			uint32_t storage_image_count = 0;
 		};
 
-		DescriptorLayout(vk::Device device);
+		DescriptorLayout();
 		~DescriptorLayout();
 
 		void add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
-		void create();
+		void create(vk::Device device);
 		
 
 	private:

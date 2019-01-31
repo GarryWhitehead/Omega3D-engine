@@ -93,7 +93,7 @@ namespace VulkanAPI
 
 	void Pipeline::set_renderpass(vk::RenderPass r_pass)
 	{
-		assert(r_pass != VK_NULL_HANDLE);
+		assert(r_pass);
 		renderpass = r_pass;
 	}
 
@@ -107,7 +107,7 @@ namespace VulkanAPI
 
 	void Pipeline::add_layout(vk::PipelineLayout pl)
 	{
-		assert(pl != VK_NULL_HANDLE);
+		assert(pl);
 		pl_layout = pl;
 	}
 

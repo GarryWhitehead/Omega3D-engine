@@ -2,6 +2,7 @@
 
 #include "Vulkan/Device.h"
 #include "OEMaths/OEMaths.h"
+#include "Omega_Common.h"
 
 #include <string>
 #include <vector>
@@ -24,8 +25,7 @@ namespace OmegaEngine
 		OE_MANAGERS_CAMERA		 = 1 << 3,
 		OE_MANAGERS_PHYSICS		 = 1 << 4,
 		OE_MANAGERS_COLLISION	 = 1 << 5,
-		OE_MANAGERS_TRANSFORM	 = 1 << 6,
-		OE_MANAGERS_ALL			 = 1 << 7
+		OE_MANAGERS_ALL			 = 1 << 6
 	};
 
 	// bitwise overload so casts aren't needed

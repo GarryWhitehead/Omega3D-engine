@@ -3,7 +3,6 @@
 #include <string>
 
 #define VULKAN_HPP_TYPESAFE_CONVERSION 
-//#include "vulkan/vulkan.h"
 #include "vulkan/vulkan.hpp"
 //#include "volk.h"
 

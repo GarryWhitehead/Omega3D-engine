@@ -55,8 +55,8 @@ namespace OmegaEngine
 			float dt = 30.0f;
 
 			// window dimensions
-			uint32_t win_width = 800;
-			uint32_t win_height = 600;
+			uint32_t win_width;
+			uint32_t win_height;
 		};
 
 		static ProgramState program_state;
