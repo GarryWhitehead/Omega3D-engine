@@ -63,7 +63,8 @@ namespace OmegaEngine
 
 		std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-		shader.reflection(VulkanAPI::StageType::Vertex, *descr_layout, pl_layout, *pipeline, sampler_layout, buffer_layout);
+		shader.descriptor_buffer_reflect (descr_layout, buffer_layout);
+		shader.descriptor_image_reflect(descr_layout, sampler_layout);
 
 		assert(!sampler_layout.empty());
 		assert(!buffer_layout.empty());
@@ -74,17 +75,17 @@ namespace OmegaEngine
 		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
 			descr_set->update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler->get_sampler(), image_views[i], attachments[i].layout);
 		}
-		for (uint8_t i = 0; i < buffer_layout.size(); ++i) {
-			descr_set->update_set(i, vk::DescriptorType::eSampler, image_views[i], attachments[i].layout);
+		for (uint32_t i = 0; i < buffer_layout.size(); ++i) {
+			descr_set->update_set(i, );
 		}
 		
 		// and finally create the pipeline
-		pipeline->set_depth_state(VK_TRUE, VK_FALSE);
-		pipeline->add_dynamic_state(vk::DynamicState::eLineWidth);
-		pipeline->set_topology(vk::PrimitiveTopology::eTriangleList);
-		pipeline->add_colour_attachment(VK_FALSE);
-		pipeline->set_raster_front_face(vk::FrontFace::eClockwise);
-		pipeline->create();
+		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
+		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
+		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		pipeline.add_colour_attachment(VK_FALSE);
+		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
+		pipeline.create();
 	}
 
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
@@ -97,7 +98,7 @@ namespace OmegaEngine
 		cmd_buffer.begin_renderpass(begin_info);
 
 		// bind everything required to draw
-		cmd_buffer.bind_pipeline(*pipeline);
+		cmd_buffer.bind_pipeline(pipeline);
 		cmd_buffer.bind_descriptors(pl_layout, *descr_set, VulkanAPI::PipelineType::Graphics);
 
 		// set push constants for light variables

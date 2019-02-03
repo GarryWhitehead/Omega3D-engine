@@ -5,6 +5,7 @@
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/Pipeline.h"
+#include "Vulkan/Descriptors.h"
 
 #include <vector>
 #include <functional>
@@ -60,8 +61,8 @@ namespace OmegaEngine
 		// for the rendering pipeline
 		VulkanAPI::Shader shader;
 		VulkanAPI::PipelineLayout pl_layout;
-		std::unique_ptr<VulkanAPI::Pipeline> pipeline;
-		std::unique_ptr<VulkanAPI::DescriptorLayout> descr_layout;
+		VulkanAPI::Pipeline pipeline;
+		VulkanAPI::DescriptorLayout descr_layout;
 		std::unique_ptr<VulkanAPI::DescriptorSet> descr_set;
 		std::unique_ptr<VulkanAPI::RenderPass> renderpass;
 

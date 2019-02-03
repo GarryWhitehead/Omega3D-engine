@@ -40,7 +40,7 @@ namespace VulkanAPI
 		tex_image.create(device, format, width, height, mip_levels, 1, TextureType::Normal);
 
 		// and a image view of the empty image
-		tex_imageView.create(tex_image);
+		tex_imageView.create(device, tex_image);
 	}
 
 	void Texture::map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc)
@@ -131,7 +131,7 @@ namespace VulkanAPI
 
 	vk::ImageView& Texture::get_image_view()
 	{
-		return tex_imageView->get_imageView();
+		return tex_imageView.get_imageView();
 	}
 
 }

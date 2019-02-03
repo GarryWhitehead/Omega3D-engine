@@ -69,8 +69,12 @@ namespace OmegaEngine
 
 		// create a which will be the abstract scrren surface which will be used for creating swapchains
 		// TODO: add more cross-platform compatibility by adding more surfaces
-		vk::SurfaceKHR surface;
-		VK_CHECK_RESULT(glfwCreateWindowSurface(device.getInstance, window, nullptr, &surface.operator VkDeviceMemory));
+		VkSurfaceKHR temp_surface;
+		VkResult err = glfwCreateWindowSurface(device.getInstance(), window, nullptr, &temp_surface);
+		if (err) {
+			throw std::runtime_error("Unable to create window surface.");
+		}
+		vk::SurfaceKHR surface = vk::SurfaceKHR(temp_surface);
 		device.set_window_surface(surface);
 
 		gfx_devices.push_back(device);

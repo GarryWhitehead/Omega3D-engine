@@ -36,6 +36,8 @@ namespace VulkanAPI
 		Device();
 		~Device();
 
+		vk::Format& get_depth_format();
+
 		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();
 

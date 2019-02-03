@@ -42,7 +42,7 @@ namespace OmegaEngine
 		glfwPollEvents();
 	}
 
-	void InputManager::keyResponse(int key, int scan_code, int action, int mode)
+	void InputManager::keyResponse(GLFWwindow *window, int key, int scan_code, int action, int mode)
 	{
 		KeyboardPressEvent event;
 
@@ -58,19 +58,16 @@ namespace OmegaEngine
 		if (key == GLFW_KEY_D) {							// rightwards movement (x-axis)
 			event.isMovingRight = true;
 		}
-		/*if (key == GLFW_KEY_H && action == GLFW_PRESS) {							// enable/disable GUI
-
-			p_message->AddMessage({ "SwitchGUI", ListenerID::VULKAN_MSG });
-		}*/
+		
 		if (key == GLFW_KEY_ESCAPE) {												// exit
 
-			glfwSetWindowShouldClose(p_window, true);
+			glfwSetWindowShouldClose(window, true);
 		}
 
-		if (Global::managers.eventManger) {
+		if (Global::managers.eventManager) {
 
 			// update the camera position instantly so we reduce the chnace of lag
-			Global::managers.eventManger->instantNotification<KeyboardPressEvent>(event);
+			Global::managers.eventManager->instantNotification<KeyboardPressEvent>(event);
 		}
 	}
 
@@ -107,7 +104,13 @@ namespace OmegaEngine
 
 	void InputManager::mouseMoveResponse(double xpos, double ypos)
 	{
-		p_world->RequestSystem<CameraSystem>()->SetPitchYaw(xpos, ypos);
+		MouseMoveEvent event{ xpos, ypos };
+
+		if (Global::managers.eventManager) {
+
+			// update the camera position instantly so we reduce the chnace of lag
+			Global::managers.eventManager->instantNotification<MouseMoveEvent>(event);
+		}
 	}
 
 	bool InputManager::buttonState(int button)
@@ -124,15 +127,15 @@ namespace OmegaEngine
 		return state;
 	}
 
-	void InputManager::getCursorPos(double *xpos, double *ypos)
+	void InputManager::getCursorPos(GLFWwindow *window, double *xpos, double *ypos)
 	{
-		glfwGetCursorPos(p_window, xpos, ypos);
+		glfwGetCursorPos(window, xpos, ypos);
 	}
 
-	void InputManager::switchWindowCursorState()
+	void InputManager::switchWindowCursorState(GLFWwindow *window)
 	{
 		cursorState ^= 1;
-		glfwSetInputMode(p_window, GLFW_CURSOR, cursorState ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
+		glfwSetInputMode(window, GLFW_CURSOR, cursorState ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 	}
 
 
@@ -141,7 +144,7 @@ namespace OmegaEngine
 	void keyCallback(GLFWwindow *window, int key, int scan_code, int action, int mode)
 	{
 		InputManager *inputSys = reinterpret_cast<InputManager*>(glfwGetWindowUserPointer(window));
-		inputSys->keyResponse(key, scan_code, action, mode);
+		inputSys->keyResponse(window, key, scan_code, action, mode);
 	}
 
 	void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mods)

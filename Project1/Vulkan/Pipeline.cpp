@@ -134,7 +134,7 @@ namespace VulkanAPI
 		renderpass,
 		0, nullptr, -1);
 
-		VK_CHECK_RESULT(device.createGraphicsPipelines(VK_NULL_HANDLE, 1, &createInfo, nullptr, &pipeline));
+		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 	}
 
 }

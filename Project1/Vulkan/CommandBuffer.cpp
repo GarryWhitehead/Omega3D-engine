@@ -37,14 +37,17 @@ namespace VulkanAPI
 
 	vk::PipelineBindPoint create_bind_point(PipelineType type)
 	{
+		vk::PipelineBindPoint bind_point;
+
 		switch (type) {
 		case PipelineType::Graphics:
-			return vk::PipelineBindPoint::eGraphics;
+			bind_point = vk::PipelineBindPoint::eGraphics;
 			break;
 		case PipelineType::Compute:
-			return vk::PipelineBindPoint::eCompute;
+			bind_point = vk::PipelineBindPoint::eCompute;
 			break;
 		}
+		return bind_point;
 	}
 
 	CommandBuffer::CommandBuffer()
@@ -113,6 +116,27 @@ namespace VulkanAPI
 			{ begin_info.renderArea.extent.width, begin_info.renderArea.extent.height } });
 
 		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+	}
+
+	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port)
+	{
+		// stor the renderpass and framebuffer locally
+		renderpass = begin_info.renderPass;
+		framebuffer = begin_info.framebuffer;
+
+		assert(renderpass);
+		assert(framebuffer);
+
+		// use custom defined viewport
+		vk::Rect2D scissor({ { static_cast<int32_t>(view_port.x), static_cast<int32_t>(view_port.y) },
+			{ static_cast<uint32_t>(view_port.width), static_cast<uint32_t>(view_port.height) } });
+
+		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+	}
+
+	void CommandBuffer::end_pass()
+	{
+		cmd_buffer.endRenderPass();
 	}
 
 	void CommandBuffer::end()

@@ -37,8 +37,7 @@ namespace OmegaEngine
 	// classes for event types
 	struct MouseButtonEvent : public Event
 	{
-		double xpos;
-		double ypos;
+	
 	};
 
 	struct KeyboardPressEvent : public Event
@@ -48,6 +47,16 @@ namespace OmegaEngine
 		bool isMovingForward = false;
 		bool isMovingBackward = false;
 		bool isMoving = false;
+	};
+
+	struct MouseMoveEvent : public Event
+	{
+		MouseMoveEvent(double x, double y) :
+			xpos(x), ypos(y)
+		{}
+
+		double xpos = 0.0;
+		double ypos = 0.0;
 	};
 
 	class CameraManager : public ManagerBase

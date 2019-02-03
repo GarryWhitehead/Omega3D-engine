@@ -45,6 +45,10 @@ namespace VulkanAPI
 
 		createModule(device, type);
 		createWrapper(type);
+
+		// keep track of which shaders we have added
+		curr_stages[(int)type] = true;
+
 		return true;
 	}
 
@@ -56,6 +60,10 @@ namespace VulkanAPI
 		if (!add(device, filename2, type2)) {
 			return false;
 		}
+
+		curr_stages[(int)type1] = true;
+		curr_stages[(int)type2] = true;
+
 		return true;
 	}
 
@@ -89,82 +97,120 @@ namespace VulkanAPI
 		wrappers.push_back(createInfo);
 	}
 
-	void Shader::descriptor_reflection(StageType type, DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout)
+	void Shader::descriptor_buffer_reflect(DescriptorLayout& descr_layout, std::vector<ShaderBufferLayout>& buffer_layout)
 	{
-		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+		// reflect for each stage that has been setup
+		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
 
-		auto shader_res = compiler.get_shader_resources();
+			if (!curr_stages[i]) {
+				continue;
+			}
 
-		// sampler 2D
-		for (auto& image : shader_res.sampled_images) {
+			spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
 
-			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
-			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-			descr_layout.add_layout(binding, vk::DescriptorType::eSampler, get_stage_flag_bits(type));
-			image_layout.push_back({ binding, set, image.name.c_str() });
+			auto shader_res = compiler.get_shader_resources();
+
+			// ubo
+			for (auto& ubo : shader_res.uniform_buffers) {
+
+				uint32_t set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
+				uint32_t binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
+				descr_layout.add_layout(binding, vk::DescriptorType::eUniformBuffer, get_stage_flag_bits(StageType(i)));
+				buffer_layout.push_back({ ShaderBufferLayout::LayoutType::UniformBuffer, binding, set, ubo.name.c_str() });
+			}
+
+			// storage
+			for (auto& ssbo : shader_res.storage_buffers) {
+
+				uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
+				uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
+				descr_layout.add_layout(binding, vk::DescriptorType::eStorageBuffer, get_stage_flag_bits(StageType(i)));
+				buffer_layout.push_back({ ShaderBufferLayout::LayoutType::StorageBuffer, binding, set, ssbo.name.c_str() });
+			}
+
+			// image storage
+			for (auto& image : shader_res.storage_images) {
+
+				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+				descr_layout.add_layout(binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(StageType(i)));
+			}
 		}
+	}
 
-		// ubo
-		for (auto& ubo : shader_res.uniform_buffers) {
+	void Shader::descriptor_image_reflect(DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout)
+	{
+		// reflect for each stage that has been setup
+		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
 
-			uint32_t set = compiler.get_decoration(ubo.id, spv::DecorationDescriptorSet);
-			uint32_t binding = compiler.get_decoration(ubo.id, spv::DecorationBinding);
-			descr_layout.add_layout(binding, vk::DescriptorType::eUniformBuffer, get_stage_flag_bits(type));
-			buffer_layout.push_back({ ShaderBufferLayout::LayoutType::UniformBuffer, binding, set, ubo.name.c_str() });
-		}
+			if (!curr_stages[i]) {
+				continue;
+			}
 
-		// storage
-		for (auto& ssbo : shader_res.storage_buffers) {
+			spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
 
-			uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
-			uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
-			descr_layout.add_layout(binding, vk::DescriptorType::eStorageBuffer, get_stage_flag_bits(type));
-			buffer_layout.push_back({ ShaderBufferLayout::LayoutType::StorageBuffer, binding, set, ssbo.name.c_str() });
-		}
+			auto shader_res = compiler.get_shader_resources();
 
-		// image storage
-		for (auto& image : shader_res.storage_images) {
+			// sampler 2D
+			for (auto& image : shader_res.sampled_images) {
 
-			uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
-			uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-			descr_layout.add_layout(binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(type));
+				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
+				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
+				descr_layout.add_layout(binding, vk::DescriptorType::eSampler, get_stage_flag_bits(StageType(i)));
+				image_layout.push_back({ binding, set, image.name.c_str() });
+			}
 		}
 	}
 
 	void Shader::pipeline_layout_reflect(PipelineLayout& p_info)
 	{
-		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+		// reflect for each stage that has been setup
+		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
 
-		auto shader_res = compiler.get_shader_resources();
+			if (!curr_stages[i]) {
+				continue;
+			}
 
-		// get push constants struct sizes if any
-		if (!shader_res.push_constant_buffers.empty()) {
-			p_info.push_constant_sizes[(int)type] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
+			spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
+
+			auto shader_res = compiler.get_shader_resources();
+
+			// get push constants struct sizes if any
+			if (!shader_res.push_constant_buffers.empty()) {
+				p_info.push_constant_sizes[i] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
+			}
 		}
-
 	}
 
 	void Shader::pipeline_reflection(Pipeline& pipeline)
 	{
-		spirv_cross::Compiler compiler(std::move(data[(int)type]));
+		// reflect for each stage that has been setup
+		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
 
-		auto shader_res = compiler.get_shader_resources();
-
-		// get the number of input and output stages
-		for (auto& input : shader_res.stage_inputs) {
-
-			uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
-			auto& base_type = compiler.get_type(input.base_type_id);
-			auto& member = compiler.get_type(base_type.self);
-
-			if (member.vecsize && member.columns == 1) {
-				uint32_t vec_size = compiler.type_struct_member_matrix_stride(member, 0);
-
+			if (!curr_stages[i]) {
+				continue;
 			}
-		}
-		for (auto& output : shader_res.stage_outputs) {
 
-			uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
+			spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
+
+			auto shader_res = compiler.get_shader_resources();
+
+			// get the number of input and output stages
+			for (auto& input : shader_res.stage_inputs) {
+
+				uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+				auto& base_type = compiler.get_type(input.base_type_id);
+				auto& member = compiler.get_type(base_type.self);
+
+				if (member.vecsize && member.columns == 1) {
+					uint32_t vec_size = compiler.type_struct_member_matrix_stride(member, 0);
+
+				}
+			}
+			for (auto& output : shader_res.stage_outputs) {
+
+				uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
+			}
 		}
 	}
 }

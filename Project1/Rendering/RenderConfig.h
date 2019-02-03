@@ -12,6 +12,12 @@ namespace OmegaEngine
 			RendererType renderer;
 
 		} general;
+
+		bool useSSAO = false;
+		bool useMSAA = false;
+		bool shadowsEnabled = true;
+		bool bloomEnabled = true;
+		bool fogEnabled = true;
 	};
 
 }

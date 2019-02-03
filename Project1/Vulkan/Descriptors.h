@@ -27,6 +27,17 @@ namespace VulkanAPI
 		void add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
 		void create(vk::Device device);
 		
+		vk::DescriptorSetLayout& get_layout()
+		{
+			assert(layout);
+			return layout;
+		}
+
+		vk::DescriptorPool& get_pool()
+		{
+			assert(pool);
+			return pool;
+		}
 
 	private:
 
@@ -42,7 +53,7 @@ namespace VulkanAPI
 
 	public:
 		
-		DescriptorSet(vk::Device device, vk::DescriptorPool& pool, vk::DescriptorSetLayout& layout);
+		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
 		void update_set(uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range);
 		void update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
@@ -50,6 +61,7 @@ namespace VulkanAPI
 
 		vk::DescriptorSet& get()
 		{
+			assert(set);
 			return set;
 		}
 

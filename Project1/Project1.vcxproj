@@ -114,16 +114,7 @@
     <ClInclude Include="utility\GeneralUtil.h" />
     <ClInclude Include="utility\Logger.h" />
     <ClInclude Include="OEMaths\OEMaths_convert.h" />
-    <ClInclude Include="VulkanCore\Vulkan_Global.h" />
-    <ClInclude Include="imconfig.h" />
-    <ClInclude Include="imgui.h" />
-    <ClInclude Include="imgui_internal.h" />
     <ClInclude Include="Managers\EventManager.h" />
-    <ClInclude Include="VulkanCore\VkSwapChain.h" />
-    <ClInclude Include="VulkanCore\VkDescriptors.h" />
-    <ClInclude Include="VulkanCore\VkPostProcess.h" />
-    <ClInclude Include="VulkanCore\vkFFT.h" />
-    <ClInclude Include="VulkanCore\TerrainUtility.h" />
     <ClInclude Include="utility\RandomNumber.h" />
     <ClInclude Include="Managers\InputManager.h" />
     <ClInclude Include="Engine\World.h" />

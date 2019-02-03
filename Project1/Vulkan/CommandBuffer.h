@@ -42,6 +42,8 @@ namespace VulkanAPI
 
 		void begin_secondary(uint32_t index);
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
+		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
+		void end_pass();
 		void end();
 
 		// primary binding functions

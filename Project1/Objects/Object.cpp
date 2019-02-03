@@ -37,7 +37,7 @@ namespace OmegaEngine
 		return parent_id;
 	}
 
-	bool Object::is_alive() 
+	bool Object::is_alive() const
 	{
 		return is_alive;
 	}

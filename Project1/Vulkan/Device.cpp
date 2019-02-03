@@ -22,6 +22,19 @@ namespace VulkanAPI
 		return VK_FALSE;
 	}
 
+	// depth image
+	static vk::Format& get_depth_format()
+	{
+		std::vector<VkFormat> formats =
+		{
+			VK_FORMAT_D32_SFLOAT,
+			VK_FORMAT_D32_SFLOAT_S8_UINT,
+			VK_FORMAT_D24_UNORM_S8_UINT
+		};
+
+		VkFormat depthFormat = VulkanUtility::FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, p_vkDevice->physDevice);
+	}
+
 	void Device::createInstance(const char **glfwExtension, uint32_t extCount)
 	{
 		vk::ApplicationInfo appInfo(
@@ -145,7 +158,7 @@ namespace VulkanAPI
 
 		// find queues for this gpu
 		uint32_t queueCount = 0;
-		VkBool32 presentQueue = false;
+		VkBool32 have_present_queue = false;
 
 		std::vector<vk::QueueFamilyProperties> queues = physical.getQueueFamilyProperties();
 
@@ -159,8 +172,8 @@ namespace VulkanAPI
 				queue.computeIndex = c;
 			}
 
-			physical.getSurfaceSupportKHR(c, surface, &presentQueue);
-			if (queues[c].queueCount > 0 && presentQueue) {																	// presentation queue?
+			physical.getSurfaceSupportKHR(c, surface, &have_present_queue);
+			if (queues[c].queueCount > 0 && have_present_queue) {																	// presentation queue?
 				queue.presentIndex = c;
 			}
 

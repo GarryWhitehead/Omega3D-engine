@@ -8,6 +8,7 @@
 #include "Omega_Common.h"
 
 #include <vector>
+#include <cstdint>
 
 namespace OmegaEngine
 {

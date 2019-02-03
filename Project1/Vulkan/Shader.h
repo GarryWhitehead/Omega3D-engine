@@ -26,7 +26,7 @@ namespace VulkanAPI
 		uint32_t set;
 		const char* name;
 
-		ShaderBufferLayout(LayoutType t, uint8_t bind, uint8_t s, const char* n) :
+		ShaderBufferLayout(LayoutType t, uint32_t bind, uint32_t s, const char* n) :
 			type(t), binding(bind), set(s), name(n)
 		{}
 	};
@@ -61,7 +61,8 @@ namespace VulkanAPI
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
-		void descriptor_reflection(StageType type, DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout, std::vector<ShaderBufferLayout>& buffer_layout);
+		void descriptor_buffer_reflect(DescriptorLayout& descr_layout, std::vector<ShaderBufferLayout>& buffer_layout);
+		void descriptor_image_reflect(DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout);
 		void pipeline_layout_reflect(PipelineLayout& p_info);
 		void pipeline_reflection(Pipeline& pipeline);
 
@@ -85,6 +86,7 @@ namespace VulkanAPI
 
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;
 		std::array<std::vector<uint32_t>, (int)StageType::Count > data;
+		std::array<bool, (int)StageType::Count > curr_stages = { false };
 	};
 
 }

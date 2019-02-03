@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Managers/ManagerBase.h"
+#include "Omega_Common.h"
+#include <cstdint>
 
 namespace OmegaEngine
 {

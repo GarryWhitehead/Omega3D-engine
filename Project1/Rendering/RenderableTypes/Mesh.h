@@ -19,7 +19,8 @@ namespace OmegaEngine
 	class DeferredRenderer;
 	class ComponentInterface;
 	class ThreadPool;
-	class RenderPipeline;
+	struct RenderPipeline;
+	class Object;
 
 	// renderable object types
 	class RenderableMesh : public RenderableBase

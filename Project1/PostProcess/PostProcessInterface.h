@@ -1,11 +1,8 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/CommandBuffer.h"
 
 // forward declerations
-namespace VulkanAPI
-{
-	class CommandBuffer;
-}
 
 namespace OmegaEngine
 {
@@ -24,7 +21,7 @@ namespace OmegaEngine
 
 		vk::Device device;
 
-		VulkanAPI::CommandBuffer& cmd_buffer;
+		VulkanAPI::CommandBuffer cmd_buffer;
 	};
 
 }

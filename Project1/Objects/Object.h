@@ -28,7 +28,7 @@ namespace OmegaEngine
 		uint64_t get_id() const;
 		void set_id(const uint64_t _id);
 		uint64_t get_parent() const;
-		bool is_alive();
+		bool is_alive() const;
 
 		template <typename T>
 		uint32_t get_manager_index()

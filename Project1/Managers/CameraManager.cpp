@@ -25,7 +25,7 @@ namespace OmegaEngine
 	void CameraManager::updateViewMatrix()
 	{
 		Camera& camera = cameras[camera_index];
-		currentViewMatrix = OEMaths::lookAt(camera.get_position(), camera.get_position() + front_vec, camera.get_up_vec());
+		currentViewMatrix = OEMaths::lookAt(camera.start_position, camera.start_position + front_vec, camera.camera_up);
 	}
 
 	void CameraManager::mouse_button_event(MouseButtonEvent& event)

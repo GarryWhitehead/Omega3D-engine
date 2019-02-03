@@ -3,9 +3,11 @@
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/RenderPass.h"
+#include "Vulkan/Descriptors.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Queue.h"
 #include "Vulkan/Image.h"
+#include "Vulkan/Sampler.h"
 
 namespace OmegaEngine
 {
@@ -78,10 +80,20 @@ namespace OmegaEngine
 			renderpass.prepareFramebuffer(offscreen_tex.get_image_view(), irradiance_dim, irradiance_dim);
 
 			// prepare the shader
+			VulkanAPI::DescriptorLayout descr_layout;
 			VulkanAPI::Shader shader;
 			VulkanAPI::PipelineLayout pl_layout;
 			shader.add(device, "env/irradiance_map-vert.spv", VulkanAPI::StageType::Vertex, "env/irradiance-frag.spv", VulkanAPI::StageType::Fragment);
-			shader.reflection(VulkanAPI::StageType::Vertex, descr_layout, pl_layout, pipeline);
+			
+			// use reflection to fill in the pipeline layout and descriptors
+			shader.pipeline_layout_reflect(pl_layout);
+			std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
+			shader.descriptor_image_reflect(descr_layout, sampler_layout);
+
+			// descriptor sets
+			VulkanAPI::DescriptorSet descr_set(device, descr_layout);
+			VulkanAPI::Sampler linear_sampler(device, VulkanAPI::SamplerType::LinearClamp);
+			descr_set.update_set(sampler_layout[0].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), cube_tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
 
 			// pipeline
 			VulkanAPI::Pipeline pipeline(device, VulkanAPI::PipelineType::Graphics);
@@ -127,13 +139,13 @@ namespace OmegaEngine
 					vk::ImageCopy image_copy(src_resource, src_offset, dst_resource, dst_offset, extent);
 
 					offscreen_tex.get_image().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
-					cmd_buffer.copyImage(offscreen_tex.get_image(), vk::ImageLayout::eTransferSrcOptimal, cube_tex.get_image(), vk::ImageLayout::eTransferDstOptimal, 1, &image_copy);
+					cmd_buffer.get().copyImage(offscreen_tex.get_image().get(), vk::ImageLayout::eTransferSrcOptimal, cube_tex.get_image().get(), vk::ImageLayout::eTransferDstOptimal, 1, &image_copy);
 					
 					// transition the offscreen image back to colour attachment ready for the next image
-					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, 1, cmd_buffer.get(), graph_queue, cmd_buffer.get_pool());
+					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
 				}
 			}
-			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get(), graph_queue, cmd_buffer.get_pool());
+			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
 
 			graph_queue.submit_cmd_buffer(cmd_buffer.get());
 		}

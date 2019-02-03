@@ -115,8 +115,8 @@ namespace VulkanAPI
 
 		for (int c = 0; c < images.size(); ++c)
 		{
-			VulkanAPI::ImageView imageView(device.getDevice()); 
-		    imageView.create(images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
+			VulkanAPI::ImageView imageView; 
+		    imageView.create(device.getDevice(), images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
 			image_views.push_back(imageView);
 		}
 	}

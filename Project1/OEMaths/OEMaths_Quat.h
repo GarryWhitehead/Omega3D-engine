@@ -99,7 +99,7 @@ namespace OEMaths
 	template <typename T>
 	inline quat<T> normalise_quat(quat<T>& q)
 	{
-		vec4<T> retVec;
+		quat<T> retVec;
 		T length = length_quat(q);
 		T invLength = static_cast<T>(1) / length;
 
