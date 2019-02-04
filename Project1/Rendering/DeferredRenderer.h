@@ -18,6 +18,7 @@ namespace VulkanAPI
 	class DescriptorLayout;
 	class DescriptorSet;
 	class Interface;
+	
 }
 
 namespace OmegaEngine
@@ -25,6 +26,7 @@ namespace OmegaEngine
 	// forward declerations
 	class RenderInterface;
 	class PostProcessInterface;
+	class CameraManager;
 
 	enum class DeferredAttachments
 	{
@@ -47,7 +49,7 @@ namespace OmegaEngine
 		DeferredRenderer(vk::Device device);
 		~DeferredRenderer();
 
-		void create(uint32_t width, uint32_t height);
+		void create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager);
 
 		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);

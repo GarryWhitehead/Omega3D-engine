@@ -65,7 +65,7 @@ namespace OmegaEngine
 			RenderableBase* renderable;
 		};
 
-		RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height);
+		RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface);
 		~RenderInterface();
 
 		// renderable type creation

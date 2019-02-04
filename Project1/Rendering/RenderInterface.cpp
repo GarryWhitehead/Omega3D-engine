@@ -2,9 +2,10 @@
 #include "RenderableTypes/RenderableBase.h"
 #include "RenderableTypes/Mesh.h"
 #include "Rendering/DeferredRenderer.h"
-#include "ComponentInterface/ComponentInterface.h"
-#include "DataTypes/Object.h"
+#include "Managers/ComponentInterface.h"
+#include "Objects/Object.h"
 #include "Managers/TransformManager.h"
+#include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/DataTypes/Texture.h"
@@ -19,7 +20,7 @@
 namespace OmegaEngine
 {
 
-	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height)
+	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		// load the render config file if it exsists
 		load_render_config();
@@ -32,7 +33,7 @@ namespace OmegaEngine
 		case RendererType::Deferred:
 		{
 			def_renderer = std::make_unique<DeferredRenderer>(device);
-			def_renderer->create(win_width, win_height);
+			def_renderer->create(win_width, win_height, component_interface->getManager<CameraManager>());
 			render_callback = def_renderer->set_render_callback(this, vk_interface);
 			break;
 		}

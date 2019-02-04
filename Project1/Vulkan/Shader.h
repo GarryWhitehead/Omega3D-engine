@@ -15,19 +15,14 @@ namespace VulkanAPI
 	// Avoids having to use the descriptor layouts and offers more flexibility
 	struct ShaderBufferLayout
 	{
-		enum LayoutType
-		{
-			UniformBuffer,
-			StorageBuffer,
-		};
-
-		LayoutType type;
+		vk::DescriptorType type;
 		uint32_t binding;
 		uint32_t set;
+		uint32_t range;
 		const char* name;
 
-		ShaderBufferLayout(LayoutType t, uint32_t bind, uint32_t s, const char* n) :
-			type(t), binding(bind), set(s), name(n)
+		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, const char* _name, uint32_t _range) :
+			type(_type), binding(_bind), set(_set), name(_name), range(_range)
 		{}
 	};
 

@@ -9,7 +9,6 @@ namespace VulkanAPI
 	{
 
 	}
-
 	void PipelineLayout::create(OmegaEngine::RenderTypes type)
 	{
 		// create push constants
@@ -29,14 +28,18 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &pipeline_layouts[(int)type]));
 	}
 
-	Pipeline::Pipeline(vk::Device dev, PipelineType t) :
-		device(dev),
-		type(t)
+	
+	Pipeline::Pipeline()
 	{
 		// setup defualt pipeline states
 		add_dynamic_state(vk::DynamicState::eScissor);
 		add_dynamic_state(vk::DynamicState::eViewport);
 		set_topology(vk::PrimitiveTopology::eTriangleList);
+	}
+
+	Pipeline::~Pipeline()
+	{
+
 	}
 
 	void Pipeline::set_raster_cull_mode(vk::CullModeFlags cull_mode)
@@ -117,8 +120,11 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createPipelineLayout(&create_info, nullptr, &pl_layout));
 	}
 
-	void Pipeline::create()
+	void Pipeline::create(vk::Device dev, PipelineType _type)
 	{
+		device = dev;
+		type = _type;
+		
 		vk::GraphicsPipelineCreateInfo createInfo({}, 
 		static_cast<uint32_t>(shaders.size()), shaders.data(),
 		&vertex_input_state,

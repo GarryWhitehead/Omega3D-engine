@@ -36,8 +36,8 @@ namespace OmegaEngine
 		currentX = event.xpos;
 		currentY = event.ypos;
 
-		yaw -= offsetX * MOUSE_SENSITIVITY;
-		pitch -= offsetY * MOUSE_SENSITIVITY;
+		yaw -= offsetX * Global::program_state.get_mouse_sensitivity();
+		pitch -= offsetY * Global::program_state.get_mouse_sensitivity();
 
 		pitch = std::max(pitch, 89.0f);
 		pitch = std::min(pitch, -89.0f);
@@ -59,10 +59,10 @@ namespace OmegaEngine
 
 			// check for forwards and strafe movement
 			if (event.isMovingForward) {
-				current_pos += front_vec * velocity * Engine::DT;
+				current_pos += front_vec * velocity; // Engine::DT;	<- Needed?
 			}
 			if (event.isMovingBackward) {
-				current_pos -= front_vec * velocity * Engine::DT;
+				current_pos -= front_vec * velocity; // Engine::DT;
 			}
 			if (event.isMovingLeft) {
 				current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;

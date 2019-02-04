@@ -18,7 +18,8 @@ namespace VulkanAPI
 	{
 	public:
 
-		Pipeline(vk::Device device, PipelineType t);
+		Pipeline();
+		~Pipeline();
 
 		void set_raster_cull_mode(vk::CullModeFlags cull_mode);
 		void set_raster_front_face(vk::FrontFace front_face);
@@ -35,7 +36,7 @@ namespace VulkanAPI
 		void add_layout(vk::PipelineLayout pl);
 		void add_empty_layout();
 
-		void create();
+		void create(vk::Device dev, PipelineType type);
 	
 		PipelineType get_pipeline_type() const
 		{

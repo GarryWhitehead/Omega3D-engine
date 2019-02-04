@@ -2,6 +2,7 @@
 #include "Utility/logger.h"
 #include "Rendering/RenderInterface.h"
 #include "Engine/Omega_Global.h"
+#include "Managers/CameraManager.h"
 #include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"
@@ -23,7 +24,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void DeferredRenderer::create(uint32_t width, uint32_t height)
+	void DeferredRenderer::create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager)
 	{
 		// a list of the formats required for each buffer
 		vk::Format depth_format = VulkanAPI::Util::get_depth_format();
@@ -75,9 +76,10 @@ namespace OmegaEngine
 		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
 			descr_set->update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler->get_sampler(), image_views[i], attachments[i].layout);
 		}
-		for (uint32_t i = 0; i < buffer_layout.size(); ++i) {
-			descr_set->update_set(i, );
-		}
+		
+		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
+		descr_set->update_set(0, buffer_layout[0].type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), buffer_layout[0].range);
+		
 		
 		// and finally create the pipeline
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
@@ -85,7 +87,7 @@ namespace OmegaEngine
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		pipeline.add_colour_attachment(VK_FALSE);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		pipeline.create();
+		pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)

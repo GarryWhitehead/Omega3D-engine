@@ -51,14 +51,23 @@ namespace OmegaEngine
 				return win_height;
 			}
 
+			float get_mouse_sensitivity() const
+			{
+				return mouse_sensitivity;
+			}
+
 		private:
 
+			// general
 			bool isRunning = false;
 			float dt = 30.0f;
 
+			// mouse config
+			float mouse_sensitivity = 0.25f;
+
 			// window dimensions
-			uint32_t win_width;
-			uint32_t win_height;
+			uint32_t win_width = 1200;
+			uint32_t win_height = 800;
 		};
 
 		static ProgramState program_state;

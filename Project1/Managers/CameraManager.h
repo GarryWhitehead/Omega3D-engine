@@ -88,6 +88,17 @@ namespace OmegaEngine
 		void keyboard_press_event(KeyboardPressEvent& event);
 		void mouse_button_event(MouseButtonEvent& event);
 
+		vk::Buffer& get_ubo_buffer()
+		{
+			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			return mem_alloc.get_memory_buffer(ubo_buffer.get_id);
+		}
+
+		uint32_t get_ubo_offset() const
+		{
+			return ubo_buffer.get_offset();
+		}
+
 	private:
 
 		// all the cameras that had been added to the manager
