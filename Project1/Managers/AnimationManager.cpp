@@ -233,7 +233,7 @@ namespace OmegaEngine
 					// TODO
 					break;
 				default:
-					LOGGER_ERROR("Unvalid animation pathtype encountered.");
+					LOGGER_ERROR("Invalid animation pathtype encountered.");
 				}
 			}
 			

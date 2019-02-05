@@ -43,7 +43,7 @@ namespace VulkanAPI
 
 		uint8_t get_attach_count() const
 		{
-			return attachment.size();
+			return static_cast<uint32_t>(attachment.size());
 		}
 
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);

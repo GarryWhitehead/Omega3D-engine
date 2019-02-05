@@ -22,17 +22,37 @@ namespace VulkanAPI
 		return VK_FALSE;
 	}
 
-	// depth image
-	static vk::Format& get_depth_format()
+	// static functions - should probably get elsewhere at some point
+	namespace Util
 	{
-		std::vector<VkFormat> formats =
+		static vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu)
 		{
-			VK_FORMAT_D32_SFLOAT,
-			VK_FORMAT_D32_SFLOAT_S8_UINT,
-			VK_FORMAT_D24_UNORM_S8_UINT
-		};
+			for (auto format : formats) {
+				vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-		VkFormat depthFormat = VulkanUtility::FindSupportedFormat(formats, VK_IMAGE_TILING_OPTIMAL, VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT, p_vkDevice->physDevice);
+				if (tiling == vk::ImageTiling::eLinear && format_feature == (properties.linearTilingFeatures & format_feature)) {
+					return format;
+				}
+				else if (tiling == vk::ImageTiling::eOptimal && format_feature == (properties.optimalTilingFeatures & format_feature)) {
+					return format;
+				}
+				else {
+					throw std::runtime_error("Error! Unable to find supported vulkan format");
+				}
+			}
+		}
+
+		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu)
+		{
+			std::vector<vk::Format> formats =
+			{
+				vk::Format::eD32Sfloat,
+				vk::Format::eD32SfloatS8Uint,
+				vk::Format::eD24UnormS8Uint
+			};
+
+			vk::Format depthFormat = find_supported_format(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
+		}
 	}
 
 	void Device::createInstance(const char **glfwExtension, uint32_t extCount)
@@ -46,7 +66,7 @@ namespace VulkanAPI
 
 		// glfw extensions
 		std::vector<const char*> extensions;
-		for (int c = 0; c < extCount; ++c) {
+		for (uint32_t c = 0; c < extCount; ++c) {
 			extensions.push_back(glfwExtension[c]);
 		}
 
@@ -288,18 +308,20 @@ namespace VulkanAPI
 
 	VulkanAPI::Queue& Device::getQueue(QueueType type)
 	{
+		VulkanAPI::Queue ret_queue;
+
 		switch (type) {
 		case QueueType::Graphics:
-			return queue.graphQueue;
+			ret_queue = queue.graphQueue;
 			break;
 		case QueueType::Present:
-			return queue.presentQueue;
+			ret_queue = queue.presentQueue;
 			break;
 		case QueueType::Compute:
-			return queue.computeQueue;
+			ret_queue = queue.computeQueue;
 			break;
-		default:
-			return {};
 		}
+
+		return ret_queue;
 	}
 }

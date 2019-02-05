@@ -37,7 +37,7 @@ namespace VulkanAPI
 		assert(device);
 
 		// create an empty image
-		tex_image.create(device, format, width, height, mip_levels, 1, TextureType::Normal);
+		tex_image.create(device, format, width, height, TextureType::Normal);
 
 		// and a image view of the empty image
 		tex_imageView.create(device, tex_image);
@@ -48,9 +48,8 @@ namespace VulkanAPI
 		assert(device);
 
 		// store some of the texture attributes locally
-		tex_width = tex.tex_width;
-		tex_height = tex.tex_height;
-		tex_layers = tex.tex_layers;
+		tex_width = tex.tex_width();
+		tex_height = tex.tex_height();
 		
 		vk::DeviceMemory stagingMemory;
 		vk::Buffer staging_buff;
@@ -61,7 +60,7 @@ namespace VulkanAPI
 		memcpy(data_dst, tex.data(), tex.size());
 		device.unmapMemory(stagingMemory);
 
-		tex_image.create(device, tex.format(), tex.tex_width(), tex.tex_height(), tex.mipmapCount(), tex.tex_layers(), tex_type);
+		tex_image.create(device, tex.format(), tex.tex_width(), tex.tex_height(), tex_type);
 		vk::MemoryRequirements mem_req = device.getImageMemoryRequirements(tex_image.get());
 
 		uint32_t mem_type = Util::findMemoryType(mem_req.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
@@ -86,7 +85,6 @@ namespace VulkanAPI
 		cmd_buff.get().copyBufferToImage(staging_buff, tex_image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
 		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1, cmd_buff.get(), graph_queue.get(), cmd_buff.get_pool());
 		graph_queue.submit_cmd_buffer(cmd_buff.get());
-		cmd_buff.free();
 
 		// create an image view of the texture image
 		tex_imageView.create(device, tex_image);
@@ -98,7 +96,7 @@ namespace VulkanAPI
 	void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers)
 	{
 		uint32_t offset = 0;
-		for (uint32_t level = 0; level < mipLevels; ++level) {
+		for (uint32_t level = 0; level < mip_levels; ++level) {
 
 			vk::BufferImageCopy image_copy(0, 0, 0,
 				{ vk::ImageAspectFlagBits::eColor, level, 1, 0 },
@@ -113,9 +111,9 @@ namespace VulkanAPI
 	void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers)
 	{
 		uint32_t offset = 0;
-		for (uint32_t layer = 0; layer < layerCount; ++layer) {
+		for (uint32_t layer = 0; layer < tex_layers; ++layer) {
 
-			for (uint32_t level = 0; level < mipLevels; ++level) {
+			for (uint32_t level = 0; level < mip_levels; ++level) {
 
 				vk::BufferImageCopy image_copy(0, 0, 0,
 					{ vk::ImageAspectFlagBits::eColor, level, 1, layer },

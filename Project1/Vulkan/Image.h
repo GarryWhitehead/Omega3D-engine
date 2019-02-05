@@ -1,6 +1,8 @@
 #pragma once
 #include "Vulkan/Common.h"
 
+#include <cstdint>
+
 namespace VulkanAPI
 {
 	// forward decleartions

@@ -8,6 +8,7 @@
 #include "Vulkan/Queue.h"
 #include "Vulkan/Image.h"
 #include "Vulkan/Sampler.h"
+#include "Rendering/StockModels.h"
 
 namespace OmegaEngine
 {
@@ -37,12 +38,12 @@ namespace OmegaEngine
 			shader.add(device, "lut_bdrf-vert.spv", VulkanAPI::StageType::Vertex, "lut_bdrf-frag.spv", VulkanAPI::StageType::Fragment);
 
 			// and the pipeline
-			VulkanAPI::Pipeline pipeline(device, VulkanAPI::PipelineType::Graphics);
+			VulkanAPI::Pipeline pipeline;
 			pipeline.add_shader(shader);
 			pipeline.set_renderpass(renderpass.get());
 			pipeline.add_colour_attachment(VK_FALSE);
 			pipeline.add_empty_layout();
-			pipeline.create();
+			pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 
 			// and finally the command buffers
 			VulkanAPI::CommandBuffer cmd_buffer(device);
@@ -96,12 +97,15 @@ namespace OmegaEngine
 			descr_set.update_set(sampler_layout[0].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), cube_tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
 
 			// pipeline
-			VulkanAPI::Pipeline pipeline(device, VulkanAPI::PipelineType::Graphics);
+			VulkanAPI::Pipeline pipeline;
 			pipeline.add_shader(shader);
 			pipeline.set_renderpass(renderpass.get());
 			pipeline.add_colour_attachment(VK_FALSE);
 			pipeline.add_layout(pl_layout.get());
-			pipeline.create();
+			pipeline.create(device, VulkanAPI::PipelineType::Graphics);
+
+			// use the stock cube mesh
+			RenderUtil::CubeModel cube_model;
 
 			// record command buffer
 			VulkanAPI::CommandBuffer cmd_buffer(device);
@@ -121,13 +125,13 @@ namespace OmegaEngine
 					cmd_buffer.begin_renderpass(begin_info, view_port);
 					cmd_buffer.bind_pipeline(pipeline);
 					cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-					cmd_buffer.bind_vertex_buffer();
-					cmd_buffer.bind_index_buffer();
+					cmd_buffer.bind_vertex_buffer(cube_model.get_vertex_buffer());
+					cmd_buffer.bind_index_buffer(cube_model.get_index_buffer());
 
 					cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(push_block), &push);
 					
 					// draw cube into offscreen framebuffer
-					cmd_buffer.draw_indexed(, 1, 0, 0, 0);
+					cmd_buffer.draw_indexed(cube_model.get_index_count());
 					cmd_buffer.end_pass();
 
 					// copy the offscreen buffer to the current layer

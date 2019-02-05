@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <cstdint>
 
+#define M_PI 3.14159265358979323846264338327950288419716939937510582097
+
 namespace OEMaths
 {
 	template<typename T> class mat4;
@@ -99,11 +101,26 @@ namespace OEMaths
 			z = z * other.z;
 		}
 
+		vec3& operator*(const vec4<T>& other)
+		{
+			x = x * other.x;
+			y = y * other.y;
+			z = z * other.z;
+		}
+
 		vec3& operator*(const float& other)
 		{
 			x = x * other;
 			y = y * other;
 			z = z * other;
+			return *this;
+		}
+
+		vec3& operator*(const mat4<T>& other)
+		{
+			x = other[0] * x + other[1] * y + other[2] * z;
+			y = other[4] * x + other[5] * y + other[6] * z;
+			z = other[8] * x + other[9] * y + other[10] * z;
 			return *this;
 		}
 
@@ -122,6 +139,8 @@ namespace OEMaths
 			z += other.z;
 			return *this;
 		}
+
+
 
 	public:
 

@@ -6,6 +6,7 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Descriptors.h"
+#include "Rendering/RenderConfig.h"
 
 #include <vector>
 #include <functional>
@@ -46,7 +47,7 @@ namespace OmegaEngine
 
 	public:
 
-		DeferredRenderer(vk::Device device);
+		DeferredRenderer(vk::Device device, vk::PhysicalDevice physical, RenderConfig _render_config);
 		~DeferredRenderer();
 
 		void create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager);
@@ -59,6 +60,7 @@ namespace OmegaEngine
 	private:
 
 		vk::Device device;
+		vk::PhysicalDevice gpu;
 
 		// for the rendering pipeline
 		VulkanAPI::Shader shader;
@@ -78,6 +80,9 @@ namespace OmegaEngine
 
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;
+
+		// keep a local copy of the render config
+		RenderConfig render_config;
 	};
 
 }

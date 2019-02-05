@@ -86,7 +86,7 @@ namespace OmegaEngine
 		std::unique_ptr<World> world = std::make_unique<World>(filename, name);
 
 		worlds.push_back(world);
-		currentWorldIndex = worlds.size() - 1;
+		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);
 	}
 
 	void Engine::loadConfigFile()
@@ -105,7 +105,7 @@ namespace OmegaEngine
 
 		// general engine settings
 		if (doc.HasMember("FPS")) {
-			engine_config.fps = doc["FPS"].GetDouble();
+			engine_config.fps = doc["FPS"].GetFloat();
 		}
 
 	}

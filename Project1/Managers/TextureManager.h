@@ -29,6 +29,7 @@ namespace OmegaEngine
 		};
 
 		TextureManager();
+		~TextureManager();
 
 		void addGltfSampler(tinygltf::Sampler& sampler);
 		void addGltfImage(tinygltf::Image& image);

@@ -62,6 +62,7 @@ namespace VulkanAPI
 		void secondary_execute_commands();
 
 		// drawing functions
+		void draw_indexed(uint32_t index_count);
 		void draw_quad();
 		void draw_indexed_quad();
 		void secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle);

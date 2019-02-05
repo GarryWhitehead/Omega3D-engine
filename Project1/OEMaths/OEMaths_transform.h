@@ -232,4 +232,22 @@ namespace OEMaths
 		return lookAt;
 	}
 
+	template <typename T>
+	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
+	{
+		float t = std::tan(fov * 0.5 * M_PI / 180) * zNear;
+		float r = aspect * t;
+		float l = -r;
+		float b = -t;
+
+		mat4<T> retMat;
+		retMat(0, 0) = 2 * zNear / (r - l);
+		retMat(1, 1) = 2 * zNear / (t - b);
+		retMat(2, 0) = (r + l) / (r - l);
+		retMat(2, 1) = (t + b) / (t - b);
+		retMat(2, 2) = -(zFar + zNear) / (zFar - zNear);
+		retMat(2, 3) = -1;
+		retMat(3, 2) = -2 * zFar * zNear / (zFar - zNear);
+		return retMat;
+	}
 }

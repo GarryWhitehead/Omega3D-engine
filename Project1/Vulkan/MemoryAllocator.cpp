@@ -12,6 +12,12 @@ namespace VulkanAPI
 		destroyAllBlocks();
 	}
 
+	void MemoryAllocator::init(vk::Device dev, vk::PhysicalDevice physical)
+	{
+		device = dev;
+		gpu = physical;
+	}
+
 	uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags flags)
 	{
 		vk::PhysicalDeviceMemoryProperties memoryProp = gpu.getMemoryProperties();
@@ -26,7 +32,7 @@ namespace VulkanAPI
 		return UINT32_MAX;
 	}
 
-	void MemoryAllocator::createBuffer(uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
+	void MemoryAllocator::createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
 	{
 		vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
@@ -41,12 +47,6 @@ namespace VulkanAPI
 
 		VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
 		device.bindBufferMemory(buffer, memory, 0);
-	}
-
-	void MemoryAllocator::init(vk::Device dev, vk::PhysicalDevice physical)
-	{
-		device = dev;
-		gpu = physical;
 	}
 
 	vk::Buffer& MemoryAllocator::get_memory_buffer(const uint32_t id)
@@ -88,7 +88,7 @@ namespace VulkanAPI
 			block.type = MemoryType::VK_BLOCK_TYPE_LOCAL;
 		}
 
-		block.block_id = mem_blocks.size();
+		block.block_id = static_cast<int32_t>(mem_blocks.size());
 		block.total_size = alloc_size;
 		mem_blocks.push_back(block);
 
@@ -111,7 +111,7 @@ namespace VulkanAPI
 		return block_id;
 	}
 
-	MemorySegment& MemoryAllocator::allocate(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
+	MemorySegment MemoryAllocator::allocate(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
 	{
 		assert(device);
 		assert(gpu);

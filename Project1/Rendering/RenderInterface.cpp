@@ -19,6 +19,10 @@
 
 namespace OmegaEngine
 {
+	RenderInterface::RenderInterface()
+	{
+
+	}
 
 	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface)
 	{

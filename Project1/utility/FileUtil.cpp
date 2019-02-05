@@ -24,9 +24,9 @@ namespace OmegaEngine
 
 		bool readFileIntoBuffer(std::string filename, std::string& buffer)
 		{
-			std::fstream file;
-			file.open(filename, std::ios::in);
-			if (!file.is_open) {
+			std::ifstream file;
+			file.open(filename);
+			if (!file.is_open()) {
 				return false;
 			}
 

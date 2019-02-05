@@ -2,11 +2,14 @@
 #include "Managers/ManagerBase.h"
 #include "Managers/EventManager.h"
 #include "OEMaths/OEMaths.h"
+#include "OEMaths/OEMaths_transform.h"
 #include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/MemoryAllocator.h"
 
 namespace OmegaEngine 
 {
+	// forward declerations
+	class ObjectManager;
 
 	struct Camera
 	{
@@ -80,18 +83,18 @@ namespace OmegaEngine
 		CameraManager();
 		~CameraManager();
 
-		void update_frame(double time, double dt) override;
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager) override;
 
 		void updateViewMatrix();
 
 		// event functions
 		void keyboard_press_event(KeyboardPressEvent& event);
-		void mouse_button_event(MouseButtonEvent& event);
+		void mouse_move_event(MouseMoveEvent& event);
 
 		vk::Buffer& get_ubo_buffer()
 		{
 			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(ubo_buffer.get_id);
+			return mem_alloc.get_memory_buffer(ubo_buffer.get_id());
 		}
 
 		uint32_t get_ubo_offset() const
@@ -113,8 +116,8 @@ namespace OmegaEngine
 		OEMaths::vec3f current_pos;
 		OEMaths::vec3f front_vec;
 
-		float yaw;
-		float pitch;
+		double yaw;
+		double pitch;
 		double currentX;
 		double currentY;
 

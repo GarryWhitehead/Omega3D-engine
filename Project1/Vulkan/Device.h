@@ -6,6 +6,11 @@
 
 namespace VulkanAPI
 {
+	namespace Util
+	{
+		static vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
+		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
+	}
 
 	class Device
 	{
@@ -35,8 +40,6 @@ namespace VulkanAPI
 
 		Device();
 		~Device();
-
-		vk::Format& get_depth_format();
 
 		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();

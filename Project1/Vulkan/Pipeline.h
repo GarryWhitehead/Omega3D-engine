@@ -80,7 +80,7 @@ namespace VulkanAPI
 
 		PipelineLayout();
 
-		void create(OmegaEngine::RenderTypes type);
+		void create(vk::Device& device, vk::DescriptorSetLayout& descr_layout, OmegaEngine::RenderTypes type);
 
 		vk::PipelineLayout& get()
 		{
@@ -89,7 +89,8 @@ namespace VulkanAPI
 
 	private:
 
-		std::array<uint32_t, (const int)StageType::Count> push_constant_sizes = {};
+		// usually set through shader reflection
+		uint32_t push_constant_size = 0;	
 
 		vk::PipelineLayout layout;
 	};

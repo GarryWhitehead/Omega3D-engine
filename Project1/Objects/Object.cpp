@@ -1,6 +1,8 @@
 #include "Objects/Object.h"
 #include "Engine/engine.h"
 
+#include <cstdint>
+
 namespace OmegaEngine
 {
 	Object::Object()

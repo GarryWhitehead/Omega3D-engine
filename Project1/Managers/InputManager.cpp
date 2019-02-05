@@ -108,8 +108,10 @@ namespace OmegaEngine
 
 		if (Global::managers.eventManager) {
 
-			// update the camera position instantly so we reduce the chnace of lag
-			Global::managers.eventManager->instantNotification<MouseMoveEvent>(event);
+			if (left_button_press) {
+				// update the camera position instantly so we reduce the chnace of lag
+				Global::managers.eventManager->instantNotification<MouseMoveEvent>(event);
+			}
 		}
 	}
 

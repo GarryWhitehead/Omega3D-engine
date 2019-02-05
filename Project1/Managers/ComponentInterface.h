@@ -23,7 +23,7 @@ namespace OmegaEngine
 
 		void update_managers(double time, double dt);
 		
-		template<typename T, typename... Args>
+		template<typename... Args>
 		void registerManager()
 		{
 			std::unique_ptr<T> temp = std::make_unique<T>(Args);

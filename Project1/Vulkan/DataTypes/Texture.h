@@ -31,7 +31,7 @@ namespace VulkanAPI
 		Texture();
 		Texture(TextureType type);
 		~Texture();
-#
+
 		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
 		void create_empty_image(vk::Format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags);
 		void map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc);
@@ -72,6 +72,7 @@ namespace VulkanAPI
 		uint32_t tex_width = 0;
 		uint32_t tex_height = 0;
 		uint8_t tex_layers = 0;
+		uint32_t mip_levels = 0;
 
 		Image tex_image;
 		ImageView tex_imageView;

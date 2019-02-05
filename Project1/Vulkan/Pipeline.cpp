@@ -9,23 +9,24 @@ namespace VulkanAPI
 	{
 
 	}
-	void PipelineLayout::create(OmegaEngine::RenderTypes type)
+
+	void PipelineLayout::create(vk::Device& device, vk::DescriptorSetLayout& descr_layout, OmegaEngine::RenderTypes type)
 	{
 		// create push constants
 		std::vector<vk::PushConstantRange> push_constants;
 
 		for (uint16_t r_type = 0; r_type < (uint16_t)OmegaEngine::RenderTypes::Count; ++r_type) {
-			if (push_constant_sizes[r_type]) {
-				vk::PushConstantRange push(get_stage_flag_bits((StageType)r_type), 0, push_constant_sizes[r_type]);
+			if (push_constant_size) {
+				vk::PushConstantRange push(get_stage_flag_bits((StageType)r_type), 0, push_constant_size);
 				push_constants.push_back(push);
 			}
 		}
 		
 		vk::PipelineLayoutCreateInfo pipelineInfo({},
-			1, &m_materials[0].descriptor->layout,
+			1, &descr_layout,
 			static_cast<uint32_t>(push_constants.size()), push_constants.data());
 
-		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &pipeline_layouts[(int)type]));
+		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
 	}
 
 	

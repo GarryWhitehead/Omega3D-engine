@@ -12,7 +12,7 @@ namespace VulkanAPI
 
 		struct LayoutBindings
 		{
-			std::unordered_map<vk::DescriptorType, vk::DescriptorSetLayoutBinding> layouts;
+			std::vector<vk::DescriptorSetLayoutBinding> layouts;
 
 			// running counts of each descriptor type - required for creating descriptor pools
 			uint32_t ubo_count = 0;

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 namespace OmegaEngine
 {
 	// forward declerations
@@ -9,7 +11,11 @@ namespace OmegaEngine
 	{
 		struct General
 		{
+			// type of renderer to use - at the moment only deferred is supported
 			RendererType renderer;
+
+			std::array<float, 4> background_col = {};
+			bool use_post_process = true;
 
 		} general;
 

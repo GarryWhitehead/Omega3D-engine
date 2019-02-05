@@ -67,7 +67,7 @@ namespace OmegaEngine
 
 		uint32_t modelCount() const
 		{
-			return models.size();
+			return static_cast<uint32_t>(models.size());
 		}
 
 		OEMaths::mat4f getWorldMatrix(uint32_t index)

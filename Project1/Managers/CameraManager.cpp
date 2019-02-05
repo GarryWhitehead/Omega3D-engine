@@ -9,7 +9,7 @@ namespace OmegaEngine
 	CameraManager::CameraManager()
 	{
 		// set up events
-		Global::managers.eventManager->registerListener<CameraManager, MouseButtonEvent>(this, mouse_button_event);
+		Global::managers.eventManager->registerListener<CameraManager, MouseMoveEvent>(this, mouse_move_event);
 		Global::managers.eventManager->registerListener<CameraManager, KeyboardPressEvent>(this, keyboard_press_event);
 
 		// allocate gpu memory now for the ubo buffer as the size will remain static
@@ -28,7 +28,7 @@ namespace OmegaEngine
 		currentViewMatrix = OEMaths::lookAt(camera.start_position, camera.start_position + front_vec, camera.camera_up);
 	}
 
-	void CameraManager::mouse_button_event(MouseButtonEvent& event)
+	void CameraManager::mouse_move_event(MouseMoveEvent& event)
 	{
 		double offsetX = currentX - event.xpos;
 		double offsetY = currentY - event.ypos;
@@ -39,8 +39,8 @@ namespace OmegaEngine
 		yaw -= offsetX * Global::program_state.get_mouse_sensitivity();
 		pitch -= offsetY * Global::program_state.get_mouse_sensitivity();
 
-		pitch = std::max(pitch, 89.0f);
-		pitch = std::min(pitch, -89.0f);
+		pitch = std::max(pitch, 89.0);
+		pitch = std::min(pitch, -89.0);
 	}
 
 	void CameraManager::keyboard_press_event(KeyboardPressEvent& event)
@@ -76,7 +76,7 @@ namespace OmegaEngine
 
 	}
 
-	void CameraManager::update_frame(double time, double dt)
+	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
 	{
 		if (isDirty) {
 

@@ -33,7 +33,7 @@ namespace OmegaEngine
 
 		};
 
-		EventManager() {}
+		EventManager();
 
 		template <typename T, typename EventType>
 		void registerListener(T* l, std::function<void(Event&)> func)

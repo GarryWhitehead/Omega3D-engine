@@ -4,6 +4,9 @@
 
 #include "Omega_Common.h"
 
+#include <cstdint>
+#include <algorithm>
+
 namespace OmegaEngine
 {
 
@@ -104,7 +107,7 @@ namespace OmegaEngine
 
 			SkinnedBufferInfo skinned_info;
 			// prepare fianl output matrices buffer
-			uint32_t joint_size = std::min(skinBuffer[skin_index].joints.size(), MAX_NUM_JOINTS);
+			uint32_t joint_size = skinBuffer[skin_index].joints.size() > 256 ? 256 : skinBuffer[skin_index].joints.size();
 			skinBuffer[skin_index].joint_matrices.resize(joint_size);
 			
 			skinned_info.joint_count = joint_size;
@@ -143,7 +146,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_frame(double time, double dt)
+	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
 	{
 		// check whether static data need updating
 		if (is_dirty) {
@@ -152,7 +155,7 @@ namespace OmegaEngine
 			transform_buffer_info.clear();
 			skinned_buffer_info.clear();
 
-			update_transform();
+			update_transform(obj_manager);
 			is_dirty = false;
 		}
 

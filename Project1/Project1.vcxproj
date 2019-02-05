@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
+    <ClCompile Include="Rendering\StockModels.cpp" />
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
@@ -53,9 +54,6 @@
     <ClCompile Include="Threading\ThreadUtil.cpp" />
     <ClCompile Include="Threading\ThreadPool.cpp" />
     <ClCompile Include="utility\GeneralUtil.cpp" />
-    <ClCompile Include="imgui.cpp" />
-    <ClCompile Include="imgui_demo.cpp" />
-    <ClCompile Include="imgui_draw.cpp" />
     <ClCompile Include="Engine\Omega_Global.cpp" />
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
@@ -71,6 +69,7 @@
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Rendering\StockModels.h" />
     <ClInclude Include="OEMaths\OEMaths.h" />
     <ClInclude Include="OEMaths\OEMaths_transform.h" />
     <ClInclude Include="Managers\CameraManager.h" />

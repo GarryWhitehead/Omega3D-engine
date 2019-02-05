@@ -5,6 +5,7 @@
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
+#include "Vulkan/CommandBuffer.h"
 #include "RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
 
@@ -12,11 +13,6 @@
 #include <memory>
 #include <functional>
 
-// forward decleartions
-namespace VulkanAPI
-{
-	class CommandBuffer;
-};
 
 namespace OmegaEngine
 {	
@@ -65,6 +61,7 @@ namespace OmegaEngine
 			RenderableBase* renderable;
 		};
 
+		RenderInterface();
 		RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface);
 		~RenderInterface();
 
@@ -118,7 +115,7 @@ namespace OmegaEngine
 		std::function<void()> render_callback;
 
 		// Vulkan stuff for rendering the compoennts
-		VulkanAPI::CommandBuffer& cmd_buffer;
+		VulkanAPI::CommandBuffer cmd_buffer;
 	};
 
 }

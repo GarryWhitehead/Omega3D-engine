@@ -29,7 +29,7 @@ namespace VulkanAPI
 		device = dev;
 
 		vk::ImageViewType type;
-		switch (image.textureType) {
+		switch (image.textureType()) {
 		case TextureType::Normal:
 			type = vk::ImageViewType::e2D;
 			break;
@@ -49,7 +49,7 @@ namespace VulkanAPI
 		// making assumptions here based on the image format used
 		vk::ImageAspectFlags aspect;
 
-		switch (image.format) {
+		switch (image.format()) {
 		case vk::Format::eD32SfloatS8Uint:
 		[[ __fallthrough ]]
 		case vk::Format::eD24UnormS8Uint:
@@ -173,7 +173,7 @@ namespace VulkanAPI
 			old_layout, new_layout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
-			{ mask, static_cast<uint32_t>(image_mip_levels), levelCount, 0, image_layers });
+			{ mask, static_cast<uint32_t>(image_mip_levels), levelCount, 0, static_cast<uint32_t>(image_layers) });
 
 		comm_buff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 
@@ -219,24 +219,24 @@ namespace VulkanAPI
 				1, 1);
 
 			// create image barrier - transition image to transfer 
-			vk::ImageMemoryBarrier mem_barrier(
+			vk::ImageMemoryBarrier write_mem_barrier(
 				(vk::AccessFlags)0, vk::AccessFlagBits::eTransferWrite,
 				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
 				0, 0,
 				image, mip_subrange);
 
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &write_mem_barrier);
 
 			// blit the image
 			cmd_buffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
 
-			vk::ImageMemoryBarrier mem_barrier(
+			vk::ImageMemoryBarrier read_mem_barrier(
 				vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
 				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal,
 				0, 0,
 				image, mip_subrange);
 
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barrier);
+			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
 		}
 	}
 }

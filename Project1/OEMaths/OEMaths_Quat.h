@@ -91,7 +91,7 @@ namespace OEMaths
 	}
 
 	template <typename T>
-	inline quat<T> length_quat(quat<T>& q)
+	inline T length_quat(quat<T>& q)
 	{
 		return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 	}

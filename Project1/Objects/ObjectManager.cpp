@@ -55,7 +55,7 @@ namespace OmegaEngine
 
 	void ObjectManager::destroyObject(Object& obj)
 	{
-		uint32_t id = obj.get_id();
+		uint64_t id = obj.get_id();
 		objects.erase(id);
 		freeIds.push_front(id);
 	}

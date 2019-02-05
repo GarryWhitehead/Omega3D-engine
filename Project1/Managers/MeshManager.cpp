@@ -76,8 +76,8 @@ namespace OmegaEngine
 			}
 
 			// get the min and max values for this primitive
-			OEMaths::vec3f primMin{ posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2] };
-			OEMaths::vec3f primMax{ posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2] };
+			OEMaths::vec3f primMin{ static_cast<float>(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]) };
+			OEMaths::vec3f primMax{ static_cast<float>(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]) };
 
 			// now convert the data to a form that we can use with Vulkan
 			for (uint32_t j = 0; j < posAccessor.count; ++j) {

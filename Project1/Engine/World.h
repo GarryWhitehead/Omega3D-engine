@@ -15,7 +15,7 @@ namespace OmegaEngine
 	class ComponentInterface;
 	class AnimationManager;
 	class ObjectManager;
-	struct Object;
+	class Object;
 
 	enum class Managers
 	{

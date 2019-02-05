@@ -9,12 +9,15 @@
 #include "Vulkan/Queue.h"
 #include "Vulkan/SemaphoreManager.h"
 #include "PostProcess/PostProcessInterface.h"
+#include "Vulkan/Device.h"
 
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device dev) :
-		device(dev)
+	DeferredRenderer::DeferredRenderer(vk::Device dev, vk::PhysicalDevice physical, RenderConfig _render_config) :
+		device(dev),
+		gpu(physical),
+		render_config(_render_config)
 	{
 		
 	}
@@ -27,7 +30,7 @@ namespace OmegaEngine
 	void DeferredRenderer::create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager)
 	{
 		// a list of the formats required for each buffer
-		vk::Format depth_format = VulkanAPI::Util::get_depth_format();
+		vk::Format depth_format = VulkanAPI::Util::get_depth_format(gpu);
 
 		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments = 
 		{
@@ -96,7 +99,7 @@ namespace OmegaEngine
 		cmd_buffer.create_primary();
 
 		// begin the renderpass 
-		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info(render_config.general.background_col);
+		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 		cmd_buffer.begin_renderpass(begin_info);
 
 		// bind everything required to draw

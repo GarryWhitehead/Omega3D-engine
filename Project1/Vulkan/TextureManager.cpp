@@ -20,7 +20,8 @@ namespace VulkanAPI
 		// make sure this texture type exsists
 		if (iter == textures.end()) {
 			// return dummy texture
-			return {};
+			Texture tex;
+			return tex;
 		}
 
 		return iter->second[std::get<1>(handle)];

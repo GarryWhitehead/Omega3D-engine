@@ -1,7 +1,8 @@
 #pragma once
+#include "Vulkan/Common.h"
+
 #include <vector>
 #include <unordered_map>
-#include "Vulkan/Common.h"
 
 namespace VulkanAPI
 {
@@ -41,8 +42,7 @@ namespace VulkanAPI
 		MemorySegment(uint32_t id, uint32_t os, uint32_t sz) :
 			block_id(id),
 			offset(os),
-			size(sz),
-			data(nullptr)
+			size(sz)
 		{}
 
 		uint32_t get_offset() const
@@ -106,12 +106,12 @@ namespace VulkanAPI
 		void init(vk::Device dev, vk::PhysicalDevice physical);
 
 		// helper functions
-		static void createBuffer(const uint32_t size, const vk::BufferUsageFlags flags, const vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
-		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
+		void createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
+		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
 		vk::Buffer& get_memory_buffer(const uint32_t id);
 
 		// Segment allocation functions and mapping
-		MemorySegment& allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size);
+		MemorySegment allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size);
 		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
 		
 		//void defragBlockMemory(const uint32_t id);

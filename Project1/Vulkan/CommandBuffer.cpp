@@ -56,13 +56,15 @@ namespace VulkanAPI
 		create_cmd_pool();
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device device)
+	CommandBuffer::CommandBuffer(vk::Device dev) :
+		device(dev)
 	{
 	}
 
 
 	CommandBuffer::~CommandBuffer()
 	{
+		device.freeCommandBuffers(cmd_pool, 1, &cmd_buffer);
 	}
 
 	void CommandBuffer::init(vk::Device dev)
@@ -227,6 +229,11 @@ namespace VulkanAPI
 
 	
 	// drawing functions ========
+	void CommandBuffer::draw_indexed(uint32_t index_count)
+	{
+		cmd_buffer.drawIndexed(index_count, 1, 0, 0, 0);
+	}
+
 	void CommandBuffer::secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle)
 	{
 		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
