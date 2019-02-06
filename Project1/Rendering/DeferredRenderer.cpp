@@ -52,7 +52,7 @@ namespace OmegaEngine
 
 		// now create the renderpasses and frame buffers
 		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
-		renderpass = std::make_unique<VulkanAPI::RenderPass>(attachments, dependencies);
+		renderpass.init(attachments, dependencies);
 
 		// tie the image-views to the frame buffer
 		std::array<vk::ImageView, (int)DeferredAttachments::Count> image_views;
@@ -60,7 +60,7 @@ namespace OmegaEngine
 		for (uint8_t i = 0; i < attachments.size(); ++i) {
 			image_views[i] = images[i].get_image_view();
 		}
-		renderpass->prepareFramebuffer(image_views.size(), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
+		renderpass.prepareFramebuffer(image_views.size(), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment);
@@ -75,13 +75,13 @@ namespace OmegaEngine
 
 		// descriptor sets for all the deferred buffers samplers
 		// using a linear sampler for all deferred buffers
-		linear_sampler = std::make_unique<VulkanAPI::Sampler>(VulkanAPI::SamplerType::LinearClamp);
+		linear_sampler.create(device, VulkanAPI::SamplerType::LinearClamp);
 		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
-			descr_set->update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler->get_sampler(), image_views[i], attachments[i].layout);
+			descr_set.update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
-		descr_set->update_set(0, buffer_layout[0].type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), buffer_layout[0].range);
+		descr_set.update_set(0, buffer_layout[0].type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), buffer_layout[0].range);
 		
 		
 		// and finally create the pipeline
@@ -99,12 +99,12 @@ namespace OmegaEngine
 		cmd_buffer.create_primary();
 
 		// begin the renderpass 
-		vk::RenderPassBeginInfo begin_info = renderpass->get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 		cmd_buffer.begin_renderpass(begin_info);
 
 		// bind everything required to draw
 		cmd_buffer.bind_pipeline(pipeline);
-		cmd_buffer.bind_descriptors(pl_layout, *descr_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
 
 		// set push constants for light variables
 

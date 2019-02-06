@@ -28,7 +28,7 @@ namespace VulkanAPI
 		}
 		else {
 			// create a new semaphore
-			vk::SemaphoreCreateInfo create_info({});
+			vk::SemaphoreCreateInfo create_info;
 			VK_CHECK_RESULT(device.createSemaphore(&create_info, nullptr, &semaphore));
 		}
 		return semaphore;

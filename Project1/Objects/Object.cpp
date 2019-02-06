@@ -38,10 +38,11 @@ namespace OmegaEngine
 	{
 		return parent_id;
 	}
-
-	bool Object::is_alive() const
+	Object& Object::get_last_child()
 	{
-		return is_alive;
+		if (!children.empty()) {
+			return children.back();
+		}
 	}
 
 	std::vector<Object>& Object::get_children()

@@ -2,6 +2,7 @@
 
 #include "Utility/GeneralUtil.h"
 #include "OEMaths/OEMaths.h"
+#include "Managers/ManagerBase.h"
 
 #include <unordered_map>
 #include <memory>
@@ -11,7 +12,6 @@ namespace OmegaEngine
 
 	// forward declearations
 	class Object;
-	class ComponentBase;
 
 	class ComponentInterface
 	{
@@ -26,10 +26,9 @@ namespace OmegaEngine
 		template<typename... Args>
 		void registerManager()
 		{
-			std::unique_ptr<T> temp = std::make_unique<T>(Args);
-			assert(temp != nullptr);
+			std::unique_ptr<T> temp = std::make_unique<T>(&Args);
 			uint32_t man_id = Util::event_type_id<T>();
-			managers.insert(std::make_pair(man_id, std::move(temp));
+			managers.insert(std::make_pair(man_id, std::move(temp)));
 			managers[man_id]->id = man_id;
 		}
 

@@ -192,6 +192,19 @@ namespace OEMaths
 	}
 
 	template <typename T>
+	inline mat4<T> translate(mat4<T>& mat, vec4<T>& trans)
+	{
+		mat4<T> retMat = mat;
+
+		retMat(0, 3) = trans.x;
+		retMat(1, 3) = trans.y;
+		retMat(2, 3) = trans.x;
+		retMat(3, 3) = 1.0f;
+
+		return retMat;
+	}
+
+	template <typename T>
 	inline mat4<T> scale(mat4<T>& mat, vec3<T>& scale)
 	{
 		mat4<T> retMat = mat;
@@ -235,7 +248,7 @@ namespace OEMaths
 	template <typename T>
 	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
 	{
-		float t = std::tan(fov * 0.5 * M_PI / 180) * zNear;
+		float t = std::tan(fov * 0.5f * M_PI / 180) * zNear;
 		float r = aspect * t;
 		float l = -r;
 		float b = -t;

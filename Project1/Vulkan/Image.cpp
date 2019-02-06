@@ -208,9 +208,11 @@ namespace VulkanAPI
 				image_height >> i,
 				1);
 
-			vk::ImageBlit image_blit(
-				src,
-				);
+			vk::ImageBlit image_blit;
+			image_blit.srcSubresource = src;
+			image_blit.srcOffsets[1] = src_offset;
+			image_blit.dstSubresource = dst;
+			image_blit.dstOffsets[1] = dst_offset;
 
 			// sub range required for barrier
 			vk::ImageSubresourceRange mip_subrange(

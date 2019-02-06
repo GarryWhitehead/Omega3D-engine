@@ -67,13 +67,13 @@ namespace OmegaEngine
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
 		VulkanAPI::DescriptorLayout descr_layout;
-		std::unique_ptr<VulkanAPI::DescriptorSet> descr_set;
-		std::unique_ptr<VulkanAPI::RenderPass> renderpass;
+		VulkanAPI::DescriptorSet descr_set;
+		VulkanAPI::RenderPass renderpass;
 
 		VulkanAPI::Buffer vert_buffer;
 		VulkanAPI::Buffer frag_buffer;
 
-		std::unique_ptr<VulkanAPI::Sampler> linear_sampler;
+		VulkanAPI::Sampler linear_sampler;
 		std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
 
 		VulkanAPI::CommandBuffer cmd_buffer;

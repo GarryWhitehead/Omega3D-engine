@@ -4,6 +4,11 @@
 namespace VulkanAPI
 {
 
+	RenderPass::RenderPass()
+	{
+
+	}
+
 	RenderPass::RenderPass(vk::Device dev) :
 		device(dev)
 	{
@@ -18,6 +23,23 @@ namespace VulkanAPI
 
 	RenderPass::RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
 	{
+		init(dev, attach, dependencies);
+	}
+
+	RenderPass::~RenderPass()
+	{
+		destroy();
+	}
+
+	void RenderPass::init(vk::Device dev)
+	{
+		device = dev;
+	}
+
+	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
+	{
+		device = dev;
+
 		for (uint32_t i = 0; i < attach.size(); ++i) {
 			this->addAttachment(attach[i].layout, attach[i].format);
 			this->addReference(attach[i].layout, i);
@@ -27,11 +49,6 @@ namespace VulkanAPI
 			this->addSubpassDependency(depend);
 		}
 		this->prepareRenderPass();
-	}
-
-	RenderPass::~RenderPass()
-	{
-		destroy();
 	}
 
 	void RenderPass::addAttachment(const vk::ImageLayout finalLayout, const vk::Format format)
@@ -170,6 +187,8 @@ namespace VulkanAPI
 
 	void RenderPass::prepareRenderPass()
 	{
+		assert(device);
+
 		// if dependency container is empty, go with the default layout
 		if (dependency.empty()) {
 

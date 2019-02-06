@@ -6,33 +6,38 @@ namespace VulkanAPI
 	Sampler::Sampler(vk::Device dev, SamplerType type) :
 		device(dev)
 	{
-		switch (type) {
-		case SamplerType::Clamp:
-			create(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::Wrap:
-			create(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::LinearClamp:
-			create(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::TriLinearClamp:
-			create(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
-			break;
-		case SamplerType::LinearWrap:
-			create(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::TrilinearWrap:
-			create(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
-			break;
-		}
+		create(dev, type);
 	}
 
 	Sampler::~Sampler()
 	{
 	}
 
-	void Sampler::create(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op)
+	void Sampler::create(vk::Device dev, SamplerType type)
+	{
+		switch (type) {
+		case SamplerType::Clamp:
+			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+			break;
+		case SamplerType::Wrap:
+			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+			break;
+		case SamplerType::LinearClamp:
+			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+			break;
+		case SamplerType::TriLinearClamp:
+			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+			break;
+		case SamplerType::LinearWrap:
+			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+			break;
+		case SamplerType::TrilinearWrap:
+			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+			break;
+		}
+	}
+
+	void Sampler::create_sampler(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op)
 	{
 		vk::SamplerCreateInfo sampler_info({},
 			filter, filter,

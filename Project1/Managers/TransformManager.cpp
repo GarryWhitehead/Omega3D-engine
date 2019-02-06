@@ -95,7 +95,7 @@ namespace OmegaEngine
 
 		uint64_t parent_index = obj.get_parent();
 		while (parent_index != UINT64_MAX) {
-			mat = transformBuffer[parent_index].get_local * mat;
+			mat = transformBuffer[parent_index].get_local() * mat;
 		}
 
 		transformBuffer[transform_index].transform = mat;
@@ -107,7 +107,7 @@ namespace OmegaEngine
 
 			SkinnedBufferInfo skinned_info;
 			// prepare fianl output matrices buffer
-			uint32_t joint_size = skinBuffer[skin_index].joints.size() > 256 ? 256 : skinBuffer[skin_index].joints.size();
+			uint32_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
 			skinBuffer[skin_index].joint_matrices.resize(joint_size);
 			
 			skinned_info.joint_count = joint_size;

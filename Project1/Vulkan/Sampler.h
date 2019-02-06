@@ -19,17 +19,20 @@ namespace VulkanAPI
 
 	public:
 
+		Sampler();
 		Sampler(vk::Device device, SamplerType type);
 		~Sampler();
+
+		void create(vk::Device dev, SamplerType type);
 
 		vk::Sampler& get_sampler()
 		{
 			return sampler;
 		}
-
+		
 	private:
 
-		void create(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op);
+		void create_sampler(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op);
 
 		vk::Device device;
 		vk::Sampler sampler;

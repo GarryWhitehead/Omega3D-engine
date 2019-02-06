@@ -72,7 +72,7 @@ namespace OmegaEngine
 
 		OEMaths::mat4f getWorldMatrix(uint32_t index)
 		{
-			return models[index].world_scale * models[index].world_rot * models[index].world_translation;
+			return OEMaths::translate(OEMaths::mat4f(), models[index].world_translation) * models[index].world_scale * models[index].world_rot;
 		}
 
 	private:

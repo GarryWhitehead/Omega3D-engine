@@ -313,15 +313,13 @@ namespace OEMaths
 			return *this;
 		}
 
-		/*friend mat4<T> operator*(mat4<T> lhs, const mat4<T>& rhs)
+		mat4& operator*(const vec3<T>& other)
 		{
-			for (int y = 0; y < 3; ++y) {
-				for (int x = 0; x < 3; ++x) {
-					lhs.data[y * 3 + x] = rhs.data[y * 3 + x];
-				}
-			}
-			return lhs;
-		}*/
+			data[0] *= other.x; data[1] *= other.y; data[2] *= other.z;
+			data[4] *= other.x; data[5] *= other.y; data[6] *= other.z;
+			data[8] *= other.x; data[9] *= other.y; data[10] *= other.z;
+			return *this;
+		}
 
 	private:
 

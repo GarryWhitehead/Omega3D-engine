@@ -106,8 +106,8 @@ namespace OmegaEngine
 			tinygltf::BufferView indBufferView = model.bufferViews[indAccessor.bufferView];
 			tinygltf::Buffer indBuffer = model.buffers[indBufferView.buffer];
 
-			uint32_t indexCount = indAccessor.count;
-			uint32_t indexOffset = staticMesh.indexBuffer.size();
+			uint32_t indexCount = static_cast<uint32_t>(indAccessor.count);
+			uint32_t indexOffset = static_cast<uint32_t>(staticMesh.indexBuffer.size());
 
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
 			switch (indAccessor.componentType) {

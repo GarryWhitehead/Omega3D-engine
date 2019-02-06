@@ -114,7 +114,7 @@ namespace OmegaEngine
 			}
 
 			for (auto& mat : model.materials) {
-				component_interface->getManager<MaterialManager>()->addGltfMaterial(mat);
+				component_interface->getManager<MaterialManager>()->addGltfMaterial(mat, component_interface->getManager<TextureManager>());
 			}
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.

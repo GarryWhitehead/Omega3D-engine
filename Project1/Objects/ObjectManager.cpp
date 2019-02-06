@@ -29,7 +29,7 @@ namespace OmegaEngine
 		
 		newObject.set_id(id);
 		objects.insert(std::make_pair(id, newObject));
-		return newObject;
+		return objects[id];
 	}
 
 	Object& ObjectManager::createChildObject(Object& obj)
@@ -50,7 +50,7 @@ namespace OmegaEngine
 		newObject.set_id(id);
 		obj.add_child(newObject);
 
-		return newObject;
+		return obj.get_last_child();
 	}
 
 	void ObjectManager::destroyObject(Object& obj)

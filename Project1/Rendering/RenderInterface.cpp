@@ -85,7 +85,7 @@ namespace OmegaEngine
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::Mesh:
-			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device());
+			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer);
 			break;
 		case OmegaEngine::RenderTypes::Skybox:
 			shader.add(vk_interface->get_device(), "env/skybox.vert", VulkanAPI::StageType::Vertex, "env/skybox.frag", VulkanAPI::StageType::Fragment);

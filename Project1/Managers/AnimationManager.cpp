@@ -21,7 +21,7 @@ namespace OmegaEngine
 	uint32_t AnimationManager::Sampler::index_from_time(float time)
 	{
 		uint32_t index = 0;
-		uint32_t timestamp_count = time_stamps.size();
+		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
 		if (timestamp_count <= 1 || time < time_stamps.front()) {
 			index = 0;
 		}
@@ -41,7 +41,7 @@ namespace OmegaEngine
 	float AnimationManager::Sampler::get_phase(float time)
 	{
 		float phase = 0.0f;
-		uint32_t timestamp_count = time_stamps.size();
+		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
 		if (timestamp_count <= 1 || time < time_stamps.front()) {
 			phase = 0.0f;
 		}

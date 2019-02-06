@@ -66,8 +66,9 @@ namespace OmegaEngine
 		// get pipeline layout and vertedx attributes by reflection of shader
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
 		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
-		pipeline_info.shader.reflection(VulkanAPI::StageType::Vertex, *pipeline_info.descr_layout, pipeline_info.pl_layout, pipeline_info.pipeline, image_layout, buffer_layout);
-		pipeline_info.shader.reflection(VulkanAPI::StageType::Fragment, *pipeline_info.descr_layout, pipeline_info.pl_layout, pipeline_info.pipeline, image_layout, buffer_layout);
+		pipeline_info.shader.descriptor_image_reflect(pipeline_info.descr_layout, image_layout);
+		pipeline_info.shader.descriptor_buffer_reflect(pipeline_info.descr_layout, buffer_layout);
+		pipeline_info.shader.pipeline_layout_reflect(pipeline_info.pl_layout);
 
 		// create the graphics pipeline
 		pipeline_info.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
@@ -75,7 +76,7 @@ namespace OmegaEngine
 		pipeline_info.pipeline.add_colour_attachment(VK_FALSE, renderer->get_attach_count());
 		pipeline_info.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
 		pipeline_info.pipeline.set_renderpass(renderer->get_renderpass());
-		pipeline_info.pipeline.create();
+		pipeline_info.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableMesh::update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man)
@@ -100,7 +101,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size)
+	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size, uint32_t num_threads)
 	{
 		
 		uint32_t thread_count = 0;

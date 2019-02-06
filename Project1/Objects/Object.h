@@ -23,12 +23,12 @@ namespace OmegaEngine
 		bool operator==(const Object& obj) const;
 
 		void add_child(Object& obj);
+		Object& get_last_child();
 
 		// helper functions
 		uint64_t get_id() const;
 		void set_id(const uint64_t _id);
 		uint64_t get_parent() const;
-		bool is_alive() const;
 
 		template <typename T>
 		uint32_t get_manager_index()
@@ -65,7 +65,6 @@ namespace OmegaEngine
 
 		std::unordered_map<ManagerId, ManagerIndex> components;
 
-		bool isAlive = true;
 	};
 
 }

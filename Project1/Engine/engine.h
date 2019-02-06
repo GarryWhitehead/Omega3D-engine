@@ -1,9 +1,10 @@
 #pragma once
-#include <vector>
-#include <memory>
 
 #include "Engine/Omega_Config.h"
 #include "Vulkan/Device.h"
+
+#include <vector>
+#include <memory>
 
 // forward declerations
 struct GLFWwindow;
