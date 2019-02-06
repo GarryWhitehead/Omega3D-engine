@@ -9,7 +9,7 @@ namespace VulkanAPI
 	class Pipeline;
 	enum class StageType;
 	
-	static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
+	vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
 	// contains useful information in regards to the bindings, sets and names of buffers, samplers, etc.
 	// Avoids having to use the descriptor layouts and offers more flexibility

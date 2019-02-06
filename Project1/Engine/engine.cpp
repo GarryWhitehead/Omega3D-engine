@@ -4,6 +4,7 @@
 #include "Utility/Timer.h"
 #include "Engine/World.h"
 #include "Engine/Omega_Global.h"
+#include "Managers/InputManager.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Common.h"
 
@@ -83,7 +84,9 @@ namespace OmegaEngine
 
 	void Engine::createWorld(std::string filename, std::string name)
 	{
-		std::unique_ptr<World> world = std::make_unique<World>(filename, name);
+		// create a world using a omega engine scene file
+		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device]);
+		world->create(filename.c_str());
 
 		worlds.push_back(world);
 		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);

@@ -1,5 +1,6 @@
 #pragma once
 #include "Vulkan/Shader.h"
+#include "Vulkan/Sampler.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Buffer.h"
 #include "Vulkan/RenderPass.h"
@@ -14,12 +15,7 @@
 namespace VulkanAPI
 {
 	// forward declearions
-	class Sampler;
-	class Pipeline;
-	class DescriptorLayout;
-	class DescriptorSet;
 	class Interface;
-	
 }
 
 namespace OmegaEngine
@@ -56,6 +52,16 @@ namespace OmegaEngine
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 
 		std::function<void()> set_render_callback(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
+
+		vk::RenderPass& get_renderpass()
+		{
+			return renderpass.get();
+		}
+
+		uint32_t get_attach_count() const
+		{
+			return renderpass.get_attach_count();
+		}
 
 	private:
 

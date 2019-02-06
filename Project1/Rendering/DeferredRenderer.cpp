@@ -52,7 +52,7 @@ namespace OmegaEngine
 
 		// now create the renderpasses and frame buffers
 		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
-		renderpass.init(attachments, dependencies);
+		renderpass.init(device, attachments, dependencies);
 
 		// tie the image-views to the frame buffer
 		std::array<vk::ImageView, (int)DeferredAttachments::Count> image_views;

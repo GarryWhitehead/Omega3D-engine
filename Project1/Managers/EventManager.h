@@ -63,6 +63,7 @@ namespace OmegaEngine
 		{
 			// find all listeners that are registered with this event type
 			uint64_t type = Util::event_type_id<EventType>();
+			auto iter = eventQueue.find(type);
 
 			if (iter != eventQueue.end()) {
 				EventData data = iter->second;

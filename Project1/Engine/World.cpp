@@ -79,7 +79,7 @@ namespace OmegaEngine
 	{
 		// update frame 
 		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
-		component_interface->update_managers(time, dt);
+		component_interface->update_managers(time, dt, objectManager);
 	}
 
 	void World::render(double interpolation)

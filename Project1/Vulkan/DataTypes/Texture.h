@@ -34,7 +34,7 @@ namespace VulkanAPI
 
 		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
 		void create_empty_image(vk::Format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags);
-		void map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc);
+		void map(OmegaEngine::MappedTexture& tex);
 		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 

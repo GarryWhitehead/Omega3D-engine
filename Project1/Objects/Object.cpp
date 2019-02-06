@@ -43,6 +43,7 @@ namespace OmegaEngine
 		if (!children.empty()) {
 			return children.back();
 		}
+		throw std::out_of_range("No children in parent object. This shouldn't happen!");
 	}
 
 	std::vector<Object>& Object::get_children()

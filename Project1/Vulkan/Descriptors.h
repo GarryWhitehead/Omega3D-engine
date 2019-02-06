@@ -53,8 +53,11 @@ namespace VulkanAPI
 
 	public:
 		
+		DescriptorSet();
+		~DescriptorSet();
 		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
+		void init(vk::Device device, DescriptorLayout descr_layout);
 		void update_set(uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range);
 		void update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
 		void update(vk::Device device);

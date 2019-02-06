@@ -8,8 +8,8 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
-		static vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
-		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
+		vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
+		vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
 	}
 
 	class Device
@@ -113,11 +113,19 @@ namespace VulkanAPI
 		Extensions device_ext;
 
 		// validation layers
-		std::vector<const char*> layers;
+		std::vector<const char*> req_layers;
 
 		// the window surface that is linked to this device
 		SurfaceType surface_type;
 		vk::SurfaceKHR win_surface;
+
+#ifdef VULKAN_VALIDATION_DEBUG
+
+		vk::DebugReportCallbackEXT debug_callback;
+		vk::DebugUtilsMessengerEXT debug_messenger;
+
+#endif
+
 	};
 
 }

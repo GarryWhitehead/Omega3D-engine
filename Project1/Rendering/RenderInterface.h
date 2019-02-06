@@ -78,7 +78,7 @@ namespace OmegaEngine
 		template <typename T>
 		void addObjectAndChildren(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
 		{
-			add_renderable<T>(comp_interface, obj);
+			add_renderable<T>(RenderStage::GBuffer, comp_interface, obj);
 			
 			auto& children = obj.get_children();
 			for (auto& child : children) {

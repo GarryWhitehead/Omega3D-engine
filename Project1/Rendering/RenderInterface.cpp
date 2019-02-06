@@ -111,7 +111,7 @@ namespace OmegaEngine
 			case RenderTypes::Skybox:
 				break;
 			case RenderTypes::Mesh:
-				dynamic_cast<RenderableMesh*>(info.renderable)->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group);
+				dynamic_cast<RenderableMesh*>(info.renderable)->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group, num_threads);
 				break;
 			default:
 				LOGGER_INFO("Error whilst rendering. Unsupported renderable detected.");

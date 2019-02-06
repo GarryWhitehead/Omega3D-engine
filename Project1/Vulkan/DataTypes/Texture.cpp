@@ -43,7 +43,7 @@ namespace VulkanAPI
 		tex_imageView.create(device, tex_image);
 	}
 
-	void Texture::map(OmegaEngine::MappedTexture& tex, std::unique_ptr<MemoryAllocator>& mem_alloc)
+	void Texture::map(OmegaEngine::MappedTexture& tex)
 	{
 		assert(device);
 

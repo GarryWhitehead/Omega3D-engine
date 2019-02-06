@@ -14,6 +14,7 @@ namespace OmegaEngine
 
 		InputManager(GLFWwindow *window, uint32_t width, uint32_t height);
 
+		void update();
 		void keyResponse(GLFWwindow *window, int key, int scan_code, int action, int mode);
 		void mouseButtonResponse(GLFWwindow *window, int button, int action, int mods);
 		void mouseMoveResponse(double xpos, double ypos);

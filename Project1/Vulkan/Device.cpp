@@ -16,9 +16,57 @@ namespace VulkanAPI
 	{
 	}
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(vk::DebugReportFlagsEXT flags, vk::DebugReportObjectTypeEXT obj_type, uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, 
+														uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
 	{
-		std::cerr << "Validation Layer: " << msg << "\n";
+		// ignore access mask false positive
+		if (strcmp(layer_prefix, "DS") == 0 && code == 10) {
+			return VK_FALSE;
+		}
+
+		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+			std::cerr << "Vulkan Error:" << layer_prefix << ": " << msg << "\n";
+			return VK_FALSE;
+		}
+		if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+			std::cerr << "Vulkan Warning:" << layer_prefix << ": " << msg << "\n";
+			return VK_FALSE;
+		}
+		else {
+			// just output this as a log
+			LOGGER_INFO("Vulkan Information: %s: %s\n", layer_prefix, msg);
+		}
+		return VK_FALSE;
+	}
+
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+															VkDebugUtilsMessageTypeFlagsEXT type,
+															const VkDebugUtilsMessengerCallbackDataEXT* data, void* user_data)
+	{
+		switch (severity) {
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
+
+				std::cerr << "Validation Error: %s\n" << data->pMessage;
+			}
+			else {
+				std::cerr << "Other Error: %s\n" << data->pMessage;
+			}
+			break;
+
+		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
+				std::cerr << "Validation Warning: %s\n" << data->pMessage;
+			}
+			else {
+				std::cerr << "Other Warning: %s\n" << data->pMessage;
+			}
+			break;
+
+		default:
+			break;
+		}
+
 		return VK_FALSE;
 	}
 
@@ -119,7 +167,7 @@ namespace VulkanAPI
 #ifdef VULKAN_VALIDATION_DEBUG
 
 		if (findLayerExt("VK_LAYER_LUNARG_standard_validation")) {
-			layer_ext.push_back("VK_LAYER_LUNARG_standard_validation");
+			req_layers.push_back("VK_LAYER_LUNARG_standard_validation");
 		}
 		else {
 			LOGGER_INFO("Unable to find validation standard layers.");
@@ -130,23 +178,39 @@ namespace VulkanAPI
 
 		vk::InstanceCreateInfo createInfo({},
 		&appInfo,
-		static_cast<uint32_t>(layers.size()),
-		layers.data(),
+		static_cast<uint32_t>(req_layers.size()),
+		req_layers.data(),
 		static_cast<uint32_t>(extensions.size()),
 		extensions.data());
 
 		VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance));
 
+#ifdef VULKAN_VALIDATION_DEBUG
+
+	
 		if (device_ext.has_debug_utils) {
 
-			vk::DebugUtilsMessengerCreateInfoEXT({},
-				VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT |
-				VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT,
-				vk_debug_callback,
-				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT,
-				this
-			);
+			auto func = (PFN_vkCreateDebugUtilsMessengerEXT)instance.getProcAddr("vkCreateDebugUtilsMessengerEXT");
+			assert(func);
+
+			vk::DebugUtilsMessengerCreateInfoEXT create_info({},
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+				vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
+				vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
+				DebugMessenger, this);
+
+			instance.createDebugUtilsMessengerEXT(&create_info, nullptr, &debug_messenger);
 		}
+		else if (findExtProp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)) {
+
+			vk::DebugReportCallbackCreateInfoEXT create_info(
+				vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning,
+				DebugCallBack, this);
+
+			instance.createDebugReportCallbackEXT(&create_info, nullptr, &debug_callback);
+		}
+#endif
+
 	}
 
 	void Device::prepareDevice()
@@ -255,21 +319,10 @@ namespace VulkanAPI
 		}
 
 		vk::DeviceCreateInfo createInfo({}, 
-		static_cast<uint32_t>(queueInfo.size()),
-		queueInfo.data(),
-		layers.size(),
-		layers.data(),
-		static_cast<uint32_t>(swapChainExt.size()),
-		swapChainExt.data(),
-		&req_features
-		);
-
-#ifdef VULKAN_VALIDATION_DEBUG
-		createInfo.enabledLayerCount = 1;
-		createInfo.ppEnabledLayerNames = ValidationLayers::mReqLayers;
-#else
-		createInfo.enabledLayerCount = 0;
-#endif
+		static_cast<uint32_t>(queueInfo.size()), queueInfo.data(),
+		static_cast<uint32_t>(req_layers.size()), req_layers.empty() ? nullptr : req_layers.data(),
+		static_cast<uint32_t>(swapChainExt.size()), swapChainExt.data(),
+		&req_features);
 
 		VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 

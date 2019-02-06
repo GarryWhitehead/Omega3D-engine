@@ -72,7 +72,22 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createDescriptorSetLayout(&layoutInfo, nullptr, &layout));
 	}
 
+	DescriptorSet::DescriptorSet()
+	{
+
+	}
+
+	DescriptorSet::~DescriptorSet()
+	{
+
+	}
+
 	DescriptorSet::DescriptorSet(vk::Device device, DescriptorLayout descr_layout)
+	{
+		init(device, descr_layout);
+	}
+
+	void DescriptorSet::init(vk::Device device, DescriptorLayout descr_layout)
 	{
 		vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), 1, &descr_layout.get_layout());
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &set));

@@ -34,7 +34,7 @@ namespace OmegaEngine
 		uint32_t get_manager_index()
 		{
 			uint32_t man_id = Util::event_type_id<T>();
-			assert(components.find(man_id) != components.end);
+			assert(components.find(man_id) != components.end());
 			return components[man_id];
 		}
 

@@ -3,6 +3,7 @@
 #include "Utility/GeneralUtil.h"
 #include "OEMaths/OEMaths.h"
 #include "Managers/ManagerBase.h"
+#include "Utility/Logger.h"
 
 #include <unordered_map>
 #include <memory>
@@ -12,6 +13,7 @@ namespace OmegaEngine
 
 	// forward declearations
 	class Object;
+	class ObjectManager;
 
 	class ComponentInterface
 	{
@@ -21,24 +23,26 @@ namespace OmegaEngine
 		ComponentInterface();
 		~ComponentInterface();
 
-		void update_managers(double time, double dt);
+		void update_managers(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager);
 		
-		template<typename... Args>
+		template<typename T, typename... Args>
 		void registerManager()
 		{
 			std::unique_ptr<T> temp = std::make_unique<T>(&Args);
 			uint32_t man_id = Util::event_type_id<T>();
 			managers.insert(std::make_pair(man_id, std::move(temp)));
-			managers[man_id]->id = man_id;
+			managers[man_id]->set_id(man_id);
 		}
 
 		template <typename T>
 		std::unique_ptr<T>& getManager()
 		{
 			uint32_t man_id = Util::event_type_id<T>();
-			if (managers.find(man_id) != manager.end()) {
+			if (managers.find(man_id) != managers.end()) {
 				return dynamic_cast<T&>(managers[man_id]);
 			}
+			// something is fundamentally wrong if this occurs
+			throw std::out_of_range("Unable to find manager in component interface. Unable to continue.");
 		}
 
 		template <typename T>
@@ -48,6 +52,8 @@ namespace OmegaEngine
 			if (managers.find(man_id) != manager.end()) {
 				managers.erase(man_id);
 			}
+			// continue for now but if we see this then somethings wrong
+			LOGGER_ERROR("Unable to erase manager from component interface.");
 		}
 
 		template <typename T>
