@@ -21,7 +21,7 @@ namespace OmegaEngine
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
 		
 		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_man->get_mesh(mesh_index);
+		MeshManager::StaticMesh mesh = mesh_man.get_mesh(mesh_index);
 
 		assert(!mesh.vertexBuffer.empty());
 		assert(!mesh.indexBuffer.empty());
@@ -36,17 +36,17 @@ namespace OmegaEngine
 			PrimitiveData r_prim;
 
 			VulkanAPI::Texture tex(VulkanAPI::TextureType::Normal);
-			auto& mat = comp_interface->getManager<MaterialManager>()->get(prim.materialId);
+			auto& mat = comp_interface->getManager<MaterialManager>().get(prim.materialId);
 
 			// set up the push block 
 			r_prim.push_block.create(mat);
 
 			// map all of the pbr materials for this primitive mesh to the gpu
 			for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-				tex.map(comp_interface->getManager<TextureManager>()->get_texture(mat.textures[i].image));
+				tex.map(comp_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
 
 				// now update the decscriptor set with the texture info 
-				r_prim.sampler = std::make_unique<VulkanAPI::Sampler>(comp_interface->getManager<TextureManager>()->get_sampler(mat.textures[i].sampler));
+				r_prim.sampler->create(device, comp_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
 				r_prim.decscriptor_set.update_set(i, vk::DescriptorType::eSampler, r_prim.sampler->get_sampler(), tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
 
 				// indices data which will be used for creating the cmd buffers

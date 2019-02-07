@@ -20,7 +20,11 @@
 
 namespace OmegaEngine
 {
-	
+	World::World()
+	{
+
+	}
+
 	World::World(Managers managers, VulkanAPI::Device device)
 	{
 		component_interface = std::make_unique<ComponentInterface>(device);
@@ -110,11 +114,11 @@ namespace OmegaEngine
 			// first get all materials and textures associated with this model
 			for (auto& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				component_interface->getManager<TextureManager>()->addGltfImage(image);
+				component_interface->getManager<TextureManager>().addGltfImage(image);
 			}
 
 			for (auto& mat : model.materials) {
-				component_interface->getManager<MaterialManager>()->addGltfMaterial(mat, component_interface->getManager<TextureManager>());
+				component_interface->getManager<MaterialManager>().addGltfMaterial(mat, component_interface->getManager<TextureManager>());
 			}
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
@@ -135,7 +139,7 @@ namespace OmegaEngine
 			}
 
 			// skinning info
-			component_interface->getManager<TransformManager>()->addGltfSkin(model, linearised_objects);
+			component_interface->getManager<TransformManager>().addGltfSkin(model, linearised_objects);
 
 			// animation
 			animation_manager->addGltfAnimation(model, linearised_objects);
@@ -151,7 +155,7 @@ namespace OmegaEngine
 
 		// add all local and world transforms to the transform manager - also combines skinning info
 		auto &transform_man = component_interface->getManager<TransformManager>();
-		transform_man->addGltfTransform(node, obj, world_transform);
+		transform_man.addGltfTransform(node, obj, world_transform);
 
 		Object parentObject;
 		if (childObject) {
@@ -171,7 +175,7 @@ namespace OmegaEngine
 		// if the node has mesh data...
 		if (node.mesh > -1) {
 			auto& mesh_manager = component_interface->getManager<MeshManager>();
-			mesh_manager->addGltfData(model, node, obj);
+			mesh_manager.addGltfData(model, node, obj);
 		}
 
 		// create the linearised list of objects - parents and children

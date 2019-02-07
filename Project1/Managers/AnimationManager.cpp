@@ -181,7 +181,7 @@ namespace OmegaEngine
 		} 
 	}
 
-	void AnimationManager::update_anim(double time, std::unique_ptr<TransformManager>& transform_man)
+	void AnimationManager::update_anim(double time, TransformManager& transform_man)
 	{
 		for (auto& anim : animationBuffer) {
 
@@ -199,12 +199,12 @@ namespace OmegaEngine
 				switch (channel.pathType) {
 				case Channel::PathType::Translation: {
 					OEMaths::vec4f trans = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
-					transform_man->update_obj_translation(obj, trans);
+					transform_man.update_obj_translation(obj, trans);
 					break;
 				}
 				case Channel::PathType::Scale: {
 					OEMaths::vec4f scale = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
-					transform_man->update_obj_scale(obj, scale);
+					transform_man.update_obj_scale(obj, scale);
 					break;
 				}
 				case Channel::PathType::Rotation: {
@@ -223,7 +223,7 @@ namespace OmegaEngine
 					// TODO: add cubic and step interpolation
 					OEMaths::quatf rot = OEMaths::linear_mix_quat(quat1, quat2, phase);
 					OEMaths::normalise_quat(rot);
-					transform_man->update_obj_rotation(obj, rot);
+					transform_man.update_obj_rotation(obj, rot);
 					break;
 				}
 				case Channel::PathType::CubicScale:

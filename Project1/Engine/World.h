@@ -65,6 +65,7 @@ namespace OmegaEngine
 
 		};
 
+		World();
 		World(Managers managers, VulkanAPI::Device device);
 		~World();
 

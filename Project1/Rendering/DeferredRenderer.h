@@ -46,7 +46,7 @@ namespace OmegaEngine
 		DeferredRenderer(vk::Device device, vk::PhysicalDevice physical, RenderConfig _render_config);
 		~DeferredRenderer();
 
-		void create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager);
+		void create(uint32_t width, uint32_t height, CameraManager& camera_manager);
 
 		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);

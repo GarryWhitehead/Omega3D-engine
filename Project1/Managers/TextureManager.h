@@ -1,8 +1,10 @@
 #pragma once
 
-#include <vector>
+#include "Managers/ManagerBase.h"
 #include "Vulkan/Common.h"
 #include "Omega_Common.h"
+
+#include <vector>
 
 namespace VulkanAPI
 {
@@ -14,7 +16,7 @@ namespace OmegaEngine
 	// forward declerations
 	class MappedTexture;
 
-	class TextureManager
+	class TextureManager : public ManagerBase
 	{
 	public:
 

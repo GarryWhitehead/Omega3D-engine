@@ -19,7 +19,7 @@ namespace OmegaEngine
 	{
 	}
 
-	uint32_t TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
+	void TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
 	{
 		TransformData transform;
 		TransformData::LocalTRS local_trs;
@@ -113,7 +113,7 @@ namespace OmegaEngine
 			skinned_info.joint_count = joint_size;
 
 			// transform to local space
-			OEMaths::mat4f inv_mat = OEMaths::inverse(mat);
+			OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
 
 			for (uint32_t i = 0; i < joint_size; ++i) {
 				Object joint_obj = skinBuffer[skin_index].joints[i];

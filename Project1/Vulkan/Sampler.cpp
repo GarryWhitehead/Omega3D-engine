@@ -2,6 +2,10 @@
 
 namespace VulkanAPI
 {
+	Sampler::Sampler()
+	{
+
+	}
 
 	Sampler::Sampler(vk::Device dev, SamplerType type) :
 		device(dev)

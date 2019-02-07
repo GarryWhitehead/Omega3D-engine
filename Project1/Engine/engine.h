@@ -21,6 +21,7 @@ namespace OmegaEngine
 	{
 	public:
 
+		Engine();
 		Engine(const char *winTitle, uint32_t width, uint32_t height);
 		~Engine();
 

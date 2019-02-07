@@ -8,6 +8,11 @@ namespace OmegaEngine
 
 	}
 
+	EventManager::~EventManager()
+	{
+
+	}
+
 	void EventManager::notifyQueued()
 	{
 		auto iter = eventQueue.begin();

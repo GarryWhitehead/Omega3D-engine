@@ -13,6 +13,7 @@ namespace OmegaEngine
 
 	public:
 
+		ManagerBase() {}
 		virtual ~ManagerBase() {}
 
 		// abstract functions

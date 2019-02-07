@@ -45,7 +45,7 @@ namespace OEMaths
 	{
 		assert(data != nullptr);
 
-		vec4<T> qt;
+		quat<T> qt;
 		qt.x = *data;
 		data += sizeof(T);
 		qt.y = *data;

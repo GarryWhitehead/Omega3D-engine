@@ -26,20 +26,20 @@ namespace OmegaEngine
 		void update_managers(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager);
 		
 		template<typename T, typename... Args>
-		void registerManager()
+		void registerManager(Args&&... args)
 		{
-			std::unique_ptr<T> temp = std::make_unique<T>(&Args);
 			uint32_t man_id = Util::event_type_id<T>();
-			managers.insert(std::make_pair(man_id, std::move(temp)));
+			managers[man_id] = std::make_unique<T>(args...);
 			managers[man_id]->set_id(man_id);
 		}
 
 		template <typename T>
-		std::unique_ptr<T>& getManager()
+		T& getManager()
 		{
 			uint32_t man_id = Util::event_type_id<T>();
 			if (managers.find(man_id) != managers.end()) {
-				return dynamic_cast<T&>(managers[man_id]);
+				T* derived = dynamic_cast<T*>(managers[man_id].get());
+				return *derived;
 			}
 			// something is fundamentally wrong if this occurs
 			throw std::out_of_range("Unable to find manager in component interface. Unable to continue.");

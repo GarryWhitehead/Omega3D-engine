@@ -14,15 +14,15 @@ namespace OmegaEngine
 	{
 	}
 
-	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat, std::unique_ptr<TextureManager>& textureManager)
+	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat, TextureManager& textureManager)
 	{
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::BaseColor].image = textureManager->get_texture_index("baseColorTexture");
+			mat.textures[(int)PbrMaterials::BaseColor].image = textureManager.get_texture_index("baseColorTexture");
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::MetallicRoughness].image = textureManager->get_texture_index("metallicRoughnessTexture");
+			mat.textures[(int)PbrMaterials::MetallicRoughness].image = textureManager.get_texture_index("metallicRoughnessTexture");
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
 			mat.factors.baseColour = gltf_mat.values["baseColorFactor"].Factor();
@@ -33,13 +33,13 @@ namespace OmegaEngine
 
 		// any additional textures?
 		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Normal].image = textureManager->get_texture_index("normalTexture");
+			mat.textures[(int)PbrMaterials::Normal].image = textureManager.get_texture_index("normalTexture");
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Emissive].image = textureManager->get_texture_index("emissiveTexture");
+			mat.textures[(int)PbrMaterials::Emissive].image = textureManager.get_texture_index("emissiveTexture");
 		}
 		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Occlusion].image = textureManager->get_texture_index("occlusionTexture");
+			mat.textures[(int)PbrMaterials::Occlusion].image = textureManager.get_texture_index("occlusionTexture");
 		}
 
 		// check for aplha modes

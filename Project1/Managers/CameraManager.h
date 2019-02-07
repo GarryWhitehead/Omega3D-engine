@@ -54,6 +54,8 @@ namespace OmegaEngine
 
 	struct MouseMoveEvent : public Event
 	{
+		MouseMoveEvent() {}
+		
 		MouseMoveEvent(double x, double y) :
 			xpos(x), ypos(y)
 		{}
@@ -116,10 +118,10 @@ namespace OmegaEngine
 		OEMaths::vec3f current_pos;
 		OEMaths::vec3f front_vec;
 
-		double yaw;
-		double pitch;
-		double currentX;
-		double currentY;
+		double yaw = 0.0;
+		double pitch = 0.0;
+		double currentX = 0.0;
+		double currentY = 0.0;
 
 		// the current camera info for sending to vulkan
 		CameraBufferInfo buffer_info;

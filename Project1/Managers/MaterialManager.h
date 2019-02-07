@@ -1,10 +1,11 @@
 #pragma once
 
-#include <memory>
-#include <unordered_map>
-
+#include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 #include "Omega_Common.h"
+
+#include <memory>
+#include <unordered_map>
 
 namespace OmegaEngine
 {
@@ -21,7 +22,7 @@ namespace OmegaEngine
 		Count
 	};
 
-	class MaterialManager
+	class MaterialManager : public ManagerBase
 	{
 
 	public:
@@ -64,7 +65,7 @@ namespace OmegaEngine
 		MaterialManager();
 		~MaterialManager();
 
-		void addGltfMaterial(tinygltf::Material& gltf_mat, std::unique_ptr<TextureManager>& textureManager);
+		void addGltfMaterial(tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
 
 	private:

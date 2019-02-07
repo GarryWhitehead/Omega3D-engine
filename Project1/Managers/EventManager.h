@@ -34,6 +34,7 @@ namespace OmegaEngine
 		};
 
 		EventManager();
+		~EventManager();
 
 		template <typename T, typename EventType>
 		void registerListener(T* l, std::function<void(Event&)> func)
@@ -54,7 +55,7 @@ namespace OmegaEngine
 			// does the event type exsist?
 			if (iter != eventQueue.end()) {
 				auto e = std::unique_ptr<Event>(new EventType(std::forward<Args>(args)...));
-				iter->second.events.emplace(std::move(e));
+				iter->second.events.push_back(std::move(e));
 			}
 		}
 

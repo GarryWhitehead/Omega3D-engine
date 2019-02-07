@@ -15,6 +15,11 @@
 
 namespace OmegaEngine
 {
+	Engine::Engine()
+	{
+
+	}
+
 	Engine::Engine(const char *win_title, uint32_t width, uint32_t height) :
 		windowTitle(win_title),
 		windowWidth(width),
@@ -88,7 +93,7 @@ namespace OmegaEngine
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device]);
 		world->create(filename.c_str());
 
-		worlds.push_back(world);
+		worlds.push_back(std::move(world));
 		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);
 	}
 

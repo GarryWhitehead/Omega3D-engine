@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #define M_PI 3.14159265358979323846264338327950288419716939937510582097
+#define EPSILON 0.00001
 
 namespace OEMaths
 {
@@ -295,15 +296,16 @@ namespace OEMaths
 			return data[a * 3 + b];
 		}
 
-		mat4& operator()(const vec4<T>& vec, const uint8_t& row)
+		inline mat4& operator()(const vec4<T>& vec, const uint8_t& row)
 		{
 			data[row * 3] = vec.x;
 			data[row * 3 + 1] = vec.y;
 			data[row * 3 + 2] = vec.z;
 			data[row * 3 + 3] = vec.w;
+			return *this;
 		}
 
-		mat4& operator*(const mat4<T>& other)
+		inline mat4& operator*(const mat4<T>& other)
 		{
 			for (int y = 0; y < 3; ++y) {
 				for (int x = 0; x < 3; ++x) {
@@ -313,12 +315,42 @@ namespace OEMaths
 			return *this;
 		}
 
-		mat4& operator*(const vec3<T>& other)
+		inline mat4& operator*(const vec3<T>& other)
 		{
 			data[0] *= other.x; data[1] *= other.y; data[2] *= other.z;
 			data[4] *= other.x; data[5] *= other.y; data[6] *= other.z;
 			data[8] *= other.x; data[9] *= other.y; data[10] *= other.z;
 			return *this;
+		}
+
+		inline mat4& operator/=(const T& div)
+		{
+			const T invDiv = 1 / div;
+			data[0] *= invDiv;
+			data[1] *= invDiv;
+			data[2] *= invDiv;
+			data[3] *= invDiv;
+
+			data[4] *= invDiv;
+			data[5] *= invDiv;
+			data[6] *= invDiv;
+			data[7] *= invDiv;
+
+			data[8] *= invDiv;
+			data[9] *= invDiv;
+			data[10] *= invDiv;
+			data[11] *= invDiv;
+
+			data[12] *= invDiv;
+			data[13] *= invDiv;
+			data[14] *= invDiv;
+			data[15] *= invDiv;
+			return *this;
+		}
+
+		T& operator[](const uint32_t& index)
+		{
+			return data[index];
 		}
 
 	private:

@@ -27,7 +27,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void DeferredRenderer::create(uint32_t width, uint32_t height, std::unique_ptr<CameraManager>& camera_manager)
+	void DeferredRenderer::create(uint32_t width, uint32_t height, CameraManager& camera_manager)
 	{
 		// a list of the formats required for each buffer
 		vk::Format depth_format = VulkanAPI::Util::get_depth_format(gpu);
@@ -81,7 +81,7 @@ namespace OmegaEngine
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
-		descr_set.update_set(0, buffer_layout[0].type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), buffer_layout[0].range);
+		descr_set.update_set(0, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
 		
 		
 		// and finally create the pipeline

@@ -39,7 +39,7 @@ namespace OmegaEngine
 		}
 
 		template <typename T>
-		uint32_t add_manager(uint32_t index)
+		void add_manager(uint32_t index)
 		{
 			uint32_t man_id = Util::event_type_id<T>();
 			components[man_id] = index;
