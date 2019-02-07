@@ -9,6 +9,7 @@
 #include "Vulkan/Image.h"
 #include "Vulkan/Sampler.h"
 #include "Rendering/StockModels.h"
+#include "OEMaths/OEMaths_transform.h"
 
 namespace OmegaEngine
 {
@@ -17,7 +18,7 @@ namespace OmegaEngine
 
 		VulkanAPI::Texture generate_bdrf(vk::Device device, VulkanAPI::Queue& graph_queue)
 		{
-			const float lut_dim = 512;
+			const uint32_t lut_dim = 512;
 			const vk::Format lut_format = vk::Format::eR16G16Sfloat;
 			vk::ClearColorValue clear_value;
 
@@ -120,7 +121,7 @@ namespace OmegaEngine
 
 					// get dimensions for this mip level
 					float mip_dim = static_cast<float>(irradiance_dim * std::pow(0.5, mip));
-					vk::Viewport view_port(static_cast<uint32_t>(mip_dim), static_cast<uint32_t>(mip_dim), 0.0f, 1.0f);
+					vk::Viewport view_port(mip_dim, mip_dim, 0.0f, 1.0f);
 					
 					cmd_buffer.begin_renderpass(begin_info, view_port);
 					cmd_buffer.bind_pipeline(pipeline);
@@ -128,7 +129,10 @@ namespace OmegaEngine
 					cmd_buffer.bind_vertex_buffer(cube_model.get_vertex_buffer());
 					cmd_buffer.bind_index_buffer(cube_model.get_index_buffer());
 
-					cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(push_block), &push);
+					// calculate view for each cube side
+					FilterPushConstant push_block;
+					push_block.mvp = OEMaths::perspective(static_cast<float>(M_PI) / 2.0f, 1.0f, 0.1f, 512.0f) * cubeView[layer];
+					cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(FilterPushConstant), &push_block);
 					
 					// draw cube into offscreen framebuffer
 					cmd_buffer.draw_indexed(cube_model.get_index_count());

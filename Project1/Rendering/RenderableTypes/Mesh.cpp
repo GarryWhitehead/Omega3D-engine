@@ -15,7 +15,7 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
+	RenderableMesh::RenderableMesh(vk::Device device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
 		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
@@ -77,6 +77,8 @@ namespace OmegaEngine
 		pipeline_info.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
 		pipeline_info.pipeline.set_renderpass(renderer->get_renderpass());
 		pipeline_info.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
+
+		return pipeline_info;
 	}
 
 	void RenderableMesh::update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man)

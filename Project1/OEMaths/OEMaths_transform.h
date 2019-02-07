@@ -217,6 +217,33 @@ namespace OEMaths
 	}
 
 	template <typename T>
+	inline mat4<T> rotate_mat4(mat4<T> mat, T theta, vec3<T> axis)
+	{
+		mat4<T> retMat;
+		vec3<T> axis_norm = axis / (theta == 0 ? 1 : theta);	//avoid divide by zero
+		T xy = axis_norm.x * axis_norm.y;
+		T yz = axis_norm.y * axis_norm.z;
+		T zx = axis_norm.z * axis_norm.x;
+
+		T cosTheta = std::cos(theta);
+		T sinTheta = std::sin(theta);
+		
+		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (1 - cosTheta);
+		retMat(0, 1) = xy * (1 - cosTheta) - axis_norm.z * sinTheta;
+		retMat(0, 2) = zx * (1 - cosTheta) + axis_norm.y * sinTheta;
+
+		retMat(1, 0) = xy * (1 - cosTheta) + axis_norm.z * sinTheta;
+		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (1 - cosTheta);
+		retMat(1, 2) = yz * (1 - cosTheta) - axis_norm.x * sinTheta;
+
+		retMat(2, 0) = zx * (1 - cosTheta) - axis_norm.y * sinTheta;
+		retMat(2, 1) = yz * (1 - cosTheta) + axis_norm.x * sinTheta;
+		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (1 - cosTheta);
+
+		return retMat;
+	}
+
+	template <typename T>
 	inline mat4<T> lookAt(vec3<T>& position, vec3<T>& target, vec3<T>& up_vec)
 	{
 		vec3<T> dir = normalise_vec3(position - target);
@@ -248,7 +275,7 @@ namespace OEMaths
 	template <typename T>
 	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
 	{
-		float t = std::tan(fov * 0.5f * M_PI / 180) * zNear;
+		float t = std::tan(fov * 0.5f * static_cast<float>(M_PI / 180)) * zNear;
 		float r = aspect * t;
 		float l = -r;
 		float b = -t;

@@ -25,7 +25,7 @@ namespace Util
 	template<typename T>
 	inline char event_type_id()
 	{
-		T type;
+		std::unique_ptr<T> type;
 		return Util::unique_id<decltype(type)>::getId();
 	}
 }

@@ -125,6 +125,14 @@ namespace OEMaths
 			return *this;
 		}
 
+		vec3& operator/(const vec3& other)
+		{
+			x = x / other.x;
+			y = y / other.y;
+			z = z / other.z;
+			return *this;
+		}
+
 		vec3& operator-=(const vec3& other)
 		{
 			x -= other.x;
