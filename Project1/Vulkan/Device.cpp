@@ -89,18 +89,29 @@ namespace VulkanAPI
 				}
 			}
 		}
+	}
 
-		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu)
-		{
-			std::vector<vk::Format> formats =
-			{
-				vk::Format::eD32Sfloat,
-				vk::Format::eD32SfloatS8Uint,
-				vk::Format::eD24UnormS8Uint
-			};
-
-			vk::Format depthFormat = find_supported_format(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
+	bool Device::find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties)
+	{
+		for (auto& ext : properties) {
+			if (strcmp(ext.extensionName, name)) {
+				return true;
+			}
 		}
+		return false;
+	};
+
+	vk::Format& Device::get_depth_format(vk::PhysicalDevice& gpu)
+	{
+		std::vector<vk::Format> formats =
+		{
+			vk::Format::eD32Sfloat,
+			vk::Format::eD32SfloatS8Uint,
+			vk::Format::eD24UnormS8Uint
+		};
+
+		return Util::find_supported_format(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
+		
 	}
 
 	void Device::createInstance(const char **glfwExtension, uint32_t extCount)
@@ -121,33 +132,24 @@ namespace VulkanAPI
 		// extension properties
 		std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
 
-		auto findExtProp = [&](const char *name) -> bool {
-			for (auto& ext : extensionProps) {
-				if (strcmp(ext.extensionName, name)) {
-					return true;
-				}
-			}
-			return false;
-		};
-
 		for (uint32_t i = 0; i < extCount; ++i) {
-			if (!findExtProp(extensions[i])) {
+			if (!find_ext_properties(extensions[i], extensionProps)) {
 				LOGGER_ERROR("Unable to find required extension properties for GLFW.");
 				throw std::runtime_error("Unable to initiliase Vulkan due to missing extension properties.");
 			}
 		}
 
-		if (findExtProp(VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME)) {
+		if (find_ext_properties(VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME, extensionProps)) {
 			extensions.push_back(VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME);
 			device_ext.has_physical_device_props2 = true;
 
-			if (findExtProp(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME) && findExtProp(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME)) {
+			if (find_ext_properties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && find_ext_properties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) {
 				extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 				extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
 				device_ext.has_external_capabilities = true;
 			}
 		}
-		if (findExtProp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME)) {
+		if (find_ext_properties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps)) {
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			device_ext.has_debug_utils = true;
 		}
@@ -187,11 +189,11 @@ namespace VulkanAPI
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
-	
+		vk::DispatchLoaderDynamic dldi(instance);
+
 		if (device_ext.has_debug_utils) {
 
-			auto func = (PFN_vkCreateDebugUtilsMessengerEXT)instance.getProcAddr("vkCreateDebugUtilsMessengerEXT");
-			assert(func);
+			
 
 			vk::DebugUtilsMessengerCreateInfoEXT create_info({},
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
@@ -199,15 +201,15 @@ namespace VulkanAPI
 				vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
 				DebugMessenger, this);
 
-			instance.createDebugUtilsMessengerEXT(&create_info, nullptr, &debug_messenger);
+			auto debugReport = instance.createDebugUtilsMessengerEXT(&create_info, nullptr, &debug_messenger, dldi);
 		}
-		else if (findExtProp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME)) {
+		else if (find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) {
 
 			vk::DebugReportCallbackCreateInfoEXT create_info(
 				vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning,
 				DebugCallBack, this);
 
-			instance.createDebugReportCallbackEXT(&create_info, nullptr, &debug_callback);
+			instance.createDebugReportCallbackEXT(&create_info, nullptr, &debug_callback, dldi);
 		}
 #endif
 
@@ -313,7 +315,7 @@ namespace VulkanAPI
 
 		const std::vector<const char*> swapChainExt = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-		if (!FindDeviceExtenisions(swapChainExt[0])) {
+		if (!find_ext_properties(swapChainExt[0], extensions)) {
 			LOGGER_ERROR("Critical error! Swap chain extension not found.");
 			throw std::runtime_error("No swap chain extensions found.");
 		}

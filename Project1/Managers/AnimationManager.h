@@ -4,7 +4,7 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "Objects/object.h"
 
-#include "Omega_Common.h"
+#include "tiny_gltf.h"
 
 #include <memory>
 
@@ -36,8 +36,8 @@ namespace OmegaEngine
 			std::vector<float> time_stamps;
 			std::vector<OEMaths::vec4f> outputs;
 
-			uint32_t index_from_time(float time);
-			float get_phase(float time);
+			uint32_t index_from_time(double time);
+			float get_phase(double time);
 		};
 
 		struct Channel

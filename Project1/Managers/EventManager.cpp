@@ -2,7 +2,6 @@
 
 namespace OmegaEngine
 {
-
 	EventManager::EventManager()
 	{
 
@@ -19,14 +18,13 @@ namespace OmegaEngine
 
 		while (iter != eventQueue.end()) {
 
-			auto& events = iter->second.events;
 			auto& listeners = iter->second.listeners;
 
-			for (auto& event : events) {
+			for (auto& event : iter->second.events) {
 
 				for (uint32_t i = 0; i < listeners.size(); ++i) {
 
-					listeners[i]->func(*event);
+					listeners[i].listener_func(listeners[i].listener_handle, *event);
 
 				}
 

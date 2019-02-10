@@ -3,7 +3,6 @@
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Pipeline.h"
 
-#include "spirv_cross.hpp"
 #include <fstream>
 
 namespace VulkanAPI
@@ -17,7 +16,7 @@ namespace VulkanAPI
 	{
 	}
 
-	static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type)
+	vk::ShaderStageFlagBits Shader::get_stage_flag_bits(StageType type)
 	{
 		vk::ShaderStageFlagBits ret;
 		switch (type) {
@@ -179,7 +178,7 @@ namespace VulkanAPI
 
 			// get push constants struct sizes if any
 			if (!shader_res.push_constant_buffers.empty()) {
-				p_info.push_constant_sizes[i] = compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id));
+				p_info.add_push_constant((StageType)i, compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id)));
 			}
 		}
 	}

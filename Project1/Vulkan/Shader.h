@@ -1,6 +1,8 @@
 #pragma once
 #include "Vulkan/Common.h"
 
+#include "spirv_cross.hpp"
+
 namespace VulkanAPI
 {
 	// forward decleartions
@@ -8,8 +10,6 @@ namespace VulkanAPI
 	class PipelineLayout;
 	class Pipeline;
 	enum class StageType;
-	
-	vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
 	// contains useful information in regards to the bindings, sets and names of buffers, samplers, etc.
 	// Avoids having to use the descriptor layouts and offers more flexibility
@@ -53,6 +53,8 @@ namespace VulkanAPI
 
 		Shader();
 		~Shader();
+
+		static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);

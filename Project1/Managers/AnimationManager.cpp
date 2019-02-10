@@ -18,7 +18,7 @@ namespace OmegaEngine
 	}
 
 	// channel functions
-	uint32_t AnimationManager::Sampler::index_from_time(float time)
+	uint32_t AnimationManager::Sampler::index_from_time(double time)
 	{
 		uint32_t index = 0;
 		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
@@ -38,7 +38,7 @@ namespace OmegaEngine
 		return index;
 	}
 
-	float AnimationManager::Sampler::get_phase(float time)
+	float AnimationManager::Sampler::get_phase(double time)
 	{
 		float phase = 0.0f;
 		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());

@@ -58,33 +58,30 @@ namespace OmegaEngine
 		// expand the renderables to include other associated components
 		struct RenderableInfo
 		{
+			RenderableInfo(RenderableBase* rend) :
+				renderable(rend)
+			{}
+
 			RenderableBase* renderable;
 		};
 
 		RenderInterface();
-		RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface);
+		RenderInterface(VulkanAPI::Device device, std::unique_ptr<ComponentInterface>& component_interface);
 		~RenderInterface();
-
-		// renderable type creation
-		template <typename T, typename... Args>
-		void add_renderable(RenderStage stage, Args&&... args)
-		{
-			std::unique_ptr<T> renderable = make_unique<T>(std::forward<Args>(args));
-			renderables[stage].push_back(std::move(renderable));
-		}
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order
-		template <typename T>
-		void addObjectAndChildren(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
+		void add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+
+		// renderable type creation
+		template <typename T, typename... Args>
+		void add_renderable(Args&&... args)
 		{
-			add_renderable<T>(RenderStage::GBuffer, comp_interface, obj);
-			
-			auto& children = obj.get_children();
-			for (auto& child : children) {
-				addObjectAndChildren<T>(comp_interface, child);
-			}
+			T* renderable = new T(std::forward<Args>(args)...);
+			renderables.push_back({ renderable });
 		}
+
+		
 
 		void load_render_config();
 

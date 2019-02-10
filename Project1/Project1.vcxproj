@@ -193,6 +193,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\tiny-gltf;C:\CLibs\SPIRV-Cross-master;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\Visual Studio\stb-master;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\SPIRV-Cross-master\build\Libs;C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>

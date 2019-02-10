@@ -1,6 +1,5 @@
 #include "Vulkan_Global.h"
-#include "Vulkan/MemoryAllocator.h"
-#include "Vulkan/SemaphoreManager.h"
+
 
 namespace VulkanAPI
 {
@@ -8,6 +7,10 @@ namespace VulkanAPI
 	{
 		namespace Managers
 		{
+			
+			MemoryAllocator mem_allocator;
+			SemaphoreManager semaphore_manager;
+
 			void init_memory_allocator(vk::Device dev, vk::PhysicalDevice gpu)
 			{
 				mem_allocator.init(dev, gpu);

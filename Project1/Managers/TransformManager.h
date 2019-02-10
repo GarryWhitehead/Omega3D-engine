@@ -5,7 +5,8 @@
 #include "Managers/ManagerBase.h"
 #include "Objects/Object.h"
 #include "Utility/logger.h"
-#include "Omega_Common.h"
+
+#include "tiny_gltf.h"
 
 #include <vector>
 #include <cstdint>

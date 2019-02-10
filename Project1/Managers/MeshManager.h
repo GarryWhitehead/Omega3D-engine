@@ -4,7 +4,8 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
 #include "Utility/logger.h"
-#include "Omega_Common.h"
+
+#include "tiny_gltf.h"
 
 #include <memory>
 #include <tuple>
@@ -30,7 +31,7 @@ namespace OmegaEngine
 			OEMaths::vec3f center;
 			float radius;
 
-			void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
+			//void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
 		};
 
 		struct Vertex
@@ -49,7 +50,7 @@ namespace OmegaEngine
 				indexCount(size),
 				materialId(matid)
 			{
-				dimensions.initDimensions(min, max);
+				//dimensions.initDimensions(min, max);
 			}
 
 			Dimensions dimensions;

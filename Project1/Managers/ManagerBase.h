@@ -1,12 +1,10 @@
 #pragma once
 
 #include <memory>
+#include "Objects/ObjectManager.h"
 
 namespace OmegaEngine
 {
-
-	// forward declearations
-	class ObjectManager;
 
 	class ManagerBase
 	{
@@ -16,8 +14,10 @@ namespace OmegaEngine
 		ManagerBase() {}
 		virtual ~ManagerBase() {}
 
-		// abstract functions
-		virtual void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager) = 0;
+		// virtual update function -
+		virtual void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+		{
+		}
 
 		void set_id(const uint32_t id)
 		{

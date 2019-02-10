@@ -15,9 +15,9 @@ namespace VulkanAPI
 		// create push constants
 		std::vector<vk::PushConstantRange> push_constants;
 
-		for (uint16_t r_type = 0; r_type < (uint16_t)OmegaEngine::RenderTypes::Count; ++r_type) {
-			if (push_constant_size) {
-				vk::PushConstantRange push(get_stage_flag_bits((StageType)r_type), 0, push_constant_size);
+		for (uint16_t stage = 0; stage < (uint16_t)VulkanAPI::StageType::Count; ++stage) {
+			if (push_constant_sizes[stage]) {
+				vk::PushConstantRange push(Shader::get_stage_flag_bits((StageType)stage), 0, push_constant_sizes[stage]);
 				push_constants.push_back(push);
 			}
 		}

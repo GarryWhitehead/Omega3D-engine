@@ -9,7 +9,6 @@ namespace VulkanAPI
 	namespace Util
 	{
 		vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
-		vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
 	}
 
 	class Device
@@ -41,6 +40,9 @@ namespace VulkanAPI
 		Device();
 		~Device();
 
+		static bool find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties);
+		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
+			
 		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();
 

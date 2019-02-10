@@ -3,6 +3,7 @@
 #include "RenderableTypes/Mesh.h"
 #include "Rendering/DeferredRenderer.h"
 #include "Managers/ComponentInterface.h"
+#include "PostProcess/PostProcessInterface.h"
 #include "Objects/Object.h"
 #include "Managers/TransformManager.h"
 #include "Managers/CameraManager.h"
@@ -13,6 +14,7 @@
 #include "Utility/logger.h"
 #include "Utility/FileUtil.h"
 #include "Threading/ThreadPool.h"
+#include "Engine/Omega_Global.h"
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
@@ -24,10 +26,13 @@ namespace OmegaEngine
 
 	}
 
-	RenderInterface::RenderInterface(VulkanAPI::Device device, const uint32_t win_width, const uint32_t win_height, std::unique_ptr<ComponentInterface>& component_interface)
+	RenderInterface::RenderInterface(VulkanAPI::Device device, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		// load the render config file if it exsists
 		load_render_config();
+
+		uint32_t win_width = Global::program_state.get_win_width();
+		uint32_t win_height = Global::program_state.get_win_height();
 
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
@@ -36,7 +41,7 @@ namespace OmegaEngine
 		switch (static_cast<RendererType>(render_config.general.renderer)) {
 		case RendererType::Deferred:
 		{
-			def_renderer = std::make_unique<DeferredRenderer>(device);
+			def_renderer = std::make_unique<DeferredRenderer>(device.getDevice(), device.getPhysicalDevice(), render_config);
 			def_renderer->create(win_width, win_height, component_interface->getManager<CameraManager>());
 			render_callback = def_renderer->set_render_callback(this, vk_interface);
 			break;
@@ -99,7 +104,7 @@ namespace OmegaEngine
 
 	void RenderInterface::render_components()
 	{
-		uint32_t num_threads = Util::HardWareConcurrency();
+		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
 
 		uint32_t threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
@@ -123,6 +128,16 @@ namespace OmegaEngine
 
 		cmd_buffer.secondary_execute_commands();
 		cmd_buffer.end();
+	}
+
+	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
+	{
+		add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, obj);
+
+		auto& children = obj.get_children();
+		for (auto& child : children) {
+			add_mesh_tree(comp_interface, child);
+		}
 	}
 
 	void RenderInterface::render(double interpolation)

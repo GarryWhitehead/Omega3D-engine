@@ -2,7 +2,8 @@
 
 #include "Vulkan/Device.h"
 #include "OEMaths/OEMaths.h"
-#include "Omega_Common.h"
+
+#include "tiny_gltf.h"
 
 #include <string>
 #include <vector>

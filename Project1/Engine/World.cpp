@@ -18,6 +18,16 @@
 #include "Threading/ThreadPool.h"
 #include "Omega_Common.h"
 
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
+
+// tiny gltf uses window.h - this stops the macros messing with std::min
+#define NOMINMAX
+
+#include "tiny_gltf.h"
+
 namespace OmegaEngine
 {
 	World::World()
@@ -27,8 +37,8 @@ namespace OmegaEngine
 
 	World::World(Managers managers, VulkanAPI::Device device)
 	{
-		component_interface = std::make_unique<ComponentInterface>(device);
-		render_interface = std::make_unique<RenderInterface>();
+		component_interface = std::make_unique<ComponentInterface>();
+		render_interface = std::make_unique<RenderInterface>(device, component_interface);
 		animation_manager = std::make_unique<AnimationManager>();
 
 		// register all components managers required for this world
@@ -135,7 +145,7 @@ namespace OmegaEngine
 				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
 
 				// add as renderable targets
-				render_interface->addObjectAndChildren<RenderableMesh>(component_interface, obj);
+				render_interface->add_mesh_tree(component_interface, obj);
 			}
 
 			// skinning info

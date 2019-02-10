@@ -1,25 +1,36 @@
 #pragma once
+#include "Utility/GeneralUtil.h"
+
 #include <unordered_map>
 #include <queue>
 #include <functional>
 #include <memory>
-
-#include "Utility/GeneralUtil.h"
+#include <vector>
 
 namespace OmegaEngine
 {
+	class Event;
+
+	// function to get around that event structs are inherited, so get the function ptr from the derived class
+	template <typename FuncReturn, typename T, typename EventType, FuncReturn(T::*callback)(EventType& event)>
+	FuncReturn get_member_function(void *object, Event& event)
+	{
+		return (reinterpret_cast<T*>(object)->*callback)(reinterpret_cast<EventType&>(event));
+	}
 
 	class Event
 	{
 	public:
+	
+		virtual ~Event() = default;
 
 		bool shouldDelete = true;
 	};
 
 	struct Listener
 	{
-		std::function<void(Event&)> func;
-		void* handle;
+		void (*listener_func)(void *object, Event& event);
+		void* listener_handle;
 	};
 
 	class EventManager
@@ -28,22 +39,22 @@ namespace OmegaEngine
 
 		struct EventData
 		{
-			std::vector<Listener*> listeners;
-			std::vector<std::unique_ptr<Event> > events;
+			std::vector<Listener> listeners;
+			std::vector<Event*> events;
 
 		};
 
 		EventManager();
 		~EventManager();
 
-		template <typename T, typename EventType>
-		void registerListener(T* l, std::function<void(Event&)> func)
+		template <typename T, typename EventType, void (T::*listener_func)(EventType&)>
+		void registerListener(T* listener)
 		{
 			// generate unique id for event type
 			uint64_t type = Util::event_type_id<EventType>();
 			auto &data = eventQueue[type];
 
-			data.listeners.push_pack({ func, &l });
+			data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
 		}
 
 		template <typename EventType, typename... Args>
@@ -54,13 +65,13 @@ namespace OmegaEngine
 
 			// does the event type exsist?
 			if (iter != eventQueue.end()) {
-				auto e = std::unique_ptr<Event>(new EventType(std::forward<Args>(args)...));
-				iter->second.events.push_back(std::move(e));
+				EventType* e = new EventType(std::forward<Args>(args)...);
+				iter->second.events.push_back(e);
 			}
 		}
 
 		template <typename EventType>
-		void instantNotification(EventType e)
+		void instantNotification(EventType event)
 		{
 			// find all listeners that are registered with this event type
 			uint64_t type = Util::event_type_id<EventType>();
@@ -71,7 +82,7 @@ namespace OmegaEngine
 				for (auto& listener : data.listeners) {
 
 					// call registered member function with event
-					listener->func(e);
+					listener.listener_func(listener.listener_handle, event);
 				}
 			}
 		}

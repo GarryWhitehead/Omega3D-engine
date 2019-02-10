@@ -15,7 +15,7 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(vk::Device device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
+	RenderableMesh::RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
 		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();

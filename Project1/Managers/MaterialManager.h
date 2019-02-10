@@ -2,7 +2,8 @@
 
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
-#include "Omega_Common.h"
+
+#include "tiny_gltf.h"
 
 #include <memory>
 #include <unordered_map>

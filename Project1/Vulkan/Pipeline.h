@@ -87,10 +87,15 @@ namespace VulkanAPI
 			return layout;
 		}
 
+		void add_push_constant(StageType stage, uint32_t size)
+		{
+			push_constant_sizes[(int)stage] = size;
+		}
+
 	private:
 
 		// usually set through shader reflection
-		uint32_t push_constant_size = 0;	
+		std::array<uint32_t, (int)StageType::Count> push_constant_sizes = {};
 
 		vk::PipelineLayout layout;
 	};

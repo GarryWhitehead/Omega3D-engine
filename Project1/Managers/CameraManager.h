@@ -4,7 +4,6 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "Vulkan/Vulkan_Global.h"
-#include "Vulkan/MemoryAllocator.h"
 
 namespace OmegaEngine 
 {

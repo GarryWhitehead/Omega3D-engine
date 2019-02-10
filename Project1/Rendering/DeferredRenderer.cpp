@@ -30,7 +30,7 @@ namespace OmegaEngine
 	void DeferredRenderer::create(uint32_t width, uint32_t height, CameraManager& camera_manager)
 	{
 		// a list of the formats required for each buffer
-		vk::Format depth_format = VulkanAPI::Util::get_depth_format(gpu);
+		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
 
 		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments = 
 		{

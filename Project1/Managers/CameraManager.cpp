@@ -9,8 +9,8 @@ namespace OmegaEngine
 	CameraManager::CameraManager()
 	{
 		// set up events
-		Global::managers.eventManager->registerListener<CameraManager, MouseMoveEvent>(this, mouse_move_event);
-		Global::managers.eventManager->registerListener<CameraManager, KeyboardPressEvent>(this, keyboard_press_event);
+		Global::managers.eventManager->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouse_move_event>(this);
+		Global::managers.eventManager->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboard_press_event>(this);
 
 		// allocate gpu memory now for the ubo buffer as the size will remain static
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
