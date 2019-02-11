@@ -1,6 +1,8 @@
 #pragma once
 
+#include <assert.h>
 #include <cstdint>
+#include <stdlib.h>
 
 namespace Util
 {
@@ -28,4 +30,8 @@ namespace Util
 		std::unique_ptr<T> type;
 		return Util::unique_id<decltype(type)>::getId();
 	}
+
+	// aligned memory allocation
+	void* alloc_align(uint32_t alignment_size, uint32_t size);
+
 }

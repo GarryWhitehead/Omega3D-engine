@@ -19,6 +19,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="external\Spirv-Cross\spirv_cfg.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_cpp.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_cross.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_cross_parsed_ir.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_cross_util.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_glsl.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_hlsl.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
+    <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
     <ClCompile Include="Rendering\StockModels.cpp" />
@@ -65,10 +75,23 @@
     <ClCompile Include="Rendering\RenderManager.cpp" />
     <ClCompile Include="Vulkan\SwapChain.cpp" />
     <ClCompile Include="Vulkan\RenderPass.cpp" />
-    <ClCompile Include="Vulkan\TextureManager.cpp" />
+    <ClCompile Include="Vulkan\VkTextureManager.cpp" />
     <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="external\Spirv-Cross\GLSL.std.450.h" />
+    <ClInclude Include="external\Spirv-Cross\spirv.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_cfg.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_common.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_cpp.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_cross.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_cross_parsed_ir.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_cross_util.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_glsl.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_hlsl.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_msl.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
+    <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
     <ClInclude Include="Rendering\StockModels.h" />
     <ClInclude Include="OEMaths\OEMaths.h" />
     <ClInclude Include="OEMaths\OEMaths_transform.h" />
@@ -126,7 +149,7 @@
     <ClInclude Include="Vulkan\Interface.h" />
     <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\Common.h" />
-    <ClInclude Include="Vulkan\TextureManager.h" />
+    <ClInclude Include="Vulkan\VkTextureManager.h" />
     <ClInclude Include="Vulkan\Vulkan_Global.h" />
   </ItemGroup>
   <ItemGroup>
@@ -192,8 +215,8 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\tiny-gltf;C:\CLibs\SPIRV-Cross-master;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\Visual Studio\stb-master;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\CLibs\SPIRV-Cross-master\build\Libs;C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1\external\Spirv-Cross;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\Visual Studio\stb-master;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\SPIRV-Cross-master\build\Release;C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>

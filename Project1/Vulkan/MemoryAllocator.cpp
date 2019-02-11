@@ -3,6 +3,22 @@
 
 namespace VulkanAPI
 {
+	// dynamic buffer segment functions
+
+	DynamicSegment::DynamicSegment(uint32_t size, uint32_t index) :
+		alignment_size(size),
+		buffer_index(index)
+	{
+		
+	}
+
+	DynamicSegment::~DynamicSegment()
+	{
+
+	}
+
+	// memory allocator functions ================================================================
+
 	MemoryAllocator::MemoryAllocator()
 	{
 	}
@@ -253,6 +269,32 @@ namespace VulkanAPI
 			device.freeMemory(temp_memory, nullptr);
 		}
 	}
+
+	DynamicSegment* MemoryAllocator::allocate_dynamic(uint32_t size, uint32_t objects)
+	{
+		vk::PhysicalDeviceProperties properties = gpu.getProperties();
+
+		// fif we've maxed out the number of dynamic buffers available, return null
+		if (dynamic_buffers.size() >= properties.limits.maxDescriptorSetStorageBuffersDynamic) {
+			return nullptr;
+		}
+
+		// before allocation, check whether buffers need memory alignment as denoted by vulkan uniform buffer alignment limits
+		vk::PhysicalDeviceLimits limits = gpu.getProperties;
+		uint32_t min_align = static_cast<uint32_t>(limits.minUniformBufferOffsetAlignment);
+
+		uint32_t alignment_size = size;
+		if (min_align > 0) {
+			alignment_size = (size + min_align - 1) & ~(min_align - 1);
+		}
+	
+		// allocate memory for this dynamic buffer taking into consideration mem alignment if required
+		dynamic_buffers.push_back(allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, size * alignment_size));
+
+		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size());
+		return dynamic_segment;
+	}
+
 
 	void MemoryAllocator::destroySegment(MemorySegment &segment)
 	{

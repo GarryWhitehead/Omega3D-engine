@@ -5,6 +5,7 @@
 #include "Managers/ManagerBase.h"
 #include "Objects/Object.h"
 #include "Utility/logger.h"
+#include "Vulkan/MemoryAllocator.h"
 
 #include "tiny_gltf.h"
 
@@ -69,6 +70,11 @@ namespace OmegaEngine
 			std::vector<OEMaths::mat4f> joint_matrices;
 		};
 
+		// the number of models to allocate mem space for - this will need optimising
+		// could also be dynamic and be altered to the archietecture being used
+		const uint32_t TransformBlockSize = 100;
+		const uint32_t SkinnedBlockSize = 100;
+
 		TransformManager();
 		~TransformManager();
 
@@ -105,6 +111,9 @@ namespace OmegaEngine
 		// transform data for each object which will be added to the GPU
 		std::vector<TransformBufferInfo> transform_buffer_info;
 		std::vector<SkinnedBufferInfo> skinned_buffer_info;
+
+		VulkanAPI::MemorySegment transform_buffer;
+		VulkanAPI::MemorySegment skinned_buffer;
 
 		// flag which tells us whether we need to update the static data
 		bool is_dirty = true;

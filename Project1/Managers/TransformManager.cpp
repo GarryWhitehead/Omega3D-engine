@@ -3,7 +3,7 @@
 #include "Objects/ObjectManager.h"
 
 #include "Omega_Common.h"
-
+#include "Vulkan/Vulkan_Global.h"
 #include <cstdint>
 #include <algorithm>
 
@@ -12,6 +12,10 @@ namespace OmegaEngine
 
 	TransformManager::TransformManager()
 	{
+		// allocate the buffers for static and skinned transforms - these will be stored in dynamic memory (host-visible) as we expect these values to be changing often
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		transform_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(TransformBufferInfo) * TransformBlockSize);
+		skinned_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(SkinnedBufferInfo) * SkinnedBlockSize);
 	}
 
 
@@ -156,6 +160,13 @@ namespace OmegaEngine
 			skinned_buffer_info.clear();
 
 			update_transform(obj_manager);
+
+			// now upload to gpu - note that this will need to be altered so only models that have 'dirty' data are updated
+			// and also we could use vulkan dynamic buffers here
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			mem_alloc.mapDataToSegment(transform_buffer, transform_buffer_info.data(), sizeof(TransformBufferInfo) * transform_buffer_info.size());
+			mem_alloc.mapDataToSegment(skinned_buffer, skinned_buffer_info.data(), sizeof(SkinnedBufferInfo) * skinned_buffer_info.size());
+
 			is_dirty = false;
 		}
 

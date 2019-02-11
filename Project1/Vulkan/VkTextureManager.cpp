@@ -1,19 +1,19 @@
-#include "TextureManager.h"
+#include "VkTextureManager.h"
 #include "Vulkan/DataTypes/Texture.h"
 
 namespace VulkanAPI
 {
 
-	TextureManager::TextureManager()
+	VkTextureManager::VkTextureManager()
 	{
 	}
 
 
-	TextureManager::~TextureManager()
+	VkTextureManager::~VkTextureManager()
 	{
 	}
 
-	Texture& TextureManager::getTexture(TextureHandle handle)
+	Texture& VkTextureManager::getTexture(TextureHandle handle)
 	{
 		auto iter = textures.find(std::get<0>(handle));
 

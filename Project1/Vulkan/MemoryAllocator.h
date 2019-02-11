@@ -6,6 +6,7 @@
 
 namespace VulkanAPI
 {
+	class MemoryAllocator;
 
 	enum class MemoryType
 	{
@@ -32,6 +33,23 @@ namespace VulkanAPI
 	{
 		return static_cast<MemoryUsage>(static_cast<int>(a) | static_cast<int>(b));
 	}
+
+	class DynamicSegment
+	{
+	public:
+
+		DynamicSegment(uint32_t size, uint32_t buffer_index);
+		~DynamicSegment();
+
+	private:
+
+		// how many objects allocated - if full,  then at present fails (TODO: Dont fail!!)
+		uint32_t objects_allocated = 0;
+
+		uint32_t alignment_size = 0;
+		int32_t buffer_index = -1;
+	};
+
 
 	class MemorySegment
 	{
@@ -81,9 +99,9 @@ namespace VulkanAPI
 
 	private:
 
-		int32_t block_id = -1;			// index into memory block container
-		uint32_t offset = 0;
-		uint32_t size = 0;
+		int32_t block_id;			// index into memory block container
+		uint32_t offset;
+		uint32_t size;
 		void *data = nullptr;
 	};
 
@@ -114,7 +132,8 @@ namespace VulkanAPI
 		MemorySegment allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size);
 		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
 		
-		//void defragBlockMemory(const uint32_t id);
+		// dynamic buffer allocation
+		DynamicSegment* allocate_dynamic(uint32_t size, uint32_t objects);
 		
 	private:
 
@@ -149,6 +168,9 @@ namespace VulkanAPI
 		vk::PhysicalDevice gpu;
 
 		std::vector<MemoryBlock> mem_blocks;
+
+		// dynamic buffer - there is a limit on the number of dynamic buffers vulkan allows
+		std::vector<MemorySegment> dynamic_buffers;
 	};
 
 	

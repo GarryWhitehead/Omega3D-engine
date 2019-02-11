@@ -12,14 +12,14 @@ namespace VulkanAPI
 
 	using TextureHandle = std::tuple<TextureType, uint32_t>;
 
-	class TextureManager
+	class VkTextureManager
 	{
 
 	public:
 		
 		
-		TextureManager();
-		~TextureManager();
+		VkTextureManager();
+		~VkTextureManager();
 
 		Texture& getTexture(TextureHandle handle);
 
