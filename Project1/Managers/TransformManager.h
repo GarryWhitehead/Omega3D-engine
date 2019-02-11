@@ -87,7 +87,7 @@ namespace OmegaEngine
 
 		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform_recursive(uint32_t index, Object& obj);
+		void update_transform_recursive(uint32_t index, Object& obj, uint32_t alignment);
 
 		// object update functions
 		void update_obj_translation(Object& obj, OEMaths::vec4f trans);
@@ -109,11 +109,11 @@ namespace OmegaEngine
 		std::vector<SkinInfo> skinBuffer;
 
 		// transform data for each object which will be added to the GPU
-		std::vector<TransformBufferInfo> transform_buffer_info;
-		std::vector<SkinnedBufferInfo> skinned_buffer_info;
+		TransformBufferInfo* transform_buffer_data = nullptr;
+		SkinnedBufferInfo* skinned_buffer_data = nullptr;
 
-		VulkanAPI::MemorySegment transform_buffer;
-		VulkanAPI::MemorySegment skinned_buffer;
+		VulkanAPI::DynamicSegment* transform_buffer;
+		VulkanAPI::DynamicSegment* skinned_buffer;
 
 		// flag which tells us whether we need to update the static data
 		bool is_dirty = true;

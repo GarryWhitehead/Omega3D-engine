@@ -47,8 +47,6 @@ namespace OmegaEngine
 
 		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer);	// TODO: this will need thinking about when other renderer types are added
 
-		void update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man);
-
 	private:
 
 		// allocated GPU buffer 

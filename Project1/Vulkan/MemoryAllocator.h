@@ -38,8 +38,29 @@ namespace VulkanAPI
 	{
 	public:
 
+		DynamicSegment() {}
 		DynamicSegment(uint32_t size, uint32_t buffer_index);
 		~DynamicSegment();
+
+		uint32_t get_alignment_size() const
+		{
+			return alignment_size;
+		}
+
+		int32_t get_buffer_index() const
+		{
+			assert(buffer_index > 0);
+			return buffer_index;
+		}
+
+		bool add_object(uint32_t max)
+		{
+			++objects_allocated;
+			if (objects_allocated > max) {
+				return false;
+			}
+			return true;
+		}
 
 	private:
 

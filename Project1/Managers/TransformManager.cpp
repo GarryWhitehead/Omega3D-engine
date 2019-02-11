@@ -4,6 +4,7 @@
 
 #include "Omega_Common.h"
 #include "Vulkan/Vulkan_Global.h"
+#include "Utility/GeneralUtil.h"
 #include <cstdint>
 #include <algorithm>
 
@@ -14,8 +15,14 @@ namespace OmegaEngine
 	{
 		// allocate the buffers for static and skinned transforms - these will be stored in dynamic memory (host-visible) as we expect these values to be changing often
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		transform_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(TransformBufferInfo) * TransformBlockSize);
-		skinned_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(SkinnedBufferInfo) * SkinnedBlockSize);
+		transform_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), TransformBlockSize);
+		skinned_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), SkinnedBlockSize);
+		
+		assert(transform_buffer != nullptr && skinned_buffer != nullptr);
+
+		// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side#
+		transform_buffer_data = (TransformBufferInfo*)Util::alloc_align(transform_buffer->get_alignment_size(), transform_buffer->get_alignment_size() * TransformBlockSize);
+		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_buffer->get_alignment_size(), skinned_buffer->get_alignment_size() * SkinnedBlockSize);
 	}
 
 
@@ -92,9 +99,11 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_transform_recursive(uint32_t transform_index, Object& obj)
+	void TransformManager::update_transform_recursive(uint32_t transform_index, Object& obj, uint32_t alignment)
 	{
-		TransformBufferInfo buffer_info;
+		TransformBufferInfo* transform_buff = transform_buffer_data + (alignment * transform_index);
+		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (alignment * transform_index);
+
 		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
 		uint64_t parent_index = obj.get_parent();
@@ -103,7 +112,7 @@ namespace OmegaEngine
 		}
 
 		transformBuffer[transform_index].transform = mat;
-		buffer_info.model_matrix = mat;
+		transform_buff->model_matrix = mat;
 
 		if (transformBuffer[transform_index].skin_index > -1) {
 			
@@ -154,10 +163,6 @@ namespace OmegaEngine
 	{
 		// check whether static data need updating
 		if (is_dirty) {
-
-			// generate new transform and skinned data for all objects
-			transform_buffer_info.clear();
-			skinned_buffer_info.clear();
 
 			update_transform(obj_manager);
 

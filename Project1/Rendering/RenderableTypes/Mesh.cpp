@@ -81,10 +81,6 @@ namespace OmegaEngine
 		return pipeline_info;
 	}
 
-	void RenderableMesh::update_ssbo_buffer(std::unique_ptr<VulkanAPI::BufferManager>& buffer_man)
-	{
-		
-	}
 
 	void RenderableMesh::render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, uint32_t start_index, uint32_t end_index, uint32_t thread)
 	{
