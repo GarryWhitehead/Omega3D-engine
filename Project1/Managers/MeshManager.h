@@ -4,6 +4,7 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
 #include "Utility/logger.h"
+#include "Vulkan/MemoryAllocator.h"
 
 #include "tiny_gltf.h"
 
@@ -23,6 +24,10 @@ namespace OmegaEngine
 
 	public:
 		
+		// a user-defined size for the vertex and index gpu mem blocks - this should maybe made more dynamic? Also needs checking for overspill....
+		static constexpr float VertexBlockSize = 1e+5;
+		static constexpr float IndexBlockSize = 1e+5;
+
 		struct Dimensions
 		{
 			OEMaths::vec3f min;
@@ -59,7 +64,6 @@ namespace OmegaEngine
 			uint32_t indexBase = 0;
 			uint32_t indexCount = 0;
 			
-
 			// material id
 			uint32_t materialId;
 		};
@@ -75,6 +79,9 @@ namespace OmegaEngine
 			// primitives assoicated with this mesh
 			std::vector<PrimitiveMesh> primitives;
 
+			// offset into gpu buffer
+			uint32_t vertex_buffer_offset;
+			uint32_t index_buffer_offset;
 		};
 
 		struct SkinnedMesh : public StaticMesh
@@ -84,6 +91,8 @@ namespace OmegaEngine
 
 		MeshManager();
 		~MeshManager();
+
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager) override;
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj);
 
@@ -111,6 +120,12 @@ namespace OmegaEngine
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> meshBuffer;
+
+		// allocated GPU buffer - one large buffer for all meshes. Additional meshes will be added to the end
+		VulkanAPI::MemorySegment vertex_buffer;
+		VulkanAPI::MemorySegment index_buffer;
+
+		bool isDirty = true;
 
 	};
 

@@ -4,6 +4,7 @@
 #include "Engine/Omega_Global.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/Object.h"
+#include "Vulkan/Vulkan_Global.h"
 #include "OEMaths/OEMaths_transform.h"
 
 namespace OmegaEngine
@@ -11,6 +12,9 @@ namespace OmegaEngine
 
 	MeshManager::MeshManager()
 	{
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * VertexBlockSize);
+		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * IndexBlockSize);
 	}
 
 
@@ -137,8 +141,31 @@ namespace OmegaEngine
 		obj.add_manager<MeshManager>(meshBuffer.size() - 1);
 	}
 
-	
+	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+	{
+		// if dirty, then we need to update the mesh vertices and indices
+		// as other managers, this will need to be chnaged at some point so only meshes that need upadting are effected
+		if (isDirty) {
 
-	
+			uint32_t vertex_offset = 0;
+			uint32_t index_offset = 0;
+
+			for (auto& mesh : meshBuffer) {
+
+				VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), mesh.vertexBuffer.size(), vertex_offset);
+				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), mesh.indexBuffer.size(), index_offset);
+
+				mesh.vertex_buffer_offset = vertex_offset;
+				mesh.index_buffer_offset = index_offset;
+
+				vertex_offset += mesh.vertexBuffer.size();
+				index_offset += mesh.indexBuffer.size();
+
+			}
+
+			isDirty = false;
+		}
+	}
 	
 }

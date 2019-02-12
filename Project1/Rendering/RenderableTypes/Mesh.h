@@ -7,7 +7,6 @@
 // forward decleartions
 namespace VulkanAPI
 {
-	class BufferManager;
 	class Sampler;
 	class CommandBuffer;
 }
@@ -30,6 +29,7 @@ namespace OmegaEngine
 
 		struct PrimitiveData
 		{
+			// face indicies data
 			uint32_t index_offset;
 			uint32_t index_count;
 
@@ -49,11 +49,11 @@ namespace OmegaEngine
 
 	private:
 
-		// allocated GPU buffer 
-		VulkanAPI::MemorySegment vertices;
-		VulkanAPI::MemorySegment indicies;
-
 		// primitive meshes - indices data and materials
 		std::vector<PrimitiveData> primitives;
+
+		// offsets into the mapped buffer
+		uint32_t vertex_buffer_offset;
+		uint32_t index_buffer_offset;
 	};
 }

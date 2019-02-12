@@ -23,12 +23,8 @@ namespace OmegaEngine
 		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
 		MeshManager::StaticMesh mesh = mesh_man.get_mesh(mesh_index);
 
-		assert(!mesh.vertexBuffer.empty());
-		assert(!mesh.indexBuffer.empty());
-		
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		mem_alloc.mapDataToSegment(vertices, mesh.vertexBuffer.data(), mesh.vertexBuffer.size());
-		mem_alloc.mapDataToSegment(indicies, mesh.indexBuffer.data(), mesh.indexBuffer.size());
+		vertex_buffer_offset = mesh.vertex_buffer_offset;
+		index_buffer_offset = mesh.index_buffer_offset;
 
 		// sort index offsets and materials ready for rendering
 		for (auto& prim : mesh.primitives) {
@@ -55,6 +51,7 @@ namespace OmegaEngine
 					// indices data which will be used for creating the cmd buffers
 					r_prim.index_offset = prim.indexBase;
 					r_prim.index_count = prim.indexCount;
+
 				}
 				mat.isMapped = true;
 			}
@@ -95,7 +92,7 @@ namespace OmegaEngine
 			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, primitives[i].decscriptor_set, VulkanAPI::PipelineType::Graphics, thread);
 			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(primitives[i].push_block), &primitives[i].push_block, thread);
 
-			vk::DeviceSize offset = {0};
+			vk::DeviceSize offset = {vertex_buffer_offset};
 			cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);
 			cmd_buffer.secondary_bind_index_buffer(indicies, primitives[i].index_offset, thread);
 			cmd_buffer.secondary_draw_indexed(primitives[i].index_count, thread);
