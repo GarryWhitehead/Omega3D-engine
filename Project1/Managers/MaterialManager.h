@@ -60,6 +60,7 @@ namespace OmegaEngine
 			// material image indicies
 			std::array<Texture, static_cast<int>(PbrMaterials::Count) > textures;
 
+			bool isMapped = false;
 			bool usingExtension = false;
 		};
 

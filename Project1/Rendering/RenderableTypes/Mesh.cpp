@@ -15,7 +15,7 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
+	RenderableMesh::RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj, RenderPipeline& render_pipeline) :
 		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
@@ -37,48 +37,51 @@ namespace OmegaEngine
 
 			VulkanAPI::Texture tex(VulkanAPI::TextureType::Normal);
 			auto& mat = comp_interface->getManager<MaterialManager>().get(prim.materialId);
-
+		
 			// set up the push block 
 			r_prim.push_block.create(mat);
 
-			// map all of the pbr materials for this primitive mesh to the gpu
-			for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-				tex.map(comp_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
+			// if the material associated with this mesh doesn't have the material textures mapped to the gpu, do that now.
+			if (!mat.isMapped) {
 
-				// now update the decscriptor set with the texture info 
-				r_prim.sampler->create(device, comp_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
-				r_prim.decscriptor_set.update_set(i, vk::DescriptorType::eSampler, r_prim.sampler->get_sampler(), tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
+				// map all of the pbr materials for this primitive mesh to the gpu 
+				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
+					tex.map(comp_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
 
-				// indices data which will be used for creating the cmd buffers
-				r_prim.index_offset = prim.indexBase;
-				r_prim.index_count = prim.indexCount;
+					// now update the decscriptor set with the texture info 
+					r_prim.sampler->create(device, comp_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
+					r_prim.decscriptor_set.update_set(render_pipeline.image_layout[i].binding, vk::DescriptorType::eSampler, r_prim.sampler->get_sampler(), tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
+
+					// indices data which will be used for creating the cmd buffers
+					r_prim.index_offset = prim.indexBase;
+					r_prim.index_count = prim.indexCount;
+				}
+				mat.isMapped = true;
 			}
 		}
 	}
 	
-	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer)
+	void RenderableMesh::create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer, RenderPipeline& render_pipeline)
 	{
-		RenderPipeline pipeline_info;
-		
 		// load shaders
-		pipeline_info.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
+		render_pipeline.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
-		pipeline_info.shader.descriptor_image_reflect(pipeline_info.descr_layout, image_layout);
-		pipeline_info.shader.descriptor_buffer_reflect(pipeline_info.descr_layout, buffer_layout);
-		pipeline_info.shader.pipeline_layout_reflect(pipeline_info.pl_layout);
+		render_pipeline.shader.descriptor_image_reflect(render_pipeline.descr_layout, render_pipeline.image_layout);
+		render_pipeline.shader.descriptor_buffer_reflect(render_pipeline.descr_layout, render_pipeline.buffer_layout);
+		render_pipeline.descr_layout.create(device);
+
+		render_pipeline.shader.pipeline_layout_reflect(render_pipeline.pl_layout);
+		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout(), RenderTypes::Mesh);
 
 		// create the graphics pipeline
-		pipeline_info.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		pipeline_info.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		pipeline_info.pipeline.add_colour_attachment(VK_FALSE, renderer->get_attach_count());
-		pipeline_info.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
-		pipeline_info.pipeline.set_renderpass(renderer->get_renderpass());
-		pipeline_info.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
-
-		return pipeline_info;
+		render_pipeline.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
+		render_pipeline.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_attach_count());
+		render_pipeline.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
+		render_pipeline.pipeline.set_renderpass(renderer->get_renderpass());
+		render_pipeline.pipeline.add_layout(render_pipeline.pl_layout.get());
+		render_pipeline.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 	}
 
 
@@ -120,7 +123,5 @@ namespace OmegaEngine
 
 			++thread_count;
 		}
-
-
 	}
 }

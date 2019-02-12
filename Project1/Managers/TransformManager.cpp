@@ -103,6 +103,7 @@ namespace OmegaEngine
 	{
 		TransformBufferInfo* transform_buff = transform_buffer_data + (alignment * transform_index);
 		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (alignment * transform_index);
+		++transform_buffer_size;
 
 		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
@@ -116,14 +117,14 @@ namespace OmegaEngine
 
 		if (transformBuffer[transform_index].skin_index > -1) {
 			
+			++skinned_buffer_size;
 			uint32_t skin_index = transformBuffer[transform_index].skin_index;
 
-			SkinnedBufferInfo skinned_info;
 			// prepare fianl output matrices buffer
 			uint32_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
 			skinBuffer[skin_index].joint_matrices.resize(joint_size);
 			
-			skinned_info.joint_count = joint_size;
+			skinned_buff->joint_count = joint_size;
 
 			// transform to local space
 			OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
@@ -137,7 +138,7 @@ namespace OmegaEngine
 				// transform joint to local (joint) space
 				OEMaths::mat4f local_mat = inv_mat * joint_mat;
 				skinBuffer[skin_index].joint_matrices[i] = local_mat;
-				skinned_info.joint_matrices[i] = local_mat;
+				skinned_buff->joint_matrices[i] = local_mat;
 			}
 		}
 
@@ -145,7 +146,7 @@ namespace OmegaEngine
 		auto children = obj.get_children();
 
 		for (auto& child : children) {
-			update_transform_recursive(child.get_manager_index<TransformManager>(), child);
+			update_transform_recursive(child.get_manager_index<TransformManager>(), child, alignment);
 		}
 	}
 
@@ -166,11 +167,10 @@ namespace OmegaEngine
 
 			update_transform(obj_manager);
 
-			// now upload to gpu - note that this will need to be altered so only models that have 'dirty' data are updated
-			// and also we could use vulkan dynamic buffers here
+			// now upload to gpu - TODO: note that this will need to be altered so only models that have 'dirty' data are updated
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			mem_alloc.mapDataToSegment(transform_buffer, transform_buffer_info.data(), sizeof(TransformBufferInfo) * transform_buffer_info.size());
-			mem_alloc.mapDataToSegment(skinned_buffer, skinned_buffer_info.data(), sizeof(SkinnedBufferInfo) * skinned_buffer_info.size());
+			mem_alloc.mapDataToDynamicSegment(transform_buffer, transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size);
+			mem_alloc.mapDataToDynamicSegment(skinned_buffer, skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size);
 
 			is_dirty = false;
 		}

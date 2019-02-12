@@ -295,6 +295,11 @@ namespace VulkanAPI
 		return dynamic_segment;
 	}
 
+	void MemoryAllocator::mapDataToDynamicSegment(DynamicSegment* dynamic_segment, void *data, uint32_t totalSize, uint32_t offset)
+	{
+		MemorySegment segment = dynamic_buffers[dynamic_segment->get_buffer_index()];
+		mapDataToSegment(segment, data, totalSize, offset);
+	}
 
 	void MemoryAllocator::destroySegment(MemorySegment &segment)
 	{

@@ -92,9 +92,6 @@ namespace OmegaEngine
 		case OmegaEngine::RenderTypes::Mesh:
 			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer);
 			break;
-		case OmegaEngine::RenderTypes::Skybox:
-			shader.add(vk_interface->get_device(), "env/skybox.vert", VulkanAPI::StageType::Vertex, "env/skybox.frag", VulkanAPI::StageType::Fragment);
-			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
 		}

@@ -30,6 +30,10 @@ namespace OmegaEngine
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
 		VulkanAPI::DescriptorLayout descr_layout;
+
+		// information extracted from shader reflection
+		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
+		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
 	};
 
 	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer

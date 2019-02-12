@@ -115,6 +115,9 @@ namespace OmegaEngine
 		VulkanAPI::DynamicSegment* transform_buffer;
 		VulkanAPI::DynamicSegment* skinned_buffer;
 
+		uint32_t transform_buffer_size = 0;
+		uint32_t skinned_buffer_size = 0;
+
 		// flag which tells us whether we need to update the static data
 		bool is_dirty = true;
 	};

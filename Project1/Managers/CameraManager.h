@@ -128,7 +128,7 @@ namespace OmegaEngine
 		// info for the gpu side
 		VulkanAPI::MemorySegment ubo_buffer;
 
-		// signfys whether the camera buffer needs updating both here and on the GPU side
+		// signfies whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;
 	};
 

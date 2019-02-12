@@ -73,6 +73,8 @@ namespace OmegaEngine
 		assert(!sampler_layout.empty());
 		assert(!buffer_layout.empty());
 
+		descr_layout.create(device);
+
 		// descriptor sets for all the deferred buffers samplers
 		// using a linear sampler for all deferred buffers
 		linear_sampler.create(device, VulkanAPI::SamplerType::LinearClamp);
@@ -82,7 +84,6 @@ namespace OmegaEngine
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
 		descr_set.update_set(0, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
-		
 		
 		// and finally create the pipeline
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);

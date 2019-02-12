@@ -40,12 +40,12 @@ namespace OmegaEngine
 			std::unique_ptr<VulkanAPI::Sampler> sampler;
 		};
 		
-		RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+		RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj, RenderPipeline& render_pipeline);
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size, uint32_t num_threads);
 		void render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, uint32_t start_index, uint32_t end_index, uint32_t thread);
 
-		static RenderPipeline create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer);	// TODO: this will need thinking about when other renderer types are added
+		static void create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer, RenderPipeline& render_pipeline);	// TODO: this will need thinking about when other renderer types are added
 
 	private:
 
