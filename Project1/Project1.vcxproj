@@ -29,6 +29,7 @@
     <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
+    <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
     <ClCompile Include="Rendering\StockModels.cpp" />
@@ -92,6 +93,7 @@
     <ClInclude Include="external\Spirv-Cross\spirv_msl.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
+    <ClInclude Include="Image\KtxReader.h" />
     <ClInclude Include="Rendering\StockModels.h" />
     <ClInclude Include="OEMaths\OEMaths.h" />
     <ClInclude Include="OEMaths\OEMaths_transform.h" />
