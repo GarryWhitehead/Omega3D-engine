@@ -30,7 +30,8 @@ namespace OmegaEngine
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
 		VulkanAPI::DescriptorLayout descr_layout;
-
+		VulkanAPI::DescriptorSet descr_set;
+		
 		// information extracted from shader reflection
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
 		std::vector<VulkanAPI::ShaderImageLayout> image_layout;

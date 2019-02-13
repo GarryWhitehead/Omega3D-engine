@@ -21,6 +21,8 @@ namespace VulkanAPI
 			uint32_t ubo_count = 0;
 			uint32_t ssbo_count = 0;
 			uint32_t sampler_count = 0;
+			uint32_t ubo_dynamic_count = 0;
+			uint32_t ssbo_dynamic_count = 0;
 			uint32_t storage_image_count = 0;
 		};
 

@@ -85,12 +85,12 @@ namespace OmegaEngine
 		
 	}
 
-	void RenderInterface::add_shader(RenderTypes type)
+	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& interface)
 	{
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::Mesh:
-			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer);
+			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer, interface);
 			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");

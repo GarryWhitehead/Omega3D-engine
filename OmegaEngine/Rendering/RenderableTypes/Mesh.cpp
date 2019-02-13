@@ -58,8 +58,14 @@ namespace OmegaEngine
 		}
 	}
 	
-	void RenderableMesh::create_mesh_pipeline(vk::Device device, std::unique_ptr<DeferredRenderer>& renderer, RenderPipeline& render_pipeline)
+	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, 
+												std::unique_ptr<DeferredRenderer>& renderer, 
+												 
+												std::unique_ptr<ComponentInterface>& interface)
 	{
+		
+		RenderPipeline render_pipeline;
+
 		// load shaders
 		render_pipeline.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
 
@@ -67,6 +73,26 @@ namespace OmegaEngine
 		render_pipeline.shader.descriptor_image_reflect(render_pipeline.descr_layout, render_pipeline.image_layout);
 		render_pipeline.shader.descriptor_buffer_reflect(render_pipeline.descr_layout, render_pipeline.buffer_layout);
 		render_pipeline.descr_layout.create(device);
+		
+		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
+		// material sets will be created and owned by the actual material - note: these will always be set ZERO
+		for (auto& layout : render_pipeline.buffer_layout) {
+			
+			// the shader must use these identifying names -
+			if (strcmp(layout.name, "CameraUbo") == 0) {
+				auto& camera_manager = interface->get_manager<CameraManager>();
+				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), layout.range);
+			}
+			if (strcmp(layout.name, "StaticMeshUbo") == 0) {
+				auto& mesh_manager = interface->get_manager<MeshManager>();
+				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), layout.range);
+			}
+			if (strcmp(layout.name, "SkinnedUbo") == 0) {
+				auto& mesh_manager = interface->get_manager<MeshManager>();
+				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager->get_ubo_buffer(), camera_manager->get_ubo_offset(), layout.range);
+			}
+		}
+		rener_pipeline.descr_set.update_sets(device);
 
 		render_pipeline.shader.pipeline_layout_reflect(render_pipeline.pl_layout);
 		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout(), RenderTypes::Mesh);
@@ -79,6 +105,8 @@ namespace OmegaEngine
 		render_pipeline.pipeline.set_renderpass(renderer->get_renderpass());
 		render_pipeline.pipeline.add_layout(render_pipeline.pl_layout.get());
 		render_pipeline.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
+
+		return render_pipeline;
 	}
 
 
