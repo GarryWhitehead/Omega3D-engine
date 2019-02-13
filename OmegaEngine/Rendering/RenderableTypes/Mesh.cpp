@@ -60,7 +60,6 @@ namespace OmegaEngine
 	
 	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, 
 												std::unique_ptr<DeferredRenderer>& renderer, 
-												 
 												std::unique_ptr<ComponentInterface>& interface)
 	{
 		

@@ -76,4 +76,31 @@ namespace OmegaEngine
 		assert(index < materials.size());
 		return materials[index];
 	}
+
+	void MaterialManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+	{
+		// if dirty - then upload material to gpu. With other managers, this needs to be adjusted so only materials
+		// that are changed/deleted/added are updated
+		if (isDirty) {
+			
+			for (auto& mat : materials) {
+
+				// map all of the pbr materials for this primitive mesh to the gpu 
+				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
+
+					vk_textures[i].map(comp_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
+
+					// now update the decscriptor set with the texture info 
+					mat.sampler->create(device, comp_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
+
+					// materials always are set = 0 and bindings follow the pbr material sequence - no reflection used
+					mat.descr_set.update_set(0, i, vk::DescriptorType::eSampler, mat.sampler->get_sampler(), vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
+
+				}
+			}
+		}	
+		
+		isDirty = false;
+	}
+
 }
