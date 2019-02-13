@@ -80,7 +80,7 @@ namespace VulkanAPI
 
 		PipelineLayout();
 
-		void create(vk::Device& device, vk::DescriptorSetLayout& descr_layout, OmegaEngine::RenderTypes type);
+		void create(vk::Device& device, std::vector<vk::DescriptorSetLayout>& descr_layout, OmegaEngine::RenderTypes type);
 
 		vk::PipelineLayout& get()
 		{
