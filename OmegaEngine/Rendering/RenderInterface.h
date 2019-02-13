@@ -31,7 +31,7 @@ namespace OmegaEngine
 		VulkanAPI::Pipeline pipeline;
 		VulkanAPI::DescriptorLayout descr_layout;
 		VulkanAPI::DescriptorSet descr_set;
-		
+
 		// information extracted from shader reflection
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
 		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
@@ -86,9 +86,10 @@ namespace OmegaEngine
 			renderables.push_back({ renderable });
 		}
 
-		
-
 		void load_render_config();
+
+		void init_renderer(std::unique_ptr<ComponentInterface>& interface);
+		void init_environment_render();
 
 		// shader init for each renderable type
 		void add_shader(RenderTypes type);

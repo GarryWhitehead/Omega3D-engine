@@ -37,19 +37,11 @@ namespace OmegaEngine
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
 
-		// setup the renderer pipeline
-		switch (static_cast<RendererType>(render_config.general.renderer)) {
-		case RendererType::Deferred:
-		{
-			def_renderer = std::make_unique<DeferredRenderer>(device.getDevice(), device.getPhysicalDevice(), render_config);
-			def_renderer->create(win_width, win_height, component_interface->getManager<CameraManager>());
-			render_callback = def_renderer->set_render_callback(this, vk_interface);
-			break;
-		}
-		default:
-			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
-			break;
-		}
+		// setup environment rendering if needded
+		init_environment_render();
+		
+		// create renderer - only deferred renderer supported at the mo
+		init_renderer(component_interface);
 
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
 		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
@@ -83,6 +75,28 @@ namespace OmegaEngine
 			render_config.general.renderer = static_cast<RendererType>(renderer);
 		}
 		
+	}
+
+	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& interface)
+	{
+		// setup the renderer pipeline
+		switch (static_cast<RendererType>(render_config.general.renderer)) {
+		case RendererType::Deferred:
+		{
+			def_renderer = std::make_unique<DeferredRenderer>(device.getDevice(), device.getPhysicalDevice(), render_config);
+			def_renderer->create(win_width, win_height, interface->getManager<CameraManager>());
+			render_callback = def_renderer->set_render_callback(this, vk_interface);
+			break;
+		}
+		default:
+			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
+			break;
+		}
+	}
+	
+	void RenderInterface::init_environment_render()
+	{
+
 	}
 
 	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& interface)

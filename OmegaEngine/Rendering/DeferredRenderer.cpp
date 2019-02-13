@@ -79,11 +79,11 @@ namespace OmegaEngine
 		// using a linear sampler for all deferred buffers
 		linear_sampler.create(device, VulkanAPI::SamplerType::LinearClamp);
 		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
-			descr_set.update_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
+			descr_set.write_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
-		descr_set.update_set(0, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
+		descr_set.write_set(0, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
 		
 		// and finally create the pipeline
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
@@ -93,6 +93,7 @@ namespace OmegaEngine
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 	}
+
 
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
 	{
@@ -107,14 +108,13 @@ namespace OmegaEngine
 		cmd_buffer.bind_pipeline(pipeline);
 		cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
 
-		// set push constants for light variables
-
 		// render full screen quad to screen
 		cmd_buffer.draw_indexed_quad();
 
 		// submit to graphics queue
 		graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
 	}
+
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
