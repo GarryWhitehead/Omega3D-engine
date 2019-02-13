@@ -15,7 +15,7 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(vk::Device& device, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj, RenderPipeline& render_pipeline) :
+	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
 		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
@@ -29,32 +29,13 @@ namespace OmegaEngine
 		// sort index offsets and materials ready for rendering
 		for (auto& prim : mesh.primitives) {
 
-			PrimitiveData r_prim;
+			MeshRenderInfo render_info;
+			render_info.material_index = prim.materialId;
 
-			VulkanAPI::Texture tex(VulkanAPI::TextureType::Normal);
-			auto& mat = comp_interface->getManager<MaterialManager>().get(prim.materialId);
-		
-			// set up the push block 
-			r_prim.push_block.create(mat);
-
-			// if the material associated with this mesh doesn't have the material textures mapped to the gpu, do that now.
-			if (!mat.isMapped) {
-
-				// map all of the pbr materials for this primitive mesh to the gpu 
-				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-					tex.map(comp_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
-
-					// now update the decscriptor set with the texture info 
-					r_prim.sampler->create(device, comp_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
-					r_prim.decscriptor_set.update_set(render_pipeline.image_layout[i].binding, vk::DescriptorType::eSampler, r_prim.sampler->get_sampler(), tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
-
-					// indices data which will be used for creating the cmd buffers
-					r_prim.index_offset = prim.indexBase;
-					r_prim.index_count = prim.indexCount;
-
-				}
-				mat.isMapped = true;
-			}
+			render_info.index_offset = prim.index_offset;
+			render_info.index_count = prim.index_count;
+			
+			mesh_render_info.push_back(render_info);
 		}
 	}
 	
@@ -109,14 +90,21 @@ namespace OmegaEngine
 	}
 
 
-	void RenderableMesh::render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, uint32_t start_index, uint32_t end_index, uint32_t thread)
+	void RenderableMesh::render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, 
+											RenderPipeline& mesh_pipeline, 
+											std::unique_ptr<ComponentInterface>& interface,
+											uint32_t start_index, uint32_t end_index, 
+											uint32_t thread)
 	{
 		// create a secondary command buffer for each thread. This also creates a thread-specific command pool 
 		cmd_buffer.begin_secondary(thread);
 		
 		for (uint32_t i = start_index; i < end_index; ++i) {
+			
+			// get the material for this primitive mesh from the manager
+			auto& mat = interface->getManager<MaterialManager>().get(primitives[i].material_index);
 
-			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, primitives[i].decscriptor_set, VulkanAPI::PipelineType::Graphics, thread);
+			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
 			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(primitives[i].push_block), &primitives[i].push_block, thread);
 
 			vk::DeviceSize offset = {vertex_buffer_offset};
@@ -126,7 +114,12 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, RenderPipeline& mesh_pipeline, ThreadPool& thread_pool, uint32_t thread_group_size, uint32_t num_threads)
+
+	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
+								RenderPipeline& mesh_pipeline, 
+								ThreadPool& thread_pool, 
+								uint32_t thread_group_size, 
+								uint32_t num_threads)
 	{
 		
 		uint32_t thread_count = 0;
