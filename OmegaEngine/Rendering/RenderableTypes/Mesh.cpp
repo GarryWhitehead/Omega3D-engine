@@ -104,7 +104,11 @@ namespace OmegaEngine
 			// get the material for this primitive mesh from the manager
 			auto& mat = interface->getManager<MaterialManager>().get(primitives[i].material_index);
 
-			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
+			// calculate offset into dynamic buffer
+			auto& trans_manager = interface->getManager<TransformManager>();
+			auto dynamic_offsets = trans_manager->get_dynamic_buffer_offsets();
+
+			cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(primitives[i].push_block), &primitives[i].push_block, thread);
 
 			vk::DeviceSize offset = {vertex_buffer_offset};

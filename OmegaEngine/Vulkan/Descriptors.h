@@ -69,10 +69,18 @@ namespace VulkanAPI
 		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
 		void update_sets(vk::Device device);
 
-		vk::DescriptorSet& get()
+		vk::DescriptorSet* get()
 		{
-			assert(set);
-			return set;
+			assert(!descr_sets.empty());
+			return descr_set.data();
+		}
+
+		uint32_t get_size() const
+		{
+			if (descr_sets.empty()) {
+				return 0;
+			}
+			return static_cast<uint32_t>(descr_sets.size());
 		}
 
 	private:

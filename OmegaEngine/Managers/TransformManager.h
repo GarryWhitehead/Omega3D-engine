@@ -100,6 +100,16 @@ namespace OmegaEngine
 			return transformBuffer[transform_index].transform;
 		}
 
+		std::vector<uint32_t> get_dynamic_buffer_offsets() const
+		{
+			std::vector<uint32_t> offsets 
+			{
+				transform_buffer->get_alignment_size(),
+				skinned_buffer->get_alignment_size()
+			};
+			return offsets;
+		}
+
 	private:
 
 		// transform data for static meshes
@@ -112,6 +122,7 @@ namespace OmegaEngine
 		TransformBufferInfo* transform_buffer_data = nullptr;
 		SkinnedBufferInfo* skinned_buffer_data = nullptr;
 
+		// TODO: make these unique ptr
 		VulkanAPI::DynamicSegment* transform_buffer;
 		VulkanAPI::DynamicSegment* skinned_buffer;
 

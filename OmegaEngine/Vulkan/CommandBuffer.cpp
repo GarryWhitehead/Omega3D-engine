@@ -192,7 +192,18 @@ namespace VulkanAPI
 		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
 
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, 1, &descr_set.get(), 0, nullptr);
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), 0, nullptr);
+	}
+
+	void CommandBuffer::secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		assert(!dynamic_offsets.empty());
+		
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(type);
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offset.data());
 	}
 
 	void CommandBuffer::secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle)
