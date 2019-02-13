@@ -46,7 +46,7 @@ namespace OmegaEngine
 					RenderPipeline& mesh_pipeline, 
 					ThreadPool& thread_pool, 
 					uint32_t thread_group_size, 
-					uint32_t num_threads);
+					uint32_t num_threads) override;
 
 		void render_threaded(VulkanAPI::CommandBuffer& cmd_buffer,
 							RenderPipeline& mesh_pipeline, 

@@ -13,27 +13,29 @@ namespace OmegaEngine
     // all the information required to render 
     struct RenderQueueInfo
     {
-        RenderQueueType type;
-        vk::CommandBuffer cmd_buffer;
-        vk::Semaphore wait_semaphore;
-        vk::Semaphore signal_semaphore;
-        vk::PipelineStageFlagBits stage;
+        VulkanAPI::CommandBuffer cmd_buffer;
+        ThreadPool* thread_pool;
+        uint32_t num_threads;
+        uint32_t threads_per_group;
+
+        // render callback function
+        (void* render_function)(VulkanAAPI::CommandBuffer&, RenderPipeline& , ThreadPool*, uint32_t, uint32_t);
     };
 
     class RenderQueue
     {
      public:
 
-        RenderQueue(VulkanAPI::Queue& graph, VulkanAPI::Queue& present);
+        RenderQueue();
         ~RenderQueue();
 
-        void submit_graphics();
+        void add_to_queue(RenderQueueInfo render_info, uint32_t priority_key);
+        void submit();
 
      private:
 
-        std::queue<RenderQueueInfo> render_queue;
+        // ordered by sorting priority
+        std::map<uint32_t, RenderQueueInfo> render_queue;
 
-        VulkanAPI::Queue graph_queue;
-        VulkanAPI::Queue present_queue;
     };
 }

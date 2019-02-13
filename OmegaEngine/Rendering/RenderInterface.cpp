@@ -39,7 +39,7 @@ namespace OmegaEngine
 
 		// setup environment rendering if needded
 		init_environment_render();
-		
+
 		// create renderer - only deferred renderer supported at the mo
 		init_renderer(component_interface);
 
@@ -115,25 +115,27 @@ namespace OmegaEngine
 
 	void RenderInterface::render_components()
 	{
-		uint32_t num_threads = std::thread::hardware_concurrency();
-		ThreadPool thread_pool(num_threads);
+		// set the command buffer that will be used for the queue
+		render_queue->add_cmd_buffer(VulkanAPI::CommandBuffer& cmd_buffer);
+		
+		RenderQueueInfo queue_info;
+		queue_info.num_threads = std::thread::hardware_concurrency();
+		queue_info.threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
 
-		uint32_t threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
+		ThreadPool thread_pool(num_threads);
+		queue_info.thread_pool = &thread_pool;
 
 		for (auto& info : renderables) {
 
-			// Note: this is in a specific order in whcih renderable should be drawn
-			switch (info.renderable->get_type()) {
-			case RenderTypes::Skybox:
-				break;
-			case RenderTypes::Mesh:
-				dynamic_cast<RenderableMesh*>(info.renderable)->render(cmd_buffer, render_pipelines[(int)RenderTypes::Mesh], thread_pool, threads_per_group, num_threads);
-				break;
-			default:
-				LOGGER_INFO("Error whilst rendering. Unsupported renderable detected.");
-			}
-		}
+			queue_info.render_function = info.render;
+			queue_info.type = info.type;
 
+			render_queue->add_to_queue(queue_info, info.priority_key);		
+		}
+		
+		// now submit everything for rendering
+		render_queue.submit();
+		
 		// check that all threads are finshed before executing the cmd buffers
 		thread_pool.wait_for_all();
 
