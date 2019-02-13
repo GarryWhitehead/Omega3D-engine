@@ -13,7 +13,6 @@ namespace OmegaEngine
     // all the information required to render 
     struct RenderQueueInfo
     {
-        VulkanAPI::CommandBuffer cmd_buffer;
         ThreadPool* thread_pool;
         uint32_t num_threads;
         uint32_t threads_per_group;
@@ -29,13 +28,19 @@ namespace OmegaEngine
         RenderQueue();
         ~RenderQueue();
 
-        void add_to_queue(RenderQueueInfo render_info, uint32_t priority_key);
-        void submit();
+        void add_to_queue(RenderQueueInfo& render_info, uint32_t priority_key)
+        {
+            render_queues[priority_key].push_back(render_info);
+        }
+
+        void submit(RenderInterface* interface);
 
      private:
 
+        VulkanAPI::CommandBuffer cmd_buffer;
+
         // ordered by sorting priority
-        std::map<uint32_t, RenderQueueInfo> render_queue;
+        std::map<uint32_t, std::vector<RenderQueueInfo> > render_queues;
 
     };
 }

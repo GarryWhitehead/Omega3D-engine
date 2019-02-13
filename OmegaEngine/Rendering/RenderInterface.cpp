@@ -135,12 +135,6 @@ namespace OmegaEngine
 		
 		// now submit everything for rendering
 		render_queue.submit();
-		
-		// check that all threads are finshed before executing the cmd buffers
-		thread_pool.wait_for_all();
-
-		cmd_buffer.secondary_execute_commands();
-		cmd_buffer.end();
 	}
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
