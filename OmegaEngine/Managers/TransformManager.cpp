@@ -174,7 +174,6 @@ namespace OmegaEngine
 
 			is_dirty = false;
 		}
-
 	}
 	
 	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)

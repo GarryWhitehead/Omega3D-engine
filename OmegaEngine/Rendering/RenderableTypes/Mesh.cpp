@@ -99,17 +99,25 @@ namespace OmegaEngine
 		// create a secondary command buffer for each thread. This also creates a thread-specific command pool 
 		cmd_buffer.begin_secondary(thread);
 		
+		auto& trans_manager = interface->getManager<TransformManager>();
+
 		for (uint32_t i = start_index; i < end_index; ++i) {
 			
 			// get the material for this primitive mesh from the manager
 			auto& mat = interface->getManager<MaterialManager>().get(primitives[i].material_index);
 
-			// calculate offset into dynamic buffer
-			auto& trans_manager = interface->getManager<TransformManager>();
-			auto dynamic_offsets = trans_manager->get_dynamic_buffer_offsets();
+			// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
+			std::vector<uint32_t> dynamic_offsets 
+			{
+				i * trans_manager-<get_transform_dynamic_offset(),
+				i * trans_manager-<get_skinned_dynamic_offset(),
+			};
 
-			cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
+			cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(primitives[i].push_block), &primitives[i].push_block, thread);
+
+			// bind the material set to (set = 0)
+			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
 
 			vk::DeviceSize offset = {vertex_buffer_offset};
 			cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);
