@@ -1,6 +1,7 @@
 #pragma once
 #include "Vulkan/Common.h"
 #include <unordered_map>
+#include <tuple>
 
 namespace VulkanAPI
 {
@@ -12,9 +13,11 @@ namespace VulkanAPI
 
 		struct LayoutBindings
 		{
-			std::vector<vk::DescriptorSetLayoutBinding> layouts;
+			// grouped into sets 
+			std::unordered_map<uint32_t, std::vector<vk::DescriptorSetLayoutBinding> > layouts;
 
 			// running counts of each descriptor type - required for creating descriptor pools
+			// using one pool for multiple sets
 			uint32_t ubo_count = 0;
 			uint32_t ssbo_count = 0;
 			uint32_t sampler_count = 0;
@@ -44,7 +47,9 @@ namespace VulkanAPI
 		vk::Device device;
 
 		vk::DescriptorPool pool;
-		vk::DescriptorSetLayout layout;
+
+		// each set will need it's own layout - keep track of the set number so we can match them correctly later
+		std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> > descr_layouts;
 		LayoutBindings layout_bind;
 	};
 
@@ -58,9 +63,9 @@ namespace VulkanAPI
 		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
 		void init(vk::Device device, DescriptorLayout descr_layout);
-		void update_set(uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range);
-		void update_set(uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
-		void update(vk::Device device);
+		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range);
+		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout);
+		void update_sets(vk::Device device);
 
 		vk::DescriptorSet& get()
 		{
@@ -70,9 +75,11 @@ namespace VulkanAPI
 
 	private:
 
-		vk::DescriptorSet set;
-
-		std::vector<vk::WriteDescriptorSet> write_sets;
+		// one for all the sets that will be created
+		std::vector<vk::DescriptorSet> descr_sets;	
+		
+		// one for each set
+		std::unordered_map<uint32_t, vk::WriteDescriptorSet> write_sets;
 	};
 
 }
