@@ -3,6 +3,10 @@
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 
+#include "Vulkan/Descriptors.h"
+#include "Vulkan/DataTypes/Texture.h"
+#include "Vulkan/Sampler.h"
+
 #include "tiny_gltf.h"
 
 #include <memory>
@@ -63,23 +67,27 @@ namespace OmegaEngine
 			// local vulkan data
 			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;
 			VulkanAPI::DescriptorSet descr_set;
-			VulkanAPI::Sampler;
+			VulkanAPI::Sampler sampler;
 
 			bool usingExtension = false;
 		};
 
-		MaterialManager();
+		MaterialManager(vk::Device dev);
 		~MaterialManager();
 
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager) override;
+		void update_frame(double time, double dt, 
+							std::unique_ptr<ObjectManager>& obj_manager,
+							std::unique_ptr<ComponentInterface>& component_interface) override;
 
 		void addGltfMaterial(tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
 
 	private:
+		
+		// for the updating of materials
+		vk::Device device;
 
 		std::vector<MaterialInfo> materials;
-
 		bool isDirty = true;
 	};
 

@@ -79,11 +79,11 @@ namespace OmegaEngine
 		// using a linear sampler for all deferred buffers
 		linear_sampler.create(device, VulkanAPI::SamplerType::LinearClamp);
 		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
-			descr_set.write_set(sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
+			descr_set.write_set(sampler_layout[i].set, sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
-		descr_set.write_set(0, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
+		descr_set.write_set(buffer_layout[0].set, buffer_layout[0].binding, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
 		
 		// and finally create the pipeline
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);

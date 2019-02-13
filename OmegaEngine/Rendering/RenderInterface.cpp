@@ -18,6 +18,7 @@
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
+#include "Rendering/RenderQueue.h"
 
 namespace OmegaEngine
 {
@@ -36,7 +37,9 @@ namespace OmegaEngine
 
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
-
+		
+		render_queue = std::make_unique<RenderQueue>();
+		
 		// setup environment rendering if needded
 		init_environment_render();
 
@@ -45,7 +48,7 @@ namespace OmegaEngine
 
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
 		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
-			this->add_shader((RenderTypes)r_type);
+			this->add_shader((RenderTypes)r_type, component_interface);
 		}
 	}
 
@@ -77,14 +80,17 @@ namespace OmegaEngine
 		
 	}
 
-	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& interface)
+	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)
 	{
+		uint32_t win_width = Global::program_state.get_win_width();
+		uint32_t win_height = Global::program_state.get_win_height();
+
 		// setup the renderer pipeline
 		switch (static_cast<RendererType>(render_config.general.renderer)) {
 		case RendererType::Deferred:
 		{
-			def_renderer = std::make_unique<DeferredRenderer>(device.getDevice(), device.getPhysicalDevice(), render_config);
-			def_renderer->create(win_width, win_height, interface->getManager<CameraManager>());
+			def_renderer = std::make_unique<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
+			def_renderer->create(win_width, win_height, component_interface->getManager<CameraManager>());
 			render_callback = def_renderer->set_render_callback(this, vk_interface);
 			break;
 		}
@@ -99,12 +105,12 @@ namespace OmegaEngine
 
 	}
 
-	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& interface)
+	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::Mesh:
-			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer, interface);
+			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer, component_interface);
 			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
@@ -116,25 +122,20 @@ namespace OmegaEngine
 	void RenderInterface::render_components()
 	{
 		// set the command buffer that will be used for the queue
-		render_queue->add_cmd_buffer(VulkanAPI::CommandBuffer& cmd_buffer);
+		render_queue->add_cmd_buffer(cmd_buffer);
 		
 		RenderQueueInfo queue_info;
-		queue_info.num_threads = std::thread::hardware_concurrency();
-		queue_info.threads_per_group = VULKAN_THREADED_GROUP_SIZE / num_threads;
-
-		ThreadPool thread_pool(num_threads);
-		queue_info.thread_pool = &thread_pool;
-
+	
 		for (auto& info : renderables) {
+			
+			queue_info.render_function = &info.renderable->render;
+			queue_info.type = info.renderable->get_type();
 
-			queue_info.render_function = info.render;
-			queue_info.type = info.type;
-
-			render_queue->add_to_queue(queue_info, info.priority_key);		
+			render_queue->add_to_queue(queue_info, info.renderable->get_priority_key());		
 		}
 		
 		// now submit everything for rendering
-		render_queue.submit();
+		render_queue->submit(this);
 	}
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)

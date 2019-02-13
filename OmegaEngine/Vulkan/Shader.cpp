@@ -121,7 +121,7 @@ namespace VulkanAPI
 					type = vk::DescriptorType::eUniformBufferDynamic;
 				}
 
-				descr_layout.add_layout(binding, type, get_stage_flag_bits(StageType(i)));
+				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
 				buffer_layout.push_back({ vk::DescriptorType::eUniformBuffer, binding, set, ubo.name.c_str(), range });
 			}
@@ -134,11 +134,11 @@ namespace VulkanAPI
 
 				// the descriptor type could be either a normal or dynamic storage buffer. Dynamic buffers must start with "Dynamic::"
 				vk::DescriptorType type = vk::DescriptorType::eStorageBuffer;
-				if (ubo.name.find("Dynamic::") != std::string::npos) {
+				if (ssbo.name.find("Dynamic::") != std::string::npos) {
 					type = vk::DescriptorType::eStorageBufferDynamic;
 				}
 
-				descr_layout.add_layout(binding, type, get_stage_flag_bits(StageType(i)));
+				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
 				buffer_layout.push_back({ vk::DescriptorType::eStorageBuffer, binding, set, ssbo.name.c_str(), range });
 			}
@@ -148,7 +148,7 @@ namespace VulkanAPI
 
 				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-				descr_layout.add_layout(binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(StageType(i)));
+				descr_layout.add_layout(set, binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(StageType(i)));
 			}
 		}
 	}
@@ -171,7 +171,7 @@ namespace VulkanAPI
 
 				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-				descr_layout.add_layout(binding, vk::DescriptorType::eSampler, get_stage_flag_bits(StageType(i)));
+				descr_layout.add_layout(set, binding, vk::DescriptorType::eSampler, get_stage_flag_bits(StageType(i)));
 				image_layout.push_back({ binding, set, image.name.c_str() });
 			}
 		}

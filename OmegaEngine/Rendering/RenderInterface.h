@@ -23,6 +23,7 @@ namespace OmegaEngine
 	enum class RenderTypes;
 	class RenderableBase;
 	class PostProcessInterface;
+	class RenderQueue;
 
 	struct RenderPipeline
 	{
@@ -86,13 +87,18 @@ namespace OmegaEngine
 			renderables.push_back({ renderable });
 		}
 
+		RenderPipeline& get_render_pipeline(RenderTypes type)
+		{
+			return render_pipelines[(int)type];
+		}
+
 		void load_render_config();
 
 		void init_renderer(std::unique_ptr<ComponentInterface>& interface);
 		void init_environment_render();
 
 		// shader init for each renderable type
-		void add_shader(RenderTypes type);
+		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
 		void render_components();
@@ -107,6 +113,7 @@ namespace OmegaEngine
 
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;
+		std::unique_ptr<RenderQueue> render_queue;
 
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;

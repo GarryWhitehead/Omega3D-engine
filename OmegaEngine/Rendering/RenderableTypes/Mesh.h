@@ -27,6 +27,9 @@ namespace OmegaEngine
 
 	public:
 		
+		// priority key for meshes required for sorting
+		const uint32_t priority_key = 1;
+
 		// render info for all mesh primitive faces 
 		struct MeshRenderInfo
 		{
@@ -44,24 +47,24 @@ namespace OmegaEngine
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
 					RenderPipeline& mesh_pipeline, 
+					std::unique_ptr<ComponentInterface>& component_interface,
 					ThreadPool& thread_pool, 
 					uint32_t thread_group_size, 
 					uint32_t num_threads) override;
 
 		void render_threaded(VulkanAPI::CommandBuffer& cmd_buffer,
 							RenderPipeline& mesh_pipeline, 
-							std::unique_ptr<ComponentInterface>& interface,
+							std::unique_ptr<ComponentInterface>& component_interface,
 							uint32_t start_index, uint32_t end_index, 
 							uint32_t thread);
 
-		static void create_mesh_pipeline(vk::Device device, 
-										std::unique_ptr<DeferredRenderer>& renderer, 
-										RenderPipeline& render_pipeline
-										std::unique_ptr<ComponentInterface>& interface);	
+		static RenderPipeline create_mesh_pipeline(vk::Device device, 
+													std::unique_ptr<DeferredRenderer>& renderer, 
+													std::unique_ptr<ComponentInterface>& component_interface);	
 
 	private:
 
-		// primitive meshes - indices data and materials
+		// primitive meshes - indices data and material index
 		std::vector<MeshRenderInfo> mesh_render_info;
 
 		// offsets into the mapped buffer

@@ -141,7 +141,7 @@ namespace OmegaEngine
 		obj.add_manager<MeshManager>(meshBuffer.size() - 1);
 	}
 
-	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		// if dirty, then we need to update the mesh vertices and indices
 		// as other managers, this will need to be chnaged at some point so only meshes that need upadting are effected

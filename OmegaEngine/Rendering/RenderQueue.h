@@ -1,24 +1,32 @@
-#include <queue>
+#pragma once
 
 #include "Vulkan/Common.h"
+#include "Vulkan/CommandBuffer.h"
+
+#include <map>
+#include <vector>
 
 namespace OmegaEngine
 {
-    enum class RenderQueueType
-    {
-        Graphics,
-        Present
-    }
+	// forward declerations
+	class ThreadPool;
+	class RenderPipeline;
+	class RenderInterface;
+	enum class RenderTypes;
+
+	enum class RenderQueueType
+	{
+		Graphics,
+		Present
+	};
     
     // all the information required to render 
     struct RenderQueueInfo
     {
-        ThreadPool* thread_pool;
-        uint32_t num_threads;
-        uint32_t threads_per_group;
+		RenderTypes type;
 
         // render callback function
-        (void* render_function)(VulkanAAPI::CommandBuffer&, RenderPipeline& , ThreadPool*, uint32_t, uint32_t);
+        void (*render_function)(VulkanAPI::CommandBuffer&, RenderPipeline& , ThreadPool&, uint32_t, uint32_t);
     };
 
     class RenderQueue
@@ -33,7 +41,12 @@ namespace OmegaEngine
             render_queues[priority_key].push_back(render_info);
         }
 
-        void submit(RenderInterface* interface);
+		void add_cmd_buffer(VulkanAPI::CommandBuffer& buffer)
+		{
+			cmd_buffer = buffer;
+		}
+
+        void submit(RenderInterface* render_interface);
 
      private:
 

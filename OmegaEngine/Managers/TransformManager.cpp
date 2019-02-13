@@ -156,11 +156,11 @@ namespace OmegaEngine
 
 		for (auto obj : object_list) {
 
-			update_transform_recursive(obj.second.get_manager_index<TransformManager>(), obj.second);
+			update_transform_recursive(obj.second.get_manager_index<TransformManager>(), obj.second, transform_buffer->get_alignment_size());
 		}
 	}
 
-	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		// check whether static data need updating
 		if (is_dirty) {

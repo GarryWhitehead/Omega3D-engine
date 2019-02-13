@@ -5,6 +5,8 @@
 
 namespace OmegaEngine
 {
+	// forward declerations
+	class ComponentInterface;
 
 	class ManagerBase
 	{
@@ -15,7 +17,9 @@ namespace OmegaEngine
 		virtual ~ManagerBase() {}
 
 		// virtual update function -
-		virtual void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+		virtual void update_frame(double time, double dt, 
+									std::unique_ptr<ObjectManager>& obj_manager, 
+									std::unique_ptr<ComponentInterface>& component_manager)
 		{
 		}
 

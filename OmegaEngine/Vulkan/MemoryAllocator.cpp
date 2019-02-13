@@ -280,8 +280,8 @@ namespace VulkanAPI
 		}
 
 		// before allocation, check whether buffers need memory alignment as denoted by vulkan uniform buffer alignment limits
-		vk::PhysicalDeviceLimits limits = gpu.getProperties;
-		uint32_t min_align = static_cast<uint32_t>(limits.minUniformBufferOffsetAlignment);
+		vk::PhysicalDeviceProperties props = gpu.getProperties();
+		uint32_t min_align = static_cast<uint32_t>(props.limits.minUniformBufferOffsetAlignment);
 
 		uint32_t alignment_size = size;
 		if (min_align > 0) {

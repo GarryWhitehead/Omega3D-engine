@@ -1,6 +1,7 @@
 #include "KtxReader.h"
 #include "Utility/Logger.h"
 
+#define _CRT_SECURE_NO_WARNINGS
 
 KtxReader::KtxReader()
 {
@@ -12,13 +13,13 @@ KtxReader::~KtxReader()
 	// delete image data
 	for (uint32_t x = 0; x < imageData.size(); ++x) {
 
-		for (uint32_t i = 0; i < imageData.data.size(); ++i) {
+		for (uint32_t i = 0; i < imageData[x].data.size(); ++i) {
 
-			for (uint32_t j = 0; j < imageData.data[i].size(); ++j) {
+			for (uint32_t j = 0; j < imageData[x].data[i].size(); ++j) {
 
-				if (imageData.data[i][j]) {
+				if (imageData[x].data[i][j]) {
 
-					delete[] imageData.data[i][j];
+					delete[] imageData[x].data[i][j];
 				}
 			}
 		}
@@ -150,7 +151,7 @@ bool KtxReader::parse()
 		imageInfo.data.resize(header.numberOfArrayElements);
 		for (uint32_t element = 0; element < header.numberOfArrayElements; ++element) {
 
-			imageInfo.data.resize[element].resize(header.numberOfFaces);
+			imageInfo.data[element].resize(header.numberOfFaces);
 			for (uint32_t faces = 0; faces < header.numberOfFaces; ++faces) {
 
 				// assuming pixel depth of one at the mo...
@@ -184,7 +185,7 @@ bool KtxReader::parse()
 
 bool KtxReader::loadFile(const char* filename)
 {
-	if (!openFile(filename)) {
+	if (!open(filename)) {
 		LOGGER_ERROR("Unable to open .ktx file.");
 		return false;
 	}

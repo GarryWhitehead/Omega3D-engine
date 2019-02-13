@@ -20,7 +20,7 @@ namespace OmegaEngine
 	{
 		for (auto& manager : managers) {
 
-			manager.second->update_frame(time, dt, obj_manager);
+			manager.second->update_frame(time, dt, obj_manager, std::unique_ptr<ComponentInterface>(this));
 		}
 	}
 }

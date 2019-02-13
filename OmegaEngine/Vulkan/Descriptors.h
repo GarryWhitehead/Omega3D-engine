@@ -29,13 +29,13 @@ namespace VulkanAPI
 		DescriptorLayout();
 		~DescriptorLayout();
 
-		void add_layout(uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
+		void add_layout(uint32_t set, uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
 		void create(vk::Device device);
 		
-		vk::DescriptorSetLayout& get_layout()
+		std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> >& get_layout()
 		{
-			assert(layout);
-			return layout;
+			assert(!descr_layouts.empty());
+			return descr_layouts;
 		}
 
 		vk::DescriptorPool& get_pool()
@@ -72,7 +72,7 @@ namespace VulkanAPI
 		vk::DescriptorSet* get()
 		{
 			assert(!descr_sets.empty());
-			return descr_set.data();
+			return descr_sets.data();
 		}
 
 		uint32_t get_size() const
@@ -89,7 +89,7 @@ namespace VulkanAPI
 		std::vector<vk::DescriptorSet> descr_sets;	
 		
 		// one for each set
-		std::unordered_map<uint32_t, vk::WriteDescriptorSet> write_sets;
+		std::unordered_map<uint32_t, std::vector<vk::WriteDescriptorSet> > write_sets;
 	};
 
 }

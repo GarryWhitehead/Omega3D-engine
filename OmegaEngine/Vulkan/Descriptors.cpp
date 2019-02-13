@@ -18,7 +18,7 @@ namespace VulkanAPI
 			binding, 
 			bind_type, 1, flags, nullptr);
 
-		layout_bind[set].push_back(layout);
+		layout_bind.layouts[set].push_back(layout);
 
 		// increase count depending on type
 		switch (bind_type) {
@@ -84,9 +84,9 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
 
 		// and create the descriptor layout for each set
-		for (auto set : layouts) {
-			auto& layout_bind = set.second;
-			vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(layout_bind.layouts.size()), layout_bind.layouts.data());
+		for (auto set : layout_bind.layouts) {
+			auto& binding = set.second;
+			vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(binding.size()), binding.data());
 			
 			vk::DescriptorSetLayout layout;
 			VK_CHECK_RESULT(device.createDescriptorSetLayout(&layoutInfo, nullptr, &layout));
@@ -112,13 +112,18 @@ namespace VulkanAPI
 	void DescriptorSet::init(vk::Device device, DescriptorLayout descr_layout)
 	{
 		// create all stes that will be reauired - this can be determined by the numbner of layouts we have
-		for (uint32_t i = 0; i < descr_layout.descr_layouts.size(); ++i) {
+		auto& layout = descr_layout.get_layout();
+		for (uint32_t i = 0; i < layout.size(); ++i) {
 
-			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), i, &descr_layout.get_layout());
+			uint32_t set_count = 0;
+			vk::DescriptorSetLayout set_layout;
+			std::tie(set_count, set_layout) = layout[i];
 
-			vk::DescriptorSet set;
-			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &set));
-			descr_sets.push_back(set);
+			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), set_count, &set_layout);
+
+			vk::DescriptorSet descr_set;
+			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
+			descr_sets.push_back(descr_set);
 		}
 	}
 
@@ -129,10 +134,10 @@ namespace VulkanAPI
 		write_sets[set].push_back(write_set);
 	}
 
-	void DescriptorSet::uwrite_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout)
+	void DescriptorSet::write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout)
 	{
 		vk::DescriptorImageInfo image_info(sampler, image_view, layout);
-		vk::WriteDescriptorSet write_set(decsr_sets[set], binding, 0, 1, type, &image_info, nullptr, nullptr);
+		vk::WriteDescriptorSet write_set(descr_sets[set], binding, 0, 1, type, &image_info, nullptr, nullptr);
 		write_sets[set].push_back(write_set);
 	}
 

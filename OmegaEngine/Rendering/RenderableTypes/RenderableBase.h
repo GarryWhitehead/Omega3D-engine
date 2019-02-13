@@ -1,7 +1,19 @@
 #pragma once
+#include <cstdint>
+#include <memory>
+
+// forward decleartions
+namespace VulkanAPI
+{
+	class CommandBuffer;
+}
 
 namespace OmegaEngine
 {
+	// forward declerations
+	class ThreadPool;
+	class RenderPipeline;
+	class ComponentInterface;
 
 	enum class RenderTypes
 	{
@@ -26,14 +38,20 @@ namespace OmegaEngine
 		virtual ~RenderableBase() {}
 
 		// abstract render call
-		virtual render(VulkanAPI::CommandBuffer& cmd_buffer, 
-						RenderPipeline render_pipeline, 
-						ThreadPool& thread_pool, 
-						uint32_t threads_per_group, uint32_t num_threads) = 0;
+		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer, 
+							RenderPipeline& render_pipeline, 
+							std::unique_ptr<ComponentInterface>& component_interface,
+							ThreadPool& thread_pool, 
+							uint32_t threads_per_group, uint32_t num_threads) = 0;
 
 		RenderTypes get_type() const
 		{
 			return type;
+		}
+
+		uint32_t get_priority_key() const
+		{
+			return priority_key;
 		}
 
 	protected:
