@@ -27,11 +27,14 @@ namespace OmegaEngine
 		vertex_buffer_offset = mesh.vertex_buffer_offset;
 		index_buffer_offset = mesh.index_buffer_offset;
 
-		// sort index offsets and materials ready for rendering
+		// sort index offsets and materials ready for rendering via the queue
 		for (auto& prim : mesh.primitives) {
 
 			MeshRenderInfo render_info;
 			render_info.material_index = prim.materialId;
+
+			render_info.vertex_buffer_offset = mesh.vertex_buffer_offset;
+			render_info.index_buffer_offset = mesh.index_buffer_offset;
 
 			render_info.index_offset = prim.indexBase;
 			render_info.index_count = prim.indexCount;
@@ -93,68 +96,35 @@ namespace OmegaEngine
 	}
 
 
-	void RenderableMesh::render_threaded(VulkanAPI::CommandBuffer& cmd_buffer, 
-											RenderPipeline& mesh_pipeline, 
-											std::unique_ptr<ComponentInterface>& component_interface,
-											uint32_t start_index, uint32_t end_index, 
-											uint32_t thread)
-	{
-		// create a secondary command buffer for each thread. This also creates a thread-specific command pool 
-		cmd_buffer.begin_secondary(thread);
-		
+	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
+								MeshInstance* instance_data,
+								std::unique_ptr<ComponentInterface>& component_interface,
+								RenderInterface* render_interface)
+	{	
 		auto& trans_manager = component_interface->getManager<TransformManager>();
 
-		for (uint32_t i = start_index; i < end_index; ++i) {
-			
-			// get the material for this primitive mesh from the manager
-			auto& mat = component_interface->getManager<MaterialManager>().get(mesh_render_info[i].material_index);
+		// get the material for this primitive mesh from the manager
+		auto& mat = component_interface->getManager<MaterialManager>().get(instance_data->material_index);
 
-			// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
-			std::vector<uint32_t> dynamic_offsets 
-			{
-				i * trans_manager.get_transform_dynamic_offsets(),
-				i * trans_manager.get_skinned_dynamic_offsets(),
-			};
+		// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
+		std::vector<uint32_t> dynamic_offsets 
+		{
+			instance_data->transform_dynamic_offset,
+			instance_data->skinned_dynamic_offset
+		};
 
-			cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
-			cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(mesh_render_info[i].push_block), &mesh_render_info[i].push_block, thread);
+		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
+		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(mesh_render_info[i].push_block), &mesh_render_info[i].push_block, thread);
 
-			// bind the material set to (set = 0)
-			cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
+		// bind the material set to (set = 0)
+		cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
 
-			vk::DeviceSize offset = {vertex_buffer_offset};
-			cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);
-			cmd_buffer.secondary_bind_index_buffer(indicies, mesh_render_info[i].index_offset, thread);
-			cmd_buffer.secondary_draw_indexed(mesh_render_info[i].index_count, thread);
-		}
+		vk::DeviceSize offset = {vertex_buffer_offset};
+		cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);
+		cmd_buffer.secondary_bind_index_buffer(indicies, mesh_render_info[i].index_offset, thread);
+		cmd_buffer.secondary_draw_indexed(mesh_render_info[i].index_count, thread);
 	}
 
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
-								RenderPipeline& mesh_pipeline,
-								std::unique_ptr<ComponentInterface>& component_interface,
-								ThreadPool& thread_pool, 
-								uint32_t thread_group_size, 
-								uint32_t num_threads)
-	{
-		
-		uint32_t thread_count = 0;
-		for (uint32_t i = 0; i < mesh_render_info.size(); i += thread_group_size) {
-
-			// if we have no more threads left, then draw every mesh that is remaining
-			if (i + 1 >= num_threads) {
-		
-				thread_pool.submitTask([&]() {
-					render_threaded(cmd_buffer, mesh_pipeline, component_interface, i, mesh_render_info.size(), thread_count);
-				});
-				break;
-			}
-
-			thread_pool.submitTask([&]() {
-				render_threaded(cmd_buffer, mesh_pipeline, component_interface, i, i + thread_group_size, thread_count);
-			});
-
-			++thread_count;
-		}
-	}
+	
 }

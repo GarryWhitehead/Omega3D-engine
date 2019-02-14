@@ -41,8 +41,7 @@ namespace OmegaEngine
 		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer, 
 							RenderPipeline& render_pipeline, 
 							std::unique_ptr<ComponentInterface>& component_interface,
-							ThreadPool& thread_pool, 
-							uint32_t threads_per_group, uint32_t num_threads) = 0;
+							RenderInterface* render_interface) = 0;
 
 		RenderTypes get_type() const
 		{

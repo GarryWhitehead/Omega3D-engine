@@ -26,37 +26,29 @@ namespace OmegaEngine
 	{
 
 	public:
-		
-		// priority key for meshes required for sorting
-		const uint32_t priority_key = 1;
 
-		// render info for all mesh primitive faces 
-		struct MeshRenderInfo
+		// render info that will be used to draw this mesh 
+		struct MeshInstance
 		{
 			// face indicies data
-			uint32_t index_offset;
+			uint32_t index_buffer_offset; // index into large buffer
+			uint32_t index_sub_offset;	// this equates to buffer_offset + sub-offset
 			uint32_t index_count;
-
-			VulkanAPI::MaterialPushBlock push_block;
 
 			// descriptor sets for each mesh
 			int32_t material_index = -1;
+
+			// offset into transform buffer
+			uint32_t transform_dynamic_offset = 0;
+			uint32_t skinned_dynamic_offset = 0;
 		};
 		
 		RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
-					RenderPipeline& mesh_pipeline, 
+					MeshInstance* instance_data,
 					std::unique_ptr<ComponentInterface>& component_interface,
-					ThreadPool& thread_pool, 
-					uint32_t thread_group_size, 
-					uint32_t num_threads) override;
-
-		void render_threaded(VulkanAPI::CommandBuffer& cmd_buffer,
-							RenderPipeline& mesh_pipeline, 
-							std::unique_ptr<ComponentInterface>& component_interface,
-							uint32_t start_index, uint32_t end_index, 
-							uint32_t thread);
+					RenderInterface* render_interface) override;
 
 		static RenderPipeline create_mesh_pipeline(vk::Device device, 
 													std::unique_ptr<DeferredRenderer>& renderer, 
@@ -64,8 +56,8 @@ namespace OmegaEngine
 
 	private:
 
-		// primitive meshes - indices data and material index
-		std::vector<MeshRenderInfo> mesh_render_info;
+		// render instance data for all sub-meshes associated with this mesh
+		std::vector<MeshInstance> mesh_render_info;
 
 		// offsets into the mapped buffer
 		uint32_t vertex_buffer_offset;
