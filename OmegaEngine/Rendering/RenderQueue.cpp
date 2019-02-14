@@ -60,7 +60,6 @@ namespace OmegaEngine
                 });
 
                 ++thread_count;
-               
 		    }   
 
             // check that all threads are finshed before executing the cmd buffers
