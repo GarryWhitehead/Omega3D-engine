@@ -10,8 +10,11 @@ namespace VulkanAPI
 
 	}
 
-	void PipelineLayout::create(vk::Device& device, std::vector<vk::DescriptorSetLayout>& descr_layout, OmegaEngine::RenderTypes type)
-	{
+	void PipelineLayout::create(vk::Device& device, 
+								std::vector<std::tuple<uint32_t, 
+								vk::DescriptorSetLayout> >& descr_layout, 
+								OmegaEngine::RenderTypes type)
+	{	
 		// create push constants
 		std::vector<vk::PushConstantRange> push_constants;
 
@@ -22,6 +25,13 @@ namespace VulkanAPI
 			}
 		}
 		
+		// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. 
+		// We are not using the set number yet, so just convert the layouts into a format friendly for creating the pipeline layout
+		std::vector<vk::DescriptorSetLayout> layouts;
+		for (auto& layout : descr_layouts) {
+			layouts.push_back(layout.second);
+		}
+
 		vk::PipelineLayoutCreateInfo pipelineInfo({},
 			static_cast<uint32_t>(descr_layout.size()), descr_layout.data(),
 			static_cast<uint32_t>(push_constants.size()), push_constants.data());

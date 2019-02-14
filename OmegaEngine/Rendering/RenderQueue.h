@@ -12,6 +12,7 @@ namespace OmegaEngine
 	class ThreadPool;
 	class RenderPipeline;
 	class RenderInterface;
+    class ComponentInterface;
 	enum class RenderTypes;
 
 	enum class RenderQueueType
@@ -26,7 +27,7 @@ namespace OmegaEngine
 		RenderTypes type;
 
         // render callback function
-        void (*render_function)(VulkanAPI::CommandBuffer&, RenderPipeline& , ThreadPool&, uint32_t, uint32_t);
+        void (*render_function)(VulkanAPI::CommandBuffer&, RenderPipeline& , std::unique_ptr<ComponentInterface>&, ThreadPool&, uint32_t, uint32_t);
     };
 
     class RenderQueue
