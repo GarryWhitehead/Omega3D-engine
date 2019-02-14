@@ -10,14 +10,15 @@
 #include "Managers/TransformManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/DeferredRenderer.h"
+#include "Rendering/RenderQueue.h"
 #include "Managers/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
-		RenderableBase(RenderTypes::Mesh, priority_key)
+	RenderableMesh::RenderableMesh(RendererType renderer_type, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj) :
+		RenderableBase(RenderTypes::Mesh)
 	{
 		auto &mesh_man = comp_interface->getManager<MeshManager>();
 		
@@ -27,18 +28,33 @@ namespace OmegaEngine
 		vertex_buffer_offset = mesh.vertex_buffer_offset;
 		index_buffer_offset = mesh.index_buffer_offset;
 
+		// get the material for this primitive mesh from the manager
+		auto& material_manager = component_interface->getManager<MaterialManager>();
+
 		// sort index offsets and materials ready for rendering via the queue
 		for (auto& prim : mesh.primitives) {
+			
+			auto& mat = material_manager.get(prim.materialId);
 
 			MeshRenderInfo render_info;
-			render_info.material_index = prim.materialId;
+			
+			// create the sorting key for this mesh
+			reader_info.sorting_key = RenderQueue::create_sort_key(prim.mesh_type, renderer_type, prim.materialId, RenderTypes::Mesh);
 
+			// index into the main buffer
 			render_info.vertex_buffer_offset = mesh.vertex_buffer_offset;
 			render_info.index_buffer_offset = mesh.index_buffer_offset;
 
+			// per face indicies
 			render_info.index_offset = prim.indexBase;
 			render_info.index_count = prim.indexCount;
 			
+			// materials
+			render_info.descr_set = mat.descr_set;
+			render_info.sampler = mat.sampler;
+
+			// material push block
+
 			mesh_render_info.push_back(render_info);
 		}
 	}
@@ -98,13 +114,9 @@ namespace OmegaEngine
 
 	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
 								MeshInstance* instance_data,
-								std::unique_ptr<ComponentInterface>& component_interface,
 								RenderInterface* render_interface)
 	{	
 		auto& trans_manager = component_interface->getManager<TransformManager>();
-
-		// get the material for this primitive mesh from the manager
-		auto& mat = component_interface->getManager<MaterialManager>().get(instance_data->material_index);
 
 		// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
 		std::vector<uint32_t> dynamic_offsets 
@@ -113,11 +125,13 @@ namespace OmegaEngine
 			instance_data->skinned_dynamic_offset
 		};
 
+		RenderPipeline& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
+
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
-		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(mesh_render_info[i].push_block), &mesh_render_info[i].push_block, thread);
+		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance->material_push_block), &instance->material_push_block, thread);
 
 		// bind the material set to (set = 0)
-		cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, mat.descr_set, VulkanAPI::PipelineType::Graphics, thread);
+		cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, instance_data.descr_set, VulkanAPI::PipelineType::Graphics, thread);
 
 		vk::DeviceSize offset = {vertex_buffer_offset};
 		cmd_buffer.secondary_bind_vertex_buffer(vertices, offset, thread);

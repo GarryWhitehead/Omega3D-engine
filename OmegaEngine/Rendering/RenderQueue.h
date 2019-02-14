@@ -3,7 +3,7 @@
 #include "Vulkan/Common.h"
 #include "Vulkan/CommandBuffer.h"
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 
 namespace OmegaEngine
@@ -40,7 +40,7 @@ namespace OmegaEngine
         SortingKey sorting_key;
     };
 
-    struct SortingKey
+    struct SortKey
     {
         union 
         {
@@ -50,6 +50,7 @@ namespace OmegaEngine
                 uint64_t layer_id : 4;
                 uint64_t shader_id : 12;
                 uint64_t texture_id : 12;
+                uint64_t depth_id : 12;
             } s;
 
             uint64_t flags;
@@ -76,6 +77,8 @@ namespace OmegaEngine
 			cmd_buffer = buffer;
 		}
 
+        static SortKey create_sort_key(QueueType type, RendererType renderer_type, uint32_t material_id, RenderTypes shader_id);
+        void sort_all();
         void submit(RenderInterface* render_interface);
 
      private:
@@ -83,7 +86,7 @@ namespace OmegaEngine
         VulkanAPI::CommandBuffer cmd_buffer;
 
         // ordered by queue type
-        std::map<QueueType, std::vector<RenderQueueInfo> > render_queues;
+        std::unordered_map<QueueType, std::vector<RenderQueueInfo> > render_queues;
 
     };
 }

@@ -51,7 +51,7 @@ namespace OmegaEngine
 	enum class RendererType
 	{
 		Deferred,
-		Tile_Based,
+		Forward,
 		Count
 	};
 
@@ -83,7 +83,7 @@ namespace OmegaEngine
 		template <typename T, typename... Args>
 		void add_renderable(Args&&... args)
 		{
-			T* renderable = new T(std::forward<Args>(args)...);
+			T* renderable = new T(renderer_type, std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
 		}
 
@@ -110,6 +110,7 @@ namespace OmegaEngine
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 		std::unique_ptr<DeferredRenderer> def_renderer;
+		RendererType renderer_type;
 
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;

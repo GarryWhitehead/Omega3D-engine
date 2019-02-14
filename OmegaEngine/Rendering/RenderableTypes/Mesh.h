@@ -35,8 +35,25 @@ namespace OmegaEngine
 			uint32_t index_sub_offset;	// this equates to buffer_offset + sub-offset
 			uint32_t index_count;
 
-			// descriptor sets for each mesh
-			int32_t material_index = -1;
+			// all material data required to draw
+			// storing this material data in two places for threading purposes. We could get data races
+			// if we start calling back to material manager whilst is updating in a different thread
+			struct MaterialPushBlock
+			{
+				OEMaths::vec3f emissive;
+				float specularGlossiness;
+				float baseColour;
+				float roughness;
+				float diffuse;
+				float metallic;
+				float specular;
+				float alphaMask;
+				float alphaMaskCutOff;
+			} material_push_block;
+
+			// vulkan stuff for material textures
+			VulkanAPI::DescriptorSet descr_set;
+			VulkanAPI::Sampler sampler;
 
 			// offset into transform buffer
 			uint32_t transform_dynamic_offset = 0;

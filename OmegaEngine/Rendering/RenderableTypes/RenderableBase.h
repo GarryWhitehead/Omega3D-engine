@@ -29,9 +29,8 @@ namespace OmegaEngine
 	{
 	public:
 
-		RenderableBase(RenderTypes t, uint32_t key) :
-			type(t),
-			priority_key(key)
+		RenderableBase(RenderTypes t) :
+			type(t)
 		{
 		}
 
@@ -48,17 +47,11 @@ namespace OmegaEngine
 			return type;
 		}
 
-		uint32_t get_priority_key() const
-		{
-			return priority_key;
-		}
-
+		
 	protected:
 
 		RenderTypes type;
 
-		// tells the renderer when this should be rendered in the queue
-		uint32_t priority_key = 0;
 	};
 
 }

@@ -30,7 +30,7 @@ namespace OmegaEngine
             renderable.render_function(cmd_buffer, queue_info.renderable_data, component_interface, render_interface);
         }
     }
-    
+
 
     void RenderQueue::threaded_dispatch(RenderInterface* render_interface, std::unique_ptr<ComponentInterface>& component_interface)
     {
@@ -74,5 +74,27 @@ namespace OmegaEngine
         render_queues.clear()
 	}
 
-      
+    void RenderQueue::sort_all()
+    {
+        for (auto queue : render_queues) {
+            
+            // TODO : use a radix sort instead
+            std::sort(queue.second.begin(), queue.second.end(), [](const RenderQueueInfo& a, RenderQueueInfo& b) {
+                return a.sorting_key.u.flags < b.sorting_key.u.flags);
+            });
+        }
+    }
+
+
+     SortKey RenderQueue::create_sort_key(QueueType queue_type, RendererType renderer_type, uint32_t material_id, RenderTypes shader_id)
+     {
+         SortKey key;
+
+         key.u.s.layer_id = renderer_type;  // layer is the highest priority to group
+         key.u.s.texture_id = material_id;  // then materials
+         key.u.s.shader_id = shader_id;     // then shader
+         key.u.s.depth_id = 0;              // TODO - this is camera-view . mesh_centre - camera-pos
+
+         return key;
+     }
 }
