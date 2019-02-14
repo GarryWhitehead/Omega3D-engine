@@ -15,10 +15,9 @@ namespace OmegaEngine
     }
 
     void RenderQueue::submit(RenderInterface* render_interface, 
-                                std::unique_ptr<ComponentInterface>& component_interface, 
-                                QueueType type, 
-                                uint32_t start, uint32_t end, 
-                                uint32_t thread)
+                             QueueType type, 
+                             uint32_t start, uint32_t end, 
+                             uint32_t thread)
     {
 		
         // create a secondary command buffer for each thread. This also creates a thread-specific command pool 
@@ -27,7 +26,7 @@ namespace OmegaEngine
         for (uint32_t i = start; i < end; i += thread_group_size) {
             
             RenderQueueInfo& queue_info = render_queues[type][i];
-            renderable.render_function(cmd_buffer, queue_info.renderable_data, component_interface, render_interface);
+            queue_info.render_function(cmd_buffer, queue_info.renderable_data, render_interface, thread);
         }
     }
 
@@ -50,13 +49,13 @@ namespace OmegaEngine
                 if (i + 1 >= num_threads) {
             
                     thread_pool.submitTask([&]() {
-                        submit(render_interface, component_interface, queue.first, i, queue.second.size(), thread_count)
+						submit(render_interface, queue.first, i, queue.second.size(), thread_count);
                     });
                     break;
                 }
 
                 thread_pool.submitTask([&]() {
-                    render_threaded(cmd_buffer, mesh_pipeline, component_interface, i, i + thread_group_size, thread_count);
+					submit(render_interface, queue.first, i, i + thread_group_size, thread_count);
                 });
 
                 ++thread_count;
@@ -70,7 +69,7 @@ namespace OmegaEngine
         }
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
-        render_queues.clear()
+		render_queues.clear();
 	}
 
     void RenderQueue::sort_all()
@@ -79,7 +78,7 @@ namespace OmegaEngine
             
             // TODO : use a radix sort instead
             std::sort(queue.second.begin(), queue.second.end(), [](const RenderQueueInfo& a, RenderQueueInfo& b) {
-                return a.sorting_key.u.flags < b.sorting_key.u.flags);
+                return a.sorting_key.u.flags < b.sorting_key.u.flags;
             });
         }
     }
@@ -89,10 +88,10 @@ namespace OmegaEngine
      {
          SortKey key;
 
-         key.u.s.layer_id = renderer_type;  // layer is the highest priority to group
-         key.u.s.texture_id = material_id;  // then materials
-         key.u.s.shader_id = shader_id;     // then shader
-         key.u.s.depth_id = 0;              // TODO - this is camera-view . mesh_centre - camera-pos
+         key.u.s.layer_id = (uint64_t)renderer_type;	// layer is the highest priority to group
+         key.u.s.texture_id = material_id;				// then materials
+         key.u.s.shader_id = (uint64_t)shader_id;		// then shader
+         key.u.s.depth_id = 0;							// TODO - this is camera-view . mesh_centre - camera-pos
 
          return key;
      }

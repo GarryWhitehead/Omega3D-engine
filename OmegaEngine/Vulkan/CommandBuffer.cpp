@@ -223,6 +223,13 @@ namespace VulkanAPI
 		sec_cmd_buffer.bindVertexBuffers(0, 1, &mem_alloc.get_memory_buffer(vertex_buffer.get_id()), &offset);
 	}
 
+	void CommandBuffer::secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
+	}
+
 	void CommandBuffer::secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle)
 	{
 		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
@@ -230,6 +237,13 @@ namespace VulkanAPI
 
 		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		sec_cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), offset, vk::IndexType::eUint32);
+	}
+
+	void CommandBuffer::secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 	}
 
 	void CommandBuffer::secondary_execute_commands()

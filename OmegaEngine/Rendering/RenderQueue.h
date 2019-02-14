@@ -3,6 +3,7 @@
 #include "Vulkan/Common.h"
 #include "Vulkan/CommandBuffer.h"
 
+
 #include <unordered_map>
 #include <vector>
 
@@ -14,11 +15,32 @@ namespace OmegaEngine
 	class RenderInterface;
     class ComponentInterface;
 	enum class RenderTypes;
+	enum class RendererType;
 
 	enum class RenderQueueType
 	{
 		Graphics,
 		Present
+	};
+
+	struct SortKey
+	{
+		union
+		{
+			struct
+			{
+				// in order of sorting importance
+				uint64_t layer_id : 4;
+				uint64_t shader_id : 12;
+				uint64_t texture_id : 12;
+				uint64_t depth_id : 12;
+			} s;
+
+			uint64_t flags;
+
+		} u;
+
+		float depth;    // for transparency;
 	};
 
     enum class QueueType
@@ -31,34 +53,18 @@ namespace OmegaEngine
     struct RenderQueueInfo
     {
         // render callback function
-        void (*render_function)(VulkanAPI::CommandBuffer&, void* renderable_data , std::unique_ptr<ComponentInterface>&, RenderInterface*);
+        void (*render_function)(VulkanAPI::CommandBuffer&, void* renderable_data, RenderInterface*, uint32_t);
 
         // data specific to the renderable - mainly drawing information 
         void *renderable_data;
 
         // the point in the render this will be drawn
-        SortingKey sorting_key;
+        SortKey sorting_key;
+
+		QueueType queue_type;
     };
 
-    struct SortKey
-    {
-        union 
-        {
-            struct 
-            {
-                // in order of sorting importance
-                uint64_t layer_id : 4;
-                uint64_t shader_id : 12;
-                uint64_t texture_id : 12;
-                uint64_t depth_id : 12;
-            } s;
-
-            uint64_t flags;
-
-        } u;
-
-        float depth;    // for transparency;
-    };
+   
 
     class RenderQueue
     {
@@ -67,9 +73,9 @@ namespace OmegaEngine
         RenderQueue();
         ~RenderQueue();
 
-        void add_to_queue(RenderQueueInfo& render_info, QueueType type)
+        void add_to_queue(RenderQueueInfo& render_info)
         {
-            render_queues[type].push_back(render_info);
+            render_queues[render_info.queue_type].push_back(render_info);
         }
 
 		void add_cmd_buffer(VulkanAPI::CommandBuffer& buffer)
@@ -77,9 +83,15 @@ namespace OmegaEngine
 			cmd_buffer = buffer;
 		}
 
-        static SortKey create_sort_key(QueueType type, RendererType renderer_type, uint32_t material_id, RenderTypes shader_id);
+		static SortKey create_sort_key(QueueType queue_type, RendererType renderer_type, uint32_t material_id, RenderTypes shader_id);
         void sort_all();
-        void submit(RenderInterface* render_interface);
+
+        void submit(RenderInterface* render_interface,
+					QueueType type,
+					uint32_t start, uint32_t end,
+					uint32_t thread);
+
+		void threaded_dispatch(RenderInterface* render_interface, std::unique_ptr<ComponentInterface>& component_interface);
 
      private:
 

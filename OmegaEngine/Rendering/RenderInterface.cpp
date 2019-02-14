@@ -129,13 +129,17 @@ namespace OmegaEngine
 		for (auto& info : renderables) {
 			
 			queue_info.render_function = &info.renderable->render;
-			queue_info.type = info.renderable->get_type();
+			queue_info.renderable_data = info.renderable->get_instance_data();
+			queue_info.sorting_key = info.renderable->get_sort_key();
+			queue_info.queue_type = info.renderable->get_queue_type();
 
-			render_queue->add_to_queue(queue_info, info.renderable->get_priority_key());		
+			// renderable meshes have sub meshs so add these to the queue as well
+			if (info.renderable->get_type() == RenderTypes::Mesh) {
+
+
+			}
+			render_queue->add_to_queue(queue_info);		
 		}
-		
-		// now submit everything for rendering
-		render_queue->submit(this);
 	}
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)

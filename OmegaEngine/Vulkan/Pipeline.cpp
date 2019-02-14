@@ -28,12 +28,12 @@ namespace VulkanAPI
 		// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. 
 		// We are not using the set number yet, so just convert the layouts into a format friendly for creating the pipeline layout
 		std::vector<vk::DescriptorSetLayout> layouts;
-		for (auto& layout : descr_layouts) {
-			layouts.push_back(layout.second);
+		for (auto& layout : descr_layout) {
+			layouts.push_back(std::get<1>(layout));
 		}
 
 		vk::PipelineLayoutCreateInfo pipelineInfo({},
-			static_cast<uint32_t>(descr_layout.size()), descr_layout.data(),
+			static_cast<uint32_t>(layouts.size()), layouts.data(),
 			static_cast<uint32_t>(push_constants.size()), push_constants.data());
 
 		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));

@@ -59,7 +59,9 @@ namespace VulkanAPI
 		void secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle);
 		void secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle);
 		void secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets, SecondaryHandle handle);
+		void secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset, SecondaryHandle handle);
 		void secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle);
+		void secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset, SecondaryHandle handle);
 		void secondary_execute_commands();
 
 		// drawing functions

@@ -2,6 +2,8 @@
 #include <cstdint>
 #include <memory>
 
+#include "Rendering/RenderQueue.h"
+
 // forward decleartions
 namespace VulkanAPI
 {
@@ -11,9 +13,7 @@ namespace VulkanAPI
 namespace OmegaEngine
 {
 	// forward declerations
-	class ThreadPool;
-	class RenderPipeline;
-	class ComponentInterface;
+	class RenderInterface;
 
 	enum class RenderTypes
 	{
@@ -38,20 +38,42 @@ namespace OmegaEngine
 
 		// abstract render call
 		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer, 
-							RenderPipeline& render_pipeline, 
-							std::unique_ptr<ComponentInterface>& component_interface,
-							RenderInterface* render_interface) = 0;
+							void* renderable_data,
+							RenderInterface* render_interface,
+							uint32_t thread) = 0;
 
 		RenderTypes get_type() const
 		{
 			return type;
 		}
 
+		void* get_instance_data()
+		{
+			return instance_data;
+		}
+
+		SortKey& get_sort_key()
+		{
+			return sort_key;
+		}
+
+		QueueType& get_queue_type()
+		{
+			return queue_type;
+		}
 		
 	protected:
 
 		RenderTypes type;
 
+		// data used for rendering 
+		void* instance_data;
+
+		// determines sort order of renderable
+		SortKey sort_key;
+
+		// how to render this renderable
+		QueueType queue_type;
 	};
 
 }

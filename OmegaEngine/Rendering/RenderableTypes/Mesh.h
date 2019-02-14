@@ -35,6 +35,12 @@ namespace OmegaEngine
 			uint32_t index_sub_offset;	// this equates to buffer_offset + sub-offset
 			uint32_t index_count;
 
+			uint32_t vertex_buffer_offset;
+
+			// vertex and index buffers
+			vk::Buffer vertex_buffer;
+			vk::Buffer index_buffer;
+
 			// all material data required to draw
 			// storing this material data in two places for threading purposes. We could get data races
 			// if we start calling back to material manager whilst is updating in a different thread
@@ -60,12 +66,12 @@ namespace OmegaEngine
 			uint32_t skinned_dynamic_offset = 0;
 		};
 		
-		RenderableMesh(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+		RenderableMesh(RendererType renderer_type, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
-					MeshInstance* instance_data,
-					std::unique_ptr<ComponentInterface>& component_interface,
-					RenderInterface* render_interface) override;
+					void* instance_data,
+					RenderInterface* render_interface,
+					uint32_t thread) override;
 
 		static RenderPipeline create_mesh_pipeline(vk::Device device, 
 													std::unique_ptr<DeferredRenderer>& renderer, 
@@ -73,11 +79,6 @@ namespace OmegaEngine
 
 	private:
 
-		// render instance data for all sub-meshes associated with this mesh
-		std::vector<MeshInstance> mesh_render_info;
 
-		// offsets into the mapped buffer
-		uint32_t vertex_buffer_offset;
-		uint32_t index_buffer_offset;
 	};
 }
