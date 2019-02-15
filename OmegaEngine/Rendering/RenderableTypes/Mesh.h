@@ -30,10 +30,12 @@ namespace OmegaEngine
 		// render info that will be used to draw this mesh 
 		struct MeshInstance
 		{
+			int32_t index_offset;	// this equates to buffer_offset + sub-offset
+			uint32_t index_count;
+			
 			// face indicies data
 			uint32_t index_buffer_offset; // index into large buffer
 			uint32_t index_sub_offset;	// this equates to buffer_offset + sub-offset
-			uint32_t index_count;
 
 			uint32_t vertex_buffer_offset;
 
@@ -66,7 +68,10 @@ namespace OmegaEngine
 			uint32_t skinned_dynamic_offset = 0;
 		};
 		
-		RenderableMesh(RendererType renderer_type, std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+		RenderableMesh::RenderableMesh(RendererType renderer_type, 
+										std::unique_ptr<ComponentInterface>& component_interface, 
+										MeshManager::StaticMesh mesh, 
+										MeshManager::PrimitiveMesh primitive); 
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
 					void* instance_data,

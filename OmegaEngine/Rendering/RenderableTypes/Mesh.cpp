@@ -17,20 +17,19 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(RendererType renderer_type, std::unique_ptr<ComponentInterface>& component_interface, Object& obj) :
+	RenderableMesh::RenderableMesh(RendererType renderer_type, 
+									std::unique_ptr<ComponentInterface>& component_interface, 
+									MeshManager::StaticMesh mesh, 
+									MeshManager::PrimitiveMesh primitive) :
 		RenderableBase(RenderTypes::Mesh)
 	{
-		auto &mesh_man = component_interface->getManager<MeshManager>();
 		
-		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_man.get_mesh(mesh_index);
-
 		// get the material for this primitive mesh from the manager
 		auto& material_manager = component_interface->getManager<MaterialManager>();
-		auto& mat = material_manager.get(prim.materialId);
+		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::create_sort_key(prim.mesh_type, renderer_type, prim.materialId, RenderTypes::Mesh);
+		sort_key = RenderQueue::create_sort_key(prim.mesh_type, renderer_type, primitive.materialId, RenderTypes::Mesh);
 
 		// fill out the data which will be used for rendering
 		instance_data = new MeshInstance;
@@ -41,8 +40,8 @@ namespace OmegaEngine
 		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset;
 
 		// per face indicies
-		mesh_instance_data->index_sub_offset = prim.indexBase;
-		mesh_instance_data->index_count = prim.indexCount;
+		mesh_instance_data->index_sub_offset = primitive.indexBase;
+		mesh_instance_data->index_count = primitive.indexCount;
 			
 		// materials
 		mesh_instance_data->descr_set = mat.descr_set;

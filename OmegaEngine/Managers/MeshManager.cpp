@@ -25,6 +25,7 @@ namespace OmegaEngine
 	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj)
 	{
 		tinygltf::Mesh mesh = model.meshes[node.mesh];
+		
 		StaticMesh staticMesh;
 
 		// get all the primitives associated with this mesh

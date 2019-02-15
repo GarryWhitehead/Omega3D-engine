@@ -167,6 +167,8 @@ namespace OmegaEngine
 		auto &transform_man = component_interface->getManager<TransformManager>();
 		transform_man.addGltfTransform(node, obj, world_transform);
 
+		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
+		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
 		Object parentObject;
 		if (childObject) {
 			parentObject = objManager->createChildObject(obj);

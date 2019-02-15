@@ -133,19 +133,23 @@ namespace OmegaEngine
 			queue_info.sorting_key = info.renderable->get_sort_key();
 			queue_info.queue_type = info.renderable->get_queue_type();
 
-			// renderable meshes have sub meshs so add these to the queue as well
-			if (info.renderable->get_type() == RenderTypes::Mesh) {
-
-
-			}
 			render_queue->add_to_queue(queue_info);		
 		}
 	}
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
 	{
-		add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, obj);
+		auto& mesh_manager->getManager<MeshManager>();
 
+		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
+		MeshManager::StaticMesh mesh = mesh_man.get_mesh(mesh_index);
+
+		// we need to add all the primitve sub meshes as renderables
+		for (auto& primitive: mesh.primitives) {
+			add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, mesh, primitive);
+		}
+
+		// and do the same for all children associated with this mesh
 		auto& children = obj.get_children();
 		for (auto& child : children) {
 			add_mesh_tree(comp_interface, child);
