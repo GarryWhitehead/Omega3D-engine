@@ -1,6 +1,10 @@
 #pragma once
+
 #include <cstdio>
 #include <stdio.h>
+
+// disable warning about passing too many args as format string
+#pragma warning(disable: 4474)
 
 // simple file logging tools
 #define LOGGER(format, ...) {					 \

@@ -13,8 +13,8 @@ namespace OmegaEngine
 	MeshManager::MeshManager()
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * VertexBlockSize);
-		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * IndexBlockSize);
+		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
+		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 
@@ -139,7 +139,7 @@ namespace OmegaEngine
 		meshBuffer.push_back(staticMesh);
 		
 		// add mesh component to current object
-		obj.add_manager<MeshManager>(meshBuffer.size() - 1);
+		obj.add_manager<MeshManager>(static_cast<uint32_t>(meshBuffer.size() - 1));
 	}
 
 	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
@@ -154,8 +154,8 @@ namespace OmegaEngine
 			for (auto& mesh : meshBuffer) {
 
 				VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), mesh.vertexBuffer.size(), vertex_offset);
-				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), mesh.indexBuffer.size(), index_offset);
+				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), static_cast<uint32_t>(mesh.vertexBuffer.size()), vertex_offset);
+				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()), index_offset);
 
 				mesh.vertex_buffer_offset = vertex_offset;
 				mesh.index_buffer_offset = index_offset;

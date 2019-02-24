@@ -73,7 +73,7 @@ namespace VulkanAPI
 	// static functions - should probably get elsewhere at some point
 	namespace Util
 	{
-		static vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu)
+		static vk::Format find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu)
 		{
 			for (auto format : formats) {
 				vk::FormatProperties properties = gpu.getFormatProperties(format);
@@ -101,7 +101,7 @@ namespace VulkanAPI
 		return false;
 	};
 
-	vk::Format& Device::get_depth_format(vk::PhysicalDevice& gpu)
+	vk::Format Device::get_depth_format(vk::PhysicalDevice& gpu)
 	{
 		std::vector<vk::Format> formats =
 		{
@@ -117,7 +117,7 @@ namespace VulkanAPI
 	void Device::createInstance(const char **glfwExtension, uint32_t extCount)
 	{
 		vk::ApplicationInfo appInfo(
-			"OmegaOne",
+			"OmegaEngine",
 			VK_MAKE_VERSION(1, 1, 0),
 			"",
 			VK_MAKE_VERSION(1, 1, 0),
@@ -192,8 +192,6 @@ namespace VulkanAPI
 		vk::DispatchLoaderDynamic dldi(instance);
 
 		if (device_ext.has_debug_utils) {
-
-			
 
 			vk::DebugUtilsMessengerCreateInfoEXT create_info({},
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
@@ -361,7 +359,7 @@ namespace VulkanAPI
 		}
 	}
 
-	VulkanAPI::Queue& Device::getQueue(QueueType type)
+	VulkanAPI::Queue Device::getQueue(QueueType type)
 	{
 		VulkanAPI::Queue ret_queue;
 

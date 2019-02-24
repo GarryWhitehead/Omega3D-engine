@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <stdlib.h>
 
+// stop the warning about conversion from uintptr to char
+#pragma warning(disable: 4244)
+
 namespace Util
 {
 	// function to generate a unique id for any given type.

@@ -16,7 +16,7 @@ namespace OmegaEngine
 	{
 		size_t operator()(const Object& obj) const
 		{
-			return(std::hash<uint32_t>()(obj.get_id()));
+			return(std::hash<uint64_t>()(obj.get_id()));
 		}
 	};
 

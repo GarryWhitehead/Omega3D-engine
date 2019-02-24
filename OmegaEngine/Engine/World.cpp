@@ -46,7 +46,7 @@ namespace OmegaEngine
 			component_interface->registerManager<MeshManager>();
 
 			// the mesh manager also requires the material and texture managers
-			component_interface->registerManager<MaterialManager>();
+			component_interface->registerManager<MaterialManager>(device.getDevice());
 			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
@@ -70,7 +70,7 @@ namespace OmegaEngine
 	{
 		SceneParser parser;
 		if (!parser.parse(filename)) {
-			throw std::runtime_error("Unable to parse omega engine scene file.");
+			return false;
 		}
 
 		// load and distribute the gltf data between the appropiate systems.
@@ -87,6 +87,8 @@ namespace OmegaEngine
 				component_interface->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
 		}
 #endif
+
+		return true;
 	}
 
 	void World::update(double time, double dt)

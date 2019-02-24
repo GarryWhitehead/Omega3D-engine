@@ -62,7 +62,7 @@ namespace OmegaEngine
 		transformBuffer.push_back(transform);
 
 		// add to the list of entites
-		obj.add_manager<TransformManager>(transformBuffer.size() - 1);
+		obj.add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects)

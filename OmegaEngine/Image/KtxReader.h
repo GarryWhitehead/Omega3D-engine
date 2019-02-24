@@ -2,6 +2,8 @@
 
 #include "Vulkan/Common.h"
 
+#include <stdio.h>
+
 #include <cstdint>
 #include <vector>
 

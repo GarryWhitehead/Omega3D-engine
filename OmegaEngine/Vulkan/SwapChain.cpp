@@ -14,7 +14,7 @@ namespace VulkanAPI
 		dev = device.getDevice();
 
 		// Get the basic surface properties of the physical device
-		uint32_t surfaceCount;
+		uint32_t surfaceCount = 0;
 
 		auto& gpu = device.getPhysicalDevice();
 		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);

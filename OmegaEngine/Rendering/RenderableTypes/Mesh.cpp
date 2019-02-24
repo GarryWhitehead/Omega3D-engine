@@ -17,8 +17,7 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(RendererType renderer_type, 
-									std::unique_ptr<ComponentInterface>& component_interface, 
+	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
 									MeshManager::StaticMesh mesh, 
 									MeshManager::PrimitiveMesh primitive) :
 		RenderableBase(RenderTypes::Mesh)
@@ -29,7 +28,7 @@ namespace OmegaEngine
 		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::create_sort_key(prim.mesh_type, renderer_type, primitive.materialId, RenderTypes::Mesh);
+		sort_key = RenderQueue::create_sort_key(RenderStage::GBuffer, primitive.materialId, RenderTypes::Mesh);
 
 		// fill out the data which will be used for rendering
 		instance_data = new MeshInstance;

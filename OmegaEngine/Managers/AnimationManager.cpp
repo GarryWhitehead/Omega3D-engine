@@ -40,7 +40,7 @@ namespace OmegaEngine
 
 	float AnimationManager::Sampler::get_phase(double time)
 	{
-		float phase = 0.0f;
+		double phase = 0.0;
 		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
 		if (timestamp_count <= 1 || time < time_stamps.front()) {
 			phase = 0.0f;
@@ -56,7 +56,7 @@ namespace OmegaEngine
 			uint32_t index = end_time - 1;
 			phase = (time - time_stamps[index]) / (time_stamps[end_time] - time_stamps[index]);
 		}
-		return phase;
+		return static_cast<float>(phase);
 	}
 
 	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects)

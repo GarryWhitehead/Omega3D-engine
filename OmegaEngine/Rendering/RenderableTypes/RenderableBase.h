@@ -37,10 +37,12 @@ namespace OmegaEngine
 		virtual ~RenderableBase() {}
 
 		// abstract render call
-		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer, 
-							void* renderable_data,
-							RenderInterface* render_interface,
-							uint32_t thread) = 0;
+		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer,
+			void* renderable_data,
+			RenderInterface* render_interface,
+			uint32_t thread)
+		{
+		}
 
 		RenderTypes get_type() const
 		{

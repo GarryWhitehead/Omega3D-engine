@@ -60,7 +60,7 @@ namespace OmegaEngine
 		for (uint8_t i = 0; i < attachments.size(); ++i) {
 			image_views[i] = images[i].get_image_view();
 		}
-		renderpass.prepareFramebuffer(image_views.size(), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
+		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment);

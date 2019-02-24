@@ -29,7 +29,7 @@ namespace OmegaEngine
 
 	struct Listener
 	{
-		void (*listener_func)(void *object, Event& event);
+		void (*listener_func)(void*, Event&);
 		void* listener_handle;
 	};
 

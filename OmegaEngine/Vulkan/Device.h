@@ -8,7 +8,7 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
-		vk::Format& find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
+		vk::Format find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
 	}
 
 	class Device
@@ -41,7 +41,7 @@ namespace VulkanAPI
 		~Device();
 
 		static bool find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties);
-		static vk::Format& get_depth_format(vk::PhysicalDevice& gpu);
+		static vk::Format get_depth_format(vk::PhysicalDevice& gpu);
 			
 		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();
@@ -67,7 +67,7 @@ namespace VulkanAPI
 		}
 
 		uint32_t getQueueIndex(QueueType type) const;
-		VulkanAPI::Queue& getQueue(QueueType type);
+		VulkanAPI::Queue getQueue(QueueType type);
 
 		void set_window_surface(vk::SurfaceKHR surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{

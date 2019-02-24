@@ -25,6 +25,12 @@ namespace OmegaEngine
 	class PostProcessInterface;
 	class RenderQueue;
 
+	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)>
+	FuncReturn get_member_render_function(void *object, VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)
+	{
+		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface, thread);
+	}
+
 	struct RenderPipeline
 	{
 		VulkanAPI::Shader shader;
@@ -83,7 +89,7 @@ namespace OmegaEngine
 		template <typename T, typename... Args>
 		void add_renderable(Args&&... args)
 		{
-			T* renderable = new T(renderer_type, std::forward<Args>(args)...);
+			T* renderable = new T(std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
 		}
 
@@ -94,7 +100,7 @@ namespace OmegaEngine
 
 		void load_render_config();
 
-		void init_renderer(std::unique_ptr<ComponentInterface>& interface);
+		void init_renderer(std::unique_ptr<ComponentInterface>& component_interface);
 		void init_environment_render();
 
 		// shader init for each renderable type

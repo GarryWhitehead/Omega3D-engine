@@ -242,6 +242,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

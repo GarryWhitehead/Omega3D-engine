@@ -84,7 +84,7 @@ namespace OmegaEngine
 		device.set_window_surface(surface);
 
 		gfx_devices.push_back(device);
-		current_gfx_device = gfx_devices.size() - 1;
+		current_gfx_device = static_cast<uint8_t>(gfx_devices.size() - 1);
 	}
 
 	void Engine::createWorld(std::string filename, std::string name)

@@ -27,10 +27,10 @@ namespace OmegaEngine
 			mat.textures[(int)PbrMaterials::MetallicRoughness].image = textureManager.get_texture_index("metallicRoughnessTexture");
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
-			mat.factors.baseColour = gltf_mat.values["baseColorFactor"].Factor();
+			mat.factors.baseColour = static_cast<float>(gltf_mat.values["baseColorFactor"].Factor());
 		}
 		if (gltf_mat.values.find("metallicRoughnessFactor") != gltf_mat.values.end()) {
-			mat.factors.metallic = gltf_mat.values["metallicRoughnessFactor"].Factor();
+			mat.factors.metallic = static_cast<float>(gltf_mat.values["metallicRoughnessFactor"].Factor());
 		}
 
 		// any additional textures?
@@ -55,7 +55,7 @@ namespace OmegaEngine
 			}
 		}
 		if (gltf_mat.additionalValues.find("alphaCutOff") != gltf_mat.additionalValues.end()) {
-			mat.factors.alphaMaskCutOff = gltf_mat.additionalValues["alphaCutOff"].Factor();
+			mat.factors.alphaMaskCutOff = static_cast<float>(gltf_mat.additionalValues["alphaCutOff"].Factor());
 		}
 		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end()) {
 			mat.factors.emissive = OEMaths::convert_vec3((float*)gltf_mat.additionalValues["emssiveFactor"].ColorFactor().data());

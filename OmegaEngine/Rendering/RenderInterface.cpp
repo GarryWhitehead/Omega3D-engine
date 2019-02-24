@@ -128,7 +128,11 @@ namespace OmegaEngine
 	
 		for (auto& info : renderables) {
 			
-			queue_info.render_function = &info.renderable->render;
+			switch (info.renderable->get_type()) {
+			case RenderTypes::Mesh: queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>; 
+									break;
+			}
+
 			queue_info.renderable_data = info.renderable->get_instance_data();
 			queue_info.sorting_key = info.renderable->get_sort_key();
 			queue_info.queue_type = info.renderable->get_queue_type();
@@ -139,14 +143,14 @@ namespace OmegaEngine
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
 	{
-		auto& mesh_manager->getManager<MeshManager>();
+		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
 		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_man.get_mesh(mesh_index);
+		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
 
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive: mesh.primitives) {
-			add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, mesh, primitive);
+			add_renderable<RenderableMesh>(comp_interface, mesh, primitive);
 		}
 
 		// and do the same for all children associated with this mesh

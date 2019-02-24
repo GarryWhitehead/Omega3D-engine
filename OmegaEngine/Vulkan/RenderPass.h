@@ -63,7 +63,7 @@ namespace VulkanAPI
 		void destroy();
 
 		// for generating cmd buffer
-		vk::RenderPassBeginInfo& get_begin_info(vk::ClearColorValue& bg_colour);
+		vk::RenderPassBeginInfo get_begin_info(vk::ClearColorValue& bg_colour);
 
 	private:
 

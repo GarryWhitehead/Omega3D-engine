@@ -1,5 +1,6 @@
 #pragma once
 #include "RenderableBase.h"
+#include "Managers/MeshManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/PushBlocks.h"
@@ -68,8 +69,7 @@ namespace OmegaEngine
 			uint32_t skinned_dynamic_offset = 0;
 		};
 		
-		RenderableMesh::RenderableMesh(RendererType renderer_type, 
-										std::unique_ptr<ComponentInterface>& component_interface, 
+		RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive); 
 

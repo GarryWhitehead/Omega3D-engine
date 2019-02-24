@@ -266,7 +266,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer))
 	}
 
-	vk::RenderPassBeginInfo& RenderPass::get_begin_info(vk::ClearColorValue& bg_colour)
+	vk::RenderPassBeginInfo RenderPass::get_begin_info(vk::ClearColorValue& bg_colour)
 	{
 		// set up clear colour for each colour attachment
 		std::vector<vk::ClearValue> clear_values(attachment.size());

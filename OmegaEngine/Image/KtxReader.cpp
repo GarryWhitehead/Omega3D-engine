@@ -1,8 +1,6 @@
 #include "KtxReader.h"
 #include "Utility/Logger.h"
 
-#define _CRT_SECURE_NO_WARNINGS
-
 KtxReader::KtxReader()
 {
 }
