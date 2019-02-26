@@ -31,19 +31,6 @@ namespace OmegaEngine
 		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface, thread);
 	}
 
-	struct RenderPipeline
-	{
-		VulkanAPI::Shader shader;
-		VulkanAPI::PipelineLayout pl_layout;
-		VulkanAPI::Pipeline pipeline;
-		VulkanAPI::DescriptorLayout descr_layout;
-		VulkanAPI::DescriptorSet descr_set;
-
-		// information extracted from shader reflection
-		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-		std::vector<VulkanAPI::ShaderImageLayout> image_layout;
-	};
-
 	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer
 	enum class RenderStage
 	{
@@ -67,6 +54,19 @@ namespace OmegaEngine
 
 	public:
 
+		struct RenderPipeline
+		{
+			VulkanAPI::Shader shader;
+			VulkanAPI::PipelineLayout pl_layout;
+			VulkanAPI::Pipeline pipeline;
+			VulkanAPI::DescriptorLayout descr_layout;
+			VulkanAPI::DescriptorSet descr_set;
+
+			// information extracted from shader reflection
+			std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
+			std::vector<VulkanAPI::ShaderImageLayout> image_layout;
+		};
+
 		// expand the renderables to include other associated components
 		struct RenderableInfo
 		{
@@ -78,8 +78,10 @@ namespace OmegaEngine
 		};
 
 		RenderInterface();
-		RenderInterface(VulkanAPI::Device device, std::unique_ptr<ComponentInterface>& component_interface);
+		RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface);
 		~RenderInterface();
+
+		void init(VulkanAPI::Device& device);
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order

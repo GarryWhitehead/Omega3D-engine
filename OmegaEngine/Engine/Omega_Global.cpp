@@ -9,9 +9,22 @@ namespace OmegaEngine
 {
 	namespace Global
 	{
+		struct Managers
+		{
+			EventManager* eventManager = nullptr;
+		};
+
+		static Managers managers;
+
+		EventManager* eventManager()
+		{
+			assert(managers.eventManager != nullptr);
+			return managers.eventManager;
+		}
+
 		void init_eventManager()
 		{
-			managers.eventManager = new EventManager;
+			managers.eventManager = new EventManager();
 			assert(managers.eventManager != nullptr);
 		}
 

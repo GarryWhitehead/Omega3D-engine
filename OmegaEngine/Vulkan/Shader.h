@@ -1,7 +1,7 @@
 #pragma once
 #include "Vulkan/Common.h"
 
-#include "spirv_cross.hpp"
+#include "external/Spirv-Cross/spirv_cross.hpp"
 
 namespace VulkanAPI
 {

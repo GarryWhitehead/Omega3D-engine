@@ -29,7 +29,7 @@ namespace OmegaEngine
 		void registerManager(Args&&... args)
 		{
 			uint32_t man_id = Util::event_type_id<T>();
-			managers[man_id] = std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+			managers[man_id] = std::make_unique<T>(std::forward<Args>(args)...);
 			managers[man_id]->set_id(man_id);
 		}
 

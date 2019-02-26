@@ -52,13 +52,12 @@ namespace VulkanAPI
 
 	CommandBuffer::CommandBuffer()
 	{
-		// automatically create a cmd pool for this buffer
-		create_cmd_pool();
 	}
 
 	CommandBuffer::CommandBuffer(vk::Device dev) :
 		device(dev)
 	{
+		init(dev);
 	}
 
 
@@ -70,6 +69,9 @@ namespace VulkanAPI
 	void CommandBuffer::init(vk::Device dev)
 	{
 		device = dev;
+		create_cmd_pool();
+
+		// create a cmd pool for this buffer
 		create_cmd_pool();
 	}
 

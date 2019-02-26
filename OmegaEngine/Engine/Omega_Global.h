@@ -13,13 +13,8 @@ namespace OmegaEngine
 
 	namespace Global
 	{
-		
-		struct Managers
-		{
-			EventManager* eventManager;
-		};
 
-		static Managers managers;
+		EventManager* eventManager();
 
 		// all global initilisation functions for global managers
 		void init_eventManager();

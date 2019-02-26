@@ -139,8 +139,8 @@ namespace VulkanAPI
 			}
 		}
 
-		if (find_ext_properties(VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME, extensionProps)) {
-			extensions.push_back(VK_KHR_GET_DISPLAY_PROPERTIES_2_EXTENSION_NAME);
+		if (find_ext_properties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps)) {
+			extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 			device_ext.has_physical_device_props2 = true;
 
 			if (find_ext_properties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && find_ext_properties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) {
@@ -175,7 +175,10 @@ namespace VulkanAPI
 			LOGGER_INFO("Unable to find validation standard layers.");
 		}
 
-		extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);		// if validation layers are enabled, also add the debug ext to the GLFW extensions
+		// if debug utils isn't supported, try debug report
+		if (!device_ext.has_debug_utils && find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) {
+			extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);		
+		}
 #endif
 
 		vk::InstanceCreateInfo createInfo({},
@@ -241,46 +244,51 @@ namespace VulkanAPI
 		std::vector<vk::ExtensionProperties> extensions = physical.enumerateDeviceExtensionProperties();
 
 		// find queues for this gpu
-		uint32_t queueCount = 0;
-		VkBool32 have_present_queue = false;
-
 		std::vector<vk::QueueFamilyProperties> queues = physical.getQueueFamilyProperties();
 
+		// presentation queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) {									// graphics queue?
-				queue.graphIndex = c;
-			}
-
-			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eCompute) {									// compute queue?
-				queue.computeIndex = c;
-			}
-
-			physical.getSurfaceSupportKHR(c, surface, &have_present_queue);
-			if (queues[c].queueCount > 0 && have_present_queue) {																	// presentation queue?
+			VkBool32 have_present_queue = false;
+			physical.getSurfaceSupportKHR(c, win_surface, &have_present_queue);
+			if (queues[c].queueCount > 0 && have_present_queue) {
 				queue.presentIndex = c;
+				break;
 			}
+		}
 
-			if (queue.graphIndex > 0 && queue.presentIndex > 0) {
+		// graphics queue - if possible, use seperate queues for compute and graphic transfer
+		for (uint32_t c = 0; c < queues.size(); ++c)
+		{
+			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) {
+				queue.graphIndex = c;
+				break;
+			}
+		}
+
+		// compute queue
+		for (uint32_t c = 0; c < queues.size(); ++c)
+		{
+			if (queues[c].queueCount > 0 && c != queue.presentIndex && queues[c].queueFlags & vk::QueueFlagBits::eCompute) {									
+				queue.computeIndex = c;
 				break;
 			}
 		}
 
 		// graphics and presentation queues are compulsory
-		if (queue.graphIndex == VK_QUEUE_FAMILY_IGNORED || queue.presentIndex == VK_QUEUE_FAMILY_IGNORED)
+		if (queue.presentIndex == VK_QUEUE_FAMILY_IGNORED)
 		{
 			LOGGER_ERROR("Critcal error! Required queues not found.");
-			throw std::runtime_error("Error whilst initialising gfx and present queues.");
+			throw std::runtime_error("Error. Unable to initiliase presention queue.");
 		}
 
 		// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
-		else if (queue.computeIndex == VK_QUEUE_FAMILY_IGNORED) {
+		if (queue.computeIndex == VK_QUEUE_FAMILY_IGNORED) {
 			
 			queue.computeIndex = queue.graphIndex;
 		}
 
 		float queuePriority = 1.0f;
-
 		std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
 		std::set<int> uniqueQueues = { queue.graphIndex, queue.presentIndex, queue.computeIndex };
 
@@ -325,9 +333,6 @@ namespace VulkanAPI
 		&req_features);
 
 		VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
-
-		// this reduces dispatch overhead - though instigates that only one device can be used
-		//volkLoadDevice(device.operator VkDevice);
 
 		// prepare queue for each type
 		vk::Queue computeQueue, graphQueue, presentQueue;

@@ -50,12 +50,12 @@ namespace OmegaEngine
 		
 	}
 	
-	RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, 
+	RenderInterface::RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, 
 										std::unique_ptr<DeferredRenderer>& renderer, 
 										std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		
-		RenderPipeline render_pipeline;
+		RenderInterface::RenderPipeline render_pipeline;
 
 		// load shaders
 		render_pipeline.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
@@ -118,7 +118,7 @@ namespace OmegaEngine
 			instance_data->skinned_dynamic_offset
 		};
 
-		RenderPipeline& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
+		RenderInterface::RenderPipeline& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
 
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);

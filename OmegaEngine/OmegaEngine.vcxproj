@@ -215,15 +215,16 @@
     <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>C:\CLibs\SPIRV-Cross-master\;C:\CLibs\stb;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\CLibs\Visual Studio\imgui;C:\CLibs\Visual Studio;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\GLI\gli-0.8.2.0\gli;C:\CLibs\assimp-4.1.0\include;C:\CLibs\GLFW\include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Vulkan 1.1.92.1\Include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\CLibs\SPIRV-Cross-master\;C:\CLibs\rapid-json\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\GLFW\include;C:\CLibs\Vulkan 1.1.92.1\Include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\Visual Studio\GLFW;C:\CLibs\Vulkan 1.1.92.1\Lib32;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\tiny-gltf;C:\CLibs\rapid-json\include;C:\CLibs\volk;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\external\Spirv-Cross;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\CLibs\Vulkan-Hpp-master;C:\CLibs\Visual Studio\stb-master;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\CLibs\SPIRV-Cross-master\build\Release;C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Project1;C:\VulkanSDK\1.0.65.0\Include;C:\CLibs\Visual Studio\stb-master;C:\CLibs\Visual Studio\glm;C:\CLibs\GLFW\include;C:\CLibs\assimp-4.1.0\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\CLibs\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\CLibs\GLFW\include;C:\CLibs\rapid-json\include;C:\CLibs\Vulkan 1.1.92.1\Include;C:\CLibs\Vulkan-Hpp-master;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\CLibs\GLFW\lib-mingw-w64;C:\CLibs\Vulkan 1.1.92.1\Lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -243,10 +244,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeaderFile />
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -261,23 +263,24 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\GLFW;C:\VulkanSDK\1.0.65.0\Lib32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\CLibs\Visual Studio\GLFW;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
+      <Optimization>Disabled</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalLibraryDirectories>C:\CLibs\assimp-4.1.0\Lib;C:\CLibs\Visual Studio\glfw-3.2.1.bin.WIN64\lib-vc2015;C:\VulkanSDK\1.0.65.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;assimp-vc140-mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glfw3.lib;vulkan-1.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

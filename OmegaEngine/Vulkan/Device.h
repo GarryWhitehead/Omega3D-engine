@@ -63,13 +63,13 @@ namespace VulkanAPI
 
 		vk::SurfaceKHR& getSurface()
 		{
-			return surface;
+			return win_surface;
 		}
 
 		uint32_t getQueueIndex(QueueType type) const;
 		VulkanAPI::Queue getQueue(QueueType type);
 
-		void set_window_surface(vk::SurfaceKHR surface, SurfaceType type = SurfaceType::SurfaceKHR)
+		void set_window_surface(vk::SurfaceKHR& surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{
 			assert(surface);
 			win_surface = surface;
@@ -80,16 +80,15 @@ namespace VulkanAPI
 
 		vk::Instance instance;
 
-		vk::SurfaceKHR surface;
 		vk::Device device;
 		vk::PhysicalDevice physical;
 		vk::PhysicalDeviceFeatures features;
 
 		struct QueueInfo
 		{
-			int computeIndex = -1;
-			int presentIndex = -1;
-			int graphIndex = -1;
+			int computeIndex = VK_QUEUE_FAMILY_IGNORED;
+			int presentIndex = VK_QUEUE_FAMILY_IGNORED;
+			int graphIndex = VK_QUEUE_FAMILY_IGNORED;
 			VulkanAPI::Queue graphQueue;
 			VulkanAPI::Queue presentQueue;
 			VulkanAPI::Queue computeQueue;

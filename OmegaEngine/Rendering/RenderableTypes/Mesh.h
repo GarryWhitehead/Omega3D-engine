@@ -4,6 +4,7 @@
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/PushBlocks.h"
+#include "Rendering/RenderInterface.h"
 
 // forward decleartions
 namespace VulkanAPI
@@ -15,11 +16,9 @@ namespace VulkanAPI
 namespace OmegaEngine
 {
 	// forward declerations
-	class PipelineInterface;
 	class DeferredRenderer;
 	class ComponentInterface;
 	class ThreadPool;
-	struct RenderPipeline;
 	class Object;
 
 	// renderable object types
@@ -78,7 +77,7 @@ namespace OmegaEngine
 					RenderInterface* render_interface,
 					uint32_t thread) override;
 
-		static RenderPipeline create_mesh_pipeline(vk::Device device, 
+		static RenderInterface::RenderPipeline create_mesh_pipeline(vk::Device device,
 													std::unique_ptr<DeferredRenderer>& renderer, 
 													std::unique_ptr<ComponentInterface>& component_interface);	
 

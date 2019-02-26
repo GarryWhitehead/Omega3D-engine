@@ -35,7 +35,7 @@ namespace OmegaEngine
 
 	}
 
-	World::World(Managers managers, VulkanAPI::Device device)
+	World::World(Managers managers, VulkanAPI::Device& device)
 	{
 		component_interface = std::make_unique<ComponentInterface>();
 		render_interface = std::make_unique<RenderInterface>(device, component_interface);
@@ -59,6 +59,8 @@ namespace OmegaEngine
 			component_interface->registerManager<CameraManager>();
 		}
 		
+		// setup the preferred renderer and associated elements
+		render_interface->init_renderer(component_interface);
 	}
 
 	World::~World()

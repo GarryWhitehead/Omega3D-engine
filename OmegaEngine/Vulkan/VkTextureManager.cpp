@@ -13,7 +13,7 @@ namespace VulkanAPI
 	{
 	}
 
-	Texture& VkTextureManager::getTexture(TextureHandle handle)
+	Texture VkTextureManager::getTexture(TextureHandle handle)
 	{
 		auto iter = textures.find(std::get<0>(handle));
 

@@ -24,10 +24,19 @@ namespace OmegaEngine
 {
 	RenderInterface::RenderInterface()
 	{
-
 	}
 
-	RenderInterface::RenderInterface(VulkanAPI::Device device, std::unique_ptr<ComponentInterface>& component_interface)
+	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface)
+	{
+		init(device);
+	}
+
+
+	RenderInterface::~RenderInterface()
+	{
+	}
+
+	void RenderInterface::init(VulkanAPI::Device& device)
 	{
 		// load the render config file if it exsists
 		load_render_config();
@@ -37,24 +46,8 @@ namespace OmegaEngine
 
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
-		
+
 		render_queue = std::make_unique<RenderQueue>();
-		
-		// setup environment rendering if needded
-		init_environment_render();
-
-		// create renderer - only deferred renderer supported at the mo
-		init_renderer(component_interface);
-
-		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
-		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
-			this->add_shader((RenderTypes)r_type, component_interface);
-		}
-	}
-
-
-	RenderInterface::~RenderInterface()
-	{
 	}
 
 	void RenderInterface::load_render_config()
@@ -65,7 +58,7 @@ namespace OmegaEngine
 			return;
 		}
 
-		// if we cant parse the confid, then go with the default values
+		// if we cant parse the config, then go with the default values
 		rapidjson::Document doc;
 		if (doc.Parse(json.c_str()).HasParseError()) {
 			LOGGER_INFO("Unable to find render_config file. Using default settings...")
@@ -98,6 +91,14 @@ namespace OmegaEngine
 			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
 			break;
 		}
+
+		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
+		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) {
+			this->add_shader((RenderTypes)r_type, component_interface);
+		}
+
+		// setup environment rendering if needded
+		init_environment_render();
 	}
 	
 	void RenderInterface::init_environment_render()

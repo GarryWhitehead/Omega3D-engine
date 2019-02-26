@@ -52,9 +52,14 @@ namespace OmegaEngine
 		{
 			// generate unique id for event type
 			uint64_t type = Util::event_type_id<EventType>();
-			auto &data = eventQueue[type];
-
-			data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
+			if (eventQueue.find(type) == eventQueue.end()) {
+				EventData event_data;
+				event_data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
+				eventQueue[type] = event_data;
+			}
+			else {
+				eventQueue[type].listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
+			}
 		}
 
 		template <typename EventType, typename... Args>

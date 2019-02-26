@@ -71,7 +71,6 @@ namespace OmegaEngine
 
 		const char** instance_ext = glfwGetRequiredInstanceExtensions(&instance_count);
 		device.createInstance(instance_ext, instance_count);
-		device.prepareDevice();
 
 		// create a which will be the abstract scrren surface which will be used for creating swapchains
 		// TODO: add more cross-platform compatibility by adding more surfaces
@@ -83,6 +82,9 @@ namespace OmegaEngine
 		vk::SurfaceKHR surface = vk::SurfaceKHR(temp_surface);
 		device.set_window_surface(surface);
 
+		// prepare the physical and abstract device including queues
+		device.prepareDevice();
+
 		gfx_devices.push_back(device);
 		current_gfx_device = static_cast<uint8_t>(gfx_devices.size() - 1);
 	}
@@ -91,7 +93,12 @@ namespace OmegaEngine
 	{
 		// create a world using a omega engine scene file
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device]);
-		world->create(filename.c_str());
+		
+		// throw an error here as calling a function for specifically creating a world with a scene file.
+		if (!world->create(filename.c_str())) {
+			LOGGER_ERROR("Unable to create world as no omega-scene file found.");
+			throw std::runtime_error("Omega-scene file not found.");
+		}
 
 		worlds.push_back(std::move(world));
 		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);

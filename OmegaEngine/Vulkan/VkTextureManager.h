@@ -21,7 +21,7 @@ namespace VulkanAPI
 		VkTextureManager();
 		~VkTextureManager();
 
-		Texture& getTexture(TextureHandle handle);
+		Texture getTexture(TextureHandle handle);
 
 	private:
 

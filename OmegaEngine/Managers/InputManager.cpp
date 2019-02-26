@@ -64,10 +64,10 @@ namespace OmegaEngine
 			glfwSetWindowShouldClose(window, true);
 		}
 
-		if (Global::managers.eventManager) {
+		if (Global::eventManager()) {
 
 			// update the camera position instantly so we reduce the chnace of lag
-			Global::managers.eventManager->instantNotification<KeyboardPressEvent>(event);
+			Global::eventManager()->instantNotification<KeyboardPressEvent>(event);
 		}
 	}
 
@@ -106,11 +106,11 @@ namespace OmegaEngine
 	{
 		MouseMoveEvent event{ xpos, ypos };
 
-		if (Global::managers.eventManager) {
+		if (Global::eventManager()) {
 
 			if (left_button_press) {
 				// update the camera position instantly so we reduce the chnace of lag
-				Global::managers.eventManager->instantNotification<MouseMoveEvent>(event);
+				Global::eventManager()->instantNotification<MouseMoveEvent>(event);
 			}
 		}
 	}

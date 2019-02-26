@@ -17,9 +17,9 @@ namespace VulkanAPI
 		uint32_t surfaceCount = 0;
 
 		auto& gpu = device.getPhysicalDevice();
-		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
-		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(surface);
-		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(surface);
+		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(device.getSurface());
+		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(device.getSurface());
+		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(device.getSurface());
 
 		// make sure that we have suitable swap chain extensions available before continuing
 		if (formats.empty() || present_modes.empty()) {
@@ -92,7 +92,7 @@ namespace VulkanAPI
 		}
 
 		vk::SwapchainCreateInfoKHR createInfo({},
-			surface,
+			device.getSurface(),
 			imageCount,
 			req_surf_format.format,
 			req_surf_format.colorSpace,
