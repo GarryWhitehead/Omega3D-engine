@@ -41,29 +41,33 @@ namespace OmegaEngine
 			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
 
 		};
+		const uint8_t num_attachments = attachments.size();
 
 		// create a empty texture for each state - these will be filled by the shader
-		for (uint8_t i = 0; i < attachments.size() - 1; ++i) {
-			images[i].create_empty_image(attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment);
+		for (uint8_t i = 0; i < num_attachments - 1; ++i) {
+			images[i].create_empty_image(device, gpu, attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment);
 		}
 
 		// and the depth g-buffer
-		images[(int)DeferredAttachments::Depth].create_empty_image(depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		images[num_attachments - 1].create_empty_image(device, gpu, depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// now create the renderpasses and frame buffers
 		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
 		renderpass.init(device, attachments, dependencies);
 
 		// tie the image-views to the frame buffer
-		std::array<vk::ImageView, (int)DeferredAttachments::Count> image_views;
+		std::vector<vk::ImageView> image_views(num_attachments);
 
-		for (uint8_t i = 0; i < attachments.size(); ++i) {
+		for (uint8_t i = 0; i < num_attachments; ++i) {
 			image_views[i] = images[i].get_image_view();
 		}
 		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
-		shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment);
+		if (!shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment)) {
+			LOGGER_ERROR("Unable to load deferred renderer shaders.");
+			throw std::runtime_error("Error whilst trying to open deferred shader file.");
+		}
 
 		std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;

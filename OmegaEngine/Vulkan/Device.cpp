@@ -47,19 +47,19 @@ namespace VulkanAPI
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
 
-				std::cerr << "Validation Error: %s\n" << data->pMessage;
+				std::cerr << "Validation Error: " << data->pMessage << "\n";
 			}
 			else {
-				std::cerr << "Other Error: %s\n" << data->pMessage;
+				std::cerr << "Other Error: " << data->pMessage << "\n";
 			}
 			break;
 
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
-				std::cerr << "Validation Warning: %s\n" << data->pMessage;
+				std::cerr << "Validation Warning: " << data->pMessage << "\n";
 			}
 			else {
-				std::cerr << "Other Warning: %s\n" << data->pMessage;
+				std::cerr << "Other Warning: " << data->pMessage << "\n";
 			}
 			break;
 
@@ -103,11 +103,12 @@ namespace VulkanAPI
 
 	vk::Format Device::get_depth_format(vk::PhysicalDevice& gpu)
 	{
+		// in order of preference - TODO: allow user to define whether stencil format is required or not
 		std::vector<vk::Format> formats =
 		{
-			vk::Format::eD32Sfloat,
 			vk::Format::eD32SfloatS8Uint,
-			vk::Format::eD24UnormS8Uint
+			vk::Format::eD24UnormS8Uint,
+			vk::Format::eD32Sfloat
 		};
 
 		return Util::find_supported_format(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);

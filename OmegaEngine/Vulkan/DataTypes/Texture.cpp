@@ -33,12 +33,12 @@ namespace VulkanAPI
 		graph_queue = queue;
 	}
 
-	void Texture::create_empty_image(vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags)
+	void Texture::create_empty_image(vk::Device& device, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlagBits usage_flags)
 	{
 		assert(device);
 
 		// create an empty image
-		tex_image.create(device, format, width, height, TextureType::Normal);
+		tex_image.create(device, gpu, format, width, height, usage_flags, TextureType::Normal);
 
 		// and a image view of the empty image
 		tex_imageView.create(device, tex_image);
@@ -62,15 +62,8 @@ namespace VulkanAPI
 		memcpy(data_dst, tex.data(), tex.size());
 		device.unmapMemory(stagingMemory);
 
-		tex_image.create(device, tex.format(), tex.tex_width(), tex.tex_height(), tex_type);
-		vk::MemoryRequirements mem_req = device.getImageMemoryRequirements(tex_image.get());
-
-		uint32_t mem_type = Util::findMemoryType(mem_req.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
-		vk::MemoryAllocateInfo alloc_info(mem_req.size, mem_type);
-		
-		VK_CHECK_RESULT(device.allocateMemory(&alloc_info, nullptr, &tex_memory));
-		device.bindImageMemory(tex_image.get(), tex_memory, 0);
-
+		tex_image.create(device, gpu, tex.format(), tex.tex_width(), tex.tex_height(), vk::ImageUsageFlagBits::eColorAttachment, tex_type);
+	
 		// create the info required for the copy
 		std::vector<vk::BufferImageCopy> copy_buffers;
 		if (tex_type == TextureType::Normal) {

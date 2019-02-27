@@ -1,6 +1,7 @@
 #include "Image.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/DataTypes/Texture.h"
+#include "Vulkan/Buffer.h"
 
 namespace VulkanAPI
 {
@@ -19,7 +20,7 @@ namespace VulkanAPI
 			vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity },
-			{ aspect, 0, 1, 1, 0 });
+			{ aspect, 0, 1, 0, 1 });
 
 		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
 	}
@@ -50,6 +51,9 @@ namespace VulkanAPI
 		vk::ImageAspectFlags aspect;
 
 		switch (image.format()) {
+		case vk::Format::eD32Sfloat:
+			aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+			break;
 		case vk::Format::eD32SfloatS8Uint:
 		[[ __fallthrough ]]
 		case vk::Format::eD24UnormS8Uint:
@@ -65,7 +69,7 @@ namespace VulkanAPI
 			vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity,
 			vk::ComponentSwizzle::eIdentity },
-			{aspect, 0, 1, 1, 0 });
+			vk::ImageSubresourceRange(aspect, 0, 1, 0, 1 ));
 
 		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
 	}
@@ -79,7 +83,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void Image::create(vk::Device dev, vk::Format format, uint32_t width, uint32_t height, TextureType type)
+	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlagBits usage_flags, TextureType type)
 	{
 		device = dev;
 
@@ -94,11 +98,20 @@ namespace VulkanAPI
 			image_mip_levels, 1,
 			vk::SampleCountFlagBits::e1,
 			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled,
+			vk::ImageUsageFlagBits::eTransferDst | usage_flags,
 			vk::SharingMode::eExclusive,
 			0, nullptr, vk::ImageLayout::eUndefined);
 
 		VK_CHECK_RESULT(device.createImage(&image_info, nullptr, &image));
+
+		// allocate memory for this image
+		vk::MemoryRequirements mem_req = device.getImageMemoryRequirements(image);
+
+		uint32_t mem_type = Util::findMemoryType(mem_req.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
+		vk::MemoryAllocateInfo alloc_info(mem_req.size, mem_type);
+
+		VK_CHECK_RESULT(device.allocateMemory(&alloc_info, nullptr, &image_memory));
+		device.bindImageMemory(image, image_memory, 0);
 	}
 
 	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool)
@@ -114,7 +127,6 @@ namespace VulkanAPI
 			comm_buff = cmdBuff;
 		}
 
-		
 		vk::ImageAspectFlags mask;
 		if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
 

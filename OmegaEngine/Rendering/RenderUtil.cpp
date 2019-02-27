@@ -16,14 +16,14 @@ namespace OmegaEngine
 	namespace RenderUtil
 	{
 
-		VulkanAPI::Texture generate_bdrf(vk::Device device, VulkanAPI::Queue& graph_queue)
+		VulkanAPI::Texture generate_bdrf(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graph_queue)
 		{
 			const uint32_t lut_dim = 512;
 			const vk::Format lut_format = vk::Format::eR16G16Sfloat;
 			vk::ClearColorValue clear_value;
 
 			VulkanAPI::Texture texture(VulkanAPI::TextureType::Normal);
-			texture.create_empty_image(lut_format, lut_dim, lut_dim, 1, vk::ImageUsageFlagBits::eColorAttachment);
+			texture.create_empty_image(device, gpu, lut_format, lut_dim, lut_dim, 1, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// setup renderpass
 			VulkanAPI::RenderPass renderpass(device);
@@ -60,7 +60,7 @@ namespace OmegaEngine
 			return texture;
 		}
 		
-		VulkanAPI::Texture generate_irradiance_map(vk::Device device, VulkanAPI::Queue& graph_queue)
+		VulkanAPI::Texture generate_irradiance_map(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graph_queue)
 		{
 			const uint32_t irradiance_dim = 64;
 			const uint8_t mip_levels = 5;
@@ -68,11 +68,11 @@ namespace OmegaEngine
 			
 			// cube texture
 			VulkanAPI::Texture cube_tex(VulkanAPI::TextureType::CubeArray);
-			cube_tex.create_empty_image(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
+			cube_tex.create_empty_image(device, gpu, vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// offscreen texture
 			VulkanAPI::Texture offscreen_tex(VulkanAPI::TextureType::Normal);
-			offscreen_tex.create_empty_image(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
+			offscreen_tex.create_empty_image(device, gpu, vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// renderpass and framebuffer
 			VulkanAPI::RenderPass renderpass(device);

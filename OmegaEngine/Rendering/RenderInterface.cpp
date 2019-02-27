@@ -61,7 +61,7 @@ namespace OmegaEngine
 		// if we cant parse the config, then go with the default values
 		rapidjson::Document doc;
 		if (doc.Parse(json.c_str()).HasParseError()) {
-			LOGGER_INFO("Unable to find render_config file. Using default settings...")
+			LOGGER_INFO("Unable to find render_config file. Using default settings...");
 			return;
 		}
 

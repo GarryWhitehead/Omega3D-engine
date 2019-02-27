@@ -25,19 +25,6 @@ namespace OmegaEngine
 	class PostProcessInterface;
 	class CameraManager;
 
-	enum class DeferredAttachments
-	{
-		Position,
-		Albedo,
-		Normal,
-		Bump,
-		Occlusion,
-		Metallic,
-		Roughness,
-		Depth,
-		Count
-	};
-
 	class DeferredRenderer
 	{
 
@@ -80,7 +67,7 @@ namespace OmegaEngine
 		VulkanAPI::Buffer frag_buffer;
 
 		VulkanAPI::Sampler linear_sampler;
-		std::array<VulkanAPI::Texture, (int)DeferredAttachments::Count> images;
+		std::array<VulkanAPI::Texture, 5> images;
 
 		VulkanAPI::CommandBuffer cmd_buffer;
 
