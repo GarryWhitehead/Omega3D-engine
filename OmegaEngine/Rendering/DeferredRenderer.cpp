@@ -64,20 +64,20 @@ namespace OmegaEngine
 		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
-		if (!shader.add(device, "renderer/deferred.vert", VulkanAPI::StageType::Vertex, "renderer/deferred.frag", VulkanAPI::StageType::Fragment)) {
+		if (!shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
 			LOGGER_ERROR("Unable to load deferred renderer shaders.");
 			throw std::runtime_error("Error whilst trying to open deferred shader file.");
 		}
 
+		// create the descriptors and pipeline layout through shader reflection
 		std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
 		shader.descriptor_buffer_reflect (descr_layout, buffer_layout);
 		shader.descriptor_image_reflect(descr_layout, sampler_layout);
-
-		assert(!sampler_layout.empty());
-		assert(!buffer_layout.empty());
+		shader.pipeline_layout_reflect(pl_layout);
 
 		descr_layout.create(device);
+		descr_set.init(device, descr_layout);
 
 		// descriptor sets for all the deferred buffers samplers
 		// using a linear sampler for all deferred buffers
@@ -88,7 +88,8 @@ namespace OmegaEngine
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
 		descr_set.write_set(buffer_layout[0].set, buffer_layout[0].binding, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
-		
+		descr_set.update_sets(device);
+
 		// and finally create the pipeline
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
 		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);

@@ -77,7 +77,7 @@ namespace VulkanAPI
 		std::ifstream::pos_type filePos = file.tellg();
 		data[(int)type].resize(filePos);
 		file.seekg(0, std::ios_base::beg);
-		file.read((char*)data.data(), filePos);
+		file.read((char*)data[(int)type].data(), filePos);
 		return true;
 	}
 

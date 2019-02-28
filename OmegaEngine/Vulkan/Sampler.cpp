@@ -19,6 +19,8 @@ namespace VulkanAPI
 
 	void Sampler::create(vk::Device dev, SamplerType type)
 	{
+		device = dev;
+
 		switch (type) {
 		case SamplerType::Clamp:
 			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);

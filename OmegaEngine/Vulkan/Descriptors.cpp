@@ -80,7 +80,7 @@ namespace VulkanAPI
 		}
 
 		assert(!pools.empty());
-		vk::DescriptorPoolCreateInfo createInfo({}, 1, static_cast<uint32_t>(pools.size()), pools.data());
+		vk::DescriptorPoolCreateInfo createInfo({}, layout_bind.layouts.size(), static_cast<uint32_t>(pools.size()), pools.data());
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
 
 		// and create the descriptor layout for each set
@@ -119,7 +119,7 @@ namespace VulkanAPI
 			vk::DescriptorSetLayout set_layout;
 			std::tie(set_count, set_layout) = layout[i];
 
-			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), set_count, &set_layout);
+			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), 1, &set_layout);
 
 			vk::DescriptorSet descr_set;
 			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
