@@ -1,22 +1,20 @@
 #version 450
 
+#include "pbr.h"
+
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
 // inputs from subpass
-layout (input_attachment_index = 0, binding = 2) uniform subpassInput positionSampler;
-layout (input_attachment_index = 1, binding = 3) uniform subpassInput normalSampler;
-layout (input_attachment_index = 2, binding = 4) uniform subpassInput albedoSampler;
-layout (input_attachment_index = 3, binding = 5) uniform subpassInput bumpSampler;
-layout (input_attachment_index = 4, binding = 6) uniform subpassInput aoSampler;
-layout (input_attachment_index = 5, binding = 7) uniform subpassInput metallicSampler;
-layout (input_attachment_index = 6, binding = 8) uniform subpassInput roughnessSampler;
+layout (set = 0, binding = 0) uniform sampler positionSampler;
+layout (set = 0, binding = 1) uniform sampler albedoSampler;
+layout (set = 0, binding = 2) uniform sampler normalSampler;
+layout (set = 0, binding = 3) uniform sampler pbrSampler;
 
 // texture samplers
-layout (binding = 9) uniform sampler2DArray shadowSampler;
-layout (binding = 10) uniform sampler2D BDRFlut;
-layout (binding = 11) uniform samplerCube irradianceMap;
-layout (binding = 12) uniform samplerCube prefilterMap;
+layout (set = 0, binding = 4) uniform sampler2D BDRFlut;
+layout (set = 0, binding = 5) uniform samplerCube irradianceMap;
+layout (set = 0, binding = 6) uniform samplerCube prefilterMap;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inPosW;
@@ -25,8 +23,6 @@ layout (location = 0) out vec4 outFrag;
 
 #define MAX_LIGHT_COUNT 5			// use uniform buffer
 #define SHADOW_FACTOR 0.25
-
-#define PI 3.1415926535897932384626433832795
 
 struct Light
 {
@@ -82,77 +78,18 @@ vec3 perturbNormal(vec3 posW)
 	return normalize(TBN * tangentNormal);
 }
 
-float GGX_Distribution(float NdotH, float roughness)
-{
-	float a = roughness * roughness;
-	float a2 = a * a;
-	float denom = NdotH * NdotH * (a2 - 1.0) + 1.0;
-	
-	return (a2)/(PI * denom * denom); 
-}
-
-float GeometryShlickGGX(float NdotV, float NdotL, float roughness)
-{
-	float k = ((roughness + 1.0) * (roughness + 1.0)) / 8.0;
-	float GV = NdotV / (NdotV * (1.0 - k) + k);
-	float GL = NdotL / (NdotL * (1.0 - k) + k);
-	return GL * GV;
-}
-
-vec3 FresnelSchlick(float cosTheta, vec3 F0)
-{
-	return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
-vec3 FresnelRoughness(float cosTheta, vec3 F0, float roughness)
-{
-	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - cosTheta, 5.0);
-}
-
-vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float roughness, vec3 albedo, vec3 radiance)
-{
-	vec3 H = normalize(V + L);
-	float NdotH = clamp(dot(N, H), 0.0, 1.0);
-	float NdotV = clamp(dot(N, V), 0.0, 1.0);
-	float NdotL = clamp(dot(N, L), 0.0, 1.0);
-
-	vec3 colour = vec3(0.0);
-
-	if (NdotL > 0.0) {
-		
-		float D = GGX_Distribution(NdotH, roughness); 
-		float G = GeometryShlickGGX(NdotV, NdotL, roughness);
-		vec3 F = FresnelSchlick(NdotV, F0);		
-		
-		vec3 specular = D * F * G / (4.0 * NdotL * NdotV + 0.001);		
-		vec3 Kd = (vec3(1.0) - F) * (1.0 - metallic);			
-		colour += (Kd * albedo / PI + specular) * radiance * NdotL; 
-	}
-
-	return colour;
-}
-
 void main()
 {	
-	vec3 inPos = subpassLoad(positionSampler).rgb;
-	float hasBumpMap = subpassLoad(normalSampler).a;
+	vec3 inPos = positionSampler.rgb;
 	vec3 V = normalize(ubo.cameraPos.xyz - inPos);
 	
-	vec3 N;
-	if(hasBumpMap == 1.0) {
-		//N = perturbNormal(inPos);
-		N = normalize(subpassLoad(normalSampler).rgb);
-	}
-	else {
-		N = normalize(subpassLoad(normalSampler).rgb);
-	}	
-	
+	vec3 N = perturbNormal(inPos);
 	vec3 R = reflect(-V, N);
 
 	// get colour information from G-buffer
-	vec3 albedo = subpassLoad(albedoSampler).rgb;
-	float metallic = subpassLoad(metallicSampler).r;
-	float roughness = subpassLoad(roughnessSampler).r;
+	vec3 albedo = albedoSampler.rgb;
+	float metallic = pbrSampler.x;
+	float roughness = pbrSampler.y;
 	
 	vec3 F0 = vec3(0.04);
 	F0 = mix(F0, albedo, metallic);
