@@ -64,7 +64,7 @@ namespace OmegaEngine
 
 			// information extracted from shader reflection
 			std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-			std::vector<VulkanAPI::ShaderImageLayout> image_layout;
+			VulkanAPI::ImageLayoutBuffer image_layout;
 		};
 
 		// expand the renderables to include other associated components

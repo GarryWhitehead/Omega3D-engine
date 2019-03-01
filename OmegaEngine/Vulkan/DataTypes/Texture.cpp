@@ -33,7 +33,7 @@ namespace VulkanAPI
 		graph_queue = queue;
 	}
 
-	void Texture::create_empty_image(vk::Device& device, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlagBits usage_flags)
+	void Texture::create_empty_image(vk::Device& device, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags)
 	{
 		assert(device);
 

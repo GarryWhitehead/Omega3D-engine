@@ -1,5 +1,6 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/Sampler.h"
 
 #include "external/Spirv-Cross/spirv_cross.hpp"
 
@@ -9,6 +10,7 @@ namespace VulkanAPI
 	class DescriptorLayout;
 	class PipelineLayout;
 	class Pipeline;
+	class Sampler;
 	enum class StageType;
 
 	// contains useful information in regards to the bindings, sets and names of buffers, samplers, etc.
@@ -30,11 +32,16 @@ namespace VulkanAPI
 	{
 		uint32_t binding;
 		uint32_t set;
-		const char* name;
+		std::string name;
+		vk::ImageLayout layout;
+		vk::DescriptorType type;
+		Sampler sampler;
 
-		ShaderImageLayout(uint32_t bind, uint32_t s, const char* n) :
-			 binding(bind), set(s), name(n)
-		{}
+		ShaderImageLayout() {}
+		ShaderImageLayout(vk::DescriptorType _type, vk::ImageLayout lo, uint32_t bind, uint32_t s, std::string n, Sampler spl) :
+			 type(_type), layout(lo), binding(bind), set(s), name(n), sampler(spl)
+		{
+		}
 	};
 
 	enum class StageType
@@ -46,6 +53,8 @@ namespace VulkanAPI
 		Count
 	};
 
+	using ImageLayoutBuffer = std::unordered_map<uint32_t, std::vector<ShaderImageLayout> >;
+
 	class Shader
 	{
 
@@ -54,12 +63,15 @@ namespace VulkanAPI
 		Shader();
 		~Shader();
 
+		Sampler getSamplerType(std::string name);
+		vk::ImageLayout getImageLayout(std::string name);
+
 		static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
 		void descriptor_buffer_reflect(DescriptorLayout& descr_layout, std::vector<ShaderBufferLayout>& buffer_layout);
-		void descriptor_image_reflect(DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout);
+		void descriptor_image_reflect(DescriptorLayout& descr_layout, ImageLayoutBuffer& image_layout);
 		void pipeline_layout_reflect(PipelineLayout& p_info);
 		void pipeline_reflection(Pipeline& pipeline);
 
@@ -79,6 +91,7 @@ namespace VulkanAPI
 		void createModule(vk::Device device, StageType type);
 		void createWrapper(StageType type);
 		
+		vk::Device device;
 		std::vector<vk::PipelineShaderStageCreateInfo> wrappers;
 
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;

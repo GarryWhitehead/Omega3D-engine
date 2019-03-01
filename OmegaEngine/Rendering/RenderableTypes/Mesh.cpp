@@ -85,10 +85,9 @@ namespace OmegaEngine
 				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
 		}
-		render_pipeline.descr_set.update_sets(device);
 
 		render_pipeline.shader.pipeline_layout_reflect(render_pipeline.pl_layout);
-		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout(), RenderTypes::Mesh);
+		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout());
 
 		// create the graphics pipeline
 		render_pipeline.pipeline.set_depth_state(VK_TRUE, VK_TRUE);

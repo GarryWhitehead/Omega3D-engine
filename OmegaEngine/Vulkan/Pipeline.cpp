@@ -12,8 +12,7 @@ namespace VulkanAPI
 
 	void PipelineLayout::create(vk::Device& device, 
 								std::vector<std::tuple<uint32_t, 
-								vk::DescriptorSetLayout> >& descr_layout, 
-								OmegaEngine::RenderTypes type)
+								vk::DescriptorSetLayout> >& descr_layout)
 	{	
 		// create push constants
 		std::vector<vk::PushConstantRange> push_constants;

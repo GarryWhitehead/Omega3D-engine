@@ -39,7 +39,7 @@ namespace VulkanAPI
 		Image();
 		~Image();
 
-		void create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlagBits usage_flags, TextureType type);
+		void create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlags usage_flags, TextureType type);
 		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
 

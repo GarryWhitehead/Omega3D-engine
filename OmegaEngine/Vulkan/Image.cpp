@@ -83,7 +83,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlagBits usage_flags, TextureType type)
+	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlags usage_flags, TextureType type)
 	{
 		device = dev;
 

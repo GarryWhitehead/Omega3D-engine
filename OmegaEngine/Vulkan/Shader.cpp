@@ -2,6 +2,7 @@
 #include "utility/logger.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Pipeline.h"
+#include "Vulkan/Sampler.h"
 
 #include <fstream>
 
@@ -38,6 +39,8 @@ namespace VulkanAPI
 
 	bool Shader::add(vk::Device device, const char* filename, StageType type)
 	{
+		this->device = device;
+
 		if (!loadShaderBinary(filename, type)) {
 			return false;
 		}
@@ -53,6 +56,8 @@ namespace VulkanAPI
 
 	bool Shader::add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2)
 	{
+		this->device = device;
+
 		if (!add(device, filename1, type1)) {
 			return false;
 		}
@@ -153,7 +158,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void Shader::descriptor_image_reflect(DescriptorLayout& descr_layout, std::vector<ShaderImageLayout>& image_layout)
+	void Shader::descriptor_image_reflect(DescriptorLayout& descr_layout, ImageLayoutBuffer& image_layout)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -166,13 +171,19 @@ namespace VulkanAPI
 
 			auto shader_res = compiler.get_shader_resources();
 
-			// sampler 2D
+			// combined image sampler 2D
 			for (auto& image : shader_res.sampled_images) {
 
 				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-				descr_layout.add_layout(set, binding, vk::DescriptorType::eSampler, get_stage_flag_bits(StageType(i)));
-				image_layout.push_back({ binding, set, image.name.c_str() });
+
+				Sampler sampler = getSamplerType(image.name);
+
+				// the image layout can also be set via the sampler name - Depth:: for depth sampler, Colour:: for colour samplers (default if none found)
+				vk::ImageLayout imageLayout = getImageLayout(image.name);
+
+				descr_layout.add_layout(set, binding, vk::DescriptorType::eCombinedImageSampler, get_stage_flag_bits(StageType(i)));
+				image_layout[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
 			}
 		}
 	}
@@ -227,5 +238,51 @@ namespace VulkanAPI
 				uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
 			}
 		}
+	}
+
+	Sampler Shader::getSamplerType(std::string name)
+	{
+		Sampler sampler;
+
+		// if no sampler declared then will use stock linear sampler
+		if (name.find("Clamp::") != std::string::npos) {
+			sampler.create(device, SamplerType::Clamp);
+		}
+		if (name.find("Wrap::") != std::string::npos) {
+			sampler.create(device, SamplerType::Wrap);
+		}
+		if (name.find("TriLinearWrap::") != std::string::npos) {
+			sampler.create(device, SamplerType::TrilinearWrap);
+		}
+		if (name.find("LinearWrap::") != std::string::npos) {
+			sampler.create(device, SamplerType::LinearWrap);
+		}
+		if (name.find("TriLinearClamp::") != std::string::npos) {
+			sampler.create(device, SamplerType::TriLinearClamp); 
+		}
+		if (name.find("LinearClamp::") != std::string::npos) {
+			sampler.create(device, SamplerType::LinearClamp);
+		}
+		else {
+			sampler.create(device, SamplerType::LinearClamp);
+		}
+
+		return sampler;
+	}
+
+	vk::ImageLayout Shader::getImageLayout(std::string name)
+	{
+		vk::ImageLayout layout;
+		if (name.find("Depth::") != std::string::npos) {
+			layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		}
+		if (name.find("Colour::") != std::string::npos) {
+			layout = vk::ImageLayout::eColorAttachmentOptimal;
+		}
+		else {
+			// default if none found
+			layout = vk::ImageLayout::eColorAttachmentOptimal;
+		}
+		return layout;
 	}
 }

@@ -82,8 +82,7 @@ namespace VulkanAPI
 
 		void create(vk::Device& device, 
 						std::vector<std::tuple<uint32_t,
-						vk::DescriptorSetLayout> >& descr_layout, 
-						OmegaEngine::RenderTypes type);
+						vk::DescriptorSetLayout> >& descr_layout);
 
 		vk::PipelineLayout& get()
 		{

@@ -45,7 +45,7 @@ namespace OmegaEngine
 
 		// create a empty texture for each state - these will be filled by the shader
 		for (uint8_t i = 0; i < num_attachments - 1; ++i) {
-			images[i].create_empty_image(device, gpu, attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment);
+			images[i].create_empty_image(device, gpu, attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		}
 
 		// and the depth g-buffer
@@ -70,7 +70,7 @@ namespace OmegaEngine
 		}
 
 		// create the descriptors and pipeline layout through shader reflection
-		std::vector<VulkanAPI::ShaderImageLayout> sampler_layout;
+		VulkanAPI::ImageLayoutBuffer sampler_layout;
 		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
 		shader.descriptor_buffer_reflect (descr_layout, buffer_layout);
 		shader.descriptor_image_reflect(descr_layout, sampler_layout);
@@ -79,18 +79,23 @@ namespace OmegaEngine
 		descr_layout.create(device);
 		descr_set.init(device, descr_layout);
 
-		// descriptor sets for all the deferred buffers samplers
-		// using a linear sampler for all deferred buffers
-		linear_sampler.create(device, VulkanAPI::SamplerType::LinearClamp);
-		for (uint8_t i = 0; i < sampler_layout.size(); ++i) {
-			descr_set.write_set(sampler_layout[i].set, sampler_layout[i].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), image_views[i], attachments[i].layout);
+		// not completely automated! We still need to manually adjust the set numbers for each type
+		const uint8_t DeferredSet = 1;
+		const uint8_t EnvironmentSet = 2;
+
+		for (uint8_t i = 0; i < sampler_layout[DeferredSet].size(); ++i) {
+			descr_set.write_set(sampler_layout[DeferredSet][i], image_views[i]);
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
 		descr_set.write_set(buffer_layout[0].set, buffer_layout[0].binding, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
-		descr_set.update_sets(device);
 
 		// and finally create the pipeline
+		// first finish of the pipeline layout....
+		pl_layout.create(device, descr_layout.get_layout());
+
+		pipeline.add_layout(pl_layout.get());
+		pipeline.set_renderpass(renderpass.get());
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
 		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);

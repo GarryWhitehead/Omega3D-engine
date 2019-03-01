@@ -1,4 +1,5 @@
 #include "Descriptors.h"
+#include "Vulkan/Shader.h"
 
 namespace VulkanAPI
 {
@@ -34,7 +35,7 @@ namespace VulkanAPI
 		case vk::DescriptorType::eStorageBufferDynamic:
 			++layout_bind.ssbo_dynamic_count;
 			break;
-		case vk::DescriptorType::eSampler:
+		case vk::DescriptorType::eCombinedImageSampler:
 			++layout_bind.sampler_count;
 			break;
 		}
@@ -55,7 +56,7 @@ namespace VulkanAPI
 		}
 		if (layout_bind.sampler_count) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eSampler, layout_bind.sampler_count);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.sampler_count);
 			pools.push_back(pool);
 		}
 		if (layout_bind.ssbo_count) {
@@ -111,6 +112,8 @@ namespace VulkanAPI
 
 	void DescriptorSet::init(vk::Device device, DescriptorLayout descr_layout)
 	{
+		this->device = device;
+
 		// create all stes that will be reauired - this can be determined by the numbner of layouts we have
 		auto& layout = descr_layout.get_layout();
 		for (uint32_t i = 0; i < layout.size(); ++i) {
@@ -127,28 +130,26 @@ namespace VulkanAPI
 		}
 	}
 
-	void DescriptorSet::write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer buffer, uint32_t offset, uint32_t range)
+	void DescriptorSet::write_set(ShaderImageLayout& imageLayout, vk::ImageView& image_view)
+	{
+		vk::DescriptorImageInfo image_info(imageLayout.sampler.get_sampler(), image_view, imageLayout.layout);
+		vk::WriteDescriptorSet write_set(descr_sets[imageLayout.set], imageLayout.binding, 0, 1, imageLayout.type, &image_info, nullptr, nullptr);
+		device.updateDescriptorSets(1, &write_set, 0, nullptr);
+	}
+
+	void DescriptorSet::write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range)
 	{
 		vk::DescriptorBufferInfo buffer_info(buffer, offset, range);
 		vk::WriteDescriptorSet write_set(descr_sets[set], binding, 0, 1, type, nullptr, &buffer_info, nullptr);
-		write_sets[set].push_back(write_set);
+		device.updateDescriptorSets(1, &write_set, 0, nullptr);
+
 	}
 
-	void DescriptorSet::write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler sampler, vk::ImageView image_view, vk::ImageLayout layout)
+	void DescriptorSet::write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout)
 	{
 		vk::DescriptorImageInfo image_info(sampler, image_view, layout);
 		vk::WriteDescriptorSet write_set(descr_sets[set], binding, 0, 1, type, &image_info, nullptr, nullptr);
-		write_sets[set].push_back(write_set);
-	}
-
-	void DescriptorSet::update_sets(vk::Device device)
-	{
-		// update descriptors for all sets
-		for (auto set : write_sets) {
-
-			assert(!set.second.empty());
-			device.updateDescriptorSets(static_cast<uint32_t>(set.second.size()), set.second.data(), 0, nullptr);
-		}
+		device.updateDescriptorSets(1, &write_set, 0, nullptr);
 	}
 }
  

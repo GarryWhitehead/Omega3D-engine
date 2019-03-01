@@ -5,16 +5,16 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
-// inputs from subpass
+// g buffers
 layout (set = 1, binding = 0) uniform sampler2D positionSampler;
 layout (set = 1, binding = 1) uniform sampler2D albedoSampler;
 layout (set = 1, binding = 2) uniform sampler2D normalSampler;
 layout (set = 1, binding = 3) uniform sampler2D pbrSampler;
 
-// texture samplers
-layout (set = 1, binding = 4) uniform sampler2D BDRFlut;
-layout (set = 1, binding = 5) uniform samplerCube irradianceMap;
-layout (set = 1, binding = 6) uniform samplerCube prefilterMap;
+// environment texture samplers
+layout (set = 2, binding = 0) uniform sampler2D BDRFlut;
+layout (set = 2, binding = 1) uniform samplerCube irradianceMap;
+layout (set = 2, binding = 2) uniform samplerCube prefilterMap;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inPosW;
