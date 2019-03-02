@@ -92,7 +92,7 @@ namespace OmegaEngine
 		// create the graphics pipeline
 		render_pipeline.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
 		render_pipeline.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_attach_count());
+		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_renderpass());
 		render_pipeline.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
 		render_pipeline.pipeline.set_renderpass(renderer->get_renderpass());
 		render_pipeline.pipeline.add_layout(render_pipeline.pl_layout.get());

@@ -41,8 +41,8 @@ namespace OmegaEngine
 			// and the pipeline
 			VulkanAPI::Pipeline pipeline;
 			pipeline.add_shader(shader);
-			pipeline.set_renderpass(renderpass.get());
-			pipeline.add_colour_attachment(VK_FALSE);
+			pipeline.set_renderpass(renderpass);
+			pipeline.add_colour_attachment(VK_FALSE, renderpass);
 			pipeline.add_empty_layout();
 			pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 
@@ -100,8 +100,8 @@ namespace OmegaEngine
 			// pipeline
 			VulkanAPI::Pipeline pipeline;
 			pipeline.add_shader(shader);
-			pipeline.set_renderpass(renderpass.get());
-			pipeline.add_colour_attachment(VK_FALSE);
+			pipeline.set_renderpass(renderpass);
+			pipeline.add_colour_attachment(VK_FALSE, renderpass);
 			pipeline.add_layout(pl_layout.get());
 			pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 

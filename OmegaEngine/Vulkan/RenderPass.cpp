@@ -254,8 +254,8 @@ namespace VulkanAPI
 		assert(renderpass);
 
 		// store locally the screen extents for use later
-		win_width = width;
-		win_height = height;
+		image_width = width;
+		image_height = height;
 
 		vk::FramebufferCreateInfo frameInfo({},
 		renderpass,
@@ -274,7 +274,7 @@ namespace VulkanAPI
 		
 		vk::RenderPassBeginInfo begin_info(
 			renderpass, framebuffer,
-			{ { 0, 0 }, { win_width, win_height } },
+			{ { 0, 0 }, { image_width, image_height } },
 			static_cast<uint32_t>(clear_values.size()),
 			clear_values.data());
 

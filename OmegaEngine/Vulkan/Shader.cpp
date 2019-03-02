@@ -229,14 +229,14 @@ namespace VulkanAPI
 				auto& member = compiler.get_type(base_type.self);
 
 				if (member.vecsize && member.columns == 1) {
-					uint32_t vec_size = compiler.type_struct_member_matrix_stride(member, 0);
-
+					vk::Format format = get_type_format(member.width, member.vecsize, member.basetype);
+					pipeline.add_vertex_input(location, format);
 				}
 			}
-			for (auto& output : shader_res.stage_outputs) {
+			/*for (auto& output : shader_res.stage_outputs) {
 
 				uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
-			}
+			}*/
 		}
 	}
 
@@ -284,5 +284,29 @@ namespace VulkanAPI
 			layout = vk::ImageLayout::eColorAttachmentOptimal;
 		}
 		return layout;
+	}
+
+	vk::Format Shader::get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type)
+	{
+		// TODO: add other base types and widths
+		vk::Format format;
+		if (type == spirv_cross::SPIRType::Float) {
+			if (width == 32) {
+				if (vecSize == 1) {
+					format = vk::Format::eR32Sfloat;
+				}
+				if (vecSize == 2) {
+					format = vk::Format::eR32G32Sfloat;
+				}
+				if (vecSize == 3) {
+					format = vk::Format::eR32G32B32Sfloat;
+				}
+				if (vecSize == 4) {
+					format = vk::Format::eR32G32B32A32Sfloat;
+				}
+			}
+		}
+	
+		return format;
 	}
 }

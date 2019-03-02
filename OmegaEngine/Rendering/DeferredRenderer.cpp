@@ -75,6 +75,7 @@ namespace OmegaEngine
 		shader.descriptor_buffer_reflect (descr_layout, buffer_layout);
 		shader.descriptor_image_reflect(descr_layout, sampler_layout);
 		shader.pipeline_layout_reflect(pl_layout);
+		shader.pipeline_reflection(pipeline);
 
 		descr_layout.create(device);
 		descr_set.init(device, descr_layout);
@@ -94,14 +95,12 @@ namespace OmegaEngine
 		// first finish of the pipeline layout....
 		pl_layout.create(device, descr_layout.get_layout());
 
-		pipeline.add_layout(pl_layout.get());
-		pipeline.set_renderpass(renderpass.get());
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
 		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		pipeline.add_colour_attachment(VK_FALSE);
+		pipeline.add_colour_attachment(VK_FALSE, renderpass);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		pipeline.create(device, VulkanAPI::PipelineType::Graphics);
+		pipeline.create(device, renderpass, shader, pl_layout, VulkanAPI::PipelineType::Graphics);
 	}
 
 

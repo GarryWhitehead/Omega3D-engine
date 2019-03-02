@@ -63,8 +63,19 @@ namespace VulkanAPI
 		Shader();
 		~Shader();
 
+		uint32_t size() const
+		{
+			return wrappers.size();
+		}
+
+		vk::PipelineShaderStageCreateInfo* get_pipeline_data()
+		{
+			return (vk::PipelineShaderStageCreateInfo*)wrappers.data();
+		}
+
 		Sampler getSamplerType(std::string name);
 		vk::ImageLayout getImageLayout(std::string name);
+		vk::Format get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type);
 
 		static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 
@@ -78,11 +89,6 @@ namespace VulkanAPI
 		std::vector<uint32_t> getData(StageType type)
 		{
 			return data[(int)type];
-		}
-
-		std::vector<vk::PipelineShaderStageCreateInfo> get_wrappers()
-		{
-			return wrappers;
 		}
 
 	private:

@@ -1,6 +1,7 @@
 #include "Pipeline.h"
 #include "Vulkan/Shader.h"
 #include "Vulkan/Descriptors.h"
+#include "Vulkan/RenderPass.h"
 
 namespace VulkanAPI
 {
@@ -49,7 +50,14 @@ namespace VulkanAPI
 
 	Pipeline::~Pipeline()
 	{
+		
+	}
 
+	void Pipeline::add_vertex_input(uint32_t location, vk::Format format)
+	{
+		// offsets will be calculated just before pipeline creation
+		vk::VertexInputAttributeDescription attr_descr(location, 0, format, 0);
+		vertex_attr_descr.push_back(attr_descr);
 	}
 
 	void Pipeline::set_raster_cull_mode(vk::CullModeFlags cull_mode)
@@ -72,9 +80,9 @@ namespace VulkanAPI
 		assembly_state.topology = topology;
 	}
 
-	void Pipeline::add_colour_attachment(bool blend_factor, uint8_t attach_count)
+	void Pipeline::add_colour_attachment(bool blend_factor, RenderPass& renderpass)
 	{
-		for (uint8_t i = 0; i < attach_count; ++i) {
+		for (uint32_t i = 0; i < renderpass.get_attach_count(); ++i) {
 			vk::PipelineColorBlendAttachmentState colour;
 			colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
 			color_attach_state.push_back(colour);
@@ -104,18 +112,14 @@ namespace VulkanAPI
 		depth_stencil_state.depthCompareOp = compare;
 	}
 
-	void Pipeline::set_renderpass(vk::RenderPass r_pass)
+	void Pipeline::set_renderpass(RenderPass r_pass)
 	{
-		assert(r_pass);
 		renderpass = r_pass;
 	}
 
 	void Pipeline::add_shader(Shader& shader)
 	{
-		auto wrap = shader.get_wrappers();
-		assert(!wrap.empty());
-		shaders.reserve(wrap.size());
-		std::copy(wrap.begin(), wrap.end(), shaders.begin());
+		this->shader = shader;
 	}
 
 	void Pipeline::add_layout(vk::PipelineLayout pl)
@@ -130,13 +134,23 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createPipelineLayout(&create_info, nullptr, &pl_layout));
 	}
 
-	void Pipeline::create(vk::Device dev, PipelineType _type)
+	void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineLayout& layout, PipelineType _type)
 	{
 		device = dev;
 		type = _type;
-		
+		this->renderpass = renderpass;
+		this->pl_layout = layout.get();
+
+		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
+		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
+		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D(view_port.width, view_port.height));
+		viewport_state.pViewports = &view_port;
+		viewport_state.viewportCount = 1;
+		viewport_state.pScissors = &scissor;
+		viewport_state.scissorCount = 1;
+
 		vk::GraphicsPipelineCreateInfo createInfo({}, 
-		static_cast<uint32_t>(shaders.size()), shaders.data(),
+		shader.size(), shader.get_pipeline_data(),
 		&vertex_input_state,
 		&assembly_state,
 		nullptr,
@@ -147,8 +161,40 @@ namespace VulkanAPI
 		&color_blend_state,
 		&dynamic_create_state,
 		pl_layout,
-		renderpass,
+		this->renderpass.get(),
 		0, nullptr, -1);
+
+		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
+	}
+
+
+	void Pipeline::create(vk::Device dev, PipelineType _type)
+	{
+		device = dev;
+		type = _type;
+
+		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
+		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
+		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D(view_port.width, view_port.height));
+		viewport_state.pViewports = &view_port;
+		viewport_state.viewportCount = 1;
+		viewport_state.pScissors = &scissor;
+		viewport_state.scissorCount = 1;
+
+		vk::GraphicsPipelineCreateInfo createInfo({},
+				shader.size(), shader.get_pipeline_data(),
+				&vertex_input_state,
+				&assembly_state,
+				nullptr,
+				&viewport_state,
+				&raster_state,
+				&multi_sample_state,
+				&depth_stencil_state,
+				&color_blend_state,
+				&dynamic_create_state,
+				pl_layout,
+				this->renderpass.get(),
+				0, nullptr, -1);
 
 		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 	}

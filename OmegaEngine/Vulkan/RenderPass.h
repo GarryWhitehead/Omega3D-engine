@@ -37,14 +37,24 @@ namespace VulkanAPI
 
 		~RenderPass();
 
-		vk::RenderPass& get()
+		vk::RenderPass get()
 		{
 			return renderpass;
 		}
 
-		uint8_t get_attach_count() const
+		uint32_t get_attach_count() const
 		{
-			return static_cast<uint32_t>(attachment.size());
+			return static_cast<uint32_t>(colorReference.size());
+		}
+
+		uint32_t get_image_width() const
+		{
+			return image_width;
+		}
+
+		uint32_t get_image_height() const
+		{
+			return image_height;
 		}
 
 		void init(vk::Device dev);
@@ -72,7 +82,8 @@ namespace VulkanAPI
 		vk::RenderPass renderpass;
 		vk::Framebuffer framebuffer;
 
-		uint32_t win_width, win_height;
+		uint32_t image_width = 0; 
+		uint32_t image_height = 0;
 
 		std::vector<vk::AttachmentDescription> attachment;
 		std::vector<vk::AttachmentReference> colorReference;

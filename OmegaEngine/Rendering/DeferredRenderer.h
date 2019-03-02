@@ -16,6 +16,7 @@ namespace VulkanAPI
 {
 	// forward declearions
 	class Interface;
+	class RenderPass;
 }
 
 namespace OmegaEngine
@@ -40,9 +41,9 @@ namespace OmegaEngine
 
 		std::function<void()> set_render_callback(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 
-		vk::RenderPass& get_renderpass()
+		VulkanAPI::RenderPass& get_renderpass()
 		{
-			return renderpass.get();
+			return renderpass;
 		}
 
 		uint32_t get_attach_count() const
