@@ -58,31 +58,32 @@ namespace OmegaEngine
 		RenderInterface::RenderPipeline render_pipeline;
 
 		// load shaders
-		render_pipeline.shader.add(device, "model.vert", VulkanAPI::StageType::Vertex, "model.frag", VulkanAPI::StageType::Fragment);
+		if (!render_pipeline.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			LOGGER_ERROR("Unable to create model shaders.");
+		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
 		render_pipeline.shader.descriptor_image_reflect(render_pipeline.descr_layout, render_pipeline.image_layout);
 		render_pipeline.shader.descriptor_buffer_reflect(render_pipeline.descr_layout, render_pipeline.buffer_layout);
 		render_pipeline.descr_layout.create(device);
+		render_pipeline.descr_set.init(device, render_pipeline.descr_layout);
 		
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
 		for (auto& layout : render_pipeline.buffer_layout) {
 			
-			auto& camera_manager = component_interface->getManager<CameraManager>();
-
-			// the shader must use these identifying names -
-			if (strcmp(layout.name, "CameraUbo") == 0) {
-				
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "CameraUbo") {
+				auto& camera_manager = component_interface->getManager<CameraManager>();
 				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
-			if (strcmp(layout.name, "StaticMeshUbo") == 0) {
-				auto& mesh_manager = component_interface->getManager<MeshManager>();
-				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+			if (layout.name == "StaticMeshUbo") {
+				auto& transform_manager = component_interface->getManager<TransformManager>();
+				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_mesh_ubo_buffer(), transform_manager.get_mesh_ubo_offset(), layout.range);
 			}
-			if (strcmp(layout.name, "SkinnedUbo") == 0) {
-				auto& mesh_manager = component_interface->getManager<MeshManager>();
-				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+			if (layout.name == "SkinnedUbo") {
+				auto& transform_manager = component_interface->getManager<TransformManager>();
+				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_skinned_ubo_buffer(), transform_manager.get_skinned_ubo_offset(), layout.range);
 			}
 		}
 
@@ -90,13 +91,13 @@ namespace OmegaEngine
 		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout());
 
 		// create the graphics pipeline
+		render_pipeline.shader.pipeline_reflection(render_pipeline.pipeline);
+
 		render_pipeline.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
 		render_pipeline.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_renderpass());
+		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_deferred_pass());
 		render_pipeline.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
-		render_pipeline.pipeline.set_renderpass(renderer->get_renderpass());
-		render_pipeline.pipeline.add_layout(render_pipeline.pl_layout.get());
-		render_pipeline.pipeline.create(device, VulkanAPI::PipelineType::Graphics);
+		render_pipeline.pipeline.create(device, renderer->get_deferred_pass(), render_pipeline.shader, render_pipeline.pl_layout, VulkanAPI::PipelineType::Graphics);
 
 		return render_pipeline;
 	}

@@ -5,13 +5,13 @@
 
 layout (set = 0, binding = 0) uniform sampler2D baseColourMap;
 layout (set = 0, binding = 1) uniform sampler2D normalMap;
-layout (set = 0, binding = 2) uniform sampler2D mrrMap;
+layout (set = 0, binding = 2) uniform sampler2D mrMap;
 layout (set = 0, binding = 3) uniform sampler2D emissiveMap;
 layout (set = 0, binding = 4) uniform sampler2D aoMap;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inTangent;
+layout (location = 2) in vec4 inTangent;
 layout (location = 3) in vec3 inColour;
 layout (location = 4) in vec3 inPos;
 
@@ -29,16 +29,38 @@ layout(push_constant) uniform pushConstants
 	bool haveNormalMap;
 	bool haveEmissiveMap;
 	bool haveMrMap;
+	bool haveAoMap;
+	int workflow;
 
 } material;
 
 layout (location = 0) out vec3 outPosition;
 layout (location = 1) out vec4 outColour;
 layout (location = 2) out vec3 outNormal;
-layout (location = 3) out vec4 outPbr
+layout (location = 3) out vec2 outPbr;
 layout (location = 4) out vec3 outEmissive;
 
 #define EPSILON 0.00001
+
+#define PBR_WORKFLOW_METALLIC_ROUGHNESS 0
+#define PBR_WORKFLOW_SPECULAR_GLOSINESS 1
+
+float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
+{
+	float perceivedDiffuse = sqrt(0.299 * diffuse.r * diffuse.r + 0.587 * diffuse.g * diffuse.g + 0.114 * diffuse.b * diffuse.b);
+	float perceivedSpecular = sqrt(0.299 * specular.r * specular.r + 0.587 * specular.g * specular.g + 0.114 * specular.b * specular.b);
+	
+	if (perceivedSpecular < 0.04) {
+		return 0.0;
+	}
+	
+	float a = 0.04;
+	float b = perceivedDiffuse * (1.0 - maxSpecular) / (1.0 - 0.04) + perceivedSpecular - 2.0 * 0.04;
+	float c = 0.04 - perceivedSpecular;
+	float D = max(b * b - 4.0 * a * c, 0.0);
+	
+	return clamp((-b + sqrt(D)) / (2.0 * a), 0.0, 1.0);
+}
 
 void main()
 {
@@ -46,8 +68,8 @@ void main()
 	vec4 baseColour;
 
 	if (material.alphaMask == 1.0) {
-		if (haveBaseColourMap) {
-			baseColour = texture(baseColourMap, vUV) * material.baseColorFactor;
+		if (material.haveBaseColourMap) {
+			baseColour = texture(baseColourMap, inUv) * material.baseColorFactor;
 		}
 		else {
 			baseColour = material.baseColorFactor;
@@ -56,17 +78,17 @@ void main()
 			discard;
 		}
 
-		baseColour *= inColour;		// vertex colour
+		baseColour.xyz *= inColour;		// vertex colour
 	}
 
 	// normal
 	vec3 normal = normalize(inNormal);
-	if (haveNormalMap) {
+	if (material.haveNormalMap) {
 
 		vec3 tangent = normalize(inTangent.xyz);
         vec3 binormal = cross(normal, tangent) * inTangent.w;
-        vec2 tangentSpace = texture(normalMap, inUV).xy * 2.0 - 1.0;
-        normal = normalize(mat3(tangent, binormal, normal) * two_component_normal(tangent_space));
+        vec2 tangentSpace = texture(normalMap, inUv).xy * 2.0 - 1.0;
+        //normal = normalize(mat3(tangent, binormal, normal) * two_component_normal(tangent_space));
 	}
 	outNormal = normal;
 
@@ -78,7 +100,7 @@ void main()
 		roughness = material.roughnessFactor;
 		metallic = material.metallicFactor;
 
-		if (haveMrMap) {
+		if (material.haveMrMap) {
 			vec4 mrSample = texture(mrMap, inUv);
 			roughness = mrSample.g * roughness;
 			metallic = mrSample.b * metallic;
@@ -97,7 +119,7 @@ void main()
 			roughness = 0.0;
 		}
 
-		vec4 diffuse = texture(colorMap, inUv);
+		vec4 diffuse = texture(baseColourMap, inUv);
 		vec3 specular = texture(mrMap, inUv).rgb;
 
 		float maxSpecular = max(max(specular.r, specular.g), specular.b);
@@ -105,9 +127,9 @@ void main()
 		// Convert metallic value from specular glossiness inputs
 		metallic = convertMetallic(diffuse.rgb, specular, maxSpecular);
 
-		vec3 baseColourDiffusePart = diffuse.rgb * ((1.0 - maxSpecular) / (1 - c_MinRoughness) / max(1 - metallic, EPSILON)) * material.diffuseFactor.rgb;
-		vec3 baseColourSpecularPart = specular - (vec3(c_MinRoughness) * (1 - metallic) * (1 / max(metallic, EPSILON))) * material.specularFactor.rgb;
-		baseColour = vec4(mix(baseColorDiffusePart, baseColorSpecularPart, metallic * metallic), diffuse.a);
+		vec3 baseColourDiffusePart = diffuse.rgb * ((1.0 - maxSpecular) / (1 - 0.04) / max(1 - metallic, EPSILON)) * material.diffuseFactor.rgb;
+		vec3 baseColourSpecularPart = specular - (vec3(0.04) * (1 - metallic) * (1 / max(metallic, EPSILON))) * material.specularFactor.rgb;
+		baseColour = vec4(mix(baseColourDiffusePart, baseColourSpecularPart, metallic * metallic), diffuse.a);
 
 	}
 	outColour = baseColour;
@@ -115,19 +137,21 @@ void main()
 
 	// ao
 	float ambient = 1.0;
-	if (haveAoMap) {
-        ambient = texture(occlusionMap, inUv).x;
+	if (material.haveAoMap) {
+        ambient = texture(aoMap, inUv).x;
 	}
 	outColour.a = ambient;
 
 	// emmisive
-	vec3 emissve;
-	if (haveEmissiveMap) {
-        emissive = texture(uEmissiveMap, vUV).rgb;
+	vec3 emissive;
+	if (material.haveEmissiveMap) {
+        emissive = texture(emissiveMap, inUv).rgb;
 		emissive *= material.emissiveFactor.rgb;
 	}
 	else { 
    		emissive = material.emissiveFactor.rgb;
 	}
 	outEmissive = emissive;
+	
+	outPosition = inPos;
 }

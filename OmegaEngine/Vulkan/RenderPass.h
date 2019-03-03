@@ -58,7 +58,8 @@ namespace VulkanAPI
 		}
 
 		void init(vk::Device dev);
-		void init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies);
+		void init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate>& dependencies);
+		void init(vk::Device dev, std::vector<AttachedFormat>& attach);
 
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef = nullptr);

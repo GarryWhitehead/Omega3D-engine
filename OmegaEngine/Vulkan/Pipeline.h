@@ -24,7 +24,8 @@ namespace VulkanAPI
 		Pipeline();
 		~Pipeline();
 
-		void add_vertex_input(uint32_t location, vk::Format format);
+		void add_vertex_input(uint32_t location, vk::Format format, uint32_t size);
+		void update_vertex_input();
 
 		void set_raster_cull_mode(vk::CullModeFlags cull_mode);
 		void set_raster_front_face(vk::FrontFace front_face);

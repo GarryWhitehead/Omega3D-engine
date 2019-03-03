@@ -34,16 +34,22 @@ namespace OmegaEngine
 		DeferredRenderer(vk::Device device, vk::PhysicalDevice physical, RenderConfig _render_config);
 		~DeferredRenderer();
 
-		void create(uint32_t width, uint32_t height, CameraManager& camera_manager);
+		void create_gbuffer_pass();
+		void create_deferred_pass(uint32_t width, uint32_t height, CameraManager& camera_manager);
 
 		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 
 		std::function<void()> set_render_callback(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 
-		VulkanAPI::RenderPass& get_renderpass()
+		VulkanAPI::RenderPass& get_deferred_pass()
 		{
 			return renderpass;
+		}
+
+		VulkanAPI::RenderPass& get_gbuffer_pass()
+		{
+			return gbuffer_renderpass;
 		}
 
 		uint32_t get_attach_count() const
@@ -56,7 +62,12 @@ namespace OmegaEngine
 		vk::Device device;
 		vk::PhysicalDevice gpu;
 
+		// for the gbuffer pass
+		std::array<VulkanAPI::Texture, 6> gbuffer_images;
+		VulkanAPI::RenderPass gbuffer_renderpass;
+
 		// for the rendering pipeline
+		VulkanAPI::Texture image;
 		VulkanAPI::Shader shader;
 		VulkanAPI::PipelineLayout pl_layout;
 		VulkanAPI::Pipeline pipeline;
@@ -66,9 +77,6 @@ namespace OmegaEngine
 
 		VulkanAPI::Buffer vert_buffer;
 		VulkanAPI::Buffer frag_buffer;
-
-		VulkanAPI::Sampler linear_sampler;
-		std::array<VulkanAPI::Texture, 5> images;
 
 		VulkanAPI::CommandBuffer cmd_buffer;
 

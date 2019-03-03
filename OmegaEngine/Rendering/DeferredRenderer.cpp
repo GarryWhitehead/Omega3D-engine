@@ -27,17 +27,18 @@ namespace OmegaEngine
 	{
 	}
 
-	void DeferredRenderer::create(uint32_t width, uint32_t height, CameraManager& camera_manager)
+	void DeferredRenderer::create_gbuffer_pass()
 	{
 		// a list of the formats required for each buffer
 		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
 
-		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments = 
+		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments =
 		{
 			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// position
 			{ vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eColorAttachmentOptimal },			// Albedo
 			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// Normal
 			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
+			{ vk::Format::eR32G32B32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },			// emissive
 			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
 
 		};
@@ -45,23 +46,39 @@ namespace OmegaEngine
 
 		// create a empty texture for each state - these will be filled by the shader
 		for (uint8_t i = 0; i < num_attachments - 1; ++i) {
-			images[i].create_empty_image(device, gpu, attachments[i].format, width, height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			gbuffer_images[i].create_empty_image(device, gpu, attachments[i].format, render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		}
 
 		// and the depth g-buffer
-		images[num_attachments - 1].create_empty_image(device, gpu, depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		gbuffer_images[num_attachments - 1].create_empty_image(device, gpu, depth_format, render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// now create the renderpasses and frame buffers
-		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
-		renderpass.init(device, attachments, dependencies);
+		gbuffer_renderpass.init(device, attachments);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> image_views(num_attachments);
 
 		for (uint8_t i = 0; i < num_attachments; ++i) {
-			image_views[i] = images[i].get_image_view();
+			image_views[i] = gbuffer_images[i].get_image_view();
 		}
-		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), Global::program_state.get_win_width(), Global::program_state.get_win_height());
+		gbuffer_renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
+	}
+
+
+	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, CameraManager& camera_manager)
+	{
+		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
+		vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
+		image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+
+		// now create the renderpasses and frame buffers
+		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
+		renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, deferred_format);
+		renderpass.prepareRenderPass();
+		gbuffer_renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1);
+		
+		// create the renderpass required to fill the gbuffers
+		create_gbuffer_pass();
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
@@ -85,7 +102,7 @@ namespace OmegaEngine
 		const uint8_t EnvironmentSet = 2;
 
 		for (uint8_t i = 0; i < sampler_layout[DeferredSet].size(); ++i) {
-			descr_set.write_set(sampler_layout[DeferredSet][i], image_views[i]);
+			descr_set.write_set(sampler_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
 		}
 		
 		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations

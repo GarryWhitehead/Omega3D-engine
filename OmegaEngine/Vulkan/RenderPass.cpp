@@ -36,7 +36,7 @@ namespace VulkanAPI
 		device = dev;
 	}
 
-	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
+	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate>& dependencies)
 	{
 		device = dev;
 
@@ -45,8 +45,19 @@ namespace VulkanAPI
 			this->addReference(attach[i].layout, i);
 		}
 
-		for (auto& depend : dependencies) {
-			this->addSubpassDependency(depend);
+		for (auto& d : dependencies) {
+			this->addSubpassDependency(d);
+		}
+		this->prepareRenderPass();
+	}
+
+	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach)
+	{
+		device = dev;
+
+		for (uint32_t i = 0; i < attach.size(); ++i) {
+			this->addAttachment(attach[i].layout, attach[i].format);
+			this->addReference(attach[i].layout, i);
 		}
 		this->prepareRenderPass();
 	}

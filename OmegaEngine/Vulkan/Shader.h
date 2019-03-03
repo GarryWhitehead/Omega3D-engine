@@ -21,9 +21,9 @@ namespace VulkanAPI
 		uint32_t binding;
 		uint32_t set;
 		uint32_t range;
-		const char* name;
+		std::string name;
 
-		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, const char* _name, uint32_t _range) :
+		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, uint32_t _range) :
 			type(_type), binding(_bind), set(_set), name(_name), range(_range)
 		{}
 	};
@@ -75,7 +75,7 @@ namespace VulkanAPI
 
 		Sampler getSamplerType(std::string name);
 		vk::ImageLayout getImageLayout(std::string name);
-		vk::Format get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type);
+		std::tuple<vk::Format, uint32_t> get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type);
 
 		static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
 

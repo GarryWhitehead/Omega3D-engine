@@ -128,7 +128,7 @@ namespace VulkanAPI
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
-				buffer_layout.push_back({ vk::DescriptorType::eUniformBuffer, binding, set, ubo.name.c_str(), range });
+				buffer_layout.push_back({ vk::DescriptorType::eUniformBuffer, binding, set, ubo.name, range });
 			}
 
 			// storage
@@ -145,7 +145,7 @@ namespace VulkanAPI
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
-				buffer_layout.push_back({ vk::DescriptorType::eStorageBuffer, binding, set, ssbo.name.c_str(), range });
+				buffer_layout.push_back({ vk::DescriptorType::eStorageBuffer, binding, set, ssbo.name, range });
 			}
 
 			// image storage
@@ -210,34 +210,30 @@ namespace VulkanAPI
 
 	void Shader::pipeline_reflection(Pipeline& pipeline)
 	{
-		// reflect for each stage that has been setup
-		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
-
-			if (!curr_stages[i]) {
-				continue;
-			}
-
-			spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
-
-			auto shader_res = compiler.get_shader_resources();
-
-			// get the number of input and output stages
-			for (auto& input : shader_res.stage_inputs) {
-
-				uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
-				auto& base_type = compiler.get_type(input.base_type_id);
-				auto& member = compiler.get_type(base_type.self);
-
-				if (member.vecsize && member.columns == 1) {
-					vk::Format format = get_type_format(member.width, member.vecsize, member.basetype);
-					pipeline.add_vertex_input(location, format);
-				}
-			}
-			/*for (auto& output : shader_res.stage_outputs) {
-
-				uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
-			}*/
+		if (!curr_stages[(int)StageType::Vertex]) {
+			LOGGER_ERROR("Unable to reflect pipeline as vertex shader has not been initialised.");
 		}
+		
+		spirv_cross::Compiler compiler(data[(int)StageType::Vertex].data(), data[(int)StageType::Vertex].size() / sizeof(uint32_t));
+
+		auto shader_res = compiler.get_shader_resources();
+
+		// get the number of input and output stages
+		for (auto& input : shader_res.stage_inputs) {
+
+			uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+			auto& base_type = compiler.get_type(input.base_type_id);
+			auto& member = compiler.get_type(base_type.self);
+
+			if (member.vecsize && member.columns == 1) {
+				std::tuple<vk::Format, uint32_t> info = get_type_format(member.width, member.vecsize, member.basetype);
+				pipeline.add_vertex_input(location, std::get<0>(info), std::get<1>(info));
+			}
+		}
+		/*for (auto& output : shader_res.stage_outputs) {
+
+			uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
+		}*/
 	}
 
 	Sampler Shader::getSamplerType(std::string name)
@@ -286,27 +282,56 @@ namespace VulkanAPI
 		return layout;
 	}
 
-	vk::Format Shader::get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type)
+	std::tuple<vk::Format, uint32_t> Shader::get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type)
 	{
 		// TODO: add other base types and widths
 		vk::Format format;
+		uint32_t size = 0;
+
+		// floats
 		if (type == spirv_cross::SPIRType::Float) {
 			if (width == 32) {
 				if (vecSize == 1) {
 					format = vk::Format::eR32Sfloat;
+					size = 4;
 				}
 				if (vecSize == 2) {
 					format = vk::Format::eR32G32Sfloat;
+					size = 8;
 				}
 				if (vecSize == 3) {
 					format = vk::Format::eR32G32B32Sfloat;
+					size = 12;
 				}
 				if (vecSize == 4) {
 					format = vk::Format::eR32G32B32A32Sfloat;
+					size = 16;
+				}
+			}
+		}
+
+		// signed integers
+		else if (type == spirv_cross::SPIRType::Int) {
+			if (width == 32) {
+				if (vecSize == 1) {
+					format = vk::Format::eR32Sint;
+					size = 4;
+				}
+				if (vecSize == 2) {
+					format = vk::Format::eR32G32Sint;
+					size = 8;
+				}
+				if (vecSize == 3) {
+					format = vk::Format::eR32G32B32Sint;
+					size = 12;
+				}
+				if (vecSize == 4) {
+					format = vk::Format::eR32G32B32A32Sint;
+					size = 16;
 				}
 			}
 		}
 	
-		return format;
+		return std::make_tuple(format, size);
 	}
 }

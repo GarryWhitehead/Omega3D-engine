@@ -10,26 +10,31 @@ layout (location = 3) in vec3 inColour;
 layout (location = 4) in vec4 inWeights;
 layout (location = 5) in ivec4 inBoneId;
 
-#define MAX_BONES 64
-#define MAX_MODELS 256
+#define MAX_BONES 256
 
-layout (binding = 0) buffer SsboBuffer
+layout (set = 1, binding = 0) uniform CameraUbo
 {
-	mat4 projection;
-	mat4 viewMatrix;
-	mat4 modelMatrix[MAX_MODELS];
+	mat4 mvp;
+
+} camera_ubo;
+
+layout (set = 2, binding = 0) uniform StaticMeshUbo
+{
+	mat4 modelMatrix;
+} mesh_ubo;
+
+layout (set = 3, binding = 0) uniform SkinnedUbo
+{
+	mat4 matrix;
 	mat4 bones[MAX_BONES];
-} ssbo;
-
-layout (push_constant) uniform entitiyIndex
-{
-	layout (offset = 0) uint entIndex;
-} push;
+	float jointCount;
+} skinned_ubo;
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec3 outColour;
-layout (location = 3) out vec3 outPos;
+layout (location = 2) out vec3 outTangent;
+layout (location = 3) out vec3 outColour;
+layout (location = 4) out vec3 outPos;
 
 out gl_PerVertex
 {
@@ -38,19 +43,28 @@ out gl_PerVertex
 
 void main()
 {	
-	mat4 boneTransform = ssbo.bones[inBoneId[0]] * inWeights[0];
-	boneTransform += ssbo.bones[inBoneId[1]] * inWeights[1];
-	boneTransform += ssbo.bones[inBoneId[2]] * inWeights[2];
-	boneTransform += ssbo.bones[inBoneId[3]] * inWeights[3];
+	vec4 pos;
 	
-	outPos = vec3(ssbo.modelMatrix[push.entIndex] * vec4(inPos, 1.0)).xyz; 
+	if (skinned_ubo.jointCount > 0.0) {
+		mat4 boneTransform = skinned_ubo.bones[inBoneId[0]] * inWeights[0];
+		boneTransform += skinned_ubo.bones[inBoneId[1]] * inWeights[1];
+		boneTransform += skinned_ubo.bones[inBoneId[2]] * inWeights[2];
+		boneTransform += skinned_ubo.bones[inBoneId[3]] * inWeights[3];
+		
+		mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix * boneTransform;
+		pos = normalTransform * vec4(inPos, 1.0);
+		outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);
+	}
+	else {
+		mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix;
+		pos = normalTransform * vec4(inPos, 1.0);
+		outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);
+	}
+
+	pos = -pos;
+	outPos = pos.xyz / pos.w;	// perspective divide
 	
-	gl_Position = ssbo.projection * ssbo.viewMatrix * vec4(outPos, 1.0);
-
-	//outUv = inUv;
-	outUv.t = 1.0 - inUv.t;
-
+	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);
+	outUv = inUv;
 	outColour = inColour;
-	
-	outNormal = mat3(ssbo.modelMatrix[push.entIndex]) * inNormal;
 }

@@ -19,6 +19,14 @@ namespace OmegaEngine
 
 		} general;
 
+		struct Deferred
+		{
+			uint32_t gbuffer_width = 1024;
+			uint32_t gbuffer_height = 1024;
+			uint32_t offscreen_width = 1024;
+			uint32_t offscreen_height = 1024;
+		} deferred;
+
 		bool useSSAO = false;
 		bool useMSAA = false;
 		bool shadowsEnabled = true;

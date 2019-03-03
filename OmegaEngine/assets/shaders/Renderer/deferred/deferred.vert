@@ -6,7 +6,7 @@
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUv;
 
-layout (binding = 0) uniform UboBuffer
+layout (set = 0, binding = 0) uniform UboBuffer
 {
 	mat4 projection;
 	mat4 viewMatrix;

@@ -83,7 +83,8 @@ namespace OmegaEngine
 		case RendererType::Deferred:
 		{
 			def_renderer = std::make_unique<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
-			def_renderer->create(win_width, win_height, component_interface->getManager<CameraManager>());
+			def_renderer->create_gbuffer_pass();
+			def_renderer->create_deferred_pass(win_width, win_height, component_interface->getManager<CameraManager>());
 			render_callback = def_renderer->set_render_callback(this, vk_interface);
 			break;
 		}

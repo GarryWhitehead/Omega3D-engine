@@ -5,9 +5,11 @@ namespace VulkanAPI
 {
 	// dynamic buffer segment functions
 
-	DynamicSegment::DynamicSegment(uint32_t size, uint32_t index) :
-		alignment_size(size),
-		buffer_index(index)
+	DynamicSegment::DynamicSegment(uint32_t _size, uint32_t _index, int32_t _block_id, uint32_t _offset) :
+		alignment_size(_size),
+		buffer_index(_index),
+		block_id(_block_id),
+		offset(_offset)
 	{
 		
 	}
@@ -289,9 +291,10 @@ namespace VulkanAPI
 		}
 	
 		// allocate memory for this dynamic buffer taking into consideration mem alignment if required
-		dynamic_buffers.push_back(allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, size * alignment_size));
+		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, size * alignment_size);
+		dynamic_buffers.push_back(segment);
 
-		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size());
+		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size() - 1, segment.get_id(), segment.get_offset());
 		return dynamic_segment;
 	}
 

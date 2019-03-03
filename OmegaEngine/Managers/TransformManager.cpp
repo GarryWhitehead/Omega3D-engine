@@ -198,4 +198,16 @@ namespace OmegaEngine
 		transformBuffer[index].local_trs.rot = OEMaths::quat_to_mat4(rot);
 		is_dirty = true;
 	}
+
+	vk::Buffer& TransformManager::get_mesh_ubo_buffer()
+	{
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		return mem_alloc.get_memory_buffer(transform_buffer->get_block_id());
+	}
+
+	vk::Buffer& TransformManager::get_skinned_ubo_buffer()
+	{
+		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		return mem_alloc.get_memory_buffer(skinned_buffer->get_block_id());
+	}
 }

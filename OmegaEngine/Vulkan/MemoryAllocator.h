@@ -39,7 +39,7 @@ namespace VulkanAPI
 	public:
 
 		DynamicSegment() {}
-		DynamicSegment(uint32_t size, uint32_t buffer_index);
+		DynamicSegment(uint32_t _size, uint32_t _index, int32_t _block_id, uint32_t _offset);
 		~DynamicSegment();
 
 		uint32_t get_alignment_size() const
@@ -51,6 +51,16 @@ namespace VulkanAPI
 		{
 			assert(buffer_index > 0);
 			return buffer_index;
+		}
+
+		int32_t get_block_id() const
+		{
+			return block_id;
+		}
+
+		uint32_t get_offset() const
+		{
+			return offset;
 		}
 
 		bool add_object(uint32_t max)
@@ -69,6 +79,10 @@ namespace VulkanAPI
 
 		uint32_t alignment_size = 0;
 		int32_t buffer_index = -1;
+		
+		// memory segment info kept locally for ease of access
+		int32_t block_id = -1;
+		uint32_t offset = 0;
 	};
 
 

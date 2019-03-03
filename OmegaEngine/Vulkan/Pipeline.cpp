@@ -53,11 +53,37 @@ namespace VulkanAPI
 		
 	}
 
-	void Pipeline::add_vertex_input(uint32_t location, vk::Format format)
+	void Pipeline::add_vertex_input(uint32_t location, vk::Format format, uint32_t size)
 	{
 		// offsets will be calculated just before pipeline creation
-		vk::VertexInputAttributeDescription attr_descr(location, 0, format, 0);
+		vk::VertexInputAttributeDescription attr_descr(location, 0, format, size);
 		vertex_attr_descr.push_back(attr_descr);
+	}
+
+	void Pipeline::update_vertex_input()
+	{
+		// calculate the offset for each location - the size of each location is stored temporarily in the offset elemnt of the struct
+		uint32_t next_offset = 0;
+		uint32_t current_offset = 0;
+		uint32_t total_size = 0;
+		uint32_t attr_count = static_cast<uint32_t>(vertex_attr_descr.size());
+
+		for (uint32_t i = 0; i < attr_count; ++i) {
+
+			next_offset = vertex_attr_descr[i].offset;
+			vertex_attr_descr[i].offset = current_offset;
+			current_offset = next_offset;
+			total_size += next_offset;
+		}
+
+		// assuming just one binding at the moment
+		vk::VertexInputBindingDescription bind_descr(0, total_size, vk::VertexInputRate::eVertex);	// should also support instancing
+		vertex_bind_descr.push_back(bind_descr);
+
+		vertex_input_state.vertexAttributeDescriptionCount = attr_count;
+		vertex_input_state.pVertexAttributeDescriptions = vertex_attr_descr.data();
+		vertex_input_state.vertexBindingDescriptionCount = static_cast<uint32_t>(vertex_bind_descr.size());
+		vertex_input_state.pVertexBindingDescriptions = vertex_bind_descr.data();
 	}
 
 	void Pipeline::set_raster_cull_mode(vk::CullModeFlags cull_mode)
@@ -141,6 +167,9 @@ namespace VulkanAPI
 		this->renderpass = renderpass;
 		this->pl_layout = layout.get();
 
+		// calculate the offset and stride size 
+		update_vertex_input();
+
 		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
 		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
 		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D(view_port.width, view_port.height));
@@ -172,6 +201,9 @@ namespace VulkanAPI
 	{
 		device = dev;
 		type = _type;
+
+		// calculate the offset and stride size 
+		update_vertex_input();
 
 		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
 		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
