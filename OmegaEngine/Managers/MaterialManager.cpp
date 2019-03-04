@@ -16,15 +16,15 @@ namespace OmegaEngine
 	{
 	}
 
-	void MaterialManager::addGltfMaterial(tinygltf::Material& gltf_mat, TextureManager& textureManager)
+	void MaterialManager::addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager)
 	{
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::BaseColor].image = textureManager.get_texture_index("baseColorTexture");
+			mat.textures[(int)PbrMaterials::BaseColor].image = std::make_tuple(set, gltf_mat.values["baseColorTexture"].TextureIndex());
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::MetallicRoughness].image = textureManager.get_texture_index("metallicRoughnessTexture");
+			mat.textures[(int)PbrMaterials::MetallicRoughness].image = std::make_tuple(set, gltf_mat.values["metallicRoughnessTexture"].TextureIndex());
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
 			mat.factors.baseColour = static_cast<float>(gltf_mat.values["baseColorFactor"].Factor());
@@ -35,7 +35,7 @@ namespace OmegaEngine
 
 		// any additional textures?
 		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Normal].image = textureManager.get_texture_index("normalTexture");
+			mat.textures[(int)PbrMaterials::Normal].image = std::make_tuple(set, gltf_mat.values["metallicRoughnessTexture"].TextureIndex());
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
 			mat.textures[(int)PbrMaterials::Emissive].image = textureManager.get_texture_index("emissiveTexture");

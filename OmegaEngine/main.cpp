@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 	OmegaEngine::Engine engine("Omega3D v1.0", 1280, 700);
 	
 	// for this example we are going to load a omega scene file
-	engine.createWorld("/assets/demo-world.oes", "demo world");
+	engine.createWorld("assets/worlds/world1.json", "demo world");
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

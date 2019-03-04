@@ -86,7 +86,7 @@ namespace OmegaEngine
 		}
 #else
 		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
-				component_interface->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
+			this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
 		}
 #endif
 
@@ -105,7 +105,7 @@ namespace OmegaEngine
 		render_interface->render(interpolation);
 	}
 
-	void World::addGltfData(const char* filename, OEMaths::mat4f world_mat)
+	void World::addGltfData(std::string filename, OEMaths::mat4f world_mat)
 	{
 		// open the gltf file
 		tinygltf::Model model;
@@ -117,10 +117,10 @@ namespace OmegaEngine
 		FileUtil::GetFileExtension(filename, ext);
 		bool ret = false;
 		if (ext.compare("glb") == 0) {
-			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename);
+			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());
 		}
 		else {
-			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename);
+			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename.c_str());
 		}
 
 		if (ret) {
@@ -129,6 +129,10 @@ namespace OmegaEngine
 			for (auto& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
 				component_interface->getManager<TextureManager>().addGltfImage(image);
+			}
+
+			for (auto& sampler : model.samplers) {
+				component_interface->getManager<TextureManager>().addGltfSampler(sampler);
 			}
 
 			for (auto& mat : model.materials) {

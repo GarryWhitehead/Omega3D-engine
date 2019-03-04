@@ -103,10 +103,13 @@ namespace OmegaEngine
 			return;
 		}
 
+		// all models should reside in the directory assets/textures/...
+		std::string dir = "assets/textures/";
+
 		models.resize(modelArray.Size());
 		for (uint32_t i = 0; i < modelArray.Size(); ++i) {
 			auto& arr = modelArray[i];
-			models[i].gltfFilename = arr["Filename"].GetString();
+			models[i].gltfFilename = dir + arr["Filename"].GetString();
 			
 			auto& rot = arr["Rotation"];
 			models[i].world_rot.x = rot[0].GetFloat();
@@ -122,7 +125,6 @@ namespace OmegaEngine
 			models[i].world_translation.x = tran[0].GetFloat();
 			models[i].world_translation.y = tran[1].GetFloat();
 			models[i].world_translation.z = tran[2].GetFloat();
-			models[i].world_translation.w = tran[3].GetFloat();
 		}
 	}
 

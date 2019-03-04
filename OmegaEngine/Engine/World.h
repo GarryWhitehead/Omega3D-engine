@@ -75,7 +75,7 @@ namespace OmegaEngine
 		void render(double interpolation);
 
 		// gltf based stuff. Will probably be moved into its own sperate file at some point
-		void addGltfData(const char* filename, OEMaths::mat4f world_mat);
+		void addGltfData(std::string filename, OEMaths::mat4f world_mat);
 		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject);
 
 	private:

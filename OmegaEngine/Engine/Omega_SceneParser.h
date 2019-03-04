@@ -30,7 +30,7 @@ namespace OmegaEngine
 
 		struct ModelInfo
 		{
-			const char* gltfFilename;
+			std::string gltfFilename;
 
 			OEMaths::vec4f world_translation;
 			OEMaths::vec3f world_scale;
@@ -60,7 +60,7 @@ namespace OmegaEngine
 		void loadEnvironamnetData();
 		void loadLights();
 
-		const char* getFilenames(uint32_t index)
+		std::string& getFilenames(uint32_t index)
 		{
 			return models[index].gltfFilename;
 		}

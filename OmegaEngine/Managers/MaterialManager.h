@@ -44,7 +44,7 @@ namespace OmegaEngine
 			struct Texture
 			{
 				uint32_t sampler;
-				uint32_t image;
+				std::tuple<uint32_t, int> image;	// set number and the index within this set
 			};
 
 			AlphaMode alphaMode = AlphaMode::None;

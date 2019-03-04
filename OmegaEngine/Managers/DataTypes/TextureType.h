@@ -12,7 +12,7 @@ namespace OmegaEngine
 
 		MappedTexture();
 
-		bool loadPngTexture(int size, const unsigned char* imageData);
+		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, const unsigned char* imageData);
 
 		int size() const
 		{

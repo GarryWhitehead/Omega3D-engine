@@ -89,28 +89,29 @@ namespace OmegaEngine
 	void TextureManager::addGltfImage(tinygltf::Image& image)
 	{
 		MappedTexture mappedTex;
-		int imageSize = image.width * image.height;
-		mappedTex.set_name(image.name.c_str());
+		mappedTex.set_name(image.uri.c_str());
 
-		mappedTex.loadPngTexture(imageSize, image.image.data());
-		textures.push_back(mappedTex);	
+		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data())) {
+			// need to use a default texture here!
+		}
+		textures[current_set].push_back(mappedTex);	
 	}
 
-	uint32_t TextureManager::get_texture_index(const char* name)
+	uint32_t TextureManager::get_texture_index(uint32_t set, const char* name)
 	{
 		for (uint32_t i = 0; i < textures.size(); ++i) {
 
-			if (strcmp(name, textures[i].get_name()) == 0) {
+			if (strcmp(name, textures[set][i].get_name()) == 0) {
 				return i;
 			}
 		}
 		return UINT32_MAX;
 	}
 
-	MappedTexture& TextureManager::get_texture(uint32_t index)
+	MappedTexture& TextureManager::get_texture(uint32_t set, int index)
 	{
-		assert(index < textures.size());
-		return textures[index];
+		assert(index < textures[set].size());
+		return textures[set][index];
 	}
 
 	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t index)
