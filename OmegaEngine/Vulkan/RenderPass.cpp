@@ -28,7 +28,6 @@ namespace VulkanAPI
 
 	RenderPass::~RenderPass()
 	{
-		destroy();
 	}
 
 	void RenderPass::init(vk::Device dev)
@@ -290,15 +289,6 @@ namespace VulkanAPI
 			clear_values.data());
 
 		return begin_info;
-	}
-
-	void RenderPass::destroy()
-	{
-		// its not always the case that the user might create a framebuffer using this class, so check
-		if (framebuffer) {
-			device.destroyFramebuffer(framebuffer, nullptr);
-		}
-		device.destroyRenderPass(renderpass, nullptr);
 	}
 
 }

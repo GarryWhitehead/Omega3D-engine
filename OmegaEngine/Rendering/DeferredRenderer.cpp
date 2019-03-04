@@ -38,7 +38,7 @@ namespace OmegaEngine
 			{ vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eColorAttachmentOptimal },			// Albedo
 			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// Normal
 			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
-			{ vk::Format::eR32G32B32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },			// emissive
+			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },			// emissive
 			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
 
 		};
@@ -72,13 +72,11 @@ namespace OmegaEngine
 		image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 
 		// now create the renderpasses and frame buffers
-		std::vector<VulkanAPI::DependencyTemplate> dependencies{ VulkanAPI::DependencyTemplate::Top_Of_Pipe, VulkanAPI::DependencyTemplate::Bottom_Of_Pipe };
+		renderpass.init(device);
 		renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, deferred_format);
+		renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 		renderpass.prepareRenderPass();
-		gbuffer_renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1);
-		
-		// create the renderpass required to fill the gbuffers
-		create_gbuffer_pass();
+		renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {

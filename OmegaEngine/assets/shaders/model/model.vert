@@ -32,7 +32,7 @@ layout (set = 3, binding = 0) uniform SkinnedUbo
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec3 outTangent;
+layout (location = 2) out vec4 outTangent;
 layout (location = 3) out vec3 outColour;
 layout (location = 4) out vec3 outPos;
 

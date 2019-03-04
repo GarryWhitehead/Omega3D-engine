@@ -71,7 +71,6 @@ namespace VulkanAPI
 		// frame buffer functions
 		void prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
-		void destroy();
 
 		// for generating cmd buffer
 		vk::RenderPassBeginInfo get_begin_info(vk::ClearColorValue& bg_colour);

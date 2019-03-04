@@ -54,7 +54,7 @@ namespace OmegaEngine
 
 	public:
 
-		struct RenderPipeline
+		struct ProgramState
 		{
 			VulkanAPI::Shader shader;
 			VulkanAPI::PipelineLayout pl_layout;
@@ -95,7 +95,7 @@ namespace OmegaEngine
 			renderables.push_back({ renderable });
 		}
 
-		RenderPipeline& get_render_pipeline(RenderTypes type)
+		ProgramState& get_render_pipeline(RenderTypes type)
 		{
 			return render_pipelines[(int)type];
 		}
@@ -128,7 +128,7 @@ namespace OmegaEngine
 		std::vector<RenderableInfo> renderables;
 
 		// all the pipelines and shaders for each renderable type
-		std::array<RenderPipeline, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
+		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
 
 		// the rendering call to use determined by which renderer is specified
 		std::function<void()> render_callback;

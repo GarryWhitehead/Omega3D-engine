@@ -11,7 +11,7 @@ namespace OmegaEngine
 {
 	// forward declerations
 	class ThreadPool;
-	struct RenderPipeline;
+	struct ProgramState;
 	class RenderInterface;
     class ComponentInterface;
 	enum class RenderTypes;

@@ -77,7 +77,7 @@ namespace OmegaEngine
 					RenderInterface* render_interface,
 					uint32_t thread) override;
 
-		static RenderInterface::RenderPipeline create_mesh_pipeline(vk::Device device,
+		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device device,
 													std::unique_ptr<DeferredRenderer>& renderer, 
 													std::unique_ptr<ComponentInterface>& component_interface);	
 

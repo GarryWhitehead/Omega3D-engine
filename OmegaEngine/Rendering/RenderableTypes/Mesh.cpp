@@ -50,56 +50,57 @@ namespace OmegaEngine
 		
 	}
 	
-	RenderInterface::RenderPipeline RenderableMesh::create_mesh_pipeline(vk::Device device, 
+	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
 										std::unique_ptr<DeferredRenderer>& renderer, 
 										std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		
-		RenderInterface::RenderPipeline render_pipeline;
+		RenderInterface::ProgramState state;
 
 		// load shaders
-		if (!render_pipeline.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+		if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 			LOGGER_ERROR("Unable to create model shaders.");
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		render_pipeline.shader.descriptor_image_reflect(render_pipeline.descr_layout, render_pipeline.image_layout);
-		render_pipeline.shader.descriptor_buffer_reflect(render_pipeline.descr_layout, render_pipeline.buffer_layout);
-		render_pipeline.descr_layout.create(device);
-		render_pipeline.descr_set.init(device, render_pipeline.descr_layout);
+		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
+		state.shader.descriptor_buffer_reflect(state.descr_layout, state.buffer_layout);
+		state.descr_layout.create(device);
+		state.descr_set.init(device, state.descr_layout);
 		
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
-		for (auto& layout : render_pipeline.buffer_layout) {
+		for (auto& layout : state.buffer_layout) {
 			
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
 				auto& camera_manager = component_interface->getManager<CameraManager>();
-				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+				state.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
 			if (layout.name == "StaticMeshUbo") {
 				auto& transform_manager = component_interface->getManager<TransformManager>();
-				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_mesh_ubo_buffer(), transform_manager.get_mesh_ubo_offset(), layout.range);
+				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_mesh_ubo_buffer(), transform_manager.get_mesh_ubo_offset(), layout.range);
 			}
 			if (layout.name == "SkinnedUbo") {
 				auto& transform_manager = component_interface->getManager<TransformManager>();
-				render_pipeline.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_skinned_ubo_buffer(), transform_manager.get_skinned_ubo_offset(), layout.range);
+				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_skinned_ubo_buffer(), transform_manager.get_skinned_ubo_offset(), layout.range);
 			}
 		}
 
-		render_pipeline.shader.pipeline_layout_reflect(render_pipeline.pl_layout);
-		render_pipeline.pl_layout.create(device, render_pipeline.descr_layout.get_layout());
+		state.shader.pipeline_layout_reflect(state.pl_layout);
+		state.pl_layout.create(device, state.descr_layout.get_layout());
 
 		// create the graphics pipeline
-		render_pipeline.shader.pipeline_reflection(render_pipeline.pipeline);
+		state.shader.pipeline_reflection(state.pipeline);
 
-		render_pipeline.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		render_pipeline.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		render_pipeline.pipeline.add_colour_attachment(VK_FALSE, renderer->get_deferred_pass());
-		render_pipeline.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
-		render_pipeline.pipeline.create(device, renderer->get_deferred_pass(), render_pipeline.shader, render_pipeline.pl_layout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
+		state.pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
+		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_gbuffer_pass());
+		state.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
+		state.pipeline.create(device, renderer->get_gbuffer_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 
-		return render_pipeline;
+		return state;
 	}
 
 
@@ -118,7 +119,7 @@ namespace OmegaEngine
 			instance_data->skinned_dynamic_offset
 		};
 
-		RenderInterface::RenderPipeline& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
+		RenderInterface::ProgramState& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
 
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);
