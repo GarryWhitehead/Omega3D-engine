@@ -125,19 +125,24 @@ namespace OmegaEngine
 
 		if (ret) {
 
+			auto texture_manager = component_interface->getManager<TextureManager>();
+
+			uint32_t set = texture_manager.get_current_set();
+
 			// first get all materials and textures associated with this model
 			for (auto& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				component_interface->getManager<TextureManager>().addGltfImage(image);
+				texture_manager.addGltfImage(image);
 			}
 
 			for (auto& sampler : model.samplers) {
-				component_interface->getManager<TextureManager>().addGltfSampler(sampler);
+				texture_manager.addGltfSampler(set, sampler);
 			}
 
 			for (auto& mat : model.materials) {
-				component_interface->getManager<MaterialManager>().addGltfMaterial(mat, component_interface->getManager<TextureManager>());
+				component_interface->getManager<MaterialManager>().addGltfMaterial(set, mat, texture_manager);
 			}
+			texture_manager.next_set();
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
 			// data will be passed to all the relevant managers for this object and components added automatically

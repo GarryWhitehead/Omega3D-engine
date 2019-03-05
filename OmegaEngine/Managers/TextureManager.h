@@ -2,6 +2,7 @@
 
 #include "Managers/ManagerBase.h"
 #include "Vulkan/Common.h"
+#include "Managers/DataTypes/TextureType.h"
 
 #include "tiny_gltf.h"
 
@@ -34,7 +35,7 @@ namespace OmegaEngine
 		TextureManager();
 		~TextureManager();
 
-		void addGltfSampler(tinygltf::Sampler& sampler);
+		void addGltfSampler(uint32_t set, tinygltf::Sampler& sampler);
 		void addGltfImage(tinygltf::Image& image);
 
 		vk::SamplerAddressMode get_wrap_mode(int32_t wrap);
@@ -42,11 +43,16 @@ namespace OmegaEngine
 
 		uint32_t get_texture_index(uint32_t set, const char* name);
 		MappedTexture& get_texture(uint32_t set, int index);
-		VulkanAPI::SamplerType get_sampler(uint32_t index);
+		VulkanAPI::SamplerType get_sampler(uint32_t set, uint32_t index);
 
 		void next_set()
 		{
 			++current_set;
+		}
+
+		uint32_t get_current_set() const
+		{
+			return current_set;
 		}
 
 	private:
@@ -55,7 +61,7 @@ namespace OmegaEngine
 		uint32_t current_set = 0;
 
 		std::unordered_map<uint32_t, std::vector<MappedTexture> > textures;
-		std::vector<VulkanAPI::SamplerType> samplers;
+		std::unordered_map<uint32_t, std::vector<VulkanAPI::SamplerType> > samplers;
 	};
 
 }

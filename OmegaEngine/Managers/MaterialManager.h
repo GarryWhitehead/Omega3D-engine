@@ -43,8 +43,9 @@ namespace OmegaEngine
 
 			struct Texture
 			{
+				uint32_t set;
 				uint32_t sampler;
-				std::tuple<uint32_t, int> image;	// set number and the index within this set
+				uint32_t image;	// set number and the index within this set
 			};
 
 			AlphaMode alphaMode = AlphaMode::None;
@@ -79,7 +80,7 @@ namespace OmegaEngine
 							std::unique_ptr<ObjectManager>& obj_manager,
 							std::unique_ptr<ComponentInterface>& component_interface) override;
 
-		void addGltfMaterial(tinygltf::Material& gltf_mat, TextureManager& textureManager);
+		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
 
 	private:

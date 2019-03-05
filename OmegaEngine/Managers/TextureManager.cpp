@@ -64,7 +64,7 @@ namespace OmegaEngine
 		return ret;
 	}
 
-	void TextureManager::addGltfSampler(tinygltf::Sampler& gltf_sampler)
+	void TextureManager::addGltfSampler(uint32_t set, tinygltf::Sampler& gltf_sampler)
 	{
 		VulkanAPI::SamplerType type;
 		vk::SamplerAddressMode mode = get_wrap_mode(gltf_sampler.wrapS);
@@ -83,7 +83,7 @@ namespace OmegaEngine
 			type = VulkanAPI::SamplerType::Wrap;
 		}
 
-		samplers.push_back(type);
+		samplers[set].push_back(type);
 	}
 
 	void TextureManager::addGltfImage(tinygltf::Image& image)
@@ -114,10 +114,10 @@ namespace OmegaEngine
 		return textures[set][index];
 	}
 
-	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t index)
+	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t set, uint32_t index)
 	{
 		assert(index < samplers.size());
-		return samplers[index];
+		return samplers[set][index];
 	}
 
 }

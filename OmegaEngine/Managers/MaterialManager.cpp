@@ -21,10 +21,12 @@ namespace OmegaEngine
 		MaterialInfo mat;
 		// go through each material type and see if they exsist - we are only saving the index
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::BaseColor].image = std::make_tuple(set, gltf_mat.values["baseColorTexture"].TextureIndex());
+			mat.textures[(int)PbrMaterials::BaseColor].image = gltf_mat.values["baseColorTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::BaseColor].set = set;
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
-			mat.textures[(int)PbrMaterials::MetallicRoughness].image = std::make_tuple(set, gltf_mat.values["metallicRoughnessTexture"].TextureIndex());
+			mat.textures[(int)PbrMaterials::MetallicRoughness].image = gltf_mat.values["metallicRoughnessTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::MetallicRoughness].set = set;
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
 			mat.factors.baseColour = static_cast<float>(gltf_mat.values["baseColorFactor"].Factor());
@@ -35,13 +37,16 @@ namespace OmegaEngine
 
 		// any additional textures?
 		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Normal].image = std::make_tuple(set, gltf_mat.values["metallicRoughnessTexture"].TextureIndex());
+			mat.textures[(int)PbrMaterials::Normal].image = gltf_mat.values["normalTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Normal].set = set;
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Emissive].image = textureManager.get_texture_index("emissiveTexture");
+			mat.textures[(int)PbrMaterials::Emissive].image = gltf_mat.values["emissiveTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Emissive].set = set;
 		}
 		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) {
-			mat.textures[(int)PbrMaterials::Occlusion].image = textureManager.get_texture_index("occlusionTexture");
+			mat.textures[(int)PbrMaterials::Occlusion].image = gltf_mat.values["occlusionTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Occlusion].set;
 		}
 
 		// check for aplha modes
@@ -62,13 +67,7 @@ namespace OmegaEngine
 		}
 
 		// check for extensions
-		/*if (!mat.extensions.empty()) {
-
-			vkmat.extension = std::make_unique<MaterialExt>();
-			if (mat.extensions.find("specularGlossinessTexture") != mat.extensions.end()) {
-				vkmat.extension->specularGlossiness = mat.extensions["specularGlossinessTexture"].
-			}
-		}*/
+		
 
 		materials.push_back(mat);
 	}
@@ -90,10 +89,10 @@ namespace OmegaEngine
 				// map all of the pbr materials for this primitive mesh to the gpu 
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
 
-					mat.vk_textures[i].map(component_interface->getManager<TextureManager>().get_texture(mat.textures[i].image));
+					mat.vk_textures[i].map(component_interface->getManager<TextureManager>().get_texture(mat.textures[i].set, mat.textures[i].image));
 
 					// now update the decscriptor set with the texture info 
-					mat.sampler.create(device, component_interface->getManager<TextureManager>().get_sampler(mat.textures[i].sampler));
+					mat.sampler.create(device, component_interface->getManager<TextureManager>().get_sampler(mat.textures[i].set, mat.textures[i].sampler));
 
 					// materials always are set = 0 and bindings follow the pbr material sequence - no reflection used
 					mat.descr_set.write_set(0, i, vk::DescriptorType::eSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
