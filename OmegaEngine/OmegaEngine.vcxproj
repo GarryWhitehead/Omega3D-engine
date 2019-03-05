@@ -34,6 +34,7 @@
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
     <ClCompile Include="Rendering\RenderQueue.cpp" />
     <ClCompile Include="Rendering\StockModels.cpp" />
+    <ClCompile Include="utility\BVH.cpp" />
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
@@ -104,6 +105,7 @@
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
     <ClInclude Include="Rendering\RenderUtil.h" />
+    <ClInclude Include="utility\BVH.hpp" />
     <ClInclude Include="utility\Timer.h" />
     <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
     <ClInclude Include="Vulkan\Pipeline.h" />
