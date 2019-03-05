@@ -15,7 +15,7 @@ namespace OmegaEngine
 		bounds.max = OEMaths::vec3f{ -INFINITY, -INFINITY, -INFINITY };
 	}
 
-	OEMaths::vec3f BoundingBox::calculateCentroid() const
+	OEMaths::vec3f BoundingBox::calculateCentroid()
 	{
 		return { (bounds.min + bounds.max) * 0.5f };
 	}
@@ -249,41 +249,47 @@ namespace OmegaEngine
 
 	// BVH functions ============================================================================================================================
 
-	void BVH::generateExtentsForPrimitive(const uint32_t primitiveIndex)
-	{
-		assert(primitiveIndex < primitiveExtents.size());
-
-		for (uint8_t planeIndex = 0; planeIndex < Extents::boundingPlaneCount; ++planeIndex) {
-			for (uint8_t pointsIndex = 0; pointsIndex < primitiveData3D[primitiveIndex].points.size(); ++pointsIndex) {
-
-				// calculate the angle between the plane normal and the primitive point point
-				float distance = OEMaths::vec3_dot(planeNormals[planeIndex], primitiveData3D[primitiveIndex].points[pointsIndex]);
-
-				// set dnear
-				if (distance < primitiveExtents[primitiveIndex].distance[planeIndex].near) {
-					primitiveExtents[primitiveIndex].distance[planeIndex].near = distance;
-				}
-				// set dfar
-				if (distance > primitiveExtents[primitiveIndex].distance[planeIndex].far) {
-					primitiveExtents[primitiveIndex].distance[planeIndex].far = distance;
-				}
-			}
-		}
-	}
-
 	void BVH::setupOctree()
 	{
 
 		Extents sceneExtents;
-		primitiveExtents.resize(primitiveData3D.size());
+		primitiveExtents.resize(primitives.size());
 
-		for (uint32_t primIndex = 0; primIndex < primitiveData3D.size(); ++primIndex) {
+		for (uint32_t primIndex = 0; primIndex < primitives.size(); ++primIndex) {
+			
+			assert(primIndex < primitiveExtents.size());
 
-			generateExtentsForPrimitive(primIndex);
+			for (uint8_t planeIndex = 0; planeIndex < Extents::boundingPlaneCount; ++planeIndex) {
+				
+				// calculate the angle between the plane normal and the primitive point point for min values
+				float distance = OEMaths::dot_vec3(planeNormals[planeIndex], primitives[primIndex].min);
+
+				// set dnear
+				if (distance < primitiveExtents[primIndex].distance[planeIndex].near) {
+					primitiveExtents[primIndex].distance[planeIndex].near = distance;
+				}
+				// set dfar
+				if (distance > primitiveExtents[primIndex].distance[planeIndex].far) {
+					primitiveExtents[primIndex].distance[planeIndex].far = distance;
+				}
+
+				// calculate the angle between the plane normal and the primitive point point for max values
+				distance = OEMaths::dot_vec3(planeNormals[planeIndex], primitives[primIndex].max);
+
+				// set dnear
+				if (distance < primitiveExtents[primIndex].distance[planeIndex].near) {
+					primitiveExtents[primIndex].distance[planeIndex].near = distance;
+				}
+				// set dfar
+				if (distance > primitiveExtents[primIndex].distance[planeIndex].far) {
+					primitiveExtents[primIndex].distance[planeIndex].far = distance;
+				}
+			}
 
 			// update total scene extents
 			sceneExtents.extendBounds(primitiveExtents[primIndex]);
 			primitiveExtents[primIndex].primitiveIndex = primIndex;
+
 		}
 
 		// finally, create root node width root node extents set as the total scene extents
@@ -293,7 +299,7 @@ namespace OmegaEngine
 
 	void BVH::buildTree()
 	{
-		if (primitiveData3D.empty()) {
+		if (primitives.empty()) {
 			return;
 		}
 
@@ -311,10 +317,15 @@ namespace OmegaEngine
 		octree->buildBvhIterative();
 	}
 
+	void BVH::addPrimitive(OEMaths::vec3f min, OEMaths::vec3f max, uint32_t mesh_index, uint32_t primitive_index)
+	{
+		primitives.push_back({ mesh_index, primitive_index, min, max });
+	}
+
 	void BVH::clear()
 	{
 		octree = nullptr;
-		primitiveData3D.clear();
+		primitives.clear();
 		primitiveExtents.clear();
 	}
 
@@ -328,11 +339,6 @@ namespace OmegaEngine
 		return octree->octree.size();
 	}
 
-
-	uint32_t BVH::primitive3DSize() const
-	{
-		return primitiveData3D.size();
-	}
 
 	uint32_t BVH::primitiveExtentsSize() const
 	{

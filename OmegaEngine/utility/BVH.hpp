@@ -10,6 +10,13 @@
 
 namespace OmegaEngine
 {
+	struct PrimitiveInfo
+	{
+		uint32_t mesh_index;
+		uint32_t primitive_index;
+		OEMaths::vec3f min;
+		OEMaths::vec3f max;
+	};
 
 	struct ExtentDistance3D
 	{
@@ -22,7 +29,7 @@ namespace OmegaEngine
 		BoundingBox();
 
 		/// @brief calculates the middle co-ords of the current bounding box in R3 space
-		OEMaths::vec3f calculateCentroid() const;
+		OEMaths::vec3f calculateCentroid();
 
 		/// min and max extents of bounding box in R3 space
 		struct BoxDimensions
@@ -99,20 +106,6 @@ namespace OmegaEngine
 			bool isLeaf;
 		};
 
-		/// \brief this is used for creating a min heep using priority_queue by using the ray-extents distance as a parameter.
-		struct NodeElement
-		{
-			NodeElement(uint32_t index, float dist) :
-				nodeIndex(index),
-				distance(dist)
-			{}
-
-			uint32_t nodeIndex;
-			float distance;         ///< distance(t) from the ray to the extents of the particular node in this element
-
-			/// \brief the priority_queue will be used as a min heap - smaller distances will be pulled first
-			friend bool operator<(const NodeElement& a, const NodeElement& b) { return a.distance > b.distance; }
-		};
 
 		/// iterative stack data
 		struct IterativeTreeInfo
@@ -133,31 +126,29 @@ namespace OmegaEngine
 		void buildBvhIterative();
 
 		uint32_t nextFreeIndex;
-		std::vector<Node> octree;           ///< octree nodes container
+		std::vector<Node> octree;          
 
 	private:
 
-		BoundingBox bbox;                   ///< bounding box which is the total volume of the entire scene
+		// bounding box which is the total volume of the entire scene
+		BoundingBox bbox;                   
 	};
 
 	class BVH
 	{
 	public:
 
+		BVH() {}
+		~BVH() {}
+
 		/// @brief The normals for each plane - using 3 planes - for complex shapes, 7 planes could be used...... possible easy optimistaion if using complex shapes !!
-		const OEMaths::vec3f planeNormals[Extents::boundingPlaneCount] =
+		OEMaths::vec3f planeNormals[Extents::boundingPlaneCount] =
 		{
 			{ 1.0f, 0.0f, 0.0f },         // x-plane normal
 			{ 0.0f, 1.0f, 0.0f },         // y-plane normal
 			{ 0.0f, 0.0f, 1.0f }          // z-plane normal
 		};
 
-
-
-		/// \brief calculate the min and max distances for a primtiive for each plane normal. The primitive extents MUST be pushed into the
-		/// primitiveExtents container before calling this function
-		/// \param primitiveIndex The index of the primitive for which the extents are to be calculated
-		void generateExtentsForPrimitive(const uint32_t primitiveIndex);
 
 		/// \brief calculate the extents of all 3D primitives and create a new octree based on the entrire scene extents
 		void setupOctree();
@@ -171,11 +162,10 @@ namespace OmegaEngine
 		/// \brief simple helper which tells the user if the tree is empty
 		bool isEmpty() const;
 
+		void addPrimitive(OEMaths::vec3f min, OEMaths::vec3f max, uint32_t mesh_index, uint32_t primitive_index);
+
 		/// \brief returns the size of the octree
 		uint32_t octreeSize() const;
-
-		/// \brief returns the number of 3D primitives stored
-		uint32_t primitive3DSize() const;
 
 		/// \brief returns the number of extents stored. This should be the same as *primitive3DSize*. If it isn't, something has gone wrong!
 		uint32_t primitiveExtentsSize() const;
@@ -184,9 +174,9 @@ namespace OmegaEngine
 
 		std::unique_ptr<Octree> octree;
 
-		// 3D data
+		// primitive data stored locally for easy reference to external data
 		std::vector<Extents> primitiveExtents;
-		std::vector<Primitive3D> primitiveData3D;
+		std::vector<PrimitiveInfo> primitives;
 
 	};
 

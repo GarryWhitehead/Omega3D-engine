@@ -16,6 +16,7 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Threading/ThreadPool.h"
+#include "Utility/BVH.hpp"
 #include "Omega_Common.h"
 
 #define TINYGLTF_IMPLEMENTATION
@@ -40,6 +41,7 @@ namespace OmegaEngine
 		component_interface = std::make_unique<ComponentInterface>();
 		render_interface = std::make_unique<RenderInterface>(device, component_interface);
 		animation_manager = std::make_unique<AnimationManager>();
+		bvh = std::make_unique<BVH>();
 
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {

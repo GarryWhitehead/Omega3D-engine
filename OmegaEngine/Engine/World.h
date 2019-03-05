@@ -17,6 +17,7 @@ namespace OmegaEngine
 	class AnimationManager;
 	class ObjectManager;
 	class Object;
+	class BVH;
 
 	enum class Managers
 	{
@@ -87,6 +88,9 @@ namespace OmegaEngine
 
 		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
 		std::unique_ptr<RenderInterface> render_interface;
+
+		// the octree as a 3d spatial representation of the world
+		std::unique_ptr<BVH> bvh;
 	};
 
 }
