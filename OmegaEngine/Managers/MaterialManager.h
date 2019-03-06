@@ -51,7 +51,7 @@ namespace OmegaEngine
 			AlphaMode alphaMode = AlphaMode::None;
 			struct Factors
 			{
-				OEMaths::vec3f emissive;
+				OEMaths::vec3d emissive;
 				float specularGlossiness;
 				float baseColour;
 				float roughness;

@@ -143,11 +143,11 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj)
+	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object* obj)
 	{
 		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
-		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
+		uint32_t mesh_index = obj->get_manager_index<MeshManager>();
 		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
 
 		// we need to add all the primitve sub meshes as renderables
@@ -156,9 +156,9 @@ namespace OmegaEngine
 		}
 
 		// and do the same for all children associated with this mesh
-		auto& children = obj.get_children();
-		for (auto& child : children) {
-			add_mesh_tree(comp_interface, child);
+		auto children = obj->get_children();
+		for (auto child : children) {
+			add_mesh_tree(comp_interface, &child);
 		}
 	}
 

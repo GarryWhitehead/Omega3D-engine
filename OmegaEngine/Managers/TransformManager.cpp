@@ -30,20 +30,20 @@ namespace OmegaEngine
 	{
 	}
 
-	void TransformManager::addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform)
+	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform)
 	{
 		TransformData transform;
 		TransformData::LocalTRS local_trs;
 
 		// we will save the matrix and the decomposed form
 		if (node.translation.size() == 3) {
-			local_trs.trans = OEMaths::convert_vec3((float*)node.translation.data());
+			local_trs.trans = OEMaths::convert_vec3<float>(node.translation.data());
 		}
 		if (node.scale.size() == 3) {
-			local_trs.scale = OEMaths::convert_vec3((float*)node.scale.data());
+			local_trs.scale = OEMaths::convert_vec3<float>(node.scale.data());
 		}
 		if (node.rotation.size() == 4) {
-			OEMaths::quatf q = OEMaths::convert_quat((float*)node.rotation.data());
+			OEMaths::quatf q = OEMaths::convert_quatf<double>(node.rotation.data());
 			local_trs.rot = OEMaths::quat_to_mat4(q);
 		}
 		transform.local_trs = local_trs;
@@ -56,13 +56,12 @@ namespace OmegaEngine
 		}
 		
 		// also add index to skinning information in applicable
-		assert(!skinBuffer.empty());
 		transform.skin_index = node.skin;
 
 		transformBuffer.push_back(transform);
 
 		// add to the list of entites
-		obj.add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
+		obj->add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects)
@@ -169,8 +168,12 @@ namespace OmegaEngine
 
 			// now upload to gpu - TODO: note that this will need to be altered so only models that have 'dirty' data are updated
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			mem_alloc.mapDataToDynamicSegment(transform_buffer, transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size);
-			mem_alloc.mapDataToDynamicSegment(skinned_buffer, skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size);
+			if (transform_buffer_size) {
+				mem_alloc.mapDataToDynamicSegment(transform_buffer, transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size);
+			}
+			if (skinned_buffer_size) {
+				mem_alloc.mapDataToDynamicSegment(skinned_buffer, skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size);
+			}
 
 			is_dirty = false;
 		}

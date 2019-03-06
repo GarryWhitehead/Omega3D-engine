@@ -63,7 +63,6 @@ namespace VulkanAPI
 
 	CommandBuffer::~CommandBuffer()
 	{
-		device.freeCommandBuffers(cmd_pool, 1, &cmd_buffer);
 	}
 
 	void CommandBuffer::init(vk::Device dev)

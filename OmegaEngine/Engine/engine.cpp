@@ -128,7 +128,7 @@ namespace OmegaEngine
 	void Engine::start_loop()
 	{
 		// convert delta time to ms
-		const double dt = 1000 / engine_config.fps;
+		const double dt = engine_config.fps / 1000;
 
 		// fixed-step loop
 		double accumulator = 0.0;

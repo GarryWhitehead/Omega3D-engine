@@ -38,6 +38,7 @@ namespace OmegaEngine
 
 	World::World(Managers managers, VulkanAPI::Device& device)
 	{
+		objectManager = std::make_unique<ObjectManager>();
 		component_interface = std::make_unique<ComponentInterface>();
 		render_interface = std::make_unique<RenderInterface>(device, component_interface);
 		animation_manager = std::make_unique<AnimationManager>();
@@ -154,7 +155,7 @@ namespace OmegaEngine
 			std::vector<Object> linearised_objects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
 
-				Object obj = objectManager->createObject();
+				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
 				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
@@ -175,7 +176,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject)
+	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object* obj, bool childObject)
 	{
 
 		// add all local and world transforms to the transform manager - also combines skinning info
@@ -184,9 +185,9 @@ namespace OmegaEngine
 
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
-		Object parentObject;
+		Object* parentObject;
 		if (childObject) {
-			parentObject = objManager->createChildObject(obj);
+			parentObject = objManager->createChildObject(*obj);
 		}
 		else {
 			parentObject = obj;
@@ -206,7 +207,7 @@ namespace OmegaEngine
 		}
 
 		// create the linearised list of objects - parents and children
-		linearised_objects.push_back(obj);
+		linearised_objects.push_back(*obj);
 	}
 
 }

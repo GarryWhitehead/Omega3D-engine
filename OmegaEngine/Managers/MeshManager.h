@@ -94,7 +94,7 @@ namespace OmegaEngine
 
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface) override;
 
-		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj);
+		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj);
 
 		StaticMesh& get_mesh(uint32_t index)
 		{

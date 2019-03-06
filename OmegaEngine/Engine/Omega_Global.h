@@ -54,7 +54,7 @@ namespace OmegaEngine
 		private:
 
 			// general
-			bool isRunning = false;
+			bool isRunning = true;
 			float dt = 30.0f;
 
 			// mouse config

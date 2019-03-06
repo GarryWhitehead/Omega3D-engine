@@ -24,16 +24,16 @@ namespace OEMaths
 	// vec3 transform functions ========================================================================================================
 	
 	template <typename T>
-	inline vec3<T> convert_vec3(T* data)
+	inline vec3<T> convert_vec3(void* data)
 	{
 		assert(data != nullptr);
-
+		T* ptr = (T*)data;
 		vec3<T> vec;
-		vec.x = *data;
-		data += sizeof(T);
-		vec.y = *data;
-		data += sizeof(T);
-		vec.z = *data;
+		vec.x = *ptr;
+		++ptr;
+		vec.y = *ptr;
+		++ptr;
+		vec.z = *ptr;
 		return vec;
 	}
 
@@ -109,11 +109,11 @@ namespace OEMaths
 
 		vec4<T> vec;
 		vec.x = *data;
-		data += sizeof(T);
+		++data;
 		vec.y = *data;
-		data += sizeof(T);
+		++data;
 		vec.z = *data;
-		data += sizeof(T);
+		++data;
 		vec.w = *data;
 		return vec;
 	}
