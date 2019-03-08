@@ -3,6 +3,8 @@
 #include "Utility/logger.h"
 #include "Vulkan/Sampler.h"
 #include "Omega_Common.h"
+#include "Objects/ObjectManager.h"
+#include "Managers/ComponentInterface.h"
 
 namespace OmegaEngine
 {
@@ -14,6 +16,13 @@ namespace OmegaEngine
 
 	TextureManager::~TextureManager()
 	{
+	}
+
+	void TextureManager::update_frame(double time, double dt,
+		std::unique_ptr<ObjectManager>& obj_manager,
+		ComponentInterface* component_manager)
+	{
+
 	}
 
 	vk::SamplerAddressMode TextureManager::get_wrap_mode(int32_t wrap)
@@ -91,6 +100,9 @@ namespace OmegaEngine
 		MappedTexture mappedTex;
 		mappedTex.set_name(image.uri.c_str());
 
+		// probably should check for different types - though only 4 channels supported
+		mappedTex.set_format(vk::Format::eR8G8B8A8Unorm); 
+
 		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data())) {
 			// need to use a default texture here!
 		}
@@ -116,7 +128,10 @@ namespace OmegaEngine
 
 	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t set, uint32_t index)
 	{
-		assert(index < samplers.size());
+		// not all gltf files speciify sampler types so go with a default otherwise
+		if (samplers[set].empty()) {
+			return VulkanAPI::SamplerType::NotDefined;
+		}
 		return samplers[set][index];
 	}
 

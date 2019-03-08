@@ -84,7 +84,7 @@ namespace OmegaEngine
 		CameraManager();
 		~CameraManager();
 
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface) override;
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
 		void updateViewMatrix();
 

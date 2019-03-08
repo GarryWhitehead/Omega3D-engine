@@ -76,7 +76,7 @@ namespace OmegaEngine
 
 	}
 
-	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
+	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		if (isDirty) {
 

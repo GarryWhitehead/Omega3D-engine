@@ -49,7 +49,7 @@ namespace VulkanAPI
 
 		int32_t get_buffer_index() const
 		{
-			assert(buffer_index > 0);
+			assert(buffer_index >= 0);
 			return buffer_index;
 		}
 

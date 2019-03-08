@@ -6,6 +6,7 @@
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/Queue.h"
 
 #include "tiny_gltf.h"
 
@@ -73,12 +74,12 @@ namespace OmegaEngine
 			bool usingExtension = false;
 		};
 
-		MaterialManager(vk::Device dev);
+		MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue);
 		~MaterialManager();
 
 		void update_frame(double time, double dt, 
 							std::unique_ptr<ObjectManager>& obj_manager,
-							std::unique_ptr<ComponentInterface>& component_interface) override;
+							ComponentInterface* component_interface) override;
 
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
@@ -87,6 +88,8 @@ namespace OmegaEngine
 		
 		// for the updating of materials
 		vk::Device device;
+		vk::PhysicalDevice gpu;
+		VulkanAPI::Queue graph_queue;
 
 		std::vector<MaterialInfo> materials;
 		bool isDirty = true;

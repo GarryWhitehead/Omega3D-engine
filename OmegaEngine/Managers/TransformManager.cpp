@@ -159,7 +159,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
+	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		// check whether static data need updating
 		if (is_dirty) {

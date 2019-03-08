@@ -6,8 +6,10 @@
 namespace OmegaEngine
 {
 
-	MaterialManager::MaterialManager(vk::Device dev) :
-		device(dev)
+	MaterialManager::MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue) :
+		device(dev),
+		gpu(phys_device),
+		graph_queue(queue)
 	{
 	}
 
@@ -78,21 +80,31 @@ namespace OmegaEngine
 		return materials[index];
 	}
 
-	void MaterialManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
+	void MaterialManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		// if dirty - then upload material to gpu. With other managers, this needs to be adjusted so only materials
 		// that are changed/deleted/added are updated
 		if (isDirty) {
 			
+			auto& tex_manager = component_interface->getManager<TextureManager>();
+
 			for (auto& mat : materials) {
 
 				// map all of the pbr materials for this primitive mesh to the gpu 
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
 
-					mat.vk_textures[i].map(component_interface->getManager<TextureManager>().get_texture(mat.textures[i].set, mat.textures[i].image));
+					// not sure this should be done here - should probably be used to the under-used texture manager on the vulkan side
+					mat.vk_textures[i].init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
+					mat.vk_textures[i].map(tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image));
 
 					// now update the decscriptor set with the texture info 
-					mat.sampler.create(device, component_interface->getManager<TextureManager>().get_sampler(mat.textures[i].set, mat.textures[i].sampler));
+					VulkanAPI::SamplerType type = tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler);
+					if (type != VulkanAPI::SamplerType::NotDefined) {
+						mat.sampler.create(device, type);
+					}
+					else {
+						mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
+					}
 
 					// materials always are set = 0 and bindings follow the pbr material sequence - no reflection used
 					mat.descr_set.write_set(0, i, vk::DescriptorType::eSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);

@@ -49,7 +49,7 @@ namespace OmegaEngine
 			component_interface->registerManager<MeshManager>();
 
 			// the mesh manager also requires the material and texture managers
-			component_interface->registerManager<MaterialManager>(device.getDevice());
+			component_interface->registerManager<MaterialManager>(device.getDevice(), device.getPhysicalDevice(), device.getQueue(VulkanAPI::Device::QueueType::Graphics));
 			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
@@ -128,7 +128,7 @@ namespace OmegaEngine
 
 		if (ret) {
 
-			auto texture_manager = component_interface->getManager<TextureManager>();
+			auto& texture_manager = component_interface->getManager<TextureManager>();
 
 			uint32_t set = texture_manager.get_current_set();
 

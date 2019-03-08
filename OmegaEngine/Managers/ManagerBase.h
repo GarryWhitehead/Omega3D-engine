@@ -19,7 +19,7 @@ namespace OmegaEngine
 		// virtual update function -
 		virtual void update_frame(double time, double dt,
 			std::unique_ptr<ObjectManager>& obj_manager,
-			std::unique_ptr<ComponentInterface>& component_manager) = 0;
+			ComponentInterface* component_manager) = 0;
 
 		void set_id(const uint32_t id)
 		{
