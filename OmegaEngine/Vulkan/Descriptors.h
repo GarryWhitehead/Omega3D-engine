@@ -5,8 +5,12 @@
 
 namespace VulkanAPI
 {
-	struct ShaderImageLayout;
+	namespace Util
+	{
+		void write_set(vk::Device device, vk::DescriptorSet& descr_set, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout);
+	}
 
+	struct ShaderImageLayout;
 
 	class DescriptorLayout
 	{
@@ -40,6 +44,16 @@ namespace VulkanAPI
 			return descr_layouts;
 		}
 
+		vk::DescriptorSetLayout& get_layout(uint32_t set)
+		{
+			for (auto& layout : descr_layouts) {
+				if (std::get<0>(layout) == set) {
+					return std::get<1>(layout);
+				}
+			}
+			throw std::runtime_error("Unable to find descriptor layout.");
+		}
+
 		vk::DescriptorPool& get_pool()
 		{
 			assert(pool);
@@ -67,6 +81,8 @@ namespace VulkanAPI
 		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
 		void init(vk::Device device, DescriptorLayout descr_layout);
+		void init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool);
+
 		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range);
 		void write_set(ShaderImageLayout& imageLayout, vk::ImageView& image_view);
 
@@ -85,6 +101,12 @@ namespace VulkanAPI
 				return 0;
 			}
 			return static_cast<uint32_t>(descr_sets.size());
+		}
+
+		vk::DescriptorSet& get_set(uint32_t set)
+		{
+			// this is assuming that the sets are correctly ordered - should add some sort of check
+			return descr_sets[set];
 		}
 
 	private:

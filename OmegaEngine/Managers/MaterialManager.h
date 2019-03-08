@@ -84,12 +84,22 @@ namespace OmegaEngine
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
 
+		void add_descr_layout(vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool)
+		{
+			descr_layout = layout;
+			descr_pool = pool;
+		}
+
 	private:
 		
 		// for the updating of materials
 		vk::Device device;
 		vk::PhysicalDevice gpu;
 		VulkanAPI::Queue graph_queue;
+
+		// a pointer to the descr set - init in the mesh pipeline and needed for creating the set here
+		vk::DescriptorSetLayout descr_layout;
+		vk::DescriptorPool descr_pool;
 
 		std::vector<MaterialInfo> materials;
 		bool isDirty = true;

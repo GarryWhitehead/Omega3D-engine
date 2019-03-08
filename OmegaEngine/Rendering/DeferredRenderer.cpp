@@ -122,7 +122,7 @@ namespace OmegaEngine
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
 	{
 		cmd_buffer.init(device);
-		cmd_buffer.create_primary();
+		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 
 		// begin the renderpass 
 		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));

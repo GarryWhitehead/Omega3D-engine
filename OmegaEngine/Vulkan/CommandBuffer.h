@@ -33,7 +33,7 @@ namespace VulkanAPI
 			Secondary
 		};
         
-        enum class UsgaeType
+        enum class UsageType
         {
             Single,
             Multi

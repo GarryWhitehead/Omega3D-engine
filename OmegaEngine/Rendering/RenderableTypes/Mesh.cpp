@@ -87,6 +87,10 @@ namespace OmegaEngine
 			}
 		}
 
+		// we also need to send a referene to the material manager of the image descr set - the sets will be set at render time
+		// it's assumed that the material combined image samplers will be set zero. TODO: Should add a more rigourous check
+		component_interface->getManager<MaterialManager>().add_descr_layout(state.descr_layout.get_layout(0), state.descr_layout.get_pool());
+
 		state.shader.pipeline_layout_reflect(state.pl_layout);
 		state.pl_layout.create(device, state.descr_layout.get_layout());
 

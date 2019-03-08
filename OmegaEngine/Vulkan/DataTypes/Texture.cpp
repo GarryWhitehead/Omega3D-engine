@@ -64,7 +64,7 @@ namespace VulkanAPI
 		memcpy(data_dst, tex.data(), tex.size());
 		device.unmapMemory(stagingMemory);
 
-		tex_image.create(device, gpu, tex.get_format(), tex.tex_width(), tex.tex_height(), vk::ImageUsageFlagBits::eColorAttachment, tex_type);
+		tex_image.create(device, gpu, tex.get_format(), tex.tex_width(), tex.tex_height(), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, tex_type);
 	
 		// create the info required for the copy
 		std::vector<vk::BufferImageCopy> copy_buffers;
@@ -83,7 +83,7 @@ namespace VulkanAPI
 		cmd_buff.get().copyBufferToImage(staging_buff, tex_image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
 		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1, cmd_buff.get(), graph_queue.get(), cmd_buff.get_pool());
         
-        cmd_buff.
+		cmd_buff.end();
 		graph_queue.submit_cmd_buffer(cmd_buff.get());
 
 		// create an image view of the texture image

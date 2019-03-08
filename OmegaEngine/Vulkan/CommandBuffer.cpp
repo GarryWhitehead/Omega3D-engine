@@ -81,7 +81,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
         
         vk::CommandBufferUsageFlags usage_flags;
-        if (type = UsageType::Single) {
+        if (type == UsageType::Single) {
             usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         }
         else {
@@ -152,8 +152,6 @@ namespace VulkanAPI
 
 	void CommandBuffer::end()
 	{
-		// this function ends both the renderpass and cmd_buffer. Call individual commands if this isn't the correct action wanted
-		cmd_buffer.endRenderPass();
 		cmd_buffer.end();
 	}
 

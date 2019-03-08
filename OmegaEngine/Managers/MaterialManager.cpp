@@ -106,9 +106,12 @@ namespace OmegaEngine
 						mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
 					}
 
-					// materials always are set = 0 and bindings follow the pbr material sequence - no reflection used
+					// materials always are set = 0 and bindings MUST follow the pbr material sequence
+					// sanity check first - make sure their initilialised!
+					assert(descr_layout);
+					assert(descr_pool);
+					mat.descr_set.init(device, descr_layout, descr_pool);
 					mat.descr_set.write_set(0, i, vk::DescriptorType::eSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
-
 				}
 			}
 		}	
