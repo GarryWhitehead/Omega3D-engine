@@ -75,12 +75,15 @@ namespace VulkanAPI
 			createArrayCopyBuffer(copy_buffers);
 		}
 		
-		// noew copy image to local device
+		// noew copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
 		CommandBuffer cmd_buff(device);
-		tex_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, cmd_buff.get(), graph_queue.get(), cmd_buff.get_pool());
-
+        cmd_buff.create_primary(CommandBuffer::UsageType::Single);
+        
+        tex_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, cmd_buff.get(), graph_queue.get(), cmd_buff.get_pool());
 		cmd_buff.get().copyBufferToImage(staging_buff, tex_image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
 		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1, cmd_buff.get(), graph_queue.get(), cmd_buff.get_pool());
+        
+        cmd_buff.
 		graph_queue.submit_cmd_buffer(cmd_buff.get());
 
 		// create an image view of the texture image

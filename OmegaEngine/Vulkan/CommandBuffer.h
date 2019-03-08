@@ -32,13 +32,19 @@ namespace VulkanAPI
 			Primary,
 			Secondary
 		};
-
+        
+        enum class UsgaeType
+        {
+            Single,
+            Multi
+        };
+        
 		CommandBuffer();
 		CommandBuffer(vk::Device dev);
 		~CommandBuffer();
 
 		void init(vk::Device dev);
-		void create_primary();
+		void create_primary(UsageType type);
 
 		void begin_secondary(uint32_t index);
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
