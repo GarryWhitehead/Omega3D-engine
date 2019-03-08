@@ -75,13 +75,21 @@ namespace VulkanAPI
 		create_cmd_pool();
 	}
 
-	void CommandBuffer::create_primary()
+	void CommandBuffer::create_primary(UsageType type)
 	{	
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::ePrimary, 1);
 
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
-
-		vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, 0);
+        
+        vk::CommandBufferUsageFlags usage_flags;
+        if (type = UsageType::Single) {
+            usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+        }
+        else {
+            usage_flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+        }
+        
+		vk::CommandBufferBeginInfo beginInfo(usage_flags, 0);
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
 	}
 
