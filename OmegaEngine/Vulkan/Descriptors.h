@@ -81,7 +81,7 @@ namespace VulkanAPI
 		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
 		void init(vk::Device device, DescriptorLayout descr_layout);
-		void init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool);
+		void init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set);
 
 		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range);
 		void write_set(ShaderImageLayout& imageLayout, vk::ImageView& image_view);
@@ -89,10 +89,21 @@ namespace VulkanAPI
 		// use this when you haven't reflected the shader
 		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout);
 
-		vk::DescriptorSet* get()
+		vk::DescriptorSet& get(uint32_t set)
 		{
 			assert(!descr_sets.empty());
-			return descr_sets.data();
+			return descr_sets[set];
+		}
+
+		std::vector<vk::DescriptorSet> get()
+		{
+			assert(!descr_sets.empty());
+			std::vector< vk::DescriptorSet> sets;
+			// ensure their in the correct order
+			for (uint32_t i = 0; i < descr_sets.size(); ++i) {
+				sets.push_back(descr_sets[i]);
+			}
+			return sets;
 		}
 
 		uint32_t get_size() const
@@ -114,7 +125,7 @@ namespace VulkanAPI
 		vk::Device device;
 
 		// one for all the sets that will be created
-		std::vector<vk::DescriptorSet> descr_sets;	
+		std::unordered_map<uint32_t, vk::DescriptorSet> descr_sets;	
 		
 	};
 

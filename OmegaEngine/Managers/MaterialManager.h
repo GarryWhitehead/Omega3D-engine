@@ -21,8 +21,8 @@ namespace OmegaEngine
 	enum class PbrMaterials 
 	{
 		BaseColor,
-		MetallicRoughness,
 		Normal,
+		MetallicRoughness,
 		Emissive,
 		Occlusion,
 		Count
@@ -64,7 +64,8 @@ namespace OmegaEngine
 			} factors;
 
 			// material image indicies
-			std::array<Texture, static_cast<int>(PbrMaterials::Count) > textures;
+			std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
+			std::array<bool, static_cast<int>(PbrMaterials::Count)> texture_state = { false };
 
 			// local vulkan data
 			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;

@@ -66,8 +66,12 @@ namespace OmegaEngine
 		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
 		state.shader.descriptor_buffer_reflect(state.descr_layout, state.buffer_layout);
 		state.descr_layout.create(device);
-		state.descr_set.init(device, state.descr_layout);
-		
+
+		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
+		for (auto& buffer : state.buffer_layout) {
+			state.descr_set.init(device, state.descr_layout.get_layout(buffer.set), state.descr_layout.get_pool(), buffer.set);
+		}
+
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
 		for (auto& layout : state.buffer_layout) {
@@ -89,7 +93,7 @@ namespace OmegaEngine
 
 		// we also need to send a referene to the material manager of the image descr set - the sets will be set at render time
 		// it's assumed that the material combined image samplers will be set zero. TODO: Should add a more rigourous check
-		component_interface->getManager<MaterialManager>().add_descr_layout(state.descr_layout.get_layout(0), state.descr_layout.get_pool());
+		component_interface->getManager<MaterialManager>().add_descr_layout(state.descr_layout.get_layout(state.image_layout[0][0].set), state.descr_layout.get_pool());
 
 		state.shader.pipeline_layout_reflect(state.pl_layout);
 		state.pl_layout.create(device, state.descr_layout.get_layout());
