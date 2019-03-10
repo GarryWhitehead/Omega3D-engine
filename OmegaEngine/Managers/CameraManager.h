@@ -23,16 +23,17 @@ namespace OmegaEngine
 			return OEMaths::perspective(fov, aspect, zNear, zFar);
 		}
 
-		float fov;
-		float zNear;
-		float zFar;
-		float aspect;
-		float velocity;
+		// default values
+		float fov = 80.0f;
+		float zNear = 1.0f;
+		float zFar = 1000.0f;
+		float aspect = 16.0f / 9.0f;
+		float velocity = 0.5f;
 
-		CameraType type;
+		CameraType type = CameraType::FirstPerson;
 
-		OEMaths::vec3f start_position;
-		OEMaths::vec3f camera_up;
+		OEMaths::vec3f start_position{ 0.0f, 0.0f, 3.0f };
+		OEMaths::vec3f camera_up{ 0.0f, 1.0f, 0.0f };
 		
 	};
 
@@ -92,6 +93,15 @@ namespace OmegaEngine
 		void keyboard_press_event(KeyboardPressEvent& event);
 		void mouse_move_event(MouseMoveEvent& event);
 
+		void add_camera(Camera& camera)
+		{
+			cameras.push_back(camera);
+			camera_index = cameras.size() - 1;
+
+			current_pos = camera.start_position;
+			currentProjMatrix = camera.getPerspectiveMat();
+		}
+
 		vk::Buffer& get_ubo_buffer()
 		{
 			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
@@ -115,7 +125,7 @@ namespace OmegaEngine
 		OEMaths::mat4f currentProjMatrix;
 		OEMaths::mat4f currentViewMatrix;
 		OEMaths::vec3f current_pos;
-		OEMaths::vec3f front_vec;
+		OEMaths::vec3f front_vec{ 0.0f, 0.0f, -1.0f };
 
 		double yaw = 0.0;
 		double pitch = 0.0;

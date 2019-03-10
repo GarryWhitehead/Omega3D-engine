@@ -78,6 +78,9 @@ namespace OmegaEngine
 			return false;
 		}
 
+		// update camera manager 
+		component_interface->getManager<CameraManager>().add_camera(parser.get_camera());
+
 		// load and distribute the gltf data between the appropiate systems.
 #ifdef OMEGA_ENGINE_THREADED
 		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);
@@ -172,7 +175,6 @@ namespace OmegaEngine
 		}
 		else {
 			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
-			throw std::runtime_error("Unable to parse gltf file.");
 		}
 	}
 

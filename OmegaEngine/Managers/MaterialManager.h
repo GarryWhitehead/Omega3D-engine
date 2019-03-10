@@ -45,8 +45,8 @@ namespace OmegaEngine
 			struct Texture
 			{
 				uint32_t set;
-				uint32_t sampler;
-				uint32_t image;	// set number and the index within this set
+				uint32_t sampler = 0;
+				uint32_t image = 0;			// set number and the index within this set
 			};
 
 			AlphaMode alphaMode = AlphaMode::None;
@@ -66,6 +66,9 @@ namespace OmegaEngine
 			// material image indicies
 			std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
 			std::array<bool, static_cast<int>(PbrMaterials::Count)> texture_state = { false };
+
+			// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
+			bool usingSpecularGlossiness = false;
 
 			// local vulkan data
 			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;

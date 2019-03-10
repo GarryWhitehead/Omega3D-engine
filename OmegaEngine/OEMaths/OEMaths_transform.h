@@ -264,9 +264,9 @@ namespace OEMaths
 		lookAt(2, 2) = dir.z;
 
 		mat4<T> posMat;
-		lookAt(0, 3) = -position.x;
-		lookAt(1, 3) = -position.y;
-		lookAt(2, 3) = -position.z;
+		posMat(0, 3) = -position.x;
+		posMat(1, 3) = -position.y;
+		posMat(2, 3) = -position.z;
 		lookAt = lookAt * posMat;
 
 		return lookAt;

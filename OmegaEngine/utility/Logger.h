@@ -8,16 +8,20 @@
 
 // simple file logging tools
 #define LOGGER(format, ...) do {					 \
-	fprintf(stderr, format,  __VA_ARGS__);		 \
+	fprintf(stderr, format,  __VA_ARGS__ );		 \
+	fprintf(stderr, "\n");							 \
 	fflush(stderr);								 \
 } while(false)
 
 #define LOGGER_ERROR(...) do {							 \
-	fprintf(stderr, "{Error log}: " __VA_ARGS__);	 \
+	fprintf(stderr, "{Error log}: " __VA_ARGS__ );	 \
+	fprintf(stderr, "\n");							 \
 	fflush(stderr);									 \
+	throw std::runtime_error("Omega Engine error! See error log for details."); \
 } while(false)
 
 #define LOGGER_INFO(...) do {							 \
-	fprintf(stderr, "{Info log}: " __VA_ARGS__);	 \
+	fprintf(stderr, "{Info log}: " __VA_ARGS__ );	 \
+	fprintf(stderr, "\n");							 \
 	fflush(stderr);									 \
 } while(false)

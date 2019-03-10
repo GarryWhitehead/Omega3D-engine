@@ -79,58 +79,67 @@ namespace OEMaths
 			z(in_z)
 		{}
 
-		vec3& operator-(const vec3& other)
+		vec3 operator-(const vec3& other) const
 		{
-			x = x - other.x;
-			y = y - other.y;
-			z = z - other.z;
-			return *this;
+			vec3 result;
+			result.x = x - other.x;
+			result.y = y - other.y;
+			result.z = z - other.z;
+			return result;
 		}
 
-		vec3& operator+(const vec3& other)
+		vec3 operator+(const vec3& other) const
 		{
-			x = x + other.x;
-			y = y + other.y;
-			z = z + other.z;
-			return *this;
+			vec3 result;
+			result.x = x + other.x;
+			result.y = y + other.y;
+			result.z = z + other.z;
+			return result;
 		}
 
-		vec3& operator*(const vec3& other)
+		vec3 operator*(const vec3& other) const
 		{
-			x = x * other.x;
-			y = y * other.y;
-			z = z * other.z;
+			vec3 result;
+			result.x = x * other.x;
+			result.y = y * other.y;
+			result.z = z * other.z;
+			return result;
 		}
 
-		vec3& operator*(const vec4<T>& other)
+		vec3 operator*(const vec4<T>& other) const
 		{
-			x = x * other.x;
-			y = y * other.y;
-			z = z * other.z;
+			vec3 result;
+			result.x = x * other.x;
+			result.y = y * other.y;
+			result.z = z * other.z;
+			return result;
 		}
 
-		vec3& operator*(const float& other)
+		vec3 operator*(const float& other) const
 		{
-			x = x * other;
-			y = y * other;
-			z = z * other;
-			return *this;
+			vec3 result;
+			result.x = x * other;
+			result.y = y * other;
+			result.z = z * other;
+			return result;
 		}
 
-		vec3& operator*(const mat4<T>& other)
+		vec3 operator*(const mat4<T>& other) const
 		{
-			x = other[0] * x + other[1] * y + other[2] * z;
-			y = other[4] * x + other[5] * y + other[6] * z;
-			z = other[8] * x + other[9] * y + other[10] * z;
-			return *this;
+			vec3 result;
+			result.x = other[0] * x + other[1] * y + other[2] * z;
+			result.y = other[4] * x + other[5] * y + other[6] * z;
+			result.z = other[8] * x + other[9] * y + other[10] * z;
+			return result;
 		}
 
-		vec3& operator/(const vec3& other)
+		vec3 operator/(const vec3& other) const
 		{
-			x = x / other.x;
-			y = y / other.y;
-			z = z / other.z;
-			return *this;
+			vec3 result;
+			result.x = x / other.x;
+			result.y = y / other.y;
+			result.z = z / other.z;
+			return result;
 		}
 
 		vec3& operator-=(const vec3& other)
@@ -205,6 +214,17 @@ namespace OEMaths
 			w(in_w)
 		{}
 
+		vec4 operator*(const vec4<T>& other) const
+		{
+			vec4 result;
+			result.x = x * other.x;
+			result.y = y * other.y;
+			result.z = z * other.z;
+			result.w = w * other.w;
+			return result;
+		}
+
+		// data
 		T x;
 		T y;
 		T z;
@@ -265,14 +285,14 @@ namespace OEMaths
 
 		T& operator()(const uint8_t& a, const uint8_t& b)
 		{
-			return data[a * 2 + b];
+			return data[a * 3 + b];
 		}
 
 		mat3& operator()(const vec3<T>& vec, const uint8_t& row)
 		{
-			data[row * 2] = vec.x;
-			data[row * 2 + 1] = vec.y;
-			data[row * 2 + 2] = vec.z;
+			data[row * 3] = vec.x;
+			data[row * 3 + 1] = vec.y;
+			data[row * 3 + 2] = vec.z;
 		}
 
 	private:
@@ -301,33 +321,15 @@ namespace OEMaths
 
 		T& operator()(const uint8_t& a, const uint8_t& b)
 		{
-			return data[a * 3 + b];
+			return data[a * 4 + b];
 		}
 
 		inline mat4& operator()(const vec4<T>& vec, const uint8_t& row)
 		{
-			data[row * 3] = vec.x;
-			data[row * 3 + 1] = vec.y;
-			data[row * 3 + 2] = vec.z;
-			data[row * 3 + 3] = vec.w;
-			return *this;
-		}
-
-		inline mat4& operator*(const mat4<T>& other)
-		{
-			for (int y = 0; y < 3; ++y) {
-				for (int x = 0; x < 3; ++x) {
-					data[y * 3 + x] = other.data[y * 3 + x];
-				}
-			}
-			return *this;
-		}
-
-		inline mat4& operator*(const vec3<T>& other)
-		{
-			data[0] *= other.x; data[1] *= other.y; data[2] *= other.z;
-			data[4] *= other.x; data[5] *= other.y; data[6] *= other.z;
-			data[8] *= other.x; data[9] *= other.y; data[10] *= other.z;
+			data[row * 4] = vec.x;
+			data[row * 4 + 1] = vec.y;
+			data[row * 4 + 2] = vec.z;
+			data[row * 4 + 3] = vec.w;
 			return *this;
 		}
 
@@ -361,13 +363,93 @@ namespace OEMaths
 			return data[index];
 		}
 
-	private:
-
 		T data[16];
 	};
 
 	using mat4f = mat4<float>;
 	using mat4d = mat4<double>;
+
+	template <typename T>
+	inline vec4<T> operator*(const mat4<T> mat, const vec4<T>& vec)
+	{
+		vec4<T> result;
+		result.x = mat.data[0] * vec.x + mat.data[1] * vec.y + mat.data[2] * vec.z + mat.data[3] * vec.w;
+		result.y = mat.data[4] * vec.x + mat.data[5] * vec.y + mat.data[6] * vec.z + mat.data[7] * vec.w;
+		result.z = mat.data[8] * vec.x + mat.data[9] * vec.y + mat.data[10] * vec.z + mat.data[11] * vec.w;
+		result.w = mat.data[12] * vec.x + mat.data[13] * vec.y + mat.data[14] * vec.z + mat.data[15] * vec.w;
+		return result;
+	}
+
+	template <typename T>
+	inline vec4<T> operator*(const vec4<T>& vec, const mat4<T> mat)
+	{
+		vec4<T> result;
+		result.x = vec.x * mat.data[0] + vec.y * mat.data[1] + vec.z * mat.data[2] + vec.w * mat.data[3];
+		result.y = vec.x * mat.data[4] + vec.y * mat.data[5] + vec.z * mat.data[6] + vec.w * mat.data[7];
+		result.z = vec.x * mat.data[8] + vec.y * mat.data[9] + vec.z * mat.data[10] + vec.w * mat.data[11];
+		result.w = vec.x * mat.data[12] + vec.y * mat.data[13] + vec.z * mat.data[14] + vec.w * mat.data[15];
+		return result;
+	}
+
+	template <typename T>
+	inline mat4<T> operator*(const mat4<T>& m1, const mat4<T>& m2)
+	{
+		mat4<T> result;
+
+		result.data[0] = m1.data[0] * m2.data[0] + m1.data[1] * m2.data[4] + m1.data[2] * m2.data[8] +
+			m1.data[3] * m2.data[12];
+
+		result.data[1] = m1.data[0] * m2.data[1] + m1.data[1] * m2.data[5] + m1.data[2] * m2.data[9] +
+			m1.data[3] * m2.data[13];
+
+		result.data[2] = m1.data[0] * m2.data[2] + m1.data[1] * m2.data[6] + m1.data[2] * m2.data[10] +
+			m1.data[3] * m2.data[14];
+
+		result.data[3] = m1.data[0] * m2.data[3] + m1.data[1] * m2.data[7] + m1.data[2] * m2.data[11] +
+			m1.data[3] * m2.data[15];
+
+
+		result.data[4] = m1.data[4] * m2.data[0] + m1.data[5] * m2.data[4] + m1.data[6] * m2.data[8] +
+			m1.data[7] * m2.data[12];
+
+		result.data[5] = m1.data[4] * m2.data[1] + m1.data[5] * m2.data[5] + m1.data[6] * m2.data[9] +
+			m1.data[7] * m2.data[13];
+
+		result.data[6] = m1.data[4] * m2.data[2] + m1.data[5] * m2.data[6] + m1.data[6] * m2.data[10] +
+			m1.data[7] * m2.data[14];
+
+		result.data[7] = m1.data[4] * m2.data[3] + m1.data[5] * m2.data[7] + m1.data[6] * m2.data[11] +
+			m1.data[7] * m2.data[15];
+
+
+		result.data[8] = m1.data[8] * m2.data[0] + m1.data[9] * m2.data[4] + m1.data[10] * m2.data[8] +
+			m1.data[11] * m2.data[12];
+
+		result.data[9] = m1.data[8] * m2.data[1] + m1.data[9] * m2.data[5] + m1.data[10] * m2.data[9] +
+			m1.data[11] * m2.data[13];
+
+		result.data[10] = m1.data[8] * m2.data[2] + m1.data[9] * m2.data[6] + m1.data[10] * m2.data[10] +
+			m1.data[11] * m2.data[14];
+
+		result.data[11] = m1.data[8] * m2.data[3] + m1.data[9] * m2.data[7] + m1.data[10] * m2.data[11] +
+			m1.data[11] * m2.data[15];
+
+
+		result.data[12] = m1.data[12] * m2.data[0] + m1.data[13] * m2.data[4] + m1.data[14] * m2.data[8] +
+			m1.data[15] * m2.data[12];
+
+		result.data[13] = m1.data[12] * m2.data[1] + m1.data[13] * m2.data[5] + m1.data[14] * m2.data[9] +
+			m1.data[15] * m2.data[13];
+
+		result.data[14] = m1.data[12] * m2.data[2] + m1.data[13] * m2.data[6] + m1.data[14] * m2.data[10] +
+			m1.data[15] * m2.data[14];
+
+		result.data[15] = m1.data[12] * m2.data[3] + m1.data[13] * m2.data[7] + m1.data[14] * m2.data[11] +
+			m1.data[15] * m2.data[15];
+
+
+		return result;
+	}
 
 }
 	
