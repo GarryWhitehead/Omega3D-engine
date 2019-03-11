@@ -9,7 +9,7 @@
 #include "Managers/MaterialManager.h"
 #include "Managers/TransformManager.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/DeferredRenderer.h"
+#include "Rendering/Renderers/DeferredRenderer.h"
 #include "Rendering/RenderQueue.h"
 #include "Managers/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
@@ -51,7 +51,7 @@ namespace OmegaEngine
 	}
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
-										std::unique_ptr<DeferredRenderer>& renderer, 
+										std::unique_ptr<RendererBase>& renderer, 
 										std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		
@@ -104,9 +104,9 @@ namespace OmegaEngine
 		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
 		state.pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
 		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_gbuffer_pass());
+		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
 		state.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
-		state.pipeline.create(device, renderer->get_gbuffer_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.create(device, renderer->get_first_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 
 		return state;
 	}

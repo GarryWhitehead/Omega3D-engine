@@ -1,7 +1,7 @@
 #include "RenderInterface.h"
 #include "RenderableTypes/RenderableBase.h"
 #include "RenderableTypes/Mesh.h"
-#include "Rendering/DeferredRenderer.h"
+#include "Rendering/Renderers/DeferredRenderer.h"
 #include "Managers/ComponentInterface.h"
 #include "PostProcess/PostProcessInterface.h"
 #include "Objects/Object.h"
@@ -46,8 +46,12 @@ namespace OmegaEngine
 
 		// initiliase the graphical backend - we are solely using Vulkan 
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
-
+		
+		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
+
+		// init the command buffer now ready for rendering later
+		cmd_buffer.init(device.getDevice());
 	}
 
 	void RenderInterface::load_render_config()
@@ -82,10 +86,10 @@ namespace OmegaEngine
 		switch (static_cast<RendererType>(render_config.general.renderer)) {
 		case RendererType::Deferred:
 		{
-			def_renderer = std::make_unique<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
-			def_renderer->create_gbuffer_pass();
-			def_renderer->create_deferred_pass(win_width, win_height, component_interface->getManager<CameraManager>());
-			render_callback = def_renderer->set_render_callback(this, vk_interface);
+			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
+			auto deferred_renderer = reinterpret_cast<DeferredRenderer*>(renderer.get());
+			deferred_renderer->create_gbuffer_pass();
+			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface->getManager<CameraManager>());
 			break;
 		}
 		default:
@@ -112,7 +116,7 @@ namespace OmegaEngine
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::Mesh:
-			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), def_renderer, component_interface);
+			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface);
 			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
@@ -121,9 +125,10 @@ namespace OmegaEngine
 		render_pipelines[(int)type].shader = shader;
 	}
 
-	void RenderInterface::render_components()
+	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass)
 	{
 		// set the command buffer that will be used for the queue
+		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 		render_queue->add_cmd_buffer(cmd_buffer);
 		
 		RenderQueueInfo queue_info;
@@ -141,6 +146,16 @@ namespace OmegaEngine
 
 			render_queue->add_to_queue(queue_info);		
 		}
+
+		// sort by the set order - layer, shader, material and depth
+		render_queue->sort_all();
+
+		// now draw all renderables to the pass - start by begining the renderpass 
+		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+		cmd_buffer.begin_renderpass(begin_info, true);
+
+		// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
+		render_queue->threaded_dispatch(this);
 	}
 
 	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object* obj)
@@ -164,7 +179,7 @@ namespace OmegaEngine
 
 	void RenderInterface::render(double interpolation)
 	{
-		render_callback();
+		renderer->render(this, vk_interface);
 	}
 
 }

@@ -34,7 +34,7 @@ namespace OmegaEngine
 
 			OEMaths::mat4f& get_local()
 			{
-				return OEMaths::translate(OEMaths::mat4f(), local_trs.trans) * local_trs.rot * OEMaths::scale(OEMaths::mat4f(), local_trs.scale) * local;
+				return OEMaths::translate_mat4(local_trs.trans) * OEMaths::scale_mat4(local_trs.scale) * local;	// TODO: Add rotation!
 			}
 
 			LocalTRS local_trs;

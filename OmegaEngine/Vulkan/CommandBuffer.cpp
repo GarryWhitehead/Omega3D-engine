@@ -92,6 +92,32 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
 	}
 
+	void CommandBuffer::create_secondary(uint32_t count, bool reset)
+	{
+		if (reset) {
+			secondary_cmd_buffers.clear();
+			secondary_cmd_pools.clear();
+		}
+
+		// create pool for each secondary
+		for (uint32_t i = 0; i < count; ++i) {
+
+			vk::CommandPool pool;
+			vk::CommandPoolCreateInfo create_info(
+				vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+				queue_family_index);
+
+			device.createCommandPool(&create_info, nullptr, &pool);
+			secondary_cmd_pools.push_back(pool);
+
+			// create secondary cmd buffers
+			vk::CommandBuffer sec_cmd_buffer;
+			vk::CommandBufferAllocateInfo allocInfo(pool, vk::CommandBufferLevel::eSecondary, 1);
+			VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &sec_cmd_buffer));
+			secondary_cmd_buffers.push_back(sec_cmd_buffer);
+		}
+	}
+
 	void CommandBuffer::begin_secondary(uint32_t index)
 	{
 		vk::CommandBufferInheritanceInfo inheritance_info(
@@ -102,14 +128,11 @@ namespace VulkanAPI
 
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
 		
-		vk::CommandBuffer secondary_cmd_buffer;
 		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
-		VK_CHECK_RESULT(secondary_cmd_buffer.begin(&begin_info));
-
-		secondary_cmd_buffers[index] = secondary_cmd_buffer;
+		VK_CHECK_RESULT(secondary_cmd_buffers[index].begin(&begin_info));
 	}
 
-	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info)
+	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary)
 	{
 		// stor the renderpass and framebuffer locally
 		renderpass = begin_info.renderPass;
@@ -126,7 +149,12 @@ namespace VulkanAPI
 		vk::Rect2D scissor({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
 			{ begin_info.renderArea.extent.width, begin_info.renderArea.extent.height } });
 
-		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+		if (!use_secondary) {
+			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+		}
+		else {
+			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		}
 	}
 
 	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port)

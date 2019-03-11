@@ -45,9 +45,10 @@ namespace VulkanAPI
 
 		void init(vk::Device dev);
 		void create_primary(UsageType type);
+		void create_secondary(uint32_t count, bool reset);
 
 		void begin_secondary(uint32_t index);
-		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
+		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
 		void end_pass();
 		void end();

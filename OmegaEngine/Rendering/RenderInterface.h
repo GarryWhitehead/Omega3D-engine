@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Rendering/Renderers/RendererBase.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Interface.h"
 #include "Vulkan/Descriptors.h"
@@ -39,15 +39,6 @@ namespace OmegaEngine
 		PostProcess,	// rendered in a forward_pass
 		Count
 	};
-
-	// Note: only deferred renderer is supported at the moment. More to follow....
-	enum class RendererType
-	{
-		Deferred,
-		Forward,
-		Count
-	};
-
 
 	class RenderInterface
 	{
@@ -95,6 +86,12 @@ namespace OmegaEngine
 			renderables.push_back({ renderable });
 		}
 
+		template<typename T, typename... Args>
+		void set_renderer(Args&&... args)
+		{
+			renderer = std::make_unique<T>(std::forward<Args>(args)...);
+		}
+
 		ProgramState& get_render_pipeline(RenderTypes type)
 		{
 			return render_pipelines[(int)type];
@@ -109,16 +106,14 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components();
-
+		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
 
 	private:
 
 		RenderConfig render_config;
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
-		std::unique_ptr<DeferredRenderer> def_renderer;
-		RendererType renderer_type;
+		std::unique_ptr<RendererBase> renderer;
 
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;
@@ -129,9 +124,6 @@ namespace OmegaEngine
 
 		// all the pipelines and shaders for each renderable type
 		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
-
-		// the rendering call to use determined by which renderer is specified
-		std::function<void()> render_callback;
 
 		// Vulkan stuff for rendering the compoennts
 		VulkanAPI::CommandBuffer cmd_buffer;

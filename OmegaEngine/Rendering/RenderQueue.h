@@ -93,7 +93,7 @@ namespace OmegaEngine
 					uint32_t thread,
 					uint32_t thread_group_size);
 
-		void threaded_dispatch(RenderInterface* render_interface, std::unique_ptr<ComponentInterface>& component_interface);
+		void threaded_dispatch(RenderInterface* render_interface);
 
      private:
 

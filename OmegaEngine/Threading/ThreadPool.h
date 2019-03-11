@@ -34,7 +34,8 @@ namespace OmegaEngine
 		std::mutex mut;
 		std::atomic<bool> isComplete{ false };
 		std::atomic<int> taskCount{ 0 };
-		std::condition_variable_any con_var;
+		std::condition_variable_any cv_task;
+		std::condition_variable cv_finished;
 
 	};
 

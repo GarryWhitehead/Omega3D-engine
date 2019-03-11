@@ -32,6 +32,7 @@
     <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
+    <ClCompile Include="Rendering\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Rendering\RenderQueue.cpp" />
     <ClCompile Include="Rendering\StockModels.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
@@ -49,7 +50,6 @@
     <ClCompile Include="Managers\ComponentInterface.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
     <ClCompile Include="Managers\TransformManager.cpp" />
-    <ClCompile Include="Rendering\DeferredRenderer.cpp" />
     <ClCompile Include="Rendering\RenderInterface.cpp" />
     <ClCompile Include="Vulkan\DataTypes\Texture.cpp" />
     <ClCompile Include="Vulkan\Descriptors.cpp" />
@@ -96,6 +96,7 @@
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
     <ClInclude Include="Image\KtxReader.h" />
+    <ClInclude Include="Rendering\Renderers\RendererBase.h" />
     <ClInclude Include="Rendering\RenderQueue.h" />
     <ClInclude Include="Rendering\StockModels.h" />
     <ClInclude Include="OEMaths\OEMaths.h" />
@@ -134,7 +135,7 @@
     <ClInclude Include="Managers\MeshManager.h" />
     <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
-    <ClInclude Include="Rendering\DeferredRenderer.h" />
+    <ClInclude Include="Rendering\Renderers\DeferredRenderer.h" />
     <ClInclude Include="Rendering\RenderInterface.h" />
     <ClInclude Include="Threading\ThreadPool.h" />
     <ClInclude Include="Threading\ThreadUtil.h" />

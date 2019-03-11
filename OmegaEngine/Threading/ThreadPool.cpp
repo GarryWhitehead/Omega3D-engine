@@ -29,7 +29,7 @@ namespace OmegaEngine
 			bool workerReady = false;
 
 			std::unique_lock<std::mutex> lock(mut);
-			con_var.wait(lock, [this]() {
+			cv_task.wait(lock, [this]() {
 				return isComplete || !tasks.empty();
 			});
 
@@ -40,12 +40,14 @@ namespace OmegaEngine
 			if (!tasks.empty()) {
 				func = tasks.front();
 				tasks.pop();
+				workerReady = true;
 				taskCount++;
 			}
 
 			if (workerReady) {
 				func();
 				--taskCount;
+				cv_finished.notify_one();
 			}
 		}
 	}
@@ -54,7 +56,7 @@ namespace OmegaEngine
 	{
 		std::lock_guard<std::mutex> guard(mut);
 		tasks.push(func);
-		con_var.notify_one();
+		cv_task.notify_one();
 	}
 
 	bool ThreadPool::isFinished()
@@ -65,15 +67,14 @@ namespace OmegaEngine
 
 	void ThreadPool::wait_for_all()
 	{
-		while (!isFinished()) {
-
-		}
+		std::unique_lock<std::mutex> lock(mut);
+		cv_finished.wait(lock, [this]() { return taskCount == 0 && tasks.empty(); });
 	}
 
 	void ThreadPool::stopThread()
 	{
 		isComplete = true;
-		con_var.notify_all();
+		cv_task.notify_all();
 	}
 
 }
