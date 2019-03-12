@@ -47,7 +47,19 @@ namespace OmegaEngine
 		mesh_instance_data->sampler = mat.sampler;
 
 		// material push block
-		
+		mesh_instance_data->material_push_block.baseColorFactor = mat.factors.baseColour;
+		mesh_instance_data->material_push_block.metallicFactor = mat.factors.metallic;
+		mesh_instance_data->material_push_block.roughnessFactor = mat.factors.roughness;
+		mesh_instance_data->material_push_block.emissiveFactor = mat.factors.emissive;
+		mesh_instance_data->material_push_block.specularFactor = mat.factors.specular;
+		mesh_instance_data->material_push_block.diffuseFactor = mat.factors.diffuse;
+		mesh_instance_data->material_push_block.alphaMask = mat.factors.alphaMask;
+		mesh_instance_data->material_push_block.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
+		mesh_instance_data->material_push_block.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor];
+		mesh_instance_data->material_push_block.haveMrMap = mat.texture_state[(int)PbrMaterials::MetallicRoughness];
+		mesh_instance_data->material_push_block.haveNormalMap = mat.texture_state[(int)PbrMaterials::Normal];
+		mesh_instance_data->material_push_block.haveAoMap = mat.texture_state[(int)PbrMaterials::Occlusion];
+		mesh_instance_data->material_push_block.haveEmissiveMap = mat.texture_state[(int)PbrMaterials::Emissive];
 	}
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
@@ -81,11 +93,11 @@ namespace OmegaEngine
 				auto& camera_manager = component_interface->getManager<CameraManager>();
 				state.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
-			if (layout.name == "StaticMeshUbo") {
+			if (layout.name == "Dynamic_StaticMeshUbo") {
 				auto& transform_manager = component_interface->getManager<TransformManager>();
 				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_mesh_ubo_buffer(), transform_manager.get_mesh_ubo_offset(), layout.range);
 			}
-			if (layout.name == "SkinnedUbo") {
+			if (layout.name == "Dynamic_SkinnedUbo") {
 				auto& transform_manager = component_interface->getManager<TransformManager>();
 				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_skinned_ubo_buffer(), transform_manager.get_skinned_ubo_offset(), layout.range);
 			}

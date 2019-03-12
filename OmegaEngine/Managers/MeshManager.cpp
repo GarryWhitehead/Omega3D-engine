@@ -149,8 +149,6 @@ namespace OmegaEngine
 
 	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
-		// if dirty, then we need to update the mesh vertices and indices
-		// as other managers, this will need to be chnaged at some point so only meshes that need upadting are effected
 		if (isDirty) {
 
 			uint32_t vertex_offset = 0;
@@ -169,9 +167,8 @@ namespace OmegaEngine
 				index_offset += mesh.indexBuffer.size();
 
 			}
-
-			isDirty = false;
 		}
+
+		isDirty = false;
 	}
-	
 }

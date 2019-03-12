@@ -305,9 +305,6 @@
     <ClInclude Include="Vulkan\Shader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\DataTypes\PushBlocks.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\RenderPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>

@@ -52,14 +52,14 @@ namespace OmegaEngine
 			AlphaMode alphaMode = AlphaMode::None;
 			struct Factors
 			{
-				OEMaths::vec3d emissive;
-				float specularGlossiness;
-				float baseColour;
-				float roughness;
-				float diffuse;
-				float metallic;
-				float specular;
-				float alphaMask;
+				OEMaths::vec3f emissive;
+				float specularGlossiness = 1.0f;
+				float baseColour = 1.0f;
+				float roughness = 1.0f;
+				float diffuse = 1.0f;
+				float metallic = 1.0f;
+				float specular = 1.0f;
+				float alphaMask = (float)AlphaMode::None;
 				float alphaMaskCutOff;
 			} factors;
 
@@ -74,16 +74,13 @@ namespace OmegaEngine
 			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;
 			VulkanAPI::DescriptorSet descr_set;
 			VulkanAPI::Sampler sampler;
-
-			bool usingExtension = false;
 		};
 
 		MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue);
 		~MaterialManager();
 
-		void update_frame(double time, double dt, 
-							std::unique_ptr<ObjectManager>& obj_manager,
-							ComponentInterface* component_interface) override;
+		// a per-frame update if the material data becomes dirty
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);

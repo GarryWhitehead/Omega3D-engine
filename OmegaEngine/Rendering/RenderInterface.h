@@ -24,6 +24,7 @@ namespace OmegaEngine
 	class RenderableBase;
 	class PostProcessInterface;
 	class RenderQueue;
+	class ObjectManager;
 
 	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)>
 	FuncReturn get_member_render_function(void *object, VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)
@@ -76,7 +77,10 @@ namespace OmegaEngine
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order
-		void add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object* obj);
+		void build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface);
+
+		// adds a list of objects to the tree using the function above
+		void update_renderables(std::unique_ptr<ObjectManager>& objecct_manager, std::unique_ptr<ComponentInterface>& comp_interface);
 
 		// renderable type creation
 		template <typename T, typename... Args>

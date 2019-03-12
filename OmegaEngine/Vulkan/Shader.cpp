@@ -122,13 +122,13 @@ namespace VulkanAPI
 
 				// the descriptor type could be either a normal or dynamic uniform buffer. Dynamic buffers must start with "Dynamic::"
 				vk::DescriptorType type = vk::DescriptorType::eUniformBuffer;
-				if (ubo.name.find("Dynamic::") != std::string::npos) {
+				if (ubo.name.find("Dynamic_") != std::string::npos) {
 					type = vk::DescriptorType::eUniformBufferDynamic;
 				}
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
-				buffer_layout.push_back({ vk::DescriptorType::eUniformBuffer, binding, set, ubo.name, range });
+				buffer_layout.push_back({ type, binding, set, ubo.name, range });
 			}
 
 			// storage
@@ -139,13 +139,13 @@ namespace VulkanAPI
 
 				// the descriptor type could be either a normal or dynamic storage buffer. Dynamic buffers must start with "Dynamic::"
 				vk::DescriptorType type = vk::DescriptorType::eStorageBuffer;
-				if (ssbo.name.find("Dynamic::") != std::string::npos) {
+				if (ssbo.name.find("Dynamic_") != std::string::npos) {
 					type = vk::DescriptorType::eStorageBufferDynamic;
 				}
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
-				buffer_layout.push_back({ vk::DescriptorType::eStorageBuffer, binding, set, ssbo.name, range });
+				buffer_layout.push_back({ type, binding, set, ssbo.name, range });
 			}
 
 			// image storage

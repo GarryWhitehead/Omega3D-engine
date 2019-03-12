@@ -98,10 +98,19 @@ namespace VulkanAPI
 		std::vector<vk::DescriptorSet> get()
 		{
 			assert(!descr_sets.empty());
+			// first get the bindings
+			std::vector<uint32_t> bindings;
+			for (auto& set : descr_sets) {
+				bindings.push_back(set.first);
+			}
+
+			// sort into ascending order
+			std::sort(bindings.begin(), bindings.end());
+
+			// now create the sets
 			std::vector< vk::DescriptorSet> sets;
-			// ensure their in the correct order
-			for (uint32_t i = 0; i < descr_sets.size(); ++i) {
-				sets.push_back(descr_sets[i]);
+			for (auto& bind : bindings) {
+				sets.push_back(descr_sets[bind]);
 			}
 			return sets;
 		}

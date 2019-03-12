@@ -5,6 +5,7 @@
 #include "Managers/ComponentInterface.h"
 #include "PostProcess/PostProcessInterface.h"
 #include "Objects/Object.h"
+#include "Objects/ObjectManager.h"
 #include "Managers/TransformManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
@@ -136,8 +137,11 @@ namespace OmegaEngine
 		for (auto& info : renderables) {
 			
 			switch (info.renderable->get_type()) {
-			case RenderTypes::Mesh: queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>; 
-									break;
+			case RenderTypes::Mesh: {
+				queue_info.renderable_handle = info.renderable->get_handle();
+				queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
+				break;
+			}
 			}
 
 			queue_info.renderable_data = info.renderable->get_instance_data();
@@ -158,22 +162,32 @@ namespace OmegaEngine
 		render_queue->threaded_dispatch(this);
 	}
 
-	void RenderInterface::add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object* obj)
+	void RenderInterface::build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface)
 	{
 		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
-		uint32_t mesh_index = obj->get_manager_index<MeshManager>();
+		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
 		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
 
 		// we need to add all the primitve sub meshes as renderables
-		for (auto& primitive: mesh.primitives) {
+		for (auto& primitive : mesh.primitives) {
 			add_renderable<RenderableMesh>(comp_interface, mesh, primitive);
 		}
 
 		// and do the same for all children associated with this mesh
-		auto children = obj->get_children();
+		auto children = obj.get_children();
 		for (auto child : children) {
-			add_mesh_tree(comp_interface, &child);
+			build_renderable_tree(child, comp_interface);
+		}
+	}
+
+	void RenderInterface::update_renderables(std::unique_ptr<ObjectManager>& object_manager, std::unique_ptr<ComponentInterface>& comp_interface)
+	{
+		// get all objects
+		auto objects = object_manager->get_objects_list();
+
+		for (auto& object : objects) {
+			build_renderable_tree(object.second, comp_interface);
 		}
 	}
 

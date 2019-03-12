@@ -92,6 +92,7 @@ namespace OmegaEngine
 		MeshManager();
 		~MeshManager();
 
+		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj);

@@ -108,7 +108,6 @@
     <ClInclude Include="Rendering\RenderUtil.h" />
     <ClInclude Include="utility\BVH.hpp" />
     <ClInclude Include="utility\Timer.h" />
-    <ClInclude Include="Vulkan\DataTypes\PushBlocks.h" />
     <ClInclude Include="Vulkan\Pipeline.h" />
     <ClInclude Include="Vulkan\Queue.h" />
     <ClInclude Include="Vulkan\SemaphoreManager.h" />

@@ -33,7 +33,7 @@ namespace OmegaEngine
 			mat.texture_state[(int)PbrMaterials::MetallicRoughness] = true;
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
-			mat.factors.baseColour = static_cast<float>(gltf_mat.values["baseColorFactor"].Factor());
+			//mat.factors.baseColour = OEMaths::convert_vec4((float*)gltf_mat.values["baseColorFactor"].ColorFactor());
 		}
 		if (gltf_mat.values.find("metallicFactor") != gltf_mat.values.end()) {
 			mat.factors.metallic = static_cast<float>(gltf_mat.values["metallicFactor"].Factor());
@@ -73,7 +73,7 @@ namespace OmegaEngine
 			mat.factors.alphaMaskCutOff = static_cast<float>(gltf_mat.additionalValues["alphaCutOff"].Factor());
 		}
 		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end()) {
-			mat.factors.emissive = OEMaths::convert_vec3<double>(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
+			mat.factors.emissive = OEMaths::convert_vec3<float>(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
 		}
 
 		// check for extensions
@@ -112,10 +112,8 @@ namespace OmegaEngine
 
 	void MaterialManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
-		// if dirty - then upload material to gpu. With other managers, this needs to be adjusted so only materials
-		// that are changed/deleted/added are updated
 		if (isDirty) {
-			
+
 			auto& tex_manager = component_interface->getManager<TextureManager>();
 
 			for (auto& mat : materials) {
@@ -144,14 +142,13 @@ namespace OmegaEngine
 						// sanity check first - make sure their initilialised!
 						assert(descr_layout);
 						assert(descr_pool);
-						
+
 						mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
 					}
 				}
 			}
-		}	
-		
+		}
+
 		isDirty = false;
 	}
-
 }

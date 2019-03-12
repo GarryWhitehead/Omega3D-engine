@@ -101,9 +101,15 @@ namespace OmegaEngine
 
 	void World::update(double time, double dt)
 	{
-		// update frame 
+		// update on a per-frame basis
+		// animation
 		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
+
+		// all other managers
 		component_interface->update_managers(time, dt, objectManager);
+		
+		// add all objects as renderable targets unless they flagged otherwise 
+		render_interface->update_renderables(objectManager, component_interface);
 	}
 
 	void World::render(double interpolation)
@@ -132,6 +138,7 @@ namespace OmegaEngine
 		if (ret) {
 
 			auto& texture_manager = component_interface->getManager<TextureManager>();
+			auto& material_manager = component_interface->getManager<MaterialManager>();
 
 			uint32_t set = texture_manager.get_current_set();
 
@@ -146,7 +153,7 @@ namespace OmegaEngine
 			}
 
 			for (auto& mat : model.materials) {
-				component_interface->getManager<MaterialManager>().addGltfMaterial(set, mat, texture_manager);
+				material_manager.addGltfMaterial(set, mat, texture_manager);
 			}
 			texture_manager.next_set();
 
@@ -162,9 +169,6 @@ namespace OmegaEngine
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
 				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
-
-				// add as renderable targets
-				render_interface->add_mesh_tree(component_interface, obj);
 			}
 
 			// skinning info

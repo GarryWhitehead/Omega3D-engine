@@ -44,6 +44,8 @@ namespace OmegaEngine
 		{
 		}
 
+		virtual void* get_handle() = 0;
+
 		RenderTypes get_type() const
 		{
 			return type;

@@ -42,27 +42,28 @@ namespace OmegaEngine
 		// create the cmd pools and secondary buffers for each stage
 		cmd_buffer.create_secondary(num_threads, true);
 
+
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
-            
+
 			// TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
 			uint32_t thread_group_size = queue.second.size() / num_threads;
 			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
+
+			auto drawRenderable = [&](const int startIndex) ->void {
+				submit(render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_count, thread_group_size);
+			};
 
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
 
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
             
-                    thread_pool.submitTask([&]() {
-						submit(render_interface, queue.first, i, queue.second.size(), thread_count, thread_group_size);
-                    });
+                    thread_pool.submitTask(std::bind(drawRenderable, i));
                     break;
                 }
 
-                thread_pool.submitTask([&]() {
-					submit(render_interface, queue.first, i, i + thread_group_size, thread_count, thread_group_size);
-                });
+                thread_pool.submitTask(std::bind(drawRenderable, i));
 
                 ++thread_count;
 		    }   

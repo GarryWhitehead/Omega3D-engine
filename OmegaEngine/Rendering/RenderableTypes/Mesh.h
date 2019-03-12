@@ -3,8 +3,8 @@
 #include "Managers/MeshManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Descriptors.h"
-#include "Vulkan/DataTypes/PushBlocks.h"
 #include "Rendering/RenderInterface.h"
+#include "OEMaths/OEMaths.h"
 
 // forward decleartions
 namespace VulkanAPI
@@ -48,15 +48,20 @@ namespace OmegaEngine
 			// if we start calling back to material manager whilst is updating in a different thread
 			struct MaterialPushBlock
 			{
-				OEMaths::vec3f emissive;
-				float specularGlossiness;
-				float baseColour;
-				float roughness;
-				float diffuse;
-				float metallic;
-				float specular;
+				OEMaths::vec4f baseColorFactor;
+				OEMaths::vec3f emissiveFactor;
+				OEMaths::vec3f diffuseFactor;
+				OEMaths::vec3f specularFactor;
+				float metallicFactor;
+				float roughnessFactor;
 				float alphaMask;
-				float alphaMaskCutOff;
+				float alphaMaskCutoff;
+				bool haveBaseColourMap;
+				bool haveNormalMap;
+				bool haveEmissiveMap;
+				bool haveMrMap;
+				bool haveAoMap;
+				bool usingSpecularGlossiness;
 			} material_push_block;
 
 			// vulkan stuff for material textures
@@ -68,6 +73,11 @@ namespace OmegaEngine
 			uint32_t skinned_dynamic_offset = 0;
 		};
 		
+		void* get_handle() override
+		{
+			return this;
+		}
+
 		RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive); 
