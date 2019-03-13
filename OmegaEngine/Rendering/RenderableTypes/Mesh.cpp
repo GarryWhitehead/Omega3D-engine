@@ -7,6 +7,7 @@
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
 #include "Managers/MaterialManager.h"
+#include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
@@ -25,6 +26,8 @@ namespace OmegaEngine
 		
 		// get the material for this primitive mesh from the manager
 		auto& material_manager = component_interface->getManager<MaterialManager>();
+		auto& mesh_manager = component_interface->getManager<MeshManager>();
+
 		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
@@ -37,6 +40,10 @@ namespace OmegaEngine
 		// index into the main buffer
 		mesh_instance_data->vertex_buffer_offset = mesh.vertex_buffer_offset;
 		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset;
+
+		// actual vulkan buffers
+		mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer();
+		mesh_instance_data->index_buffer = mesh_manager.get_index_buffer();
 
 		// per face indicies
 		mesh_instance_data->index_sub_offset = primitive.indexBase;
@@ -141,11 +148,14 @@ namespace OmegaEngine
 
 		RenderInterface::ProgramState& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
 
-		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, mesh_pipeline.descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
-		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);
+		// merge the material set with the mesh ubo sets
+		std::vector<vk::DescriptorSet> material_set = instance_data->descr_set.get();
+		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline.descr_set.get();
+		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
 
-		// bind the material set to (set = 0)
-		cmd_buffer.secondary_bind_descriptors(mesh_pipeline.pl_layout, instance_data->descr_set, VulkanAPI::PipelineType::Graphics, thread);
+		cmd_buffer.bind_secondary_pipeline(mesh_pipeline.pipeline, thread);
+		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
+		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);
 
 		vk::DeviceSize offset = {instance_data->vertex_buffer_offset};
 		cmd_buffer.secondary_bind_vertex_buffer(instance_data->vertex_buffer, offset, thread);
@@ -153,6 +163,4 @@ namespace OmegaEngine
 		cmd_buffer.secondary_draw_indexed(instance_data->index_count, thread);
 	}
 
-
-	
 }

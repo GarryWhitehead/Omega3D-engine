@@ -4,6 +4,7 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
 #include "Utility/logger.h"
+#include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/MemoryAllocator.h"
 
 #include "tiny_gltf.h"
@@ -115,6 +116,18 @@ namespace OmegaEngine
 			}
 
 			delete buf;
+		}
+
+		vk::Buffer& get_vertex_buffer()
+		{
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			return mem_alloc.get_memory_buffer(vertex_buffer.get_id());
+		}
+
+		vk::Buffer& get_index_buffer()
+		{
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			return mem_alloc.get_memory_buffer(index_buffer.get_id());
 		}
 
 	private:

@@ -13,8 +13,8 @@ namespace OmegaEngine
 	MeshManager::MeshManager()
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
-		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(IndexBlockSize));
+		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
+		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 

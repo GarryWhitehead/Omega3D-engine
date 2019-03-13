@@ -55,8 +55,10 @@ namespace OmegaEngine
 
 		struct SkinnedBufferInfo
 		{
-			OEMaths::mat4f joint_matrices[256];
-			uint32_t joint_count;
+			OEMaths::mat4f mat;
+			OEMaths::mat4f joint_matrices[64];
+			float joint_count;
+			float pad;
 		};
 
 		// skinning data derived from file 

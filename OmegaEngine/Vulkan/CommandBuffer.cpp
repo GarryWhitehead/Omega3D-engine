@@ -223,6 +223,15 @@ namespace VulkanAPI
 	}
 
 	// secondary command buffer functions ===========================
+	void CommandBuffer::bind_secondary_pipeline(Pipeline& pipeline, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(pipeline.get_pipeline_type());
+		sec_cmd_buffer.bindPipeline(bind_point, pipeline.get());
+	}
+
 	void CommandBuffer::secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle)
 	{
 		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
@@ -243,6 +252,17 @@ namespace VulkanAPI
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		std::vector<vk::DescriptorSet> sets = descr_set.get();
 		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+	}
+
+	void CommandBuffer::secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector<vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		assert(!dynamic_offsets.empty());
+
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(type);
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.size(), descr_set.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
 	}
 
 	void CommandBuffer::secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle)
