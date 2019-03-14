@@ -45,9 +45,10 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 F0, float metallic, float
 		float G = GeometryShlickGGX(NdotV, NdotL, roughness);
 		vec3 F = FresnelSchlick(NdotV, F0);		
 		
-		vec3 specular = D * F * G / (4.0 * NdotL * NdotV + 0.001);		
-		vec3 Kd = (vec3(1.0) - F) * (1.0 - metallic);			
-		colour += (Kd * albedo / PI + specular) * radiance * NdotL; 
+		vec3 specularContribution = D * F * G / (4.0 * NdotL * NdotV + 0.001);		
+		vec3 diffuseContribution = (vec3(1.0) - F) * (1.0 - metallic);
+		diffuseContribution *= albedo / PI;
+		colour = (diffuseContribution + specularContribution) * radiance * NdotL; 
 	}
 
 	return colour;

@@ -126,6 +126,9 @@ namespace OmegaEngine
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;
 
+		// dirty flag indicates whether to rebuild the renderables
+		bool isDirty = true;
+
 		// all the pipelines and shaders for each renderable type
 		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
 

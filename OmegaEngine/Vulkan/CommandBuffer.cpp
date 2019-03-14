@@ -128,7 +128,7 @@ namespace VulkanAPI
 
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
 		
-		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
+		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritance_info);
 		VK_CHECK_RESULT(secondary_cmd_buffers[index].begin(&begin_info));
 	}
 
@@ -142,11 +142,11 @@ namespace VulkanAPI
 		assert(framebuffer);
 		
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
-		vk::Viewport view_port(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
+		view_port = vk::Viewport(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
 			begin_info.renderArea.extent.width, begin_info.renderArea.extent.height,
 			0.0f, 1.0f);
 
-		vk::Rect2D scissor({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
+		scissor = vk::Rect2D({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
 			{ begin_info.renderArea.extent.width, begin_info.renderArea.extent.height } });
 
 		if (!use_secondary) {
@@ -181,6 +181,12 @@ namespace VulkanAPI
 	void CommandBuffer::end()
 	{
 		cmd_buffer.end();
+	}
+
+	void CommandBuffer::end_secondary(SecondaryHandle handle)
+	{
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.end();
 	}
 
 	void CommandBuffer::bind_pipeline(Pipeline& pipeline)
@@ -311,7 +317,27 @@ namespace VulkanAPI
 		cmd_buffer.executeCommands(secondary_cmd_buffers.size(), secondary_cmd_buffers.data());
 	}
 
-	
+	void CommandBuffer::secondary_execute_commands(uint32_t buffer_count)
+	{
+		// use this function if you don't want to execute all the secondary command buffers 
+		assert(!secondary_cmd_buffers.empty());
+		cmd_buffer.executeCommands(buffer_count, secondary_cmd_buffers.data());
+	}
+
+	void CommandBuffer::secondary_set_viewport(SecondaryHandle handle)
+	{
+		// this function uses the same viewport as set by the main command buffer
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.setViewport(0, 1, &view_port);
+	}
+
+	void CommandBuffer::secondary_set_scissor(SecondaryHandle handle)
+	{
+		// this function uses the same scissor as set by the main command buffer
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.setScissor(0, 1, &scissor);
+	}
+
 	// drawing functions ========
 	void CommandBuffer::draw_indexed(uint32_t index_count)
 	{

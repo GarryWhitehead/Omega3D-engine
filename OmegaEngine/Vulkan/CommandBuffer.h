@@ -52,6 +52,7 @@ namespace VulkanAPI
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
 		void end_pass();
 		void end();
+		void end_secondary(SecondaryHandle handle);
 
 		// primary binding functions
 		void bind_pipeline(Pipeline& pipeline);
@@ -71,7 +72,12 @@ namespace VulkanAPI
 		void secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset, SecondaryHandle handle);
 		void secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle);
 		void secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset, SecondaryHandle handle);
+
+		void secondary_set_viewport(SecondaryHandle handle);
+		void secondary_set_scissor(SecondaryHandle handle);
+
 		void secondary_execute_commands();
+		void secondary_execute_commands(uint32_t buffer_count);
 
 		// drawing functions
 		void draw_indexed(uint32_t index_count);

@@ -128,10 +128,6 @@ namespace OmegaEngine
 
 	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass)
 	{
-		// set the command buffer that will be used for the queue
-		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
-		render_queue->add_cmd_buffer(cmd_buffer);
-		
 		RenderQueueInfo queue_info;
 	
 		for (auto& info : renderables) {
@@ -155,11 +151,14 @@ namespace OmegaEngine
 		render_queue->sort_all();
 
 		// now draw all renderables to the pass - start by begining the renderpass 
+		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 		cmd_buffer.begin_renderpass(begin_info, true);
 
 		// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
-		render_queue->threaded_dispatch(this);
+		render_queue->threaded_dispatch(cmd_buffer, this);
+
+		isDirty = true;
 	}
 
 	void RenderInterface::build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface)
@@ -183,11 +182,16 @@ namespace OmegaEngine
 
 	void RenderInterface::update_renderables(std::unique_ptr<ObjectManager>& object_manager, std::unique_ptr<ComponentInterface>& comp_interface)
 	{
-		// get all objects
-		auto objects = object_manager->get_objects_list();
+		if (isDirty) {
 
-		for (auto& object : objects) {
-			build_renderable_tree(object.second, comp_interface);
+			// get all objects
+			auto objects = object_manager->get_objects_list();
+
+			for (auto& object : objects) {
+				build_renderable_tree(object.second, comp_interface);
+			}
+
+			isDirty = false;
 		}
 	}
 

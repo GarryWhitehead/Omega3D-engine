@@ -14,7 +14,8 @@ namespace OmegaEngine
 
     }
 
-    void RenderQueue::submit(RenderInterface* render_interface, 
+    void RenderQueue::submit(VulkanAPI::CommandBuffer& cmd_buffer,
+							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
                              uint32_t thread,
@@ -29,10 +30,12 @@ namespace OmegaEngine
             RenderQueueInfo& queue_info = render_queues[type][i];
             queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data, render_interface, thread);
         }
+
+		cmd_buffer.end_secondary(thread);
     }
 
 
-    void RenderQueue::threaded_dispatch(RenderInterface* render_interface)
+    void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
         uint32_t num_threads = std::thread::hardware_concurrency();
 		
@@ -42,7 +45,6 @@ namespace OmegaEngine
 		// create the cmd pools and secondary buffers for each stage
 		cmd_buffer.create_secondary(num_threads, true);
 
-
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
 
@@ -51,7 +53,7 @@ namespace OmegaEngine
 			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
 			auto drawRenderable = [&](const int startIndex) ->void {
-				submit(render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_count, thread_group_size);
+				submit(cmd_buffer, render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_count, thread_group_size);
 			};
 
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
@@ -67,13 +69,15 @@ namespace OmegaEngine
 
                 ++thread_count;
 		    }   
-
-            // check that all threads are finshed before executing the cmd buffers
-            thread_pool.wait_for_all();
-
-            cmd_buffer.secondary_execute_commands();    
         }
 
+		// check that all threads are finshed before executing the cmd buffers
+		thread_pool.wait_for_all();
+
+		// execute the recorded secondary command buffers - only for those threads we have actually used
+		cmd_buffer.secondary_execute_commands(thread_count);
+
+		// end the primary pass and buffer
 		cmd_buffer.end_pass();
 		cmd_buffer.end();
 

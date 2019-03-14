@@ -153,6 +153,8 @@ namespace OmegaEngine
 		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline.descr_set.get();
 		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
 
+		cmd_buffer.secondary_set_viewport(thread);
+		cmd_buffer.secondary_set_scissor(thread);
 		cmd_buffer.bind_secondary_pipeline(mesh_pipeline.pipeline, thread);
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);
