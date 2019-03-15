@@ -50,9 +50,9 @@ namespace VulkanAPI
 			mipmap_mode,
 			address_mode, address_mode, address_mode,
 			0.0f,
-			VK_TRUE, 1.0f,
+			VK_TRUE, 1.0f,			// TODO: add user control of max antriospy
 			compare_op ? VK_TRUE : VK_FALSE, vk::CompareOp::eLessOrEqual,
-			0.0f, VK_LOD_CLAMP_NONE,
+			0.0f, VK_LOD_CLAMP_NONE,			// maxLod should equal the mip-map count?
 			vk::BorderColor::eFloatTransparentBlack,
 			VK_FALSE);
 
