@@ -50,12 +50,18 @@ namespace OmegaEngine
 
 				std::unique_lock<std::mutex> lock(mut);
 				tasks.pop();
-				--taskCount;
-				cv_task.notifty_one();
-				
+				--taskCount;		
+				cv_finished.notify_one();
+				lock.unlock();
 			}
 		}	
-
+	}
+	
+	void ThreadPool::submitTask(std::function<void()> func)
+	{
+		std::lock_guard<std::mutex> guard(mut);
+		tasks.push(func);
+		cv_task.notify_one();
 	}
 
 	bool ThreadPool::isFinished()
