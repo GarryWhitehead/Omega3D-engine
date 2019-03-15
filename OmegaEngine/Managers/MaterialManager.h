@@ -6,6 +6,7 @@
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/Queue.h"
 
 #include "tiny_gltf.h"
 
@@ -20,8 +21,8 @@ namespace OmegaEngine
 	enum class PbrMaterials 
 	{
 		BaseColor,
-		MetallicRoughness,
 		Normal,
+		MetallicRoughness,
 		Emissive,
 		Occlusion,
 		Count
@@ -44,49 +45,62 @@ namespace OmegaEngine
 			struct Texture
 			{
 				uint32_t set;
-				uint32_t sampler;
-				uint32_t image;	// set number and the index within this set
+				uint32_t sampler = 0;
+				uint32_t image = 0;			// set number and the index within this set
 			};
 
 			AlphaMode alphaMode = AlphaMode::None;
 			struct Factors
 			{
 				OEMaths::vec3f emissive;
-				float specularGlossiness;
-				float baseColour;
-				float roughness;
-				float diffuse;
-				float metallic;
-				float specular;
-				float alphaMask;
+				float specularGlossiness = 1.0f;
+				float baseColour = 1.0f;
+				float roughness = 1.0f;
+				float diffuse = 1.0f;
+				float metallic = 1.0f;
+				float specular = 1.0f;
+				float alphaMask = (float)AlphaMode::None;
 				float alphaMaskCutOff;
 			} factors;
 
 			// material image indicies
-			std::array<Texture, static_cast<int>(PbrMaterials::Count) > textures;
+			std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
+			std::array<bool, static_cast<int>(PbrMaterials::Count)> texture_state = { false };
+
+			// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
+			bool usingSpecularGlossiness = false;
 
 			// local vulkan data
 			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;
 			VulkanAPI::DescriptorSet descr_set;
 			VulkanAPI::Sampler sampler;
-
-			bool usingExtension = false;
 		};
 
-		MaterialManager(vk::Device dev);
+		MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue);
 		~MaterialManager();
 
-		void update_frame(double time, double dt, 
-							std::unique_ptr<ObjectManager>& obj_manager,
-							std::unique_ptr<ComponentInterface>& component_interface) override;
+		// a per-frame update if the material data becomes dirty
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
+
+		void add_descr_layout(vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool)
+		{
+			descr_layout = layout;
+			descr_pool = pool;
+		}
 
 	private:
 		
 		// for the updating of materials
 		vk::Device device;
+		vk::PhysicalDevice gpu;
+		VulkanAPI::Queue graph_queue;
+
+		// a pointer to the descr set - init in the mesh pipeline and needed for creating the set here
+		vk::DescriptorSetLayout descr_layout;
+		vk::DescriptorPool descr_pool;
 
 		std::vector<MaterialInfo> materials;
 		bool isDirty = true;

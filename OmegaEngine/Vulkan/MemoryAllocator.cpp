@@ -86,7 +86,10 @@ namespace VulkanAPI
 
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST) : size;
 
-			createBuffer(alloc_size, usage | vk::BufferUsageFlagBits::eTransferDst,
+			// instead of creating a buffer for each usage flag, just allow this buffer to hold any usage type. This keeps allocations to a min and doesn't seem to effect performance
+			// TODO: remove the usage parameter as not really needed
+			createBuffer(alloc_size, vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eUniformBuffer
+				| vk::BufferUsageFlagBits::eStorageBuffer| vk::BufferUsageFlagBits::eTransferDst,
 				vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
 				block.block_mem,
 				block.block_buffer);
@@ -98,7 +101,8 @@ namespace VulkanAPI
 			alloc_size = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL) : size;
 
 			// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
-			createBuffer(alloc_size, vk::BufferUsageFlagBits::eTransferDst | usage,
+			createBuffer(alloc_size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eUniformBuffer
+				| vk::BufferUsageFlagBits::eStorageBuffer | usage,
 				vk::MemoryPropertyFlagBits::eDeviceLocal,
 				block.block_mem,
 				block.block_buffer);
@@ -291,7 +295,7 @@ namespace VulkanAPI
 		}
 	
 		// allocate memory for this dynamic buffer taking into consideration mem alignment if required
-		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, size * alignment_size);
+		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, objects * alignment_size);
 		dynamic_buffers.push_back(segment);
 
 		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size() - 1, segment.get_id(), segment.get_offset());

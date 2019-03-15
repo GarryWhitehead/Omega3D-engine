@@ -1,20 +1,14 @@
 #version 450
 
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_shading_language_420pack : enable
-
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUv;
 
 layout (set = 0, binding = 0) uniform UboBuffer
 {
-	mat4 projection;
-	mat4 viewMatrix;
-	mat4 modelMatrix;
+	mat4 mvp;
 } ubo;
 
 layout (location = 0) out vec2 outUv;
-layout (location = 1) out vec3 outPosW;
 
 out gl_PerVertex
 {
@@ -23,6 +17,6 @@ out gl_PerVertex
 
 void main()
 {
-	outPosW = (ubo.modelMatrix * vec4(inPos, 1.0)).xyz;
-	gl_Position = vec4(inPos, 1.0);
+	outUv = inUv;
+	gl_Position = ubo.mvp * vec4(inPos, 1.0);
 }

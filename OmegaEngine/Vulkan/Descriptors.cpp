@@ -3,6 +3,16 @@
 
 namespace VulkanAPI
 {
+	namespace Util
+	{
+		// a static version or the write set function, useful for updating a single descriptor set
+		void write_set(vk::Device device, vk::DescriptorSet& descr_set, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout)
+		{
+			vk::DescriptorImageInfo image_info(sampler, image_view, layout);
+			vk::WriteDescriptorSet write_set(descr_set, binding, 0, 1, type, &image_info, nullptr, nullptr);
+			device.updateDescriptorSets(1, &write_set, 0, nullptr);
+		}
+	}
 
 	DescriptorLayout::DescriptorLayout()
 	{
@@ -126,8 +136,19 @@ namespace VulkanAPI
 
 			vk::DescriptorSet descr_set;
 			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
-			descr_sets.push_back(descr_set);
+			descr_sets[set_count] = descr_set;
 		}
+	}
+
+	void DescriptorSet::init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set)
+	{
+		this->device = device;
+
+		vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &layout);
+
+		vk::DescriptorSet descr_set;
+		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
+		descr_sets[set] = descr_set;
 	}
 
 	void DescriptorSet::write_set(ShaderImageLayout& imageLayout, vk::ImageView& image_view)

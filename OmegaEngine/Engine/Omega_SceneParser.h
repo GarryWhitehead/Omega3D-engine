@@ -32,7 +32,7 @@ namespace OmegaEngine
 		{
 			std::string gltfFilename;
 
-			OEMaths::vec4f world_translation;
+			OEMaths::vec3f world_translation;
 			OEMaths::vec3f world_scale;
 			OEMaths::vec3f world_rot;
 
@@ -72,13 +72,19 @@ namespace OmegaEngine
 
 		OEMaths::mat4f getWorldMatrix(uint32_t index)
 		{
-			return OEMaths::translate(OEMaths::mat4f(), models[index].world_translation) * models[index].world_scale * models[index].world_rot;
+			return OEMaths::translate_mat4(models[index].world_translation) * OEMaths::scale_mat4(models[index].world_scale);	// *OEMaths::vec4f(models[index].world_rot, 1.0f);
+		}
+
+		Camera& get_camera()
+		{
+			return camera;
 		}
 
 	private:
 
 		Document document;
 
+		// TODO: allow multiple camera to be loaded
 		Camera camera;
 		WorldInfo worldInfo;
 

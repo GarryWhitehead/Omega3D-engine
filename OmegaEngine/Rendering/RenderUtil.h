@@ -17,17 +17,17 @@ namespace OmegaEngine
 	{
 		std::vector<OEMaths::mat4f> cubeView = {
 			// POSITIVE_X
-			OEMaths::rotate_mat4(OEMaths::rotate_mat4(OEMaths::mat4f(), 90.0f, OEMaths::vec3f(0.0f, 1.0f, 0.0f)), 180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
+			OEMaths::rotate_mat4(180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)) * OEMaths::rotate_mat4(90.0f, OEMaths::vec3f(0.0f, 1.0f, 0.0f)),
 			// NEGATIVE_X
-			OEMaths::rotate_mat4(OEMaths::rotate_mat4(OEMaths::mat4f(), -90.0f, OEMaths::vec3f(0.0f, 1.0f, 0.0f)), 180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
+			OEMaths::rotate_mat4(180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)) * OEMaths::rotate_mat4(-90.0f, OEMaths::vec3f(0.0f, 1.0f, 0.0f)),
 			// POSITIVE_Y
-			OEMaths::rotate_mat4(OEMaths::mat4f(), 90.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
+			OEMaths::rotate_mat4(90.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
 			// NEGATIVE_Y
-			OEMaths::rotate_mat4(OEMaths::mat4f(), 90.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
+			OEMaths::rotate_mat4(90.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
 			// POSITIVE_Z
-			OEMaths::rotate_mat4(OEMaths::mat4f(), 180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
+			OEMaths::rotate_mat4(180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)),
 			// NEGATIVE_Z
-			OEMaths::rotate_mat4(OEMaths::mat4f(), 180.0f, OEMaths::vec3f(0.0f, 0.0f, 1.0f))
+			OEMaths::rotate_mat4(180.0f, OEMaths::vec3f(0.0f, 0.0f, 1.0f))
 		};
 	
 		// push constant layout for pre-filtered cube

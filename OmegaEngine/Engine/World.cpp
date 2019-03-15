@@ -38,6 +38,7 @@ namespace OmegaEngine
 
 	World::World(Managers managers, VulkanAPI::Device& device)
 	{
+		objectManager = std::make_unique<ObjectManager>();
 		component_interface = std::make_unique<ComponentInterface>();
 		render_interface = std::make_unique<RenderInterface>(device, component_interface);
 		animation_manager = std::make_unique<AnimationManager>();
@@ -48,7 +49,7 @@ namespace OmegaEngine
 			component_interface->registerManager<MeshManager>();
 
 			// the mesh manager also requires the material and texture managers
-			component_interface->registerManager<MaterialManager>(device.getDevice());
+			component_interface->registerManager<MaterialManager>(device.getDevice(), device.getPhysicalDevice(), device.getQueue(VulkanAPI::Device::QueueType::Graphics));
 			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
@@ -77,6 +78,9 @@ namespace OmegaEngine
 			return false;
 		}
 
+		// update camera manager 
+		component_interface->getManager<CameraManager>().add_camera(parser.get_camera());
+
 		// load and distribute the gltf data between the appropiate systems.
 #ifdef OMEGA_ENGINE_THREADED
 		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);
@@ -97,9 +101,15 @@ namespace OmegaEngine
 
 	void World::update(double time, double dt)
 	{
-		// update frame 
+		// update on a per-frame basis
+		// animation
 		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
+
+		// all other managers
 		component_interface->update_managers(time, dt, objectManager);
+		
+		// add all objects as renderable targets unless they flagged otherwise 
+		render_interface->update_renderables(objectManager, component_interface);
 	}
 
 	void World::render(double interpolation)
@@ -127,7 +137,8 @@ namespace OmegaEngine
 
 		if (ret) {
 
-			auto texture_manager = component_interface->getManager<TextureManager>();
+			auto& texture_manager = component_interface->getManager<TextureManager>();
+			auto& material_manager = component_interface->getManager<MaterialManager>();
 
 			uint32_t set = texture_manager.get_current_set();
 
@@ -142,7 +153,7 @@ namespace OmegaEngine
 			}
 
 			for (auto& mat : model.materials) {
-				component_interface->getManager<MaterialManager>().addGltfMaterial(set, mat, texture_manager);
+				material_manager.addGltfMaterial(set, mat, texture_manager);
 			}
 			texture_manager.next_set();
 
@@ -154,13 +165,10 @@ namespace OmegaEngine
 			std::vector<Object> linearised_objects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
 
-				Object obj = objectManager->createObject();
+				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
 				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
-
-				// add as renderable targets
-				render_interface->add_mesh_tree(component_interface, obj);
 			}
 
 			// skinning info
@@ -171,11 +179,10 @@ namespace OmegaEngine
 		}
 		else {
 			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
-			throw std::runtime_error("Unable to parse gltf file.");
 		}
 	}
 
-	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object& obj, bool childObject)
+	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object* obj, bool childObject)
 	{
 
 		// add all local and world transforms to the transform manager - also combines skinning info
@@ -184,9 +191,9 @@ namespace OmegaEngine
 
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
-		Object parentObject;
+		Object* parentObject;
 		if (childObject) {
-			parentObject = objManager->createChildObject(obj);
+			parentObject = objManager->createChildObject(*obj);
 		}
 		else {
 			parentObject = obj;
@@ -206,7 +213,7 @@ namespace OmegaEngine
 		}
 
 		// create the linearised list of objects - parents and children
-		linearised_objects.push_back(obj);
+		linearised_objects.push_back(*obj);
 	}
 
 }

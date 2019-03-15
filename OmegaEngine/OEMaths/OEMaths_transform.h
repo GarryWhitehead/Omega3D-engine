@@ -24,16 +24,16 @@ namespace OEMaths
 	// vec3 transform functions ========================================================================================================
 	
 	template <typename T>
-	inline vec3<T> convert_vec3(T* data)
+	inline vec3<T> convert_vec3(void* data)
 	{
 		assert(data != nullptr);
-
+		T* ptr = (T*)data;
 		vec3<T> vec;
-		vec.x = *data;
-		data += sizeof(T);
-		vec.y = *data;
-		data += sizeof(T);
-		vec.z = *data;
+		vec.x = *ptr;
+		++ptr;
+		vec.y = *ptr;
+		++ptr;
+		vec.z = *ptr;
 		return vec;
 	}
 
@@ -109,11 +109,11 @@ namespace OEMaths
 
 		vec4<T> vec;
 		vec.x = *data;
-		data += sizeof(T);
+		++data;
 		vec.y = *data;
-		data += sizeof(T);
+		++data;
 		vec.z = *data;
-		data += sizeof(T);
+		++data;
 		vec.w = *data;
 		return vec;
 	}
@@ -179,10 +179,9 @@ namespace OEMaths
 
 	// matrix TRS ========================================================================================
 	template <typename T>
-	inline mat4<T> translate(mat4<T>& mat, vec3<T>& trans)
+	inline mat4<T> translate_mat4(vec3<T>& trans)
 	{
-		mat4<T> retMat = mat;
-
+		mat4<T> retMat;
 		retMat(0, 3) = trans.x;
 		retMat(1, 3) = trans.y;
 		retMat(2, 3) = trans.x;
@@ -192,32 +191,18 @@ namespace OEMaths
 	}
 
 	template <typename T>
-	inline mat4<T> translate(mat4<T>& mat, vec4<T>& trans)
+	inline mat4<T> scale_mat4(vec3<T>& scale)
 	{
-		mat4<T> retMat = mat;
-
-		retMat(0, 3) = trans.x;
-		retMat(1, 3) = trans.y;
-		retMat(2, 3) = trans.x;
-		retMat(3, 3) = 1.0f;
-
-		return retMat;
+		mat4<T> result;
+		result(0, 0) = scale.x;
+		result(1, 1) = scale.y;
+		result(2, 2) = scale.z;
+		result(3, 3) = 1.0f;
+		return result;
 	}
 
 	template <typename T>
-	inline mat4<T> scale(mat4<T>& mat, vec3<T>& scale)
-	{
-		mat4<T> retMat = mat;
-
-		retMat(0, 0) = scale.x;
-		retMat(1, 1) = scale.y;
-		retMat(2, 2) = scale.x;
-		retMat(3, 3) = 1.0f;
-		return retMat;
-	}
-
-	template <typename T>
-	inline mat4<T> rotate_mat4(mat4<T> mat, T theta, vec3<T> axis)
+	inline mat4<T> rotate_mat4(T theta, vec3<T> axis)
 	{
 		mat4<T> retMat;
 		vec3<T> axis_norm = axis / (theta == 0 ? 1 : theta);	//avoid divide by zero
@@ -256,18 +241,15 @@ namespace OEMaths
 		lookAt(0, 0) = right.x;
 		lookAt(0, 1) = right.y;
 		lookAt(0, 2) = right.z;
+		lookAt(0, 3) = -dot_vec3(right, position);
 		lookAt(1, 0) = cam_up.x;
 		lookAt(1, 1) = cam_up.y;
 		lookAt(1, 2) = cam_up.z;
+		lookAt(1, 3) = -dot_vec3(cam_up, position);
 		lookAt(2, 0) = dir.x;
 		lookAt(2, 1) = dir.y;
 		lookAt(2, 2) = dir.z;
-
-		mat4<T> posMat;
-		lookAt(0, 3) = -position.x;
-		lookAt(1, 3) = -position.y;
-		lookAt(2, 3) = -position.z;
-		lookAt = lookAt * posMat;
+		lookAt(2, 3) = -dot_vec3(dir, position);
 
 		return lookAt;
 	}

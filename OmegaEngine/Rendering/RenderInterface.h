@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Rendering/Renderers/RendererBase.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Interface.h"
 #include "Vulkan/Descriptors.h"
@@ -24,6 +24,7 @@ namespace OmegaEngine
 	class RenderableBase;
 	class PostProcessInterface;
 	class RenderQueue;
+	class ObjectManager;
 
 	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)>
 	FuncReturn get_member_render_function(void *object, VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)
@@ -39,15 +40,6 @@ namespace OmegaEngine
 		PostProcess,	// rendered in a forward_pass
 		Count
 	};
-
-	// Note: only deferred renderer is supported at the moment. More to follow....
-	enum class RendererType
-	{
-		Deferred,
-		Forward,
-		Count
-	};
-
 
 	class RenderInterface
 	{
@@ -85,7 +77,10 @@ namespace OmegaEngine
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order
-		void add_mesh_tree(std::unique_ptr<ComponentInterface>& comp_interface, Object& obj);
+		void build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface);
+
+		// adds a list of objects to the tree using the function above
+		void update_renderables(std::unique_ptr<ObjectManager>& objecct_manager, std::unique_ptr<ComponentInterface>& comp_interface);
 
 		// renderable type creation
 		template <typename T, typename... Args>
@@ -93,6 +88,12 @@ namespace OmegaEngine
 		{
 			T* renderable = new T(std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
+		}
+
+		template<typename T, typename... Args>
+		void set_renderer(Args&&... args)
+		{
+			renderer = std::make_unique<T>(std::forward<Args>(args)...);
 		}
 
 		ProgramState& get_render_pipeline(RenderTypes type)
@@ -109,16 +110,14 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components();
-
+		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
 
 	private:
 
 		RenderConfig render_config;
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
-		std::unique_ptr<DeferredRenderer> def_renderer;
-		RendererType renderer_type;
+		std::unique_ptr<RendererBase> renderer;
 
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;
@@ -127,11 +126,11 @@ namespace OmegaEngine
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;
 
+		// dirty flag indicates whether to rebuild the renderables
+		bool isDirty = true;
+
 		// all the pipelines and shaders for each renderable type
 		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
-
-		// the rendering call to use determined by which renderer is specified
-		std::function<void()> render_callback;
 
 		// Vulkan stuff for rendering the compoennts
 		VulkanAPI::CommandBuffer cmd_buffer;

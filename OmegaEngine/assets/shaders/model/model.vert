@@ -18,12 +18,12 @@ layout (set = 1, binding = 0) uniform CameraUbo
 
 } camera_ubo;
 
-layout (set = 2, binding = 0) uniform StaticMeshUbo
+layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
 {
 	mat4 modelMatrix;
 } mesh_ubo;
 
-layout (set = 3, binding = 0) uniform SkinnedUbo
+layout (set = 3, binding = 0) uniform Dynamic_SkinnedUbo
 {
 	mat4 matrix;
 	mat4 bones[MAX_BONES];

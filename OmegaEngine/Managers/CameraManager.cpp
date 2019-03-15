@@ -24,8 +24,10 @@ namespace OmegaEngine
 
 	void CameraManager::updateViewMatrix()
 	{
+		assert(!cameras.empty());
 		Camera& camera = cameras[camera_index];
-		currentViewMatrix = OEMaths::lookAt(camera.start_position, camera.start_position + front_vec, camera.camera_up);
+		OEMaths::vec3f target = camera.start_position + front_vec;
+		currentViewMatrix = OEMaths::lookAt(camera.start_position, target, camera.camera_up);
 	}
 
 	void CameraManager::mouse_move_event(MouseMoveEvent& event)
@@ -76,7 +78,7 @@ namespace OmegaEngine
 
 	}
 
-	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
+	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		if (isDirty) {
 

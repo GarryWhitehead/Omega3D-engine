@@ -13,8 +13,8 @@ namespace OmegaEngine
 	MeshManager::MeshManager()
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
-		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(Vertex) * static_cast<uint32_t>(IndexBlockSize));
+		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
+		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 
@@ -22,7 +22,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object& obj)
+	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj)
 	{
 		tinygltf::Mesh mesh = model.meshes[node.mesh];
 		
@@ -46,14 +46,14 @@ namespace OmegaEngine
 
 			tinygltf::Accessor posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
 			tinygltf::BufferView posBufferView = model.bufferViews[posAccessor.bufferView];
-			float *posBuffer = (float*)model.buffers[posBufferView.buffer].data[posAccessor.byteOffset + posBufferView.byteOffset];
+			float *posBuffer = (float*)&model.buffers[posBufferView.buffer].data[posAccessor.byteOffset + posBufferView.byteOffset];
 
 			// find normal data
 			float *normBuffer = nullptr;
 			if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
 				tinygltf::Accessor normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
 				tinygltf::BufferView normBufferView = model.bufferViews[normAccessor.bufferView];
-				normBuffer = (float*)model.buffers[normBufferView.buffer].data[normAccessor.byteOffset + normBufferView.byteOffset];
+				normBuffer = (float*)&model.buffers[normBufferView.buffer].data[normAccessor.byteOffset + normBufferView.byteOffset];
 			}
 
 			// and parse uv data
@@ -61,7 +61,7 @@ namespace OmegaEngine
 			if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
 				tinygltf::Accessor uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
 				tinygltf::BufferView uvBufferView = model.bufferViews[uvAccessor.bufferView];
-				uvBuffer = (float*)model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset];
+				uvBuffer = (float*)&model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset];
 			}
 
 			// check whether this model has skinning data - joints first
@@ -69,7 +69,7 @@ namespace OmegaEngine
 			if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) {
 				tinygltf::Accessor jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
 				tinygltf::BufferView jointBufferView = model.bufferViews[jointAccessor.bufferView];
-				jointBuffer = (uint16_t*)model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset];
+				jointBuffer = (uint16_t*)&model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset];
 			}
 
 			// and then weights. It must contain both to for the data to be used for animations
@@ -77,7 +77,7 @@ namespace OmegaEngine
 			if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
 				tinygltf::Accessor weightAccessor = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
 				tinygltf::BufferView weightBufferView = model.bufferViews[weightAccessor.bufferView];
-				weightBuffer = (float*)model.buffers[weightBufferView.buffer].data[weightAccessor.byteOffset + weightBufferView.byteOffset];
+				weightBuffer = (float*)&model.buffers[weightBufferView.buffer].data[weightAccessor.byteOffset + weightBufferView.byteOffset];
 			}
 
 			// get the min and max values for this primitive
@@ -87,21 +87,26 @@ namespace OmegaEngine
 			// now convert the data to a form that we can use with Vulkan
 			for (uint32_t j = 0; j < posAccessor.count; ++j) {
 				Vertex vertex;
-				vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3(&posBuffer[j * 3]), 1.0f);
+				vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
+				posBuffer += 3;
 
 				if (normBuffer) {
-					vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3(&normBuffer[j * 3]));
+					vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
+					normBuffer += 3;
 				}
 
 
 				if (uvBuffer) {
-					vertex.uv = OEMaths::convert_vec2(&uvBuffer[j * 2]);
+					vertex.uv = OEMaths::convert_vec2(uvBuffer);
+					uvBuffer += 2;
 				}
 
 				// if we have skin data, also convert this to a palatable form
 				if (weightBuffer && jointBuffer) {
-					vertex.joint = OEMaths::convert_vec4(reinterpret_cast<float*>(&jointBuffer[j * 4]));
-					vertex.weight = OEMaths::convert_vec4(&weightBuffer[j * 4]);
+					vertex.joint = OEMaths::convert_vec4(reinterpret_cast<float*>(jointBuffer));
+					vertex.weight = OEMaths::convert_vec4(weightBuffer);
+					jointBuffer += 4;
+					weightBuffer += 4;
 				}
 				staticMesh.vertexBuffer.push_back(vertex);
 			}
@@ -139,13 +144,11 @@ namespace OmegaEngine
 		meshBuffer.push_back(staticMesh);
 		
 		// add mesh component to current object
-		obj.add_manager<MeshManager>(static_cast<uint32_t>(meshBuffer.size() - 1));
+		obj->add_manager<MeshManager>(static_cast<uint32_t>(meshBuffer.size() - 1));
 	}
 
-	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface)
+	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
-		// if dirty, then we need to update the mesh vertices and indices
-		// as other managers, this will need to be chnaged at some point so only meshes that need upadting are effected
 		if (isDirty) {
 
 			uint32_t vertex_offset = 0;
@@ -164,9 +167,8 @@ namespace OmegaEngine
 				index_offset += mesh.indexBuffer.size();
 
 			}
-
-			isDirty = false;
 		}
+
+		isDirty = false;
 	}
-	
 }

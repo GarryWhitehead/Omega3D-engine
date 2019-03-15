@@ -59,8 +59,8 @@ namespace OmegaEngine
 
 	private:
 
-		uint64_t id;
-		uint64_t parent_id;
+		uint64_t id = UINT64_MAX;
+		uint64_t parent_id = UINT64_MAX;
 		std::vector<Object> children;
 
 		std::unordered_map<ManagerId, ManagerIndex> components;

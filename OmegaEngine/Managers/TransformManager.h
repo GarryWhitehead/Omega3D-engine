@@ -34,7 +34,7 @@ namespace OmegaEngine
 
 			OEMaths::mat4f& get_local()
 			{
-				return OEMaths::translate(OEMaths::mat4f(), local_trs.trans) * local_trs.rot * OEMaths::scale(OEMaths::mat4f(), local_trs.scale) * local;
+				return OEMaths::translate_mat4(local_trs.trans) * OEMaths::scale_mat4(local_trs.scale) * local;	// TODO: Add rotation!
 			}
 
 			LocalTRS local_trs;
@@ -55,8 +55,10 @@ namespace OmegaEngine
 
 		struct SkinnedBufferInfo
 		{
-			OEMaths::mat4f joint_matrices[256];
-			uint32_t joint_count;
+			OEMaths::mat4f mat;
+			OEMaths::mat4f joint_matrices[64];
+			float joint_count;
+			float pad;
 		};
 
 		// skinning data derived from file 
@@ -79,11 +81,11 @@ namespace OmegaEngine
 		~TransformManager();
 
 		// update per frame 
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, std::unique_ptr<ComponentInterface>& component_interface) override;
+		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
 		// gltf loading - The skinning data is going in the transform manager for now as is needed most here for calculating skinning transforms
 		void addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects);
-		void addGltfTransform(tinygltf::Node& node, Object& obj, OEMaths::mat4f world_transform);
+		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform);
 
 		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);

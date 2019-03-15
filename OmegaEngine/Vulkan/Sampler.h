@@ -11,7 +11,7 @@ namespace VulkanAPI
 		LinearWrap,
 		TriLinearClamp,
 		LinearClamp,
-		Count
+		NotDefined
 	};
 
 	class Sampler

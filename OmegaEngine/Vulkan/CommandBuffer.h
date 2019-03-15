@@ -33,7 +33,7 @@ namespace VulkanAPI
 			Secondary
 		};
         
-        enum class UsgaeType
+        enum class UsageType
         {
             Single,
             Multi
@@ -45,12 +45,14 @@ namespace VulkanAPI
 
 		void init(vk::Device dev);
 		void create_primary(UsageType type);
+		void create_secondary(uint32_t count, bool reset);
 
 		void begin_secondary(uint32_t index);
-		void begin_renderpass(vk::RenderPassBeginInfo& begin_info);
+		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
 		void end_pass();
 		void end();
+		void end_secondary(SecondaryHandle handle);
 
 		// primary binding functions
 		void bind_pipeline(Pipeline& pipeline);
@@ -61,14 +63,21 @@ namespace VulkanAPI
 		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
 
 		// secondary binding functions
+		void bind_secondary_pipeline(Pipeline& pipeline, SecondaryHandle handle);
 		void secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle);
 		void secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle);
+		void secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector < vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle);
 		void secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle);
 		void secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets, SecondaryHandle handle);
 		void secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset, SecondaryHandle handle);
 		void secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle);
 		void secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset, SecondaryHandle handle);
+
+		void secondary_set_viewport(SecondaryHandle handle);
+		void secondary_set_scissor(SecondaryHandle handle);
+
 		void secondary_execute_commands();
+		void secondary_execute_commands(uint32_t buffer_count);
 
 		// drawing functions
 		void draw_indexed(uint32_t index_count);

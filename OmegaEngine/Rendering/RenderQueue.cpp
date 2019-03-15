@@ -14,7 +14,8 @@ namespace OmegaEngine
 
     }
 
-    void RenderQueue::submit(RenderInterface* render_interface, 
+    void RenderQueue::submit(VulkanAPI::CommandBuffer& cmd_buffer,
+							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
                              uint32_t thread,
@@ -24,50 +25,61 @@ namespace OmegaEngine
         // create a secondary command buffer for each thread. This also creates a thread-specific command pool 
 		cmd_buffer.begin_secondary(thread);
 
-        for (uint32_t i = start; i < end; i += thread_group_size) {
+        for (uint32_t i = start; i < end; i++) {
             
             RenderQueueInfo& queue_info = render_queues[type][i];
             queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data, render_interface, thread);
         }
+
+		cmd_buffer.end_secondary(thread);
     }
 
 
-    void RenderQueue::threaded_dispatch(RenderInterface* render_interface, std::unique_ptr<ComponentInterface>& component_interface)
+    void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
         uint32_t num_threads = std::thread::hardware_concurrency();
-		uint32_t thread_group_size = VULKAN_THREADED_GROUP_SIZE / num_threads;
-
+		
 		ThreadPool thread_pool(num_threads);
-
         uint32_t thread_count = 0;
+
+		// create the cmd pools and secondary buffers for each stage
+		cmd_buffer.create_secondary(num_threads, true);
 
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
-            
+
+			// TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
+			uint32_t thread_group_size = queue.second.size() / num_threads;
+			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
+
+			auto drawRenderable = [&](const int startIndex) ->void {
+				submit(cmd_buffer, render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_count, thread_group_size);
+			};
+
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
 
-                // if we have no more threads left, then draw every mesh that is remaining
+                // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
             
-                    thread_pool.submitTask([&]() {
-						submit(render_interface, queue.first, i, queue.second.size(), thread_count, thread_group_size);
-                    });
+                    thread_pool.submitTask(std::bind(drawRenderable, i));
                     break;
                 }
 
-                thread_pool.submitTask([&]() {
-					submit(render_interface, queue.first, i, i + thread_group_size, thread_count, thread_group_size);
-                });
+                thread_pool.submitTask(std::bind(drawRenderable, i));
 
                 ++thread_count;
 		    }   
-
-            // check that all threads are finshed before executing the cmd buffers
-            thread_pool.wait_for_all();
-
-            cmd_buffer.secondary_execute_commands();
-            cmd_buffer.end();
         }
+
+		// check that all threads are finshed before executing the cmd buffers
+		thread_pool.wait_for_all();
+
+		// execute the recorded secondary command buffers - only for those threads we have actually used
+		cmd_buffer.secondary_execute_commands(thread_count);
+
+		// end the primary pass and buffer
+		cmd_buffer.end_pass();
+		cmd_buffer.end();
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
 		render_queues.clear();

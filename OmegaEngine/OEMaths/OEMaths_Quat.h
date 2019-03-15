@@ -41,18 +41,18 @@ namespace OEMaths
 
 	// conversion functions
 	template <typename T>
-	quat<T> convert_quat(T* data)
+	quatf convert_quatf(void* data)
 	{
 		assert(data != nullptr);
-
-		quat<T> qt;
-		qt.x = *data;
-		data += sizeof(T);
-		qt.y = *data;
-		data += sizeof(T);
-		qt.z = *data;
-		data += sizeof(T);
-		qt.w = *data;
+		T* ptr = (T*)data;
+		quatf qt;
+		qt.x = *ptr;
+		++ptr;
+		qt.y = *ptr;
+		++ptr;
+		qt.z = *ptr;
+		++ptr;
+		qt.w = *ptr;
 		return qt;
 	}
 

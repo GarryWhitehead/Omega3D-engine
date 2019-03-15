@@ -17,7 +17,8 @@ namespace OmegaEngine
 	DeferredRenderer::DeferredRenderer(vk::Device dev, vk::PhysicalDevice physical, RenderConfig _render_config) :
 		device(dev),
 		gpu(physical),
-		render_config(_render_config)
+		render_config(_render_config),
+		RendererBase(RendererType::Deferred)
 	{
 		
 	}
@@ -53,7 +54,7 @@ namespace OmegaEngine
 		gbuffer_images[num_attachments - 1].create_empty_image(device, gpu, depth_format, render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// now create the renderpasses and frame buffers
-		gbuffer_renderpass.init(device, attachments);
+		first_renderpass.init(device, attachments);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> image_views(num_attachments);
@@ -61,7 +62,7 @@ namespace OmegaEngine
 		for (uint8_t i = 0; i < num_attachments; ++i) {
 			image_views[i] = gbuffer_images[i].get_image_view();
 		}
-		gbuffer_renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
+		first_renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
 	}
 
 
@@ -122,7 +123,7 @@ namespace OmegaEngine
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
 	{
 		cmd_buffer.init(device);
-		cmd_buffer.create_primary();
+		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 
 		// begin the renderpass 
 		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
@@ -145,7 +146,7 @@ namespace OmegaEngine
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
-		render_interface->render_components();
+		render_interface->render_components(render_config, first_renderpass);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 		vk::Semaphore deferred_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
@@ -161,11 +162,5 @@ namespace OmegaEngine
 			// if post-processing isn't wanted, render the final composition as a full-screen quad
 
 		}
-	}
-
-	std::function<void()> DeferredRenderer::set_render_callback(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
-	{
-		auto& func = [&]() { render(render_interface, vk_interface); };
-		return func;
 	}
 }

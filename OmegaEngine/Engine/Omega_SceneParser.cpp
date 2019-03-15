@@ -47,8 +47,6 @@ namespace OmegaEngine
 			return;
 		}
 		const Value& cam = document["Camera"];
-		
-		Camera camera;
 
 		// read the camera values from the array
 		camera.zNear = cam["Znear"].GetFloat();

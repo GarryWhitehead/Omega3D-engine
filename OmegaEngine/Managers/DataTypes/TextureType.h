@@ -39,9 +39,14 @@ namespace OmegaEngine
 			return height;
 		}
 
-		vk::Format& format()
+		vk::Format& get_format()
 		{
 			return tex_format;
+		}
+
+		void set_format(vk::Format format)
+		{
+			tex_format = format;
 		}
 
 		const char* get_name()

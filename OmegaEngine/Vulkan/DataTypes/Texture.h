@@ -32,7 +32,7 @@ namespace VulkanAPI
 		Texture(TextureType type);
 		~Texture();
 
-		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
+		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue, TextureType type);
 		void create_empty_image(vk::Device& device, vk::PhysicalDevice& gpu, vk::Format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags);
 		void map(OmegaEngine::MappedTexture& tex);
 		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);

@@ -185,7 +185,7 @@ namespace VulkanAPI
 			old_layout, new_layout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
-			{ mask, static_cast<uint32_t>(image_mip_levels), levelCount, 0, static_cast<uint32_t>(image_layers) });
+			vk::ImageSubresourceRange(mask, 0, static_cast<uint32_t>(image_mip_levels), 0, static_cast<uint32_t>(image_layers)));
 
 		comm_buff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 

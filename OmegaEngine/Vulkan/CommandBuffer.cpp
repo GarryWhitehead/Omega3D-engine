@@ -63,7 +63,6 @@ namespace VulkanAPI
 
 	CommandBuffer::~CommandBuffer()
 	{
-		device.freeCommandBuffers(cmd_pool, 1, &cmd_buffer);
 	}
 
 	void CommandBuffer::init(vk::Device dev)
@@ -82,7 +81,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
         
         vk::CommandBufferUsageFlags usage_flags;
-        if (type = UsageType::Single) {
+        if (type == UsageType::Single) {
             usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         }
         else {
@@ -91,6 +90,32 @@ namespace VulkanAPI
         
 		vk::CommandBufferBeginInfo beginInfo(usage_flags, 0);
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
+	}
+
+	void CommandBuffer::create_secondary(uint32_t count, bool reset)
+	{
+		if (reset) {
+			secondary_cmd_buffers.clear();
+			secondary_cmd_pools.clear();
+		}
+
+		// create pool for each secondary
+		for (uint32_t i = 0; i < count; ++i) {
+
+			vk::CommandPool pool;
+			vk::CommandPoolCreateInfo create_info(
+				vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+				queue_family_index);
+
+			device.createCommandPool(&create_info, nullptr, &pool);
+			secondary_cmd_pools.push_back(pool);
+
+			// create secondary cmd buffers
+			vk::CommandBuffer sec_cmd_buffer;
+			vk::CommandBufferAllocateInfo allocInfo(pool, vk::CommandBufferLevel::eSecondary, 1);
+			VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &sec_cmd_buffer));
+			secondary_cmd_buffers.push_back(sec_cmd_buffer);
+		}
 	}
 
 	void CommandBuffer::begin_secondary(uint32_t index)
@@ -103,14 +128,11 @@ namespace VulkanAPI
 
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
 		
-		vk::CommandBuffer secondary_cmd_buffer;
-		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eOneTimeSubmit, &inheritance_info);
-		VK_CHECK_RESULT(secondary_cmd_buffer.begin(&begin_info));
-
-		secondary_cmd_buffers[index] = secondary_cmd_buffer;
+		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritance_info);
+		VK_CHECK_RESULT(secondary_cmd_buffers[index].begin(&begin_info));
 	}
 
-	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info)
+	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary)
 	{
 		// stor the renderpass and framebuffer locally
 		renderpass = begin_info.renderPass;
@@ -120,14 +142,19 @@ namespace VulkanAPI
 		assert(framebuffer);
 		
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
-		vk::Viewport view_port(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
+		view_port = vk::Viewport(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
 			begin_info.renderArea.extent.width, begin_info.renderArea.extent.height,
 			0.0f, 1.0f);
 
-		vk::Rect2D scissor({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
+		scissor = vk::Rect2D({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
 			{ begin_info.renderArea.extent.width, begin_info.renderArea.extent.height } });
 
-		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+		if (!use_secondary) {
+			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+		}
+		else {
+			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+		}
 	}
 
 	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port)
@@ -153,9 +180,13 @@ namespace VulkanAPI
 
 	void CommandBuffer::end()
 	{
-		// this function ends both the renderpass and cmd_buffer. Call individual commands if this isn't the correct action wanted
-		cmd_buffer.endRenderPass();
 		cmd_buffer.end();
+	}
+
+	void CommandBuffer::end_secondary(SecondaryHandle handle)
+	{
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.end();
 	}
 
 	void CommandBuffer::bind_pipeline(Pipeline& pipeline)
@@ -181,13 +212,15 @@ namespace VulkanAPI
 	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), 0, nullptr);
+		std::vector<vk::DescriptorSet> sets = descr_set.get();
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), 0, nullptr);
 	}
 
 	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), offset_count, offsets);
+		std::vector<vk::DescriptorSet> sets = descr_set.get();
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), offset_count, offsets);
 	}
 
 	void CommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
@@ -196,13 +229,23 @@ namespace VulkanAPI
 	}
 
 	// secondary command buffer functions ===========================
+	void CommandBuffer::bind_secondary_pipeline(Pipeline& pipeline, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(pipeline.get_pipeline_type());
+		sec_cmd_buffer.bindPipeline(bind_point, pipeline.get());
+	}
+
 	void CommandBuffer::secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle)
 	{
 		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
 		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
 
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), 0, nullptr);
+		std::vector<vk::DescriptorSet> sets = descr_set.get();
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), 0, nullptr);
 	}
 
 	void CommandBuffer::secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle)
@@ -213,7 +256,19 @@ namespace VulkanAPI
 		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
 
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.get_size(), descr_set.get(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+		std::vector<vk::DescriptorSet> sets = descr_set.get();
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+	}
+
+	void CommandBuffer::secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector<vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle)
+	{
+		assert(!secondary_cmd_buffers.empty() && secondary_cmd_buffers.size() > handle);
+		assert(!dynamic_offsets.empty());
+
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+
+		vk::PipelineBindPoint bind_point = create_bind_point(type);
+		sec_cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.size(), descr_set.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
 	}
 
 	void CommandBuffer::secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle)
@@ -262,7 +317,27 @@ namespace VulkanAPI
 		cmd_buffer.executeCommands(secondary_cmd_buffers.size(), secondary_cmd_buffers.data());
 	}
 
-	
+	void CommandBuffer::secondary_execute_commands(uint32_t buffer_count)
+	{
+		// use this function if you don't want to execute all the secondary command buffers 
+		assert(!secondary_cmd_buffers.empty());
+		cmd_buffer.executeCommands(buffer_count, secondary_cmd_buffers.data());
+	}
+
+	void CommandBuffer::secondary_set_viewport(SecondaryHandle handle)
+	{
+		// this function uses the same viewport as set by the main command buffer
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.setViewport(0, 1, &view_port);
+	}
+
+	void CommandBuffer::secondary_set_scissor(SecondaryHandle handle)
+	{
+		// this function uses the same scissor as set by the main command buffer
+		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
+		sec_cmd_buffer.setScissor(0, 1, &scissor);
+	}
+
 	// drawing functions ========
 	void CommandBuffer::draw_indexed(uint32_t index_count)
 	{
