@@ -1,8 +1,5 @@
 #version 450
 
-#extension GL_ARB_separate_shader_objects : enable
-#extension GL_ARB_shading_language_420pack : enable
-
 layout (set = 0, binding = 0) uniform sampler2D baseColourMap;
 layout (set = 0, binding = 1) uniform sampler2D normalMap;
 layout (set = 0, binding = 2) uniform sampler2D mrMap;
@@ -62,6 +59,25 @@ float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
 	return clamp((-b + sqrt(D)) / (2.0 * a), 0.0, 1.0);
 }
 
+// The most copied function in the world! From here: http://www.thetenthplanet.de/archives/1180
+vec3 peturbNormal()
+{
+	
+	vec3 tangentNormal = texture(normalMap, inUv).xyz * 2.0 - 1.0;
+
+	vec3 q1 = dFdx(inPos);
+	vec3 q2 = dFdy(inPos);
+	vec2 st1 = dFdx(inUv);
+	vec2 st2 = dFdy(inUv);
+
+	vec3 N = normalize(inNormal);
+	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
+	vec3 B = -normalize(cross(N, T));
+	mat3 TBN = mat3(T, B, N);
+
+	return normalize(TBN * tangentNormal);
+}
+
 void main()
 {
 	// albedo
@@ -82,13 +98,13 @@ void main()
 	}
 
 	// normal
-	vec3 normal = normalize(inNormal);
+	vec3 normal; 
 	if (material.haveNormalMap) {
 
-		vec3 tangent = normalize(inTangent.xyz);
-        vec3 binormal = cross(normal, tangent) * inTangent.w;
-        vec2 tangentSpace = texture(normalMap, inUv).xy * 2.0 - 1.0;
-        //normal = normalize(mat3(tangent, binormal, normal) * two_component_normal(tangent_space));
+		onormal = peturbNormal();
+	}
+	else {
+		normal = normalize(inNormal);
 	}
 	outNormal = normal;
 

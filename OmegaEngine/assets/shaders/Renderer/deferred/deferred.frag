@@ -40,23 +40,6 @@ layout (set = 3, binding = 1) uniform UboBuffer
 	
 } ubo;
 
-vec3 perturbNormal(vec3 posW)
-{
-	vec3 tangentNormal = texture(normalSampler, inUv).xyz * 2.0 - 1.0;
-
-	vec3 q1 = dFdx(posW);
-	vec3 q2 = dFdy(posW);
-	vec2 st1 = dFdx(inUv);
-	vec2 st2 = dFdy(inUv);
-
-	vec3 N = normalize(texture(normalSampler, inUv).xyz);
-	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
-	vec3 B = -normalize(cross(N, T));
-	mat3 TBN = mat3(T, B, N);
-
-	return normalize(TBN * tangentNormal);
-}
-
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour)
 {
 	const float MAX_REFLECTION_LOD = 4.0;
@@ -81,8 +64,8 @@ void main()
 {	
 	vec3 inPos = texture(positionSampler, inUv).rgb;
 	vec3 V = normalize(ubo.cameraPos.xyz - inPos);
-	vec3 N = perturbNormal(inPos);
-	vec3 R = reflect(-V, N);
+	vec3 N = texture(normalSampler, inUv).rgb;
+	vec3 R = -reflect(V, N);
 	R.y *= -1.0;
 	
 	// get colour information from G-buffer
@@ -111,11 +94,9 @@ void main()
 		colour += specularContribution(L, V, N, F0, metallic, roughness, baseColour, radiance);
 	}
 	
-	// microfacet calculations
-	float NdotV = max(dot(N, V), 0.0);
-	
 	// add IBL contribution if needed
 	if (ubo.useIBLContribution) {
+		float NdotV = max(dot(N, V), 0.0);
 		colour += calculateIBL(N, NdotV, roughness, R, baseColour);
 	}
 	
