@@ -27,6 +27,12 @@ namespace OmegaEngine
 			uint32_t offscreen_height = 1024;
 		} deferred;
 
+		struct IBLInfo
+		{
+			float ambientScale = 1.0f;
+			bool isContributing = false;
+		} ibl;
+
 		bool useSSAO = false;
 		bool useMSAA = false;
 		bool shadowsEnabled = true;

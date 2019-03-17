@@ -3,6 +3,8 @@
 #include "Rendering/RenderInterface.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/CameraManager.h"
+#include "Managers/LightManager.h"
+#include "Managers/ComponentInterface.h"
 #include "Vulkan/Vulkan_Global.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"
@@ -66,7 +68,7 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, CameraManager& camera_manager)
+	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
 		vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
@@ -104,8 +106,18 @@ namespace OmegaEngine
 			descr_set.write_set(sampler_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
 		}
 		
-		// only one buffer. This should be imporved - somehow automate the association of shader buffers and their assoicated memory allocations
-		descr_set.write_set(buffer_layout[0].set, buffer_layout[0].binding, buffer_layout[0].type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), buffer_layout[0].range);
+		for (auto& layout : buffer_layout) {
+
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "CameraUbo") {
+				auto& camera_manager = component_interface->getManager<CameraManager>();
+				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+			}
+			if (layout.name == "LightUbo") {
+				auto& light_manager = component_interface->getManager<LightManager>();
+				descr_set.write_set(layout.set, layout.binding, layout.type, light_manager.get_ubo_buffer(), light_manager.get_ubo_offset(), layout.range);
+			}
+		}
 
 		// and finally create the pipeline
 		// first finish of the pipeline layout....
@@ -129,12 +141,21 @@ namespace OmegaEngine
 		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 		cmd_buffer.begin_renderpass(begin_info);
 
+		// viewport and scissor
+		cmd_buffer.set_viewport();
+		cmd_buffer.set_scissor();
+
 		// bind everything required to draw
 		cmd_buffer.bind_pipeline(pipeline);
 		cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 		// render full screen quad to screen
 		cmd_buffer.draw_indexed_quad();
+
+		// end this pass and cmd buffer
+		cmd_buffer.end_pass();
+		cmd_buffer.end();
 
 		// submit to graphics queue
 		graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
@@ -143,6 +164,8 @@ namespace OmegaEngine
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
+		vk_interface->get_present_queue().begin_frame();
+		
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers

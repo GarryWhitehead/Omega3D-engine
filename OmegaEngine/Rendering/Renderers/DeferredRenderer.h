@@ -39,7 +39,7 @@ namespace OmegaEngine
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) override;
 
 		void create_gbuffer_pass();
-		void create_deferred_pass(uint32_t width, uint32_t height, CameraManager& camera_manager);
+		void create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore);
 		

@@ -101,7 +101,7 @@ void main()
 	vec3 normal; 
 	if (material.haveNormalMap) {
 
-		onormal = peturbNormal();
+		normal = peturbNormal();
 	}
 	else {
 		normal = normalize(inNormal);

@@ -1,18 +1,48 @@
 #pragma once
 
 #include "Managers/ManagerBase.h"
+#include "Vulkan/MemoryAllocator.h"
+#include "Vulkan/Vulkan_Global.h"
+#include "OEMaths/OEMaths.h"
 
 #include "tiny_gltf.h"
 
 #include <cstdint>
+#include <vector>
+
+#define MAX_LIGHT_COUNT 100
 
 namespace OmegaEngine
 {
+
+	enum class LightType
+	{
+		Spot,
+		Point,
+		Directional
+	};
+
+	struct LightInfo
+	{
+		OEMaths::vec4f postion;
+		OEMaths::vec3f colour;
+		float radius = 0.0f;
+		float innerCone = 0.0f;		// for spot lights
+		float outerCone = 0.0f;		// for spot lights
+		LightType type;
+	};
 
 	class LightManager : public ManagerBase
 	{
 
 	public:
+
+		// a mirror of the shader buffer
+		struct LightUboBuffer
+		{
+			LightInfo lights[MAX_LIGHT_COUNT];
+			uint32_t lightCount;
+		};
 
 		LightManager();
 		~LightManager();
@@ -24,8 +54,32 @@ namespace OmegaEngine
 
 		void parseGltfLight(uint32_t spaceId, tinygltf::Model& model);
 
-	private:
+		void add_light(LightInfo& light)
+		{
+			lights.push_back(light);
+			// make sure this light is updated on the GPU 
+			isDirty = true;		
+		}
 
+		vk::Buffer& get_ubo_buffer()
+		{
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			return mem_alloc.get_memory_buffer(light_buffer.get_id());
+		}
+
+		uint32_t get_ubo_offset() const
+		{
+			return light_buffer.get_offset();
+		}
+
+	private:
+	
+		std::vector<LightInfo> lights;
+
+		// buffer on the vulkan side which will hold all lighting info 
+		VulkanAPI::MemorySegment light_buffer;
+
+		bool isDirty = false;
 	};
 
 }

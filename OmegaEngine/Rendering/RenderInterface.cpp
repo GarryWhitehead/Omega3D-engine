@@ -90,7 +90,7 @@ namespace OmegaEngine
 			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
 			auto deferred_renderer = reinterpret_cast<DeferredRenderer*>(renderer.get());
 			deferred_renderer->create_gbuffer_pass();
-			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface->getManager<CameraManager>());
+			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface);
 			break;
 		}
 		default:
@@ -157,6 +157,10 @@ namespace OmegaEngine
 
 		// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
 		render_queue->threaded_dispatch(cmd_buffer, this);
+
+		// end the primary pass and buffer
+		cmd_buffer.end_pass();
+		cmd_buffer.end();
 
 		isDirty = true;
 	}

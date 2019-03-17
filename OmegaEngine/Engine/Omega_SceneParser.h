@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "Managers/CameraManager.h"
+#include "Managers/LightManager.h"
 #include "OEMaths/OEMaths.h"
 
 using namespace rapidjson;
@@ -80,6 +81,16 @@ namespace OmegaEngine
 			return camera;
 		}
 
+		uint32_t light_count() const
+		{
+			return lights.size();
+		}
+
+		LightInfo& get_light(const uint32_t index) 
+		{
+			return lights[index];
+		}
+
 	private:
 
 		Document document;
@@ -89,6 +100,7 @@ namespace OmegaEngine
 		WorldInfo worldInfo;
 
 		std::vector<ModelInfo> models;
+		std::vector<LightInfo> lights;
 	};
 
 }

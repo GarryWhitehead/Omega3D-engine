@@ -27,6 +27,7 @@ namespace OmegaEngine
 		}
 
 		if (document.Parse(json.c_str()).HasParseError()) {
+			LOGGER_INFO("Scence .json file is not of the correct format.");
 			return false;
 		}
 
@@ -133,7 +134,40 @@ namespace OmegaEngine
 
 	void SceneParser::loadLights()
 	{
+		if (!document.HasMember("Lights")) {
+			LOGGER_INFO("No lighting information found in scene file.");
+			return;
+		}
 
+		const Value& lightArray = document["Lights"];
+		if (lightArray.Empty()) {
+			return;
+		}
+
+		lights.resize(lightArray.Size());
+
+		for (uint32_t i = 0; i < lightArray.Size(); ++i) {
+			auto& arr = lightArray[i];
+			lights[i].type = static_cast<LightType>(arr["Type"].GetInt());
+
+			auto& pos = arr["Position"];
+			lights[i].postion.x = pos[0].GetFloat();
+			lights[i].postion.y = pos[1].GetFloat();
+			lights[i].postion.z = pos[2].GetFloat();
+			lights[i].postion.w = pos[3].GetFloat();
+
+			auto& col = arr["Colour"];
+			lights[i].colour.x = col[0].GetFloat();
+			lights[i].colour.y = col[1].GetFloat();
+			lights[i].colour.z = col[2].GetFloat();
+
+			lights[i].radius = arr["Radius"].GetFloat();
+
+			if (lights[i].type == LightType::Spot) {
+				lights[i].innerCone = arr["InnerCone"].GetFloat();
+				lights[i].outerCone = arr["OuterCone"].GetFloat();
+			}
+		}
 	}
 
 	void SceneParser::loadEnvironamnetData()

@@ -45,6 +45,7 @@ namespace VulkanAPI
 
 		void init(vk::Device dev);
 		void create_primary(UsageType type);
+		void create_secondary();
 		void create_secondary(uint32_t count, bool reset);
 
 		void begin_secondary(uint32_t index);
@@ -53,6 +54,10 @@ namespace VulkanAPI
 		void end_pass();
 		void end();
 		void end_secondary(SecondaryHandle handle);
+
+		// viewport, scissors, etc.
+		void set_viewport();
+		void set_scissor();
 
 		// primary binding functions
 		void bind_pipeline(Pipeline& pipeline);

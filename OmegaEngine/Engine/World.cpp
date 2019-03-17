@@ -81,6 +81,11 @@ namespace OmegaEngine
 		// update camera manager 
 		component_interface->getManager<CameraManager>().add_camera(parser.get_camera());
 
+		// add lights from scene file
+		for (uint32_t i = 0; i < parser.light_count(); ++i) {
+			component_interface->getManager<LightManager>().add_light(parser.get_light(i));
+		}
+
 		// load and distribute the gltf data between the appropiate systems.
 #ifdef OMEGA_ENGINE_THREADED
 		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);

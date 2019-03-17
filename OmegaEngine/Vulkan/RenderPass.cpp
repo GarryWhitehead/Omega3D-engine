@@ -249,6 +249,10 @@ namespace VulkanAPI
 		assert(imageView);
 		assert(renderpass);
 
+		// store locally the screen extents for use later
+		image_width = width;
+		image_height = height;
+
 		vk::FramebufferCreateInfo frameInfo({},
 		renderpass, 
 		1, &imageView,
