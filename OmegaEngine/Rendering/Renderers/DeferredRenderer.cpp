@@ -41,7 +41,7 @@ namespace OmegaEngine
 			{ vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eColorAttachmentOptimal },			// Albedo
 			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// Normal
 			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
-			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },			// emissive
+			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// emissive
 			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
 
 		};
@@ -68,19 +68,22 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface)
+	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
-		vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
-		image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+		if (render_config.general.use_post_process) {
 
-		// now create the renderpasses and frame buffers
-		renderpass.init(device);
-		renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, deferred_format);
-		renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
-		renderpass.prepareRenderPass();
-		renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
+			image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 
+			// now create the renderpasses and frame buffers
+			renderpass.init(device);
+			renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, deferred_format);
+			renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
+			renderpass.prepareRenderPass();
+			renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+		}
+		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
 			LOGGER_ERROR("Unable to load deferred renderer shaders.");
@@ -128,52 +131,84 @@ namespace OmegaEngine
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		pipeline.add_colour_attachment(VK_FALSE, renderpass);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		pipeline.create(device, renderpass, shader, pl_layout, VulkanAPI::PipelineType::Graphics);
+		
+		if (render_config.general.use_post_process) {
+			pipeline.create(device, renderpass, shader, pl_layout, VulkanAPI::PipelineType::Graphics);
+		}
+		else {
+			// render to the swapchain presentation 
+			pipeline.create(device, render_interface->get_swapchain_renderpass(), shader, pl_layout, VulkanAPI::PipelineType::Graphics);
+		}
 	}
 
 
-	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore)
+	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface)
 	{
 		cmd_buffer.init(device);
 		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 
-		// begin the renderpass 
-		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-		cmd_buffer.begin_renderpass(begin_info);
+		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
+		// or just render straight to the swap chain presentation image
+		if (render_config.general.use_post_process) {
 
-		// viewport and scissor
-		cmd_buffer.set_viewport();
-		cmd_buffer.set_scissor();
+			// begin the renderpass 
+			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+			cmd_buffer.begin_renderpass(begin_info);
 
-		// bind everything required to draw
-		cmd_buffer.bind_pipeline(pipeline);
-		cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-		cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+			// viewport and scissor
+			cmd_buffer.set_viewport();
+			cmd_buffer.set_scissor();
 
-		// render full screen quad to screen
-		cmd_buffer.draw_indexed_quad();
+			// bind everything required to draw
+			cmd_buffer.bind_pipeline(pipeline);
+			cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+			cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
-		// end this pass and cmd buffer
-		cmd_buffer.end_pass();
-		cmd_buffer.end();
+			// render full screen quad to screen
+			cmd_buffer.draw_indexed_quad();
 
-		// submit to graphics queue
-		graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
+			// end this pass and cmd buffer
+			cmd_buffer.end_pass();
+			cmd_buffer.end();
+
+			// submit to graphics queue
+			graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		}
+		else {
+			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
+			
+				render_interface->begin_swapchain_pass(i);
+
+				// bind everything required to draw
+				cmd_buffer.bind_pipeline(pipeline);
+				cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+				cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+
+				// render full screen quad to screen
+				cmd_buffer.draw_indexed_quad();
+
+				render_interface->end_swapchain_pass(i);
+			}
+		}
 	}
 
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
-		vk_interface->get_present_queue().begin_frame();
+		// begin the start of the frame by beginning the next new swapchain image
+		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
+		vk::Semaphore image_semaphore = semaphore_manager.get_semaphore();
+		vk_interface->get_present_queue().begin_frame(image_semaphore);
 		
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
-		render_interface->render_components(render_config, first_renderpass);
+		vk::Semaphore component_semaphore = semaphore_manager.get_semaphore();
+		render_interface->render_components(render_config, first_renderpass, image_semaphore, component_semaphore);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		vk::Semaphore deferred_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
-		render_deferred(vk_interface->get_graph_queue(), vk_interface->get_swapchain_semaphore(), deferred_semaphore);
+		vk::Semaphore deferred_semaphore = semaphore_manager.get_semaphore();
+		render_deferred(vk_interface->get_graph_queue(), component_semaphore, deferred_semaphore, render_interface);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {

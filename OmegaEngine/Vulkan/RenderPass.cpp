@@ -259,7 +259,9 @@ namespace VulkanAPI
 		width, height,
 		layerCount);
 
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer))
+		vk::Framebuffer framebuffer;
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+		framebuffers.push_back(framebuffer);
 	}
 
 	void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount)
@@ -277,20 +279,34 @@ namespace VulkanAPI
 		width, height,
 		layerCount);
 
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer))
+		vk::Framebuffer framebuffer;
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+		framebuffers.push_back(framebuffer);
 	}
 
-	vk::RenderPassBeginInfo RenderPass::get_begin_info(vk::ClearColorValue& bg_colour)
+	vk::RenderPassBeginInfo RenderPass::get_begin_info(vk::ClearColorValue& bg_colour, uint32_t fb_index)
 	{
 		// set up clear colour for each colour attachment
 		std::vector<vk::ClearValue> clear_values(attachment.size());
 		std::fill(clear_values.begin(), clear_values.end(), bg_colour);
 		
 		vk::RenderPassBeginInfo begin_info(
-			renderpass, framebuffer,
+			renderpass, framebuffers[fb_index],
 			{ { 0, 0 }, { image_width, image_height } },
 			static_cast<uint32_t>(clear_values.size()),
 			clear_values.data());
+
+		return begin_info;
+	}
+
+	vk::RenderPassBeginInfo RenderPass::get_begin_info(uint32_t size, vk::ClearValue* colour, uint32_t fb_index)
+	{
+
+		vk::RenderPassBeginInfo begin_info(
+			renderpass, framebuffers[fb_index],
+			{ { 0, 0 }, { image_width, image_height } },
+			size,
+			colour);
 
 		return begin_info;
 	}

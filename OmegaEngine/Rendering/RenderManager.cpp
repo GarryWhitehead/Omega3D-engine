@@ -87,7 +87,7 @@ void VulkanEngine::GenerateFinalCmdBuffer()
 	}
 
 	// final cmd buffer in the chain - images will be rendered onto presentation surface (i.e the screen)
-	std::array<VkClearValue, 2> clearValues = {};
+	
 	clearValues[0].color = CLEAR_COLOR;
 	clearValues[1].depthStencil = { 1.0f, 0 };
 
