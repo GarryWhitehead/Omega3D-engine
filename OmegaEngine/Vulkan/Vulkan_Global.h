@@ -18,7 +18,7 @@ namespace VulkanAPI
 			extern SemaphoreManager semaphore_manager;
 
 			// initilisation functions
-			void init_memory_allocator(vk::Device dev, vk::PhysicalDevice gpu);
+			void init_memory_allocator(vk::Device& dev, vk::PhysicalDevice& gpu, Queue& graph_queue);
 			void init_semaphore_manager(vk::Device dev);
 		}
 

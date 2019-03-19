@@ -55,7 +55,7 @@ namespace OmegaEngine
 			cmd_buffer.draw_quad();
 
 			// push straight to the graphics queue
-			graph_queue.submit_cmd_buffer(cmd_buffer.get());
+			graph_queue.flush_cmd_buffer(cmd_buffer.get());
 
 			return texture;
 		}
@@ -155,7 +155,7 @@ namespace OmegaEngine
 			}
 			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
 
-			graph_queue.submit_cmd_buffer(cmd_buffer.get());
+			graph_queue.flush_cmd_buffer(cmd_buffer.get());
 		}
 	}
 }

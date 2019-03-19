@@ -27,7 +27,7 @@ layout (location = 0) out vec4 outFrag;
 struct Light
 {
 		vec4 pos;
-		vec4 colour;
+		vec3 colour;
 		float radius;
 		float innerCone;
 		float outerCone;

@@ -18,7 +18,7 @@ namespace VulkanAPI
 		compute_queue = dev.getQueue(Device::QueueType::Compute);
 
 		// setup global vulkan managers
-		Global::Managers::init_memory_allocator(device, gpu);
+		Global::Managers::init_memory_allocator(device, gpu, graphics_queue);
 		Global::Managers::init_semaphore_manager(device);
 
 		// prepare swap chain and attached image views - so we have something to render too

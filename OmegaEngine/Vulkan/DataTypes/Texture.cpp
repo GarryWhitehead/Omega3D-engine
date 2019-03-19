@@ -84,7 +84,7 @@ namespace VulkanAPI
 		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1, copy_cmd_buff.get(), graph_queue.get(), copy_cmd_buff.get_pool());
         
 		copy_cmd_buff.end();
-		graph_queue.submit_cmd_buffer(copy_cmd_buff.get());
+		graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
 
 		// generate mip maps if required
 		CommandBuffer blit_cmd_buff(device);
@@ -95,7 +95,7 @@ namespace VulkanAPI
 		}
 
 		blit_cmd_buff.end();
-		graph_queue.submit_cmd_buffer(blit_cmd_buff.get());
+		graph_queue.flush_cmd_buffer(blit_cmd_buff.get());
 
 		// create an image view of the texture image
 		tex_imageView.create(device, tex_image);

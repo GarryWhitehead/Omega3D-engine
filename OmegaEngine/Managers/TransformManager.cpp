@@ -16,13 +16,11 @@ namespace OmegaEngine
 		// allocate the buffers for static and skinned transforms - these will be stored in dynamic memory (host-visible) as we expect these values to be changing often
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		transform_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), TransformBlockSize);
-		skinned_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), 2);
+		skinned_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), SkinnedBlockSize);
 		
-		assert(transform_buffer != nullptr && skinned_buffer != nullptr);
-	
 		// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side
 		transform_buffer_data = (TransformBufferInfo*)Util::alloc_align(transform_buffer->get_alignment_size(), transform_buffer->get_alignment_size() * TransformBlockSize);
-		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_buffer->get_alignment_size(), skinned_buffer->get_alignment_size() * 2);
+		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_buffer->get_alignment_size(), skinned_buffer->get_alignment_size() * SkinnedBlockSize);
 	}
 
 

@@ -62,7 +62,7 @@ namespace VulkanAPI
 		queue.waitIdle();
 	}
 
-	void Queue::submit_cmd_buffer(vk::CommandBuffer cmd_buffer)
+	void Queue::flush_cmd_buffer(vk::CommandBuffer cmd_buffer)
 	{
 		vk::SubmitInfo submit_info(
 			0, nullptr, nullptr,

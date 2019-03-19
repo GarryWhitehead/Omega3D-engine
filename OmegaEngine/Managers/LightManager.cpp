@@ -10,7 +10,7 @@ namespace OmegaEngine
 	LightManager::LightManager()
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		light_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(LightInfo) * MAX_LIGHT_COUNT);
+		light_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(LightUboBuffer));
 	}
 
 

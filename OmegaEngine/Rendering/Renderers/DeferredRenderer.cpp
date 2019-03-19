@@ -22,7 +22,8 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		
+		cmd_buffer.init(device);
+		cmd_buffer.create_quad_data();
 	}
 
 
@@ -43,8 +44,8 @@ namespace OmegaEngine
 			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
 			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// emissive
 			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
-
 		};
+
 		const uint8_t num_attachments = attachments.size();
 
 		// create a empty texture for each state - these will be filled by the shader
@@ -144,7 +145,7 @@ namespace OmegaEngine
 
 	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface)
 	{
-		cmd_buffer.init(device);
+		
 		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.

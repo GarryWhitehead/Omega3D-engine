@@ -157,14 +157,14 @@ namespace OmegaEngine
 			for (auto& mesh : meshBuffer) {
 
 				VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), static_cast<uint32_t>(mesh.vertexBuffer.size()), vertex_offset);
-				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()), index_offset);
+				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), static_cast<uint32_t>(mesh.vertexBuffer.size()) * sizeof(Vertex), vertex_offset);
+				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()) * sizeof(uint32_t), index_offset);
 
 				mesh.vertex_buffer_offset = vertex_offset;
 				mesh.index_buffer_offset = index_offset;
 
-				vertex_offset += mesh.vertexBuffer.size();
-				index_offset += mesh.indexBuffer.size();
+				vertex_offset += mesh.vertexBuffer.size() * sizeof(Vertex);	// in bytes!!!
+				index_offset += mesh.indexBuffer.size() * sizeof(uint32_t);
 
 			}
 		}

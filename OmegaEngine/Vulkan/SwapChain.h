@@ -37,6 +37,16 @@ namespace VulkanAPI
 			return image_views.size();
 		}
 
+		uint32_t get_extents_height() const
+		{
+			return extent.height;
+		}
+
+		uint32_t get_extents_width() const
+		{
+			return extent.width;
+		}
+
 	private:
 
 		vk::Device dev;

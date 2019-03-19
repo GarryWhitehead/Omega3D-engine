@@ -212,16 +212,17 @@ namespace OmegaEngine
 
 	void RenderInterface::prepare_swapchain_pass()
 	{
-		uint32_t width = Global::program_state.get_win_width();
-		uint32_t height = Global::program_state.get_win_height();
+		auto& swap_chain = vk_interface->get_swapchain();
+		vk::Format sc_format = swap_chain.get_format();
+
+		uint32_t width = swap_chain.get_extents_width();
+		uint32_t height = swap_chain.get_extents_height();
 
 		// depth image
 		vk::Format depth_format = VulkanAPI::Device::get_depth_format(vk_interface->get_gpu());
 		swapchain_present.depth_texture.create_empty_image(vk_interface->get_device(), vk_interface->get_gpu(), depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
-		auto& swap_chain = vk_interface->get_swapchain();
-		vk::Format sc_format = swap_chain.get_format();
-
+		swapchain_present.renderpass.init(vk_interface->get_device());
 		swapchain_present.renderpass.addAttachment(vk::ImageLayout::ePresentSrcKHR, sc_format);
 		swapchain_present.renderpass.addAttachment(vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal, depth_format);
 

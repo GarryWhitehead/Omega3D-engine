@@ -68,13 +68,9 @@ namespace VulkanAPI
 	void CommandBuffer::init(vk::Device dev)
 	{
 		device = dev;
-		create_cmd_pool();
 
 		// create a cmd pool for this buffer
 		create_cmd_pool();
-
-		// quads will be used alot so create one now to save time
-		create_quad_data();
 	}
 
 	void CommandBuffer::create_primary(UsageType type)
