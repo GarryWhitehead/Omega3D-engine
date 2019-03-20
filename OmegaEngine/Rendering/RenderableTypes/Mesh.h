@@ -30,6 +30,8 @@ namespace OmegaEngine
 		// render info that will be used to draw this mesh 
 		struct MeshInstance
 		{
+			MeshManager::MeshType type;
+			
 			int32_t index_offset;	// this equates to buffer_offset + sub-offset
 			uint32_t index_count;
 			

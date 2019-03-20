@@ -17,7 +17,8 @@ namespace OmegaEngine
 
 	enum class RenderTypes
 	{
-		Mesh,
+		StaticMesh,
+		SkinnedMesh,
 		Skybox,
 		Ocean,
 		Terrain,

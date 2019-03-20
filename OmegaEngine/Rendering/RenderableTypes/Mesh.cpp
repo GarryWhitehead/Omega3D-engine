@@ -37,14 +37,23 @@ namespace OmegaEngine
 		instance_data = new MeshInstance;
 		MeshInstance* mesh_instance_data = reinterpret_cast<MeshInstance*>(instance_data);
 
+		// skinned ior non-skinned mesh?
+		mesh_instance_data->type = mesh.type;
+
 		// index into the main buffer
 		mesh_instance_data->vertex_buffer_offset = mesh.vertex_buffer_offset;
 		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset;
 
 		// actual vulkan buffers
-		mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer();
-		mesh_instance_data->index_buffer = mesh_manager.get_index_buffer();
-
+		if (mesh.type == MeshManager::MeshType::Static) {
+			mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer();
+			mesh_instance_data->index_buffer = mesh_manager.get_index_buffer();
+		}
+		else {
+			mesh_instance_data->vertex_buffer = mesh_manager.get_skinned_vertex_buffer();
+			mesh_instance_data->index_buffer = mesh_manager.get_skinned_index_buffer();
+		}
+		
 		// per face indicies
 		mesh_instance_data->index_sub_offset = primitive.indexBase;
 		mesh_instance_data->index_count = primitive.indexCount;
@@ -71,14 +80,22 @@ namespace OmegaEngine
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
 										std::unique_ptr<RendererBase>& renderer, 
-										std::unique_ptr<ComponentInterface>& component_interface)
+										std::unique_ptr<ComponentInterface>& component_interface,
+										MeshManager::MeshType type)
 	{
 		
 		RenderInterface::ProgramState state;
 
 		// load shaders
-		if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
-			LOGGER_ERROR("Unable to create model shaders.");
+		if (type == MeshManager::MeshType::Static) {
+			if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+				LOGGER_ERROR("Unable to create static model shaders.");
+			}
+		}
+		else if (type == MeshManager::MeshType::Skinned) {
+			if (!state.shader.add(device, "model/skinned_model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+				LOGGER_ERROR("Unable to create skinned model shaders.");
+			}
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
@@ -146,7 +163,16 @@ namespace OmegaEngine
 			instance_data->skinned_dynamic_offset
 		};
 
-		RenderInterface::ProgramState& mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::Mesh);
+		RenderInterface::ProgramState& mesh_pipeline;
+		if (instance_data->type == MeshManager::MeshType::Static) {
+			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh);
+		}
+		else if (instance_data->type == MeshManager::MeshType::Skinned) {
+			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh);
+		}
+		else {
+			LOGGER_ERROR("Unsupported mesh type!");
+		}
 
 		// merge the material set with the mesh ubo sets
 		std::vector<vk::DescriptorSet> material_set = instance_data->descr_set.get();

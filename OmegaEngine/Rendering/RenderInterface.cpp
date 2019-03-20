@@ -176,7 +176,7 @@ namespace OmegaEngine
 		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
 		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
+		MeshManager::Mesh* mesh = mesh_manager.get_mesh(mesh_index);
 
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives) {

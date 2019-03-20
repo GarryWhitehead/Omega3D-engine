@@ -29,6 +29,12 @@ namespace OmegaEngine
 		static constexpr float VertexBlockSize = 1e+5;
 		static constexpr float IndexBlockSize = 1e+5;
 
+		enum class MeshType
+		{
+			Static,
+			Skinned
+		};
+
 		struct Dimensions
 		{
 			OEMaths::vec3f min;
@@ -45,15 +51,15 @@ namespace OmegaEngine
 			OEMaths::vec4f position;
 			OEMaths::vec3f normal;
 			OEMaths::vec2f uv;
-			OEMaths::vec4f weight;
-			OEMaths::vec4f joint;
 		};
 
-		struct SkinnedVertex
+		struct SkinnedVertex 
 		{
 			OEMaths::vec4f position;
 			OEMaths::vec3f normal;
 			OEMaths::vec2f uv;
+			OEMaths::vec4f weight;
+			OEMaths::vec4f joint;
 		};
 
 		struct PrimitiveMesh
@@ -66,6 +72,8 @@ namespace OmegaEngine
 				// add to bvh here?
 			}
 
+			MeshType type;
+			
 			Dimensions dimensions;
 
 			// index offsets
@@ -80,9 +88,6 @@ namespace OmegaEngine
 		{
 			Dimensions dimensions;
 
-			// all vertex and index data for this mesh - will be using either vertex or skinned vertex, not both - should probably use inheritable class here.
-			std::vector<Vertex> vertexBuffer;
-			std::vector<SkinnedVertex> skinnedVertexBuffer;
 			std::vector<uint32_t> indexBuffer;
 
 			// primitives assoicated with this mesh
@@ -91,6 +96,9 @@ namespace OmegaEngine
 			// offset into gpu buffer
 			uint32_t vertex_buffer_offset;
 			uint32_t index_buffer_offset;
+
+			std::vector<Vertex> vertexBuffer;
+			std::vector<SkinnedVertex> skinnedVertexBuffer;
 		};
 
 		MeshManager();
@@ -137,7 +145,6 @@ namespace OmegaEngine
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> meshBuffer;
-		std::vector<StaticMesh> skinnedMeshBuffer;
 
 		// allocated GPU buffer - one large buffer for all meshes. Additional meshes will be added to the end
 		VulkanAPI::MemorySegment vertex_buffer;
