@@ -157,7 +157,7 @@ namespace OmegaEngine
 		cmd_buffer.secondary_set_scissor(thread);
 		cmd_buffer.bind_secondary_pipeline(mesh_pipeline.pipeline, thread);
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
-		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(instance_data->material_push_block), &instance_data->material_push_block, thread);
+		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block, thread);
 
 		vk::DeviceSize offset = {instance_data->vertex_buffer_offset};
 		cmd_buffer.secondary_bind_vertex_buffer(instance_data->vertex_buffer, offset, thread);

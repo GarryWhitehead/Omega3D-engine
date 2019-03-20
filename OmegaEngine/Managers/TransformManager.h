@@ -32,7 +32,7 @@ namespace OmegaEngine
 				OEMaths::mat4f rot;
 			};
 
-			OEMaths::mat4f& get_local()
+			OEMaths::mat4f get_local()
 			{
 				return OEMaths::translate_mat4(local_trs.trans) * OEMaths::scale_mat4(local_trs.scale) * local;	// TODO: Add rotation!
 			}
@@ -58,7 +58,6 @@ namespace OmegaEngine
 			OEMaths::mat4f mat;
 			OEMaths::mat4f joint_matrices[64];
 			float joint_count;
-			float pad;
 		};
 
 		// skinning data derived from file 

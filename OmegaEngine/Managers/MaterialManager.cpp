@@ -143,7 +143,7 @@ namespace OmegaEngine
 						assert(descr_layout);
 						assert(descr_pool);
 
-						mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
+						mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
 					}
 				}
 			}

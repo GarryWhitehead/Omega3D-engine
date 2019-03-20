@@ -72,12 +72,16 @@ namespace OmegaEngine
 		// data that will be used by shaders
 		struct CameraBufferInfo
 		{
+			// not everything in this buffer needs to be declarded in the shader but must be in this order
+			OEMaths::mat4f mvp;
+			OEMaths::vec3f camera_pos;
+
+			// in case we need individual matrices
 			OEMaths::mat4f projection;
 			OEMaths::mat4f view;
 			OEMaths::mat4f model;
 
-			OEMaths::vec3f camera_pos;
-
+			// needed?
 			float zNear;
 			float zFar;
 		};

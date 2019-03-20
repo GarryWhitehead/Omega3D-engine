@@ -1,5 +1,5 @@
 #include "MemoryAllocator.h"
-
+#include "Vulkan/CommandBuffer.h"
 
 namespace VulkanAPI
 {
@@ -30,10 +30,11 @@ namespace VulkanAPI
 		destroyAllBlocks();
 	}
 
-	void MemoryAllocator::init(vk::Device dev, vk::PhysicalDevice physical)
+	void MemoryAllocator::init(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue)
 	{
 		device = dev;
 		gpu = physical;
+		graph_queue = queue;
 	}
 
 	uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags flags)
@@ -268,7 +269,13 @@ namespace VulkanAPI
 			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
-			///VulkanUtility::CopyBuffer(temp_buffer, block.block_buffer, segment.size, p_vkEngine->GetCmdPool(), VulkanGlobal::vkCurrent.graphQueue, VulkanGlobal::vkCurrent.device, 0, segment.offset);
+			CommandBuffer copy_cmd_buff(device);
+			copy_cmd_buff.create_primary(CommandBuffer::UsageType::Single);
+			
+			vk::BufferCopy buffer_copy(0, segment.get_offset(), segment.get_size());
+			copy_cmd_buff.get().copyBuffer(temp_buffer, block.block_buffer, 1, &buffer_copy);
+			copy_cmd_buff.end();
+			graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
 
 			// clear up and we are done
 			device.destroyBuffer(temp_buffer, nullptr);

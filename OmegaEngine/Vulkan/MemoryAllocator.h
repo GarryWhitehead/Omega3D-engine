@@ -1,5 +1,6 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/Queue.h"
 
 #include <vector>
 #include <unordered_map>
@@ -156,7 +157,7 @@ namespace VulkanAPI
 		MemoryAllocator(const MemoryAllocator&) = delete;
 		MemoryAllocator& operator=(const MemoryAllocator&) = delete;
 
-		void init(vk::Device dev, vk::PhysicalDevice physical);
+		void init(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue);
 
 		// helper functions
 		void createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
@@ -202,6 +203,7 @@ namespace VulkanAPI
 		// the current device 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
+		Queue graph_queue;
 
 		std::vector<MemoryBlock> mem_blocks;
 

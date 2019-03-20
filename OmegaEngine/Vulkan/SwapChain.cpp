@@ -45,6 +45,7 @@ namespace VulkanAPI
 					break;
 				}
 		}
+		format = req_surf_format;
 
 		// And then the presentation format - the preferred format is triple buffering
 		vk::PresentModeKHR req_mode;

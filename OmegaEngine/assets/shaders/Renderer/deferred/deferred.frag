@@ -10,36 +10,43 @@ layout (set = 1, binding = 2) uniform sampler2D normalSampler;
 layout (set = 1, binding = 3) uniform sampler2D pbrSampler;
 layout (set = 1, binding = 4) uniform sampler2D emissiveSampler;
 
+#ifdef USE_IBL
 // environment texture samplers
 layout (set = 2, binding = 0) uniform sampler2D brdfLutSampler;
 layout (set = 2, binding = 1) uniform samplerCube irradianceSampler;
 layout (set = 2, binding = 2) uniform samplerCube prefilterSampler;
+#endif
 
 layout (location = 0) in vec2 inUv;
+layout (location = 1) in vec3 inCameraPos;
 
 layout (location = 0) out vec4 outFrag;
 
-#define MAX_LIGHT_COUNT 5			// use uniform buffer
-#define SHADOW_FACTOR 0.25
+#define MAX_LIGHT_COUNT 100	// make sure this matches the manager - could use a specilization constant
 
 struct Light
 {
-		mat4 viewMatrix;
 		vec4 pos;
-		vec4 direction;
-		vec4 colour;
+		vec3 colour;
+		float radius;
+		float innerCone;
+		float outerCone;
+		uint type;
 };
 
-layout (set = 3, binding = 1) uniform UboBuffer
+layout (set = 0, binding = 1) uniform LightUbo
 {
-	vec4 cameraPos;
 	Light lights[MAX_LIGHT_COUNT];
-	float IBLAmbient;
 	uint activeLightCount;
-	bool useIBLContribution;
-	
-} ubo;
+} light_ubo;
 
+layout (push_constant) uniform pushConstants
+{
+	float IBLAmbient;
+	bool useIBLContribution;
+} push;
+
+#ifdef USE_IBL
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour)
 {
 	const float MAX_REFLECTION_LOD = 4.0;
@@ -54,16 +61,17 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	vec3 diffuseLight = texture(irradianceSampler, N).rgb;
 	vec3 diffuse = diffuseLight * diffuseColour;
 	
-	diffuse *= ubo.IBLAmbient;
-	specular *= ubo.IBLAmbient;
+	diffuse *= push.IBLAmbient;
+	specular *= push.IBLAmbient;
 	
 	return diffuse + specular;
 }
+#endif
 
 void main()
 {	
 	vec3 inPos = texture(positionSampler, inUv).rgb;
-	vec3 V = normalize(ubo.cameraPos.xyz - inPos);
+	vec3 V = normalize(inCameraPos.xyz - inPos);
 	vec3 N = texture(normalSampler, inUv).rgb;
 	vec3 R = -reflect(V, N);
 	R.y *= -1.0;
@@ -83,21 +91,21 @@ void main()
 	
 	// apply additional lighting contribution to specular 
 	vec3 colour = vec3(0.0);
-	for(int c = 0; c < ubo.activeLightCount; c++) {  
+	for(int c = 0; c < light_ubo.activeLightCount; c++) {  
 		
-		vec3 lightPos = ubo.lights[c].pos.xyz - inPos;
+		vec3 lightPos = light_ubo.lights[c].pos.xyz - inPos;
 		float dist = length(lightPos);
 		float attenuation = 1.0 / dist * dist;
-		vec3 radiance = ubo.lights[c].colour.rgb * attenuation;
+		vec3 radiance = light_ubo.lights[c].colour.rgb * attenuation;
 		
-		vec3 L = normalize(ubo.lights[c].pos.xyz - inPos);
+		vec3 L = normalize(lightPos);
 		colour += specularContribution(L, V, N, F0, metallic, roughness, baseColour, radiance);
 	}
 	
 	// add IBL contribution if needed
-	if (ubo.useIBLContribution) {
+	if (push.useIBLContribution) {
 		float NdotV = max(dot(N, V), 0.0);
-		colour += calculateIBL(N, NdotV, roughness, R, baseColour);
+		//colour += calculateIBL(N, NdotV, roughness, R, baseColour);
 	}
 	
 	// occlusion

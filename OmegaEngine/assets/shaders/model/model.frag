@@ -14,9 +14,9 @@ layout (location = 3) in vec3 inPos;
 layout(push_constant) uniform pushConstants 
 {
 	vec4 baseColorFactor;
-	vec4 emissiveFactor;
-	vec4 diffuseFactor;
-	vec4 specularFactor;
+	vec3 emissiveFactor;
+	vec3 diffuseFactor;
+	vec3 specularFactor;
 	float metallicFactor;	
 	float roughnessFactor;	
 	float alphaMask;	
@@ -26,7 +26,7 @@ layout(push_constant) uniform pushConstants
 	bool haveEmissiveMap;
 	bool haveMrMap;
 	bool haveAoMap;
-	int workflow;
+	bool usingSpecularGlossiness;
 
 } material;
 
@@ -37,9 +37,6 @@ layout (location = 3) out vec2 outPbr;
 layout (location = 4) out vec3 outEmissive;
 
 #define EPSILON 0.00001
-
-#define PBR_WORKFLOW_METALLIC_ROUGHNESS 0
-#define PBR_WORKFLOW_SPECULAR_GLOSINESS 1
 
 float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
 {
@@ -100,7 +97,7 @@ void main()
 	vec3 normal; 
 	if (material.haveNormalMap) {
 
-		onormal = peturbNormal();
+		normal = peturbNormal();
 	}
 	else {
 		normal = normalize(inNormal);
@@ -110,7 +107,7 @@ void main()
 	// diffuse - based on metallic and roughness
 	float roughness = 0.0;
 	float metallic = 0.0;
-	if (material.workflow == PBR_WORKFLOW_METALLIC_ROUGHNESS) {
+	if (!material.usingSpecularGlossiness) {
 
 		roughness = material.roughnessFactor;
 		metallic = material.metallicFactor;
@@ -126,7 +123,7 @@ void main()
 		}
 	}
 
-	if (material.workflow == PBR_WORKFLOW_SPECULAR_GLOSINESS) {
+	else {
 		// Values from specular glossiness workflow are converted to metallic roughness
 		if (material.haveMrMap) {
 			roughness = 1.0 - texture(mrMap, inUv).a;

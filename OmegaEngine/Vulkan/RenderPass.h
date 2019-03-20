@@ -73,14 +73,15 @@ namespace VulkanAPI
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 
 		// for generating cmd buffer
-		vk::RenderPassBeginInfo get_begin_info(vk::ClearColorValue& bg_colour);
+		vk::RenderPassBeginInfo get_begin_info(vk::ClearColorValue& bg_colour, uint32_t index = 0);
+		vk::RenderPassBeginInfo get_begin_info(uint32_t size, vk::ClearValue* bg_colour, uint32_t index = 0);
 
 	private:
 
 		vk::Device device;
 
 		vk::RenderPass renderpass;
-		vk::Framebuffer framebuffer;
+		std::vector<vk::Framebuffer> framebuffers;
 
 		uint32_t image_width = 0; 
 		uint32_t image_height = 0;

@@ -7,7 +7,7 @@ layout (location = 3) in vec3 inColour;
 layout (location = 4) in vec4 inWeights;
 layout (location = 5) in ivec4 inBoneId;
 
-#define MAX_BONES 256
+#define MAX_BONES 64
 
 layout (set = 1, binding = 0) uniform CameraUbo
 {

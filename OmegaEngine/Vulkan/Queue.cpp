@@ -18,13 +18,13 @@ namespace VulkanAPI
 	{
 	}
 
-	void Queue::begin_frame()
+	void Queue::begin_frame(vk::Semaphore& semaphore)
 	{
 		assert(swap_chain);
-		device.acquireNextImageKHR(swap_chain, std::numeric_limits<uint64_t>::max(), image_semaphore, {}, &image_index);
+		device.acquireNextImageKHR(swap_chain, std::numeric_limits<uint64_t>::max(), semaphore, {}, &image_index);
 	}
 
-	void Queue::submit_frame()
+	void Queue::submit_frame(vk::Semaphore& present_semaphore)
 	{
 		vk::PresentInfoKHR present_info(
 			1, &present_semaphore,
@@ -62,7 +62,7 @@ namespace VulkanAPI
 		queue.waitIdle();
 	}
 
-	void Queue::submit_cmd_buffer(vk::CommandBuffer cmd_buffer)
+	void Queue::flush_cmd_buffer(vk::CommandBuffer cmd_buffer)
 	{
 		vk::SubmitInfo submit_info(
 			0, nullptr, nullptr,

@@ -53,6 +53,9 @@ namespace OmegaEngine
 
 		// init the command buffer now ready for rendering later
 		cmd_buffer.init(device.getDevice());
+
+		// and also the swap chain presentation pass which will render the final composition to the screen
+		prepare_swapchain_pass();
 	}
 
 	void RenderInterface::load_render_config()
@@ -90,7 +93,7 @@ namespace OmegaEngine
 			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
 			auto deferred_renderer = reinterpret_cast<DeferredRenderer*>(renderer.get());
 			deferred_renderer->create_gbuffer_pass();
-			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface->getManager<CameraManager>());
+			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface, this);
 			break;
 		}
 		default:
@@ -126,7 +129,7 @@ namespace OmegaEngine
 		render_pipelines[(int)type].shader = shader;
 	}
 
-	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass)
+	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore)
 	{
 		RenderQueueInfo queue_info;
 	
@@ -157,6 +160,13 @@ namespace OmegaEngine
 
 		// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
 		render_queue->threaded_dispatch(cmd_buffer, this);
+
+		// end the primary pass and buffer
+		cmd_buffer.end_pass();
+		cmd_buffer.end();
+
+		// submit to graphics queue
+		vk_interface->get_graph_queue().submit_cmd_buffer(cmd_buffer.get(), image_semaphore, component_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
 
 		isDirty = true;
 	}
@@ -198,6 +208,57 @@ namespace OmegaEngine
 	void RenderInterface::render(double interpolation)
 	{
 		renderer->render(this, vk_interface);
+	}
+
+	void RenderInterface::prepare_swapchain_pass()
+	{
+		auto& swap_chain = vk_interface->get_swapchain();
+		vk::Format sc_format = swap_chain.get_format();
+
+		uint32_t width = swap_chain.get_extents_width();
+		uint32_t height = swap_chain.get_extents_height();
+
+		// depth image
+		vk::Format depth_format = VulkanAPI::Device::get_depth_format(vk_interface->get_gpu());
+		swapchain_present.depth_texture.create_empty_image(vk_interface->get_device(), vk_interface->get_gpu(), depth_format, width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+
+		swapchain_present.renderpass.init(vk_interface->get_device());
+		swapchain_present.renderpass.addAttachment(vk::ImageLayout::ePresentSrcKHR, sc_format);
+		swapchain_present.renderpass.addAttachment(vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal, depth_format);
+
+		swapchain_present.renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
+		swapchain_present.renderpass.addReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 1);
+		swapchain_present.renderpass.prepareRenderPass();
+
+		// create presentation renderpass/framebuffer for each swap chain image
+		for (uint32_t i = 0; i < swap_chain.get_image_count(); ++i) {
+
+			// create a frame buffer for each swapchain image
+			std::vector<vk::ImageView> image_views{ swap_chain.get_image_view(i), swapchain_present.depth_texture.get_image_view() };
+			swapchain_present.renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), width, height);
+		}
+
+		// a command buffer is required for each presentation image
+		swapchain_present.cmd_buffer.resize(swap_chain.get_image_count());
+
+		// might as well sort out the background clear colour now too
+		swapchain_present.clear_values[0].color = static_cast<vk::ClearColorValue>(render_config.general.background_col);
+		swapchain_present.clear_values[1].depthStencil = { 1.0f, 0 };
+	}
+
+	void RenderInterface::begin_swapchain_pass(uint32_t index)
+	{
+		auto& begin_info = swapchain_present.renderpass.get_begin_info(swapchain_present.clear_values.size(), swapchain_present.clear_values.data());
+		swapchain_present.cmd_buffer[index].begin_renderpass(begin_info, index);
+
+		swapchain_present.cmd_buffer[index].set_viewport();
+		swapchain_present.cmd_buffer[index].set_scissor();
+	}
+
+	void RenderInterface::end_swapchain_pass(uint32_t index)
+	{
+		swapchain_present.cmd_buffer[index].end_pass();
+		swapchain_present.cmd_buffer[index].end();
 	}
 
 }

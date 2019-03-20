@@ -68,7 +68,6 @@ namespace VulkanAPI
 	void CommandBuffer::init(vk::Device dev)
 	{
 		device = dev;
-		create_cmd_pool();
 
 		// create a cmd pool for this buffer
 		create_cmd_pool();
@@ -92,6 +91,23 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
 	}
 
+	void CommandBuffer::create_secondary()
+	{
+		vk::CommandPool pool;
+		vk::CommandPoolCreateInfo create_info(
+			vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+			queue_family_index);
+
+		device.createCommandPool(&create_info, nullptr, &pool);
+		secondary_cmd_pools.push_back(pool);
+
+		// create secondary cmd buffers
+		vk::CommandBuffer sec_cmd_buffer;
+		vk::CommandBufferAllocateInfo allocInfo(pool, vk::CommandBufferLevel::eSecondary, 1);
+		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &sec_cmd_buffer));
+		secondary_cmd_buffers.push_back(sec_cmd_buffer);
+	}
+
 	void CommandBuffer::create_secondary(uint32_t count, bool reset)
 	{
 		if (reset) {
@@ -102,19 +118,7 @@ namespace VulkanAPI
 		// create pool for each secondary
 		for (uint32_t i = 0; i < count; ++i) {
 
-			vk::CommandPool pool;
-			vk::CommandPoolCreateInfo create_info(
-				vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-				queue_family_index);
-
-			device.createCommandPool(&create_info, nullptr, &pool);
-			secondary_cmd_pools.push_back(pool);
-
-			// create secondary cmd buffers
-			vk::CommandBuffer sec_cmd_buffer;
-			vk::CommandBufferAllocateInfo allocInfo(pool, vk::CommandBufferLevel::eSecondary, 1);
-			VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &sec_cmd_buffer));
-			secondary_cmd_buffers.push_back(sec_cmd_buffer);
+			create_secondary();
 		}
 	}
 
@@ -187,6 +191,16 @@ namespace VulkanAPI
 	{
 		vk::CommandBuffer sec_cmd_buffer = secondary_cmd_buffers[handle];
 		sec_cmd_buffer.end();
+	}
+
+	void CommandBuffer::set_viewport()
+	{
+		cmd_buffer.setViewport(0, 1, &view_port);
+	}
+
+	void CommandBuffer::set_scissor()
+	{
+		cmd_buffer.setScissor(0, 1, &scissor);
 	}
 
 	void CommandBuffer::bind_pipeline(Pipeline& pipeline)

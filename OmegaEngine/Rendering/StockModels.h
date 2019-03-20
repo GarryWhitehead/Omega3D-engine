@@ -76,6 +76,5 @@ namespace OmegaEngine
 			VulkanAPI::MemorySegment indices_buffer;
 
 		};
-
 	}
 }

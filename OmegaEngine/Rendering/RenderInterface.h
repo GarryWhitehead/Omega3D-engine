@@ -1,6 +1,7 @@
 #pragma once
 #include "Rendering/Renderers/RendererBase.h"
 #include "Vulkan/Device.h"
+#include "Vulkan/Datatypes/Texture.h"
 #include "Vulkan/Interface.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Shader.h"
@@ -110,7 +111,23 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
+		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore);
+
+		// preperation for final swapchain presentation
+		void prepare_swapchain_pass();
+		void begin_swapchain_pass(uint32_t index);
+		void end_swapchain_pass(uint32_t index);
+
+		VulkanAPI::RenderPass& get_swapchain_renderpass()
+		{
+			return swapchain_present.renderpass;
+		}
+
+		uint32_t get_swapchain_count() const
+		{
+			// hmmmmmm... if the cmd buffer hasn't been set then will be zero - should use something else maybe!
+			return swapchain_present.cmd_buffer.size();
+		}
 
 	private:
 
@@ -134,6 +151,16 @@ namespace OmegaEngine
 
 		// Vulkan stuff for rendering the compoennts
 		VulkanAPI::CommandBuffer cmd_buffer;
+
+		// final presentation pass
+		struct SwapChainPresentaion
+		{
+			std::vector<VulkanAPI::CommandBuffer> cmd_buffer;
+			VulkanAPI::RenderPass renderpass;
+			VulkanAPI::Texture depth_texture;
+
+			std::array<vk::ClearValue, 2> clear_values = {};
+		} swapchain_present;
 	};
 
 }
