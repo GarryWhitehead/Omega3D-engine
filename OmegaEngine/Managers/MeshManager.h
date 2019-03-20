@@ -49,6 +49,13 @@ namespace OmegaEngine
 			OEMaths::vec4f joint;
 		};
 
+		struct SkinnedVertex
+		{
+			OEMaths::vec4f position;
+			OEMaths::vec3f normal;
+			OEMaths::vec2f uv;
+		};
+
 		struct PrimitiveMesh
 		{
 			PrimitiveMesh(uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
@@ -56,7 +63,7 @@ namespace OmegaEngine
 				indexCount(size),
 				materialId(matid)
 			{
-				//dimensions.initDimensions(min, max);
+				// add to bvh here?
 			}
 
 			Dimensions dimensions;
@@ -73,8 +80,9 @@ namespace OmegaEngine
 		{
 			Dimensions dimensions;
 
-			// all vertex and index data for this mesh
+			// all vertex and index data for this mesh - will be using either vertex or skinned vertex, not both - should probably use inheritable class here.
 			std::vector<Vertex> vertexBuffer;
+			std::vector<SkinnedVertex> skinnedVertexBuffer;
 			std::vector<uint32_t> indexBuffer;
 
 			// primitives assoicated with this mesh
@@ -83,11 +91,6 @@ namespace OmegaEngine
 			// offset into gpu buffer
 			uint32_t vertex_buffer_offset;
 			uint32_t index_buffer_offset;
-		};
-
-		struct SkinnedMesh : public StaticMesh
-		{
-
 		};
 
 		MeshManager();
@@ -134,13 +137,17 @@ namespace OmegaEngine
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> meshBuffer;
+		std::vector<StaticMesh> skinnedMeshBuffer;
 
 		// allocated GPU buffer - one large buffer for all meshes. Additional meshes will be added to the end
 		VulkanAPI::MemorySegment vertex_buffer;
 		VulkanAPI::MemorySegment index_buffer;
 
-		bool isDirty = true;
+		// and seperate buffer for skinned meshes
+		VulkanAPI::MemorySegment skinned_vertex_buffer;
+		VulkanAPI::MemorySegment skinned_index_buffer;
 
+		bool isDirty = true;
 	};
 
 }

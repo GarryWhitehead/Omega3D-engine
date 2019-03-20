@@ -13,8 +13,12 @@ namespace OmegaEngine
 	MeshManager::MeshManager()
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+		// non-skinned
 		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
 		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
+		// skinned
+		skinned_vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(SkinnedVertex) * static_cast<uint32_t>(VertexBlockSize));
+		skinned_index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 
@@ -84,9 +88,11 @@ namespace OmegaEngine
 			OEMaths::vec3f primMin{ static_cast<float>(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]) };
 			OEMaths::vec3f primMax{ static_cast<float>(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]) };
 
-			// now convert the data to a form that we can use with Vulkan
-			for (uint32_t j = 0; j < posAccessor.count; ++j) {
-				Vertex vertex;
+			// now convert the data to a form that we can use with Vulkan - skinned and non-skinned meshes treated separately
+			if (weightBuffer && jointBuffer) {
+
+				for (uint32_t j = 0; j < posAccessor.count; ++j) {
+				SkinnedVertex vertex;
 				vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
 				posBuffer += 3;
 
@@ -94,21 +100,34 @@ namespace OmegaEngine
 					vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
 					normBuffer += 3;
 				}
-
-
 				if (uvBuffer) {
 					vertex.uv = OEMaths::convert_vec2(uvBuffer);
 					uvBuffer += 2;
 				}
-
 				// if we have skin data, also convert this to a palatable form
-				if (weightBuffer && jointBuffer) {
-					vertex.joint = OEMaths::convert_vec4(reinterpret_cast<float*>(jointBuffer));
-					vertex.weight = OEMaths::convert_vec4(weightBuffer);
-					jointBuffer += 4;
-					weightBuffer += 4;
+				vertex.joint = OEMaths::convert_vec4(reinterpret_cast<float*>(jointBuffer));
+				vertex.weight = OEMaths::convert_vec4(weightBuffer);
+				jointBuffer += 4;
+				weightBuffer += 4;
+
+				staticMesh.skinnedVertexBuffer.push_back(vertex);
+			}
+			else {
+				for (uint32_t j = 0; j < posAccessor.count; ++j) {
+					Vertex vertex;
+					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
+					posBuffer += 3;
+
+					if (normBuffer) {
+						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
+						normBuffer += 3;
+					}
+					if (uvBuffer) {
+						vertex.uv = OEMaths::convert_vec2(uvBuffer);
+						uvBuffer += 2;
+					}
+					staticMesh.vertexBuffer.push_back(vertex);
 				}
-				staticMesh.vertexBuffer.push_back(vertex);
 			}
 
 			// Now obtain the indicies data from the gltf file
@@ -141,7 +160,13 @@ namespace OmegaEngine
 			staticMesh.primitives.push_back(prim);
 		}
 
-		meshBuffer.push_back(staticMesh);
+		// add to the appropiate buffer
+		if (!staticMesh.skinnedVertexBuffer.empty()) {
+			skinnedMeshBuffer.push_back(staticMesh);
+		}
+		else {
+			meshBuffer.push_back(staticMesh);
+		}
 		
 		// add mesh component to current object
 		obj->add_manager<MeshManager>(static_cast<uint32_t>(meshBuffer.size() - 1));
@@ -150,13 +175,14 @@ namespace OmegaEngine
 	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		if (isDirty) {
-
+			
+			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;	
 			uint32_t vertex_offset = 0;
 			uint32_t index_offset = 0;
 
+			// non-skinned meshes
 			for (auto& mesh : meshBuffer) {
 
-				VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 				mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), static_cast<uint32_t>(mesh.vertexBuffer.size()) * sizeof(Vertex), vertex_offset);
 				mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()) * sizeof(uint32_t), index_offset);
 
@@ -165,7 +191,22 @@ namespace OmegaEngine
 
 				vertex_offset += mesh.vertexBuffer.size() * sizeof(Vertex);	// in bytes!!!
 				index_offset += mesh.indexBuffer.size() * sizeof(uint32_t);
+			}
 
+			vertex_offset = 0;
+			index_offset = 0;
+			
+			// and skinned meshes
+			for (auto& mesh : skinnedMeshBuffer) {
+
+				mem_alloc.mapDataToSegment(skinned_vertex_buffer, mesh.skinnedVertexBuffer.data(), static_cast<uint32_t>(mesh.skinnedVertexBuffer.size()) * sizeof(SkinnedVertex), vertex_offset);
+				mem_alloc.mapDataToSegment(skinned_index_buffer, mesh.skinnedIndexBuffer.data(), static_cast<uint32_t>(mesh.skinnedIndexBuffer.size()) * sizeof(uint32_t), index_offset);
+
+				mesh.vertex_buffer_offset = vertex_offset;
+				mesh.index_buffer_offset = index_offset;
+
+				vertex_offset += mesh.skinnedVertexBuffer.size() * sizeof(SkinnedVertex);	// in bytes!!!
+				index_offset += mesh.skinnedIndexBuffer.size() * sizeof(uint32_t);
 			}
 		}
 
