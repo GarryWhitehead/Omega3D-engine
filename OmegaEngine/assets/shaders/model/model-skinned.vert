@@ -20,6 +20,13 @@ layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
 	mat4 modelMatrix;
 } mesh_ubo;
 
+layout (set = 3, binding = 0) uniform Dynamic_SkinnedUbo
+{
+	mat4 matrix;
+	mat4 bones[MAX_BONES];
+	float jointCount;
+} skinned_ubo;
+
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
 layout (location = 2) out vec3 outColour;
@@ -34,7 +41,12 @@ void main()
 {	
 	vec4 pos;
 	
-	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix;
+	mat4 boneTransform = skinned_ubo.bones[inBoneId[0]] * inWeights[0];
+	boneTransform += skinned_ubo.bones[inBoneId[1]] * inWeights[1];
+	boneTransform += skinned_ubo.bones[inBoneId[2]] * inWeights[2];
+	boneTransform += skinned_ubo.bones[inBoneId[3]] * inWeights[3];
+		
+	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix * boneTransform;
 	pos = normalTransform * vec4(inPos, 1.0);
 	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);
 

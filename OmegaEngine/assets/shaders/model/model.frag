@@ -8,9 +8,8 @@ layout (set = 0, binding = 4) uniform sampler2D aoMap;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec4 inTangent;
-layout (location = 3) in vec3 inColour;
-layout (location = 4) in vec3 inPos;
+layout (location = 2) in vec3 inColour;
+layout (location = 3) in vec3 inPos;
 
 layout(push_constant) uniform pushConstants 
 {
