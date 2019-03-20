@@ -67,6 +67,22 @@ namespace VulkanAPI
 			break;
 		}
 
+		bool log_object_names = false;
+		for (uint32_t i = 0; i < data->objectCount; i++) {
+			auto *name = data->pObjects[i].pObjectName;
+			if (name) {
+				log_object_names = true;
+				break;
+			}
+		}
+
+		if (log_object_names) {
+			for (uint32_t i = 0; i < data->objectCount; i++) {
+				auto *name = data->pObjects[i].pObjectName;
+				LOGGER_INFO("  Object #%u: %s\n", i, name ? name : "N/A");
+			}
+		}
+
 		return VK_FALSE;
 	}
 

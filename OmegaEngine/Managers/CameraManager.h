@@ -136,9 +136,6 @@ namespace OmegaEngine
 		double currentX = 0.0;
 		double currentY = 0.0;
 
-		// the current camera info for sending to vulkan
-		CameraBufferInfo buffer_info;
-
 		// info for the gpu side
 		VulkanAPI::MemorySegment ubo_buffer;
 

@@ -119,8 +119,11 @@ namespace OmegaEngine
 	{
 		VulkanAPI::Shader shader;
 		switch (type) {
-		case OmegaEngine::RenderTypes::Mesh:
-			render_pipelines[(int)RenderTypes::Mesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface);
+		case OmegaEngine::RenderTypes::StaticMesh:
+			render_pipelines[(int)RenderTypes::StaticMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Static);
+			break;
+		case OmegaEngine::RenderTypes::SkinnedMesh:
+			render_pipelines[(int)RenderTypes::SkinnedMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Skinned);
 			break;
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
@@ -136,7 +139,8 @@ namespace OmegaEngine
 		for (auto& info : renderables) {
 			
 			switch (info.renderable->get_type()) {
-			case RenderTypes::Mesh: {
+			case RenderTypes::SkinnedMesh:
+			case RenderTypes::StaticMesh: {
 				queue_info.renderable_handle = info.renderable->get_handle();
 				queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
 				break;
@@ -176,7 +180,7 @@ namespace OmegaEngine
 		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
 		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::Mesh* mesh = mesh_manager.get_mesh(mesh_index);
+		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
 
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives) {

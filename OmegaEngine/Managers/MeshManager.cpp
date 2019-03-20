@@ -160,6 +160,7 @@ namespace OmegaEngine
 				throw std::runtime_error("Unable to parse indices data. Unsupported accessor component type.");
 			}
 
+			staticMesh.type = mesh_type;
 			PrimitiveMesh prim(mesh_type, indexOffset, indexCount, (uint32_t)primitive.material, primMin, primMax);
 			staticMesh.primitives.push_back(prim);
 		}
@@ -196,13 +197,13 @@ namespace OmegaEngine
 				// skinned meshes
 				else if (mesh.type == MeshManager::MeshType::Skinned) {
 					mem_alloc.mapDataToSegment(skinned_vertex_buffer, mesh.skinnedVertexBuffer.data(), static_cast<uint32_t>(mesh.skinnedVertexBuffer.size()) * sizeof(SkinnedVertex), skinned_vertex_offset);
-					mem_alloc.mapDataToSegment(skinned_index_buffer, mesh.skinnedIndexBuffer.data(), static_cast<uint32_t>(mesh.skinnedIndexBuffer.size()) * sizeof(uint32_t), skinned_index_offset);
+					mem_alloc.mapDataToSegment(skinned_index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()) * sizeof(uint32_t), skinned_index_offset);
 
 					mesh.vertex_buffer_offset = skinned_vertex_offset;
 					mesh.index_buffer_offset = skinned_index_offset;
 
 					skinned_vertex_offset += mesh.skinnedVertexBuffer.size() * sizeof(SkinnedVertex);	// in bytes!!!
-					skinned_index_offset += mesh.skinnedIndexBuffer.size() * sizeof(uint32_t);
+					skinned_index_offset += mesh.indexBuffer.size() * sizeof(uint32_t);
 				}
 			}
 		}
