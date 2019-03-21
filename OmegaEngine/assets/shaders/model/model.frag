@@ -58,13 +58,13 @@ float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
 // The most copied function in the world! From here: http://www.thetenthplanet.de/archives/1180
 vec3 peturbNormal()
 {
-	
+	// convert normal to -1, 1 coord system
 	vec3 tangentNormal = texture(normalMap, inUv).xyz * 2.0 - 1.0;
 
-	vec3 q1 = dFdx(inPos);
-	vec3 q2 = dFdy(inPos);
-	vec2 st1 = dFdx(inUv);
-	vec2 st2 = dFdy(inUv);
+	vec3 q1 = dFdx(inPos);	// edge1
+	vec3 q2 = dFdy(inPos);	// edge2
+	vec2 st1 = dFdx(inUv);	// uv1
+	vec2 st2 = dFdy(inUv);	// uv2
 
 	vec3 N = normalize(inNormal);
 	vec3 T = normalize(q1 * st2.t - q2 * st1.t);

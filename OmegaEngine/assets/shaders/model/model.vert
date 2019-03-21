@@ -32,10 +32,10 @@ void main()
 	
 	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix;
 	pos = normalTransform * vec4(inPos, 1.0);
-	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);
+	outNormal = normalTransform * inNormal;
 
 	pos = -pos;
-	outPos = pos.xyz / pos.w;	// perspective divide
+	outPos = pos.xyz / pos.w;	// perspective divide correction
 	
 	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);
 	outUv = inUv;

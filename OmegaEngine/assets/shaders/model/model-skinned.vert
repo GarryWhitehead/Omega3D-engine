@@ -48,7 +48,9 @@ void main()
 		
 	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix * boneTransform;
 	pos = normalTransform * vec4(inPos, 1.0);
-	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);
+
+    // inverse-transpose for non-uniform scaling - expensive computations here - maybe remove this?
+	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);    // 
 
 	pos = -pos;
 	outPos = pos.xyz / pos.w;	// perspective divide
