@@ -378,7 +378,7 @@ namespace VulkanAPI
 
 		vk::DeviceSize offsets[1] = { quad_buffers.vertex_buffer.get_offset() };
 		cmd_buffer.bindVertexBuffers(0, 1, &vert_buffer, offsets);
-		cmd_buffer.bindIndexBuffer(index_buffer, quad_buffers.index_buffer.get_offset(), vk::IndexType::eUint32);	// making an assumption here that this is unit32 - let's ensure this is the case
+		cmd_buffer.bindIndexBuffer(index_buffer, quad_buffers.index_buffer.get_offset(), vk::IndexType::eUint32);	
 		cmd_buffer.drawIndexed(6, 1, 0, 0, 0);
 	}
 
@@ -413,11 +413,11 @@ namespace VulkanAPI
 		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 
 		// map vertices
-		quad_buffers.vertex_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * vertices.size());
+		quad_buffers.vertex_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, sizeof(Vertex) * vertices.size());
 		mem_alloc.mapDataToSegment(quad_buffers.vertex_buffer, vertices.data(), vertices.size());
 
 		// map indices
-		quad_buffers.index_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * indices.size());
+		quad_buffers.index_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * indices.size());
 		mem_alloc.mapDataToSegment(quad_buffers.index_buffer, indices.data(), indices.size());
 	}
 

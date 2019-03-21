@@ -171,6 +171,9 @@ namespace VulkanAPI
 		// dynamic buffer allocation
 		DynamicSegment* allocate_dynamic(uint32_t size, uint32_t objects);
 		void mapDataToDynamicSegment(DynamicSegment* segment, void *data, uint32_t totalSize, uint32_t offset = 0);
+
+		// useful diagnostic functions
+		void outputLog();
 		
 	private:
 

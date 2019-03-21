@@ -356,6 +356,41 @@ namespace VulkanAPI
 		}
 	}
 
+	void MemoryAllocator::outputLog()
+	{
+		// just outputting to stderr for now. Would be useful to write to csv file at some point
+		LOGGER_INFO("Current memory blocks in use: %i", mem_blocks.size());
+		
+		for (auto& block : mem_blocks) {
+			LOGGER_INFO("-----------------------------------------\n");
+			LOGGER_INFO("Block Id #%i :\n", block.block_id);
+			LOGGER_INFO("Total size = %i\n", block.total_size);
+			LOGGER_INFO("Number of allocated segments: %i\n", block.alloc_segments.size());
+			
+			LOGGER("Allocated segments.....\n");
+			uint32_t count = 0;
+			uint32_t totalUsed = 0;
+			
+			for (auto& segment : block.alloc_segments) {
+				LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first, segment.second);
+				++count;
+				totalUsed += segment.second;
+			}
+			LOGGER_INFO("Total memory used = %i\n", totalUsed);
+			LOGGER_INFO("Memory available: %i\n", block.total_size - totalUsed);
+			
+			LOGGER("Free segments.....\n");
+			count = 0;
+			totalUsed = 0;
+			for (auto& segment : block.free_segments) {
+				LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first, segment.second);
+				++count;
+				totalUsed += segment.second;
+			}
+			LOGGER_INFO("Total free memory available: %i\n", totalUsed);
+		}
+	}
+
 	// ================================================================ MemorySegment functions ====================================================================================================================
 
 	void MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data_to_copy, uint32_t totalSize, uint32_t mapped_offset)
