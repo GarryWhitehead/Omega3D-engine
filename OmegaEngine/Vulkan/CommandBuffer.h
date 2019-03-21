@@ -40,10 +40,10 @@ namespace VulkanAPI
         };
         
 		CommandBuffer();
-		CommandBuffer(vk::Device dev);
+		CommandBuffer(vk::Device dev, uint64_t q_family_index);
 		~CommandBuffer();
 
-		void init(vk::Device dev);
+		void init(vk::Device dev, uint64_t q_family_index);
 		void create_primary(UsageType type);
 		void create_secondary();
 		void create_secondary(uint32_t count, bool reset);

@@ -86,13 +86,14 @@ namespace VulkanAPI
 
 		struct QueueInfo
 		{
-			int computeIndex = VK_QUEUE_FAMILY_IGNORED;
-			int presentIndex = VK_QUEUE_FAMILY_IGNORED;
-			int graphIndex = VK_QUEUE_FAMILY_IGNORED;
-			VulkanAPI::Queue graphQueue;
-			VulkanAPI::Queue presentQueue;
-			VulkanAPI::Queue computeQueue;
-		} queue;
+			int compute = VK_QUEUE_FAMILY_IGNORED;
+			int present = VK_QUEUE_FAMILY_IGNORED;
+			int graphics = VK_QUEUE_FAMILY_IGNORED;
+		} queue_family_index;
+
+		VulkanAPI::Queue graphQueue;
+		VulkanAPI::Queue presentQueue;
+		VulkanAPI::Queue computeQueue;
 
 		// info on this device's swapchain
 		struct SwapchainInfo

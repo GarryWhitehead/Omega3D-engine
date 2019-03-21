@@ -18,6 +18,7 @@ namespace VulkanAPI
 	// forward declearions
 	class Interface;
 	class RenderPass;
+	class Swapchain;
 }
 
 namespace OmegaEngine
@@ -41,7 +42,7 @@ namespace OmegaEngine
 		void create_gbuffer_pass();
 		void create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface);
 
-		void render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface);
+		void render_deferred(VulkanAPI::Queue& graph_queue, VulkanAPI::Swapchain& swapchain, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface);
 		
 
 		VulkanAPI::RenderPass& get_deferred_pass()
@@ -62,7 +63,6 @@ namespace OmegaEngine
 		// for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		
-
 		// for the rendering pipeline
 		VulkanAPI::Texture image;
 		VulkanAPI::Shader shader;
@@ -82,6 +82,10 @@ namespace OmegaEngine
 
 		// keep a local copy of the render config
 		RenderConfig render_config;
+
+		// semaphores for syncing of the render pipeline
+		vk::Semaphore image_semaphore;
+		vk::Semaphore present_semaphore;
 	};
 
 }

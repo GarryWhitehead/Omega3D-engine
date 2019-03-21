@@ -52,7 +52,7 @@ namespace OmegaEngine
 		render_queue = std::make_unique<RenderQueue>();
 
 		// init the command buffer now ready for rendering later
-		cmd_buffer.init(device.getDevice());
+		cmd_buffer.init(device.getDevice(), vk_interface->get_graph_queue().get_index());
 
 		// and also the swap chain presentation pass which will render the final composition to the screen
 		prepare_swapchain_pass();
@@ -244,19 +244,33 @@ namespace OmegaEngine
 
 		// a command buffer is required for each presentation image
 		swapchain_present.cmd_buffer.resize(swap_chain.get_image_count());
+		for (uint32_t i = 0; i < swapchain_present.cmd_buffer.size(); ++i) {
+
+			swapchain_present.cmd_buffer[i].init(vk_interface->get_device(), vk_interface->get_present_queue().get_index());
+			// TODO: we are creating a quad for each individual buffer which sin't right. Either change the cmd buffer wrapper to allow multiple
+			// cmd buffers to be stored or move the quad elsewhere. Probably thinking the latter.
+			swapchain_present.cmd_buffer[i].create_quad_data();	
+		}
 
 		// might as well sort out the background clear colour now too
 		swapchain_present.clear_values[0].color = static_cast<vk::ClearColorValue>(render_config.general.background_col);
 		swapchain_present.clear_values[1].depthStencil = { 1.0f, 0 };
 	}
 
-	void RenderInterface::begin_swapchain_pass(uint32_t index)
+	VulkanAPI::CommandBuffer& RenderInterface::begin_swapchain_pass(uint32_t index)
 	{
+		// setup the command buffer
+		swapchain_present.cmd_buffer[index].create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
+
+		// begin the render pass
 		auto& begin_info = swapchain_present.renderpass.get_begin_info(swapchain_present.clear_values.size(), swapchain_present.clear_values.data());
 		swapchain_present.cmd_buffer[index].begin_renderpass(begin_info, index);
 
+		// set the dynamic viewport and scissor dimensions
 		swapchain_present.cmd_buffer[index].set_viewport();
 		swapchain_present.cmd_buffer[index].set_scissor();
+
+		return swapchain_present.cmd_buffer[index];
 	}
 
 	void RenderInterface::end_swapchain_pass(uint32_t index)

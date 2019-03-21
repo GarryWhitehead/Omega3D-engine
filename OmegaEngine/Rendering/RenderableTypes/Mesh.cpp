@@ -180,7 +180,7 @@ namespace OmegaEngine
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer_offset };
 		cmd_buffer.secondary_bind_vertex_buffer(instance_data->vertex_buffer, offset, thread);
-		cmd_buffer.secondary_bind_index_buffer(instance_data->index_buffer, instance_data->vertex_buffer_offset + instance_data->index_sub_offset, thread);
+		cmd_buffer.secondary_bind_index_buffer(instance_data->index_buffer, instance_data->index_buffer_offset + instance_data->index_sub_offset, thread);
 		cmd_buffer.secondary_draw_indexed(instance_data->index_count, thread);
 	}
 

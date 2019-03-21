@@ -269,7 +269,7 @@ namespace VulkanAPI
 			VkBool32 have_present_queue = false;
 			physical.getSurfaceSupportKHR(c, win_surface, &have_present_queue);
 			if (queues[c].queueCount > 0 && have_present_queue) {
-				queue.presentIndex = c;
+				queue_family_index.present = c;
 				break;
 			}
 		}
@@ -278,7 +278,7 @@ namespace VulkanAPI
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
 			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) {
-				queue.graphIndex = c;
+				queue_family_index.graphics = c;
 				break;
 			}
 		}
@@ -286,28 +286,28 @@ namespace VulkanAPI
 		// compute queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			if (queues[c].queueCount > 0 && c != queue.presentIndex && queues[c].queueFlags & vk::QueueFlagBits::eCompute) {									
-				queue.computeIndex = c;
+			if (queues[c].queueCount > 0 && c != queue_family_index.present && queues[c].queueFlags & vk::QueueFlagBits::eCompute) {
+				queue_family_index.compute = c;
 				break;
 			}
 		}
 
 		// graphics and presentation queues are compulsory
-		if (queue.presentIndex == VK_QUEUE_FAMILY_IGNORED)
+		if (queue_family_index.present == VK_QUEUE_FAMILY_IGNORED)
 		{
 			LOGGER_ERROR("Critcal error! Required queues not found.");
 			throw std::runtime_error("Error. Unable to initiliase presention queue.");
 		}
 
 		// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
-		if (queue.computeIndex == VK_QUEUE_FAMILY_IGNORED) {
+		if (queue_family_index.compute == VK_QUEUE_FAMILY_IGNORED) {
 			
-			queue.computeIndex = queue.graphIndex;
+			queue_family_index.compute = queue_family_index.graphics;
 		}
 
 		float queuePriority = 1.0f;
 		std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
-		std::set<int> uniqueQueues = { queue.graphIndex, queue.presentIndex, queue.computeIndex };
+		std::set<int> uniqueQueues = { queue_family_index.graphics, queue_family_index.present, queue_family_index.compute };
 
 		for (auto& queue : uniqueQueues) {
 			vk::DeviceQueueCreateInfo createInfo({}, queue, 1, &queuePriority);
@@ -352,29 +352,29 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 
 		// prepare queue for each type
-		vk::Queue computeQueue, graphQueue, presentQueue;
+		vk::Queue vkComputeQueue, vkGraphQueue, vkPresentQueue;
 
-		device.getQueue(queue.computeIndex, 0, &computeQueue);
-		device.getQueue(queue.graphIndex, 0, &graphQueue);
-		device.getQueue(queue.presentIndex, 0, &presentQueue);
+		device.getQueue(queue_family_index.compute, 0, &vkComputeQueue);
+		device.getQueue(queue_family_index.graphics, 0, &vkGraphQueue);
+		device.getQueue(queue_family_index.present, 0, &vkPresentQueue);
 
 		// init vulkan api queue wrapper
-		queue.graphQueue.create(graphQueue, device);
-		queue.presentQueue.create(presentQueue, device);
-		queue.computeQueue.create(computeQueue, device);
+		graphQueue.create(vkGraphQueue, device, queue_family_index.graphics);
+		presentQueue.create(vkPresentQueue, device, queue_family_index.present);
+		computeQueue.create(vkComputeQueue, device, queue_family_index.compute);
 	}
 
 	uint32_t Device::getQueueIndex(QueueType type) const
 	{
 		switch (type) {
 		case QueueType::Graphics:
-			return queue.graphIndex;
+			return queue_family_index.graphics;
 			break;
 		case QueueType::Present:
-			return queue.presentIndex;
+			return queue_family_index.present;
 			break;
 		case QueueType::Compute:
-			return queue.computeIndex;
+			return queue_family_index.compute;
 			break;
 		default:
 			return -1;
@@ -387,13 +387,13 @@ namespace VulkanAPI
 
 		switch (type) {
 		case QueueType::Graphics:
-			ret_queue = queue.graphQueue;
+			ret_queue = graphQueue;
 			break;
 		case QueueType::Present:
-			ret_queue = queue.presentQueue;
+			ret_queue = presentQueue;
 			break;
 		case QueueType::Compute:
-			ret_queue = queue.computeQueue;
+			ret_queue = computeQueue;
 			break;
 		}
 

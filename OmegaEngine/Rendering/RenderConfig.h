@@ -15,7 +15,7 @@ namespace OmegaEngine
 			RendererType renderer;
 
 			std::array<float, 4> background_col = {};
-			bool use_post_process = true;
+			bool use_post_process = false;
 
 		} general;
 

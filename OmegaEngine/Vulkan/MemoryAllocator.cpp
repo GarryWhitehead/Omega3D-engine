@@ -1,5 +1,6 @@
 #include "MemoryAllocator.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Utility/logger.h"
 
 namespace VulkanAPI
 {
@@ -103,7 +104,7 @@ namespace VulkanAPI
 
 			// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
 			createBuffer(alloc_size, vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eUniformBuffer
-				| vk::BufferUsageFlagBits::eStorageBuffer | usage,
+				| vk::BufferUsageFlagBits::eStorageBuffer,
 				vk::MemoryPropertyFlagBits::eDeviceLocal,
 				block.block_mem,
 				block.block_buffer);
@@ -167,7 +168,7 @@ namespace VulkanAPI
 		// if error code returned, allocate another block of memory of the required type
 		if (offset == UINT32_MAX) {
 
-			block_id = allocateBlock(mem_usage, buffer_usage);
+			block_id = allocateBlock(mem_usage);
 			offset = findFreeSegment(block_id, segment_size);
 		}
 
@@ -269,7 +270,7 @@ namespace VulkanAPI
 			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
-			CommandBuffer copy_cmd_buff(device);
+			CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
 			copy_cmd_buff.create_primary(CommandBuffer::UsageType::Single);
 			
 			vk::BufferCopy buffer_copy(0, segment.get_offset(), segment.get_size());
@@ -302,7 +303,7 @@ namespace VulkanAPI
 		}
 	
 		// allocate memory for this dynamic buffer taking into consideration mem alignment if required
-		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, objects * alignment_size);
+		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, objects * alignment_size);
 		dynamic_buffers.push_back(segment);
 
 		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size() - 1, segment.get_id(), segment.get_offset());

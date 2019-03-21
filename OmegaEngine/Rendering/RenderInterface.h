@@ -113,22 +113,6 @@ namespace OmegaEngine
 		void render(double interpolation);
 		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore);
 
-		// preperation for final swapchain presentation
-		void prepare_swapchain_pass();
-		void begin_swapchain_pass(uint32_t index);
-		void end_swapchain_pass(uint32_t index);
-
-		VulkanAPI::RenderPass& get_swapchain_renderpass()
-		{
-			return swapchain_present.renderpass;
-		}
-
-		uint32_t get_swapchain_count() const
-		{
-			// hmmmmmm... if the cmd buffer hasn't been set then will be zero - should use something else maybe!
-			return swapchain_present.cmd_buffer.size();
-		}
-
 	private:
 
 		RenderConfig render_config;
@@ -152,6 +136,30 @@ namespace OmegaEngine
 		// Vulkan stuff for rendering the compoennts
 		VulkanAPI::CommandBuffer cmd_buffer;
 
+	public:
+
+		// preperation for final swapchain presentation
+		void prepare_swapchain_pass();
+		VulkanAPI::CommandBuffer& begin_swapchain_pass(uint32_t index);
+		void end_swapchain_pass(uint32_t index);
+
+		VulkanAPI::RenderPass& get_swapchain_renderpass()
+		{
+			return swapchain_present.renderpass;
+		}
+
+		uint32_t get_swapchain_count() const
+		{
+			return swapchain_present.cmd_buffer.size();
+		}
+
+		VulkanAPI::CommandBuffer& get_sc_cmd_buffer(uint32_t index)
+		{
+			return swapchain_present.cmd_buffer[index];
+		}
+
+	private:
+
 		// final presentation pass
 		struct SwapChainPresentaion
 		{
@@ -161,6 +169,7 @@ namespace OmegaEngine
 
 			std::array<vk::ClearValue, 2> clear_values = {};
 		} swapchain_present;
+
 	};
 
 }

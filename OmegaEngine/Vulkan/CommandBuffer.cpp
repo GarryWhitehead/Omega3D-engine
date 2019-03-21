@@ -54,10 +54,12 @@ namespace VulkanAPI
 	{
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device dev) :
-		device(dev)
+	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index) :
+		device(dev),
+		queue_family_index(q_family_index)
 	{
-		init(dev);
+		// create a cmd pool for this buffer
+		create_cmd_pool();
 	}
 
 
@@ -65,9 +67,10 @@ namespace VulkanAPI
 	{
 	}
 
-	void CommandBuffer::init(vk::Device dev)
+	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index)
 	{
 		device = dev;
+		queue_family_index = q_family_index;
 
 		// create a cmd pool for this buffer
 		create_cmd_pool();

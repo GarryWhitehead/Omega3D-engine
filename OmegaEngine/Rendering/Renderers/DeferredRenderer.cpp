@@ -22,8 +22,12 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		cmd_buffer.init(device);
 		cmd_buffer.create_quad_data();
+
+		// set up semaphores for later
+		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
+		image_semaphore = semaphore_manager.get_semaphore();
+		present_semaphore = semaphore_manager.get_semaphore();
 	}
 
 
@@ -130,27 +134,28 @@ namespace OmegaEngine
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
 		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		pipeline.add_colour_attachment(VK_FALSE, renderpass);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		
 		if (render_config.general.use_post_process) {
+			pipeline.add_colour_attachment(VK_FALSE, renderpass);
 			pipeline.create(device, renderpass, shader, pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 		else {
 			// render to the swapchain presentation 
+			pipeline.add_colour_attachment(VK_FALSE, render_interface->get_swapchain_renderpass());
 			pipeline.create(device, render_interface->get_swapchain_renderpass(), shader, pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 	}
 
 
-	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface)
+	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, VulkanAPI::Swapchain& swapchain, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface)
 	{
-		
-		cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
-
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
 		// or just render straight to the swap chain presentation image
 		if (render_config.general.use_post_process) {
+
+			cmd_buffer.init(device, graph_queue.get_index());
+			cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
 
 			// begin the renderpass 
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
@@ -178,28 +183,33 @@ namespace OmegaEngine
 		else {
 			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
 			
-				render_interface->begin_swapchain_pass(i);
+				auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
 
 				// bind everything required to draw
-				cmd_buffer.bind_pipeline(pipeline);
-				cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-				cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+				sc_cmd_buffer.bind_pipeline(pipeline);
+				sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+				sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 				// render full screen quad to screen
-				cmd_buffer.draw_indexed_quad();
+				sc_cmd_buffer.draw_indexed_quad();
 
 				render_interface->end_swapchain_pass(i);
 			}
+
+			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
 		}
 	}
 
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
-		// begin the start of the frame by beginning the next new swapchain image
 		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
-		vk::Semaphore image_semaphore = semaphore_manager.get_semaphore();
-		vk_interface->get_present_queue().begin_frame(image_semaphore);
+	
+		auto& swapchain = vk_interface->get_swapchain();
+		auto& graph_queue = vk_interface->get_graph_queue();
+
+		// begin the start of the frame by beginning the next new swapchain image
+		swapchain.begin_frame(image_semaphore);
 		
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
@@ -209,7 +219,7 @@ namespace OmegaEngine
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 		vk::Semaphore deferred_semaphore = semaphore_manager.get_semaphore();
-		render_deferred(vk_interface->get_graph_queue(), component_semaphore, deferred_semaphore, render_interface);
+		render_deferred(graph_queue, swapchain, component_semaphore, deferred_semaphore, render_interface);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {
@@ -217,9 +227,8 @@ namespace OmegaEngine
 			vk::Semaphore post_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
 			pp_interface->render();
 		}
-		else {
-			// if post-processing isn't wanted, render the final composition as a full-screen quad
-
-		}
+		
+		// finally send to the swap-chain presentation
+		swapchain.submit_frame(present_semaphore, vk_interface->get_present_queue().get());
 	}
 }

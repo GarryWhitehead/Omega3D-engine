@@ -47,7 +47,7 @@ namespace OmegaEngine
 			pipeline.create(device, VulkanAPI::PipelineType::Graphics);
 
 			// and finally the command buffers
-			VulkanAPI::CommandBuffer cmd_buffer(device);
+			VulkanAPI::CommandBuffer cmd_buffer(device, graph_queue.get_index());
 
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(clear_value);
 			cmd_buffer.begin_renderpass(begin_info);
@@ -109,7 +109,7 @@ namespace OmegaEngine
 			RenderUtil::CubeModel cube_model;
 
 			// record command buffer
-			VulkanAPI::CommandBuffer cmd_buffer(device);
+			VulkanAPI::CommandBuffer cmd_buffer(device, graph_queue.get_index());
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(clear_value);
 			
 			// transition cube texture for transfer

@@ -17,6 +17,10 @@ namespace VulkanAPI
 		
 		void create(VulkanAPI::Device& device, const uint32_t screenWidth, const uint32_t screenHeight);
 
+		// frame submit and presentation to the swapchain
+		void begin_frame(vk::Semaphore& image_semaphore);
+		void submit_frame(vk::Semaphore& present_semaphore, vk::Queue& present_queue);
+
 		vk::SwapchainKHR& get()
 		{
 			return swapchain;
@@ -47,6 +51,11 @@ namespace VulkanAPI
 			return extent.width;
 		}
 
+		uint32_t get_image_index() const
+		{
+			return image_index;
+		}
+
 	private:
 
 		vk::Device dev;
@@ -55,7 +64,12 @@ namespace VulkanAPI
 		vk::Extent2D extent;
 		vk::SurfaceFormatKHR format;
 		vk::SwapchainKHR swapchain;
+
 		std::vector<VulkanAPI::ImageView> image_views;
+
+		// current image
+		uint32_t image_index = 0;
+
 	};
 }
 

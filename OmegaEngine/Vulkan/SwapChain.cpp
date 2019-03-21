@@ -129,4 +129,23 @@ namespace VulkanAPI
 
 		dev.destroySwapchainKHR(swapchain, nullptr);
 	}
+
+	void Swapchain::begin_frame(vk::Semaphore& semaphore)
+	{
+		dev.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), semaphore, {}, &image_index);
+	}
+
+	void Swapchain::submit_frame(vk::Semaphore& present_semaphore, vk::Queue& present_queue)
+	{
+		vk::PresentInfoKHR present_info(
+			1, &present_semaphore,
+			1, &swapchain,
+			&image_index,
+			nullptr);
+
+		VK_CHECK_RESULT(present_queue.presentKHR(&present_info));
+		present_queue.waitIdle();
+	}
+
+
 }
