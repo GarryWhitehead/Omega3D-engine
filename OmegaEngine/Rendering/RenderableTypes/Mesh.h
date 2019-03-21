@@ -91,7 +91,8 @@ namespace OmegaEngine
 
 		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device device,
 													std::unique_ptr<RendererBase>& renderer, 
-													std::unique_ptr<ComponentInterface>& component_interface);	
+													std::unique_ptr<ComponentInterface>& component_interface,
+													MeshManager::MeshType type);
 
 	private:
 

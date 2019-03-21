@@ -85,6 +85,7 @@ namespace OmegaEngine
 			updateViewMatrix();
 
 			// update everything in the buffer
+			CameraBufferInfo buffer_info;
 			buffer_info.mvp = currentProjMatrix * currentViewMatrix;	// * model
 			buffer_info.camera_pos = current_pos;
 			buffer_info.projection = currentProjMatrix;

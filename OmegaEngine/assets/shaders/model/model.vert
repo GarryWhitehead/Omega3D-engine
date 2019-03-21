@@ -30,7 +30,7 @@ void main()
 {	
 	vec4 pos;
 	
-	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix;
+	mat4 normalTransform = mesh_ubo.modelMatrix;
 	pos = normalTransform * vec4(inPos, 1.0);
 	outNormal = normalTransform * inNormal;
 

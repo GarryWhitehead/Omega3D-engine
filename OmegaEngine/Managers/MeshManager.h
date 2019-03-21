@@ -64,7 +64,8 @@ namespace OmegaEngine
 
 		struct PrimitiveMesh
 		{
-			PrimitiveMesh(uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
+			PrimitiveMesh(MeshType _type, uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
+				type(_type),
 				indexBase(offset),
 				indexCount(size),
 				materialId(matid)
@@ -73,7 +74,6 @@ namespace OmegaEngine
 			}
 
 			MeshType type;
-			
 			Dimensions dimensions;
 
 			// index offsets
@@ -86,6 +86,7 @@ namespace OmegaEngine
 
 		struct StaticMesh
 		{
+			MeshType type;
 			Dimensions dimensions;
 
 			std::vector<uint32_t> indexBuffer;
@@ -129,16 +130,46 @@ namespace OmegaEngine
 			delete buf;
 		}
 
-		vk::Buffer& get_vertex_buffer()
+		vk::Buffer& get_vertex_buffer(const MeshType type)
 		{
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(vertex_buffer.get_id());
+			if (type == MeshType::Static) {
+				return mem_alloc.get_memory_buffer(vertex_buffer.get_id());
+			}
+			else {
+				return mem_alloc.get_memory_buffer(skinned_vertex_buffer.get_id());
+			}
 		}
 
-		vk::Buffer& get_index_buffer()
+		vk::Buffer& get_index_buffer(const MeshType type)
 		{
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(index_buffer.get_id());
+			if (type == MeshType::Static) {
+				return mem_alloc.get_memory_buffer(index_buffer.get_id());
+			}
+			else {
+				return mem_alloc.get_memory_buffer(skinned_index_buffer.get_id());
+			}
+		}
+
+		uint32_t get_vertex_buffer_offset(const MeshType type) const
+		{
+			if (type == MeshType::Static) {
+				return vertex_buffer.get_offset();
+			}
+			else {
+				return skinned_vertex_buffer.get_offset();
+			}
+		}
+
+		uint32_t get_index_buffer_offset(const MeshType type) const
+		{
+			if (type == MeshType::Static) {
+				return index_buffer.get_offset();
+			}
+			else {
+				return skinned_index_buffer.get_offset();
+			}
 		}
 
 	private:

@@ -21,7 +21,7 @@ namespace OmegaEngine
 	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
 									MeshManager::StaticMesh mesh, 
 									MeshManager::PrimitiveMesh primitive) :
-		RenderableBase(RenderTypes::Mesh)
+		RenderableBase(RenderTypes::StaticMesh)
 	{
 		
 		// get the material for this primitive mesh from the manager
@@ -31,7 +31,7 @@ namespace OmegaEngine
 		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::create_sort_key(RenderStage::GBuffer, primitive.materialId, RenderTypes::Mesh);
+		sort_key = RenderQueue::create_sort_key(RenderStage::GBuffer, primitive.materialId, RenderTypes::StaticMesh);
 
 		// fill out the data which will be used for rendering
 		instance_data = new MeshInstance;
@@ -40,19 +40,13 @@ namespace OmegaEngine
 		// skinned ior non-skinned mesh?
 		mesh_instance_data->type = mesh.type;
 
-		// index into the main buffer
-		mesh_instance_data->vertex_buffer_offset = mesh.vertex_buffer_offset;
-		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset;
+		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
+		mesh_instance_data->vertex_buffer_offset = mesh.vertex_buffer_offset + mesh_manager.get_vertex_buffer_offset(mesh.type);
+		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset + mesh_manager.get_index_buffer_offset(mesh.type);
 
 		// actual vulkan buffers
-		if (mesh.type == MeshManager::MeshType::Static) {
-			mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer();
-			mesh_instance_data->index_buffer = mesh_manager.get_index_buffer();
-		}
-		else {
-			mesh_instance_data->vertex_buffer = mesh_manager.get_skinned_vertex_buffer();
-			mesh_instance_data->index_buffer = mesh_manager.get_skinned_index_buffer();
-		}
+		mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer(mesh.type);
+		mesh_instance_data->index_buffer = mesh_manager.get_index_buffer(mesh.type);
 		
 		// per face indicies
 		mesh_instance_data->index_sub_offset = primitive.indexBase;
@@ -93,7 +87,7 @@ namespace OmegaEngine
 			}
 		}
 		else if (type == MeshManager::MeshType::Skinned) {
-			if (!state.shader.add(device, "model/skinned_model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state.shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 				LOGGER_ERROR("Unable to create skinned model shaders.");
 			}
 		}
@@ -157,13 +151,12 @@ namespace OmegaEngine
 
 		MeshInstance* instance_data = (MeshInstance*)instance;
 
-		std::vector<uint32_t> dynamic_offsets 
-		{
-			instance_data->transform_dynamic_offset,
-			instance_data->skinned_dynamic_offset
-		};
+		std::vector<uint32_t> dynamic_offsets { instance_data->transform_dynamic_offset };
+		if (instance_data->type == MeshManager::MeshType::Skinned) {
+			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
+		}
 
-		RenderInterface::ProgramState& mesh_pipeline;
+		RenderInterface::ProgramState mesh_pipeline;
 		if (instance_data->type == MeshManager::MeshType::Static) {
 			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh);
 		}
@@ -185,9 +178,9 @@ namespace OmegaEngine
 		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
 		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block, thread);
 
-		vk::DeviceSize offset = {instance_data->vertex_buffer_offset};
+		vk::DeviceSize offset = { instance_data->vertex_buffer_offset };
 		cmd_buffer.secondary_bind_vertex_buffer(instance_data->vertex_buffer, offset, thread);
-		cmd_buffer.secondary_bind_index_buffer(instance_data->index_buffer, instance_data->index_sub_offset, thread);
+		cmd_buffer.secondary_bind_index_buffer(instance_data->index_buffer, instance_data->vertex_buffer_offset + instance_data->index_sub_offset, thread);
 		cmd_buffer.secondary_draw_indexed(instance_data->index_count, thread);
 	}
 

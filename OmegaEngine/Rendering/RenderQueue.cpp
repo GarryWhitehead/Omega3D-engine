@@ -41,10 +41,13 @@ namespace OmegaEngine
 		
 		ThreadPool thread_pool(num_threads);
         
+		uint32_t thread_count = 0;
+
+		// create the cmd pools and secondary buffers for each stage
+		cmd_buffer.create_secondary(num_threads, true);
+
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
-
-			uint32_t thread_count = 0;
 
 			// TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
 			uint32_t thread_group_size = queue.second.size() / num_threads;
@@ -55,9 +58,6 @@ namespace OmegaEngine
 			};
 
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
-
-				// create the cmd pools and secondary buffers for each stage
-				cmd_buffer.create_secondary();
 
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
@@ -70,16 +70,16 @@ namespace OmegaEngine
 
                 ++thread_count;
 		    } 
-
-			// check that all threads are finshed before executing the cmd buffers
-			thread_pool.wait_for_all();
-
-			// execute the recorded secondary command buffers - only for those threads we have actually used
-			cmd_buffer.secondary_execute_commands();
         }
 
+		// check that all threads are finshed before executing the cmd buffers
+		thread_pool.wait_for_all();
+
+		// execute the recorded secondary command buffers - only for those threads we have actually used
+		cmd_buffer.secondary_execute_commands(thread_count);
+
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
-		render_queues.clear();
+		//render_queues.clear();
 	}
 
     void RenderQueue::sort_all()
