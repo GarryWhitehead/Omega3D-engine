@@ -14,11 +14,11 @@ namespace OmegaEngine
 	{
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		// non-skinned
-		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
-		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
+		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
+		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 		// skinned
-		skinned_vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(SkinnedVertex) * static_cast<uint32_t>(VertexBlockSize));
-		skinned_index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
+		skinned_vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eVertexBuffer, sizeof(SkinnedVertex) * static_cast<uint32_t>(VertexBlockSize));
+		skinned_index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, vk::BufferUsageFlagBits::eIndexBuffer, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 
