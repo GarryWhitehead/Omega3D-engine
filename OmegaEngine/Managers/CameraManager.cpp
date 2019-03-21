@@ -14,7 +14,7 @@ namespace OmegaEngine
 
 		// allocate gpu memory now for the ubo buffer as the size will remain static
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, vk::BufferUsageFlagBits::eUniformBuffer, sizeof(CameraBufferInfo));
+		ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(CameraBufferInfo));
 	}
 
 

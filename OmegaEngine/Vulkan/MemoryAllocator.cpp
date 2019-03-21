@@ -74,7 +74,7 @@ namespace VulkanAPI
 		return mem_blocks[id].block_buffer;
 	}
 
-	uint32_t MemoryAllocator::allocateBlock(MemoryType type, vk::BufferUsageFlagBits usage, uint32_t size)
+	uint32_t MemoryAllocator::allocateBlock(MemoryType type, uint32_t size)
 	{
 		// default block allocation is as follows: 
 		// host visisble buffers are allocated with a default page size of 64mb and are intened for dynamic data handling
@@ -118,23 +118,23 @@ namespace VulkanAPI
 		return block.block_id;
 	}
 
-	uint32_t MemoryAllocator::allocateBlock(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage)
+	uint32_t MemoryAllocator::allocateBlock(MemoryUsage mem_usage)
 	{
 		uint32_t block_id;
 
 		if (mem_usage & MemoryUsage::VK_BUFFER_DYNAMIC) {
 
-			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST, buffer_usage);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST, ALLOC_BLOCK_SIZE_HOST);
 		}
 		else if (mem_usage & MemoryUsage::VK_BUFFER_STATIC) {
 
-			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL, buffer_usage);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL, ALLOC_BLOCK_SIZE_LOCAL);
 		}
 
 		return block_id;
 	}
 
-	MemorySegment MemoryAllocator::allocate(MemoryUsage mem_usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size)
+	MemorySegment MemoryAllocator::allocate(MemoryUsage mem_usage, uint32_t size)
 	{
 		assert(device);
 		assert(gpu);
@@ -144,13 +144,13 @@ namespace VulkanAPI
 		// Ensure that the user has already alloacted a block of memory. If not, then allocate for them using the default parameters for memory type and size
 		if (mem_blocks.empty()) {
 
-			block_id = allocateBlock(mem_usage, buffer_usage);
+			block_id = allocateBlock(mem_usage);
 		}
 		else {
 			block_id = findBlockType(mem_usage);
 			if (block_id == UINT32_MAX) {
 
-				block_id = allocateBlock(mem_usage, buffer_usage);
+				block_id = allocateBlock(mem_usage);
 			}
 		}
 
@@ -369,7 +369,8 @@ namespace VulkanAPI
 			dev.unmapMemory(memory);
 		}
 		else {
-			void *mapped = static_cast<char*>(data) + mapped_offset;		// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
+			// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
+			void *mapped = static_cast<char*>(data) + mapped_offset;		
 			memcpy(mapped, data, totalSize);
 		}
 	}

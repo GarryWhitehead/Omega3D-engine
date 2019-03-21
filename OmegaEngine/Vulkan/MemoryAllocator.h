@@ -165,7 +165,7 @@ namespace VulkanAPI
 		vk::Buffer& get_memory_buffer(const uint32_t id);
 
 		// Segment allocation functions and mapping
-		MemorySegment allocate(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage, uint32_t size);
+		MemorySegment allocate(MemoryUsage usage, uint32_t size);
 		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
 		
 		// dynamic buffer allocation
@@ -190,8 +190,8 @@ namespace VulkanAPI
 		};
 
 		// Block allocation functions
-		uint32_t allocateBlock(MemoryType type, vk::BufferUsageFlagBits usage, uint32_t size = 0);
-		uint32_t allocateBlock(MemoryUsage usage, vk::BufferUsageFlagBits buffer_usage);
+		uint32_t allocateBlock(MemoryType type, uint32_t size);
+		uint32_t allocateBlock(MemoryUsage usage);
 		void destroyBlock(uint32_t block_id);
 		void destroyAllBlocks();
 
