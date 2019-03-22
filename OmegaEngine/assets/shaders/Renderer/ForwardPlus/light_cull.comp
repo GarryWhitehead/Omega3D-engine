@@ -51,6 +51,8 @@ bool checkWithinFustrum(vec4 position, float radius)
 
 void main()
 {
+    uint index = gl_GlobalInvocationID.x + gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x;
+
     // for this tile, calculate the min and max z values from the depth buffer
     float min = 0.0f;
     float max = 0.0f;
@@ -71,18 +73,21 @@ void main()
 
     for (uint i = 0; i < count; ++i) {
 
-        uint index = thread_count * i + gl_LocalInvocationIndex.x;
+        uint light_index = thread_count * i + gl_LocalInvocationIndex.x;
 
-        if (index >= ubo.lightCount) {
+        if (light_index >= ubo.lightCount) {
             break;
         }
 
         // if the light is within the fustrum, add this lights index to the buffer
-        if (checkWithinFustrum(lights[index].position, lights[index].radius)) {
+        if (checkWithinFustrum(lights[light_index].position, lights[light_index].radius)) {
             
             uint visIndex = atomicAdd(totalLights, 1);
-            visible_lights[visIndex] = index;
+            visible_lights[visIndex] = light_index;
         }
     }
+
+    barrier();
     
+    // now write to the final output buffer
 }
