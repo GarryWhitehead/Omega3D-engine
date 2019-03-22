@@ -13,8 +13,8 @@ namespace VulkanAPI
 		Queue(vk::Queue q, vk::Device dev);
 		~Queue();
 
-		void submit_cmd_buffer(std::vector<vk::CommandBuffer>& cmd_buffer, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags);
-		void submit_cmd_buffer(vk::CommandBuffer& cmd_buffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::PipelineStageFlags stage_flag);
+		void submit_cmd_buffer(std::vector<vk::CommandBuffer>& cmd_buffer, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags = vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		void submit_cmd_buffer(vk::CommandBuffer& cmd_buffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::PipelineStageFlags stage_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput);
 		void flush_cmd_buffer(vk::CommandBuffer cmd_buffer);
 
 		void create(vk::Queue& q, vk::Device& dev, const uint32_t queue_index)

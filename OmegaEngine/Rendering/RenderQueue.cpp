@@ -79,7 +79,7 @@ namespace OmegaEngine
 		cmd_buffer.secondary_execute_commands(thread_count);
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
-		//render_queues.clear();
+		render_queues.clear();
 	}
 
     void RenderQueue::sort_all()

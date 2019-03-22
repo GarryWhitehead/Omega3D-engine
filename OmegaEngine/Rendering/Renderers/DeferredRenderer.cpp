@@ -178,7 +178,7 @@ namespace OmegaEngine
 			cmd_buffer.end();
 
 			// submit to graphics queue
-			graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
+			graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore);
 		}
 		else {
 			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
@@ -195,8 +195,8 @@ namespace OmegaEngine
 
 				render_interface->end_swapchain_pass(i);
 			}
-
-			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
+			
+			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore);
 		}
 	}
 
