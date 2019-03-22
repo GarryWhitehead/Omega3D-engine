@@ -210,6 +210,7 @@ namespace OmegaEngine
 
 		// begin the start of the frame by beginning the next new swapchain image
 		swapchain.begin_frame(image_semaphore);
+
 		
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
