@@ -14,7 +14,7 @@ namespace OmegaEngine
 			// type of renderer to use - at the moment only deferred is supported
 			RendererType renderer;
 
-			std::array<float, 4> background_col = {};
+			std::array<float, 4> background_col = {0.0f, 0.0f, 1.0f, 1.0f};
 			bool use_post_process = false;
 
 		} general;

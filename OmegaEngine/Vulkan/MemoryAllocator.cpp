@@ -270,8 +270,8 @@ namespace VulkanAPI
 			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
-			CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
-			copy_cmd_buff.create_primary(CommandBuffer::UsageType::Single);
+			CommandBuffer copy_cmd_buff(device, graph_queue.get_index(), CommandBuffer::UsageType::Single);
+			copy_cmd_buff.create_primary();
 			
 			vk::BufferCopy buffer_copy(0, segment.get_offset(), segment.get_size());
 			copy_cmd_buff.get().copyBuffer(temp_buffer, block.block_buffer, 1, &buffer_copy);

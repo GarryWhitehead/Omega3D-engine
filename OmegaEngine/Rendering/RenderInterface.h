@@ -130,6 +130,9 @@ namespace OmegaEngine
 		// dirty flag indicates whether to rebuild the renderables
 		bool isDirty = true;
 
+		// indicates whether the cmd buffers need rebuilding
+		bool rebuildCmdBuffers = false;
+
 		// all the pipelines and shaders for each renderable type
 		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
 

@@ -54,9 +54,10 @@ namespace VulkanAPI
 	{
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index) :
+	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type) :
 		device(dev),
-		queue_family_index(q_family_index)
+		queue_family_index(q_family_index),
+		usage_type(type)
 	{
 		// create a cmd pool for this buffer
 		create_cmd_pool();
@@ -67,23 +68,24 @@ namespace VulkanAPI
 	{
 	}
 
-	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index)
+	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index, UsageType type)
 	{
 		device = dev;
 		queue_family_index = q_family_index;
+		usage_type = type;
 
 		// create a cmd pool for this buffer
 		create_cmd_pool();
 	}
 
-	void CommandBuffer::create_primary(UsageType type)
+	void CommandBuffer::create_primary()
 	{	
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::ePrimary, 1);
 
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
         
         vk::CommandBufferUsageFlags usage_flags;
-        if (type == UsageType::Single) {
+        if (usage_type == UsageType::Single) {
             usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
         }
         else {
@@ -97,12 +99,21 @@ namespace VulkanAPI
 	void CommandBuffer::create_secondary()
 	{
 		vk::CommandPool pool;
-		vk::CommandPoolCreateInfo create_info(
-			vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-			queue_family_index);
 
-		device.createCommandPool(&create_info, nullptr, &pool);
-		secondary_cmd_pools.push_back(pool);
+		// if we already have a cmd pool at this index, don't create a new one!
+		if (secondary_cmd_pools.empty() || secondary_cmd_buffers.empty() || secondary_cmd_pools.size() <= secondary_cmd_buffers.size()) {
+			
+			
+			vk::CommandPoolCreateInfo create_info(
+				vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+				queue_family_index);
+
+			device.createCommandPool(&create_info, nullptr, &pool);
+			secondary_cmd_pools.push_back(pool);
+		}
+		else {
+			pool = secondary_cmd_pools[secondary_cmd_buffers.size()];
+		}
 
 		// create secondary cmd buffers
 		vk::CommandBuffer sec_cmd_buffer;
@@ -115,7 +126,6 @@ namespace VulkanAPI
 	{
 		if (reset) {
 			secondary_cmd_buffers.clear();
-			secondary_cmd_pools.clear();
 		}
 
 		// create pool for each secondary
@@ -429,7 +439,7 @@ namespace VulkanAPI
 	void CommandBuffer::create_cmd_pool()
 	{
 		vk::CommandPoolCreateInfo create_info(
-			vk::CommandPoolCreateFlagBits::eTransient,
+			usage_type == UsageType::Single ? vk::CommandPoolCreateFlagBits::eTransient : vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
 			queue_family_index);
 
 		device.createCommandPool(&create_info, nullptr, &cmd_pool);

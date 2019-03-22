@@ -154,48 +154,52 @@ namespace OmegaEngine
 		// or just render straight to the swap chain presentation image
 		if (render_config.general.use_post_process) {
 
-			cmd_buffer.init(device, graph_queue.get_index());
-			cmd_buffer.create_primary(VulkanAPI::CommandBuffer::UsageType::Multi);
+			if (isDirty) {
+				// TODO: will need to reset the cmd buffer if its already been recorded into
+				cmd_buffer.init(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+				cmd_buffer.create_primary();
 
-			// begin the renderpass 
-			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-			cmd_buffer.begin_renderpass(begin_info);
+				// begin the renderpass 
+				vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+				cmd_buffer.begin_renderpass(begin_info);
 
-			// viewport and scissor
-			cmd_buffer.set_viewport();
-			cmd_buffer.set_scissor();
+				// viewport and scissor
+				cmd_buffer.set_viewport();
+				cmd_buffer.set_scissor();
 
-			// bind everything required to draw
-			cmd_buffer.bind_pipeline(pipeline);
-			cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-			cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+				// bind everything required to draw
+				cmd_buffer.bind_pipeline(pipeline);
+				cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+				cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
-			// render full screen quad to screen
-			cmd_buffer.draw_indexed_quad();
+				// render full screen quad to screen
+				cmd_buffer.draw_indexed_quad();
 
-			// end this pass and cmd buffer
-			cmd_buffer.end_pass();
-			cmd_buffer.end();
+				// end this pass and cmd buffer
+				cmd_buffer.end_pass();
+				cmd_buffer.end();
+			}
 
 			// submit to graphics queue
 			graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore);
 		}
 		else {
-			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
-			
-				auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
+			if (isDirty) {
+				for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
 
-				// bind everything required to draw
-				sc_cmd_buffer.bind_pipeline(pipeline);
-				sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-				sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+					auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
 
-				// render full screen quad to screen
-				sc_cmd_buffer.draw_indexed_quad();
+					// bind everything required to draw
+					sc_cmd_buffer.bind_pipeline(pipeline);
+					sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+					sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
-				render_interface->end_swapchain_pass(i);
+					// render full screen quad to screen
+					sc_cmd_buffer.draw_indexed_quad();
+
+					render_interface->end_swapchain_pass(i);
+				}
 			}
-			
 			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore);
 		}
 	}
@@ -211,7 +215,6 @@ namespace OmegaEngine
 		// begin the start of the frame by beginning the next new swapchain image
 		swapchain.begin_frame(image_semaphore);
 
-		
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
@@ -231,5 +234,7 @@ namespace OmegaEngine
 		
 		// finally send to the swap-chain presentation
 		swapchain.submit_frame(present_semaphore, vk_interface->get_present_queue().get());
+
+		isDirty = false;
 	}
 }

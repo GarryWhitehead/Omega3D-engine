@@ -22,9 +22,11 @@ namespace VulkanAPI
 	{
 		assert(!cmd_buffers.empty() && !wait_semaphores.empty() && !signal_semaphores.empty() && stage_flags != nullptr);
 
+		vk::PipelineStageFlags default_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
 		vk::SubmitInfo submit_info(
 			static_cast<uint32_t>(wait_semaphores.size()), wait_semaphores.data(),
-			stage_flags,
+			stage_flags == nullptr ? &default_flag : stage_flags,
 			static_cast<uint32_t>(cmd_buffers.size()), cmd_buffers.data(),
 			static_cast<uint32_t>(signal_semaphores.size()), signal_semaphores.data());
 
