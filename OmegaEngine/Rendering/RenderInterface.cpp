@@ -170,7 +170,7 @@ namespace OmegaEngine
 		cmd_buffer.end();
 
 		// submit to graphics queue
-		vk_interface->get_graph_queue().submit_cmd_buffer(cmd_buffer.get(), image_semaphore, component_semaphore, vk::PipelineStageFlagBits::eColorAttachmentOutput);
+		vk_interface->get_graph_queue().submit_cmd_buffer(cmd_buffer.get(), image_semaphore, component_semaphore);
 
 		isDirty = true;
 	}

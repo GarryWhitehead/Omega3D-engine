@@ -417,11 +417,11 @@ namespace VulkanAPI
 
 		// map vertices
 		quad_buffers.vertex_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, sizeof(Vertex) * vertices.size());
-		mem_alloc.mapDataToSegment(quad_buffers.vertex_buffer, vertices.data(), vertices.size());
+		mem_alloc.mapDataToSegment(quad_buffers.vertex_buffer, vertices.data(), vertices.size() * sizeof(Vertex));
 
 		// map indices
 		quad_buffers.index_buffer = mem_alloc.allocate(MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * indices.size());
-		mem_alloc.mapDataToSegment(quad_buffers.index_buffer, indices.data(), indices.size());
+		mem_alloc.mapDataToSegment(quad_buffers.index_buffer, indices.data(), indices.size() * sizeof(uint32_t));
 	}
 
 	// command pool functions =====================================================================
