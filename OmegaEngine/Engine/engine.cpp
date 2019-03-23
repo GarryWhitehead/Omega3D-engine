@@ -13,6 +13,8 @@
 
 #include "glfw/glfw3.h"
 
+using namespace std::chrono_literals;
+
 namespace OmegaEngine
 {
 	Engine::Engine()
@@ -128,10 +130,10 @@ namespace OmegaEngine
 	void Engine::start_loop()
 	{
 		// convert delta time to ms
-		const double dt = 1000.0 / engine_config.fps;
+		const std::chrono::nanoseconds time_step(16ms);
 
 		// fixed-step loop
-		double accumulator = 0.0;
+		std::chrono::nanoseconds accumulator(0ns);
 		double total_time = 0.0;
 
 		Timer timer;
@@ -140,18 +142,20 @@ namespace OmegaEngine
 		while (Global::program_state.is_running())
 		{
 			auto elapsed_time = timer.get_time_elapsed(true);
-			accumulator += static_cast<int>(elapsed_time.count());
-			
+			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed_time);
+
 			auto& world = worlds[currentWorldIndex];
-			while (accumulator >= dt) {
+			while (accumulator >= time_step) {
 				world->update(total_time, static_cast<double>(elapsed_time.count()));
 
-				total_time += dt;
-				accumulator -= dt;
+				total_time += time_step.count();
+				accumulator -= time_step;
+				//printf("updated!\n");
 			}
 
-			double interpolation = accumulator / dt;
+			double interpolation = accumulator.count() / time_step.count();
 			world->render(interpolation);
+			//printf("rendered!\n");
 		}
 	}
 }

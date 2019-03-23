@@ -6,8 +6,8 @@ class Timer
 
 public:
 
-	using Time = std::chrono::steady_clock::time_point;
-	using TimeMs = std::chrono::milliseconds;
+	using Time = std::chrono::high_resolution_clock::time_point;
+	using TimeMs = std::chrono::nanoseconds;
 
 	Timer();
 	~Timer();

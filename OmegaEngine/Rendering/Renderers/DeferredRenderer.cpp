@@ -178,6 +178,8 @@ namespace OmegaEngine
 				// end this pass and cmd buffer
 				cmd_buffer.end_pass();
 				cmd_buffer.end();
+
+				isDirty = false;
 			}
 
 			// submit to graphics queue
@@ -201,6 +203,8 @@ namespace OmegaEngine
 				}
 			}
 			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore);
+
+			isDirty = false;
 		}
 	}
 

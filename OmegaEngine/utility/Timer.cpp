@@ -13,7 +13,7 @@ Timer::~Timer()
 
 void Timer::start_timer()
 {
-	this->current = std::chrono::steady_clock::now();
+	this->current = std::chrono::high_resolution_clock::now();
 	this->is_running = true;
 	
 }
@@ -25,14 +25,14 @@ void Timer::pasue_timer()
 
 Timer::TimeMs Timer::get_time_elapsed(bool reset)
 {
-	auto time_now = std::chrono::steady_clock::now();
-	auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(time_now - this->current);
+	auto time_now = std::chrono::high_resolution_clock::now(); 
+	auto delta_time = time_now - this->current;
 
 	if (reset) {
 		this->current = time_now;
 	}
 
-	return elapsed;
+	return delta_time;
 }
 
 
