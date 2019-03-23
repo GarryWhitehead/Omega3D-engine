@@ -91,6 +91,8 @@ namespace OmegaEngine
 
 		// the octree as a 3d spatial representation of the world
 		std::unique_ptr<BVH> bvh;
+
+		bool has_updated_once = false;
 	};
 
 }

@@ -115,11 +115,15 @@ namespace OmegaEngine
 		
 		// add all objects as renderable targets unless they flagged otherwise 
 		render_interface->update_renderables(objectManager, component_interface);
+
+		has_updated_once = true;
 	}
 
 	void World::render(double interpolation)
 	{
-		render_interface->render(interpolation);
+		if (has_updated_once) {
+			render_interface->render(interpolation);
+		}
 	}
 
 	void World::addGltfData(std::string filename, OEMaths::mat4f world_mat)
