@@ -59,8 +59,7 @@ namespace OmegaEngine
 			event.isMovingRight = true;
 		}
 		
-		if (key == GLFW_KEY_ESCAPE) {												// exit
-
+		if (key == GLFW_KEY_ESCAPE) {						// exit
 			glfwSetWindowShouldClose(window, true);
 		}
 

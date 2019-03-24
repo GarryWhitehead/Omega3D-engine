@@ -94,7 +94,7 @@ namespace OmegaEngine
 	void Engine::createWorld(std::string filename, std::string name)
 	{
 		// create a world using a omega engine scene file
-		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device]);
+		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device], engine_config);
 		
 		// throw an error here as calling a function for specifically creating a world with a scene file.
 		if (!world->create(filename.c_str())) {
@@ -124,11 +124,21 @@ namespace OmegaEngine
 		if (doc.HasMember("FPS")) {
 			engine_config.fps = doc["FPS"].GetFloat();
 		}
-
+		if (doc.HasMember("Screen Width")) {
+			engine_config.fps = doc["Screen Width"].GetInt();
+		}
+		if (doc.HasMember("Screen Height")) {
+			engine_config.fps = doc["Screen Height"].GetInt();
+		}
+		if (doc.HasMember("Mouse Sensitivity")) {
+			engine_config.fps = doc["Mouse Sensitivity"].GetFloat();
+		}
 	}
 
 	void Engine::start_loop()
 	{
+		program_state.set_running();
+		
 		// convert delta time to ms
 		const std::chrono::nanoseconds time_step(16ms);
 
@@ -139,13 +149,18 @@ namespace OmegaEngine
 		Timer timer;
 		timer.start_timer();
 
-		while (Global::program_state.is_running())
+		while (program_state.is_running())
 		{
 			auto elapsed_time = timer.get_time_elapsed(true);
 			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed_time);
 
 			auto& world = worlds[currentWorldIndex];
 			while (accumulator >= time_step) {
+
+				// poll for any input
+				inputManager->update();
+
+				// update everything else
 				world->update(total_time, static_cast<double>(elapsed_time.count()));
 
 				total_time += time_step.count();

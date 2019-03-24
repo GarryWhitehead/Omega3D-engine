@@ -86,7 +86,7 @@ namespace OmegaEngine
 			float zFar;
 		};
 
-		CameraManager();
+		CameraManager(float sensitivity);
 		~CameraManager();
 
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
@@ -135,6 +135,8 @@ namespace OmegaEngine
 		double pitch = 0.0;
 		double currentX = 0.0;
 		double currentY = 0.0;
+
+		float mouse_sensitivity;
 
 		// info for the gpu side
 		VulkanAPI::MemorySegment ubo_buffer;

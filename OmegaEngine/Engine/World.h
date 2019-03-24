@@ -18,6 +18,7 @@ namespace OmegaEngine
 	class ObjectManager;
 	class Object;
 	class BVH;
+	struct EngineConfig;
 
 	enum class Managers
 	{
@@ -68,7 +69,7 @@ namespace OmegaEngine
 		};
 
 		World();
-		World(Managers managers, VulkanAPI::Device& device);
+		World(Managers managers, VulkanAPI::Device& device, EngineConfig& engine_config);
 		~World();
 
 		bool create(const char* filename);

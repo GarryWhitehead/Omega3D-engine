@@ -17,6 +17,33 @@ namespace OmegaEngine
 	class World;
 	class InputManager;
 
+	// current state of the application
+	class ProgramState
+	{
+	public:
+
+		bool is_running() const
+		{
+			return isRunning;
+		}
+
+		void set_running()
+		{
+			isRunning = true;
+		}
+
+		void destroy()
+		{
+			isRunning = false;
+		}
+
+	private:
+
+		// general
+		bool isRunning = true;
+		bool isPaused = false;
+	};
+
 	class Engine
 	{
 	public:
@@ -38,6 +65,8 @@ namespace OmegaEngine
 
 		// configuration for the omega engine
 		EngineConfig engine_config;
+
+		ProgramState program_state;
 
 		// glfw stuff
 		GLFWwindow * window;

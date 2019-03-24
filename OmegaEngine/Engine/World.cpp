@@ -2,6 +2,7 @@
 #include "Utility/logger.h"
 #include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
+#include "Engine/Omega_Config.h"
 #include "Objects/Object.h"
 #include "Managers/ComponentInterface.h"
 #include "Objects/ObjectManager.h"
@@ -36,11 +37,11 @@ namespace OmegaEngine
 
 	}
 
-	World::World(Managers managers, VulkanAPI::Device& device)
+	World::World(Managers managers, VulkanAPI::Device& device, EngineConfig& engine_config)
 	{
 		objectManager = std::make_unique<ObjectManager>();
 		component_interface = std::make_unique<ComponentInterface>();
-		render_interface = std::make_unique<RenderInterface>(device, component_interface);
+		render_interface = std::make_unique<RenderInterface>(device, component_interface, engine_config.screen_width, engine_config.screen_height);
 		animation_manager = std::make_unique<AnimationManager>();
 		bvh = std::make_unique<BVH>();
 
@@ -59,7 +60,7 @@ namespace OmegaEngine
 			component_interface->registerManager<TransformManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) {
-			component_interface->registerManager<CameraManager>();
+			component_interface->registerManager<CameraManager>(engine_config.mouse_sensitivity);
 		}
 		
 		// setup the preferred renderer and associated elements
@@ -107,6 +108,7 @@ namespace OmegaEngine
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis
+	
 		// animation
 		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
 

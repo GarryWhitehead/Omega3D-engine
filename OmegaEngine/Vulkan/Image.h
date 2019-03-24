@@ -55,7 +55,7 @@ namespace VulkanAPI
 
 		TextureType textureType() const
 		{
-			return type;
+			return image_type;
 		}
 
 	private:
@@ -71,7 +71,7 @@ namespace VulkanAPI
 		int image_layers = 1;
 		int image_mip_levels = 0;
 
-		TextureType type;
+		TextureType image_type;
 	};
 
 }

@@ -73,7 +73,7 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(uint32_t width, uint32_t height, std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface)
+	void DeferredRenderer::create_deferred_pass(std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
 		if (render_config.general.use_post_process) {

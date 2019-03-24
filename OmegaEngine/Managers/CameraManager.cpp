@@ -6,7 +6,8 @@
 namespace OmegaEngine
 {
 
-	CameraManager::CameraManager()
+	CameraManager::CameraManager(float sensitivity) :
+		mouse_sensitivity(sensitivity)
 	{
 		// set up events
 		Global::eventManager()->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouse_move_event>(this);
@@ -38,8 +39,8 @@ namespace OmegaEngine
 		currentX = event.xpos;
 		currentY = event.ypos;
 
-		yaw -= offsetX * Global::program_state.get_mouse_sensitivity();
-		pitch -= offsetY * Global::program_state.get_mouse_sensitivity();
+		yaw -= offsetX * mouse_sensitivity;
+		pitch -= offsetY * mouse_sensitivity;
 
 		pitch = std::max(pitch, 89.0);
 		pitch = std::min(pitch, -89.0);

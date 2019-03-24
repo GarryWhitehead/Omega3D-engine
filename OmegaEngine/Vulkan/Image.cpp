@@ -92,6 +92,7 @@ namespace VulkanAPI
 		image_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1.0);
 		image_width = width;
 		image_height = height;
+		image_type = type;
 
 		vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, format, 
 			{ width, height, 1 },

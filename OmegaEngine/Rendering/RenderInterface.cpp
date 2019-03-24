@@ -27,9 +27,9 @@ namespace OmegaEngine
 	{
 	}
 
-	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface)
+	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height)
 	{
-		init(device);
+		init(device, width, height);
 	}
 
 
@@ -37,16 +37,13 @@ namespace OmegaEngine
 	{
 	}
 
-	void RenderInterface::init(VulkanAPI::Device& device)
+	void RenderInterface::init(VulkanAPI::Device& device, const uint32_t width, const uint32_t height)
 	{
 		// load the render config file if it exsists
 		load_render_config();
 
-		uint32_t win_width = Global::program_state.get_win_width();
-		uint32_t win_height = Global::program_state.get_win_height();
-
 		// initiliase the graphical backend - we are solely using Vulkan 
-		vk_interface = std::make_unique<VulkanAPI::Interface>(device, win_width, win_height);
+		vk_interface = std::make_unique<VulkanAPI::Interface>(device, width, height);
 		
 		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
@@ -83,9 +80,6 @@ namespace OmegaEngine
 
 	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)
 	{
-		uint32_t win_width = Global::program_state.get_win_width();
-		uint32_t win_height = Global::program_state.get_win_height();
-
 		// setup the renderer pipeline
 		switch (static_cast<RendererType>(render_config.general.renderer)) {
 		case RendererType::Deferred:
@@ -93,7 +87,7 @@ namespace OmegaEngine
 			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
 			auto deferred_renderer = reinterpret_cast<DeferredRenderer*>(renderer.get());
 			deferred_renderer->create_gbuffer_pass();
-			deferred_renderer->create_deferred_pass(win_width, win_height, component_interface, this);
+			deferred_renderer->create_deferred_pass(component_interface, this);
 			break;
 		}
 		default:
