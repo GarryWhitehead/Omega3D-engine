@@ -39,7 +39,7 @@ namespace VulkanAPI
 		assert(device);
 
 		// create an empty image
-		tex_image.create(device, gpu, format, width, height, usage_flags, TextureType::Normal);
+		tex_image.create(device, gpu, format, width, height, mip_levels, usage_flags, TextureType::Normal);
 
 		// and a image view of the empty image
 		tex_imageView.create(device, tex_image);
@@ -64,7 +64,17 @@ namespace VulkanAPI
 		memcpy(data_dst, tex.data(), tex.size());
 		device.unmapMemory(stagingMemory);
 
-		tex_image.create(device, gpu, tex.get_format(), tex.tex_width(), tex.tex_height(), vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled, tex_type);
+		// if generating mip maps, then we need to set the transfer and destination usage flags too
+		vk::ImageUsageFlags usage_flags = vk::ImageUsageFlagBits::eSampled;
+		vk::ImageLayout final_transition_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		
+		if (mip_levels > 1) {
+			usage_flags |= vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
+			// if blitting when creating mip-maps, then wwe will transition to shader read after blitting
+			final_transition_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
+		} 
+
+		tex_image.create(device, gpu, tex.get_format(), tex.tex_width(), tex.tex_height(), mip_levels, usage_flags, tex_type);
 	
 		// create the info required for the copy
 		std::vector<vk::BufferImageCopy> copy_buffers;
@@ -76,26 +86,27 @@ namespace VulkanAPI
 		}
 		
 		// noew copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
-		CommandBuffer copy_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Single);
+		CommandBuffer copy_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
 		copy_cmd_buff.create_primary();
 
-        tex_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, copy_cmd_buff.get(), graph_queue.get(), copy_cmd_buff.get_pool());
+        tex_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, copy_cmd_buff.get());
 		copy_cmd_buff.get().copyBufferToImage(staging_buff, tex_image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
-		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, 1, copy_cmd_buff.get(), graph_queue.get(), copy_cmd_buff.get_pool());
+		tex_image.transition(vk::ImageLayout::eTransferDstOptimal, final_transition_layout, 1, copy_cmd_buff.get());
         
 		copy_cmd_buff.end();
 		graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
 
 		// generate mip maps if required
-		CommandBuffer blit_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Single);
-		blit_cmd_buff.create_primary();
-
 		if (mip_levels > 1) {
-			tex_image.generate_mipmap(blit_cmd_buff.get());
-		}
 
-		blit_cmd_buff.end();
-		graph_queue.flush_cmd_buffer(blit_cmd_buff.get());
+			CommandBuffer blit_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+			blit_cmd_buff.create_primary();
+
+			tex_image.generate_mipmap(blit_cmd_buff.get());
+
+			blit_cmd_buff.end();
+			graph_queue.flush_cmd_buffer(blit_cmd_buff.get());
+		}
 
 		// create an image view of the texture image
 		tex_imageView.create(device, tex_image);
@@ -131,7 +142,6 @@ namespace VulkanAPI
 					{ 0, 0, 0 },
 					{ tex_width, tex_height, 1 });
 				copy_buffers.emplace_back(image_copy);
-
 
 				offset += (tex_width >> level) * (tex_height >> level);
 			}

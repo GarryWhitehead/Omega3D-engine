@@ -28,7 +28,7 @@ namespace OmegaEngine
 			struct LocalTRS
 			{
 				OEMaths::vec3f trans;
-				OEMaths::vec3f scale;
+				OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
 				OEMaths::mat4f rot;
 			};
 

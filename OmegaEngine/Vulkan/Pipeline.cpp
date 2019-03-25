@@ -46,6 +46,8 @@ namespace VulkanAPI
 		add_dynamic_state(vk::DynamicState::eScissor);
 		add_dynamic_state(vk::DynamicState::eViewport);
 		set_topology(vk::PrimitiveTopology::eTriangleList);
+
+		raster_state.lineWidth = 1.0f;
 	}
 
 	Pipeline::~Pipeline()
@@ -111,6 +113,7 @@ namespace VulkanAPI
 		for (uint32_t i = 0; i < renderpass.get_attach_count(); ++i) {
 			vk::PipelineColorBlendAttachmentState colour;
 			colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG | vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+			colour.blendEnable = blend_factor;
 			color_attach_state.push_back(colour);
 	}
 
@@ -191,7 +194,7 @@ namespace VulkanAPI
 		&dynamic_create_state,
 		pl_layout,
 		this->renderpass.get(),
-		0, nullptr, -1);
+		0, nullptr, 0);
 
 		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 	}
@@ -226,7 +229,7 @@ namespace VulkanAPI
 				&dynamic_create_state,
 				pl_layout,
 				this->renderpass.get(),
-				0, nullptr, -1);
+				0, nullptr, 0);
 
 		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 	}

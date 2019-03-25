@@ -8,33 +8,35 @@ layout (set = 0, binding = 4) uniform sampler2D aoMap;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inColour;
-layout (location = 3) in vec3 inPos;
+layout (location = 2) in vec3 inPos;
 
 layout(push_constant) uniform pushConstants 
 {
 	vec4 baseColorFactor;
 	vec3 emissiveFactor;
+	float pad0;
 	vec3 diffuseFactor;
+	float pad1;
 	vec3 specularFactor;
+	float pad2;
 	float metallicFactor;	
 	float roughnessFactor;	
 	float alphaMask;	
 	float alphaMaskCutoff;
-	bool haveBaseColourMap;
-	bool haveNormalMap;
-	bool haveEmissiveMap;
-	bool haveMrMap;
-	bool haveAoMap;
-	bool usingSpecularGlossiness;
+	uint haveBaseColourMap;
+	uint haveNormalMap;
+	uint haveEmissiveMap;
+	uint haveMrMap;
+	uint haveAoMap;
+	uint usingSpecularGlossiness;
 
 } material;
 
-layout (location = 0) out vec3 outPosition;
+layout (location = 0) out vec4 outPosition;
 layout (location = 1) out vec4 outColour;
-layout (location = 2) out vec3 outNormal;
+layout (location = 2) out vec4 outNormal;
 layout (location = 3) out vec2 outPbr;
-layout (location = 4) out vec3 outEmissive;
+layout (location = 4) out vec4 outEmissive;
 
 #define EPSILON 0.00001
 
@@ -80,7 +82,7 @@ void main()
 	vec4 baseColour;
 
 	if (material.alphaMask == 1.0) {
-		if (material.haveBaseColourMap) {
+		if (material.haveBaseColourMap > 0) {
 			baseColour = texture(baseColourMap, inUv) * material.baseColorFactor;
 		}
 		else {
@@ -90,29 +92,29 @@ void main()
 			discard;
 		}
 
-		baseColour.xyz *= inColour;		// vertex colour
+		//baseColour.xyz *= inColour;		// vertex colour
 	}
 
 	// normal
 	vec3 normal; 
-	if (material.haveNormalMap) {
+	if (material.haveNormalMap > 0) {
 
 		normal = peturbNormal();
 	}
 	else {
 		normal = normalize(inNormal);
 	}
-	outNormal = normal;
+	outNormal = vec4(normal, 1.0);
 
 	// diffuse - based on metallic and roughness
 	float roughness = 0.0;
 	float metallic = 0.0;
-	if (!material.usingSpecularGlossiness) {
+	if (material.usingSpecularGlossiness == 0) {
 
 		roughness = material.roughnessFactor;
 		metallic = material.metallicFactor;
 
-		if (material.haveMrMap) {
+		if (material.haveMrMap > 0) {
 			vec4 mrSample = texture(mrMap, inUv);
 			roughness = mrSample.g * roughness;
 			metallic = mrSample.b * metallic;
@@ -125,7 +127,7 @@ void main()
 
 	else {
 		// Values from specular glossiness workflow are converted to metallic roughness
-		if (material.haveMrMap) {
+		if (material.haveMrMap > 0) {
 			roughness = 1.0 - texture(mrMap, inUv).a;
 		} else {
 			roughness = 0.0;
@@ -149,21 +151,21 @@ void main()
 
 	// ao
 	float ambient = 1.0;
-	if (material.haveAoMap) {
+	if (material.haveAoMap > 0) {
         ambient = texture(aoMap, inUv).x;
 	}
 	outColour.a = ambient;
 
 	// emmisive
 	vec3 emissive;
-	if (material.haveEmissiveMap) {
+	if (material.haveEmissiveMap > 0) {
         emissive = texture(emissiveMap, inUv).rgb;
 		emissive *= material.emissiveFactor.rgb;
 	}
 	else { 
    		emissive = material.emissiveFactor.rgb;
 	}
-	outEmissive = emissive;
+	outEmissive = vec4(emissive, 1.0);
 	
-	outPosition = inPos;
+	outPosition = vec4(inPos, 1.0);
 }

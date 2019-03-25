@@ -21,11 +21,6 @@ namespace VulkanAPI
 		assert(renderpass);
 	}
 
-	RenderPass::RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies)
-	{
-		init(dev, attach, dependencies);
-	}
-
 	RenderPass::~RenderPass()
 	{
 	}
@@ -33,32 +28,6 @@ namespace VulkanAPI
 	void RenderPass::init(vk::Device dev)
 	{
 		device = dev;
-	}
-
-	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate>& dependencies)
-	{
-		device = dev;
-
-		for (uint32_t i = 0; i < attach.size(); ++i) {
-			this->addAttachment(attach[i].layout, attach[i].format);
-			this->addReference(attach[i].layout, i);
-		}
-
-		for (auto& d : dependencies) {
-			this->addSubpassDependency(d);
-		}
-		this->prepareRenderPass();
-	}
-
-	void RenderPass::init(vk::Device dev, std::vector<AttachedFormat>& attach)
-	{
-		device = dev;
-
-		for (uint32_t i = 0; i < attach.size(); ++i) {
-			this->addAttachment(attach[i].layout, attach[i].format);
-			this->addReference(attach[i].layout, i);
-		}
-		this->prepareRenderPass();
 	}
 
 	void RenderPass::addAttachment(const vk::ImageLayout finalLayout, const vk::Format format)
@@ -73,22 +42,6 @@ namespace VulkanAPI
 			vk::ImageLayout::eUndefined, finalLayout);
 
 		attachment.push_back(attachDescr);
-	}
-
-	void RenderPass::addReference(const vk::ImageLayout layout, const uint32_t attachId)
-	{
-		vk::AttachmentReference ref = {};
-
-		if (layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
-			ref.attachment = attachId;
-			ref.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-			depthReference.push_back(ref);
-		}
-		else {
-			ref.attachment = attachId;
-			ref.layout = vk::ImageLayout::eColorAttachmentOptimal;
-			colorReference.push_back(ref);
-		}
 	}
 
 	void RenderPass::addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef)
@@ -198,6 +151,20 @@ namespace VulkanAPI
 	void RenderPass::prepareRenderPass()
 	{
 		assert(device);
+		assert(!attachment.empty());
+
+		// create the colour .depth refs
+		uint32_t attach_id = 0;
+		for (auto& attach : attachment) {
+
+			if (attach.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+				depthReference.push_back({ attach_id, vk::ImageLayout::eDepthStencilAttachmentOptimal });
+			}
+			else {
+				colorReference.push_back({ attach_id, vk::ImageLayout::eColorAttachmentOptimal });
+			}
+			++attach_id;
+		}
 
 		// if dependency container is empty, go with the default layout
 		if (dependency.empty()) {
@@ -288,7 +255,14 @@ namespace VulkanAPI
 	{
 		// set up clear colour for each colour attachment
 		std::vector<vk::ClearValue> clear_values(attachment.size());
-		std::fill(clear_values.begin(), clear_values.end(), bg_colour);
+		for (uint32_t i = 0; i < attachment.size(); ++i) {
+			if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+				clear_values[i].depthStencil = { 1.0f, 0 }; 
+			}
+			else {
+				clear_values[i].color = bg_colour;
+			}
+		}
 		
 		vk::RenderPassBeginInfo begin_info(
 			renderpass, framebuffers[fb_index],

@@ -3,9 +3,8 @@
 layout (location = 0) in vec3 inPos;
 layout (location = 1) in vec2 inUv;
 layout (location = 2) in vec3 inNormal;
-layout (location = 3) in vec3 inColour;
-layout (location = 4) in vec4 inWeights;
-layout (location = 5) in ivec4 inBoneId;
+layout (location = 3) in vec4 inWeights;
+layout (location = 4) in ivec4 inBoneId;
 
 #define MAX_BONES 256
 
@@ -29,8 +28,7 @@ layout (set = 3, binding = 0) uniform Dynamic_SkinnedUbo
 
 layout (location = 0) out vec2 outUv;
 layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec3 outColour;
-layout (location = 3) out vec3 outPos;
+layout (location = 2) out vec3 outPos;
 
 out gl_PerVertex
 {
@@ -57,5 +55,4 @@ void main()
 	
 	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);
 	outUv = inUv;
-	outColour = inColour;
 }

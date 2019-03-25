@@ -83,13 +83,13 @@ namespace VulkanAPI
 	{
 	}
 
-	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, vk::ImageUsageFlags usage_flags, TextureType type)
+	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags, TextureType type)
 	{
 		device = dev;
 
 		image_format = format;
 		image_layers = 1;
-		image_mip_levels = static_cast<uint32_t>(std::floor(std::log2(std::max(width, height))) + 1.0);
+		image_mip_levels = mip_levels;
 		image_width = width;
 		image_height = height;
 		image_type = type;
@@ -115,18 +115,8 @@ namespace VulkanAPI
 		device.bindImageMemory(image, image_memory, 0);
 	}
 
-	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer cmdBuff, vk::Queue graphQueue, vk::CommandPool cmdPool)
+	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer& cmdBuff)
 	{
-		vk::CommandBuffer comm_buff;
-		if (!cmdBuff) {
-
-			assert(cmdPool);
-			assert(graphQueue);
-			comm_buff = Util::beginSingleCmdBuffer(cmdPool, device);
-		}
-		else {
-			comm_buff = cmdBuff;
-		}
 
 		vk::ImageAspectFlags mask;
 		if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
@@ -188,24 +178,19 @@ namespace VulkanAPI
 			image,
 			vk::ImageSubresourceRange(mask, 0, static_cast<uint32_t>(image_mip_levels), 0, static_cast<uint32_t>(image_layers)));
 
-		comm_buff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
-
-		if (!cmdBuff) {
-
-			Util::submitToQueue(comm_buff, graphQueue, cmdPool, device);
-		}
+		cmdBuff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 	}
 
 	// image-based functions =======
 	void Image::generate_mipmap(vk::CommandBuffer cmd_buffer)
 	{
-		for (uint8_t i = 0; i < image_mip_levels; ++i) {
+		for (uint8_t i = 1; i < image_mip_levels; ++i) {
 
 			// source
 			vk::ImageSubresourceLayers src(
 				vk::ImageAspectFlagBits::eColor,
 				i - 1,
-				0, 0);
+				0, 1);
 			vk::Offset3D src_offset(
 				image_width >> (i - 1),
 				image_height >> (i - 1),
@@ -215,7 +200,7 @@ namespace VulkanAPI
 			vk::ImageSubresourceLayers dst(
 				vk::ImageAspectFlagBits::eColor,
 				i,
-				0, 0);
+				0, 1);
 			vk::Offset3D dst_offset(
 				image_width >> i,
 				image_height >> i,
@@ -227,18 +212,12 @@ namespace VulkanAPI
 			image_blit.dstSubresource = dst;
 			image_blit.dstOffsets[1] = dst_offset;
 
-			// sub range required for barrier
-			vk::ImageSubresourceRange mip_subrange(
-				vk::ImageAspectFlagBits::eColor,
-				i,
-				1, 1);
-
 			// create image barrier - transition image to transfer 
 			vk::ImageMemoryBarrier write_mem_barrier(
 				(vk::AccessFlags)0, vk::AccessFlagBits::eTransferWrite,
 				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
 				0, 0,
-				image, mip_subrange);
+				image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, i, 1, 0, 1));
 
 			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &write_mem_barrier);
 
@@ -249,9 +228,18 @@ namespace VulkanAPI
 				vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
 				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal,
 				0, 0,
-				image, mip_subrange);
+				image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, i, 1, 0, 1));
 
 			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
 		}
+
+		// prepare for shader read
+		vk::ImageMemoryBarrier read_mem_barrier(
+			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
+			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+			0, 0,
+			image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, image_mip_levels, 0, 1));
+
+		cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
 	}
 }

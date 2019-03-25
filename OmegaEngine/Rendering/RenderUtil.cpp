@@ -28,7 +28,6 @@ namespace OmegaEngine
 			// setup renderpass
 			VulkanAPI::RenderPass renderpass(device);
 			renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, lut_format);
-			renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
 			renderpass.prepareRenderPass();
 
 			// and the frame buffer
@@ -76,8 +75,7 @@ namespace OmegaEngine
 
 			// renderpass and framebuffer
 			VulkanAPI::RenderPass renderpass(device);
-			renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, vk::Format::eR32G32B32A32Sfloat);
-			renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
+			renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR32G32B32A32Sfloat);
 			renderpass.prepareRenderPass();
 			renderpass.prepareFramebuffer(offscreen_tex.get_image_view(), irradiance_dim, irradiance_dim);
 
@@ -95,7 +93,7 @@ namespace OmegaEngine
 			// descriptor sets
 			VulkanAPI::DescriptorSet descr_set(device, descr_layout);
 			VulkanAPI::Sampler linear_sampler(device, VulkanAPI::SamplerType::LinearClamp);
-			descr_set.write_set(sampler_layout[0][0].set, sampler_layout[0][0].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), cube_tex.get_image_view(), vk::ImageLayout::eColorAttachmentOptimal);
+			descr_set.write_set(sampler_layout[0][0].set, sampler_layout[0][0].binding, vk::DescriptorType::eSampler, linear_sampler.get_sampler(), cube_tex.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
 
 			// pipeline
 			VulkanAPI::Pipeline pipeline;
@@ -113,7 +111,7 @@ namespace OmegaEngine
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(clear_value);
 			
 			// transition cube texture for transfer
-			cube_tex.get_image().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
+			cube_tex.get_image().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, cmd_buffer.get());
 
 			// record command buffer for each mip and their layers
 			for (uint8_t mip = 0; mip < mip_levels; ++mip) {
@@ -146,14 +144,14 @@ namespace OmegaEngine
 					vk::Extent3D extent(static_cast<uint32_t>(mip_dim), static_cast<uint32_t>(mip_dim), 1);
 					vk::ImageCopy image_copy(src_resource, src_offset, dst_resource, dst_offset, extent);
 
-					offscreen_tex.get_image().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
+					offscreen_tex.get_image().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, 1, cmd_buffer.get());
 					cmd_buffer.get().copyImage(offscreen_tex.get_image().get(), vk::ImageLayout::eTransferSrcOptimal, cube_tex.get_image().get(), vk::ImageLayout::eTransferDstOptimal, 1, &image_copy);
 					
 					// transition the offscreen image back to colour attachment ready for the next image
-					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
+					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, 1, cmd_buffer.get());
 				}
 			}
-			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get(), graph_queue.get(), cmd_buffer.get_pool());
+			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get());
 
 			graph_queue.flush_cmd_buffer(cmd_buffer.get());
 		}

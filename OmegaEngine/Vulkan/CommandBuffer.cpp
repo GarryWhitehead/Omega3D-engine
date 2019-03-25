@@ -399,17 +399,17 @@ namespace VulkanAPI
 	{
 		struct Vertex
 		{
-			OEMaths::vec3f position;
 			OEMaths::vec2f uv;
+			OEMaths::vec3f position;
 			OEMaths::vec3f normal;
 		};
 
 		// vertices
 		std::vector<Vertex> vertices = {
-		{ { 1.0f, 1.0f, 0.0f },{ 1.0f, 1.0f },{ 0.0f, 0.0f, 0.0f }},
-		{ { 0.0f, 1.0f, 0.0f },{ 0.0f, 1.0f },{ 0.0f, 0.0f, 0.0f }},
-		{ { 0.0f, 0.0f, 0.0f },{ 0.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }},
-		{ { 1.0f, 0.0f, 0.0f },{ 1.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }}
+		{ { 1.0f, 1.0f },{ 1.0f, 1.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }},
+		{ { 0.0f, 1.0f },{ 0.0f, 1.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }},
+		{ { 0.0f, 0.0f },{ 0.0f, 0.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }},
+		{ { 1.0f, 0.0f },{ 1.0f, 0.0f, 0.0f },{ 0.0f, 0.0f, 0.0f }}
 		};
 
 		// prepare indices

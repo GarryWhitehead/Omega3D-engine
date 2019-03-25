@@ -52,18 +52,21 @@ namespace OmegaEngine
 			{
 				OEMaths::vec4f baseColorFactor;
 				OEMaths::vec3f emissiveFactor;
+				float pad0;
 				OEMaths::vec3f diffuseFactor;
+				float pad1;
 				OEMaths::vec3f specularFactor;
+				float pad2;
 				float metallicFactor;
 				float roughnessFactor;
 				float alphaMask;
 				float alphaMaskCutoff;
-				bool haveBaseColourMap;
-				bool haveNormalMap;
-				bool haveEmissiveMap;
-				bool haveMrMap;
-				bool haveAoMap;
-				bool usingSpecularGlossiness;
+				uint32_t haveBaseColourMap;
+				uint32_t haveNormalMap;
+				uint32_t haveEmissiveMap;
+				uint32_t haveMrMap;
+				uint32_t haveAoMap;
+				uint32_t usingSpecularGlossiness;
 			} material_push_block;
 
 			// vulkan stuff for material textures

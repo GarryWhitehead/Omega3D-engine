@@ -65,11 +65,12 @@ namespace OmegaEngine
 		mesh_instance_data->material_push_block.diffuseFactor = mat.factors.diffuse;
 		mesh_instance_data->material_push_block.alphaMask = mat.factors.alphaMask;
 		mesh_instance_data->material_push_block.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
-		mesh_instance_data->material_push_block.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor];
-		mesh_instance_data->material_push_block.haveMrMap = mat.texture_state[(int)PbrMaterials::MetallicRoughness];
-		mesh_instance_data->material_push_block.haveNormalMap = mat.texture_state[(int)PbrMaterials::Normal];
-		mesh_instance_data->material_push_block.haveAoMap = mat.texture_state[(int)PbrMaterials::Occlusion];
-		mesh_instance_data->material_push_block.haveEmissiveMap = mat.texture_state[(int)PbrMaterials::Emissive];
+		mesh_instance_data->material_push_block.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor] ? 1 : 0;
+		mesh_instance_data->material_push_block.haveMrMap = mat.texture_state[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;
+		mesh_instance_data->material_push_block.haveNormalMap = mat.texture_state[(int)PbrMaterials::Normal] ? 1 : 0;
+		mesh_instance_data->material_push_block.haveAoMap = mat.texture_state[(int)PbrMaterials::Occlusion] ? 1 : 0;
+		mesh_instance_data->material_push_block.haveEmissiveMap = mat.texture_state[(int)PbrMaterials::Emissive] ? 1 : 0;
+		mesh_instance_data->material_push_block.usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
 	}
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
@@ -132,10 +133,10 @@ namespace OmegaEngine
 		state.shader.pipeline_reflection(state.pipeline);
 
 		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		state.pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
+		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eNone);
+		state.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
 		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
-		state.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
 		state.pipeline.create(device, renderer->get_first_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 
 		return state;

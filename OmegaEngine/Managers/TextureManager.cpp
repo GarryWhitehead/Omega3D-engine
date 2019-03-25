@@ -103,7 +103,7 @@ namespace OmegaEngine
 		// probably should check for different types - though only 4 channels supported
 		mappedTex.set_format(vk::Format::eR8G8B8A8Unorm); 
 
-		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data())) {
+		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data(), true)) {
 			// need to use a default texture here!
 		}
 		textures[current_set].push_back(mappedTex);	

@@ -241,22 +241,22 @@ namespace VulkanAPI
 		Sampler sampler;
 
 		// if no sampler declared then will use stock linear sampler
-		if (name.find("Clamp::") != std::string::npos) {
+		if (name.find("Clamp_") != std::string::npos) {
 			sampler.create(device, SamplerType::Clamp);
 		}
-		if (name.find("Wrap::") != std::string::npos) {
+		if (name.find("Wrap_") != std::string::npos) {
 			sampler.create(device, SamplerType::Wrap);
 		}
-		if (name.find("TriLinearWrap::") != std::string::npos) {
+		if (name.find("TriLinearWrap_") != std::string::npos) {
 			sampler.create(device, SamplerType::TrilinearWrap);
 		}
-		if (name.find("LinearWrap::") != std::string::npos) {
+		if (name.find("LinearWrap_") != std::string::npos) {
 			sampler.create(device, SamplerType::LinearWrap);
 		}
-		if (name.find("TriLinearClamp::") != std::string::npos) {
+		if (name.find("TriLinearClamp_") != std::string::npos) {
 			sampler.create(device, SamplerType::TriLinearClamp); 
 		}
-		if (name.find("LinearClamp::") != std::string::npos) {
+		if (name.find("LinearClamp_") != std::string::npos) {
 			sampler.create(device, SamplerType::LinearClamp);
 		}
 		else {
@@ -269,15 +269,15 @@ namespace VulkanAPI
 	vk::ImageLayout Shader::getImageLayout(std::string name)
 	{
 		vk::ImageLayout layout;
-		if (name.find("Depth::") != std::string::npos) {
+		if (name.find("Depth_") != std::string::npos) {
 			layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
 		}
-		if (name.find("Colour::") != std::string::npos) {
+		if (name.find("Colour_") != std::string::npos) {
 			layout = vk::ImageLayout::eColorAttachmentOptimal;
 		}
 		else {
 			// default if none found
-			layout = vk::ImageLayout::eColorAttachmentOptimal;
+			layout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		}
 		return layout;
 	}

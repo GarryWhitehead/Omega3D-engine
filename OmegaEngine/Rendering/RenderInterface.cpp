@@ -226,10 +226,7 @@ namespace OmegaEngine
 
 		swapchain_present.renderpass.init(vk_interface->get_device());
 		swapchain_present.renderpass.addAttachment(vk::ImageLayout::ePresentSrcKHR, sc_format);
-		swapchain_present.renderpass.addAttachment(vk::ImageLayout::eDepthAttachmentStencilReadOnlyOptimal, depth_format);
-
-		swapchain_present.renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
-		swapchain_present.renderpass.addReference(vk::ImageLayout::eDepthStencilAttachmentOptimal, 1);
+		swapchain_present.renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
 		swapchain_present.renderpass.prepareRenderPass();
 
 		// create presentation renderpass/framebuffer for each swap chain image

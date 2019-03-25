@@ -32,9 +32,6 @@ namespace VulkanAPI
 		RenderPass(vk::Device dev);
 		RenderPass(vk::Device dev, vk::RenderPass pass);
 
-		// create a pass from a list of info in one shot
-		RenderPass(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate> dependencies);
-
 		~RenderPass();
 
 		vk::RenderPass get()
@@ -57,15 +54,18 @@ namespace VulkanAPI
 			return image_height;
 		}
 
+		vk::Format& get_attachment_format(uint32_t index)
+		{
+			assert(!attachment.empty() && index < attachment.size());
+			return attachment[index].format;
+		}
+
 		void init(vk::Device dev);
-		void init(vk::Device dev, std::vector<AttachedFormat>& attach, std::vector<DependencyTemplate>& dependencies);
-		void init(vk::Device dev, std::vector<AttachedFormat>& attach);
 
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef = nullptr);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, vk::AttachmentReference *depthRef = nullptr);												// override without input attachments
 		void addSubpassDependency(DependencyTemplate depend_template, uint32_t srcSubpass = 0, uint32_t dstSubpass = 0);											// templated version
-		void addReference(const vk::ImageLayout layout, const uint32_t attachId);
 		void prepareRenderPass();
 
 		// frame buffer functions

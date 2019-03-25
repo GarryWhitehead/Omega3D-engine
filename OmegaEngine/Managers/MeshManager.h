@@ -49,15 +49,15 @@ namespace OmegaEngine
 		struct Vertex
 		{
 			OEMaths::vec4f position;
-			OEMaths::vec3f normal;
 			OEMaths::vec2f uv;
+			OEMaths::vec3f normal;
 		};
 
 		struct SkinnedVertex 
 		{
 			OEMaths::vec4f position;
-			OEMaths::vec3f normal;
 			OEMaths::vec2f uv;
+			OEMaths::vec3f normal;
 			OEMaths::vec4f weight;
 			OEMaths::vec4f joint;
 		};

@@ -40,28 +40,24 @@ namespace OmegaEngine
 		// a list of the formats required for each buffer
 		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
 
-		std::vector<VulkanAPI::RenderPass::AttachedFormat> attachments =
-		{
-			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// position
-			{ vk::Format::eR8G8B8A8Unorm, vk::ImageLayout::eColorAttachmentOptimal },			// Albedo
-			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// Normal
-			{ vk::Format::eR32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },				// Pbr material
-			{ vk::Format::eR32G32B32A32Sfloat, vk::ImageLayout::eColorAttachmentOptimal },		// emissive
-			{ depth_format, vk::ImageLayout::eDepthStencilAttachmentOptimal }					// depth
-		};
+		first_renderpass.init(device);
+		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// position
+		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);			// colour
+		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// normal
+		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16Sfloat);				// pbr
+		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// emissive
+		first_renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);					// depth
+		first_renderpass.prepareRenderPass();
 
-		const uint8_t num_attachments = attachments.size();
+		const uint8_t num_attachments = 6;
 
 		// create a empty texture for each state - these will be filled by the shader
 		for (uint8_t i = 0; i < num_attachments - 1; ++i) {
-			gbuffer_images[i].create_empty_image(device, gpu, attachments[i].format, render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			gbuffer_images[i].create_empty_image(device, gpu, first_renderpass.get_attachment_format(i), render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		}
 
 		// and the depth g-buffer
 		gbuffer_images[num_attachments - 1].create_empty_image(device, gpu, depth_format, render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-
-		// now create the renderpasses and frame buffers
-		first_renderpass.init(device, attachments);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> image_views(num_attachments);
@@ -79,13 +75,13 @@ namespace OmegaEngine
 		if (render_config.general.use_post_process) {
 
 			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
-			image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-
+			
 			// now create the renderpasses and frame buffers
 			renderpass.init(device);
-			renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, deferred_format);
-			renderpass.addReference(vk::ImageLayout::eColorAttachmentOptimal, 0);
+			renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
 			renderpass.prepareRenderPass();
+
+			image.create_empty_image(device, gpu, deferred_format, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 			renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 		}
 		
@@ -132,7 +128,6 @@ namespace OmegaEngine
 		pl_layout.create(device, descr_layout.get_layout());
 
 		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
-		pipeline.add_dynamic_state(vk::DynamicState::eLineWidth);
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		

@@ -26,6 +26,7 @@ namespace OmegaEngine
 	{
 		OEMaths::vec4f postion;
 		OEMaths::vec3f colour;
+		float pad0;
 		float radius = 0.0f;
 		float innerCone = 0.0f;		// for spot lights
 		float outerCone = 0.0f;		// for spot lights

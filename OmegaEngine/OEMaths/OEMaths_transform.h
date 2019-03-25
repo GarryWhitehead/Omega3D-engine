@@ -257,20 +257,23 @@ namespace OEMaths
 	template <typename T>
 	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
 	{
-		float t = std::tan(fov * 0.5f * static_cast<float>(M_PI / 180)) * zNear;
-		float r = aspect * t;
-		float l = -r;
-		float b = -t;
+		// fov to radians
+		float rad_fov = fov * M_PI / 180;
+		float tanHalfFov = std::tan(rad_fov * 0.5f);
+	
+		mat4<T> result;
+		result(0, 0) = 1 / (aspect * tanHalfFov);
 
-		mat4<T> retMat;
-		retMat(0, 0) = 2 * zNear / (r - l);
-		retMat(1, 1) = 2 * zNear / (t - b);
-		retMat(2, 0) = (r + l) / (r - l);
-		retMat(2, 1) = (t + b) / (t - b);
-		retMat(2, 2) = -(zFar + zNear) / (zFar - zNear);
-		retMat(2, 3) = -1;
-		retMat(3, 2) = -2 * zFar * zNear / (zFar - zNear);
-		return retMat;
+		result(1, 1) = 1 / tanHalfFov;
+
+		result(2, 2) = (zFar + zNear) / (zFar - zNear);
+		result(2, 3) = -(2.0 * zFar * zNear) / (zFar - zNear);
+
+		result(3, 0) = 0;
+		result(3, 1) = 0;
+		result(3, 2) = 1;
+		result(3, 3) = 0;
+		return result;
 	}
 
 	template <typename T>
