@@ -142,9 +142,7 @@ namespace VulkanAPI
 			framebuffer, VK_FALSE,
 			(vk::QueryControlFlagBits)0, 
 			(vk::QueryPipelineStatisticFlagBits)0);
-
-		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
-		
+	
 		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritance_info);
 		VK_CHECK_RESULT(secondary_cmd_buffers[index].begin(&begin_info));
 	}

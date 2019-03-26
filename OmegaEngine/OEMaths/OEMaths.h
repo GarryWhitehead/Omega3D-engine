@@ -319,9 +319,10 @@ namespace OEMaths
 			data[12] = 0; data[13] = 0; data[14] = 0; data[15] = 1;
 		}
 
-		T& operator()(const uint8_t& a, const uint8_t& b)
+		T& operator()(const uint8_t& row, const uint8_t& col)
 		{
-			return data[a * 4 + b];
+			assert(row < 4 && col < 4);
+			return data[row * 4 + col];
 		}
 
 		inline mat4& operator()(const vec4<T>& vec, const uint8_t& row)

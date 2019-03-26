@@ -5,6 +5,7 @@
 #include "OEMaths/OEMaths_transform.h"
 #include "Vulkan/Vulkan_Global.h"
 
+
 namespace OmegaEngine 
 {
 	// forward declerations
@@ -24,7 +25,7 @@ namespace OmegaEngine
 		}
 
 		// default values
-		float fov = 80.0f;
+		float fov = 20.0f;
 		float zNear = 1.0f;
 		float zFar = 1000.0f;
 		float aspect = 16.0f / 9.0f;
@@ -32,7 +33,7 @@ namespace OmegaEngine
 
 		CameraType type = CameraType::FirstPerson;
 
-		OEMaths::vec3f start_position{ 0.0f, 0.0f, 3.0f };
+		OEMaths::vec3f start_position{ 0.0f, 0.0f, -3.0f };
 		OEMaths::vec3f camera_up{ 0.0f, 1.0f, 0.0f };
 		
 	};
@@ -49,7 +50,6 @@ namespace OmegaEngine
 		bool isMovingRight = false;
 		bool isMovingForward = false;
 		bool isMovingBackward = false;
-		bool isMoving = false;
 	};
 
 	struct MouseMoveEvent : public Event
@@ -70,16 +70,23 @@ namespace OmegaEngine
 	public:
 
 		// data that will be used by shaders
-		struct CameraBufferInfo
+		struct DynamicCameraBufferInfo
 		{
 			// not everything in this buffer needs to be declarded in the shader but must be in this order
 			OEMaths::mat4f mvp;
 			OEMaths::vec3f camera_pos;
+			float pad0;
 
 			// in case we need individual matrices
 			OEMaths::mat4f projection;
 			OEMaths::mat4f view;
 			OEMaths::mat4f model;
+		};
+
+		struct StaticCameraBufferInfo
+		{
+			// not everything in this buffer needs to be declarded in the shader but must be in this order
+			OEMaths::mat4f ortho;
 
 			// needed?
 			float zNear;
@@ -89,9 +96,17 @@ namespace OmegaEngine
 		CameraManager(float sensitivity);
 		~CameraManager();
 
+		enum class CameraBufferType
+		{
+			Static,
+			Dynamic
+		};
+
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
+		void update_camera_rotation();
 		void updateViewMatrix();
+		void update_static_buffer();
 
 		// event functions
 		void keyboard_press_event(KeyboardPressEvent& event);
@@ -104,17 +119,30 @@ namespace OmegaEngine
 
 			current_pos = camera.start_position;
 			currentProjMatrix = camera.getPerspectiveMat();
+
+			// update static buffer data
+			update_static_buffer();
 		}
 
-		vk::Buffer& get_ubo_buffer()
+		vk::Buffer& get_ubo_buffer(CameraBufferType type)
 		{
 			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(ubo_buffer.get_id());
+			if (type == CameraBufferType::Dynamic) {
+				return mem_alloc.get_memory_buffer(dyn_ubo_buffer.get_id());
+			}
+			else {
+				return mem_alloc.get_memory_buffer(static_ubo_buffer.get_id());
+			}
 		}
 
-		uint32_t get_ubo_offset() const
+		uint32_t get_ubo_offset(CameraBufferType type) const
 		{
-			return ubo_buffer.get_offset();
+			if (type == CameraBufferType::Dynamic) {
+				return dyn_ubo_buffer.get_offset();
+			}
+			else {
+				return static_ubo_buffer.get_offset();
+			}
 		}
 
 	private:
@@ -131,15 +159,18 @@ namespace OmegaEngine
 		OEMaths::vec3f current_pos;
 		OEMaths::vec3f front_vec{ 0.0f, 0.0f, -1.0f };
 
-		double yaw = 0.0;
+		double yaw = -45.0;
 		double pitch = 0.0;
 		double currentX = 0.0;
 		double currentY = 0.0;
 
 		float mouse_sensitivity;
 
-		// info for the gpu side
-		VulkanAPI::MemorySegment ubo_buffer;
+		// info for the gpu side - dynamic data
+		VulkanAPI::MemorySegment dyn_ubo_buffer;
+
+		// static ubo buffer
+		VulkanAPI::MemorySegment static_ubo_buffer;
 
 		// signfies whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;

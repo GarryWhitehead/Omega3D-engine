@@ -92,7 +92,8 @@ namespace VulkanAPI
 		std::vector<vk::SubpassDescription> subpass;
 		std::vector<vk::SubpassDependency> dependency;
 
-
+		// local store of clear values for render passes
+		std::vector<vk::ClearValue> clear_values;
 	};
 
 }

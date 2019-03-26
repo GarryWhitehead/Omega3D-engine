@@ -254,7 +254,7 @@ namespace VulkanAPI
 	vk::RenderPassBeginInfo RenderPass::get_begin_info(vk::ClearColorValue& bg_colour, uint32_t fb_index)
 	{
 		// set up clear colour for each colour attachment
-		std::vector<vk::ClearValue> clear_values(attachment.size());
+		clear_values.resize(attachment.size());
 		for (uint32_t i = 0; i < attachment.size(); ++i) {
 			if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
 				clear_values[i].depthStencil = { 1.0f, 0 }; 

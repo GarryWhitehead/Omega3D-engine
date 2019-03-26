@@ -110,12 +110,16 @@ namespace OmegaEngine
 			descr_set.write_set(sampler_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
 		}
 		
+		auto& camera_manager = component_interface->getManager<CameraManager>();
+
 		for (auto& layout : buffer_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				auto& camera_manager = component_interface->getManager<CameraManager>();
-				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(CameraManager::CameraBufferType::Dynamic), camera_manager.get_ubo_offset(CameraManager::CameraBufferType::Dynamic), layout.range);
+			}
+			if (layout.name == "StaticCameraUbo") {
+				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(CameraManager::CameraBufferType::Static), camera_manager.get_ubo_offset(CameraManager::CameraBufferType::Static), layout.range);
 			}
 			if (layout.name == "LightUbo") {
 				auto& light_manager = component_interface->getManager<LightManager>();
@@ -127,9 +131,10 @@ namespace OmegaEngine
 		// first finish of the pipeline layout....
 		pl_layout.create(device, descr_layout.get_layout());
 
-		pipeline.set_depth_state(VK_TRUE, VK_FALSE);
+		pipeline.set_depth_state(VK_TRUE, VK_TRUE);
 		pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
+		pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
 		
 		if (render_config.general.use_post_process) {
 			pipeline.add_colour_attachment(VK_FALSE, renderpass);

@@ -2,6 +2,7 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Buffer.h"
+#include "Utility/logger.h"
 
 namespace VulkanAPI
 {
@@ -94,7 +95,8 @@ namespace VulkanAPI
 		image_height = height;
 		image_type = type;
 
-		vk::ImageCreateInfo image_info({}, vk::ImageType::e2D, format, 
+		vk::ImageCreateInfo image_info({}, 
+			vk::ImageType::e2D, format, 
 			{ width, height, 1 },
 			image_mip_levels, 1,
 			vk::SampleCountFlagBits::e1,
@@ -109,6 +111,9 @@ namespace VulkanAPI
 		vk::MemoryRequirements mem_req = device.getImageMemoryRequirements(image);
 
 		uint32_t mem_type = Util::findMemoryType(mem_req.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
+		if (mem_type == UINT32_MAX) {
+			LOGGER_ERROR("Unable to find required gpu memory type.");
+		}
 		vk::MemoryAllocateInfo alloc_info(mem_req.size, mem_type);
 
 		VK_CHECK_RESULT(device.allocateMemory(&alloc_info, nullptr, &image_memory));

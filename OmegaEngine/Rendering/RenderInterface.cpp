@@ -246,10 +246,6 @@ namespace OmegaEngine
 			// cmd buffers to be stored or move the quad elsewhere. Probably thinking the latter.
 			swapchain_present.cmd_buffer[i].create_quad_data();	
 		}
-
-		// might as well sort out the background clear colour now too
-		swapchain_present.clear_values[0].color = static_cast<vk::ClearColorValue>(render_config.general.background_col);
-		swapchain_present.clear_values[1].depthStencil = { 1.0f, 0 };
 	}
 
 	VulkanAPI::CommandBuffer& RenderInterface::begin_swapchain_pass(uint32_t index)
@@ -258,7 +254,7 @@ namespace OmegaEngine
 		swapchain_present.cmd_buffer[index].create_primary();
 
 		// begin the render pass
-		auto& begin_info = swapchain_present.renderpass.get_begin_info(swapchain_present.clear_values.size(), swapchain_present.clear_values.data(), index);
+		auto& begin_info = swapchain_present.renderpass.get_begin_info(static_cast<vk::ClearColorValue>(render_config.general.background_col), index);
 		swapchain_present.cmd_buffer[index].begin_renderpass(begin_info, false);
 
 		// set the dynamic viewport and scissor dimensions
