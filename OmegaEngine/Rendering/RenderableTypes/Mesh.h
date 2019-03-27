@@ -50,6 +50,7 @@ namespace OmegaEngine
 			// if we start calling back to material manager whilst is updating in a different thread
 			struct MaterialPushBlock
 			{
+				// colour factors
 				OEMaths::vec4f baseColorFactor;
 				OEMaths::vec3f emissiveFactor;
 				float pad0;
@@ -59,8 +60,19 @@ namespace OmegaEngine
 				float pad2;
 				float metallicFactor;
 				float roughnessFactor;
+
+				// alpha 
 				float alphaMask;
 				float alphaMaskCutoff;
+
+				// uv sets for each texture
+				uint32_t baseColourUvSet;
+				uint32_t metallicRoughnessUvSet;
+				uint32_t normalUvSet;
+				uint32_t emissiveUvSet;
+				uint32_t occlusionUvSet;
+			
+				// indication whether we have a ceratin texture map
 				uint32_t haveBaseColourMap;
 				uint32_t haveNormalMap;
 				uint32_t haveEmissiveMap;

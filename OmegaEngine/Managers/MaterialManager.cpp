@@ -26,11 +26,13 @@ namespace OmegaEngine
 			mat.textures[(int)PbrMaterials::BaseColor].image = gltf_mat.values["baseColorTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::BaseColor].set = set;
 			mat.texture_state[(int)PbrMaterials::BaseColor] = true;
+			mat.uvSets.baseColour = gltf_mat.values["baseColorTexture"].TextureTexCoord();
 		}
 		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) {
 			mat.textures[(int)PbrMaterials::MetallicRoughness].image = gltf_mat.values["metallicRoughnessTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::MetallicRoughness].set = set;
 			mat.texture_state[(int)PbrMaterials::MetallicRoughness] = true;
+			mat.uvSets.metallicRoughness = gltf_mat.values["metallicRoughnessTexture"].TextureTexCoord();
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) {
 			//mat.factors.baseColour = OEMaths::convert_vec4((float*)gltf_mat.values["baseColorFactor"].ColorFactor());
@@ -47,16 +49,19 @@ namespace OmegaEngine
 			mat.textures[(int)PbrMaterials::Normal].image = gltf_mat.additionalValues["normalTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Normal].set = set;
 			mat.texture_state[(int)PbrMaterials::Normal] = true;
+			mat.uvSets.normal = gltf_mat.additionalValues["normalTexture"].TextureTexCoord();
 		}
 		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) {
 			mat.textures[(int)PbrMaterials::Emissive].image = gltf_mat.additionalValues["emissiveTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Emissive].set = set;
 			mat.texture_state[(int)PbrMaterials::Emissive] = true;
+			mat.uvSets.emissive = gltf_mat.additionalValues["emissiveTexture"].TextureTexCoord();
 		}
 		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) {
 			mat.textures[(int)PbrMaterials::Occlusion].image = gltf_mat.additionalValues["occlusionTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Occlusion].set = set;
 			mat.texture_state[(int)PbrMaterials::Occlusion] = true;
+			mat.uvSets.occlusion = gltf_mat.additionalValues["occlusionTexture"].TextureTexCoord();
 		}
 
 		// check for aplha modes
@@ -84,14 +89,16 @@ namespace OmegaEngine
 				mat.textures[(int)PbrMaterials::MetallicRoughness].image = index.Get<int>();
 				mat.usingSpecularGlossiness = true;
 
-				// also has its own uv coords
 				auto uv_index = extension->second.Get("specularGlossinessTexture").Get("texCoord");
-
+				mat.uvSets.specularGlossiness = uv_index.Get<int>();
 			}
 			if (extension->second.Has("diffuseTexture")) {
 				auto index = extension->second.Get("diffuseTexture").Get("index");
 				mat.textures[(int)PbrMaterials::BaseColor].image = index.Get<int>();
 				mat.usingSpecularGlossiness = true;
+
+				auto uv_index = extension->second.Get("diffuseTexture").Get("texCoord");
+				mat.uvSets.diffuse = uv_index.Get<int>();
 			}
 			if (extension->second.Has("diffuseFactor")) {
 				auto factor = extension->second.Get("diffuseFactor");

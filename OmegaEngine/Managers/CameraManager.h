@@ -25,7 +25,7 @@ namespace OmegaEngine
 		}
 
 		// default values
-		float fov = 20.0f;
+		float fov = 50.0f;
 		float zNear = 1.0f;
 		float zFar = 1000.0f;
 		float aspect = 16.0f / 9.0f;

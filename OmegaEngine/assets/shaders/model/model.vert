@@ -1,8 +1,9 @@
 #version 450
 
 layout (location = 0) in vec4 inPos;
-layout (location = 1) in vec2 inUv;
-layout (location = 2) in vec3 inNormal;
+layout (location = 1) in vec2 inUv0;
+layout (location = 2) in vec2 inUv1;
+layout (location = 3) in vec3 inNormal;
 
 layout (set = 1, binding = 0) uniform CameraUbo
 {
@@ -15,9 +16,10 @@ layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
 	mat4 modelMatrix;
 } mesh_ubo;
 
-layout (location = 0) out vec2 outUv;
-layout (location = 1) out vec3 outNormal;
-layout (location = 2) out vec3 outPos;
+layout (location = 0) out vec2 outUv0;
+layout (location = 1) out vec2 outUv1;
+layout (location = 2) out vec3 outNormal;
+layout (location = 3) out vec3 outPos;
 
 out gl_PerVertex
 {
@@ -34,5 +36,6 @@ void main()
 	outPos = pos.xyz / pos.w;	// perspective divide correction
 	
 	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);
-	outUv = inUv;
+	outUv0 = inUv0;
+	outUv1 = inUv1;
 }

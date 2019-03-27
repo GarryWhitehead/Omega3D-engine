@@ -71,6 +71,16 @@ namespace OmegaEngine
 		mesh_instance_data->material_push_block.haveAoMap = mat.texture_state[(int)PbrMaterials::Occlusion] ? 1 : 0;
 		mesh_instance_data->material_push_block.haveEmissiveMap = mat.texture_state[(int)PbrMaterials::Emissive] ? 1 : 0;
 		mesh_instance_data->material_push_block.usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
+		mesh_instance_data->material_push_block.baseColourUvSet = mat.uvSets.baseColour;
+		mesh_instance_data->material_push_block.metallicRoughnessUvSet = mat.uvSets.metallicRoughness;
+		mesh_instance_data->material_push_block.normalUvSet = mat.uvSets.normal;
+		mesh_instance_data->material_push_block.occlusionUvSet = mat.uvSets.occlusion;
+		mesh_instance_data->material_push_block.emissiveUvSet = mat.uvSets.emissive;
+
+		if (mesh_instance_data->material_push_block.usingSpecularGlossiness) {
+			mesh_instance_data->material_push_block.metallicRoughnessUvSet = mat.uvSets.specularGlossiness;
+			mesh_instance_data->material_push_block.baseColourUvSet = mat.uvSets.diffuse;
+		}
 	}
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 

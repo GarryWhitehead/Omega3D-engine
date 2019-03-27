@@ -63,6 +63,17 @@ namespace OmegaEngine
 				float alphaMaskCutOff;
 			} factors;
 
+			struct TexCoordSets
+			{
+				uint32_t baseColour = 0;
+				uint32_t metallicRoughness = 0;
+				uint32_t normal = 0;
+				uint32_t emissive = 0;
+				uint32_t occlusion = 0;
+				uint32_t specularGlossiness = 0;
+				uint32_t diffuse = 0;
+			} uvSets;
+
 			// material image indicies
 			std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
 			std::array<bool, static_cast<int>(PbrMaterials::Count)> texture_state = { false };

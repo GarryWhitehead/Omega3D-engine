@@ -10,21 +10,22 @@ namespace OEMaths
 	// vec2 conversion ================================================================
 
 	template <typename T>
-	inline vec2<T> convert_vec2(T* data)
+	inline vec2<T> convert_vec2(const void* data)
 	{
 		assert(data != nullptr);
-
+		T* ptr = (T*)data;
 		vec2<T> vec;
-		vec.x = *data;
-		data += sizeof(T);
-		vec.y = *data;
+		vec.x = *ptr;
+		++ptr;
+		vec.y = *ptr;
+
 		return vec;
 	}
 	
 	// vec3 transform functions ========================================================================================================
 	
 	template <typename T>
-	inline vec3<T> convert_vec3(void* data)
+	inline vec3<T> convert_vec3(const void* data)
 	{
 		assert(data != nullptr);
 		T* ptr = (T*)data;
@@ -103,18 +104,18 @@ namespace OEMaths
 	// vec4 transform functions ========================================================================
 
 	template <typename T>
-	inline vec4<T> convert_vec4(T* data)
+	inline vec4<T> convert_vec4(const void* data)
 	{
 		assert(data != nullptr);
-
+		T* ptr = (T*)data;
 		vec4<T> vec;
-		vec.x = *data;
-		++data;
-		vec.y = *data;
-		++data;
-		vec.z = *data;
-		++data;
-		vec.w = *data;
+		vec.x = *ptr;
+		++ptr;
+		vec.y = *ptr;
+		++ptr;
+		vec.z = *ptr;
+		++ptr;
+		vec.w = *ptr;
 		return vec;
 	}
 

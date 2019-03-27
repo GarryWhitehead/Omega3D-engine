@@ -10,7 +10,7 @@ namespace OmegaEngine
 	{
 	}
 
-	bool MappedTexture::map_texture(uint32_t w, uint32_t h, uint32_t comp, const unsigned char* imageData, bool createMipMaps)
+	bool MappedTexture::map_texture(uint32_t w, uint32_t h, uint32_t comp, unsigned char* imageData, bool createMipMaps)
 	{
 		if (comp == 3) {
 			LOGGER_INFO("Unable to map image. Only four channels supported at the moment.");

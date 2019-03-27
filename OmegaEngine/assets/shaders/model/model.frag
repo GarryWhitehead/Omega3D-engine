@@ -6,9 +6,10 @@ layout (set = 0, binding = 2) uniform sampler2D mrMap;
 layout (set = 0, binding = 3) uniform sampler2D emissiveMap;
 layout (set = 0, binding = 4) uniform sampler2D aoMap;
 
-layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inNormal;
-layout (location = 2) in vec3 inPos;
+layout (location = 0) in vec2 inUv0;
+layout (location = 1) in vec2 inUv1;
+layout (location = 2) in vec3 inNormal;
+layout (location = 3) in vec3 inPos;
 
 layout(push_constant) uniform pushConstants 
 {
@@ -23,6 +24,11 @@ layout(push_constant) uniform pushConstants
 	float roughnessFactor;	
 	float alphaMask;	
 	float alphaMaskCutoff;
+	uint baseColourUvSet;
+	uint metallicRoughnessUvSet;
+	uint normalUvSet;
+	uint emissiveUvSet;
+	uint occlusionUvSet;
 	uint haveBaseColourMap;
 	uint haveNormalMap;
 	uint haveEmissiveMap;
@@ -58,15 +64,15 @@ float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
 }
 
 // The most copied function in the world! From here: http://www.thetenthplanet.de/archives/1180
-vec3 peturbNormal()
+vec3 peturbNormal(vec2 tex_coord)
 {
 	// convert normal to -1, 1 coord system
-	vec3 tangentNormal = texture(normalMap, inUv).xyz * 2.0 - 1.0;
+	vec3 tangentNormal = texture(normalMap, tex_coord).xyz * 2.0 - 1.0;
 
-	vec3 q1 = dFdx(inPos);	// edge1
-	vec3 q2 = dFdy(inPos);	// edge2
-	vec2 st1 = dFdx(inUv);	// uv1
-	vec2 st2 = dFdy(inUv);	// uv2
+	vec3 q1 = dFdx(inPos);			// edge1
+	vec3 q2 = dFdy(inPos);			// edge2
+	vec2 st1 = dFdx(tex_coord);		// uv1
+	vec2 st2 = dFdy(tex_coord);		// uv2
 
 	vec3 N = normalize(inNormal);
 	vec3 T = normalize(q1 * st2.t - q2 * st1.t);
@@ -80,10 +86,17 @@ void main()
 {
 	// albedo
 	vec4 baseColour;
-
+	
+	// uv sets for all textures
+	vec2 baseColour_uv = material.baseColourUvSet == 0 ? inUv0 : inUv1;
+	vec2 normal_uv = material.normalUvSet == 0 ? inUv0 : inUv1;
+	vec2 mr_uv = material.metallicRoughnessUvSet == 0 ? inUv0 : inUv1;
+	vec2 emissive_uv = material.emissiveUvSet == 0 ? inUv0 : inUv1;
+	vec2 occlusion_uv = material.occlusionUvSet == 0 ? inUv0 : inUv1;
+	
 	if (material.alphaMask == 1.0) {
 		if (material.haveBaseColourMap > 0) {
-			baseColour = texture(baseColourMap, inUv) * material.baseColorFactor;
+			baseColour = texture(baseColourMap, baseColour_uv) * material.baseColorFactor;
 		}
 		else {
 			baseColour = material.baseColorFactor;
@@ -97,7 +110,7 @@ void main()
 	vec3 normal; 
 	if (material.haveNormalMap > 0) {
 
-		normal = peturbNormal();
+		normal = peturbNormal(normal_uv);
 	}
 	else {
 		normal = normalize(inNormal);
@@ -113,7 +126,7 @@ void main()
 		metallic = material.metallicFactor;
 
 		if (material.haveMrMap > 0) {
-			vec4 mrSample = texture(mrMap, inUv);
+			vec4 mrSample = texture(mrMap, mr_uv);
 			roughness = mrSample.g * roughness;
 			metallic = mrSample.b * metallic;
 		} 
@@ -126,13 +139,13 @@ void main()
 	else {
 		// Values from specular glossiness workflow are converted to metallic roughness
 		if (material.haveMrMap > 0) {
-			roughness = 1.0 - texture(mrMap, inUv).a;
+			roughness = 1.0 - texture(mrMap, mr_uv).a;
 		} else {
 			roughness = 0.0;
 		}
 
-		vec4 diffuse = texture(baseColourMap, inUv);
-		vec3 specular = texture(mrMap, inUv).rgb;
+		vec4 diffuse = texture(baseColourMap, baseColour_uv);
+		vec3 specular = texture(mrMap, mr_uv).rgb;
 
 		float maxSpecular = max(max(specular.r, specular.g), specular.b);
 
@@ -150,14 +163,14 @@ void main()
 	// ao
 	float ambient = 1.0;
 	if (material.haveAoMap > 0) {
-        ambient = texture(aoMap, inUv).x;
+        ambient = texture(aoMap, occlusion_uv).x;
 	}
 	outColour.a = ambient;
 
 	// emmisive
 	vec3 emissive;
 	if (material.haveEmissiveMap > 0) {
-        emissive = texture(emissiveMap, inUv).rgb;
+        emissive = texture(emissiveMap, emissive_uv).rgb;
 		emissive *= material.emissiveFactor.rgb;
 	}
 	else { 

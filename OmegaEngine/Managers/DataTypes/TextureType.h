@@ -12,7 +12,7 @@ namespace OmegaEngine
 
 		MappedTexture();
 
-		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, const unsigned char* imageData, bool createMipMaps = false);
+		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, unsigned char* imageData, bool createMipMaps = false);
 
 		int size() const
 		{

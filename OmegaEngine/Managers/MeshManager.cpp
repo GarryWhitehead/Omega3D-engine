@@ -28,14 +28,14 @@ namespace OmegaEngine
 
 	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj)
 	{
-		tinygltf::Mesh mesh = model.meshes[node.mesh];
+		const tinygltf::Mesh& mesh = model.meshes[node.mesh];
 		
 		StaticMesh staticMesh;
 
 		// get all the primitives associated with this mesh
 		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
 
-			tinygltf::Primitive primitive = mesh.primitives[i];
+			const tinygltf::Primitive& primitive = mesh.primitives[i];
 
 			// if this primitive has no indices associated with it, no point in continuing
 			if (primitive.indices < 0) {
@@ -45,48 +45,54 @@ namespace OmegaEngine
 			// lets get the vertex data....
 			if (primitive.attributes.find("POSITION") == primitive.attributes.end()) {
 				LOGGER_ERROR("Problem parsing gltf file. Appears to be missing position attribute. Exiting....");
-				throw std::runtime_error("Mesh data doesn't contain position attribute.");
 			}
 
-			tinygltf::Accessor posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
-			tinygltf::BufferView posBufferView = model.bufferViews[posAccessor.bufferView];
-			float *posBuffer = (float*)&model.buffers[posBufferView.buffer].data[posAccessor.byteOffset + posBufferView.byteOffset];
+			const tinygltf::Accessor& posAccessor = model.accessors[primitive.attributes.find("POSITION")->second];
+			const tinygltf::BufferView& posBufferView = model.bufferViews[posAccessor.bufferView];
+			const float *posBuffer = reinterpret_cast<const float*>(&(model.buffers[posBufferView.buffer].data[posAccessor.byteOffset + posBufferView.byteOffset]));
 
 			// find normal data
-			float *normBuffer = nullptr;
+			const float *normBuffer = nullptr;
 			if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
-				tinygltf::Accessor normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
-				tinygltf::BufferView normBufferView = model.bufferViews[normAccessor.bufferView];
-				normBuffer = (float*)&model.buffers[normBufferView.buffer].data[normAccessor.byteOffset + normBufferView.byteOffset];
+				const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+				const tinygltf::BufferView& normBufferView = model.bufferViews[normAccessor.bufferView];
+				normBuffer = reinterpret_cast<const float*>(&(model.buffers[normBufferView.buffer].data[normAccessor.byteOffset + normBufferView.byteOffset]));
 			}
 
-			// and parse uv data
-			float *uvBuffer = nullptr;
+			// and parse uv data - there can be two tex coord buffers, we need to check for both
+			const float *uvBuffer0 = nullptr;
 			if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
-				tinygltf::Accessor uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-				tinygltf::BufferView uvBufferView = model.bufferViews[uvAccessor.bufferView];
-				uvBuffer = (float*)&model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset];
+				const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+				const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
+				uvBuffer0 = reinterpret_cast<const float*>(&(model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset]));
+			}
+
+			const float *uvBuffer1 = nullptr;
+			if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
+				const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
+				const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
+				uvBuffer1 = reinterpret_cast<const float*>(&(model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset]));
 			}
 
 			// check whether this model has skinning data - joints first
-			uint16_t *jointBuffer = nullptr;
+			const uint16_t *jointBuffer = nullptr;
 			if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) {
-				tinygltf::Accessor jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
-				tinygltf::BufferView jointBufferView = model.bufferViews[jointAccessor.bufferView];
-				jointBuffer = (uint16_t*)&model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset];
+				const tinygltf::Accessor& jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
+				const tinygltf::BufferView& jointBufferView = model.bufferViews[jointAccessor.bufferView];
+				jointBuffer = reinterpret_cast<const uint16_t*>(&(model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset]));
 			}
 
 			// and then weights. It must contain both to for the data to be used for animations
-			float *weightBuffer = nullptr;
+			const float *weightBuffer = nullptr;
 			if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
-				tinygltf::Accessor weightAccessor = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
-				tinygltf::BufferView weightBufferView = model.bufferViews[weightAccessor.bufferView];
-				weightBuffer = (float*)&model.buffers[weightBufferView.buffer].data[weightAccessor.byteOffset + weightBufferView.byteOffset];
+				const tinygltf::Accessor& weightAccessor = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
+				const tinygltf::BufferView& weightBufferView = model.bufferViews[weightAccessor.bufferView];
+				weightBuffer = reinterpret_cast<const float*>(&(model.buffers[weightBufferView.buffer].data[weightAccessor.byteOffset + weightBufferView.byteOffset]));
 			}
 
 			// get the min and max values for this primitive
-			OEMaths::vec3f primMin{ static_cast<float>(posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2]) };
-			OEMaths::vec3f primMax{ static_cast<float>(posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2]) };
+			OEMaths::vec3f primMin{ 0.0f, 0.0f, 0.0f }; // { posAccessor.minValues[0], posAccessor.minValues[1], posAccessor.minValues[2] };
+			OEMaths::vec3f primMax{ 0.0f, 0.0f, 0.0f };  //{ posAccessor.maxValues[0], posAccessor.maxValues[1], posAccessor.maxValues[2] };
 
 			// now convert the data to a form that we can use with Vulkan - skinned and non-skinned meshes treated separately
 			MeshType mesh_type;
@@ -101,13 +107,18 @@ namespace OmegaEngine
 						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
 						normBuffer += 3;
 					}
-					if (uvBuffer) {
-						vertex.uv = OEMaths::convert_vec2(uvBuffer);
-						uvBuffer += 2;
+					if (uvBuffer0) {
+						vertex.uv0 = OEMaths::convert_vec2<float>(uvBuffer0);
+						uvBuffer0 += 2;
 					}
+					if (uvBuffer1) {
+						vertex.uv1 = OEMaths::convert_vec2<float>(uvBuffer1);
+						uvBuffer1 += 2;
+					}
+
 					// if we have skin data, also convert this to a palatable form
-					vertex.joint = OEMaths::convert_vec4(reinterpret_cast<float*>(jointBuffer));
-					vertex.weight = OEMaths::convert_vec4(weightBuffer);
+					vertex.joint = OEMaths::convert_vec4<float>(reinterpret_cast<const float*>(jointBuffer));
+					vertex.weight = OEMaths::convert_vec4<float>(weightBuffer);
 					jointBuffer += 4;
 					weightBuffer += 4;
 
@@ -125,9 +136,13 @@ namespace OmegaEngine
 						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
 						normBuffer += 3;
 					}
-					if (uvBuffer) {
-						vertex.uv = OEMaths::convert_vec2(uvBuffer);
-						uvBuffer += 2;
+					if (uvBuffer0) {
+						vertex.uv0 = OEMaths::convert_vec2<float>(uvBuffer0);
+						uvBuffer0 += 2;
+					}
+					if (uvBuffer1) {
+						vertex.uv1 = OEMaths::convert_vec2<float>(uvBuffer1);
+						uvBuffer1 += 2;
 					}
 					mesh_type = MeshType::Static;
 					staticMesh.vertexBuffer.push_back(vertex);
@@ -135,24 +150,24 @@ namespace OmegaEngine
 			}
 
 			// Now obtain the indicies data from the gltf file
-			tinygltf::Accessor indAccessor = model.accessors[primitive.indices];
-			tinygltf::BufferView indBufferView = model.bufferViews[indAccessor.bufferView];
-			tinygltf::Buffer indBuffer = model.buffers[indBufferView.buffer];
+			const tinygltf::Accessor& indAccessor = model.accessors[primitive.indices];
+			const tinygltf::BufferView& indBufferView = model.bufferViews[indAccessor.bufferView];
+			const tinygltf::Buffer& indBuffer = model.buffers[indBufferView.buffer];
 
 			uint32_t indexCount = static_cast<uint32_t>(indAccessor.count);
 			uint32_t indexOffset = static_cast<uint32_t>(staticMesh.indexBuffer.size());
 
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
 			switch (indAccessor.componentType) {
-			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_INT: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
 				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
-			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_SHORT: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
 				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
-			case TINYGLTF_COMPONENT_TYPE_UNSIGNED_BYTE: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
 				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
 				break;
 			}
