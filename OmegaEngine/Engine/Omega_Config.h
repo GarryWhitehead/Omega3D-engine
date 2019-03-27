@@ -8,7 +8,7 @@ namespace OmegaEngine
 	{
 		float fps = 30.0f;
 
-		float mouse_sensitivity = 0.25f;
+		float mouse_sensitivity = 0.1f;
 
 		// desired screen dimensions
 		uint32_t screen_width = 1280;

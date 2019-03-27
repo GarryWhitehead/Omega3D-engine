@@ -90,9 +90,7 @@ void main()
 		}
 		if (baseColour.a < material.alphaMaskCutoff) {
 			discard;
-		}
-
-		//baseColour.xyz *= inColour;		// vertex colour
+		}	
 	}
 
 	// normal

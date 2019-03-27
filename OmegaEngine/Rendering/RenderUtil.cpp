@@ -124,7 +124,7 @@ namespace OmegaEngine
 					cmd_buffer.begin_renderpass(begin_info, view_port);
 					cmd_buffer.bind_pipeline(pipeline);
 					cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-					cmd_buffer.bind_vertex_buffer(cube_model.get_vertex_buffer());
+					//cmd_buffer.bind_vertex_buffer(cube_model.get_vertex_buffer());
 					cmd_buffer.bind_index_buffer(cube_model.get_index_buffer());
 
 					// calculate view for each cube side

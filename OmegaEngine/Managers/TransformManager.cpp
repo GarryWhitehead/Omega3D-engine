@@ -110,7 +110,7 @@ namespace OmegaEngine
 		}
 
 		transformBuffer[transform_index].transform = mat;
-		transform_buff->model_matrix = mat;
+		transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 4.0f, 4.0f, 4.0f });
 
 		if (transformBuffer[transform_index].skin_index > -1) {
 			

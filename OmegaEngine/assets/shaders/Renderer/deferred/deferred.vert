@@ -1,13 +1,10 @@
 #version 450
 
-layout (location = 0) in vec2 inUv;
-layout (location = 1) in vec3 inPos;
-layout (location = 2) in vec3 inNormal;
-	
 layout (set = 0, binding = 0) uniform CameraUbo
 {
 	mat4 mvp;
 	vec3 cameraPos;
+	float pad0; 
 } ubo;
 
 layout (location = 0) out vec2 outUv;
@@ -20,7 +17,8 @@ out gl_PerVertex
 
 void main()
 {
-	outUv = inUv;
+	outUv = vec2((gl_VertexIndex << 1) & 2, gl_VertexIndex & 2);
+	gl_Position = vec4(outUv * 2.0f - 1.0f, 0.0f, 1.0f);
+
 	outCameraPos = ubo.cameraPos;
-	gl_Position = ubo.mvp * vec4(inPos, 1.0);
 }

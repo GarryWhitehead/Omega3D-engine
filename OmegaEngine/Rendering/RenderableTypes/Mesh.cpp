@@ -110,7 +110,7 @@ namespace OmegaEngine
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
 				auto& camera_manager = component_interface->getManager<CameraManager>();
-				state.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(CameraManager::CameraBufferType::Dynamic), camera_manager.get_ubo_offset(CameraManager::CameraBufferType::Dynamic), layout.range);
+				state.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
 			if (layout.name == "Dynamic_StaticMeshUbo") {
 				auto& transform_manager = component_interface->getManager<TransformManager>();
@@ -134,7 +134,7 @@ namespace OmegaEngine
 
 		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
 		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
-		state.pipeline.set_raster_front_face(vk::FrontFace::eCounterClockwise);
+		state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
 		state.pipeline.create(device, renderer->get_first_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);

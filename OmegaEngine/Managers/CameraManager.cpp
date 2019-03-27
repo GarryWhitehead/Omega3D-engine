@@ -15,31 +15,14 @@ namespace OmegaEngine
 		Global::eventManager()->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouse_move_event>(this);
 		Global::eventManager()->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboard_press_event>(this);
 
-		// allocate gpu memory now for the ubo buffers - two buffers: one dynamic data such as view matrices, etc.
+		// allocate gpu memory now for the ubo buffers
 		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		dyn_ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(DynamicCameraBufferInfo));
-
-		// and a static buffer for ortho projections for quads, etc.
-		static_ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(StaticCameraBufferInfo));
+		ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(CameraBufferInfo));
 	}
 
 
 	CameraManager::~CameraManager()
 	{
-	}
-
-	void CameraManager::update_static_buffer()
-	{
-		StaticCameraBufferInfo buffer_info;
-		
-		// used for full-screen quad rendering
-		buffer_info.ortho = OEMaths::ortho(0.0f, 1.0f, 0.0f, 1.0f, -1.0f, 1.0f);
-
-		buffer_info.zNear = cameras[camera_index].zNear;
-		buffer_info.zFar = cameras[camera_index].zFar;
-
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		mem_alloc.mapDataToSegment(static_ubo_buffer, &buffer_info, sizeof(StaticCameraBufferInfo));
 	}
 
 	void CameraManager::mouse_move_event(MouseMoveEvent& event)
@@ -110,16 +93,18 @@ namespace OmegaEngine
 			updateViewMatrix();
 
 			// update everything in the buffer
-			DynamicCameraBufferInfo buffer_info;
+			CameraBufferInfo buffer_info;
 
 			buffer_info.mvp = currentProjMatrix * currentViewMatrix;	// * model
 			buffer_info.camera_pos = current_pos;
 			buffer_info.projection = currentProjMatrix;
 			buffer_info.view = currentViewMatrix;
+			buffer_info.zNear = cameras[camera_index].zNear;
+			buffer_info.zFar = cameras[camera_index].zFar;
 			
 			// now update on the gpu side
 			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			mem_alloc.mapDataToSegment(dyn_ubo_buffer, &buffer_info, sizeof(DynamicCameraBufferInfo));
+			mem_alloc.mapDataToSegment(ubo_buffer, &buffer_info, sizeof(CameraBufferInfo));
 
 			isDirty = false;
 		}

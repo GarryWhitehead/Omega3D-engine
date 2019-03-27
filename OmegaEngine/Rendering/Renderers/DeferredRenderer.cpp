@@ -22,8 +22,6 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		cmd_buffer.create_quad_data();
-
 		// set up semaphores for later
 		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
 		image_semaphore = semaphore_manager.get_semaphore();
@@ -116,10 +114,7 @@ namespace OmegaEngine
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(CameraManager::CameraBufferType::Dynamic), camera_manager.get_ubo_offset(CameraManager::CameraBufferType::Dynamic), layout.range);
-			}
-			if (layout.name == "StaticCameraUbo") {
-				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(CameraManager::CameraBufferType::Static), camera_manager.get_ubo_offset(CameraManager::CameraBufferType::Static), layout.range);
+				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
 			}
 			if (layout.name == "LightUbo") {
 				auto& light_manager = component_interface->getManager<LightManager>();
@@ -173,7 +168,7 @@ namespace OmegaEngine
 				cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 				// render full screen quad to screen
-				cmd_buffer.draw_indexed_quad();
+				cmd_buffer.draw_quad();
 
 				// end this pass and cmd buffer
 				cmd_buffer.end_pass();
@@ -197,7 +192,7 @@ namespace OmegaEngine
 					sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 					// render full screen quad to screen
-					sc_cmd_buffer.draw_indexed_quad();
+					sc_cmd_buffer.draw_quad();
 
 					render_interface->end_swapchain_pass(i);
 				}
@@ -227,7 +222,7 @@ namespace OmegaEngine
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 		vk::Semaphore deferred_semaphore = semaphore_manager.get_semaphore();
-		render_deferred(graph_queue, swapchain, component_semaphore, deferred_semaphore, render_interface);
+		render_deferred(graph_queue, swapchain, component_semaphore, present_semaphore, render_interface);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {

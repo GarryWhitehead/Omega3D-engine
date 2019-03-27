@@ -407,7 +407,7 @@ namespace VulkanAPI
 		else {
 			// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
 			void *mapped = static_cast<char*>(data) + mapped_offset;		
-			memcpy(mapped, data, totalSize);
+			memcpy(mapped, data_to_copy, totalSize);
 		}
 	}
 }

@@ -2,6 +2,7 @@
 
 #include "Vulkan/Common.h"
 #include "Vulkan/MemoryAllocator.h"
+#include "OEMaths/OEMaths.h"
 
 #include <cstdint>
 #include <array>
@@ -75,6 +76,35 @@ namespace OmegaEngine
 			VulkanAPI::MemorySegment vertices_buffer;
 			VulkanAPI::MemorySegment indices_buffer;
 
+		};
+
+		class PlaneModel
+		{
+		public:
+			
+			struct Vertex
+			{
+				OEMaths::vec2f uv;
+				OEMaths::vec3f pos;
+				OEMaths::vec3f normal;
+			};
+
+			VulkanAPI::MemorySegment& get_vertex_buffer()
+			{
+				return vertex_buffer;
+			}
+
+			VulkanAPI::MemorySegment& get_index_buffer()
+			{
+				return index_buffer;
+			}
+
+			PlaneModel();
+
+		private:
+
+			VulkanAPI::MemorySegment vertex_buffer;
+			VulkanAPI::MemorySegment index_buffer;
 		};
 	}
 }

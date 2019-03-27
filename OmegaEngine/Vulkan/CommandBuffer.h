@@ -61,7 +61,7 @@ namespace VulkanAPI
 
 		// primary binding functions
 		void bind_pipeline(Pipeline& pipeline);
-		void bind_vertex_buffer(MemorySegment& vertex_buffer);
+		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
 		void bind_index_buffer(MemorySegment& index_buffer);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
@@ -87,10 +87,7 @@ namespace VulkanAPI
 		// drawing functions
 		void draw_indexed(uint32_t index_count);
 		void draw_quad();
-		void draw_indexed_quad();
 		void secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle);
-
-		void create_quad_data();
 
 		// command pool
 		void create_cmd_pool();
@@ -133,12 +130,6 @@ namespace VulkanAPI
 		// the command pools for secondary buffers - one per thread
 		std::vector<vk::CommandPool> secondary_cmd_pools;
 
-		// full screen quad buffers
-		struct QuadBuffers
-		{
-			VulkanAPI::MemorySegment vertex_buffer;
-			VulkanAPI::MemorySegment index_buffer;
-		} quad_buffers;
 	};
 
 }
