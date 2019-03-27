@@ -241,7 +241,7 @@ namespace OmegaEngine
 		swapchain_present.cmd_buffer.resize(swap_chain.get_image_count());
 		for (uint32_t i = 0; i < swapchain_present.cmd_buffer.size(); ++i) {
 
-			swapchain_present.cmd_buffer[i].init(vk_interface->get_device(), vk_interface->get_present_queue().get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+			swapchain_present.cmd_buffer[i].init(vk_interface->get_device(), vk_interface->get_graph_queue().get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
 			// TODO: we are creating a quad for each individual buffer which sin't right. Either change the cmd buffer wrapper to allow multiple
 			// cmd buffers to be stored or move the quad elsewhere. Probably thinking the latter.
 			swapchain_present.cmd_buffer[i].create_quad_data();	
