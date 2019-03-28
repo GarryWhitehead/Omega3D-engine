@@ -64,6 +64,18 @@ namespace VulkanAPI
 
 	void Pipeline::update_vertex_input()
 	{
+		// check for empty vertex
+		if (vertex_attr_descr.empty()) {
+			vertex_input_state.vertexAttributeDescriptionCount = 0;
+			vertex_input_state.pVertexAttributeDescriptions = nullptr;
+			vertex_input_state.vertexBindingDescriptionCount = 0;
+			vertex_input_state.pVertexBindingDescriptions = nullptr;
+			return;
+		}
+
+		// first sort the attributes so they are in order of location as when we reflect, we can get the inputs in any order
+		std::sort(vertex_attr_descr.begin(), vertex_attr_descr.end(), [](const vk::VertexInputAttributeDescription lhs, const vk::VertexInputAttributeDescription rhs) { return lhs.location < rhs.location; });
+		
 		// calculate the offset for each location - the size of each location is stored temporarily in the offset elemnt of the struct
 		uint32_t next_offset = 0;
 		uint32_t current_offset = 0;
