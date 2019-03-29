@@ -183,9 +183,9 @@ namespace OEMaths
 	inline mat4<T> translate_mat4(vec3<T>& trans)
 	{
 		mat4<T> retMat;
-		retMat(3, 0) = trans.x;
-		retMat(3, 1) = trans.y;
-		retMat(3, 2) = trans.x;
+		retMat(0, 3) = trans.x;
+		retMat(1, 3) = trans.y;
+		retMat(2, 3) = trans.x;
 		retMat(3, 3) = 1.0f;
 
 		return retMat;
@@ -232,28 +232,28 @@ namespace OEMaths
 	template <typename T>
 	inline mat4<T> lookAt(vec3<T>& position, vec3<T>& target, vec3<T>& up_vec)
 	{
-		vec3<T> z = normalise_vec3(position - target);
-		vec3<T> x = normalise_vec3(cross_vec3(up_vec, z));
-		vec3<T> y = normalise_vec3(cross_vec3(z, x));
+		vec3<T> dir = normalise_vec3(target - position);
+		vec3<T> right = normalise_vec3(cross_vec3(up_vec, dir));
+		vec3<T> cam_up = normalise_vec3(cross_vec3(dir, right));
 
 		// create the output lookat matrix
 		mat4<T> lookAt;
-		lookAt(0, 0) = x.x;
-		lookAt(0, 1) = x.y;
-		lookAt(0, 2) = x.z;
-		lookAt(0, 3) = -dot_vec3(x, position);
+		lookAt(0, 0) = right.x;
+		lookAt(1, 0) = right.y;
+		lookAt(2, 0) = right.z;
 		
-		lookAt(1, 0) = y.x;
-		lookAt(1, 1) = y.y;
-		lookAt(1, 2) = y.z;
-		lookAt(1, 3) = -dot_vec3(y, position);
+		lookAt(0, 1) = cam_up.x;
+		lookAt(1, 1) = cam_up.y;
+		lookAt(2, 1) = cam_up.z;
 		
-		lookAt(2, 0) = z.x;
-		lookAt(2, 1) = z.y;
-		lookAt(2, 2) = z.z;
-		lookAt(2, 3) = -dot_vec3(z, position);
+		lookAt(0, 2) = dir.x;
+		lookAt(1, 2) = dir.y;
+		lookAt(2, 2) = dir.z;
 		
-		lookAt(3, 3) = 1;
+		lookAt(0, 3) = -dot_vec3(right, position);
+		lookAt(1, 3) = -dot_vec3(cam_up, position);
+		lookAt(2, 3) = -dot_vec3(dir, position);
+
 		return lookAt;
 	}
 
@@ -282,9 +282,11 @@ namespace OEMaths
 		result(1, 1) = 1 / tanHalfFov;
 
 		result(2, 2) = (zFar + zNear) / (zFar - zNear);
-		result(2, 3) = -(2 * zFar * zNear) / (zFar - zNear);
-		
-		result(3, 2) = 1;
+		result(3, 2) = -(2 * zFar * zNear) / (zFar - zNear);
+
+		//result(3, 0) = 0;
+		//result(3, 1) = 0;
+		result(2, 3) = 1;
 		result(3, 3) = 0;
 		return result;
 	}
