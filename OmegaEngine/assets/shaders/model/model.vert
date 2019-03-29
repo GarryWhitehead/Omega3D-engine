@@ -33,7 +33,7 @@ void main()
 	outNormal = (normalTransform * vec4(inNormal, 1.0)).xyz;
 
 	pos.y = -pos.y;
-	outPos = pos.xyz / pos.w;	// perspective divide correction
+	outPos = pos.xyz;	// perspective divide correction
 	
 	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);
 	outUv0 = inUv0;

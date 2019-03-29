@@ -33,7 +33,7 @@ namespace OmegaEngine
 
 		CameraType type = CameraType::FirstPerson;
 
-		OEMaths::vec3f start_position{ 0.0f, 0.0f, -3.0f };
+		OEMaths::vec3f start_position{ 0.0f, 0.0f, 3.0f };
 		OEMaths::vec3f camera_up{ 0.0f, 1.0f, 0.0f };
 		
 	};
@@ -131,7 +131,7 @@ namespace OmegaEngine
 		OEMaths::mat4f currentProjMatrix;
 		OEMaths::mat4f currentViewMatrix;
 		OEMaths::vec3f current_pos;
-		OEMaths::vec3f front_vec{ 0.0f, 0.0f, -1.0f };
+		OEMaths::vec3f front_vec{ 0.0f, 0.0f, 0.0f };
 
 		double yaw = -45.0;
 		double pitch = 0.0;
