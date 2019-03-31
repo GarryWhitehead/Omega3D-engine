@@ -1,9 +1,31 @@
 {
 	"Models": [
 		{ "Filename":"WaterBottle/WaterBottle.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
-	],	
-	"Lights": [
-		{"Type": 2, "Position":[3.0,2.0,1.0,1.0], "Colour":[1.0,1.0,1.0], "Radius": 50.0 },
-		{"Type": 2, "Position":[0.0,4.0,-2.0,1.0], "Colour":[1.0,1.0,1.0], "Radius": 20.0 }
-	]
+	],
+  "Lights": [
+    {
+      "Type": 2,
+      "Position": [ 3.0, 2.0, 1.0, 1.0 ],
+      "Colour": [ 1.0, 1.0, 1.0 ],
+      "Radius": 50.0
+    },
+    {
+      "Type": 2,
+      "Position": [ 0.0, 4.0, -2.0, 1.0 ],
+      "Colour": [ 1.0, 1.0, 1.0 ],
+      "Radius": 20.0
+    },
+    {
+      "Type": 2,
+      "Position": [ 0.0, 0.0, -5.0, 1.0 ],
+      "Colour": [ 1.0, 1.0, 1.0 ],
+      "Radius": 20.0
+    },
+    {
+      "Type": 2,
+      "Position": [ 0.0, 0.0, -1.0, 1.0 ],
+      "Colour": [ 1.0, 0.0, 0.0 ],
+      "Radius": 60.0
+    }
+  ]
 }

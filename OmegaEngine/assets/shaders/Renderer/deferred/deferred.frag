@@ -72,7 +72,7 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 void main()
 {	
 	vec3 inPos = texture(positionSampler, inUv).rgb;
-	vec3 V = -normalize(inCameraPos.xyz - inPos);
+	vec3 V = normalize(inCameraPos.xyz - inPos);
 	vec3 N = texture(normalSampler, inUv).rgb;
 	vec3 R = -reflect(V, N);
 	R.y *= -1.0;

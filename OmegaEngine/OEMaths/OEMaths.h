@@ -25,8 +25,8 @@ namespace OEMaths
 
 		vec2()
 		{
-			x = static_cast<T>(0);
-			y = static_cast<T>(0);
+			x = T(0);
+			y = T(0);
 		}
 
 		vec2(T n) :
@@ -56,9 +56,9 @@ namespace OEMaths
 
 		vec3()
 		{
-			x = static_cast<T>(0);
-			y = static_cast<T>(0);
-			z = static_cast<T>(0);
+			x = T(0);
+			y = T(0);
+			z = T(0);
 		}
 
 		vec3(vec2<T> vec, T f) :
@@ -180,10 +180,10 @@ namespace OEMaths
 
 		vec4()
 		{
-			x = static_cast<T>(0);
-			y = static_cast<T>(0);
-			z = static_cast<T>(0);
-			w = static_cast<T>(0);
+			x = T(0);
+			y = T(0);
+			z = T(0);
+			w = T(0);
 		}
 
 		vec4(vec2<T> vec, T _z, T _w) :
@@ -246,19 +246,20 @@ namespace OEMaths
 
 		mat2()
 		{
-			data[0] = 1;
-			data[3] = 1;
+			data[0] = T(1);
+			data[3] = T(1);
 		}
 
-		T& operator()(const uint8_t& a, const uint8_t& b)
+		T& operator()(const uint8_t& col, const uint8_t& row)
 		{
-			return data[a * 1 + b];
+			// col major
+			return data[col * 1 + row];
 		}
 
-		vec2<T>& operator()(const vec2<T>& vec, const uint8_t& row)
+		vec2<T>& operator()(const vec2<T>& vec, const uint8_t& col)
 		{
-			data[row * 1] = vec.x;
-			data[row * 1 + 1] = vec.y;
+			data[col * 2] = vec.x;
+			data[col * 2 + 1] = vec.y;
 		}
 
 	private:
@@ -278,21 +279,21 @@ namespace OEMaths
 
 		mat3()
 		{
-			data[0] = 1;
-			data[4] = 1;
-			data[8] = 1;
+			data[0] = T(1);
+			data[4] = T(1);
+			data[8] = T(1);
 		}
 
-		T& operator()(const uint8_t& a, const uint8_t& b)
+		T& operator()(const uint8_t& col, const uint8_t& row)
 		{
-			return data[a * 3 + b];
+			return data[col * 3 + row];
 		}
 
-		mat3& operator()(const vec3<T>& vec, const uint8_t& row)
+		mat3& operator()(const vec3<T>& vec, const uint8_t& col)
 		{
-			data[row * 3] = vec.x;
-			data[row * 3 + 1] = vec.y;
-			data[row * 3 + 2] = vec.z;
+			data[col * 3] = vec.x;
+			data[col * 3 + 1] = vec.y;
+			data[col * 3 + 2] = vec.z;
 		}
 
 	private:
@@ -313,55 +314,71 @@ namespace OEMaths
 
 		mat4()
 		{
-			data[0] = 1; data[1] = 0; data[2] = 0; data[3] = 0;
-			data[4] = 0; data[5] = 1; data[6] = 0; data[7] = 0;
-			data[8] = 0; data[9] = 0; data[10] = 1; data[11] = 0;
-			data[12] = 0; data[13] = 0; data[14] = 0; data[15] = 1;
+			data[0] = T(1);		data[1] = T(0);		data[2] = T(0);		data[3] = T(0);
+			data[4] = T(0);		data[5] = T(1);		data[6] = T(0);		data[7] = T(0);
+			data[8] = T(0);		data[9] = T(0);		data[10] = T(1);	data[11] = T(0);
+			data[12] = T(0);	data[13] = T(0);	data[14] = T(0);	data[15] = T(1);
 		}
 
-		T& operator()(const uint8_t& row, const uint8_t& col)
+		T& operator()(const uint8_t& col, const uint8_t& row)
 		{
+			// using col major
 			assert(row < 4 && col < 4);
-			return data[row * 4 + col];
+			return data[col * 4 + row];
 		}
 
-		inline mat4& operator()(const vec4<T>& vec, const uint8_t& row)
+		inline mat4& operator()(const vec4<T>& vec, const uint8_t& col)
 		{
-			data[row * 4] = vec.x;
-			data[row * 4 + 1] = vec.y;
-			data[row * 4 + 2] = vec.z;
-			data[row * 4 + 3] = vec.w;
+			assert(col < 4);
+			data[col * 4] = vec.x;
+			data[col * 4 + 1] = vec.y;
+			data[col * 4 + 2] = vec.z;
+			data[col * 4 + 3] = vec.w;
 			return *this;
 		}
 
 		inline mat4& operator/=(const T& div)
 		{
 			const T invDiv = 1 / div;
-			data[0] *= invDiv;
-			data[1] *= invDiv;
-			data[2] *= invDiv;
-			data[3] *= invDiv;
+			data[0] /= div;
+			data[1] /= div;
+			data[2] /= div;
+			data[3] /= div;
+			
+			data[4] /= div;
+			data[5] /= div;
+			data[6] /= div;
+			data[7] /= div;
+		
+			data[8] /= div;
+			data[9] /= div;
+			data[10] /= div;
+			data[11] /= div;
 
-			data[4] *= invDiv;
-			data[5] *= invDiv;
-			data[6] *= invDiv;
-			data[7] *= invDiv;
-
-			data[8] *= invDiv;
-			data[9] *= invDiv;
-			data[10] *= invDiv;
-			data[11] *= invDiv;
-
-			data[12] *= invDiv;
-			data[13] *= invDiv;
-			data[14] *= invDiv;
-			data[15] *= invDiv;
+			data[12] /= div;
+			data[13] /= div;
+			data[14] /= div;
+			data[15] /= div;
 			return *this;
 		}
 
 		T& operator[](const uint32_t& index)
 		{
 			return data[index];
+		}
+
+		template <typename T>
+		void setCol(const uint8_t col, vec4<T>& v)
+		{
+			assert(col < 4);
+			uint8_t row = 0;
+			data[col * 4 + row] = v.x;
+			row++;
+			data[col * 4 + row] = v.y;
+			row++;
+			data[col * 4 + row] = v.z;
+			row++;
+			data[col * 4 + row] = v.w;
 		}
 
 		T data[16];
@@ -397,57 +414,16 @@ namespace OEMaths
 	{
 		mat4<T> result;
 
-		result.data[0] = m1.data[0] * m2.data[0] + m1.data[1] * m2.data[4] + m1.data[2] * m2.data[8] +
-			m1.data[3] * m2.data[12];
+		for (uint8_t row = 0; row < 4; ++row) {
 
-		result.data[1] = m1.data[0] * m2.data[1] + m1.data[1] * m2.data[5] + m1.data[2] * m2.data[9] +
-			m1.data[3] * m2.data[13];
+			for (uint8_t col = 0; col < 4; ++col) {
+				result.data[col * 4 + row] = 0;
 
-		result.data[2] = m1.data[0] * m2.data[2] + m1.data[1] * m2.data[6] + m1.data[2] * m2.data[10] +
-			m1.data[3] * m2.data[14];
-
-		result.data[3] = m1.data[0] * m2.data[3] + m1.data[1] * m2.data[7] + m1.data[2] * m2.data[11] +
-			m1.data[3] * m2.data[15];
-
-
-		result.data[4] = m1.data[4] * m2.data[0] + m1.data[5] * m2.data[4] + m1.data[6] * m2.data[8] +
-			m1.data[7] * m2.data[12];
-
-		result.data[5] = m1.data[4] * m2.data[1] + m1.data[5] * m2.data[5] + m1.data[6] * m2.data[9] +
-			m1.data[7] * m2.data[13];
-
-		result.data[6] = m1.data[4] * m2.data[2] + m1.data[5] * m2.data[6] + m1.data[6] * m2.data[10] +
-			m1.data[7] * m2.data[14];
-
-		result.data[7] = m1.data[4] * m2.data[3] + m1.data[5] * m2.data[7] + m1.data[6] * m2.data[11] +
-			m1.data[7] * m2.data[15];
-
-
-		result.data[8] = m1.data[8] * m2.data[0] + m1.data[9] * m2.data[4] + m1.data[10] * m2.data[8] +
-			m1.data[11] * m2.data[12];
-
-		result.data[9] = m1.data[8] * m2.data[1] + m1.data[9] * m2.data[5] + m1.data[10] * m2.data[9] +
-			m1.data[11] * m2.data[13];
-
-		result.data[10] = m1.data[8] * m2.data[2] + m1.data[9] * m2.data[6] + m1.data[10] * m2.data[10] +
-			m1.data[11] * m2.data[14];
-
-		result.data[11] = m1.data[8] * m2.data[3] + m1.data[9] * m2.data[7] + m1.data[10] * m2.data[11] +
-			m1.data[11] * m2.data[15];
-
-
-		result.data[12] = m1.data[12] * m2.data[0] + m1.data[13] * m2.data[4] + m1.data[14] * m2.data[8] +
-			m1.data[15] * m2.data[12];
-
-		result.data[13] = m1.data[12] * m2.data[1] + m1.data[13] * m2.data[5] + m1.data[14] * m2.data[9] +
-			m1.data[15] * m2.data[13];
-
-		result.data[14] = m1.data[12] * m2.data[2] + m1.data[13] * m2.data[6] + m1.data[14] * m2.data[10] +
-			m1.data[15] * m2.data[14];
-
-		result.data[15] = m1.data[12] * m2.data[3] + m1.data[13] * m2.data[7] + m1.data[14] * m2.data[11] +
-			m1.data[15] * m2.data[15];
-
+				for (uint8_t k = 0; k < 4; ++k) {
+					result.data[col * 4 + row] += m1.data[k * 4 + row] * m2.data[col * 4 + k];
+				}
+			}
+		}
 
 		return result;
 	}

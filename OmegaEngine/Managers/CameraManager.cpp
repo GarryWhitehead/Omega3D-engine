@@ -70,9 +70,9 @@ namespace OmegaEngine
 		Camera& camera = cameras[camera_index];
 
 		//calculate the pitch and yaw vectors
-		front_vec.x = cos(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
-		front_vec.y = sin(OEMaths::radians(pitch));
-		front_vec.z = sin(OEMaths::radians(yaw)) * cos(OEMaths::radians(pitch));
+		front_vec.x = std::cos(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch));
+		front_vec.y = std::sin(OEMaths::radians(pitch));
+		front_vec.z = std::sin(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch));
 		front_vec = OEMaths::normalise_vec3(front_vec);
 
 		isDirty = true;

@@ -64,11 +64,10 @@ namespace OEMaths
 	{
 		vec3<T> retVec;
 		T length = length_vec3(v3);
-		T invLength = static_cast<T>(1) / length == 0 ? 1 : length;
 
-		retVec.x = v3.x * invLength;
-		retVec.y = v3.y * invLength;
-		retVec.z = v3.z * invLength;
+		retVec.x = v3.x / length;
+		retVec.y = v3.y / length;
+		retVec.z = v3.z / length;
 		return retVec;
 	}
 
@@ -94,9 +93,9 @@ namespace OEMaths
 	inline vec3<T> mix_vec3(vec3<T>& v1, vec3<T>& v2, float u)
 	{
 		vec3<T> retVec;
-		retVec.x = v1.x * (1 - u) + v2.x * u;
-		retVec.y = v1.y * (1 - u) + v2.y * u;
-		retVec.z = v1.z * (1 - u) + v2.z * u;
+		retVec.x = v1.x * (T(1) - u) + v2.x * u;
+		retVec.y = v1.y * (T(1) - u) + v2.y * u;
+		retVec.z = v1.z * (T(1) - u) + v2.z * u;
 		return retVec;
 	}
 
@@ -130,12 +129,11 @@ namespace OEMaths
 	{
 		vec4<T> retVec;
 		T length = length_vec4(v4);
-		T invLength = static_cast<T>(1) / length == 0 ? 1 : length;
 
-		retVec.x = v4.x * invLength;
-		retVec.y = v4.y * invLength;
-		retVec.z = v4.z * invLength;
-		retVec.w = v4.w * invLength;
+		retVec.x = v4.x / length;
+		retVec.y = v4.y / length;
+		retVec.z = v4.z / length;
+		retVec.w = v4.w / length;
 		return retVec;
 	}
 
@@ -145,10 +143,10 @@ namespace OEMaths
 	inline vec4<T> mix_vec4(vec4<T>& v1, vec4<T>& v2, float u)
 	{
 		vec4<T> retVec;
-		retVec.x = v1.x * (1 - u) + v2.x * u;
-		retVec.y = v1.y * (1 - u) + v2.y * u;
-		retVec.z = v1.z * (1 - u) + v2.z * u;
-		retVec.w = v1.w * (1 - u) + v2.w * u;
+		retVec.x = v1.x * (T(1) - u) + v2.x * u;
+		retVec.y = v1.y * (T(1) - u) + v2.y * u;
+		retVec.z = v1.z * (T(1) - u) + v2.z * u;
+		retVec.w = v1.w * (T(1) - u) + v2.w * u;
 		return retVec;
 	}
 
@@ -183,10 +181,10 @@ namespace OEMaths
 	inline mat4<T> translate_mat4(vec3<T>& trans)
 	{
 		mat4<T> retMat;
-		retMat(0, 3) = trans.x;
-		retMat(1, 3) = trans.y;
-		retMat(2, 3) = trans.x;
-		retMat(3, 3) = 1.0f;
+		retMat(3, 0) = trans.x;
+		retMat(3, 1) = trans.y;
+		retMat(3, 2) = trans.x;
+		retMat(3, 3) = T(1);
 
 		return retMat;
 	}
@@ -198,7 +196,7 @@ namespace OEMaths
 		result(0, 0) = scale.x;
 		result(1, 1) = scale.y;
 		result(2, 2) = scale.z;
-		result(3, 3) = 1.0f;
+		result(3, 3) = T(1);
 		return result;
 	}
 
@@ -206,7 +204,7 @@ namespace OEMaths
 	inline mat4<T> rotate_mat4(T theta, vec3<T> axis)
 	{
 		mat4<T> retMat;
-		vec3<T> axis_norm = axis / (theta == 0 ? 1 : theta);	//avoid divide by zero
+		vec3<T> axis_norm = axis / (theta == T(0) ? T(1) : theta);	//avoid divide by zero
 		T xy = axis_norm.x * axis_norm.y;
 		T yz = axis_norm.y * axis_norm.z;
 		T zx = axis_norm.z * axis_norm.x;
@@ -214,17 +212,17 @@ namespace OEMaths
 		T cosTheta = std::cos(theta);
 		T sinTheta = std::sin(theta);
 		
-		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (1 - cosTheta);
-		retMat(0, 1) = xy * (1 - cosTheta) - axis_norm.z * sinTheta;
-		retMat(0, 2) = zx * (1 - cosTheta) + axis_norm.y * sinTheta;
+		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (T(1) - cosTheta);
+		retMat(0, 1) = xy * (T(1) - cosTheta) - axis_norm.z * sinTheta;
+		retMat(0, 2) = zx * (T(1) - cosTheta) + axis_norm.y * sinTheta;
 
-		retMat(1, 0) = xy * (1 - cosTheta) + axis_norm.z * sinTheta;
-		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (1 - cosTheta);
-		retMat(1, 2) = yz * (1 - cosTheta) - axis_norm.x * sinTheta;
+		retMat(1, 0) = xy * (T(1) - cosTheta) + axis_norm.z * sinTheta;
+		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (T(1) - cosTheta);
+		retMat(1, 2) = yz * (T(1) - cosTheta) - axis_norm.x * sinTheta;
 
-		retMat(2, 0) = zx * (1 - cosTheta) - axis_norm.y * sinTheta;
-		retMat(2, 1) = yz * (1 - cosTheta) + axis_norm.x * sinTheta;
-		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (1 - cosTheta);
+		retMat(2, 0) = zx * (T(1) - cosTheta) - axis_norm.y * sinTheta;
+		retMat(2, 1) = yz * (T(1) - cosTheta) + axis_norm.x * sinTheta;
+		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (T(1) - cosTheta);
 
 		return retMat;
 	}
@@ -237,24 +235,24 @@ namespace OEMaths
 		vec3<T> cam_up = normalise_vec3(cross_vec3(dir, right));
 
 		// create the output lookat matrix
-		mat4<T> lookAt;
-		lookAt(0, 0) = right.x;
-		lookAt(1, 0) = right.y;
-		lookAt(2, 0) = right.z;
+		mat4<T> result;
+		result(0, 0) = right.x;
+		result(0, 1) = right.y;
+		result(0, 2) = right.z;
 		
-		lookAt(0, 1) = cam_up.x;
-		lookAt(1, 1) = cam_up.y;
-		lookAt(2, 1) = cam_up.z;
+		result(1, 0) = cam_up.x;
+		result(1, 1) = cam_up.y;
+		result(1, 2) = cam_up.z;
 		
-		lookAt(0, 2) = dir.x;
-		lookAt(1, 2) = dir.y;
-		lookAt(2, 2) = dir.z;
+		result(2, 0) = dir.x;
+		result(2, 1) = dir.y;
+		result(2, 2) = dir.z;
 		
-		lookAt(0, 3) = -dot_vec3(right, position);
-		lookAt(1, 3) = -dot_vec3(cam_up, position);
-		lookAt(2, 3) = -dot_vec3(dir, position);
+		result(3, 0) = -dot_vec3(right, position);
+		result(3, 1) = -dot_vec3(cam_up, position);
+		result(3, 2) = -dot_vec3(dir, position);
 
-		return lookAt;
+		return result;
 	}
 
 	template <typename T>
@@ -263,7 +261,7 @@ namespace OEMaths
 		mat4<T> result;
 		result(0, 0) = zoom / aspect;
 		result(1, 1) = -zoom;
-		result(2, 2) = 2 / (zFar - zNear);
+		result(2, 2) = T(2) / (zFar - zNear);
 		result(2, 3) = -(zFar + zNear) / (zFar - zNear);
 
 		return result;
@@ -273,21 +271,20 @@ namespace OEMaths
 	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
 	{
 		// fov to radians
-		float rad_fov = fov * M_PI / 180;
-		float tanHalfFov = std::tan(rad_fov * 0.5f);
+		float rad_fov = fov * M_PI / T(180);
+		float tanHalfFov = std::tan(rad_fov * T(0.5));
 	
 		mat4<T> result;
-		result(0, 0) = 1 / (aspect * tanHalfFov);
-
-		result(1, 1) = 1 / tanHalfFov;
+		result(0, 0) = T(1) / (aspect * tanHalfFov);
+		
+		result(1, 1) = T(1) / tanHalfFov;
 
 		result(2, 2) = (zFar + zNear) / (zFar - zNear);
-		result(3, 2) = -(2 * zFar * zNear) / (zFar - zNear);
+		result(2, 3) = T(1);
 
-		//result(3, 0) = 0;
-		//result(3, 1) = 0;
-		result(2, 3) = 1;
-		result(3, 3) = 0;
+		result(3, 2) = -(T(2) * zFar * zNear) / (zFar - zNear);
+		result(3, 3) = T(0);
+
 		return result;
 	}
 
@@ -295,9 +292,9 @@ namespace OEMaths
 	inline mat4<T> ortho(T left, T right, T top, T bottom, T zNear, T zFar)
 	{
 		mat4<T> result;
-		result(0, 0) = 2 / (right - left);
-		result(1, 1) = 2 / (top - bottom);
-		result(2, 2) = 2 / (zFar - zNear);
+		result(0, 0) = T(2) / (right - left);
+		result(1, 1) = T(2) / (top - bottom);
+		result(2, 2) = T(2) / (zFar - zNear);
 		result(3, 0) = -(right + left) / (right - left);
 		result(3, 1) = -(top + bottom) / (top - bottom);
 		result(3, 2) = -(zFar + zNear) / (zFar - zNear);
