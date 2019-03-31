@@ -279,10 +279,10 @@ namespace OEMaths
 		
 		result(1, 1) = T(1) / tanHalfFov;
 
-		result(2, 2) = (zFar + zNear) / (zFar - zNear);
+		result(2, 2) = zFar / (zFar - zNear);		// note: this is Vulkan specific i.e. using 0-1 for depth
 		result(2, 3) = T(1);
 
-		result(3, 2) = -(T(2) * zFar * zNear) / (zFar - zNear);
+		result(3, 2) = -(zFar * zNear) / (zFar - zNear);
 		result(3, 3) = T(0);
 
 		return result;

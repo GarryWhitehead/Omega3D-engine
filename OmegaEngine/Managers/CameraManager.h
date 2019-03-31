@@ -26,14 +26,14 @@ namespace OmegaEngine
 
 		// default values
 		float fov = 40.0f;
-		float zNear = 1.0f;
+		float zNear = 0.5f;
 		float zFar = 1000.0f;
 		float aspect = 16.0f / 9.0f;
 		float velocity = 0.1f;
 
 		CameraType type = CameraType::FirstPerson;
 
-		OEMaths::vec3f start_position{ 0.0f, 0.0f, -3.0f };
+		OEMaths::vec3f start_position{ 0.0f, 0.0f, 6.0f };
 		OEMaths::vec3f camera_up{ 0.0f, 1.0f, 0.0f };
 		
 	};
@@ -145,6 +145,8 @@ namespace OmegaEngine
 
 		// signfies whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;
+
+		bool firstTime = true;
 	};
 
 }

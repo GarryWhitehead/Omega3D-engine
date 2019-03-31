@@ -27,14 +27,21 @@ namespace OmegaEngine
 
 	void CameraManager::mouse_move_event(MouseMoveEvent& event)
 	{
-		double offsetX = currentX - event.xpos;
-		double offsetY = currentY - event.ypos;
+		if (firstTime) {
+
+			currentX = event.xpos;
+			currentY = event.ypos;
+			firstTime = false;
+		}
+		
+		double deltaX = event.xpos - currentX;
+		double deltaY = currentY - event.ypos;
 
 		currentX = event.xpos;
 		currentY = event.ypos;
 
-		yaw -= offsetX * mouse_sensitivity;
-		pitch -= offsetY * mouse_sensitivity;
+		yaw -= deltaX * mouse_sensitivity;
+		pitch -= deltaY * mouse_sensitivity;
 
 		pitch = pitch > 89.0 ? 89.0 : pitch;
 		pitch = pitch < -89.0 ? -89.0 : pitch;
