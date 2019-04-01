@@ -211,8 +211,8 @@ namespace OmegaEngine
 		}
 
 		// if this node has children, recursively extract their info
-		if (!node.children.empty()) {
-			for (uint32_t i = 0; node.children.size(); ++i) {
+		if (node.children.size() > 0) {
+			for (uint32_t i = 0; i < node.children.size(); ++i) {
 				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, parentObject, true);
 			}
 		}

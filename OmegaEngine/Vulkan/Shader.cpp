@@ -185,6 +185,12 @@ namespace VulkanAPI
 				descr_layout.add_layout(set, binding, vk::DescriptorType::eCombinedImageSampler, get_stage_flag_bits(StageType(i)));
 				image_layout[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
 			}
+
+			// make sure that the samplers bindings are sorted into ascending order - spirv cross seems to mess the order up
+			for (auto& layout : image_layout) {
+
+				std::sort(layout.second.begin(), layout.second.end(), [](const ShaderImageLayout lhs, const ShaderImageLayout rhs) { return lhs.binding < rhs.binding; });
+			}
 		}
 	}
 

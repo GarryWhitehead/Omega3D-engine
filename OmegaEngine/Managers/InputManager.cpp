@@ -25,9 +25,9 @@ namespace OmegaEngine
 		glfwSetKeyCallback(window, keyCallback);
 
 		// centre cursor and disablefefre
-		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
-		//glfwSetInputMode(window, GLFW_STICKY_KEYS, GLFW_TRUE);
-		glfwSetCursorPos(window, width / 2, height / 2);
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+
+		//glfwSetCursorPos(window, width / 2, height / 2);
 
 		// mouse movement feedback
 		glfwSetCursorPosCallback(window, mouseCallback);

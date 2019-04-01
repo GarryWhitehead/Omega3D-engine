@@ -35,7 +35,7 @@ namespace OmegaEngine
 		}
 		
 		double deltaX = event.xpos - currentX;
-		double deltaY = currentY - event.ypos;
+		double deltaY = event.ypos - currentY;
 
 		currentX = event.xpos;
 		currentY = event.ypos;

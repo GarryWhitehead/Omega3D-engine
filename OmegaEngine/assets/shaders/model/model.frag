@@ -94,7 +94,7 @@ void main()
 	vec2 emissive_uv = material.emissiveUvSet == 0 ? inUv0 : inUv1;
 	vec2 occlusion_uv = material.occlusionUvSet == 0 ? inUv0 : inUv1;
 	
-	if (material.alphaMask == 1.0) {
+	if (material.alphaMask == 0.0) {
 		if (material.haveBaseColourMap > 0) {
 			baseColour = texture(baseColourMap, baseColour_uv) * material.baseColorFactor;
 		}

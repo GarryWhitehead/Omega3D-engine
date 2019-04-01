@@ -49,7 +49,7 @@ namespace OmegaEngine
 				uint32_t image = 0;			// set number and the index within this set
 			};
 
-			AlphaMode alphaMode = AlphaMode::None;
+			AlphaMode alphaMode = AlphaMode::Opaque;
 			struct Factors
 			{
 				OEMaths::vec3f emissive = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
