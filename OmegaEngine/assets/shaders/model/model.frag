@@ -44,7 +44,7 @@ layout (location = 2) out vec4 outNormal;
 layout (location = 3) out vec2 outPbr;
 layout (location = 4) out vec4 outEmissive;
 
-#define EPSILON 0.00001
+#define EPSILON 0.0000001
 
 float convertMetallic(vec3 diffuse, vec3 specular, float maxSpecular)
 {

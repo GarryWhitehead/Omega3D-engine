@@ -37,9 +37,9 @@ namespace OmegaEngine
 		{
 			enum class AlphaMode
 			{
+				Opaque,
 				Blend,
-				Mask,
-				None
+				Mask
 			};
 
 			struct Texture
@@ -52,15 +52,15 @@ namespace OmegaEngine
 			AlphaMode alphaMode = AlphaMode::None;
 			struct Factors
 			{
-				OEMaths::vec3f emissive;
+				OEMaths::vec3f emissive = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
 				float specularGlossiness = 1.0f;
 				float baseColour = 1.0f;
 				float roughness = 1.0f;
 				float diffuse = 1.0f;
 				float metallic = 1.0f;
 				float specular = 1.0f;
-				float alphaMask = (float)AlphaMode::None;
-				float alphaMaskCutOff;
+				float alphaMask = (float)AlphaMode::Opaque;
+				float alphaMaskCutOff = 1.0f;
 			} factors;
 
 			struct TexCoordSets
