@@ -59,8 +59,8 @@ namespace OmegaEngine
 		struct AnimationInfo
 		{
 			const char* name;
-			float start;
-			float end;
+			float start = std::numeric_limits<float>::max();
+			float end = std::numeric_limits<float>::min();
 			std::vector<Sampler> samplers;
 			std::vector<Channel> channels;
 

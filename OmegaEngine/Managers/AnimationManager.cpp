@@ -150,21 +150,15 @@ namespace OmegaEngine
 					// all types will be converted to vec4 for ease of use
 					switch (trsAccessor.type) {
 					case TINYGLTF_TYPE_VEC3: {
-						OEMaths::vec3f* buffer = new OEMaths::vec3f[trsAccessor.count];
-						memcpy(buffer, &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset], trsAccessor.count * sizeof(OEMaths::vec3f));
+						OEMaths::vec3f* buffer = static_cast<OEMaths::vec3f>(&trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset]);
 						for (uint32_t i = 0; i < trsAccessor.count; ++i) {
 							samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 1.0f));
 						}
-						delete buffer;
 						break;
 					}
 					case TINYGLTF_TYPE_VEC4: {
-						OEMaths::vec4f* buffer = new OEMaths::vec4f[trsAccessor.count];
-						memcpy(buffer, &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset], trsAccessor.count * sizeof(OEMaths::vec4f));
-						for (uint32_t i = 0; i < trsAccessor.count; ++i) {
-							samplerInfo.outputs.push_back(buffer[i]);
-						}
-						delete buffer;
+						sampler.outputs.resize(trsAccessor.count);
+						memcpy(sampler.outputs.data(), &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset], trsAccessor.count * sizeof(OEMaths::vec4f));
 						break;
 					}
 					default:
@@ -208,21 +202,22 @@ namespace OmegaEngine
 					break;
 				}
 				case Channel::PathType::Rotation: {
-					OEMaths::quatf quat1;
-					quat1.x = sampler.outputs[time_index].x;
-					quat1.y = sampler.outputs[time_index].y;
-					quat1.z = sampler.outputs[time_index].z;
-					quat1.w = sampler.outputs[time_index].w;
+					OEMaths::quatf quat1 {
+						sampler.outputs[time_index].x;
+						sampler.outputs[time_index].y;
+						sampler.outputs[time_index].z;
+						sampler.outputs[time_index].w;
+					};
 
-					OEMaths::quatf quat2;
-					quat2.x = sampler.outputs[time_index + 1].x;
-					quat2.y = sampler.outputs[time_index + 1].y;
-					quat2.z = sampler.outputs[time_index + 1].z;
-					quat2.w = sampler.outputs[time_index + 1].w;
+					OEMaths::quatf quat2 {
+						sampler.outputs[time_index + 1].x;
+						sampler.outputs[time_index + 1].y;
+						sampler.outputs[time_index + 1].z;
+						sampler.outputs[time_index + 1].w;
+					};
 
 					// TODO: add cubic and step interpolation
-					OEMaths::quatf rot = OEMaths::linear_mix_quat(quat1, quat2, phase);
-					OEMaths::normalise_quat(rot);
+					OEMaths::quatf rot = OEMaths::normalise_quat(OEMaths::linear_mix_quat(quat1, quat2, phase));
 					transform_man.update_obj_rotation(obj, rot);
 					break;
 				}

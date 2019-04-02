@@ -39,4 +39,24 @@ namespace OmegaEngine
 		return true;
 	}
 
+	bool MapppedTexture::create_empty_texture(uint32_t w, uint32_t h, bool setToBlack)
+	{
+		width = w;
+		height = h;
+		mip_levels = 1;
+
+		uint32_t image_size = width * height * comp;
+		bin = new unsigned char[image_size];
+
+		if (!bin) {
+			LOGGER_INFO("Error whilst allocationg memory for empty texture. Out of memory?");
+			return false;
+		}
+
+		// fill with zer
+		if (setToBlack) {
+			memset(bin, 0, image_size);
+		}
+		return true;
+	}
 }

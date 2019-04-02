@@ -62,9 +62,9 @@ namespace OEMaths
 	{
 		mat4<T> mat;
 
-		T twoX = static_cast<T>(2.0) * q.x;
-		T twoY = static_cast<T>(2.0) * q.y;
-		T twoZ = static_cast<T>(2.0) * q.z;
+		T twoX = static_cast<T>(2) * q.x;
+		T twoY = static_cast<T>(2) * q.y;
+		T twoZ = static_cast<T>(2) * q.z;
 
 		T twoXX = twoX * q.x;
 		T twoXY = twoX * q.y;
@@ -99,26 +99,25 @@ namespace OEMaths
 	template <typename T>
 	inline quat<T> normalise_quat(quat<T>& q)
 	{
-		quat<T> retVec;
+		quat<T> result;
 		T length = length_quat(q);
-		T invLength = static_cast<T>(1) / length;
 
-		retVec.x = q.x * invLength;
-		retVec.y = q.y * invLength;
-		retVec.z = q.z * invLength;
-		retVec.w = q.w * invLength;
-		return retVec;
+		result.x = q.x / length;
+		result.y = q.y / length;
+		result.z = q.z / length;
+		result.w = q.w / length;
+		return result;
 	}
 
 	template <typename T>
 	inline quat<T> linear_mix_quat(quat<T>& q1, quat<T>& q2, float u)
 	{
-		quat<T> retVec;
-		retVec.x = q1.x * (1 - u) + q2.x * u;
-		retVec.y = q1.y * (1 - u) + q2.y * u;
-		retVec.z = q1.z * (1 - u) + q2.z * u;
-		retVec.w = q1.w * (1 - u) + q2.w * u;
-		return retVec;
+		quat<T> result;
+		result.x = q1.x * (T(1) - u) + q2.x * u;
+		result.y = q1.y * (T(1) - u) + q2.y * u;
+		result.z = q1.z * (T(1) - u) + q2.z * u;
+		result.w = q1.w * (T(1) - u) + q2.w * u;
+		return result;
 	}
 
 	template <typename T>
