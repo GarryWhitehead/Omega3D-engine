@@ -106,7 +106,7 @@ namespace OmegaEngine
 		// get pipeline layout and vertedx attributes by reflection of shader
 		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
 		state.shader.descriptor_buffer_reflect(state.descr_layout, state.buffer_layout);
-		state.descr_layout.create(device);
+		state.descr_layout.create(device, TOTAL_MATERIAL_SETS);
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
 		for (auto& buffer : state.buffer_layout) {

@@ -39,13 +39,13 @@ namespace OmegaEngine
 		return true;
 	}
 
-	bool MapppedTexture::create_empty_texture(uint32_t w, uint32_t h, bool setToBlack)
+	bool MappedTexture::create_empty_texture(uint32_t w, uint32_t h, bool setToBlack)
 	{
 		width = w;
 		height = h;
 		mip_levels = 1;
 
-		uint32_t image_size = width * height * comp;
+		uint32_t image_size = width * height * 4;
 		bin = new unsigned char[image_size];
 
 		if (!bin) {

@@ -51,7 +51,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void DescriptorLayout::create(vk::Device dev)
+	void DescriptorLayout::create(vk::Device dev, const uint32_t image_sets)
 	{
 		// store for destructor
 		device = dev;
@@ -66,7 +66,8 @@ namespace VulkanAPI
 		}
 		if (layout_bind.sampler_count) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.sampler_count);
+			// we can have multiple sets of images - useful in the case of materials for instance
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.sampler_count * image_sets);
 			pools.push_back(pool);
 		}
 		if (layout_bind.ssbo_count) {
@@ -91,7 +92,11 @@ namespace VulkanAPI
 		}
 
 		assert(!pools.empty());
-		vk::DescriptorPoolCreateInfo createInfo({}, layout_bind.layouts.size(), static_cast<uint32_t>(pools.size()), pools.data());
+		uint32_t set_count = layout_bind.layouts.size();
+		if (image_sets > 1) {
+			set_count += image_sets - 1;
+		}
+		vk::DescriptorPoolCreateInfo createInfo({}, set_count, static_cast<uint32_t>(pools.size()), pools.data());
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
 
 		// and create the descriptor layout for each set
@@ -120,7 +125,7 @@ namespace VulkanAPI
 		init(device, descr_layout);
 	}
 
-	void DescriptorSet::init(vk::Device device, DescriptorLayout descr_layout)
+	void DescriptorSet::init(vk::Device device, DescriptorLayout descr_layout, uint32_t set_count)
 	{
 		this->device = device;
 
@@ -128,23 +133,23 @@ namespace VulkanAPI
 		auto& layout = descr_layout.get_layout();
 		for (uint32_t i = 0; i < layout.size(); ++i) {
 
-			uint32_t set_count = 0;
+			uint32_t set = 0;	// remove this!
 			vk::DescriptorSetLayout set_layout;
-			std::tie(set_count, set_layout) = layout[i];
+			std::tie(set, set_layout) = layout[i];
 
-			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), 1, &set_layout);
+			vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), set_count, &set_layout);
 
 			vk::DescriptorSet descr_set;
 			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
-			descr_sets[set_count] = descr_set;
+			descr_sets[set] = descr_set;
 		}
 	}
 
-	void DescriptorSet::init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set)
+	void DescriptorSet::init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set, uint32_t set_count)
 	{
 		this->device = device;
 
-		vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &layout);
+		vk::DescriptorSetAllocateInfo allocInfo(pool, set_count, &layout);
 
 		vk::DescriptorSet descr_set;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));

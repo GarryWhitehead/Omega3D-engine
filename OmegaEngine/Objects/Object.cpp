@@ -20,6 +20,8 @@ namespace OmegaEngine
 
 	void Object::add_child(Object& obj)
 	{
+		obj.parent_id = id;
+
 		children.push_back(obj);
 	}
 

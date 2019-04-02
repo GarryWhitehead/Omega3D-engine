@@ -73,7 +73,7 @@ namespace OmegaEngine
 
 		// the number of models to allocate mem space for - this will need optimising
 		// could also be dynamic and be altered to the archietecture being used
-		const uint32_t TransformBlockSize = 2;
+		const uint32_t TransformBlockSize = 100;
 		const uint32_t SkinnedBlockSize = 4;
 
 		TransformManager();
@@ -88,7 +88,7 @@ namespace OmegaEngine
 
 		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform_recursive(uint32_t index, Object& obj, uint32_t alignment);
+		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t alignment);
 
 		// object update functions
 		void update_obj_translation(Object& obj, OEMaths::vec4f trans);

@@ -6,6 +6,9 @@
 #include "Rendering/RenderInterface.h"
 #include "OEMaths/OEMaths.h"
 
+// Number of combined image sampler sets allowed for materials. This allows for materials to be added - this value will need monitoring
+#define TOTAL_MATERIAL_SETS 50
+
 // forward decleartions
 namespace VulkanAPI
 {

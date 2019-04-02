@@ -49,7 +49,7 @@ namespace OmegaEngine
 
 		newObject.set_id(id);
 		obj.add_child(newObject);
-
+		
 		return &obj.get_last_child();
 	}
 

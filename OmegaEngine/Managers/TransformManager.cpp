@@ -96,7 +96,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_transform_recursive(uint32_t transform_index, Object& obj, uint32_t alignment)
+	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t alignment)
 	{
 		TransformBufferInfo* transform_buff = transform_buffer_data + (alignment * transform_index);
 		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (alignment * transform_index);
@@ -104,9 +104,13 @@ namespace OmegaEngine
 
 		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
-		uint64_t parent_index = obj.get_parent();
-		while (parent_index != UINT64_MAX) {
+		uint64_t parent_id = obj.get_parent();
+		while (parent_id != UINT64_MAX) {
+			
+			Object parent_obj = obj_manager->get_object(parent_id);
+			uint32_t parent_index = parent_obj.get_manager_index<TransformManager>();
 			mat = transformBuffer[parent_index].get_local() * mat;
+			parent_id = parent_obj.get_parent();
 		}
 
 		transformBuffer[transform_index].transform = mat;
@@ -143,7 +147,11 @@ namespace OmegaEngine
 		auto children = obj.get_children();
 
 		for (auto& child : children) {
-			update_transform_recursive(child.get_manager_index<TransformManager>(), child, alignment);
+
+			// it is possible that the object has no transform, so check this first
+			if (child.hasComponent<TransformManager>()) {
+				update_transform_recursive(obj_manager, child.get_manager_index<TransformManager>(), child, alignment);
+			}
 		}
 	}
 
@@ -153,7 +161,7 @@ namespace OmegaEngine
 
 		for (auto obj : object_list) {
 
-			update_transform_recursive(obj.second.get_manager_index<TransformManager>(), obj.second, transform_buffer->get_alignment_size());
+			update_transform_recursive(obj_manager, obj.second.get_manager_index<TransformManager>(), obj.second, transform_buffer->get_alignment_size());
 		}
 	}
 

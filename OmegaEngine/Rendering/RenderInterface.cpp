@@ -9,6 +9,7 @@
 #include "Managers/TransformManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
+#include "Managers/MaterialManager.h"
 #include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/CommandBuffer.h"
@@ -113,12 +114,14 @@ namespace OmegaEngine
 	{
 		VulkanAPI::Shader shader;
 		switch (type) {
-		case OmegaEngine::RenderTypes::StaticMesh:
+		case OmegaEngine::RenderTypes::StaticMesh: {
 			render_pipelines[(int)RenderTypes::StaticMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Static);
 			break;
-		case OmegaEngine::RenderTypes::SkinnedMesh:
+		}
+		case OmegaEngine::RenderTypes::SkinnedMesh: {
 			render_pipelines[(int)RenderTypes::SkinnedMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Skinned);
 			break;
+		}
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
 		}
@@ -176,14 +179,17 @@ namespace OmegaEngine
 	{
 		auto& mesh_manager = comp_interface->getManager<MeshManager>();
 
-		uint32_t mesh_index = obj.get_manager_index<MeshManager>();
-		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
+		// make sure that this object has a mesh
+		if (obj.hasComponent<MeshManager>()) {
 
-		// we need to add all the primitve sub meshes as renderables
-		for (auto& primitive : mesh.primitives) {
-			add_renderable<RenderableMesh>(comp_interface, mesh, primitive);
+			uint32_t mesh_index = obj.get_manager_index<MeshManager>();
+			MeshManager::StaticMesh mesh = mesh_manager.get_mesh(mesh_index);
+
+			// we need to add all the primitve sub meshes as renderables
+			for (auto& primitive : mesh.primitives) {
+				add_renderable<RenderableMesh>(comp_interface, mesh, primitive);
+			}
 		}
-
 		// and do the same for all children associated with this mesh
 		auto children = obj.get_children();
 		for (auto child : children) {

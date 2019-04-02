@@ -36,7 +36,8 @@ namespace VulkanAPI
 		~DescriptorLayout();
 
 		void add_layout(uint32_t set, uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
-		void create(vk::Device device);
+		
+		void create(vk::Device device, const uint32_t image_sets = 1);
 		
 		std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> >& get_layout()
 		{
@@ -80,8 +81,8 @@ namespace VulkanAPI
 		~DescriptorSet();
 		DescriptorSet(vk::Device device, DescriptorLayout descr_layout);
 
-		void init(vk::Device device, DescriptorLayout descr_layout);
-		void init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set);
+		void init(vk::Device device, DescriptorLayout descr_layout, uint32_t set_count = 1);
+		void init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set, uint32_t set_count = 1);
 
 		void write_set(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range);
 		void write_set(ShaderImageLayout& imageLayout, vk::ImageView& image_view);
