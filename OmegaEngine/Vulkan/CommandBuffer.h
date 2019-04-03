@@ -19,75 +19,37 @@ namespace VulkanAPI
 	class DescriptorSet;
 	enum class PipelineType;
 
-	// index into the secondary command buffer container
-	using SecondaryHandle = uint32_t;
-
-	class CommandBuffer
+	class SecondaryCommandBuffer
 	{
-
-	public:
-
-		enum class BufferType
-		{
-			Primary,
-			Secondary
-		};
         
-        enum class UsageType
-        {
-            Single,
-            Multi
-        };
         
-		CommandBuffer();
-		CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type);
-		~CommandBuffer();
+		SecondaryCommandBuffer();
+		SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::Renderpass& rpass, vk::FrameBuffer& fbuffer);
+		~SecondaryCommandBuffer();
 
-		void init(vk::Device dev, uint64_t q_family_index, UsageType type);
-		void create_primary();
-		void create_secondary();
-		void create_secondary(uint32_t count, bool reset);
+		void init(vk::Device dev, uint64_t q_family_index, vk::Renderpass& rpass, vk::FrameBuffer& fbuffer);
+		
+		void create();
+		void create(uint32_t count);
 
-		void begin_secondary(uint32_t index);
-		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);
-		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
-		void end_pass();
+		void begin(uint32_t index);
 		void end();
-		void end_secondary(SecondaryHandle handle);
 
-		// viewport, scissors, etc.
+		// secondary binding functions
+		void bind_pipeline(Pipeline& pipeline);
+		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
+		void bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets);
+		void bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector < vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets);
+		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+		void bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets);
+		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
+		void bind_index_buffer(MemorySegment& index_buffer, uint32_t offset);
+		void bind_index_buffer(vk::Buffer& buffer, uint32_t offset);
+
 		void set_viewport();
 		void set_scissor();
 
-		// primary binding functions
-		void bind_pipeline(Pipeline& pipeline);
-		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
-		void bind_index_buffer(MemorySegment& index_buffer);
-		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
-		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
-		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
-
-		// secondary binding functions
-		void bind_secondary_pipeline(Pipeline& pipeline, SecondaryHandle handle);
-		void secondary_bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, SecondaryHandle handle);
-		void secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle);
-		void secondary_bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector < vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets, SecondaryHandle handle);
-		void secondary_bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data, SecondaryHandle handle);
-		void secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets, SecondaryHandle handle);
-		void secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset, SecondaryHandle handle);
-		void secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset, SecondaryHandle handle);
-		void secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset, SecondaryHandle handle);
-
-		void secondary_set_viewport(SecondaryHandle handle);
-		void secondary_set_scissor(SecondaryHandle handle);
-
-		void secondary_execute_commands();
-		void secondary_execute_commands(uint32_t buffer_count);
-
-		// drawing functions
 		void draw_indexed(uint32_t index_count);
-		void draw_quad();
-		void secondary_draw_indexed(uint32_t index_count, SecondaryHandle handle);
 
 		// command pool
 		void create_cmd_pool();
@@ -101,6 +63,93 @@ namespace VulkanAPI
 		vk::CommandPool& get_pool()
 		{
 			return cmd_pool;
+		}
+
+	private:
+
+		vk::Device device;
+		uint64_t queue_family_index;
+		
+		vk::Viewport view_port;
+		vk::Rect2D scissor;
+
+		// store locally the framebuffer and renderpass associated with this cmd buffer
+		vk::RenderPass renderpass;
+		vk::Framebuffer framebuffer;
+
+		// secondary cmd buffer
+		vk::CommandBuffer cmd_buffer;
+
+		// secondary cmd pool for this buffer
+		vk::CommandPool cmd_pool;
+
+	};
+
+	class CommandBuffer
+	{
+
+	public:
+        
+        enum class UsageType
+        {
+            Single,
+            Multi
+        };
+        
+		CommandBuffer();
+		CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type);
+		~CommandBuffer();
+
+		void init(vk::Device dev, uint64_t q_family_index, UsageType type);
+		void create_primary();
+
+		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);
+		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port);
+		void end_pass();
+		void end();
+
+		// viewport, scissors, etc.
+		void set_viewport();
+		void set_scissor();
+
+		// primary binding functions
+		void bind_pipeline(Pipeline& pipeline);
+		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
+		void bind_index_buffer(MemorySegment& index_buffer);
+		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
+		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
+		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+
+		// secondary buffers
+		SecondaryCommandBuffer& create_secondary();
+		void create_secondary(uint32_t count);
+
+		// functions to execute all secondary buffers associated with this cmd buffer
+		void execute_secondary_commands();
+		void execute_secondary_commands(uint32_t buffer_count);
+
+		// drawing functions
+		void draw_indexed(uint32_t index_count);
+		void draw_quad();
+
+		// command pool
+		void create_cmd_pool();
+
+		// helper funcs
+		vk::CommandBuffer& get()
+		{
+			return cmd_buffer;
+		}
+
+		vk::CommandPool& get_pool()
+		{
+			return cmd_pool;
+		}
+
+		SecondaryCommandBuffer& get_secondary(const uint32_t index)
+		{
+			assert(index < secondary_cmd_buffers.size());
+			return secondary_cmd_buffers[index];
 		}
 
 	private:
@@ -122,13 +171,10 @@ namespace VulkanAPI
 		vk::Framebuffer framebuffer;
 
 		// if were using, then store all secondary command buffers for dispatching on each thread
-		std::vector<vk::CommandBuffer> secondary_cmd_buffers;
+		std::vector<SecondaryCommandBuffer> secondary_cmd_buffers;
 
 		// primary cmd pool for this buffer
 		vk::CommandPool cmd_pool;
-
-		// the command pools for secondary buffers - one per thread
-		std::vector<vk::CommandPool> secondary_cmd_pools;
 
 	};
 

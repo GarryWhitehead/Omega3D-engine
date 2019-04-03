@@ -155,8 +155,7 @@ namespace OmegaEngine
 
 	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
 								void* instance,
-								RenderInterface* render_interface,
-								uint32_t thread)
+								RenderInterface* render_interface)
 	{
 		// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
 
@@ -183,16 +182,16 @@ namespace OmegaEngine
 		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline.descr_set.get();
 		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
 
-		cmd_buffer.secondary_set_viewport(thread);
-		cmd_buffer.secondary_set_scissor(thread);
-		cmd_buffer.bind_secondary_pipeline(mesh_pipeline.pipeline, thread);
-		cmd_buffer.secondary_bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets, thread);
-		cmd_buffer.secondary_bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block, thread);
+		cmd_buffer.set_viewport();
+		cmd_buffer.set_scissor();
+		cmd_buffer.bind_pipeline(mesh_pipeline.pipeline);
+		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer_offset };
-		cmd_buffer.secondary_bind_vertex_buffer(instance_data->vertex_buffer, offset, thread);
-		cmd_buffer.secondary_bind_index_buffer(instance_data->index_buffer, instance_data->index_buffer_offset + instance_data->index_sub_offset, thread);
-		cmd_buffer.secondary_draw_indexed(instance_data->index_count, thread);
+		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer, offset);
+		cmd_buffer.bind_index_buffer(instance_data->index_buffer, instance_data->index_buffer_offset + instance_data->index_sub_offset);
+		cmd_buffer.draw_indexed(instance_data->index_count);
 	}
 
 }

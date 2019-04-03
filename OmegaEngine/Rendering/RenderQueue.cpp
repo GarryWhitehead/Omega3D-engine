@@ -18,33 +18,31 @@ namespace OmegaEngine
 							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
-                             uint32_t thread,
 							 uint32_t thread_group_size)
     {
 		
         // create a secondary command buffer for each thread. This also creates a thread-specific command pool 
-		cmd_buffer.begin_secondary(thread);
+		cmd_buffer.begin();
 
         for (uint32_t i = start; i < end; i++) {
             
             RenderQueueInfo& queue_info = render_queues[type][i];
-            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data, render_interface, thread);
+            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data, render_interface);
         }
 
-		cmd_buffer.end_secondary(thread);
+		cmd_buffer.end();
     }
 
 
     void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
         uint32_t num_threads = std::thread::hardware_concurrency();
-		
 		ThreadPool thread_pool(num_threads);
         
 		uint32_t thread_count = 0;
 
 		// create the cmd pools and secondary buffers for each stage
-		cmd_buffer.create_secondary(num_threads, true);
+		cmd_buffer.create_secondary(num_threads);
 
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
@@ -54,7 +52,7 @@ namespace OmegaEngine
 			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
 			auto drawRenderable = [&](const int startIndex, const int thread) ->void {
-				submit(cmd_buffer, render_interface, queue.first, startIndex, startIndex + thread_group_size, thread, thread_group_size);
+				submit(cmd_buffer.get_secondary(thread), render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_group_size);
 			};
 
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
@@ -76,7 +74,7 @@ namespace OmegaEngine
 		thread_pool.wait_for_all();
 
 		// execute the recorded secondary command buffers - only for those threads we have actually used
-		cmd_buffer.secondary_execute_commands(thread_count);
+		cmd_buffer.execute_secondary_commands(thread_count);
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
 		render_queues.clear();

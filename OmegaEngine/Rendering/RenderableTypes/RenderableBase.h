@@ -40,8 +40,7 @@ namespace OmegaEngine
 		// abstract render call
 		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer,
 			void* renderable_data,
-			RenderInterface* render_interface,
-			uint32_t thread)
+			RenderInterface* render_interface)
 		{
 		}
 

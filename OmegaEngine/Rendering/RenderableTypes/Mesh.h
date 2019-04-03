@@ -104,8 +104,7 @@ namespace OmegaEngine
 
 		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
 					void* instance_data,
-					RenderInterface* render_interface,
-					uint32_t thread) override;
+					RenderInterface* render_interface) override;
 
 		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device device,
 													std::unique_ptr<RendererBase>& renderer, 
