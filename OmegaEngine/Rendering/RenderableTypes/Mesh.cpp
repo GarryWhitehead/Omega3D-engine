@@ -153,7 +153,7 @@ namespace OmegaEngine
 	}
 
 
-	void RenderableMesh::render(VulkanAPI::CommandBuffer& cmd_buffer, 
+	void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
 								void* instance,
 								RenderInterface* render_interface)
 	{

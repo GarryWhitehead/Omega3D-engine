@@ -14,7 +14,7 @@ namespace OmegaEngine
 
     }
 
-    void RenderQueue::submit(VulkanAPI::CommandBuffer& cmd_buffer,
+    void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
 							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
@@ -36,7 +36,7 @@ namespace OmegaEngine
 
     void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
-        uint32_t num_threads = std::thread::hardware_concurrency();
+		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
         
 		uint32_t thread_count = 0;
@@ -51,21 +51,23 @@ namespace OmegaEngine
 			uint32_t thread_group_size = queue.second.size() / num_threads;
 			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
-			auto drawRenderable = [&](const int startIndex, const int thread) ->void {
-				submit(cmd_buffer.get_secondary(thread), render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_group_size);
+			auto drawRenderable = [&](const uint32_t thread, const uint32_t start) ->void {
+				printf("Thread number = %i\n", thread);
+				submit(cmd_buffer.get_secondary(thread), render_interface, queue.first, start, start + thread_group_size, thread_group_size);
 			};
 
             for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
 
+				VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread_count);
+
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
-            
-                    thread_pool.submitTask(std::bind(drawRenderable, i, thread_count));
+					
+					thread_pool.submitTask(std::bind(&RenderQueue::submit, this, sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size));
                     break;
                 }
 
-                thread_pool.submitTask(std::bind(drawRenderable, i, thread_count));
-
+				thread_pool.submitTask(std::bind(&RenderQueue::submit, this, sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size));
                 ++thread_count;
 		    } 
         }

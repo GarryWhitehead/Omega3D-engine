@@ -147,11 +147,6 @@ namespace VulkanAPI
 		cmd_buffer.end();
 	}
 
-	void SecondaryCommandBuffer::end()
-	{
-		cmd_buffer.end();
-	}
-
 	void CommandBuffer::set_viewport()
 	{
 		cmd_buffer.setViewport(0, 1, &view_port);
@@ -202,26 +197,43 @@ namespace VulkanAPI
 	void CommandBuffer::execute_secondary_commands()
 	{
 		assert(!secondary_cmd_buffers.empty());
-		cmd_buffer.executeCommands(secondary_cmd_buffers.size(), secondary_cmd_buffers.data());
+
+		// trasnfer all the secondary cmd buffers into a container for execution
+		std::vector<vk::CommandBuffer> sec_cmd_buffers(secondary_cmd_buffers.size());
+		for (uint32_t i = 0; i < secondary_cmd_buffers.size(); ++i) {
+			sec_cmd_buffers[i] = secondary_cmd_buffers[i].get();
+		}
+
+		cmd_buffer.executeCommands(sec_cmd_buffers.size(), sec_cmd_buffers.data());
 	}
 
-	void CommandBuffer::execute_secondary_commands(uint32_t buffer_count)
+	void CommandBuffer::execute_secondary_commands(uint32_t count)
 	{
 		assert(!secondary_cmd_buffers.empty());
-		cmd_buffer.executeCommands(buffer_count, secondary_cmd_buffers.data());
+
+		// trasnfer the specified amount of secondary cmd buffers into a container for execution
+		std::vector<vk::CommandBuffer> sec_cmd_buffers(count);
+		for (uint32_t i = 0; i < count; ++i) {
+			sec_cmd_buffers[i] = secondary_cmd_buffers[i].get();
+		}
+
+		cmd_buffer.executeCommands(count, sec_cmd_buffers.data());
 	}
 
 	SecondaryCommandBuffer& CommandBuffer::create_secondary()
 	{
-		secondary_cmd_buffers.push_back({device, queue_family_index, renderpass, framebuffer});
+		SecondaryCommandBuffer buffer{ device, queue_family_index, renderpass, framebuffer, view_port, scissor };
+		buffer.create();
+		secondary_cmd_buffers.push_back(buffer);
 		return secondary_cmd_buffers.back();
 	}
 
 	void CommandBuffer::create_secondary(uint32_t count)
 	{
 		secondary_cmd_buffers.resize(count);
-		for (uint32_t i = 0; i < count) {
-			secondary_cmd_buffers[i].push_back({device, queue_family_index, renderpass, framebuffer});
+		for (uint32_t i = 0; i < count; ++i) {
+			secondary_cmd_buffers[i] = {device, queue_family_index, renderpass, framebuffer, view_port, scissor};
+			secondary_cmd_buffers[i].create();
 		}
 	}
 
@@ -241,20 +253,31 @@ namespace VulkanAPI
 	{
 	}
 
-	SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::FrameBuffer& fbuffer)
+	SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
 	{
-		init(dev, q_family_index, rpass, fbuffer);
+		init(dev, q_family_index, rpass, fbuffer, view, _scissor);
 	}
 
-	void SecondaryCommandBuffer::init(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::FrameBuffer& fbuffer)
+	SecondaryCommandBuffer::~SecondaryCommandBuffer()
+	{
+	}
+
+	void SecondaryCommandBuffer::init(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
 	{
 		device = dev;
 		queue_family_index = q_family_index;
 		framebuffer = fbuffer;
 		renderpass = rpass;
+		view_port = view;
+		scissor = _scissor;
 	}
 
-	void SecondaryCommandBuffer::create(uint32_t count)
+	void SecondaryCommandBuffer::end()
+	{
+		cmd_buffer.end();
+	}
+
+	void SecondaryCommandBuffer::create()
 	{
 		vk::CommandPoolCreateInfo create_info(
 				vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
@@ -263,11 +286,11 @@ namespace VulkanAPI
 		device.createCommandPool(&create_info, nullptr, &cmd_pool);
 
 		// create secondary cmd buffers
-		vk::CommandBufferAllocateInfo allocInfo(pool, vk::CommandBufferLevel::eSecondary, 1);
+		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
 	}
 
-	void SecondaryCommandBuffer::begin(uint32_t index)
+	void SecondaryCommandBuffer::begin()
 	{
 		vk::CommandBufferInheritanceInfo inheritance_info(
 			renderpass, 0,
@@ -310,24 +333,24 @@ namespace VulkanAPI
 		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
 	}
 
-	void SecondaryCommandBuffer::secondary_bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offset)
+	void SecondaryCommandBuffer::bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offset)
 	{
 		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		cmd_buffer.bindVertexBuffers(0, 1, &mem_alloc.get_memory_buffer(vertex_buffer.get_id()), &offset);
 	}
 
-	void SecondaryCommandBuffer::secondary_bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset)
+	void SecondaryCommandBuffer::bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset)
 	{
-		sec_cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
+		cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
 	}
 
-	void SecondaryCommandBuffer::secondary_bind_index_buffer(MemorySegment& index_buffer, uint32_t offset)
+	void SecondaryCommandBuffer::bind_index_buffer(MemorySegment& index_buffer, uint32_t offset)
 	{
 		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 		cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), offset, vk::IndexType::eUint32);
 	}
 
-	void SecondaryCommandBuffer::secondary_bind_index_buffer(vk::Buffer& buffer, uint32_t offset)
+	void SecondaryCommandBuffer::bind_index_buffer(vk::Buffer& buffer, uint32_t offset)
 	{
 		cmd_buffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 	}

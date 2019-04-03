@@ -53,7 +53,7 @@ namespace OmegaEngine
     struct RenderQueueInfo
     {
         // render callback function
-        void (*render_function)(void*, VulkanAPI::CommandBuffer&, void* renderable_data, RenderInterface*, uint32_t);
+        void (*render_function)(void*, VulkanAPI::SecondaryCommandBuffer&, void* renderable_data, RenderInterface*);
 		void *renderable_handle;
 
         // data specific to the renderable - mainly drawing information 
@@ -83,11 +83,10 @@ namespace OmegaEngine
 		static SortKey create_sort_key(RenderStage layer, uint32_t material_id, RenderTypes shader_id);
         void sort_all();
 
-		void submit(VulkanAPI::CommandBuffer& cmd_buffer,
+		void submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
 					RenderInterface* render_interface,
 					QueueType type,
 					uint32_t start, uint32_t end,
-					uint32_t thread,
 					uint32_t thread_group_size);
 
 		void threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface);

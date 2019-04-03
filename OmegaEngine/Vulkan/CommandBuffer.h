@@ -22,17 +22,15 @@ namespace VulkanAPI
 	class SecondaryCommandBuffer
 	{
         
-        
+	public: 
+
 		SecondaryCommandBuffer();
-		SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::Renderpass& rpass, vk::FrameBuffer& fbuffer);
+		SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
 		~SecondaryCommandBuffer();
 
-		void init(vk::Device dev, uint64_t q_family_index, vk::Renderpass& rpass, vk::FrameBuffer& fbuffer);
-		
+		void init(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
 		void create();
-		void create(uint32_t count);
-
-		void begin(uint32_t index);
+		void begin();
 		void end();
 
 		// secondary binding functions
@@ -50,9 +48,6 @@ namespace VulkanAPI
 		void set_scissor();
 
 		void draw_indexed(uint32_t index_count);
-
-		// command pool
-		void create_cmd_pool();
 
 		// helper funcs
 		vk::CommandBuffer& get()
@@ -146,7 +141,7 @@ namespace VulkanAPI
 			return cmd_pool;
 		}
 
-		SecondaryCommandBuffer& get_secondary(const uint32_t index)
+		SecondaryCommandBuffer get_secondary(uint32_t index)
 		{
 			assert(index < secondary_cmd_buffers.size());
 			return secondary_cmd_buffers[index];

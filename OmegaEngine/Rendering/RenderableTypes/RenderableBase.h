@@ -7,7 +7,7 @@
 // forward decleartions
 namespace VulkanAPI
 {
-	class CommandBuffer;
+	class SecondaryCommandBuffer;
 }
 
 namespace OmegaEngine
@@ -38,7 +38,7 @@ namespace OmegaEngine
 		virtual ~RenderableBase() {}
 
 		// abstract render call
-		virtual void render(VulkanAPI::CommandBuffer& cmd_buffer,
+		virtual void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer,
 			void* renderable_data,
 			RenderInterface* render_interface)
 		{
