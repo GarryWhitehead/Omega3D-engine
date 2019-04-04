@@ -27,10 +27,10 @@ namespace OmegaEngine
 	class RenderQueue;
 	class ObjectManager;
 
-	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)>
-	FuncReturn get_member_render_function(void *object, VulkanAPI::CommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface, uint32_t thread)
+	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface)>
+	FuncReturn get_member_render_function(void *object, VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface)
 	{
-		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface, thread);
+		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
 	}
 
 	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer

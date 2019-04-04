@@ -14,7 +14,7 @@ namespace OmegaEngine
 
     }
 
-    void RenderQueue::submit(VulkanAPI::CommandBuffer& cmd_buffer,
+    void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
 							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
@@ -36,7 +36,7 @@ namespace OmegaEngine
 
     void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
-        uint32_t num_threads = std::thread::hardware_concurrency();
+		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
 
 		// create the cmd pools and secondary buffers for each stage
@@ -52,6 +52,8 @@ namespace OmegaEngine
             for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
 
                 VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread);
+
+				VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread_count);
 
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {

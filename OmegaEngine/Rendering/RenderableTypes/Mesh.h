@@ -102,7 +102,7 @@ namespace OmegaEngine
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive); 
 
-		void render(VulkanAPI::CommandBuffer& cmd_buffer, 
+		void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
 					void* instance_data,
 					RenderInterface* render_interface) override;
 
