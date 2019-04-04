@@ -53,8 +53,6 @@ namespace OmegaEngine
 
                 VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread);
 
-				VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread_count);
-
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
             
