@@ -21,7 +21,7 @@ namespace OmegaEngine
 							 uint32_t thread_group_size)
     {
 		
-        // create a secondary command buffer for each thread. This also creates a thread-specific command pool 
+        // start the secondary command buffer recording - using one cmd buffer and pool per thread 
 		cmd_buffer.begin();
 
         for (uint32_t i = start; i < end; i++) {
@@ -38,8 +38,6 @@ namespace OmegaEngine
     {
         uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
-        
-		uint32_t thread_count = 0;
 
 		// create the cmd pools and secondary buffers for each stage
 		cmd_buffer.create_secondary(num_threads);
@@ -51,20 +49,22 @@ namespace OmegaEngine
 			uint32_t thread_group_size = queue.second.size() / num_threads;
 			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
-			auto drawRenderable = [&](const int startIndex, const int thread) ->void {
-				submit(cmd_buffer.get_secondary(thread), render_interface, queue.first, startIndex, startIndex + thread_group_size, thread_group_size);
-			};
+            for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
 
-            for (uint32_t i = 0; i < queue.second.size(); i += thread_group_size) {
+                VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread);
 
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
             
-                    thread_pool.submitTask(std::bind(drawRenderable, i, thread_count));
+                    thread_pool.submitTask([=]() ->void {
+				        submit(sec_cmd_buffer, render_interface, queue.first, i, queue.second.size(), thread_group_size);
+			            });
                     break;
                 }
 
-                thread_pool.submitTask(std::bind(drawRenderable, i, thread_count));
+                thread_pool.submitTask([=]() ->void {
+				    submit(sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size);
+			        });
 
                 ++thread_count;
 		    } 

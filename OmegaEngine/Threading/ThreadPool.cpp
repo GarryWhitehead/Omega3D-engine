@@ -60,7 +60,7 @@ namespace OmegaEngine
 	void ThreadPool::submitTask(std::function<void()> func)
 	{
 		std::lock_guard<std::mutex> guard(mut);
-		tasks.push(func);
+		tasks.push(std::move(func));
 		cv_task.notify_one();
 	}
 
