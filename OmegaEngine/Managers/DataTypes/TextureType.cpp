@@ -44,6 +44,7 @@ namespace OmegaEngine
 		width = w;
 		height = h;
 		mip_levels = 1;
+		tex_format = vk::Format::eR8G8B8A8Unorm;
 
 		uint32_t image_size = width * height * 4;
 		bin = new unsigned char[image_size];

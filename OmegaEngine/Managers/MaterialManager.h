@@ -3,6 +3,7 @@
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 
+#include "Managers/DataTypes/TextureType.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/Sampler.h"
@@ -115,6 +116,10 @@ namespace OmegaEngine
 
 		std::vector<MaterialInfo> materials;
 		bool isDirty = true;
+
+		// empty texture - used when no pbr texture available
+		MappedTexture mapped_blank_tex;
+		VulkanAPI::Texture blank_texture;
 	};
 
 }

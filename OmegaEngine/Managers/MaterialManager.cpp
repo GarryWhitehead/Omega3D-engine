@@ -11,6 +11,10 @@ namespace OmegaEngine
 		gpu(phys_device),
 		graph_queue(queue)
 	{
+		// upload empty texture - used when no texture is available for a particular pbr material.
+		mapped_blank_tex.create_empty_texture(2048, 2048, true);
+		blank_texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
+		blank_texture.map(mapped_blank_tex);
 	}
 
 
@@ -131,6 +135,7 @@ namespace OmegaEngine
 				// map all of the pbr materials for this primitive mesh to the gpu 
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
 
+					// if we have a texture then map it to the gpu
 					if (mat.texture_state[i]) {
 						// not sure this should be done here - should probably be used to the under-used texture manager on the vulkan side
 						mat.vk_textures[i].init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
@@ -144,14 +149,19 @@ namespace OmegaEngine
 						else {
 							mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
 						}
-
-						// materials always are set = 0 and bindings MUST follow the pbr material sequence
-						// sanity check first - make sure their initilialised!
-						assert(descr_layout);
-						assert(descr_pool);
-
-						mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
 					}
+					else {
+						// otherwise use a blank dummy texture
+						mat.vk_textures[i] = blank_texture;
+						mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
+					}
+						
+					// materials always are set = 0 and bindings MUST follow the pbr material sequence
+					// sanity check first - make sure their initilialised!
+					assert(descr_layout);
+					assert(descr_pool);
+
+					mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
 				}
 			}
 		}

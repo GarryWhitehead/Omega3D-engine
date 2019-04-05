@@ -159,6 +159,9 @@ namespace OmegaEngine
 	{
 		auto object_list = obj_manager->get_objects_list();
 
+		transform_buffer_size = 0;
+		skinned_buffer_size = 0;
+
 		for (auto obj : object_list) {
 
 			update_transform_recursive(obj_manager, obj.second.get_manager_index<TransformManager>(), obj.second, transform_buffer->get_alignment_size());
