@@ -163,7 +163,7 @@ namespace OmegaEngine
 				// update everything else
 				world->update(total_time, static_cast<double>(elapsed_time.count()));
 
-				total_time += time_step.count();
+				total_time += static_cast<double>(time_step.count());
 				accumulator -= time_step;
 				//printf("updated!\n");
 			}

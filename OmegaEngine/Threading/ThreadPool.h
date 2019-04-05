@@ -25,7 +25,7 @@ namespace OmegaEngine
 
 	private:
 
-		void worker();
+		void worker(uint32_t thread_id);
 
 		std::vector<std::thread> threads;
 		std::queue<std::function<void()> > tasks;

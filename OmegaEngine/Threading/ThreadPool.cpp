@@ -6,8 +6,8 @@ namespace OmegaEngine
 	ThreadPool::ThreadPool(uint8_t numThreads)
 	{
 		for (uint8_t i = 0; i < numThreads; ++i) {
-			threads.emplace_back(std::thread([this]() {
-				this->worker();
+			threads.emplace_back(std::thread([this, i]() {
+				this->worker(i);
 			}));
 		}
 	}
@@ -22,7 +22,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void ThreadPool::worker()
+	void ThreadPool::worker(uint32_t thread_id)
 	{
 		std::function<void()> func;
 		while (!isComplete) {
@@ -49,7 +49,7 @@ namespace OmegaEngine
 			if (workerReady) {
 				
 				func();
-
+				printf("Function executed on thread: %i\n", thread_id);
 				std::unique_lock<std::mutex> lock(mut);
 				--taskCount;		
 				cv_finished.notify_one();
