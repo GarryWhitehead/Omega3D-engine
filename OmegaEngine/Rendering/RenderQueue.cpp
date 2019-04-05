@@ -65,8 +65,7 @@ namespace OmegaEngine
                 thread_pool.submitTask([=]() ->void {
 				    submit(sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size);
 			        });
-
-                ++thread_count;
+                    
 		    } 
         }
 
