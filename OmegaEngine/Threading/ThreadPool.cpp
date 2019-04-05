@@ -40,16 +40,17 @@ namespace OmegaEngine
 
 				if (!tasks.empty()) {
 					func = tasks.front();
+					tasks.pop();
 					taskCount++;
 					workerReady = true;
 				}
 			}
 
 			if (workerReady) {
+				
 				func();
 
 				std::unique_lock<std::mutex> lock(mut);
-				tasks.pop();
 				--taskCount;		
 				cv_finished.notify_one();
 			}

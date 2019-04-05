@@ -56,16 +56,15 @@ namespace OmegaEngine
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
             
-                    thread_pool.submitTask([=]() ->void {
+                    thread_pool.submitTask([=]() {
 				        submit(sec_cmd_buffer, render_interface, queue.first, i, queue.second.size(), thread_group_size);
 			            });
                     break;
                 }
 
-                thread_pool.submitTask([=]() ->void {
+                thread_pool.submitTask([=]() {
 				    submit(sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size);
 			        });
-                    
 		    } 
         }
 
@@ -73,7 +72,7 @@ namespace OmegaEngine
 		thread_pool.wait_for_all();
 
 		// execute the recorded secondary command buffers - only for those threads we have actually used
-		cmd_buffer.execute_secondary_commands(thread_count);
+		cmd_buffer.execute_secondary_commands(2);
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
 		render_queues.clear();
