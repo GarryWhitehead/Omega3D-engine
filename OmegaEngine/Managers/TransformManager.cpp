@@ -3,7 +3,9 @@
 #include "Objects/ObjectManager.h"
 
 #include "Omega_Common.h"
-#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/BufferManager.h"
+#include "Managers/EventManager.h"
+#include "Engine/Omega_Global.h"
 #include "Utility/GeneralUtil.h"
 #include <cstdint>
 #include <algorithm>
@@ -13,11 +15,6 @@ namespace OmegaEngine
 
 	TransformManager::TransformManager()
 	{
-		// allocate the buffers for static and skinned transforms - these will be stored in dynamic memory (host-visible) as we expect these values to be changing often
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		transform_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), TransformBlockSize);
-		skinned_buffer = mem_alloc.allocate_dynamic(sizeof(TransformBufferInfo), SkinnedBlockSize);
-		
 		// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side
 		transform_buffer_data = (TransformBufferInfo*)Util::alloc_align(transform_buffer->get_alignment_size(), transform_buffer->get_alignment_size() * TransformBlockSize);
 		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_buffer->get_alignment_size(), skinned_buffer->get_alignment_size() * SkinnedBlockSize);
@@ -175,13 +172,14 @@ namespace OmegaEngine
 
 			update_transform(obj_manager);
 
-			// now upload to gpu - TODO: note that this will need to be altered so only models that have 'dirty' data are updated
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
 			if (transform_buffer_size) {
-				mem_alloc.mapDataToDynamicSegment(transform_buffer, transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size);
+
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)&transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinned_buffer_size) {
-				mem_alloc.mapDataToDynamicSegment(skinned_buffer, skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size);
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)&skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 
 			is_dirty = false;
@@ -209,17 +207,5 @@ namespace OmegaEngine
 		uint32_t index = obj.get_manager_index<TransformManager>();
 		transformBuffer[index].local_trs.rot = OEMaths::quat_to_mat4(rot);
 		is_dirty = true;
-	}
-
-	vk::Buffer& TransformManager::get_mesh_ubo_buffer()
-	{
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		return mem_alloc.get_memory_buffer(transform_buffer->get_block_id());
-	}
-
-	vk::Buffer& TransformManager::get_skinned_ubo_buffer()
-	{
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		return mem_alloc.get_memory_buffer(skinned_buffer->get_block_id());
 	}
 }

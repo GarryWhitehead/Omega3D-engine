@@ -57,9 +57,6 @@
     <ClCompile Include="Managers\AnimationManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\RenderManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Threading\ThreadUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -91,9 +88,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\DataTypes\Texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\Buffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\CommandBuffer.cpp">
@@ -130,9 +124,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Vulkan\SemaphoreManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Vulkan\Vulkan_Global.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Managers\CameraManager.cpp">
@@ -192,16 +183,13 @@
     <ClCompile Include="Rendering\Renderers\DeferredRenderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OEMaths\Objects\Object.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OEMaths\Objects\ObjectManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Objects\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Objects\ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Vulkan\BufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -251,9 +239,6 @@
     <ClInclude Include="Managers\AnimationManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\RenderManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Threading\ThreadUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -296,9 +281,6 @@
     <ClInclude Include="Vulkan\DataTypes\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Vulkan\Buffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Vulkan\CommandBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -339,9 +321,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Vulkan\SemaphoreManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Vulkan\Vulkan_Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\CameraManager.h">
@@ -435,6 +414,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Objects\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Vulkan\BufferManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

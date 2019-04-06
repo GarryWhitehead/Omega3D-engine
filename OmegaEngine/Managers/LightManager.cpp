@@ -1,7 +1,9 @@
 #include "LightManager.h"
 #include "Objects/ObjectManager.h"
 #include "Managers/ComponentInterface.h"
-
+#include "Vulkan/BufferManager.h"
+#include "Managers/EventManager.h"
+#include "Engine/Omega_Global.h"
 #include "tiny_gltf.h"
 
 namespace OmegaEngine
@@ -9,8 +11,6 @@ namespace OmegaEngine
 
 	LightManager::LightManager()
 	{
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		light_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(LightUboBuffer));
 	}
 
 
@@ -29,17 +29,18 @@ namespace OmegaEngine
 
 			// TODO: update light positions, etc.
 
-			// now update on the gpu side
-			LightUboBuffer ubo;
-			ubo.lightCount = lights.size();
+			// now update ready for uploading on the gpu side
+			light_buffer.lightCount = lights.size();
 
-			for (uint32_t i = 0; i < ubo.lightCount; ++i) {
-				ubo.lights[i] = lights[i];
+			for (uint32_t i = 0; i < light_buffer.lightCount; ++i) {
+				light_buffer.lights[i] = lights[i];
 			}
-			
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			mem_alloc.mapDataToSegment(light_buffer, &ubo, sizeof(LightUboBuffer));
 
+			VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&light_buffer, sizeof(LightUboBuffer), VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+
+			// let the buffer manager know that the buffers needs creating/updating via the event process
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
+				
 			isDirty = false;
 		}
 	}

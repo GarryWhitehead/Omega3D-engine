@@ -2,6 +2,7 @@
 #include "Engine/Omega_Global.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "OEMaths/OEMaths_convert.h"
+#include "Vulkan/BufferManager.h"
 
 #include <algorithm>
 
@@ -14,10 +15,6 @@ namespace OmegaEngine
 		// set up events
 		Global::eventManager()->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouse_move_event>(this);
 		Global::eventManager()->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboard_press_event>(this);
-
-		// allocate gpu memory now for the ubo buffers
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		ubo_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, sizeof(CameraBufferInfo));
 	}
 
 
@@ -100,8 +97,6 @@ namespace OmegaEngine
 			updateViewMatrix();
 
 			// update everything in the buffer
-			CameraBufferInfo buffer_info;
-
 			buffer_info.mvp = currentProjMatrix * currentViewMatrix;	// * model
 			buffer_info.camera_pos = current_pos;
 			buffer_info.projection = currentProjMatrix;
@@ -109,9 +104,10 @@ namespace OmegaEngine
 			buffer_info.zNear = cameras[camera_index].zNear;
 			buffer_info.zFar = cameras[camera_index].zFar;
 			
-			// now update on the gpu side
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			mem_alloc.mapDataToSegment(ubo_buffer, &buffer_info, sizeof(CameraBufferInfo));
+			VulkanAPI::BufferUpdateEvent event{ "Camera", (void*)&buffer_info, sizeof(CameraBufferInfo), VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+
+			// let the buffer manager know that the buffers needs creating/updating via the event process
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 
 			isDirty = false;
 		}

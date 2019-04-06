@@ -95,33 +95,10 @@ namespace OmegaEngine
 		void update_obj_scale(Object& obj, OEMaths::vec4f scale);
 		void update_obj_rotation(Object& obj, OEMaths::quatf rot);
 
-		vk::Buffer& get_mesh_ubo_buffer();
-		vk::Buffer& get_skinned_ubo_buffer();
-
 		OEMaths::mat4f& get_transform(uint32_t transform_index)
 		{
 			assert(transform_index < transformBuffer.size());
 			return transformBuffer[transform_index].transform;
-		}
-
-		uint32_t get_transform_dynamic_offsets() const
-		{
-			return transform_buffer->get_alignment_size();
-		}
-
-		uint32_t get_skinned_dynamic_offsets() const
-		{
-			return skinned_buffer->get_alignment_size();
-		}
-
-		uint32_t get_mesh_ubo_offset() const
-		{
-			return transform_buffer->get_offset();
-		}
-
-		uint32_t get_skinned_ubo_offset() const
-		{
-			return skinned_buffer->get_offset();
 		}
 
 	private:
@@ -135,10 +112,6 @@ namespace OmegaEngine
 		// transform data for each object which will be added to the GPU
 		TransformBufferInfo* transform_buffer_data = nullptr;
 		SkinnedBufferInfo* skinned_buffer_data = nullptr;
-
-		// TODO: make these unique ptr
-		VulkanAPI::DynamicSegment* transform_buffer;
-		VulkanAPI::DynamicSegment* skinned_buffer;
 
 		uint32_t transform_buffer_size = 0;
 		uint32_t skinned_buffer_size = 0;

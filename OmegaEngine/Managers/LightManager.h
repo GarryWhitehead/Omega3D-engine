@@ -62,23 +62,13 @@ namespace OmegaEngine
 			isDirty = true;		
 		}
 
-		vk::Buffer& get_ubo_buffer()
-		{
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(light_buffer.get_id());
-		}
-
-		uint32_t get_ubo_offset() const
-		{
-			return light_buffer.get_offset();
-		}
 
 	private:
 	
 		std::vector<LightInfo> lights;
 
 		// buffer on the vulkan side which will hold all lighting info 
-		VulkanAPI::MemorySegment light_buffer;
+		LightUboBuffer light_buffer;
 
 		bool isDirty = false;
 	};

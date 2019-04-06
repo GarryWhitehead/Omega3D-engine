@@ -172,6 +172,9 @@ namespace OmegaEngine
 			// data will be passed to all the relevant managers for this object and components added automatically
 			tinygltf::Scene &scene = model.scenes[model.defaultScene];
 
+			uint32_t vertex_count = 0;
+			uint32_t index_count = 0;
+
 			// we also need to keep a linerised form of the objects for matching up joint indices later
 			std::vector<Object> linearised_objects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
@@ -179,7 +182,7 @@ namespace OmegaEngine
 				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false);
+				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false, vertex_count, index_count);
 			}
 
 			// skinning info
@@ -193,7 +196,12 @@ namespace OmegaEngine
 		}
 	}
 
-	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object* obj, bool childObject)
+	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, 
+							std::vector<Object>& linearised_objects, 
+							OEMaths::mat4f world_transform, 
+							std::unique_ptr<ObjectManager>& objManager, 
+							Object* obj, bool childObject,
+							uint32_t& global_vertex_count, uint32_t& global_index_count)
 	{
 
 		// add all local and world transforms to the transform manager - also combines skinning info
@@ -220,7 +228,7 @@ namespace OmegaEngine
 		// if the node has mesh data...
 		if (node.mesh > -1) {
 			auto& mesh_manager = component_interface->getManager<MeshManager>();
-			mesh_manager.addGltfData(model, node, obj);
+			mesh_manager.addGltfData(model, node, obj, global_vertex_count, global_index_count);
 		}
 
 		// create the linearised list of objects - parents and children

@@ -4,8 +4,6 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
 #include "Utility/logger.h"
-#include "Vulkan/Vulkan_Global.h"
-#include "Vulkan/MemoryAllocator.h"
 
 #include "tiny_gltf.h"
 
@@ -96,12 +94,9 @@ namespace OmegaEngine
 			// primitives assoicated with this mesh
 			std::vector<PrimitiveMesh> primitives;
 
-			// offset into gpu buffer
+			// offset into mega buffer
 			uint32_t vertex_buffer_offset;
 			uint32_t index_buffer_offset;
-
-			std::vector<Vertex> vertexBuffer;
-			std::vector<SkinnedVertex> skinnedVertexBuffer;
 		};
 
 		MeshManager();
@@ -110,7 +105,7 @@ namespace OmegaEngine
 		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
-		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj);
+		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& global_vertex_count, uint32_t& global_index_count);
 
 		StaticMesh& get_mesh(uint32_t index)
 		{
@@ -132,60 +127,15 @@ namespace OmegaEngine
 			delete buf;
 		}
 
-		vk::Buffer& get_vertex_buffer(const MeshType type)
-		{
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			if (type == MeshType::Static) {
-				return mem_alloc.get_memory_buffer(vertex_buffer.get_id());
-			}
-			else {
-				return mem_alloc.get_memory_buffer(skinned_vertex_buffer.get_id());
-			}
-		}
-
-		vk::Buffer& get_index_buffer(const MeshType type)
-		{
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			if (type == MeshType::Static) {
-				return mem_alloc.get_memory_buffer(index_buffer.get_id());
-			}
-			else {
-				return mem_alloc.get_memory_buffer(skinned_index_buffer.get_id());
-			}
-		}
-
-		uint32_t get_vertex_buffer_offset(const MeshType type) const
-		{
-			if (type == MeshType::Static) {
-				return vertex_buffer.get_offset();
-			}
-			else {
-				return skinned_vertex_buffer.get_offset();
-			}
-		}
-
-		uint32_t get_index_buffer_offset(const MeshType type) const
-		{
-			if (type == MeshType::Static) {
-				return index_buffer.get_offset();
-			}
-			else {
-				return skinned_index_buffer.get_offset();
-			}
-		}
-
 	private:
 
 		// the buffers containing all the model data 
 		std::vector<StaticMesh> meshBuffer;
 
-		// allocated GPU buffer - one large buffer for all meshes. Additional meshes will be added to the end
-		VulkanAPI::MemorySegment vertex_buffer;
-		VulkanAPI::MemorySegment index_buffer;
-
-		// and seperate buffer for skinned meshes
-		VulkanAPI::MemorySegment skinned_vertex_buffer;
-		VulkanAPI::MemorySegment skinned_index_buffer;
+		// all vertices and indices held in one large buffer
+		std::vector<Vertex> static_vertices;
+		std::vector<SkinnedVertex> skinned_vertices;
+		std::vector<uint32_t> indices;
 
 		bool isDirty = true;
 	};

@@ -48,7 +48,7 @@
     <ClCompile Include="Vulkan\Sampler.cpp" />
     <ClCompile Include="Vulkan\Image.cpp" />
     <ClCompile Include="Vulkan\CommandBuffer.cpp" />
-    <ClCompile Include="Vulkan\Buffer.cpp" />
+    <ClCompile Include="Vulkan\BufferManager.cpp" />
     <ClCompile Include="Managers\ComponentInterface.cpp" />
     <ClCompile Include="Managers\TransformManager.cpp" />
     <ClCompile Include="Rendering\RenderInterface.cpp" />
@@ -75,11 +75,9 @@
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
-    <ClCompile Include="Rendering\RenderManager.cpp" />
     <ClCompile Include="Vulkan\SwapChain.cpp" />
     <ClCompile Include="Vulkan\RenderPass.cpp" />
     <ClCompile Include="Vulkan\VkTextureManager.cpp" />
-    <ClCompile Include="Vulkan\Vulkan_Global.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="external\Spirv-Cross\GLSL.std.450.h" />
@@ -114,7 +112,7 @@
     <ClInclude Include="Vulkan\Queue.h" />
     <ClInclude Include="Vulkan\SemaphoreManager.h" />
     <ClInclude Include="Vulkan\Shader.h" />
-    <ClInclude Include="Vulkan\Buffer.h" />
+    <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Managers\ComponentInterface.h" />
     <ClInclude Include="Managers\ManagerBase.h" />
     <ClInclude Include="OEMaths\Objects\ObjectManager.h" />
@@ -152,13 +150,11 @@
     <ClInclude Include="Vulkan\Image.h" />
     <ClInclude Include="Vulkan\Sampler.h" />
     <ClInclude Include="Vulkan\MemoryAllocator.h" />
-    <ClInclude Include="Rendering\RenderManager.h" />
     <ClInclude Include="Vulkan\SwapChain.h" />
     <ClInclude Include="Vulkan\Interface.h" />
     <ClInclude Include="Vulkan\RenderPass.h" />
     <ClInclude Include="Vulkan\Common.h" />
     <ClInclude Include="Vulkan\VkTextureManager.h" />
-    <ClInclude Include="Vulkan\Vulkan_Global.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

@@ -4,10 +4,6 @@
 #include "OEMaths/OEMaths.h"
 
 #include "Managers/DataTypes/TextureType.h"
-#include "Vulkan/Descriptors.h"
-#include "Vulkan/DataTypes/Texture.h"
-#include "Vulkan/Sampler.h"
-#include "Vulkan/Queue.h"
 
 #include "tiny_gltf.h"
 

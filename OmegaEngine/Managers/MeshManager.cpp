@@ -2,9 +2,10 @@
 #include "Utility/logger.h"
 #include "Utility/GeneralUtil.h"
 #include "Engine/Omega_Global.h"
+#include "Vulkan/BufferManager.h"
+#include "Managers/EventManager.h"
 #include "Objects/ObjectManager.h"
 #include "Objects/Object.h"
-#include "Vulkan/Vulkan_Global.h"
 #include "OEMaths/OEMaths_transform.h"
 
 namespace OmegaEngine
@@ -12,13 +13,6 @@ namespace OmegaEngine
 
 	MeshManager::MeshManager()
 	{
-		VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		// non-skinned
-		vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(Vertex) * static_cast<uint32_t>(VertexBlockSize));
-		index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
-		// skinned
-		skinned_vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(SkinnedVertex) * static_cast<uint32_t>(VertexBlockSize));
-		skinned_index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * static_cast<uint32_t>(IndexBlockSize));
 	}
 
 
@@ -26,11 +20,14 @@ namespace OmegaEngine
 	{
 	}
 
-	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj)
+	void MeshManager::addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& global_vertex_offset, uint32_t& global_index_offset)
 	{
 		const tinygltf::Mesh& mesh = model.meshes[node.mesh];
 		
 		StaticMesh staticMesh;
+
+		uint32_t global_vertex_count = 0;
+		uint32_t global_index_count = 0;
 
 		// get all the primitives associated with this mesh
 		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
@@ -123,8 +120,10 @@ namespace OmegaEngine
 					weightBuffer += 4;
 
 					mesh_type = MeshType::Skinned;
-					staticMesh.skinnedVertexBuffer.push_back(vertex);
+					
+					skinned_vertices.push_back(vertex);
 				}
+				global_vertex_count += posAccessor.count;
 			}
 			else {
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
@@ -145,10 +144,11 @@ namespace OmegaEngine
 						uvBuffer1 += 2;
 					}
 					mesh_type = MeshType::Static;
-					staticMesh.vertexBuffer.push_back(vertex);
+					static_vertices.push_back(vertex);
 				}
+				global_vertex_count += posAccessor.count;
 			}
-
+			
 			// Now obtain the indicies data from the gltf file
 			const tinygltf::Accessor& indAccessor = model.accessors[primitive.indices];
 			const tinygltf::BufferView& indBufferView = model.bufferViews[indAccessor.bufferView];
@@ -175,11 +175,20 @@ namespace OmegaEngine
 				throw std::runtime_error("Unable to parse indices data. Unsupported accessor component type.");
 			}
 
+			global_index_count += indAccessor.count;
+
 			staticMesh.type = mesh_type;
 			PrimitiveMesh prim(mesh_type, indexOffset, indexCount, (uint32_t)primitive.material, primMin, primMax);
 			staticMesh.primitives.push_back(prim);
 		}
 
+		staticMesh.vertex_buffer_offset = global_vertex_offset;
+		global_vertex_offset += global_vertex_count;
+
+		staticMesh.index_buffer_offset = global_index_offset;
+		global_index_offset += global_index_count;
+
+		// sort offsets 
 		meshBuffer.push_back(staticMesh);
 				
 		// add mesh component to current object
@@ -190,39 +199,19 @@ namespace OmegaEngine
 	{
 		if (isDirty) {
 			
-			VulkanAPI::MemoryAllocator &mem_alloc = VulkanAPI::Global::Managers::mem_allocator;	
-			uint32_t skinned_vertex_offset = 0;
-			uint32_t skinned_index_offset = 0;
-			uint32_t vertex_offset = 0;
-			uint32_t index_offset = 0;
-
-			// non-skinned meshes
-			for (auto& mesh : meshBuffer) {
-
-				if (mesh.type == MeshManager::MeshType::Static) {
-					mem_alloc.mapDataToSegment(vertex_buffer, mesh.vertexBuffer.data(), static_cast<uint32_t>(mesh.vertexBuffer.size()) * sizeof(Vertex), vertex_offset);
-					mem_alloc.mapDataToSegment(index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()) * sizeof(uint32_t), index_offset);
-
-					mesh.vertex_buffer_offset = vertex_offset;
-					mesh.index_buffer_offset = index_offset;
-
-					vertex_offset += mesh.vertexBuffer.size() * sizeof(Vertex);	// in bytes!!!
-					index_offset += mesh.indexBuffer.size() * sizeof(uint32_t);
-				}
-				// skinned meshes
-				else if (mesh.type == MeshManager::MeshType::Skinned) {
-					mem_alloc.mapDataToSegment(skinned_vertex_buffer, mesh.skinnedVertexBuffer.data(), static_cast<uint32_t>(mesh.skinnedVertexBuffer.size()) * sizeof(SkinnedVertex), skinned_vertex_offset);
-					mem_alloc.mapDataToSegment(skinned_index_buffer, mesh.indexBuffer.data(), static_cast<uint32_t>(mesh.indexBuffer.size()) * sizeof(uint32_t), skinned_index_offset);
-
-					mesh.vertex_buffer_offset = skinned_vertex_offset;
-					mesh.index_buffer_offset = skinned_index_offset;
-
-					skinned_vertex_offset += mesh.skinnedVertexBuffer.size() * sizeof(SkinnedVertex);	// in bytes!!!
-					skinned_index_offset += mesh.indexBuffer.size() * sizeof(uint32_t);
-				}
+			if (!static_vertices.empty()) {
+				VulkanAPI::BufferUpdateEvent event{ "StaticVertices", (void*)&static_vertices, static_vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
-		}
+			if (!static_vertices.empty()) {
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", (void*)&skinned_vertices, skinned_vertices.size() * sizeof(SkinnedVertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
+			}
+			// and the indices....
+			VulkanAPI::BufferUpdateEvent event{ "Indices", (void*)&indices, indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 
-		isDirty = false;
+			isDirty = false;
+		}
 	}
 }

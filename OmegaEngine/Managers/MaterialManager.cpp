@@ -2,6 +2,9 @@
 #include "Managers/TextureManager.h"
 #include "Managers/ComponentInterface.h"
 #include "OEMaths/OEMaths_transform.h"
+#include "Vulkan/VkTextureManager.h"
+#include "Managers/EventManager.h"
+#include "Engine/Omega_Global.h"
 
 namespace OmegaEngine
 {
@@ -128,6 +131,26 @@ namespace OmegaEngine
 			auto& tex_manager = component_interface->getManager<TextureManager>();
 
 			for (auto& mat : materials) {
+				
+				// all textures are going to be copied over to the the grpahics side
+				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
+					
+					const char* mat_name = create_material_id(mat.name, i);
+
+					// do wew actually have an image for this particular pbr material
+					if (mat.texture_state[i]) {
+
+						VulkanAPI::TextureUpdateEvent event{ mat_name, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image), tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler) };
+						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+					}
+					else {
+						VulkanAPI::TextureUpdateEvent event{ mat_name, &tex_manager.get_empty_texture(), tex_manager.get_empty_sampler() };
+						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+					}
+				}
+			}
+
+			for (auto& mat : materials) {
 
 				// init the descriptor set ready for updating with each pbr image element
 				mat.descr_set.init(device, descr_layout, descr_pool, 0);
@@ -136,10 +159,9 @@ namespace OmegaEngine
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
 
 					// if we have a texture then map it to the gpu
-					if (mat.texture_state[i]) {
+					
 						// not sure this should be done here - should probably be used to the under-used texture manager on the vulkan side
-						mat.vk_textures[i].init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
-						mat.vk_textures[i].map(tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image));
+						
 
 						// now update the decscriptor set with the texture info 
 						VulkanAPI::SamplerType type = tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler);
@@ -161,7 +183,7 @@ namespace OmegaEngine
 					assert(descr_layout);
 					assert(descr_pool);
 
-					mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+					
 				}
 			}
 		}

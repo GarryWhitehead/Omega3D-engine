@@ -78,7 +78,12 @@ namespace OmegaEngine
 
 		// gltf based stuff. Will probably be moved into its own sperate file at some point
 		void addGltfData(std::string filename, OEMaths::mat4f world_mat);
-		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, std::vector<Object>& linearised_objects, OEMaths::mat4f world_transform, std::unique_ptr<ObjectManager>& objManager, Object* obj, bool childObject);
+		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node,
+			std::vector<Object>& linearised_objects,
+			OEMaths::mat4f world_transform,
+			std::unique_ptr<ObjectManager>& objManager,
+			Object* obj, bool childObject,
+			uint32_t& global_vertex_count, uint32_t& global_index_count);
 
 	private:
 

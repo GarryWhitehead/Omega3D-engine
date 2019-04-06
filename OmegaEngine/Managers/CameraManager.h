@@ -3,8 +3,6 @@
 #include "Managers/EventManager.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
-#include "Vulkan/Vulkan_Global.h"
-
 
 namespace OmegaEngine 
 {
@@ -108,17 +106,6 @@ namespace OmegaEngine
 			currentProjMatrix = camera.getPerspectiveMat();
 		}
 
-		vk::Buffer& get_ubo_buffer()
-		{
-			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			return mem_alloc.get_memory_buffer(ubo_buffer.get_id());
-		}
-
-		uint32_t get_ubo_offset() const
-		{
-			return ubo_buffer.get_offset();
-		}
-
 	private:
 
 		// all the cameras that had been added to the manager
@@ -140,8 +127,8 @@ namespace OmegaEngine
 
 		float mouse_sensitivity;
 
-		// info for the gpu side 
-		VulkanAPI::MemorySegment ubo_buffer;
+		// current camera data which will be uploaded to the gpu
+		CameraBufferInfo buffer_info;
 
 		// signfies whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;
