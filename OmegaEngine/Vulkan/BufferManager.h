@@ -31,6 +31,12 @@ namespace VulkanAPI
 		MemoryUsage mem_type;
 	};
 
+	struct Buffer
+	{
+		vk::Buffer buffer;
+		uint32_t offset;
+	};
+
 	class BufferManager
 	{
 	public:
@@ -48,10 +54,14 @@ namespace VulkanAPI
 		~BufferManager();
 
 		void enqueueDescrUpdate(DescrSetUpdateInfo& descr_update);
+		void enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type);
 
 		void update_descriptors();
 
 		void update_buffer(BufferUpdateEvent& event);
+
+		// returns a wrapper containing vulkan memory buffer information
+		Buffer get_buffer(const char* id);
 
 	private:
 

@@ -5,7 +5,7 @@
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
 #include "Managers/ComponentInterface.h"
-#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Queue.h"
@@ -67,7 +67,7 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface)
+	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, RenderInterface* render_interface)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
 		if (render_config.general.use_post_process) {
@@ -108,17 +108,14 @@ namespace OmegaEngine
 			descr_set.write_set(sampler_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
 		}
 		
-		auto& camera_manager = component_interface->getManager<CameraManager>();
-
 		for (auto& layout : buffer_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+				buffer_manager->enqueueDescrUpdate("Camera", &descr_set, layout.set, layout.binding, layout.type);
 			}
 			if (layout.name == "LightUbo") {
-				auto& light_manager = component_interface->getManager<LightManager>();
-				descr_set.write_set(layout.set, layout.binding, layout.type, light_manager.get_ubo_buffer(), light_manager.get_ubo_offset(), layout.range);
+				buffer_manager->enqueueDescrUpdate("Light", &descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 

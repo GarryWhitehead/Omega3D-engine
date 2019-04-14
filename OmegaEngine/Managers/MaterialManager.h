@@ -32,6 +32,8 @@ namespace OmegaEngine
 
 		struct MaterialInfo
 		{
+			const char *name;
+
 			enum class AlphaMode
 			{
 				Opaque,
@@ -77,14 +79,9 @@ namespace OmegaEngine
 
 			// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 			bool usingSpecularGlossiness = false;
-
-			// local vulkan data
-			std::array<VulkanAPI::Texture, static_cast<int>(PbrMaterials::Count) > vk_textures;
-			VulkanAPI::DescriptorSet descr_set;
-			VulkanAPI::Sampler sampler;
 		};
 
-		MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue);
+		MaterialManager();
 		~MaterialManager();
 
 		// a per-frame update if the material data becomes dirty
@@ -93,29 +90,11 @@ namespace OmegaEngine
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);
 
-		void add_descr_layout(vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool)
-		{
-			descr_layout = layout;
-			descr_pool = pool;
-		}
-
 	private:
 		
-		// for the updating of materials
-		vk::Device device;
-		vk::PhysicalDevice gpu;
-		VulkanAPI::Queue graph_queue;
-
-		// a pointer to the descr set - init in the mesh pipeline and needed for creating the set here
-		vk::DescriptorSetLayout descr_layout;
-		vk::DescriptorPool descr_pool;
-
 		std::vector<MaterialInfo> materials;
 		bool isDirty = true;
 
-		// empty texture - used when no pbr texture available
-		MappedTexture mapped_blank_tex;
-		VulkanAPI::Texture blank_texture;
 	};
 
 }

@@ -9,6 +9,8 @@
 namespace VulkanAPI
 {
 	// forward declerations
+	class DescriptorSet;
+	class DescriptorLayout;
 	enum class TextureType;
 	class Texture;
 	class Queue;
@@ -26,6 +28,7 @@ namespace VulkanAPI
 		SamplerType sampler;
 	};
 
+
 	class VkTextureManager
 	{
 
@@ -37,12 +40,21 @@ namespace VulkanAPI
 			Sampler sampler;
 		};
 
+		struct DescrSetUpdateInfo
+		{
+			const char *id;
+			DescriptorSet* set = nullptr;
+			uint32_t set_num = 0;
+			uint32_t binding = 0;
+		};
+
 		VkTextureManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, VulkanAPI::Queue& queue);
 		~VkTextureManager();
 
 		void update_texture(TextureUpdateEvent& event);
-
 		void update_descriptors();
+
+		void bind_textures_to_layout(const char* id, DescriptorLayout* layout);
 
 	private:
 
@@ -50,10 +62,12 @@ namespace VulkanAPI
 		vk::PhysicalDevice gpu;
 		VulkanAPI::Queue graph_queue;
 
-		std::unordered_map<const char*, TextureInfo> textures;
+		std::unordered_map<const char*, std::vector<TextureInfo> > textures;
 
 		// a queue of descriptor sets which need updating this frame
 		std::vector<DescrSetUpdateInfo> descr_set_update_queue;
+
+		std::unordered_map<const char*, DescriptorLayout*> texture_layouts;
 	};
 
 }

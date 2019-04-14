@@ -42,6 +42,11 @@ namespace VulkanAPI
 		descr_set_update_queue.emplace_back(descr_update);
 	}
 
+	void BufferManager::enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type)
+	{
+		descr_set_update_queue.push_back({ id, set, set_num, binding, descr_type });
+	}
+
 	void BufferManager::update_buffer(BufferUpdateEvent& event)
 	{
 		assert(event.data != nullptr);
@@ -85,5 +90,14 @@ namespace VulkanAPI
 			
 			}
 		}
+	}
+
+	Buffer BufferManager::get_buffer(const char* id)
+	{
+		if (buffers.find(id) == buffers.end()) {
+			LOGGER_ERROR("Error trying to find buffer id. Unable to proceed.\n");
+		}
+
+		return { memory_allocator->get_memory_buffer(buffers[id].get_id()), buffers[id].get_offset() };
 	}
 }

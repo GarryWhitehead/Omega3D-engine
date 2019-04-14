@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderableBase.h"
 #include "Managers/MeshManager.h"
-#include "Vulkan/MemoryAllocator.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/Descriptors.h"
 #include "Rendering/RenderInterface.h"
 #include "OEMaths/OEMaths.h"
@@ -14,6 +14,8 @@ namespace VulkanAPI
 {
 	class Sampler;
 	class CommandBuffer;
+	class BufferManager;
+	class VkTextureManager;
 }
 
 namespace OmegaEngine
@@ -35,22 +37,20 @@ namespace OmegaEngine
 		{
 			MeshManager::MeshType type;
 			
-			int32_t index_offset;	// this equates to buffer_offset + sub-offset
-			uint32_t index_count;
+			// per primitive index data
+			uint32_t index_primitive_offset;	// this equates to buffer_offset + sub-offset
+			uint32_t index_primitive_count;
 			
-			// face indicies data
-			uint32_t index_buffer_offset; // index into large buffer
-			uint32_t index_sub_offset;	// this equates to buffer_offset + sub-offset
+			// the starting offsets within the main vertices/indices buffer
+			uint32_t index_offset;				// index into large buffer
+			uint32_t vertex_offset;
 
-			uint32_t vertex_buffer_offset;
-
-			// vertex and index buffers
-			vk::Buffer vertex_buffer;
-			vk::Buffer index_buffer;
+			// vertex and index buffer memory info
+			VulkanAPI::Buffer vertex_buffer;
+			VulkanAPI::Buffer index_buffer;
 
 			// all material data required to draw
-			// storing this material data in two places for threading purposes. We could get data races
-			// if we start calling back to material manager whilst is updating in a different thread
+			// storing this material data in two places for threading purposes.
 			struct MaterialPushBlock
 			{
 				// colour factors
@@ -98,7 +98,9 @@ namespace OmegaEngine
 			return this;
 		}
 
-		RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
+		RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_manager,
+										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive); 
 
@@ -108,7 +110,8 @@ namespace OmegaEngine
 
 		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device device,
 													std::unique_ptr<RendererBase>& renderer, 
-													std::unique_ptr<ComponentInterface>& component_interface,
+													std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+													std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 													MeshManager::MeshType type);
 
 	private:

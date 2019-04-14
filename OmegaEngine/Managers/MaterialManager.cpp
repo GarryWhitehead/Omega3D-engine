@@ -9,15 +9,8 @@
 namespace OmegaEngine
 {
 
-	MaterialManager::MaterialManager(vk::Device& dev, vk::PhysicalDevice& phys_device, VulkanAPI::Queue& queue) :
-		device(dev),
-		gpu(phys_device),
-		graph_queue(queue)
+	MaterialManager::MaterialManager() 
 	{
-		// upload empty texture - used when no texture is available for a particular pbr material.
-		mapped_blank_tex.create_empty_texture(2048, 2048, true);
-		blank_texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
-		blank_texture.map(mapped_blank_tex);
 	}
 
 
@@ -134,56 +127,17 @@ namespace OmegaEngine
 				
 				// all textures are going to be copied over to the the grpahics side
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-					
-					const char* mat_name = create_material_id(mat.name, i);
 
-					// do wew actually have an image for this particular pbr material
+					// do we actually have an image for this particular pbr material
 					if (mat.texture_state[i]) {
 
-						VulkanAPI::TextureUpdateEvent event{ mat_name, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image), tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler) };
+						VulkanAPI::TextureUpdateEvent event{ mat.name, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image), tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler) };
 						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
 					}
 					else {
-						VulkanAPI::TextureUpdateEvent event{ mat_name, &tex_manager.get_empty_texture(), tex_manager.get_empty_sampler() };
+						VulkanAPI::TextureUpdateEvent event{ mat.name, &tex_manager.get_empty_texture(), tex_manager.get_empty_sampler() };
 						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
 					}
-				}
-			}
-
-			for (auto& mat : materials) {
-
-				// init the descriptor set ready for updating with each pbr image element
-				mat.descr_set.init(device, descr_layout, descr_pool, 0);
-
-				// map all of the pbr materials for this primitive mesh to the gpu 
-				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-
-					// if we have a texture then map it to the gpu
-					
-						// not sure this should be done here - should probably be used to the under-used texture manager on the vulkan side
-						
-
-						// now update the decscriptor set with the texture info 
-						VulkanAPI::SamplerType type = tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler);
-						if (type != VulkanAPI::SamplerType::NotDefined) {
-							mat.sampler.create(device, type);
-						}
-						else {
-							mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
-						}
-					}
-					else {
-						// otherwise use a blank dummy texture
-						mat.vk_textures[i] = blank_texture;
-						mat.sampler.create(device, VulkanAPI::SamplerType::Clamp);
-					}
-						
-					// materials always are set = 0 and bindings MUST follow the pbr material sequence
-					// sanity check first - make sure their initilialised!
-					assert(descr_layout);
-					assert(descr_pool);
-
-					
 				}
 			}
 		}

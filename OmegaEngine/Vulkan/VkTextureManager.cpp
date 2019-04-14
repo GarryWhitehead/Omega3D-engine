@@ -1,7 +1,8 @@
 #include "VkTextureManager.h"
 #include "Vulkan/DataTypes/Texture.h"
-
+#include "Vulkan/Descriptors.h"
 #include "Engine/Omega_Global.h"
+#include "Utility/logger.h"
 
 namespace VulkanAPI
 {
@@ -26,12 +27,27 @@ namespace VulkanAPI
 		tex_info.texture.map(*event.mapped_tex);
 		tex_info.sampler.create(device, event.sampler);
 
-		textures[event.id] = tex_info;
+		textures[event.id].push_back(tex_info);
 	}
 
 	void VkTextureManager::update_descriptors()
 	{
-		mat.descr_set.write_set(0, i, vk::DescriptorType::eCombinedImageSampler, mat.sampler.get_sampler(), mat.vk_textures[i].get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		
+		for (auto& descr : descr_set_update_queue) {
+			
+			assert(descr.set != nullptr);
+			TextureInfo texture = textures[descr.id][descr.binding];
+			descr.set->write_set(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.get_sampler(), texture.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		}
 	}
 	
+	void VkTextureManager::bind_textures_to_layout(const char* id, DescriptorLayout* layout)
+	{
+		assert(layout != nullptr);
+
+		if (texture_layouts.find(id) != texture_layouts.end()) {
+			LOGGER_INFO("Texture layout binding of id %s was already addeded.\n", id);
+		}
+		texture_layouts[id] = layout;
+	}
 }

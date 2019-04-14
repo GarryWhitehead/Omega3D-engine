@@ -1,8 +1,9 @@
 #include "Mesh.h"
-#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/VkTextureManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
@@ -18,7 +19,9 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface, 
+	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface,
+									std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
+									std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 									MeshManager::StaticMesh mesh, 
 									MeshManager::PrimitiveMesh primitive) :
 		RenderableBase(RenderTypes::StaticMesh)
@@ -26,8 +29,6 @@ namespace OmegaEngine
 		
 		// get the material for this primitive mesh from the manager
 		auto& material_manager = component_interface->getManager<MaterialManager>();
-		auto& mesh_manager = component_interface->getManager<MeshManager>();
-
 		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
@@ -41,19 +42,28 @@ namespace OmegaEngine
 		mesh_instance_data->type = mesh.type;
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
-		mesh_instance_data->vertex_buffer_offset = mesh.vertex_buffer_offset + mesh_manager.get_vertex_buffer_offset(mesh.type);
-		mesh_instance_data->index_buffer_offset = mesh.index_buffer_offset + mesh_manager.get_index_buffer_offset(mesh.type);
+		mesh_instance_data->vertex_offset = mesh.vertex_buffer_offset;
+		mesh_instance_data->index_offset = mesh.index_buffer_offset;
 
 		// actual vulkan buffers
-		mesh_instance_data->vertex_buffer = mesh_manager.get_vertex_buffer(mesh.type);
-		mesh_instance_data->index_buffer = mesh_manager.get_index_buffer(mesh.type);
+		if (mesh.type == MeshManager::MeshType::Static) {
+			buffer_manager->get_buffer("StaticVertices");
+		}
+		else {
+			buffer_manager->get_buffer("SkinnedVertices");
+		}
+		
+		mesh_instance_data->index_buffer = buffer_manager->get_buffer("Indices");
 		
 		// per face indicies
-		mesh_instance_data->index_sub_offset = primitive.indexBase;
-		mesh_instance_data->index_count = primitive.indexCount;
+		mesh_instance_data->index_primitive_offset = primitive.indexBase;
+		mesh_instance_data->index_primitive_count = primitive.indexCount;
 			
-		// materials
-		mesh_instance_data->descr_set = mat.descr_set;
+		// materials 
+		// create a descriptor set for this material
+		VulkanAPI::DescriptorSet descr_set;
+		descr_set.init(device, )
+		mesh_instance_data->descr_set = buffer_manager->get_descr;
 		mesh_instance_data->sampler = mat.sampler;
 
 		// material push block
@@ -85,7 +95,8 @@ namespace OmegaEngine
 	
 	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
 										std::unique_ptr<RendererBase>& renderer, 
-										std::unique_ptr<ComponentInterface>& component_interface,
+										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::MeshType type)
 	{
 		
@@ -119,22 +130,20 @@ namespace OmegaEngine
 			
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				auto& camera_manager = component_interface->getManager<CameraManager>();
-				state.descr_set.write_set(layout.set, layout.binding, layout.type, camera_manager.get_ubo_buffer(), camera_manager.get_ubo_offset(), layout.range);
+				buffer_manager->enqueueDescrUpdate("Camera", &state.descr_set, layout.set, layout.binding, layout.type);
 			}
 			if (layout.name == "Dynamic_StaticMeshUbo") {
-				auto& transform_manager = component_interface->getManager<TransformManager>();
-				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_mesh_ubo_buffer(), transform_manager.get_mesh_ubo_offset(), layout.range);
+				buffer_manager->enqueueDescrUpdate("DynamicStaticMesh", &state.descr_set, layout.set, layout.binding, layout.type);
 			}
 			if (layout.name == "Dynamic_SkinnedUbo") {
-				auto& transform_manager = component_interface->getManager<TransformManager>();
-				state.descr_set.write_set(layout.set, layout.binding, layout.type, transform_manager.get_skinned_ubo_buffer(), transform_manager.get_skinned_ubo_offset(), layout.range);
+				buffer_manager->enqueueDescrUpdate("DynamicSkinned", &state.descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 
-		// we also need to send a referene to the material manager of the image descr set - the sets will be set at render time
-		// it's assumed that the material combined image samplers will be set zero. TODO: Should add a more rigourous check
-		component_interface->getManager<MaterialManager>().add_descr_layout(state.descr_layout.get_layout(state.image_layout[0][0].set), state.descr_layout.get_pool());
+		// inform the texture manager the layout of textures associated with the mesh shader
+		// TODO : automate this somehow rather than hard coded values
+		const uint8_t material_set = 0;
+		texture_manager->bind_textures_to_layout("Mesh", &state.descr_layout);
 
 		state.shader.pipeline_layout_reflect(state.pl_layout);
 		state.pl_layout.create(device, state.descr_layout.get_layout());
@@ -188,10 +197,10 @@ namespace OmegaEngine
 		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
 		cmd_buffer.bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
-		vk::DeviceSize offset = { instance_data->vertex_buffer_offset };
-		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer, offset);
-		cmd_buffer.bind_index_buffer(instance_data->index_buffer, instance_data->index_buffer_offset + instance_data->index_sub_offset);
-		cmd_buffer.draw_indexed(instance_data->index_count);
+		vk::DeviceSize offset = { instance_data->vertex_offset + instance_data->vertex_buffer.offset };
+		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);
+		cmd_buffer.bind_index_buffer(instance_data->index_buffer.buffer, instance_data->index_buffer.offset + instance_data->index_offset + instance_data->index_primitive_offset);
+		cmd_buffer.draw_indexed(instance_data->index_primitive_count);
 	}
 
 }

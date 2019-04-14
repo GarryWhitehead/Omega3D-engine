@@ -3,7 +3,6 @@
 #include "Vulkan/Shader.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/DataTypes/Texture.h"
-#include "Vulkan/Buffer.h"
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/Pipeline.h"
@@ -19,6 +18,7 @@ namespace VulkanAPI
 	class Interface;
 	class RenderPass;
 	class Swapchain;
+	class BufferManager;
 }
 
 namespace OmegaEngine
@@ -26,7 +26,7 @@ namespace OmegaEngine
 	// forward declerations
 	class RenderInterface;
 	class PostProcessInterface;
-	class CameraManager;
+	
 
 	class DeferredRenderer : public RendererBase
 	{
@@ -40,7 +40,7 @@ namespace OmegaEngine
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) override;
 
 		void create_gbuffer_pass();
-		void create_deferred_pass(std::unique_ptr<ComponentInterface>& component_interface, RenderInterface* render_interface);
+		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, RenderInterface* render_interface);
 
 		void render_deferred(VulkanAPI::Queue& graph_queue, VulkanAPI::Swapchain& swapchain, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface);
 		
