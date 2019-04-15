@@ -142,7 +142,7 @@ namespace OmegaEngine
 		// inform the texture manager the layout of textures associated with the mesh shader
 		// TODO : automate this somehow rather than hard coded values
 		const uint8_t material_set = 0;
-		texture_manager->bind_textures_to_layout("Mesh", &state.descr_layout);
+		texture_manager->bind_textures_to_layout("Mesh", &state.descr_layout, material_set);
 
 		state.shader.pipeline_layout_reflect(state.pl_layout);
 		state.pl_layout.create(device, state.descr_layout.get_layout());

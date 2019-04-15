@@ -41,6 +41,12 @@ namespace VulkanAPI
 			Sampler sampler;
 		};
 
+		struct TextureLayoutInfo
+		{
+			DescriptorLayout* layout = nullptr;
+			uint32_t set_num;
+		};
+
 		struct DescrSetUpdateInfo
 		{
 			const char *id;
@@ -55,7 +61,11 @@ namespace VulkanAPI
 		void update_texture(TextureUpdateEvent& event);
 		void update_descriptors();
 
-		void bind_textures_to_layout(const char* id, DescriptorLayout* layout);
+		// associates an id with a descriptor layout. Used for materials, etc. were there are multiple descriptor sets but one layout
+		void bind_textures_to_layout(const char* id, DescriptorLayout* layout, uint32_t set_num);
+
+		// updates a single descriptor set with a texture set identified by its unique id
+		void update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
 
 	private:
 
@@ -63,12 +73,14 @@ namespace VulkanAPI
 		vk::PhysicalDevice gpu;
 		VulkanAPI::Queue graph_queue;
 
+		// textures - can be grouped (i.e. materials) or single textures
 		std::unordered_map<const char*, std::vector<TextureInfo> > textures;
 
-		// a queue of descriptor sets which need updating this frame
+		// a queue of descriptor sets which need updating on a per frame basis - not used yet, maybe remove?
 		std::vector<DescrSetUpdateInfo> descr_set_update_queue;
 
-		std::unordered_map<const char*, DescriptorLayout*> texture_layouts;
+		// associate textures with descriptor layouts
+		std::unordered_map<const char*, TextureLayoutInfo> texture_layouts;
 	};
 
 }

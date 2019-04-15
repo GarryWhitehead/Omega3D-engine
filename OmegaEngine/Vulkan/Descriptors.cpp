@@ -138,7 +138,7 @@ namespace VulkanAPI
 		auto& layout = descr_layout.get_layout();
 		for (uint32_t i = 0; i < layout.size(); ++i) {
 
-			uint32_t set = 0;	// remove this!
+			uint32_t set = 0;	
 			vk::DescriptorSetLayout set_layout;
 			std::tie(set, set_layout) = layout[i];
 
@@ -154,18 +154,18 @@ namespace VulkanAPI
 	{
 		this->device = device;
 
-		vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), set_count, descr_layout.get_layout(set));
+		vk::DescriptorSetAllocateInfo allocInfo(descr_layout.get_pool(), 1, descr_layout.get_layout(set));
 
 		vk::DescriptorSet descr_set;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
 		descr_sets[set] = descr_set;
 	}
 
-	void DescriptorSet::init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set, uint32_t set_count)
+	void DescriptorSet::init(vk::Device device, vk::DescriptorSetLayout layout, vk::DescriptorPool& pool, uint32_t set)
 	{
 		this->device = device;
 
-		vk::DescriptorSetAllocateInfo allocInfo(pool, set_count, &layout);
+		vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &layout);
 
 		vk::DescriptorSet descr_set;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descr_set));
