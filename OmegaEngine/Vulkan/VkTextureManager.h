@@ -24,6 +24,7 @@ namespace VulkanAPI
 		{}
 		
 		const char* id;
+		uint32_t binding = 0;
 		OmegaEngine::MappedTexture* mapped_tex;
 		SamplerType sampler;
 	};

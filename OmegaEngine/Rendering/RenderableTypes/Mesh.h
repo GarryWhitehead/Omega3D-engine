@@ -86,7 +86,6 @@ namespace OmegaEngine
 
 			// vulkan stuff for material textures
 			VulkanAPI::DescriptorSet descr_set;
-			VulkanAPI::Sampler sampler;
 
 			// offset into transform buffer
 			uint32_t transform_dynamic_offset = 0;

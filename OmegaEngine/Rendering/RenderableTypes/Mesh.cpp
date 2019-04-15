@@ -61,10 +61,9 @@ namespace OmegaEngine
 			
 		// materials 
 		// create a descriptor set for this material
-		VulkanAPI::DescriptorSet descr_set;
-		descr_set.init(device, )
-		mesh_instance_data->descr_set = buffer_manager->get_descr;
-		mesh_instance_data->sampler = mat.sampler;
+		TextureDescrLayoutInfo layout_info = texture_manager->get_texture_descr_layout("Mesh");
+		mesh_instance_data->descr_set.init(device, layout_info.layout, layout_info.set); 
+		texture_manager->update_descr_set(descr_set, mat.name, layout_info.set);
 
 		// material push block
 		mesh_instance_data->material_push_block.baseColorFactor = mat.factors.baseColour;

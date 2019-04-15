@@ -41,6 +41,17 @@ namespace VulkanAPI
 		}
 	}
 	
+	void VkTextureManager::update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num)
+	{
+		if (textures.find(id) == textures.end()) {
+			LOGGER_ERROR("An id of %s has not been registered with the vulkan texture manager.\n", id);
+		}
+
+		for (auto& texture : textures[id]) {
+			set.write_set(set_num, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.get_sampler(), texture.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+		}
+	}
+
 	void VkTextureManager::bind_textures_to_layout(const char* id, DescriptorLayout* layout)
 	{
 		assert(layout != nullptr);
