@@ -3,6 +3,7 @@
 #include "Managers/EventManager.h"
 #include "Managers/DataTypes/TextureType.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/DataTypes/Texture.h"
 #include <unordered_map>
 #include <tuple>
 
@@ -17,12 +18,15 @@ namespace VulkanAPI
 
 	struct TextureUpdateEvent : public OmegaEngine::Event
 	{
-		TextureUpdateEvent(const char* _id, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
+		TextureUpdateEvent(const char* _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
 			id(_id),
+			binding(_binding),
 			mapped_tex(_mapped),
 			sampler(_sampler)
 		{}
 		
+		~TextureUpdateEvent() {}
+
 		const char* id;
 		uint32_t binding = 0;
 		OmegaEngine::MappedTexture* mapped_tex;
@@ -39,6 +43,7 @@ namespace VulkanAPI
 		{
 			Texture texture;
 			Sampler sampler;
+			uint32_t binding = 0;
 		};
 
 		struct TextureLayoutInfo
@@ -66,6 +71,8 @@ namespace VulkanAPI
 
 		// updates a single descriptor set with a texture set identified by its unique id
 		void update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
+
+		TextureLayoutInfo get_texture_descr_layout(const char* id);
 
 	private:
 

@@ -1,5 +1,7 @@
 #include "StockModels.h"
-#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/BufferManager.h"
+#include "Engine/Omega_Global.h"
+#include "Managers/EventManager.h"
 
 namespace OmegaEngine
 {
@@ -8,13 +10,13 @@ namespace OmegaEngine
 
 		CubeModel::CubeModel()
 		{
-			// alloc mem buffer space for vertices and indices and upload to gpu
-			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-			vertices_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, vertices.size());
-			indices_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, indices.size());
+			// vertex data
+			VulkanAPI::BufferUpdateEvent vertex_event{ "CubeModelVertices", vertices.data(), vertices.size() * sizeof(float), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(vertex_event);
 
-			mem_alloc.mapDataToSegment(vertices_buffer, vertices.data(), vertices.size());
-			mem_alloc.mapDataToSegment(indices_buffer, indices.data(), indices.size());
+			// index data
+			VulkanAPI::BufferUpdateEvent index_event{ "CubeModelIndices", indices.data(), indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(index_event);
 		}
 
 		CubeModel::~CubeModel()
@@ -42,15 +44,13 @@ namespace OmegaEngine
 				}
 			}
 
-			VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
+			// vertex data
+			VulkanAPI::BufferUpdateEvent vertex_event{ "PlaneModelVertices", vertices.data(), vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(vertex_event);
 
-			// map vertices
-			vertex_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(Vertex) * vertices.size());
-			mem_alloc.mapDataToSegment(vertex_buffer, vertices.data(), vertices.size() * sizeof(Vertex));
-
-			// map indices
-			index_buffer = mem_alloc.allocate(VulkanAPI::MemoryUsage::VK_BUFFER_STATIC, sizeof(uint32_t) * indices.size());
-			mem_alloc.mapDataToSegment(index_buffer, indices.data(), indices.size() * sizeof(uint32_t));
+			// index data
+			VulkanAPI::BufferUpdateEvent index_event{ "PlaneModelIndices", indices.data(), indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(index_event);
 		}
 	}
 }

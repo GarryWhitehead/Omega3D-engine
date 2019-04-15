@@ -9,7 +9,6 @@ namespace VulkanAPI
 
 	public:
 
-		SemaphoreManager();
 		SemaphoreManager(vk::Device dev);
 		~SemaphoreManager();
 

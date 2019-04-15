@@ -1,7 +1,7 @@
 #include "Image.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/DataTypes/Texture.h"
-#include "Vulkan/Buffer.h"
+#include "Vulkan/BufferManager.h"
 #include "Utility/logger.h"
 
 namespace VulkanAPI

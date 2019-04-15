@@ -4,23 +4,6 @@
 
 namespace VulkanAPI
 {
-	// dynamic buffer segment functions
-
-	DynamicSegment::DynamicSegment(uint32_t _size, uint32_t _index, int32_t _block_id, uint32_t _offset) :
-		alignment_size(_size),
-		buffer_index(_index),
-		block_id(_block_id),
-		offset(_offset)
-	{
-		
-	}
-
-	DynamicSegment::~DynamicSegment()
-	{
-
-	}
-
-	// memory allocator functions ================================================================
 
 	MemoryAllocator::MemoryAllocator()
 	{
@@ -282,38 +265,6 @@ namespace VulkanAPI
 			device.destroyBuffer(temp_buffer, nullptr);
 			device.freeMemory(temp_memory, nullptr);
 		}
-	}
-
-	DynamicSegment* MemoryAllocator::allocate_dynamic(uint32_t size, uint32_t objects)
-	{
-		vk::PhysicalDeviceProperties properties = gpu.getProperties();
-
-		// fif we've maxed out the number of dynamic buffers available, return null
-		if (dynamic_buffers.size() >= properties.limits.maxDescriptorSetStorageBuffersDynamic) {
-			return nullptr;
-		}
-
-		// before allocation, check whether buffers need memory alignment as denoted by vulkan uniform buffer alignment limits
-		vk::PhysicalDeviceProperties props = gpu.getProperties();
-		uint32_t min_align = static_cast<uint32_t>(props.limits.minUniformBufferOffsetAlignment);
-
-		uint32_t alignment_size = size;
-		if (min_align > 0) {
-			alignment_size = (size + min_align - 1) & ~(min_align - 1);
-		}
-	
-		// allocate memory for this dynamic buffer taking into consideration mem alignment if required
-		MemorySegment segment = allocate(VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, objects * alignment_size);
-		dynamic_buffers.push_back(segment);
-
-		DynamicSegment* dynamic_segment = new DynamicSegment(alignment_size, dynamic_buffers.size() - 1, segment.get_id(), segment.get_offset());
-		return dynamic_segment;
-	}
-
-	void MemoryAllocator::mapDataToDynamicSegment(DynamicSegment* dynamic_segment, void *data, uint32_t totalSize, uint32_t offset)
-	{
-		MemorySegment segment = dynamic_buffers[dynamic_segment->get_buffer_index()];
-		mapDataToSegment(segment, data, totalSize, offset);
 	}
 
 	void MemoryAllocator::destroySegment(MemorySegment &segment)

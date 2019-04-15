@@ -1,12 +1,10 @@
 #include "Texture.h"
 
-#include "Vulkan/MemoryAllocator.h"
 #include "Vulkan/Interface.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Managers/DataTypes/TextureType.h"
 #include "Vulkan/CommandBuffer.h"
-#include "Vulkan/Vulkan_Global.h"
-#include "Vulkan/Buffer.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/Image.h"
 
 namespace VulkanAPI
@@ -56,8 +54,8 @@ namespace VulkanAPI
 		
 		vk::DeviceMemory stagingMemory;
 		vk::Buffer staging_buff;
-		MemoryAllocator& mem_alloc = Global::Managers::mem_allocator;
-		mem_alloc.createBuffer(tex.size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingMemory, staging_buff);
+
+		Util::createBuffer(device, gpu, tex.size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingMemory, staging_buff);
 
 		void *data_dst;
 		device.mapMemory(stagingMemory, 0, tex.size(), {}, &data_dst);

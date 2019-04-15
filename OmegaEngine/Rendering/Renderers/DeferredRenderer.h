@@ -33,7 +33,7 @@ namespace OmegaEngine
 
 	public:
 
-		DeferredRenderer(vk::Device device, vk::PhysicalDevice physical, RenderConfig _render_config);
+		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, RenderConfig _render_config, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
 		~DeferredRenderer();
 
 		// abstract override
@@ -71,9 +71,6 @@ namespace OmegaEngine
 		VulkanAPI::DescriptorLayout descr_layout;
 		VulkanAPI::DescriptorSet descr_set;
 		VulkanAPI::RenderPass renderpass;
-
-		VulkanAPI::Buffer vert_buffer;
-		VulkanAPI::Buffer frag_buffer;
 
 		VulkanAPI::CommandBuffer cmd_buffer;
 

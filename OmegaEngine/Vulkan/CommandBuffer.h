@@ -39,9 +39,7 @@ namespace VulkanAPI
 		void bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets);
 		void bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector < vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets);
 		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
-		void bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offsets);
 		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
-		void bind_index_buffer(MemorySegment& index_buffer, uint32_t offset);
 		void bind_index_buffer(vk::Buffer& buffer, uint32_t offset);
 
 		void set_viewport();
@@ -109,8 +107,6 @@ namespace VulkanAPI
 
 		// primary binding functions
 		void bind_pipeline(Pipeline& pipeline);
-		void bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset);
-		void bind_index_buffer(MemorySegment& index_buffer);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
 		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);

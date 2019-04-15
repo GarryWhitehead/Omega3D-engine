@@ -50,7 +50,7 @@ namespace OmegaEngine
 			component_interface->registerManager<MeshManager>();
 
 			// the mesh manager also requires the material and texture managers
-			component_interface->registerManager<MaterialManager>(device.getDevice(), device.getPhysicalDevice(), device.getQueue(VulkanAPI::Device::QueueType::Graphics));
+			component_interface->registerManager<MaterialManager>();
 			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
@@ -192,7 +192,7 @@ namespace OmegaEngine
 			animation_manager->addGltfAnimation(model, linearised_objects);
 		}
 		else {
-			LOGGER_ERROR("Error whilst parsing gltf file: %s", err);
+			LOGGER_ERROR("Error whilst parsing gltf file: %s", err.c_str());
 		}
 	}
 
@@ -221,7 +221,7 @@ namespace OmegaEngine
 		// if this node has children, recursively extract their info
 		if (node.children.size() > 0) {
 			for (uint32_t i = 0; i < node.children.size(); ++i) {
-				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, parentObject, true);
+				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, parentObject, true, global_vertex_count, global_index_count);
 			}
 		}
 

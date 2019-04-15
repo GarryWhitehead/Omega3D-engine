@@ -9,7 +9,21 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
-		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu)
+		// static functions
+		static uint32_t alignment_size(const uint32_t size)
+		{
+			// we are presuming the min alignment size here so we don't have to use the vulkan api within the peripheral managers
+			uint32_t min_align = 256;
+
+			uint32_t alignment_size = size;
+			if (min_align > 0) {
+				alignment_size = (size + min_align - 1) & ~(min_align - 1);
+			}
+
+			return alignment_size;
+		}
+
+		static uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu)
 		{
 			vk::PhysicalDeviceMemoryProperties memoryProp = gpu.getMemoryProperties();
 
@@ -21,8 +35,24 @@ namespace VulkanAPI
 
 			return UINT32_MAX;
 		}
-	}
 
+		static void createBuffer(vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
+		{
+			vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
+
+			VK_CHECK_RESULT(device.createBuffer(&createInfo, nullptr, &buffer));
+
+			vk::MemoryRequirements memoryReq;
+			device.getBufferMemoryRequirements(buffer, &memoryReq);
+
+			uint32_t mem_type = findMemoryType(memoryReq.memoryTypeBits, props, gpu);
+
+			vk::MemoryAllocateInfo memoryInfo(memoryReq.size, mem_type);
+
+			VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
+			device.bindBufferMemory(buffer, memory, 0);
+		}
+	}
 
 	BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, vk::Queue queue) :
 		device(dev),

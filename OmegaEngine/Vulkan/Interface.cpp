@@ -1,8 +1,9 @@
 #include "Interface.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/MemoryAllocator.h"
-#include "Vulkan/Vulkan_Global.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/SemaphoreManager.h"
+#include "Vulkan/VkTextureManager.h"
 
 namespace VulkanAPI
 {
@@ -17,10 +18,6 @@ namespace VulkanAPI
 		present_queue = dev.getQueue(Device::QueueType::Present);
 		compute_queue = dev.getQueue(Device::QueueType::Compute);
 
-		// setup global vulkan managers
-		Global::Managers::init_memory_allocator(device, gpu, graphics_queue);
-		Global::Managers::init_semaphore_manager(device);
-
 		// prepare swap chain and attached image views - so we have something to render too
 		swapchain_khr.create(dev, win_width, win_height);
 
@@ -28,6 +25,11 @@ namespace VulkanAPI
 		graphics_queue.set_swapchain(swapchain_khr.get());
 		present_queue.set_swapchain(swapchain_khr.get());
 		compute_queue.set_swapchain(swapchain_khr.get());
+
+		// establish vulkan managers
+		buffer_manager = std::make_unique<BufferManager>(device, gpu, graphics_queue.get());
+		semaphore_manager = std::make_unique<SemaphoreManager>(device);
+		texture_manager = std::make_unique<VkTextureManager>(device, gpu, graphics_queue);
 	}
 
 

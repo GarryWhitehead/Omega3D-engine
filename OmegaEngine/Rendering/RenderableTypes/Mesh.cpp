@@ -19,7 +19,8 @@
 namespace OmegaEngine
 {
 
-	RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_interface,
+	RenderableMesh::RenderableMesh(vk::Device& device,
+									std::unique_ptr<ComponentInterface>& component_interface,
 									std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
 									std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 									MeshManager::StaticMesh mesh, 
@@ -61,9 +62,9 @@ namespace OmegaEngine
 			
 		// materials 
 		// create a descriptor set for this material
-		TextureDescrLayoutInfo layout_info = texture_manager->get_texture_descr_layout("Mesh");
-		mesh_instance_data->descr_set.init(device, layout_info.layout, layout_info.set); 
-		texture_manager->update_descr_set(descr_set, mat.name, layout_info.set);
+		VulkanAPI::VkTextureManager::TextureLayoutInfo layout_info = texture_manager->get_texture_descr_layout("Mesh");
+		mesh_instance_data->descr_set.init(device, *layout_info.layout, layout_info.set_num); 
+		texture_manager->update_descr_set(mesh_instance_data->descr_set, mat.name, layout_info.set_num);
 
 		// material push block
 		mesh_instance_data->material_push_block.baseColorFactor = mat.factors.baseColour;
@@ -92,7 +93,7 @@ namespace OmegaEngine
 		}
 	}
 	
-	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device device, 
+	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device& device, 
 										std::unique_ptr<RendererBase>& renderer, 
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,

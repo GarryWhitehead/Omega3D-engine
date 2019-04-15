@@ -100,7 +100,7 @@ namespace OmegaEngine
 		void add_camera(Camera& camera)
 		{
 			cameras.push_back(camera);
-			camera_index = cameras.size() - 1;
+			camera_index = static_cast<uint32_t>(cameras.size() - 1);
 
 			current_pos = camera.start_position;
 			currentProjMatrix = camera.getPerspectiveMat();

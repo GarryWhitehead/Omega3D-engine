@@ -1,8 +1,6 @@
 #include "CommandBuffer.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Descriptors.h"
-#include "Vulkan/Buffer.h"
-#include "Vulkan/Vulkan_Global.h"
 #include "OEMaths/OEMaths.h"
 
 namespace VulkanAPI
@@ -163,18 +161,6 @@ namespace VulkanAPI
 		cmd_buffer.bindPipeline(bind_point, pipeline.get());
 	}
 
-	void CommandBuffer::bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset)
-	{
-		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
-	}
-
-	void CommandBuffer::bind_index_buffer(MemorySegment& index_buffer)
-	{
-		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), index_buffer.get_offset(), vk::IndexType::eUint32);
-	}
-
 	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
@@ -333,21 +319,9 @@ namespace VulkanAPI
 		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
 	}
 
-	void SecondaryCommandBuffer::bind_vertex_buffer(MemorySegment& vertex_buffer, vk::DeviceSize offset)
-	{
-		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		cmd_buffer.bindVertexBuffers(0, 1, &mem_alloc.get_memory_buffer(vertex_buffer.get_id()), &offset);
-	}
-
 	void SecondaryCommandBuffer::bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset)
 	{
 		cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
-	}
-
-	void SecondaryCommandBuffer::bind_index_buffer(MemorySegment& index_buffer, uint32_t offset)
-	{
-		VulkanAPI::MemoryAllocator& mem_alloc = VulkanAPI::Global::Managers::mem_allocator;
-		cmd_buffer.bindIndexBuffer(mem_alloc.get_memory_buffer(index_buffer.get_id()), offset, vk::IndexType::eUint32);
 	}
 
 	void SecondaryCommandBuffer::bind_index_buffer(vk::Buffer& buffer, uint32_t offset)

@@ -48,7 +48,7 @@ namespace OmegaEngine
 		
 		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
-
+		
 		// init the command buffer now ready for rendering later
 		cmd_buffer.init(device.getDevice(), vk_interface->get_graph_queue().get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
 
@@ -85,10 +85,10 @@ namespace OmegaEngine
 		switch (static_cast<RendererType>(render_config.general.renderer)) {
 		case RendererType::Deferred:
 		{
-			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config);
+			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), render_config, vk_interface);
 			auto deferred_renderer = reinterpret_cast<DeferredRenderer*>(renderer.get());
 			deferred_renderer->create_gbuffer_pass();
-			deferred_renderer->create_deferred_pass(component_interface, this);
+			deferred_renderer->create_deferred_pass(vk_interface->get_buffer_manager(), this);
 			break;
 		}
 		default:
@@ -115,11 +115,13 @@ namespace OmegaEngine
 		VulkanAPI::Shader shader;
 		switch (type) {
 		case OmegaEngine::RenderTypes::StaticMesh: {
-			render_pipelines[(int)RenderTypes::StaticMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Static);
+			render_pipelines[(int)RenderTypes::StaticMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
+				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Static);
 			break;
 		}
 		case OmegaEngine::RenderTypes::SkinnedMesh: {
-			render_pipelines[(int)RenderTypes::SkinnedMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(), renderer, component_interface, MeshManager::MeshType::Skinned);
+			render_pipelines[(int)RenderTypes::SkinnedMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
+				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Skinned);
 			break;
 		}
 		default:
@@ -187,7 +189,7 @@ namespace OmegaEngine
 
 			// we need to add all the primitve sub meshes as renderables
 			for (auto& primitive : mesh.primitives) {
-				add_renderable<RenderableMesh>(comp_interface, mesh, primitive);
+				add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), mesh, primitive);
 			}
 		}
 		// and do the same for all children associated with this mesh

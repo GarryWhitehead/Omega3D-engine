@@ -97,7 +97,8 @@ namespace OmegaEngine
 			return this;
 		}
 
-		RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& component_manager,
+		RenderableMesh::RenderableMesh(vk::Device& device,
+										std::unique_ptr<ComponentInterface>& component_manager,
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::StaticMesh mesh, 
@@ -107,7 +108,7 @@ namespace OmegaEngine
 					void* instance_data,
 					RenderInterface* render_interface) override;
 
-		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device device,
+		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device& device,
 													std::unique_ptr<RendererBase>& renderer, 
 													std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 													std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,

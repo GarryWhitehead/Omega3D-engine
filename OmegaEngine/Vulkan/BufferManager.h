@@ -10,7 +10,9 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
+		void createBuffer(vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
+		uint32_t alignment_size(const uint32_t size);
 	}
 
 	// forward decleartions
@@ -18,16 +20,18 @@ namespace VulkanAPI
 
 	struct BufferUpdateEvent : public OmegaEngine::Event
 	{
-		BufferUpdateEvent(const char* _id, void* _data, uint32_t _size, MemoryUsage _usage) :
+		BufferUpdateEvent(const char* _id, void* _data, uint64_t _size, MemoryUsage _usage) :
 			id(_id),
 			data(_data),
 			size(_size),
 			mem_type(_usage)
 		{}
 
+		BufferUpdateEvent() {}
+
 		const char* id;
 		void* data = nullptr;
-		uint32_t size = 0;
+		uint64_t size = 0;
 		MemoryUsage mem_type;
 	};
 

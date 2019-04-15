@@ -35,58 +35,6 @@ namespace VulkanAPI
 		return static_cast<MemoryUsage>(static_cast<int>(a) | static_cast<int>(b));
 	}
 
-	class DynamicSegment
-	{
-	public:
-
-		DynamicSegment() {}
-		DynamicSegment(uint32_t _size, uint32_t _index, int32_t _block_id, uint32_t _offset);
-		~DynamicSegment();
-
-		uint32_t get_alignment_size() const
-		{
-			return alignment_size;
-		}
-
-		int32_t get_buffer_index() const
-		{
-			assert(buffer_index >= 0);
-			return buffer_index;
-		}
-
-		int32_t get_block_id() const
-		{
-			return block_id;
-		}
-
-		uint32_t get_offset() const
-		{
-			return offset;
-		}
-
-		bool add_object(uint32_t max)
-		{
-			++objects_allocated;
-			if (objects_allocated > max) {
-				return false;
-			}
-			return true;
-		}
-
-	private:
-
-		// how many objects allocated - if full,  then at present fails (TODO: Dont fail!!)
-		uint32_t objects_allocated = 0;
-
-		uint32_t alignment_size = 0;
-		int32_t buffer_index = -1;
-		
-		// memory segment info kept locally for ease of access
-		int32_t block_id = -1;
-		uint32_t offset = 0;
-	};
-
-
 	class MemorySegment
 	{
 	public:
@@ -167,10 +115,6 @@ namespace VulkanAPI
 		// Segment allocation functions and mapping
 		MemorySegment allocate(MemoryUsage usage, uint32_t size);
 		void mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset = 0);
-		
-		// dynamic buffer allocation
-		DynamicSegment* allocate_dynamic(uint32_t size, uint32_t objects);
-		void mapDataToDynamicSegment(DynamicSegment* segment, void *data, uint32_t totalSize, uint32_t offset = 0);
 
 		// useful diagnostic functions
 		void outputLog();
@@ -209,9 +153,6 @@ namespace VulkanAPI
 		Queue graph_queue;
 
 		std::vector<MemoryBlock> mem_blocks;
-
-		// dynamic buffer - there is a limit on the number of dynamic buffers vulkan allows
-		std::vector<MemorySegment> dynamic_buffers;
 	};
 
 	

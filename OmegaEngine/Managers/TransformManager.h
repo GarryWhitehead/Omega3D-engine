@@ -88,7 +88,7 @@ namespace OmegaEngine
 
 		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t alignment);
+		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t alignment, uint32_t skinned_alignment);
 
 		// object update functions
 		void update_obj_translation(Object& obj, OEMaths::vec4f trans);
@@ -108,6 +108,10 @@ namespace OmegaEngine
 
 		// skinned transform data
 		std::vector<SkinInfo> skinBuffer;
+
+		// store locally the aligned buffer sizes
+		uint32_t transform_aligned = 0;
+		uint32_t skinned_aligned = 0;
 
 		// transform data for each object which will be added to the GPU
 		TransformBufferInfo* transform_buffer_data = nullptr;

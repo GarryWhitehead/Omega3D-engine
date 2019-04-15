@@ -26,6 +26,7 @@ namespace VulkanAPI
 		tex_info.texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
 		tex_info.texture.map(*event.mapped_tex);
 		tex_info.sampler.create(device, event.sampler);
+		tex_info.binding = event.binding;
 
 		textures[event.id].push_back(tex_info);
 	}
@@ -52,13 +53,21 @@ namespace VulkanAPI
 		}
 	}
 
-	void VkTextureManager::bind_textures_to_layout(const char* id, DescriptorLayout* layout)
+	void VkTextureManager::bind_textures_to_layout(const char* id, DescriptorLayout* layout, uint32_t set_num)
 	{
 		assert(layout != nullptr);
 
 		if (texture_layouts.find(id) != texture_layouts.end()) {
-			LOGGER_INFO("Texture layout binding of id %s was already addeded.\n", id);
+			LOGGER_INFO("Texture layout binding of id %s was already registered.\n", id);
 		}
-		texture_layouts[id] = layout;
+		texture_layouts[id] = { layout, set_num };
+	}
+
+	VkTextureManager::TextureLayoutInfo VkTextureManager::get_texture_descr_layout(const char* id)
+	{
+		if (texture_layouts.find(id) == texture_layouts.end()) {
+			LOGGER_ERROR("Layout with id %s was not registered with vulkan texture manager.\n", id);
+		}
+		return texture_layouts[id];
 	}
 }

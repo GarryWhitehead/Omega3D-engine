@@ -3,11 +3,6 @@
 namespace VulkanAPI
 {
 
-	SemaphoreManager::SemaphoreManager()
-	{
-
-	}
-
 	SemaphoreManager::SemaphoreManager(vk::Device dev) :
 		device(dev)
 	{

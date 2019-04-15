@@ -15,9 +15,12 @@ namespace OmegaEngine
 
 	TransformManager::TransformManager()
 	{
+		transform_aligned = VulkanAPI::Util::alignment_size(sizeof(TransformBufferInfo));
+		skinned_aligned = VulkanAPI::Util::alignment_size(sizeof(SkinnedBufferInfo));
+
 		// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side
-		transform_buffer_data = (TransformBufferInfo*)Util::alloc_align(transform_buffer->get_alignment_size(), transform_buffer->get_alignment_size() * TransformBlockSize);
-		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_buffer->get_alignment_size(), skinned_buffer->get_alignment_size() * SkinnedBlockSize);
+		transform_buffer_data = (TransformBufferInfo*)Util::alloc_align(transform_aligned, transform_aligned * TransformBlockSize);
+		skinned_buffer_data = (SkinnedBufferInfo*)Util::alloc_align(skinned_aligned, skinned_aligned * SkinnedBlockSize);
 	}
 
 
@@ -93,10 +96,10 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t alignment)
+	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
-		TransformBufferInfo* transform_buff = transform_buffer_data + (alignment * transform_index);
-		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (alignment * transform_index);
+		TransformBufferInfo* transform_buff = transform_buffer_data + (transform_alignment * transform_index);
+		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (skinned_alignment * transform_index);
 		++transform_buffer_size;
 
 		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
@@ -119,7 +122,7 @@ namespace OmegaEngine
 			uint32_t skin_index = transformBuffer[transform_index].skin_index;
 
 			// prepare fianl output matrices buffer
-			uint32_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
+			uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
 			skinBuffer[skin_index].joint_matrices.resize(joint_size);
 			
 			skinned_buff->joint_count = joint_size;
@@ -147,7 +150,7 @@ namespace OmegaEngine
 
 			// it is possible that the object has no transform, so check this first
 			if (child.hasComponent<TransformManager>()) {
-				update_transform_recursive(obj_manager, child.get_manager_index<TransformManager>(), child, alignment);
+				update_transform_recursive(obj_manager, child.get_manager_index<TransformManager>(), child, transform_alignment, skinned_alignment);
 			}
 		}
 	}
@@ -161,7 +164,7 @@ namespace OmegaEngine
 
 		for (auto obj : object_list) {
 
-			update_transform_recursive(obj_manager, obj.second.get_manager_index<TransformManager>(), obj.second, transform_buffer->get_alignment_size());
+			update_transform_recursive(obj_manager, obj.second.get_manager_index<TransformManager>(), obj.second, transform_aligned, skinned_aligned);
 		}
 	}
 
@@ -174,11 +177,11 @@ namespace OmegaEngine
 
 			if (transform_buffer_size) {
 
-				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)&transform_buffer_data, transform_buffer->get_alignment_size() * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)&transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinned_buffer_size) {
-				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)&skinned_buffer_data, skinned_buffer->get_alignment_size() * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)&skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 

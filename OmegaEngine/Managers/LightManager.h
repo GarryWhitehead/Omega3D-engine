@@ -1,8 +1,6 @@
 #pragma once
 
 #include "Managers/ManagerBase.h"
-#include "Vulkan/MemoryAllocator.h"
-#include "Vulkan/Vulkan_Global.h"
 #include "OEMaths/OEMaths.h"
 
 #include "tiny_gltf.h"

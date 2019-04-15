@@ -9,6 +9,10 @@
 
 namespace VulkanAPI
 {
+	// forward declerations
+	class BufferManager;
+	class SemaphoreManager;
+	class VkTextureManager;
 
 	class Interface
 	{
@@ -43,6 +47,21 @@ namespace VulkanAPI
 			return swapchain_khr;
 		}
 
+		std::unique_ptr<BufferManager>& get_buffer_manager()
+		{
+			return buffer_manager;
+		}
+
+		std::unique_ptr<SemaphoreManager>& get_semaphore_manager()
+		{
+			return semaphore_manager;
+		}
+
+		std::unique_ptr<VkTextureManager>& get_texture_manager()
+		{
+			return texture_manager;
+		}
+
 	private:
 
 		vk::Device device;
@@ -55,6 +74,11 @@ namespace VulkanAPI
 
 		// the swap-chain
 		VulkanAPI::Swapchain swapchain_khr;
+
+		// managers
+		std::unique_ptr<BufferManager> buffer_manager;
+		std::unique_ptr<SemaphoreManager> semaphore_manager;
+		std::unique_ptr<VkTextureManager> texture_manager;
 	};
 
 }

@@ -16,16 +16,16 @@
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device dev, vk::PhysicalDevice physical, RenderConfig _render_config) :
+	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, RenderConfig _render_config, std::unique_ptr<VulkanAPI::Interface>& vk_interface) :
 		device(dev),
 		gpu(physical),
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
 		// set up semaphores for later
-		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
-		image_semaphore = semaphore_manager.get_semaphore();
-		present_semaphore = semaphore_manager.get_semaphore();
+		auto& semaphore_manager = vk_interface->get_semaphore_manager();
+		image_semaphore = semaphore_manager->get_semaphore();
+		present_semaphore = semaphore_manager->get_semaphore();
 	}
 
 
@@ -203,7 +203,7 @@ namespace OmegaEngine
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
-		auto& semaphore_manager = VulkanAPI::Global::Managers::semaphore_manager;
+		auto& semaphore_manager = vk_interface->get_semaphore_manager();
 	
 		auto& swapchain = vk_interface->get_swapchain();
 		auto& graph_queue = vk_interface->get_graph_queue();
@@ -214,17 +214,17 @@ namespace OmegaEngine
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
-		vk::Semaphore component_semaphore = semaphore_manager.get_semaphore();
+		vk::Semaphore component_semaphore = semaphore_manager->get_semaphore();
 		render_interface->render_components(render_config, first_renderpass, image_semaphore, component_semaphore);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		vk::Semaphore deferred_semaphore = semaphore_manager.get_semaphore();
+		vk::Semaphore deferred_semaphore = semaphore_manager->get_semaphore();
 		render_deferred(graph_queue, swapchain, component_semaphore, present_semaphore, render_interface);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {
 
-			vk::Semaphore post_semaphore = VulkanAPI::Global::Managers::semaphore_manager.get_semaphore();
+			vk::Semaphore post_semaphore = semaphore_manager->get_semaphore();
 			pp_interface->render();
 		}
 		
