@@ -11,30 +11,28 @@ namespace Util
 {
 	// function to generate a unique id for any given type.
 	// Needs making thread safe
-	template <typename T>
-	class unique_id
-	{
-		static char type_id;
+	uint32_t generateTypeId(const char* typeName);
 
+	template <typename T>
+	class TypeId
+	{
 	public:
-		static uintptr_t getId() 
+
+		static uint32_t id()
 		{
-			return reinterpret_cast<uintptr_t>(&type_id);
+#if defined(_MSC_VER)
+			return generateTypeId(__FUNCTION__);
+#elif defined(__GNUC__) 
+			return generateTypeId(__PRETTY_FUNCTION__);
+#else
+			return generateTypeId(typeid(T).name());
+#endif
 		}
+
+		typeid() = delete;
 	};
 
-	template <typename T>
-	char unique_id<T>::type_id;
-
-	// used for returning id of structs and classes
-	template<typename T>
-	inline char event_type_id()
-	{
-		std::unique_ptr<T> type;
-		return Util::unique_id<decltype(type)>::getId();
-	}
-
 	// aligned memory allocation
-	void* alloc_align(uint32_t alignment_size, uint32_t size);
+	void* alloc_align(size_t alignment_size, size_t size);
 
 }

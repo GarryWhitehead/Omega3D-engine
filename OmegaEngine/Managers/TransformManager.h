@@ -55,8 +55,8 @@ namespace OmegaEngine
 
 		struct SkinnedBufferInfo
 		{
+			OEMaths::mat4f joint_matrices[6];
 			OEMaths::mat4f mat;
-			OEMaths::mat4f joint_matrices[64];
 			float joint_count;
 		};
 
@@ -74,7 +74,7 @@ namespace OmegaEngine
 		// the number of models to allocate mem space for - this will need optimising
 		// could also be dynamic and be altered to the archietecture being used
 		const uint32_t TransformBlockSize = 100;
-		const uint32_t SkinnedBlockSize = 4;
+		const uint32_t SkinnedBlockSize = 100;
 
 		TransformManager();
 		~TransformManager();
@@ -110,8 +110,8 @@ namespace OmegaEngine
 		std::vector<SkinInfo> skinBuffer;
 
 		// store locally the aligned buffer sizes
-		uint32_t transform_aligned = 0;
-		uint32_t skinned_aligned = 0;
+		size_t transform_aligned = 0;
+		size_t skinned_aligned = 0;
 
 		// transform data for each object which will be added to the GPU
 		TransformBufferInfo* transform_buffer_data = nullptr;

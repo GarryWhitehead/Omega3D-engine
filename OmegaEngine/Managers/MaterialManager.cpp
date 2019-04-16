@@ -135,7 +135,7 @@ namespace OmegaEngine
 						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
 					}
 					else {
-						VulkanAPI::TextureUpdateEvent event{ mat.name, i, &tex_manager.get_empty_texture(), tex_manager.get_empty_sampler() };
+						VulkanAPI::TextureUpdateEvent event{ mat.name, i, &tex_manager.get_dummy_texture(), tex_manager.get_dummy_sampler() };
 						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
 					}
 				}

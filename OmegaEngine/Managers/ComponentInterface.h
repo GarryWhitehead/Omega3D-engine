@@ -29,7 +29,12 @@ namespace OmegaEngine
 		void registerManager(Args&&... args)
 		{
 			uint32_t man_id = Util::event_type_id<T>();
+			//if (managers.find(man_id) != managers.end()) {
+			//	LOGGER_ERROR("Fatal error! Duplicated manager ids!");
+			//}
+
 			managers[man_id] = std::make_unique<T>(std::forward<Args>(args)...);
+			assert(managers[man_id] != nullptr);
 			managers[man_id]->set_id(man_id);
 		}
 
@@ -39,6 +44,7 @@ namespace OmegaEngine
 			uint32_t man_id = Util::event_type_id<T>();
 			if (managers.find(man_id) != managers.end()) {
 				T* derived = dynamic_cast<T*>(managers[man_id].get());
+				assert(derived != nullptr);
 				return *derived;
 			}
 			// something is fundamentally wrong if this occurs
@@ -53,7 +59,7 @@ namespace OmegaEngine
 				managers.erase(man_id);
 			}
 			// continue for now but if we see this then somethings wrong
-			LOGGER_ERROR("Unable to erase manager from component interface.");
+			LOGGER_INFO("Unable to erase manager from component interface.");
 		}
 
 		template <typename T>

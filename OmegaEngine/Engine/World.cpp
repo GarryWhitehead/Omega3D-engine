@@ -48,9 +48,11 @@ namespace OmegaEngine
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
 			component_interface->registerManager<MeshManager>();
-
-			// the mesh manager also requires the material and texture managers
+		}
+		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL) {
 			component_interface->registerManager<MaterialManager>();
+		}
+		if (managers & Managers::OE_MANAGERS_TEXTURE || managers & Managers::OE_MANAGERS_ALL) {
 			component_interface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {

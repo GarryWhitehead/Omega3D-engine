@@ -11,6 +11,8 @@ namespace OmegaEngine
 
 	TextureManager::TextureManager()
 	{
+		// this won't be used, just required to keep vulkan happy
+		dummy_texture.create_empty_texture(1024, 1024, true);
 	}
 
 
@@ -133,6 +135,12 @@ namespace OmegaEngine
 			return VulkanAPI::SamplerType::NotDefined;
 		}
 		return samplers[set][index];
+	}
+
+	VulkanAPI::SamplerType TextureManager::get_dummy_sampler()
+	{
+		// this could be anything as its not used
+		return VulkanAPI::SamplerType::Clamp;
 	}
 
 }

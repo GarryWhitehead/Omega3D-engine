@@ -49,6 +49,7 @@ namespace OmegaEngine
 		uint32_t get_texture_index(uint32_t set, const char* name);
 		MappedTexture& get_texture(uint32_t set, int index);
 		VulkanAPI::SamplerType get_sampler(uint32_t set, uint32_t index);
+		VulkanAPI::SamplerType get_dummy_sampler();
 
 		void next_set()
 		{
@@ -60,6 +61,13 @@ namespace OmegaEngine
 			return current_set;
 		}
 
+		MappedTexture& get_dummy_texture()
+		{
+			return dummy_texture;
+		}
+
+		
+
 	private:
 
 		// keep a record of the current texture set
@@ -67,6 +75,9 @@ namespace OmegaEngine
 
 		std::unordered_map<uint32_t, std::vector<MappedTexture> > textures;
 		std::unordered_map<uint32_t, std::vector<VulkanAPI::SamplerType> > samplers;
+
+		// dummy texture
+		MappedTexture dummy_texture;
 	};
 
 }

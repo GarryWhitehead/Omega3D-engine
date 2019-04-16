@@ -25,7 +25,7 @@ namespace VulkanAPI
 			sampler(_sampler)
 		{}
 		
-		~TextureUpdateEvent() {}
+		TextureUpdateEvent() {}
 
 		const char* id;
 		uint32_t binding = 0;
