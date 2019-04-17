@@ -10,7 +10,7 @@
 namespace Util
 {
 	// function to generate a unique id for any given type.
-	// Needs making thread safe
+	// Uses crc-32c to  
 	uint32_t generateTypeId(const char* typeName);
 
 	template <typename T>
