@@ -60,8 +60,8 @@ namespace VulkanAPI
 		void enqueueDescrUpdate(DescrSetUpdateInfo& descr_update);
 		void enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type);
 
+		void update();
 		void update_descriptors();
-
 		void update_buffer(BufferUpdateEvent& event);
 
 		// returns a wrapper containing vulkan memory buffer information

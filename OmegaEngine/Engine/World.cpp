@@ -3,6 +3,7 @@
 #include "Utility/FileUtil.h"
 #include "Engine/Omega_SceneParser.h"
 #include "Engine/Omega_Config.h"
+#include "Engine/Omega_Global.h"
 #include "Objects/Object.h"
 #include "Managers/ComponentInterface.h"
 #include "Objects/ObjectManager.h"
@@ -14,6 +15,7 @@
 #include "Managers/MaterialManager.h"
 #include "Managers/TextureManager.h"
 #include "Managers/CameraManager.h"
+#include "Managers/EventManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Threading/ThreadPool.h"
@@ -110,13 +112,15 @@ namespace OmegaEngine
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis
-	
 		// animation
 		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
 
 		// all other managers
 		component_interface->update_managers(time, dt, objectManager);
-		
+
+		// check whether there are any queued events to deal with
+		Global::eventManager()->notifyQueued();
+
 		// add all objects as renderable targets unless they flagged otherwise 
 		render_interface->update_renderables(objectManager, component_interface);
 

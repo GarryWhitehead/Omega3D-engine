@@ -116,6 +116,11 @@ namespace VulkanAPI
 		}
 	}
 
+	void BufferManager::update()
+	{
+		update_descriptors();
+	}
+
 	Buffer BufferManager::get_buffer(const char* id)
 	{
 		if (buffers.find(id) == buffers.end()) {

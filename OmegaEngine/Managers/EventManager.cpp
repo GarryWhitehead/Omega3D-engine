@@ -32,6 +32,7 @@ namespace OmegaEngine
 
 				}
 			}
+			iter++;
 		}
 	}
 

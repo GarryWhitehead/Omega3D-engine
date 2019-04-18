@@ -21,7 +21,8 @@ namespace OmegaEngine
 	class Event
 	{
 	public:
-	
+		
+		Event() = default;
 		virtual ~Event() = default;
 
 		bool shouldDelete = true;
@@ -63,15 +64,15 @@ namespace OmegaEngine
 		}
 
 		template <typename EventType, typename... Args>
-		void addQueueEvent(EventType event, Args&&... args)
+		void addQueueEvent(Args&&... args)
 		{
 			uint64_t type = Util::TypeId<EventType>::id();
 			auto iter = eventQueue.find(type);
 
 			// does the event type exsist?
 			if (iter != eventQueue.end()) {
-				EventType* e = new EventType(std::forward<Args>(args)...);
-				iter->second.events.push_back(e);
+			
+				iter->second.events.emplace_back(new EventType(std::forward<Args>(args)...));
 			}
 		}
 

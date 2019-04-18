@@ -217,6 +217,9 @@ namespace OmegaEngine
 
 	void RenderInterface::render(double interpolation)
 	{
+		// update buffers before doing the rendering
+		vk_interface->get_buffer_manager()->update();
+
 		renderer->render(this, vk_interface);
 	}
 

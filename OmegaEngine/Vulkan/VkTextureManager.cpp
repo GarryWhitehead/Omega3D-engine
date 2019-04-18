@@ -22,6 +22,8 @@ namespace VulkanAPI
 
 	void VkTextureManager::update_texture(TextureUpdateEvent& event)
 	{
+		assert(event.mapped_tex != nullptr);
+
 		TextureInfo tex_info;
 		tex_info.texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
 		tex_info.texture.map(*event.mapped_tex);
