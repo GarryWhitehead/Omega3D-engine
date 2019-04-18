@@ -48,13 +48,14 @@ namespace VulkanAPI
 		}
 	}
 
-	BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, vk::Queue queue) :
+	BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, Queue queue) :
 		device(dev),
 		gpu(phys_dev),
 		graph_queue(queue)
 	{
 		OmegaEngine::Global::eventManager()->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::update_buffer>(this);
 		
+		memory_allocator = std::make_unique<MemoryAllocator>(device, gpu, graph_queue);
 	}
 
 	BufferManager::~BufferManager()
@@ -73,8 +74,10 @@ namespace VulkanAPI
 
 	void BufferManager::update_buffer(BufferUpdateEvent& event)
 	{
+		// sanity debugging checks
 		assert(event.data != nullptr);
-		
+		assert(event.size > 0);
+
 		MemorySegment buffer;
 
 		// check that the maanger doesn't already contain the same id - if it does then update the buffer
@@ -98,22 +101,25 @@ namespace VulkanAPI
 
 			for (auto& descr : descr_set_update_queue) {
 
-				if (buffers.find(descr.id) == buffers.end()) {
+				auto iter = buffers.begin();
+				while (iter != buffers.end()) {
 
-					LOGGER_ERROR("Buffer manager has no buffer with id: %s\n", descr.id);
+					if (std::strcmp(iter->first, descr.id) == 0) {
+						break;
+					}
+					iter++;
 				}
 
-				MemorySegment segment = buffers[descr.id];
-
-				if (descr.descr_type == vk::DescriptorType::eCombinedImageSampler) {
-
-				}
-				else {
+				if (iter != buffers.end()) {
+					// this may not potentially be an error. For instance, the skinned program state is set up though there is no data
+					// so the descriptors won't be updated.
+					MemorySegment segment = iter->second;
 					descr.set->write_set(descr.set_num, descr.binding, descr.descr_type, memory_allocator->get_memory_buffer(segment.get_id()), segment.get_offset(), segment.get_size());
 				}
-			
 			}
 		}
+
+		descr_set_update_queue.clear();
 	}
 
 	void BufferManager::update()
@@ -123,10 +129,18 @@ namespace VulkanAPI
 
 	Buffer BufferManager::get_buffer(const char* id)
 	{
-		if (buffers.find(id) == buffers.end()) {
-			LOGGER_ERROR("Error trying to find buffer id. Unable to proceed.\n");
+		auto iter = buffers.begin();
+		while (iter != buffers.end()) {
+
+			if (std::strcmp(iter->first, id) == 0) {
+				break;
+			}
+			iter++;
 		}
 
-		return { memory_allocator->get_memory_buffer(buffers[id].get_id()), buffers[id].get_offset() };
+		if (iter == buffers.end()) {
+			LOGGER_ERROR("Error. Unable to find id: %s within buffer list", id);
+		}
+		return { memory_allocator->get_memory_buffer(iter->second.get_id()), iter->second.get_offset() };
 	}
 }

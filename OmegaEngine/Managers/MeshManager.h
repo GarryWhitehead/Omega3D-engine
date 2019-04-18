@@ -89,8 +89,6 @@ namespace OmegaEngine
 			MeshType type;
 			Dimensions dimensions;
 
-			std::vector<uint32_t> indexBuffer;
-
 			// primitives assoicated with this mesh
 			std::vector<PrimitiveMesh> primitives;
 

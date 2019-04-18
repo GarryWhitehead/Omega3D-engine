@@ -48,10 +48,10 @@ namespace OmegaEngine
 
 		// actual vulkan buffers
 		if (mesh.type == MeshManager::MeshType::Static) {
-			buffer_manager->get_buffer("StaticVertices");
+			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("StaticVertices");
 		}
 		else {
-			buffer_manager->get_buffer("SkinnedVertices");
+			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("SkinnedVertices");
 		}
 		
 		mesh_instance_data->index_buffer = buffer_manager->get_buffer("Indices");
@@ -93,72 +93,69 @@ namespace OmegaEngine
 		}
 	}
 	
-	RenderInterface::ProgramState RenderableMesh::create_mesh_pipeline(vk::Device& device, 
+	void RenderableMesh::create_mesh_pipeline(vk::Device& device, 
 										std::unique_ptr<RendererBase>& renderer, 
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
-										MeshManager::MeshType type)
+										MeshManager::MeshType type,
+										std::unique_ptr<RenderInterface::ProgramState>& state)
 	{
-		
-		RenderInterface::ProgramState state;
-
 		// load shaders
 		if (type == MeshManager::MeshType::Static) {
-			if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 				LOGGER_ERROR("Unable to create static model shaders.");
 			}
 		}
 		else if (type == MeshManager::MeshType::Skinned) {
-			if (!state.shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 				LOGGER_ERROR("Unable to create skinned model shaders.");
 			}
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
-		state.shader.descriptor_buffer_reflect(state.descr_layout, state.buffer_layout);
-		state.descr_layout.create(device, TOTAL_MATERIAL_SETS);
+		state->shader.descriptor_image_reflect(state->descr_layout, state->image_layout);
+		state->shader.descriptor_buffer_reflect(state->descr_layout, state->buffer_layout);
+		state->descr_layout.create(device, TOTAL_MATERIAL_SETS);
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
-		for (auto& buffer : state.buffer_layout) {
-			state.descr_set.init(device, state.descr_layout.get_layout(buffer.set), state.descr_layout.get_pool(), buffer.set);
+		for (auto& buffer : state->buffer_layout) {
+			state->descr_set.init(device, state->descr_layout.get_layout(buffer.set), state->descr_layout.get_pool(), buffer.set);
 		}
 
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
-		for (auto& layout : state.buffer_layout) {
+		for (auto& layout : state->buffer_layout) {
 			
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				buffer_manager->enqueueDescrUpdate("Camera", &state.descr_set, layout.set, layout.binding, layout.type);
+				buffer_manager->enqueueDescrUpdate("Camera", &state->descr_set, layout.set, layout.binding, layout.type);
 			}
-			if (layout.name == "Dynamic_StaticMeshUbo") {
-				buffer_manager->enqueueDescrUpdate("DynamicStaticMesh", &state.descr_set, layout.set, layout.binding, layout.type);
+			else if (layout.name == "Dynamic_StaticMeshUbo") {
+				buffer_manager->enqueueDescrUpdate("Transform", &state->descr_set, layout.set, layout.binding, layout.type);
 			}
-			if (layout.name == "Dynamic_SkinnedUbo") {
-				buffer_manager->enqueueDescrUpdate("DynamicSkinned", &state.descr_set, layout.set, layout.binding, layout.type);
+			else if (layout.name == "Dynamic_SkinnedUbo") {
+				buffer_manager->enqueueDescrUpdate("SkinnedTransform", &state->descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 
 		// inform the texture manager the layout of textures associated with the mesh shader
 		// TODO : automate this somehow rather than hard coded values
 		const uint8_t material_set = 0;
-		texture_manager->bind_textures_to_layout("Mesh", &state.descr_layout, material_set);
+		texture_manager->bind_textures_to_layout("Mesh", &state->descr_layout, material_set);
 
-		state.shader.pipeline_layout_reflect(state.pl_layout);
-		state.pl_layout.create(device, state.descr_layout.get_layout());
+		state->shader.pipeline_layout_reflect(state->pl_layout);
+		state->pl_layout.create(device, state->descr_layout.get_layout());
 
 		// create the graphics pipeline
-		state.shader.pipeline_reflection(state.pipeline);
+		state->shader.pipeline_reflection(state->pipeline);
 
-		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
-		state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
-		state.pipeline.create(device, renderer->get_first_pass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.set_depth_state(VK_TRUE, VK_TRUE);
+		state->pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
+		state->pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
+		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
+		state->pipeline.create(device, renderer->get_first_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
 
-		return state;
 	}
 
 
@@ -175,12 +172,12 @@ namespace OmegaEngine
 			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
 		}
 
-		RenderInterface::ProgramState mesh_pipeline;
+		RenderInterface::ProgramState* mesh_pipeline;
 		if (instance_data->type == MeshManager::MeshType::Static) {
-			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh);
+			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
 		}
 		else if (instance_data->type == MeshManager::MeshType::Skinned) {
-			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh);
+			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
 		}
 		else {
 			LOGGER_ERROR("Unsupported mesh type!");
@@ -188,14 +185,14 @@ namespace OmegaEngine
 
 		// merge the material set with the mesh ubo sets
 		std::vector<vk::DescriptorSet> material_set = instance_data->descr_set.get();
-		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline.descr_set.get();
+		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline->descr_set.get();
 		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
-		cmd_buffer.bind_pipeline(mesh_pipeline.pipeline);
-		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline.pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
-		cmd_buffer.bind_push_block(mesh_pipeline.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
+		cmd_buffer.bind_pipeline(mesh_pipeline->pipeline);
+		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_push_block(mesh_pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
 		vk::DeviceSize offset = { instance_data->vertex_offset + instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

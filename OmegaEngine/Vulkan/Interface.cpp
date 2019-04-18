@@ -27,7 +27,7 @@ namespace VulkanAPI
 		compute_queue.set_swapchain(swapchain_khr.get());
 
 		// establish vulkan managers
-		buffer_manager = std::make_unique<BufferManager>(device, gpu, graphics_queue.get());
+		buffer_manager = std::make_unique<BufferManager>(device, gpu, graphics_queue);
 		semaphore_manager = std::make_unique<SemaphoreManager>(device);
 		texture_manager = std::make_unique<VkTextureManager>(device, gpu, graphics_queue);
 	}

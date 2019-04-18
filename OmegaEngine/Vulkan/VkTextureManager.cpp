@@ -30,7 +30,7 @@ namespace VulkanAPI
 		tex_info.sampler.create(device, event.sampler);
 		tex_info.binding = event.binding;
 
-		textures[event.id.c_str()].push_back(tex_info);
+		textures[event.id].push_back(tex_info);
 	}
 
 	void VkTextureManager::update_descriptors()
@@ -46,11 +46,20 @@ namespace VulkanAPI
 	
 	void VkTextureManager::update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num)
 	{
-		if (textures.find(id) == textures.end()) {
-			LOGGER_ERROR("An id of %s has not been registered with the vulkan texture manager.\n", id);
+		auto iter = textures.begin();
+		while (iter != textures.end()) {
+
+			if (iter->first == id) {
+				break;
+			}
+			iter++;
 		}
 
-		for (auto& texture : textures[id]) {
+		if (iter == textures.end()) {
+			LOGGER_ERROR("An id of %s has not been registered with the vulkan texture manager.\n", id);
+		}
+		
+		for (auto& texture : iter->second) {
 			set.write_set(set_num, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.get_sampler(), texture.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
@@ -59,17 +68,35 @@ namespace VulkanAPI
 	{
 		assert(layout != nullptr);
 
-		if (texture_layouts.find(id) != texture_layouts.end()) {
+		auto iter = texture_layouts.begin();
+		while (iter != texture_layouts.end()) {
+
+			if (std::strcmp(iter->first,id) == 0) {
+				break;
+			}
+			iter++;
+		}
+
+		if (iter != texture_layouts.end()) {
 			LOGGER_INFO("Texture layout binding of id %s was already registered.\n", id);
 		}
 		texture_layouts[id] = { layout, set_num };
 	}
 
-	VkTextureManager::TextureLayoutInfo VkTextureManager::get_texture_descr_layout(const char* id)
+	VkTextureManager::TextureLayoutInfo& VkTextureManager::get_texture_descr_layout(const char* id)
 	{
-		if (texture_layouts.find(id) == texture_layouts.end()) {
+		auto iter = texture_layouts.begin();
+		while (iter != texture_layouts.end()) {
+
+			if (std::strcmp(iter->first, id) == 0) {
+				break;
+			}
+			iter++;
+		}
+
+		if (iter == texture_layouts.end()) {
 			LOGGER_ERROR("Layout with id %s was not registered with vulkan texture manager.\n", id);
 		}
-		return texture_layouts[id];
+		return iter->second;
 	}
 }

@@ -9,6 +9,11 @@ namespace VulkanAPI
 	{
 	}
 
+	MemoryAllocator::MemoryAllocator(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue)
+	{
+		init(dev, physical, queue);
+	}
+
 	MemoryAllocator::~MemoryAllocator()
 	{
 		destroyAllBlocks();

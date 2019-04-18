@@ -108,11 +108,12 @@ namespace OmegaEngine
 					void* instance_data,
 					RenderInterface* render_interface) override;
 
-		static RenderInterface::ProgramState create_mesh_pipeline(vk::Device& device,
-													std::unique_ptr<RendererBase>& renderer, 
-													std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-													std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
-													MeshManager::MeshType type);
+		static void create_mesh_pipeline(vk::Device& device,
+										std::unique_ptr<RendererBase>& renderer, 
+										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
+										MeshManager::MeshType type,
+										std::unique_ptr<RenderInterface::ProgramState>& state);
 
 	private:
 

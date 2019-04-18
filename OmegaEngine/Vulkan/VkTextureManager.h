@@ -73,7 +73,7 @@ namespace VulkanAPI
 		// updates a single descriptor set with a texture set identified by its unique id
 		void update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
 
-		TextureLayoutInfo get_texture_descr_layout(const char* id);
+		TextureLayoutInfo& get_texture_descr_layout(const char* id);
 
 	private:
 
@@ -82,7 +82,7 @@ namespace VulkanAPI
 		VulkanAPI::Queue graph_queue;
 
 		// textures - can be grouped (i.e. materials) or single textures
-		std::unordered_map<const char*, std::vector<TextureInfo> > textures;
+		std::unordered_map<std::string, std::vector<TextureInfo> > textures;
 
 		// a queue of descriptor sets which need updating on a per frame basis - not used yet, maybe remove?
 		std::vector<DescrSetUpdateInfo> descr_set_update_queue;

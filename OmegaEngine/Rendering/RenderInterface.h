@@ -97,9 +97,9 @@ namespace OmegaEngine
 			renderer = std::make_unique<T>(std::forward<Args>(args)...);
 		}
 
-		ProgramState& get_render_pipeline(RenderTypes type)
+		std::unique_ptr<ProgramState>& get_render_pipeline(RenderTypes type)
 		{
-			return render_pipelines[(int)type];
+			return render_states[(int)type];
 		}
 
 		void load_render_config();
@@ -134,7 +134,7 @@ namespace OmegaEngine
 		bool rebuildCmdBuffers = false;
 
 		// all the pipelines and shaders for each renderable type
-		std::array<ProgramState, (int)OmegaEngine::RenderTypes::Count> render_pipelines;
+		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
 
 		// Vulkan stuff for rendering the compoennts
 		VulkanAPI::CommandBuffer cmd_buffer;

@@ -112,23 +112,24 @@ namespace OmegaEngine
 
 	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface)
 	{
-		VulkanAPI::Shader shader;
+		auto& state = std::make_unique<ProgramState>();
+
 		switch (type) {
 		case OmegaEngine::RenderTypes::StaticMesh: {
-			render_pipelines[(int)RenderTypes::StaticMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
-				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Static);
+			 RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
+				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Static, state);
+			 render_states[(int)RenderTypes::StaticMesh] = std::move(state);
 			break;
 		}
 		case OmegaEngine::RenderTypes::SkinnedMesh: {
-			render_pipelines[(int)RenderTypes::SkinnedMesh] = RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
-				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Skinned);
+			RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
+				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Skinned, state);
+			render_states[(int)RenderTypes::SkinnedMesh] = std::move(state);
 			break;
 		}
 		default:
 			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
 		}
-
-		render_pipelines[(int)type].shader = shader;
 	}
 
 	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore)

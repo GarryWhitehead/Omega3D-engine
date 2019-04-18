@@ -54,7 +54,7 @@ namespace VulkanAPI
 			vk::DescriptorType descr_type;
 		};
 
-		BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, vk::Queue qeuue);
+		BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, Queue qeuue);
 		~BufferManager();
 
 		void enqueueDescrUpdate(DescrSetUpdateInfo& descr_update);
@@ -72,7 +72,7 @@ namespace VulkanAPI
 		// local vulkan instance
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		vk::Queue graph_queue;
+		Queue graph_queue;
 
 		std::unique_ptr<MemoryAllocator> memory_allocator;
 

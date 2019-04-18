@@ -99,6 +99,7 @@ namespace VulkanAPI
 		static constexpr float ALLOC_BLOCK_SIZE_HOST = 6.4e+7f;				// host block deaults to 64mb
 
 		MemoryAllocator();
+		MemoryAllocator(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue);
 		~MemoryAllocator();
 
 		// no copy assignment allowed

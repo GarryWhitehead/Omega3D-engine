@@ -155,20 +155,20 @@ namespace OmegaEngine
 			const tinygltf::Buffer& indBuffer = model.buffers[indBufferView.buffer];
 
 			uint32_t indexCount = static_cast<uint32_t>(indAccessor.count);
-			uint32_t indexOffset = static_cast<uint32_t>(staticMesh.indexBuffer.size());
+			uint32_t indexOffset = static_cast<uint32_t>(indices.size());
 
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
 			switch (indAccessor.componentType) {
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
+				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
 				break;
 			}
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
+				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
 				break;
 			}
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, staticMesh.indexBuffer, indexOffset);
+				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
 				break;
 			}
 			default:
@@ -199,14 +199,16 @@ namespace OmegaEngine
 	{
 		if (isDirty) {
 			
+			// static and skinned meshes if any
 			if (!static_vertices.empty()) {
 				VulkanAPI::BufferUpdateEvent event{ "StaticVertices", (void*)&static_vertices, static_vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
-			if (!static_vertices.empty()) {
+			if (!skinned_vertices.empty()) {
 				VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", (void*)&skinned_vertices, skinned_vertices.size() * sizeof(SkinnedVertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
+			
 			// and the indices....
 			VulkanAPI::BufferUpdateEvent event{ "Indices", (void*)&indices, indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
