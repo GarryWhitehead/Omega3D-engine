@@ -28,10 +28,10 @@ namespace OmegaEngine
 		template<typename T, typename... Args>
 		void registerManager(Args&&... args)
 		{
-			uint32_t man_id = Util::event_type_id<T>();
-			//if (managers.find(man_id) != managers.end()) {
-			//	LOGGER_ERROR("Fatal error! Duplicated manager ids!");
-			//}
+			uint32_t man_id = Util::TypeId<T>::id();
+			if (managers.find(man_id) != managers.end()) {
+				LOGGER_ERROR("Fatal error! Duplicated manager ids!");
+			}
 
 			managers[man_id] = std::make_unique<T>(std::forward<Args>(args)...);
 			assert(managers[man_id] != nullptr);
@@ -41,7 +41,7 @@ namespace OmegaEngine
 		template <typename T>
 		T& getManager()
 		{
-			uint32_t man_id = Util::event_type_id<T>();
+			uint32_t man_id = Util::TypeId<T>::id();
 			if (managers.find(man_id) != managers.end()) {
 				T* derived = dynamic_cast<T*>(managers[man_id].get());
 				assert(derived != nullptr);
@@ -54,7 +54,7 @@ namespace OmegaEngine
 		template <typename T>
 		void removeManager()
 		{
-			uint32_t man_id = Util::event_type_id<T>();
+			uint32_t man_id = Util::TypeId<T>::id();
 			if (managers.find(man_id) != manager.end()) {
 				managers.erase(man_id);
 			}

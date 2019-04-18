@@ -33,7 +33,7 @@ namespace OmegaEngine
 		template <typename T>
 		uint32_t get_manager_index()
 		{
-			uint32_t man_id = Util::event_type_id<T>();
+			uint32_t man_id = Util::TypeId<T>::id();
 			assert(components.find(man_id) != components.end());
 			return components[man_id];
 		}
@@ -41,14 +41,14 @@ namespace OmegaEngine
 		template <typename T>
 		void add_manager(uint32_t index)
 		{
-			uint32_t man_id = Util::event_type_id<T>();
+			uint32_t man_id = Util::TypeId<T>::id();
 			components[man_id] = index;
 		}
 
 		template <typename T>
 		bool hasComponent()
 		{
-			uint32_t man_id = Util::event_type_id<T>();
+			uint32_t man_id = Util::TypeId<T>::id();
 			if (components.find(man_id) == components.end()) {
 				return false;
 			}

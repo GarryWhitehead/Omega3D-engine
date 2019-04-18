@@ -51,7 +51,7 @@ namespace OmegaEngine
 		void registerListener(T* listener)
 		{
 			// generate unique id for event type
-			uint64_t type = Util::event_type_id<EventType>();
+			uint64_t type = Util::TypeId<EventType>::id();
 			if (eventQueue.find(type) == eventQueue.end()) {
 				EventData event_data;
 				event_data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
@@ -65,7 +65,7 @@ namespace OmegaEngine
 		template <typename EventType, typename... Args>
 		void addQueueEvent(EventType event, Args&&... args)
 		{
-			uint64_t type = Util::event_type_id<EventType>();
+			uint64_t type = Util::TypeId<EventType>::id();
 			auto iter = eventQueue.find(type);
 
 			// does the event type exsist?
@@ -79,7 +79,7 @@ namespace OmegaEngine
 		void instantNotification(EventType event)
 		{
 			// find all listeners that are registered with this event type
-			uint64_t type = Util::event_type_id<EventType>();
+			uint64_t type = Util::TypeId<EventType>::id();
 			auto iter = eventQueue.find(type);
 
 			if (iter != eventQueue.end()) {

@@ -28,8 +28,6 @@ namespace Util
 			return generateTypeId(typeid(T).name());
 #endif
 		}
-
-		typeid() = delete;
 	};
 
 	// aligned memory allocation
