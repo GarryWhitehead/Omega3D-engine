@@ -18,16 +18,17 @@ namespace VulkanAPI
 
 	struct TextureUpdateEvent : public OmegaEngine::Event
 	{
-		TextureUpdateEvent(const char* _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
+		TextureUpdateEvent(std::string _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
 			id(_id),
 			binding(_binding),
 			mapped_tex(_mapped),
 			sampler(_sampler)
-		{}
+		{
+		}
 		
 		//TextureUpdateEvent() {}
 		
-		const char* id;
+		std::string id;
 		uint32_t binding = 0;
 		OmegaEngine::MappedTexture* mapped_tex = nullptr;
 		SamplerType sampler;

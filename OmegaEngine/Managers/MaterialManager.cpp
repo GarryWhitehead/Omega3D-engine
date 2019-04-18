@@ -21,7 +21,7 @@ namespace OmegaEngine
 	void MaterialManager::addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager)
 	{
 		MaterialInfo mat;
-		mat.name = gltf_mat.name.c_str();
+		mat.name = _strdup(gltf_mat.name.c_str());
 
 		// go through each material type and see if they exsist - we are only saving the index
 		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) {

@@ -29,7 +29,7 @@ namespace OmegaEngine
 				}
 
 				if (event->shouldDelete) {
-
+					
 				}
 			}
 			iter++;

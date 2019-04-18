@@ -30,7 +30,7 @@ namespace VulkanAPI
 		tex_info.sampler.create(device, event.sampler);
 		tex_info.binding = event.binding;
 
-		textures[event.id].push_back(tex_info);
+		textures[event.id.c_str()].push_back(tex_info);
 	}
 
 	void VkTextureManager::update_descriptors()
