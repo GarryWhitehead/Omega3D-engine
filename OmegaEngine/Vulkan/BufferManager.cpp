@@ -80,10 +80,19 @@ namespace VulkanAPI
 
 		MemorySegment buffer;
 
-		// check that the maanger doesn't already contain the same id - if it does then update the buffer
-		if (buffers.find(event.id) != buffers.end()) {
+		auto iter = buffers.begin();
+		while (iter != buffers.end()) {
 
-			buffer = buffers[event.id];
+			if (std::strcmp(iter->first, event.id) == 0) {
+				break;
+			}
+			iter++;
+		}
+
+		// check that the maanger doesn't already contain the same id - if it does then update the buffer
+		if (iter != buffers.end()) {
+
+			buffer = iter->second;
 			memory_allocator->mapDataToSegment(buffer, event.data, event.size);
 		}
 		else {

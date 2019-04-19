@@ -26,8 +26,8 @@ namespace OmegaEngine
 		
 		StaticMesh staticMesh;
 
-		uint32_t global_vertex_count = 0;
-		uint32_t global_index_count = 0;
+		uint32_t local_vertex_offset = 0;
+		uint32_t local_index_offset = 0;
 
 		// get all the primitives associated with this mesh
 		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
@@ -123,7 +123,7 @@ namespace OmegaEngine
 					
 					skinned_vertices.push_back(vertex);
 				}
-				global_vertex_count += posAccessor.count;
+				local_vertex_offset += posAccessor.count;
 			}
 			else {
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
@@ -146,7 +146,7 @@ namespace OmegaEngine
 					mesh_type = MeshType::Static;
 					static_vertices.push_back(vertex);
 				}
-				global_vertex_count += posAccessor.count;
+				local_vertex_offset += posAccessor.count;
 			}
 			
 			// Now obtain the indicies data from the gltf file
@@ -175,18 +175,18 @@ namespace OmegaEngine
 				throw std::runtime_error("Unable to parse indices data. Unsupported accessor component type.");
 			}
 
-			global_index_count += indAccessor.count;
-
 			staticMesh.type = mesh_type;
-			PrimitiveMesh prim(mesh_type, indexOffset, indexCount, (uint32_t)primitive.material, primMin, primMax);
+			PrimitiveMesh prim(mesh_type, local_index_offset, indexCount, (uint32_t)primitive.material, primMin, primMax);
 			staticMesh.primitives.push_back(prim);
+
+			local_index_offset += indexCount;
 		}
 
-		staticMesh.vertex_buffer_offset = global_vertex_offset;
-		global_vertex_offset += global_vertex_count;
+		staticMesh.vertex_buffer_offset = global_vertex_offset * sizeof(Vertex);
+		global_vertex_offset += local_vertex_offset;
 
-		staticMesh.index_buffer_offset = global_index_offset;
-		global_index_offset += global_index_count;
+		staticMesh.index_buffer_offset = global_index_offset * sizeof(uint32_t);
+		global_index_offset += local_index_offset;
 
 		// sort offsets 
 		meshBuffer.push_back(staticMesh);
@@ -201,16 +201,16 @@ namespace OmegaEngine
 			
 			// static and skinned meshes if any
 			if (!static_vertices.empty()) {
-				VulkanAPI::BufferUpdateEvent event{ "StaticVertices", (void*)&static_vertices, static_vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+				VulkanAPI::BufferUpdateEvent event{ "StaticVertices", static_vertices.data(), static_vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (!skinned_vertices.empty()) {
-				VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", (void*)&skinned_vertices, skinned_vertices.size() * sizeof(SkinnedVertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", skinned_vertices.data(), skinned_vertices.size() * sizeof(SkinnedVertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			
 			// and the indices....
-			VulkanAPI::BufferUpdateEvent event{ "Indices", (void*)&indices, indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+			VulkanAPI::BufferUpdateEvent event{ "Indices", indices.data(), indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 
 			isDirty = false;
