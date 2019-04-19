@@ -177,11 +177,11 @@ namespace OmegaEngine
 
 			if (transform_buffer_size) {
 
-				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)&transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinned_buffer_size) {
-				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)&skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 

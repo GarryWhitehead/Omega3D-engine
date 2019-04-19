@@ -32,6 +32,7 @@ namespace OmegaEngine
 		// get all the primitives associated with this mesh
 		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
 
+			uint32_t vertex_start = static_cast<uint32_t>(static_vertices.size());
 			const tinygltf::Primitive& primitive = mesh.primitives[i];
 
 			// if this primitive has no indices associated with it, no point in continuing
@@ -155,20 +156,19 @@ namespace OmegaEngine
 			const tinygltf::Buffer& indBuffer = model.buffers[indBufferView.buffer];
 
 			uint32_t indexCount = static_cast<uint32_t>(indAccessor.count);
-			uint32_t indexOffset = static_cast<uint32_t>(indices.size());
-
+			
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
 			switch (indAccessor.componentType) {
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
+				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
+				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
 			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, indices, indexOffset);
+				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
 			default:
@@ -182,7 +182,7 @@ namespace OmegaEngine
 			local_index_offset += indexCount;
 		}
 
-		staticMesh.vertex_buffer_offset = global_vertex_offset * sizeof(Vertex);
+		staticMesh.vertex_buffer_offset = global_vertex_offset;
 		global_vertex_offset += local_vertex_offset;
 
 		staticMesh.index_buffer_offset = global_index_offset * sizeof(uint32_t);

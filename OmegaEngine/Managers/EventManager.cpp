@@ -20,16 +20,21 @@ namespace OmegaEngine
 
 			auto& listeners = iter->second.listeners;
 
-			for (auto& event : iter->second.events) {
+			uint32_t index = 0;
+			while (index < iter->second.events.size()) {
 
-				for (uint32_t i = 0; i < listeners.size(); ++i) {
+				for (uint32_t j = 0; j < listeners.size(); ++j) {
 
-					listeners[i].listener_func(listeners[i].listener_handle, *event);
+					listeners[j].listener_func(listeners[j].listener_handle, *iter->second.events[index]);
 
 				}
 
-				if (event->shouldDelete) {
+				if (iter->second.events[index]->shouldDelete) {
 					
+					iter->second.events.erase(iter->second.events.begin() + index);
+				}
+				else {
+					index++;
 				}
 			}
 			iter++;
