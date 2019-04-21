@@ -182,13 +182,13 @@ namespace OmegaEngine
 			uint32_t index_count = 0;
 
 			// we also need to keep a linerised form of the objects for matching up joint indices later
-			std::vector<Object> linearised_objects;
+			std::unordered_map<uint32_t, Object> linearised_objects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
 
 				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false, vertex_count, index_count);
+				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false, scene.nodes[i], vertex_count, index_count);
 			}
 
 			// skinning info
@@ -203,17 +203,13 @@ namespace OmegaEngine
 	}
 
 	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, 
-							std::vector<Object>& linearised_objects, 
+							std::unordered_map<uint32_t, Object>& linearised_objects, 
 							OEMaths::mat4f world_transform, 
 							std::unique_ptr<ObjectManager>& objManager, 
 							Object* obj, bool childObject,
+							uint32_t node_index,
 							uint32_t& global_vertex_count, uint32_t& global_index_count)
 	{
-
-		// add all local and world transforms to the transform manager - also combines skinning info
-		auto &transform_man = component_interface->getManager<TransformManager>();
-		transform_man.addGltfTransform(node, obj, world_transform);
-
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
 		Object* parentObject;
@@ -224,21 +220,26 @@ namespace OmegaEngine
 			parentObject = obj;
 		}
 
+		// add all local and world transforms to the transform manager - also combines skinning info
+		auto &transform_man = component_interface->getManager<TransformManager>();
+		transform_man.addGltfTransform(node, parentObject, world_transform);
+
 		// if this node has children, recursively extract their info
 		if (node.children.size() > 0) {
 			for (uint32_t i = 0; i < node.children.size(); ++i) {
-				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, parentObject, true, global_vertex_count, global_index_count);
+				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, 
+					parentObject, true, node.children[i], global_vertex_count, global_index_count);
 			}
 		}
 
 		// if the node has mesh data...
 		if (node.mesh > -1) {
 			auto& mesh_manager = component_interface->getManager<MeshManager>();
-			mesh_manager.addGltfData(model, node, obj, global_vertex_count, global_index_count);
+			mesh_manager.addGltfData(model, node, parentObject, global_vertex_count, global_index_count);
 		}
 
 		// create the linearised list of objects - parents and children
-		linearised_objects.push_back(*obj);
+		linearised_objects[node_index] = *parentObject;
 	}
 
 }

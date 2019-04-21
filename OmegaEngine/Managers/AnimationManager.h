@@ -69,7 +69,7 @@ namespace OmegaEngine
 		AnimationManager();
 		~AnimationManager();
 
-		void addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects);
+		void addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects);
 
 		void update_anim(double time, TransformManager& transform_man);
 

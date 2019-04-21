@@ -24,7 +24,7 @@ namespace OmegaEngine
 			freeIds.pop_front();
 		}
 		else {
-			id = ++nextId;
+			id = nextId++;
 		}
 		
 		newObject.set_id(id);
@@ -44,7 +44,7 @@ namespace OmegaEngine
 			freeIds.pop_front();
 		}
 		else {
-			id = ++nextId;
+			id = nextId++;
 		}
 
 		newObject.set_id(id);

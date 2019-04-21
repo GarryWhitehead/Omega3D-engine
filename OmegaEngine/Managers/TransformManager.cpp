@@ -62,7 +62,7 @@ namespace OmegaEngine
 		obj->add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
-	void TransformManager::addGltfSkin(tinygltf::Model& model, std::vector<Object>& linearised_objects)
+	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
 	{
 		for (tinygltf::Skin& skin : model.skins) {
 			SkinInfo skinInfo;
@@ -107,10 +107,10 @@ namespace OmegaEngine
 		uint64_t parent_id = obj.get_parent();
 		while (parent_id != UINT64_MAX) {
 			
-			Object parent_obj = obj_manager->get_object(parent_id);
-			uint32_t parent_index = parent_obj.get_manager_index<TransformManager>();
+			Object* parent_obj = obj_manager->get_object(parent_id);
+			uint32_t parent_index = parent_obj->get_manager_index<TransformManager>();
 			mat = transformBuffer[parent_index].get_local() * mat;
-			parent_id = parent_obj.get_parent();
+			parent_id = parent_obj->get_parent();
 		}
 
 		transformBuffer[transform_index].transform = mat;

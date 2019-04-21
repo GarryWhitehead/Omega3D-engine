@@ -62,7 +62,7 @@ namespace OmegaEngine
 		return static_cast<float>(phase);
 	}
 
-	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::vector<Object>& linearised_objects)
+	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
 	{
 
 		for (tinygltf::Animation& anim : model.animations) {
@@ -194,7 +194,7 @@ namespace OmegaEngine
 
 				uint32_t time_index = sampler.index_from_time(time_secs);
 				float phase = sampler.get_phase(time_secs);
-				//printf("phase = %f     index = %i\n", phase, time_index);
+				printf("phase = %f     index = %i\n", phase, time_index);
 				switch (channel.pathType) {
 				case Channel::PathType::Translation: {
 					OEMaths::vec4f trans = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
