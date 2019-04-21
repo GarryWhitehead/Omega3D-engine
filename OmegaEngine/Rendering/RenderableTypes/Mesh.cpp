@@ -194,7 +194,7 @@ namespace OmegaEngine
 		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
 		cmd_buffer.bind_push_block(mesh_pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
-		vk::DeviceSize offset = { instance_data->vertex_offset + instance_data->vertex_buffer.offset };
+		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);
 		cmd_buffer.bind_index_buffer(instance_data->index_buffer.buffer, instance_data->index_buffer.offset + instance_data->index_offset + instance_data->index_primitive_offset);
 		cmd_buffer.draw_indexed(instance_data->index_primitive_count);
