@@ -22,18 +22,18 @@ namespace OmegaEngine
 	{
 		uint32_t index = 0;
 		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
-		if (timestamp_count <= 1 || time < time_stamps.front()) {
+		if (timestamp_count <= 1 || time <= time_stamps.front()) {
 			index = 0;
 		}
 		else if (time >= time_stamps.back()) {
-			index = timestamp_count - 2;
+			index = timestamp_count - 1;
 		}
 		else {
 			uint32_t end_time = 0;
 			while (time > time_stamps[end_time]) {
 				++end_time;
 			}
-			index = end_time;
+			index = end_time - 1;
 		}
 		return index;
 	}
@@ -42,7 +42,7 @@ namespace OmegaEngine
 	{
 		double phase = 0.0;
 		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
-		if (timestamp_count <= 1 || time < time_stamps.front()) {
+		if (timestamp_count <= 1 || time <= time_stamps.front()) {
 			phase = 0.0f;
 		}
 		else if (time >= time_stamps.back()) {
@@ -53,11 +53,10 @@ namespace OmegaEngine
 			while (time > time_stamps[end_time]) {
 				++end_time;
 			}
-			uint32_t index = end_time;
 
-			uint32_t denom = (time_stamps[end_time + 1] - time_stamps[index]);
+			uint32_t denom = (time_stamps[end_time] - time_stamps[end_time - 1]);
 			denom = denom == 0 ? 1 : denom;
-			phase = (time - time_stamps[index]) / denom;
+			phase = (time - time_stamps[end_time - 1]) / denom;
 		}
 		return static_cast<float>(phase);
 	}
@@ -184,16 +183,16 @@ namespace OmegaEngine
 
 		for (auto& anim : animationBuffer) {
 
+			float anim_time = std::fmod(time_secs - anim.start, anim.end);
+			printf("anin time = %f      time = %f     ", anim_time, time_secs);
 			// go through each target an, caluclate the animation transform and update on the transform manager side
 			for (auto& channel : anim.channels) {
 
 				Object obj = channel.object;
 				Sampler& sampler = anim.samplers[channel.samplerIndex];
 
-				float anim_time = std::fmod(time_secs - anim.start, sampler.time_stamps.back());
-
-				uint32_t time_index = sampler.index_from_time(time_secs);
-				float phase = sampler.get_phase(time_secs);
+				uint32_t time_index = sampler.index_from_time(anim_time);
+				float phase = sampler.get_phase(anim_time);
 				printf("phase = %f     index = %i\n", phase, time_index);
 				switch (channel.pathType) {
 				case Channel::PathType::Translation: {

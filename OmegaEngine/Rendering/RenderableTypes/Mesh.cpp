@@ -24,7 +24,8 @@ namespace OmegaEngine
 									std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
 									std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 									MeshManager::StaticMesh mesh, 
-									MeshManager::PrimitiveMesh primitive) :
+									MeshManager::PrimitiveMesh primitive,
+									Object& obj) :
 		RenderableBase(RenderTypes::StaticMesh)
 	{
 		
@@ -56,6 +57,9 @@ namespace OmegaEngine
 		
 		mesh_instance_data->index_buffer = buffer_manager->get_buffer("Indices");
 		
+		// dynamic buffer offset to point at the transform matrix for this mesh
+		mesh_instance_data->transform_dynamic_offset = component_interface->getManager<TransformManager>().get_transform(obj);
+
 		// per face indicies
 		mesh_instance_data->index_primitive_offset = primitive.indexBase;
 		mesh_instance_data->index_primitive_count = primitive.indexCount;

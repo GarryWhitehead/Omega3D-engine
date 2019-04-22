@@ -5,6 +5,7 @@
 #include "Omega_Common.h"
 #include "Vulkan/BufferManager.h"
 #include "Managers/EventManager.h"
+#include "Managers/MeshManager.h"
 #include "Engine/Omega_Global.h"
 #include "Utility/GeneralUtil.h"
 #include <cstdint>
@@ -42,7 +43,7 @@ namespace OmegaEngine
 		}
 		if (node.rotation.size() == 4) {
 			OEMaths::quatf q = OEMaths::convert_quatf<double>(node.rotation.data());
-			local_trs.rot = OEMaths::quat_to_mat4(q);
+			local_trs.rotation = OEMaths::quat_to_mat4(q);
 		}
 		transform.local_trs = local_trs;
 
@@ -53,7 +54,7 @@ namespace OmegaEngine
 			transform.local = OEMaths::convert_mat4((float*)node.rotation.data());
 		}
 		
-		// also add index to skinning information in applicable
+		// also add index to skinning information if applicable
 		transform.skin_index = node.skin;
 
 		transformBuffer.push_back(transform);
@@ -98,48 +99,51 @@ namespace OmegaEngine
 
 	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
-		TransformBufferInfo* transform_buff = transform_buffer_data + (transform_alignment * transform_index);
-		SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (skinned_alignment * transform_index);
-		++transform_buffer_size;
+		if (obj.hasComponent<MeshManager>()) {
 
-		OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
+			TransformBufferInfo* transform_buff = transform_buffer_data + (transform_alignment * transform_index);
+			SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (skinned_alignment * transform_index);
+			++transform_buffer_size;
 
-		uint64_t parent_id = obj.get_parent();
-		while (parent_id != UINT64_MAX) {
-			
-			Object* parent_obj = obj_manager->get_object(parent_id);
-			uint32_t parent_index = parent_obj->get_manager_index<TransformManager>();
-			mat = transformBuffer[parent_index].get_local() * mat;
-			parent_id = parent_obj->get_parent();
-		}
+			OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
 
-		transformBuffer[transform_index].transform = mat;
-		transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 4.0f, 4.0f, 4.0f });
+			uint64_t parent_id = obj.get_parent();
+			while (parent_id != UINT64_MAX) {
 
-		if (transformBuffer[transform_index].skin_index > -1) {
-			
-			++skinned_buffer_size;
-			uint32_t skin_index = transformBuffer[transform_index].skin_index;
+				Object* parent_obj = obj_manager->get_object(parent_id);
+				uint32_t parent_index = parent_obj->get_manager_index<TransformManager>();
+				mat = transformBuffer[parent_index].get_local() * mat;
+				parent_id = parent_obj->get_parent();
+			}
 
-			// prepare fianl output matrices buffer
-			uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
-			skinBuffer[skin_index].joint_matrices.resize(joint_size);
-			
-			skinned_buff->joint_count = joint_size;
+			transformBuffer[transform_index].transform = mat;
+			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 
-			// transform to local space
-			OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
+			if (transformBuffer[transform_index].skin_index > -1) {
 
-			for (uint32_t i = 0; i < joint_size; ++i) {
-				Object joint_obj = skinBuffer[skin_index].joints[i];
+				++skinned_buffer_size;
+				uint32_t skin_index = transformBuffer[transform_index].skin_index;
 
-				uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
-				OEMaths::mat4f joint_mat = transformBuffer[joint_index].get_local() * skinBuffer[skin_index].invBindMatrices[i];
+				// prepare fianl output matrices buffer
+				uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
+				skinBuffer[skin_index].joint_matrices.resize(joint_size);
 
-				// transform joint to local (joint) space
-				OEMaths::mat4f local_mat = inv_mat * joint_mat;
-				skinBuffer[skin_index].joint_matrices[i] = local_mat;
-				skinned_buff->joint_matrices[i] = local_mat;
+				skinned_buff->joint_count = joint_size;
+
+				// transform to local space
+				OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
+
+				for (uint32_t i = 0; i < joint_size; ++i) {
+					Object joint_obj = skinBuffer[skin_index].joints[i];
+
+					uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
+					OEMaths::mat4f joint_mat = transformBuffer[joint_index].get_local() * skinBuffer[skin_index].invBindMatrices[i];
+
+					// transform joint to local (joint) space
+					OEMaths::mat4f local_mat = inv_mat * joint_mat;
+					skinBuffer[skin_index].joint_matrices[i] = local_mat;
+					skinned_buff->joint_matrices[i] = local_mat;
+				}
 			}
 		}
 
@@ -201,14 +205,14 @@ namespace OmegaEngine
 	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
 	{
 		uint32_t index = obj.get_manager_index<TransformManager>();
-		transformBuffer[index].local_trs.trans = OEMaths::vec3f(scale.x, scale.y, scale.z);
+		transformBuffer[index].local_trs.scale = OEMaths::vec3f(scale.x, scale.y, scale.z);
 		is_dirty = true;
 	}
 
 	void TransformManager::update_obj_rotation(Object& obj, OEMaths::quatf rot)
 	{
 		uint32_t index = obj.get_manager_index<TransformManager>();
-		transformBuffer[index].local_trs.rot = OEMaths::quat_to_mat4(rot);
+		transformBuffer[index].local_trs.rotation = OEMaths::quat_to_mat4(rot);
 		is_dirty = true;
 	}
 }

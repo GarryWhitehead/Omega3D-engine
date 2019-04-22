@@ -87,9 +87,8 @@ namespace OmegaEngine
 			// vulkan stuff for material textures
 			VulkanAPI::DescriptorSet descr_set;
 
-			// offset into transform buffer
+			// offset into transform buffer for this mesh
 			uint32_t transform_dynamic_offset = 0;
-			uint32_t skinned_dynamic_offset = 0;
 		};
 		
 		void* get_handle() override
@@ -102,7 +101,8 @@ namespace OmegaEngine
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::StaticMesh mesh, 
-										MeshManager::PrimitiveMesh primitive); 
+										MeshManager::PrimitiveMesh primitive,
+										Object& obj); 
 
 		void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
 					void* instance_data,

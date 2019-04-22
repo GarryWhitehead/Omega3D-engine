@@ -29,12 +29,12 @@ namespace OmegaEngine
 			{
 				OEMaths::vec3f trans;
 				OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
-				OEMaths::mat4f rot;
+				OEMaths::mat4f rotation;
 			};
 
 			OEMaths::mat4f get_local()
 			{
-				return OEMaths::translate_mat4(local_trs.trans) * OEMaths::scale_mat4(local_trs.scale) * local;	// TODO: Add rotation!
+				return OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);// *local;
 			}
 
 			LocalTRS local_trs;
@@ -82,7 +82,7 @@ namespace OmegaEngine
 		// update per frame 
 		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
 
-		// gltf loading - The skinning data is going in the transform manager for now as is needed most here for calculating skinning transforms
+		// gltf loading - The skinning data is going in the transform manager for now as it's needed most here for calculating skinning transforms
 		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects);
 		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform);
 
@@ -102,10 +102,20 @@ namespace OmegaEngine
 			return transformBuffer[transform_index].transform;
 		}
 
+		uint32_t get_buffer_offset(uint32_t id)
+		{
+			// the transform buffer stores both parents and children so unfortunately we need to iterate through
+			// to find the id. TODO: Maybe change this to an unordered map for quicker look up
+			if (transformBuffer.find(id) == transformBuffer.end()) {
+				LOGGER_ERROR("Unable to find object data withan id of %i within transform manager.", id);
+			}
+			return transformBuffer[id].buffer_offset;
+		}
+
 	private:
 
-		// transform data for static meshes
-		std::vector<TransformData> transformBuffer;
+		// transform data for static meshes - stored with object id for faster look up
+		std::unordered_map<uint32_t, TransformData> transformBuffer;
 
 		// skinned transform data
 		std::vector<SkinInfo> skinBuffer;
