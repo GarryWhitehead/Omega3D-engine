@@ -55,9 +55,9 @@ namespace OmegaEngine
 				float specularGlossiness = 1.0f;
 				float baseColour = 1.0f;
 				float roughness = 1.0f;
-				float diffuse = 1.0f;
 				float metallic = 1.0f;
-				float specular = 1.0f;
+				OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
+				OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
 				float alphaMask = (float)AlphaMode::Opaque;
 				float alphaMaskCutOff = 1.0f;
 			} factors;

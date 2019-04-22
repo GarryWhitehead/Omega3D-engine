@@ -104,9 +104,25 @@ namespace OmegaEngine
 			}
 			if (extension->second.Has("diffuseFactor")) {
 				auto factor = extension->second.Get("diffuseFactor");
+				auto value = factor.Get(0);
+				mat.factors.diffuse.x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				value = factor.Get(1);
+				mat.factors.diffuse.y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				value = factor.Get(2);
+				mat.factors.diffuse.z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				value = factor.Get(3);
+				mat.factors.diffuse.w = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				mat.usingSpecularGlossiness = true;
 			}
 			if (extension->second.Has("specularFactor")) {
 				auto factor = extension->second.Get("specularFactor");
+				auto value = factor.Get(0);
+				mat.factors.specular.x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				value = factor.Get(1);
+				mat.factors.specular.y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				value = factor.Get(2);
+				mat.factors.specular.z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				mat.usingSpecularGlossiness = true;
 			}
 		}
 

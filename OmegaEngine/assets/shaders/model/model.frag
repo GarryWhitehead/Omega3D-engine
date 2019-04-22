@@ -138,14 +138,25 @@ void main()
 
 	else {
 		// Values from specular glossiness workflow are converted to metallic roughness
+
+		vec4 diffuse;
+		vec3 specular;
+
 		if (material.haveMrMap > 0) {
 			roughness = 1.0 - texture(mrMap, mr_uv).a;
+			specular = texture(mrMap, mr_uv).rgb;
+
 		} else {
 			roughness = 0.0;
+			specular = vec3(0.0);
 		}
-
-		vec4 diffuse = texture(baseColourMap, baseColour_uv);
-		vec3 specular = texture(mrMap, mr_uv).rgb;
+		
+		if (material.haveBaseColourMap > 0) {
+			diffuse = texture(baseColourMap, baseColour_uv);
+		}
+		else {
+			diffuse = material.baseColorFactor;
+		}
 
 		float maxSpecular = max(max(specular.r, specular.g), specular.b);
 
