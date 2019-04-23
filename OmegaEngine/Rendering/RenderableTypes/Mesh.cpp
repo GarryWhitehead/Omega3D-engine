@@ -58,8 +58,12 @@ namespace OmegaEngine
 		mesh_instance_data->index_buffer = buffer_manager->get_buffer("Indices");
 		
 		// dynamic buffer offset to point at the transform matrix for this mesh
-		mesh_instance_data->transform_dynamic_offset = component_interface->getManager<TransformManager>().get_transform(obj);
-
+		auto& transform_manager = component_interface->getManager<TransformManager>();
+		mesh_instance_data->transform_dynamic_offset = transform_manager.get_transform_offset(obj.get_id());
+		if (mesh.type == MeshManager::MeshType::Skinned) {
+			mesh_instance_data->skinned_dynamic_offset = transform_manager.get_skinned_offset(obj.get_id());
+		}
+		
 		// per face indicies
 		mesh_instance_data->index_primitive_offset = primitive.indexBase;
 		mesh_instance_data->index_primitive_count = primitive.indexCount;

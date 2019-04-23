@@ -190,7 +190,8 @@ namespace OmegaEngine
 
 			// we need to add all the primitve sub meshes as renderables
 			for (auto& primitive : mesh.primitives) {
-				add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), mesh, primitive);
+				add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(), 
+						vk_interface->get_texture_manager(), mesh, primitive, obj);
 			}
 		}
 		// and do the same for all children associated with this mesh

@@ -103,9 +103,9 @@ namespace OmegaEngine
 
 			TransformBufferInfo* transform_buff = transform_buffer_data + (transform_alignment * transform_index);
 			SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (skinned_alignment * transform_index);
-			++transform_buffer_size;
-
+			
 			OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
+			transformBuffer[transform_index].set_transform_offset(transform_buffer_size * transform_alignment);
 
 			uint64_t parent_id = obj.get_parent();
 			while (parent_id != UINT64_MAX) {
@@ -118,10 +118,14 @@ namespace OmegaEngine
 
 			transformBuffer[transform_index].transform = mat;
 			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+			
+			++transform_buffer_size;
 
 			if (transformBuffer[transform_index].skin_index > -1) {
 
 				++skinned_buffer_size;
+				transformBuffer[transform_index].set_skinned_offset(skinned_buffer_size * skinned_alignment);
+
 				uint32_t skin_index = transformBuffer[transform_index].skin_index;
 
 				// prepare fianl output matrices buffer

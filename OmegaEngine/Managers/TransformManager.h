@@ -37,6 +37,16 @@ namespace OmegaEngine
 				return OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);// *local;
 			}
 
+			void set_transform_offset(const uint32_t offset)
+			{
+				transform_buffer_offset = offset;
+			}
+
+			void set_skinned_offset(const uint32_t offset)
+			{
+				skinned_buffer_offset = offset;
+			}
+
 			LocalTRS local_trs;
 
 			OEMaths::mat4f local;
@@ -45,6 +55,10 @@ namespace OmegaEngine
 
 			// an index to skinning data for this particular node - negative number indicates no skin info
 			uint32_t skin_index = -1;
+
+			// buffer offsets for tranform and skinned data
+			uint32_t transform_buffer_offset = 0;
+			uint32_t skinned_buffer_offset = 0;
 		};
 
 		// data that will be hosted on the gpu side
@@ -102,14 +116,24 @@ namespace OmegaEngine
 			return transformBuffer[transform_index].transform;
 		}
 
-		uint32_t get_buffer_offset(uint32_t id)
+		uint32_t get_transform_offset(uint32_t id)
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
-			// to find the id. TODO: Maybe change this to an unordered map for quicker look up
+			// to find the id.
 			if (transformBuffer.find(id) == transformBuffer.end()) {
 				LOGGER_ERROR("Unable to find object data withan id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].buffer_offset;
+			return transformBuffer[id].transform_buffer_offset;
+		}
+
+		uint32_t get_skinned_offset(uint32_t id)
+		{
+			// the transform buffer stores both parents and children so unfortunately we need to iterate through
+			// to find the id.
+			if (transformBuffer.find(id) == transformBuffer.end()) {
+				LOGGER_ERROR("Unable to find object data withan id of %i within transform manager.", id);
+			}
+			return transformBuffer[id].skinned_buffer_offset;
 		}
 
 	private:
