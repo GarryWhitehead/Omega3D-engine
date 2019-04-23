@@ -89,6 +89,7 @@ namespace OmegaEngine
 
 			// offset into transform buffer for this mesh
 			uint32_t transform_dynamic_offset = 0;
+			uint32_t skinned_dynamic_offset = 0;
 		};
 		
 		void* get_handle() override

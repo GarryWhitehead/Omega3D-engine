@@ -177,14 +177,14 @@ namespace OmegaEngine
 		} 
 	}
 
-	void AnimationManager::update_anim(double time, TransformManager& transform_man)
+	void AnimationManager::update_anim(double time, double dt, TransformManager& transform_man)
 	{
 		double time_secs = time / 1000000000;
 
 		for (auto& anim : animationBuffer) {
 
 			float anim_time = std::fmod(time_secs - anim.start, anim.end);
-			printf("anin time = %f      time = %f     ", anim_time, time_secs);
+			printf("anin time = %f  time = %f  ", anim_time, time_secs, dt);
 			// go through each target an, caluclate the animation transform and update on the transform manager side
 			for (auto& channel : anim.channels) {
 
@@ -193,7 +193,7 @@ namespace OmegaEngine
 
 				uint32_t time_index = sampler.index_from_time(anim_time);
 				float phase = sampler.get_phase(anim_time);
-				printf("phase = %f     index = %i\n", phase, time_index);
+				printf("phase = %f  index = %i\n", phase, time_index);
 				switch (channel.pathType) {
 				case Channel::PathType::Translation: {
 					OEMaths::vec4f trans = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);

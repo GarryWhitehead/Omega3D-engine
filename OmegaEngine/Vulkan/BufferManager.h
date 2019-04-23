@@ -27,12 +27,21 @@ namespace VulkanAPI
 			mem_type(_usage)
 		{}
 
+		BufferUpdateEvent(const char* _id, void* _data, uint64_t _size, MemoryUsage _usage, bool flush) :
+			id(_id),
+			data(_data),
+			size(_size),
+			mem_type(_usage),
+			flush_memory(flush)
+		{}
+
 		BufferUpdateEvent() {}
 
 		const char* id;
 		void* data = nullptr;
 		uint64_t size = 0;
 		MemoryUsage mem_type;
+		bool flush_memory = false;
 	};
 
 	struct Buffer

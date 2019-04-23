@@ -112,6 +112,7 @@ namespace VulkanAPI
 		void createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
 		vk::Buffer& get_memory_buffer(const uint32_t id);
+		vk::DeviceMemory& get_device_memory(const uint32_t id);
 
 		// Segment allocation functions and mapping
 		MemorySegment allocate(MemoryUsage usage, uint32_t size);

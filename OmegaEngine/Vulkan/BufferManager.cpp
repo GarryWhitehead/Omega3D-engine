@@ -94,6 +94,11 @@ namespace VulkanAPI
 
 			buffer = iter->second;
 			memory_allocator->mapDataToSegment(buffer, event.data, event.size);
+
+			if (event.flush_memory) {
+				vk::MappedMemoryRange mem_range(memory_allocator->get_device_memory(buffer.get_id()), (uint64_t)buffer.get_offset(), event.size);
+				device.flushMappedMemoryRanges(1, &mem_range);
+			}
 		}
 		else {
 			// otherwise create a new memory segment

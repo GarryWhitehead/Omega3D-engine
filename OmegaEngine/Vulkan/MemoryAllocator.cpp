@@ -63,6 +63,12 @@ namespace VulkanAPI
 		return mem_blocks[id].block_buffer;
 	}
 
+	vk::DeviceMemory& MemoryAllocator::get_device_memory(const uint32_t id)
+	{
+		assert(id < mem_blocks.size());
+		return mem_blocks[id].block_mem;
+	}
+
 	uint32_t MemoryAllocator::allocateBlock(MemoryType type, uint32_t size)
 	{
 		// default block allocation is as follows: 

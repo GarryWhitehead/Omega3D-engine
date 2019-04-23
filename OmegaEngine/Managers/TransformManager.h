@@ -102,8 +102,7 @@ namespace OmegaEngine
 
 		// local transform and skinning update
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, 
-			Object& obj, uint32_t alignment, uint32_t skinned_alignment);
+		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t alignment, uint32_t skinned_alignment);
 
 		// object update functions
 		void update_obj_translation(Object& obj, OEMaths::vec4f trans);
@@ -121,7 +120,7 @@ namespace OmegaEngine
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
 			if (transformBuffer.find(id) == transformBuffer.end()) {
-				LOGGER_ERROR("Unable to find object data withan id of %i within transform manager.", id);
+				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
 			return transformBuffer[id].transform_buffer_offset;
 		}
@@ -131,7 +130,7 @@ namespace OmegaEngine
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
 			if (transformBuffer.find(id) == transformBuffer.end()) {
-				LOGGER_ERROR("Unable to find object data withan id of %i within transform manager.", id);
+				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
 			return transformBuffer[id].skinned_buffer_offset;
 		}

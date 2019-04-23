@@ -113,7 +113,7 @@ namespace OmegaEngine
 	{
 		// update on a per-frame basis
 		// animation
-		animation_manager->update_anim(time, component_interface->getManager<TransformManager>());
+		animation_manager->update_anim(time, dt, component_interface->getManager<TransformManager>());
 
 		// all other managers
 		component_interface->update_managers(time, dt, objectManager);

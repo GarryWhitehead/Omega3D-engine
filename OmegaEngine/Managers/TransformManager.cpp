@@ -57,7 +57,7 @@ namespace OmegaEngine
 		// also add index to skinning information if applicable
 		transform.skin_index = node.skin;
 
-		transformBuffer.push_back(transform);
+		transformBuffer[obj->get_id()] = transform;
 
 		// add to the list of entites
 		obj->add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
@@ -97,36 +97,38 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, const uint32_t transform_index, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
+	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
 		if (obj.hasComponent<MeshManager>()) {
 
-			TransformBufferInfo* transform_buff = transform_buffer_data + (transform_alignment * transform_index);
-			SkinnedBufferInfo* skinned_buff = skinned_buffer_data + (skinned_alignment * transform_index);
+			uint32_t id = obj.get_id();
+
+			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
+			SkinnedBufferInfo* skinned_buff = (SkinnedBufferInfo*)((uint64_t)skinned_buffer_data + (skinned_alignment * skinned_buffer_size));
 			
-			OEMaths::mat4f mat = transformBuffer[transform_index].get_local();
-			transformBuffer[transform_index].set_transform_offset(transform_buffer_size * transform_alignment);
+			OEMaths::mat4f mat = transformBuffer[id].get_local();
+			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
 
 			uint64_t parent_id = obj.get_parent();
 			while (parent_id != UINT64_MAX) {
 
 				Object* parent_obj = obj_manager->get_object(parent_id);
-				uint32_t parent_index = parent_obj->get_manager_index<TransformManager>();
-				mat = transformBuffer[parent_index].get_local() * mat;
+				uint32_t id = parent_obj->get_id();
+				mat = transformBuffer[id].get_local() * mat;
 				parent_id = parent_obj->get_parent();
 			}
 
-			transformBuffer[transform_index].transform = mat;
+			transformBuffer[id].transform = mat;
 			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
 			++transform_buffer_size;
 
-			if (transformBuffer[transform_index].skin_index > -1) {
+			if (transformBuffer[id].skin_index > -1) {
 
 				++skinned_buffer_size;
-				transformBuffer[transform_index].set_skinned_offset(skinned_buffer_size * skinned_alignment);
+				transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
 
-				uint32_t skin_index = transformBuffer[transform_index].skin_index;
+				uint32_t skin_index = transformBuffer[id].skin_index;
 
 				// prepare fianl output matrices buffer
 				uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
@@ -158,7 +160,7 @@ namespace OmegaEngine
 
 			// it is possible that the object has no transform, so check this first
 			if (child.hasComponent<TransformManager>()) {
-				update_transform_recursive(obj_manager, child.get_manager_index<TransformManager>(), child, transform_alignment, skinned_alignment);
+				update_transform_recursive(obj_manager, child, transform_alignment, skinned_alignment);
 			}
 		}
 	}
@@ -172,7 +174,7 @@ namespace OmegaEngine
 
 		for (auto obj : object_list) {
 
-			update_transform_recursive(obj_manager, obj.second.get_manager_index<TransformManager>(), obj.second, transform_aligned, skinned_aligned);
+			update_transform_recursive(obj_manager, obj.second, transform_aligned, skinned_aligned);
 		}
 	}
 
@@ -185,11 +187,11 @@ namespace OmegaEngine
 
 			if (transform_buffer_size) {
 
-				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, true };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinned_buffer_size) {
-				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, true };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 
@@ -199,8 +201,8 @@ namespace OmegaEngine
 	
 	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)
 	{
-		uint32_t index = obj.get_manager_index<TransformManager>();
-		transformBuffer[index].local_trs.trans = OEMaths::vec3f(trans.x, trans.y, trans.z);
+		uint32_t id = obj.get_id();
+		transformBuffer[id].local_trs.trans = OEMaths::vec3f(trans.x, trans.y, trans.z);
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		is_dirty = true;		
@@ -208,15 +210,15 @@ namespace OmegaEngine
 
 	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
 	{
-		uint32_t index = obj.get_manager_index<TransformManager>();
-		transformBuffer[index].local_trs.scale = OEMaths::vec3f(scale.x, scale.y, scale.z);
+		uint32_t id = obj.get_id();
+		transformBuffer[id].local_trs.scale = OEMaths::vec3f(scale.x, scale.y, scale.z);
 		is_dirty = true;
 	}
 
 	void TransformManager::update_obj_rotation(Object& obj, OEMaths::quatf rot)
 	{
-		uint32_t index = obj.get_manager_index<TransformManager>();
-		transformBuffer[index].local_trs.rotation = OEMaths::quat_to_mat4(rot);
+		uint32_t id = obj.get_id();
+		transformBuffer[id].local_trs.rotation = OEMaths::quat_to_mat4(rot);
 		is_dirty = true;
 	}
 }
