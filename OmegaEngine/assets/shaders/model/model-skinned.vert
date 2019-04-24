@@ -7,7 +7,7 @@ layout (location = 3) in vec3 inNormal;
 layout (location = 4) in vec4 inWeights;
 layout (location = 5) in ivec4 inBoneId;
 
-#define MAX_BONES 256
+#define MAX_BONES 6
 
 layout (set = 1, binding = 0) uniform CameraUbo
 {
@@ -22,7 +22,6 @@ layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
 
 layout (set = 3, binding = 0) uniform Dynamic_SkinnedUbo
 {
-	mat4 matrix;
 	mat4 bones[MAX_BONES];
 	float jointCount;
 } skinned_ubo;
@@ -46,7 +45,7 @@ void main()
 	boneTransform += skinned_ubo.bones[inBoneId[2]] * inWeights[2];
 	boneTransform += skinned_ubo.bones[inBoneId[3]] * inWeights[3];
 		
-	mat4 normalTransform = mesh_ubo.modelMatrix * skinned_ubo.matrix * boneTransform;
+	mat4 normalTransform = mesh_ubo.modelMatrix * boneTransform;
 	pos = normalTransform * vec4(inPos, 1.0);
 
     // inverse-transpose for non-uniform scaling - expensive computations here - maybe remove this?

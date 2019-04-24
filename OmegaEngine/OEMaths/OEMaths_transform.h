@@ -153,24 +153,26 @@ namespace OEMaths
 	// matrix conversion  ===============================================================================
 
 	template <typename T>
-	inline mat4<T> convert_mat4(T* data)
+	inline mat4<T> convert_mat4(void* data)
 	{
 		assert(data != nullptr);
 
 		mat4<T> mat;
+		T* ptr = (T*)data;
 
-		for (uint8_t row = 0; row < 4; ++row) {
-
+		for (uint8_t col = 0; col < 4; ++col) {
+			
 			vec4<T> vec;
-			vec.x = *data;
-			data += sizeof(T);
-			vec.y = *data;
-			data += sizeof(T);
-			vec.z = *data;
-			data += sizeof(T);
-			vec.w = *data;
+			vec.x = *ptr;
+			++ptr;
+			vec.y = *ptr;
+			++ptr;
+			vec.z = *ptr;
+			++ptr;
+			vec.w = *ptr;
+			++ptr;
 
-			mat(vec, row);
+			mat(vec, col);
 		}
 		return mat;
 	}
@@ -307,7 +309,7 @@ namespace OEMaths
 	{
 		mat4<T> inv;
 		mat4<T> result;
-		mat4<T> det;
+		T det;
 
 		inv[0] = m[5]  * m[10] * m[15] - 
 				m[5]  * m[11] * m[14] - 

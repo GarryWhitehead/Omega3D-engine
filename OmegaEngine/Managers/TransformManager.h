@@ -32,9 +32,9 @@ namespace OmegaEngine
 				OEMaths::mat4f rotation;
 			};
 
-			OEMaths::mat4f get_local()
+			OEMaths::mat4f calculate_local()
 			{
-				return OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);// *local;
+				return OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);
 			}
 
 			void set_transform_offset(const uint32_t offset)
@@ -47,6 +47,7 @@ namespace OmegaEngine
 				skinned_buffer_offset = offset;
 			}
 
+			// decomposed form
 			LocalTRS local_trs;
 
 			OEMaths::mat4f local;
@@ -54,7 +55,7 @@ namespace OmegaEngine
 			OEMaths::mat4f transform;
 
 			// an index to skinning data for this particular node - negative number indicates no skin info
-			uint32_t skin_index = -1;
+			int32_t skin_index = -1;
 
 			// buffer offsets for tranform and skinned data
 			uint32_t transform_buffer_offset = 0;
@@ -70,7 +71,6 @@ namespace OmegaEngine
 		struct SkinnedBufferInfo
 		{
 			OEMaths::mat4f joint_matrices[6];
-			OEMaths::mat4f mat;
 			float joint_count;
 		};
 
@@ -101,6 +101,7 @@ namespace OmegaEngine
 		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform);
 
 		// local transform and skinning update
+		OEMaths::mat4f create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager);
 		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
 		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t alignment, uint32_t skinned_alignment);
 

@@ -163,7 +163,6 @@ namespace OmegaEngine
 		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
 		state->pipeline.create(device, renderer->get_first_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
-
 	}
 
 
@@ -171,8 +170,6 @@ namespace OmegaEngine
 								void* instance,
 								RenderInterface* render_interface)
 	{
-		// calculate offsets into dynamic buffer - these need to be in the same order as they are in the sets
-
 		MeshInstance* instance_data = (MeshInstance*)instance;
 
 		std::vector<uint32_t> dynamic_offsets { instance_data->transform_dynamic_offset };
@@ -184,11 +181,8 @@ namespace OmegaEngine
 		if (instance_data->type == MeshManager::MeshType::Static) {
 			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
 		}
-		else if (instance_data->type == MeshManager::MeshType::Skinned) {
-			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
-		}
 		else {
-			LOGGER_ERROR("Unsupported mesh type!");
+			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
 		}
 
 		// merge the material set with the mesh ubo sets

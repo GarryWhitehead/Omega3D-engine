@@ -33,25 +33,38 @@ namespace OmegaEngine
 	{
 		TransformData transform;
 		TransformData::LocalTRS local_trs;
+		bool is_decomposed = false;
 
 		// we will save the matrix and the decomposed form
 		if (node.translation.size() == 3) {
-			local_trs.trans = OEMaths::convert_vec3<float>(node.translation.data());
+			local_trs.trans = OEMaths::vec3f{ (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] };
+			is_decomposed = true;
 		}
 		if (node.scale.size() == 3) {
-			local_trs.scale = OEMaths::convert_vec3<float>(node.scale.data());
+			local_trs.scale = OEMaths::vec3f{ (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] };
+			is_decomposed = true;
 		}
 		if (node.rotation.size() == 4) {
 			OEMaths::quatf q = OEMaths::convert_quatf<double>(node.rotation.data());
 			local_trs.rotation = OEMaths::quat_to_mat4(q);
+			is_decomposed = true;
 		}
+
+		// store the decomposed form locally
 		transform.local_trs = local_trs;
+
+		// and calculate matrix form if required
+		if (is_decomposed) {
+			transform.calculate_local();
+		}
 
 		// world transform is obtained from the omega scene file
 		transform.world = world_transform;
 
 		if (node.matrix.size() == 16) {
-			transform.local = OEMaths::convert_mat4((float*)node.rotation.data());
+			for (uint8_t i = 0; i < node.matrix.size(); ++i) {
+				transform.local.data[i] = node.matrix[i];
+			}
 		}
 		
 		// also add index to skinning information if applicable
@@ -97,6 +110,23 @@ namespace OmegaEngine
 		}
 	}
 
+	OEMaths::mat4f TransformManager::create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager)
+	{
+		OEMaths::mat4f mat = transformBuffer[obj.get_id()].local;
+
+		uint64_t parent_id = obj.get_parent();
+		while (parent_id != UINT64_MAX) {
+
+			Object* parent_obj = obj_manager->get_object(parent_id);
+
+			uint32_t id = parent_obj->get_id();
+			mat = transformBuffer[id].local * mat;
+			parent_id = parent_obj->get_parent();
+		}
+
+		return mat;
+	}
+
 	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
 		if (obj.hasComponent<MeshManager>()) {
@@ -106,17 +136,9 @@ namespace OmegaEngine
 			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
 			SkinnedBufferInfo* skinned_buff = (SkinnedBufferInfo*)((uint64_t)skinned_buffer_data + (skinned_alignment * skinned_buffer_size));
 			
-			OEMaths::mat4f mat = transformBuffer[id].get_local();
 			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
 
-			uint64_t parent_id = obj.get_parent();
-			while (parent_id != UINT64_MAX) {
-
-				Object* parent_obj = obj_manager->get_object(parent_id);
-				uint32_t id = parent_obj->get_id();
-				mat = transformBuffer[id].get_local() * mat;
-				parent_id = parent_obj->get_parent();
-			}
+			OEMaths::mat4f mat = create_matrix(obj, obj_manager);
 
 			transformBuffer[id].transform = mat;
 			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
@@ -125,7 +147,6 @@ namespace OmegaEngine
 
 			if (transformBuffer[id].skin_index > -1) {
 
-				++skinned_buffer_size;
 				transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
 
 				uint32_t skin_index = transformBuffer[id].skin_index;
@@ -140,16 +161,16 @@ namespace OmegaEngine
 				OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
 
 				for (uint32_t i = 0; i < joint_size; ++i) {
+					
 					Object joint_obj = skinBuffer[skin_index].joints[i];
-
-					uint32_t joint_index = joint_obj.get_manager_index<TransformManager>();
-					OEMaths::mat4f joint_mat = transformBuffer[joint_index].get_local() * skinBuffer[skin_index].invBindMatrices[i];
+					OEMaths::mat4f joint_mat = create_matrix(joint_obj, obj_manager) * skinBuffer[skin_index].invBindMatrices[i];
 
 					// transform joint to local (joint) space
 					OEMaths::mat4f local_mat = inv_mat * joint_mat;
 					skinBuffer[skin_index].joint_matrices[i] = local_mat;
 					skinned_buff->joint_matrices[i] = local_mat;
 				}
+				++skinned_buffer_size;
 			}
 		}
 

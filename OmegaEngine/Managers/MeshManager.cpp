@@ -96,6 +96,8 @@ namespace OmegaEngine
 			MeshType mesh_type;
 			if (weightBuffer && jointBuffer) {
 
+				mesh_type = MeshType::Skinned;
+
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
 					SkinnedVertex vertex; 
 					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
@@ -120,13 +122,13 @@ namespace OmegaEngine
 					jointBuffer += 4;
 					weightBuffer += 4;
 
-					mesh_type = MeshType::Skinned;
-					
 					skinned_vertices.push_back(vertex);
 				}
 				local_vertex_offset += posAccessor.count;
 			}
 			else {
+				mesh_type = MeshType::Static;
+
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
 					Vertex vertex; 
 					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
@@ -144,7 +146,7 @@ namespace OmegaEngine
 						vertex.uv1 = OEMaths::convert_vec2<float>(uvBuffer1);
 						uvBuffer1 += 2;
 					}
-					mesh_type = MeshType::Static;
+					
 					static_vertices.push_back(vertex);
 				}
 				local_vertex_offset += posAccessor.count;
