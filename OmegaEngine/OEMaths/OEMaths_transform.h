@@ -301,103 +301,141 @@ namespace OEMaths
 		return result;
 	}
 
-	template <typename T>
-	inline T mat4_det(mat4<T>& mat)
-	{
-		return mat[0] * (mat[5] * (mat[10] * mat[15] - mat[11] * mat[14])
-		+ mat[6] * (mat[11] * mat[13] - mat[9] * mat[15])
-		+ mat[7] * (mat[9] * mat[14] - mat[10] * mat[13]))
-
-		+ mat[1] * (mat[4] * (mat[11] * mat[14] - mat[10] * mat[15])
-		+ mat[6] * (mat[8] * mat[15] - mat[11] * mat[12])
-		+ mat[7] * (mat[10] * mat[12] - mat[8] * mat[14]))
-
-		+ mat[2] * (mat[4] * (mat[9] * mat[15] - mat[11] * mat[13])
-		+ mat[5] * (mat[11] * mat[12] - mat[8] * mat[15])
-		+ mat[7] * (mat[8] * mat[13] - mat[9] * mat[12]))
-
-		+ mat[3] * (mat[4] * (mat[10] * mat[13] - mat[9] * mat[14])
-		+ mat[5] * (mat[8] * mat[14] - mat[10] * mat[12])
-		+ mat[6] * (mat[9] * mat[12] - mat[8] * mat[13]));
-		
-	}
 
 	template <typename T>
-	inline mat4<T> mat4_inverse(mat4<T>& mat)
+	inline mat4<T> mat4_inverse(mat4<T>& m)
 	{
-		mat4<T> retMat;
-		T det = mat4_det<T>(mat);
+		mat4<T> inv;
+		mat4<T> result;
+		mat4<T> det;
 
-		if (std::fabs(det) > EPSILON) {
+		inv[0] = m[5]  * m[10] * m[15] - 
+				m[5]  * m[11] * m[14] - 
+				m[9]  * m[6]  * m[15] + 
+				m[9]  * m[7]  * m[14] +
+				m[13] * m[6]  * m[11] - 
+				m[13] * m[7]  * m[10];
 
-			T m4m9 = mat[4] * mat[9];
-			T m4m10 = mat[4] * mat[10];
-			T m4m11 = mat[4] * mat[11];
-			T m4m13 = mat[4] * mat[13];
-			T m4m14 = mat[4] * mat[14];
-			T m4m15 = mat[4] * mat[15];
+		inv[4] = -m[4]  * m[10] * m[15] + 
+				m[4]  * m[11] * m[14] + 
+				m[8]  * m[6]  * m[15] - 
+				m[8]  * m[7]  * m[14] - 
+				m[12] * m[6]  * m[11] + 
+				m[12] * m[7]  * m[10];
 
-			T m5m8 = mat[5] * mat[8];
-			T m5m10 = mat[5] * mat[10];
-			T m5m11 = mat[5] * mat[11];
-			T m5m12 = mat[5] * mat[12];
-			T m5m14 = mat[5] * mat[14];
-			T m5m15 = mat[5] * mat[15];
+		inv[8] = m[4]  * m[9] * m[15] - 
+				m[4]  * m[11] * m[13] - 
+				m[8]  * m[5] * m[15] + 
+				m[8]  * m[7] * m[13] + 
+				m[12] * m[5] * m[11] - 
+				m[12] * m[7] * m[9];
 
-			T m6m8 = mat[6] * mat[8];
-			T m6m9 = mat[6] * mat[9];
-			T m6m11 = mat[6] * mat[11];
-			T m6m12 = mat[6] * mat[12];
-			T m6m13 = mat[6] * mat[13];
-			T m6m15 = mat[6] * mat[15];
+		inv[12] = -m[4]  * m[9] * m[14] + 
+				m[4]  * m[10] * m[13] +
+				m[8]  * m[5] * m[14] - 
+				m[8]  * m[6] * m[13] - 
+				m[12] * m[5] * m[10] + 
+				m[12] * m[6] * m[9];
 
-			T m7m8 = mat[7] * mat[8];
-			T m7m9 = mat[7] * mat[9];
-			T m7m10 = mat[7] * mat[10];
-			T m7m12 = mat[7] * mat[12];
-			T m7m13 = mat[7] * mat[13];
-			T m7m14 = mat[7] * mat[14];
+		inv[1] = -m[1]  * m[10] * m[15] + 
+				m[1]  * m[11] * m[14] + 
+				m[9]  * m[2] * m[15] - 
+				m[9]  * m[3] * m[14] - 
+				m[13] * m[2] * m[11] + 
+				m[13] * m[3] * m[10];
 
-			T m8m13 = mat[8] * mat[13];
-			T m8m14 = mat[8] * mat[14];
-			T m8m15 = mat[8] * mat[15];
+		inv[5] = m[0]  * m[10] * m[15] - 
+				m[0]  * m[11] * m[14] - 
+				m[8]  * m[2] * m[15] + 
+				m[8]  * m[3] * m[14] + 
+				m[12] * m[2] * m[11] - 
+				m[12] * m[3] * m[10];
 
-			T m9m12 = mat[9] * mat[12];
-			T m9m14 = mat[9] * mat[14];
-			T m9m15 = mat[9] * mat[15];
+		inv[9] = -m[0]  * m[9] * m[15] + 
+				m[0]  * m[11] * m[13] + 
+				m[8]  * m[1] * m[15] - 
+				m[8]  * m[3] * m[13] - 
+				m[12] * m[1] * m[11] + 
+				m[12] * m[3] * m[9];
 
-			T m10m12 = mat[10] * mat[12];
-			T m10m13 = mat[10] * mat[13];
-			T m10m15 = mat[10] * mat[15];
+		inv[13] = m[0]  * m[9] * m[14] - 
+				m[0]  * m[10] * m[13] - 
+				m[8]  * m[1] * m[14] + 
+				m[8]  * m[2] * m[13] + 
+				m[12] * m[1] * m[10] - 
+				m[12] * m[2] * m[9];
 
-			T m11m12 = mat[11] * mat[12];
-			T m11m13 = mat[11] * mat[13];
-			T m11m14 = mat[11] * mat[14];
+		inv[2] = m[1]  * m[6] * m[15] - 
+				m[1]  * m[7] * m[14] - 
+				m[5]  * m[2] * m[15] + 
+				m[5]  * m[3] * m[14] + 
+				m[13] * m[2] * m[7] - 
+				m[13] * m[3] * m[6];
 
+		inv[6] = -m[0]  * m[6] * m[15] + 
+				m[0]  * m[7] * m[14] + 
+				m[4]  * m[2] * m[15] - 
+				m[4]  * m[3] * m[14] - 
+				m[12] * m[2] * m[7] + 
+				m[12] * m[3] * m[6];
 
-			retMat[0] = mat[5] * (m10m15 - m11m14) + mat[6] * (m11m13 - m9m15) + mat[7] * (m9m14 - m10m13);
-			retMat[1] = mat[1] * (m11m14 - m10m15) + mat[2] * (m9m15 - m11m13) + mat[3] * (m10m13 - m9m14);
-			retMat[2] = mat[1] * (m6m15 - m7m14) + mat[2] * (m7m13 - m5m15) + mat[3] * (m5m14 - m6m13);
-			retMat[3] = mat[1] * (m7m10 - m6m11) + mat[2] * (m5m11 - m7m9) + mat[3] * (m6m9 - m5m10);
+		inv[10] = m[0]  * m[5] * m[15] - 
+				m[0]  * m[7] * m[13] - 
+				m[4]  * m[1] * m[15] + 
+				m[4]  * m[3] * m[13] + 
+				m[12] * m[1] * m[7] - 
+				m[12] * m[3] * m[5];
 
-			retMat[4] = mat[4] * (m11m14 - m10m15) + mat[6] * (m8m15 - m11m12) + mat[7] * (m10m12 - m8m14);
-			retMat[5] = mat[0] * (m10m15 - m11m14) + mat[2] * (m11m12 - m8m15) + mat[3] * (m8m14 - m10m12);
-			retMat[6] = mat[0] * (m7m14 - m6m15) + mat[2] * (m4m15 - m7m12) + mat[3] * (m6m12 - m4m14);
-			retMat[7] = mat[0] * (m6m11 - m7m10) + mat[2] * (m7m8 - m4m11) + mat[3] * (m4m10 - m6m8);
+		inv[14] = -m[0]  * m[5] * m[14] + 
+				m[0]  * m[6] * m[13] + 
+				m[4]  * m[1] * m[14] - 
+				m[4]  * m[2] * m[13] - 
+				m[12] * m[1] * m[6] + 
+				m[12] * m[2] * m[5];
 
-			retMat[8] = mat[4] * (m9m15 - m11m13) + mat[5] * (m11m12 - m8m15) + mat[7] * (m8m13 - m9m12);
-			retMat[9] = mat[0] * (m11m13 - m9m15) + mat[1] * (m8m15 - m11m12) + mat[3] * (m9m12 - m8m13);
-			retMat[10] = mat[0] * (m5m15 - m7m13) + mat[1] * (m7m12 - m4m15) + mat[3] * (m4m13 - m5m12);
-			retMat[11] = mat[0] * (m7m9 - m5m11) + mat[1] * (m4m11 - m7m8) + mat[3] * (m5m8 - m4m9);
+		inv[3] = -m[1] * m[6] * m[11] + 
+				m[1] * m[7] * m[10] + 
+				m[5] * m[2] * m[11] - 
+				m[5] * m[3] * m[10] - 
+				m[9] * m[2] * m[7] + 
+				m[9] * m[3] * m[6];
 
-			retMat[12] = mat[4] * (m10m13 - m9m14) + mat[5] * (m8m14 - m10m12) + mat[6] * (m9m12 - m8m13);
-			retMat[13] = mat[0] * (m9m14 - m10m13) + mat[1] * (m10m12 - m8m14) + mat[2] * (m8m13 - m9m12);
-			retMat[14] = mat[0] * (m6m13 - m5m14) + mat[1] * (m4m14 - m6m12) + mat[2] * (m5m12 - m4m13);
-			retMat[15] = mat[0] * (m5m10 - m6m9) + mat[1] * (m6m8 - m4m10) + mat[2] * (m4m9 - m5m8);
+		inv[7] = m[0] * m[6] * m[11] - 
+				m[0] * m[7] * m[10] - 
+				m[4] * m[2] * m[11] + 
+				m[4] * m[3] * m[10] + 
+				m[8] * m[2] * m[7] - 
+				m[8] * m[3] * m[6];
 
-			retMat /= det;
+		inv[11] = -m[0] * m[5] * m[11] + 
+				m[0] * m[7] * m[9] + 
+				m[4] * m[1] * m[11] - 
+				m[4] * m[3] * m[9] - 
+				m[8] * m[1] * m[7] + 
+				m[8] * m[3] * m[5];
+
+		inv[15] = m[0] * m[5] * m[10] - 
+				m[0] * m[6] * m[9] - 
+				m[4] * m[1] * m[10] + 
+				m[4] * m[2] * m[9] + 
+				m[8] * m[1] * m[6] - 
+				m[8] * m[2] * m[5];
+
+		det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
+
+		if (det == 0) {
+			// just return a identity matrix
+			return result;
 		}
 
-		return retMat;
+		det = 1.0 / det;
+
+		for (uint32_t i = 0; i < 16; i++) {
+			result[i] = inv[i] * det;
+		}
+
+		return result;
 	}
+
+	
 }
