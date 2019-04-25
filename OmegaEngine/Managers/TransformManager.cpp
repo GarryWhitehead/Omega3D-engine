@@ -32,43 +32,28 @@ namespace OmegaEngine
 	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform)
 	{
 		TransformData transform;
-		TransformData::LocalTRS local_trs;
-		bool is_decomposed = false;
 
 		// we will save the matrix and the decomposed form
 		if (node.translation.size() == 3) {
-			local_trs.trans = OEMaths::vec3f{ (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] };
-			is_decomposed = true;
+			transform.set_translation(OEMaths::vec3f{ (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] });
 		}
 		if (node.scale.size() == 3) {
-			local_trs.scale = OEMaths::vec3f{ (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] };
-			is_decomposed = true;
+			transform.set_scale(OEMaths::vec3f{ (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] });
 		}
 		if (node.rotation.size() == 4) {
 			OEMaths::quatf q = OEMaths::convert_quatf_D(node.rotation.data());
-			local_trs.rotation = OEMaths::quat_to_mat4(q);
-			is_decomposed = true;
-		}
-
-		// store the decomposed form locally
-		transform.local_trs = local_trs;
-
-		// and calculate matrix form if required
-		if (is_decomposed) {
-			transform.calculate_local();
+			transform.set_rotation(q);
 		}
 
 		// world transform is obtained from the omega scene file
-		transform.world = world_transform;
+		transform.set_world_matrix(world_transform);
 
 		if (node.matrix.size() == 16) {
-			for (uint8_t i = 0; i < node.matrix.size(); ++i) {
-				transform.local.data[i] = node.matrix[i];
-			}
+			transform.set_local_matrix(OEMaths::convert_mat4_D(node.matrix.data()));
 		}
 		
 		// also add index to skinning information if applicable
-		transform.skin_index = node.skin;
+		transform.set_skin_index(node.skin);
 
 		transformBuffer[obj->get_id()] = transform;
 
@@ -112,7 +97,7 @@ namespace OmegaEngine
 
 	OEMaths::mat4f TransformManager::create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager)
 	{
-		OEMaths::mat4f mat = transformBuffer[obj.get_id()].local;
+		OEMaths::mat4f mat = transformBuffer[obj.get_id()].get_local_matrix();
 
 		uint64_t parent_id = obj.get_parent();
 		while (parent_id != UINT64_MAX) {
@@ -120,7 +105,7 @@ namespace OmegaEngine
 			Object* parent_obj = obj_manager->get_object(parent_id);
 
 			uint32_t id = parent_obj->get_id();
-			mat = transformBuffer[id].local * mat;
+			mat = transformBuffer[id].get_local_matrix() * mat;
 			parent_id = parent_obj->get_parent();
 		}
 
@@ -139,17 +124,15 @@ namespace OmegaEngine
 			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
 
 			OEMaths::mat4f mat = create_matrix(obj, obj_manager);
-
-			transformBuffer[id].transform = mat;
 			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
 			++transform_buffer_size;
 
-			if (transformBuffer[id].skin_index > -1) {
+			if (transformBuffer[id].get_skin_index() > -1) {
 
 				transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
 
-				uint32_t skin_index = transformBuffer[id].skin_index;
+				uint32_t skin_index = transformBuffer[id].get_skin_index();
 
 				// prepare fianl output matrices buffer
 				uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
@@ -208,11 +191,11 @@ namespace OmegaEngine
 
 			if (transform_buffer_size) {
 
-				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, true };
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinned_buffer_size) {
-				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC, true };
+				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 
@@ -223,7 +206,7 @@ namespace OmegaEngine
 	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)
 	{
 		uint32_t id = obj.get_id();
-		transformBuffer[id].local_trs.trans = OEMaths::vec3f(trans.x, trans.y, trans.z);
+		transformBuffer[id].set_translation(OEMaths::vec3f{ trans.x, trans.y, trans.z });
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		is_dirty = true;		
@@ -232,14 +215,14 @@ namespace OmegaEngine
 	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
 	{
 		uint32_t id = obj.get_id();
-		transformBuffer[id].local_trs.scale = OEMaths::vec3f(scale.x, scale.y, scale.z);
+		transformBuffer[id].set_scale(OEMaths::vec3f{ scale.x, scale.y, scale.z });
 		is_dirty = true;
 	}
 
 	void TransformManager::update_obj_rotation(Object& obj, OEMaths::quatf rot)
 	{
 		uint32_t id = obj.get_id();
-		transformBuffer[id].local_trs.rotation = OEMaths::quat_to_mat4(rot);
+		transformBuffer[id].set_rotation(rot);
 		is_dirty = true;
 	}
 }

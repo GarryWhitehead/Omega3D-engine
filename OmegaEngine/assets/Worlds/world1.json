@@ -1,6 +1,6 @@
 {
 	"Models": [
-		{ "Filename":"RiggedSimple/RiggedSimple.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
+		{ "Filename":"BoxAnimated/BoxAnimated.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
 	],
   "Lights": [
     {

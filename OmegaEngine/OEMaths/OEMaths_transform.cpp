@@ -175,7 +175,7 @@ namespace OEMaths
 
 	// matrix conversion  ===============================================================================
 
-	mat4f convert_mat4(void* data)
+	mat4f convert_mat4_F(const float* data)
 	{
 		assert(data != nullptr);
 
@@ -192,6 +192,30 @@ namespace OEMaths
 			vec.z = *ptr;
 			++ptr;
 			vec.w = *ptr;
+			++ptr;
+
+			mat(vec, col);
+		}
+		return mat;
+	}
+
+	mat4f convert_mat4_D(const double* data)
+	{
+		assert(data != nullptr);
+
+		mat4f mat;
+		double* ptr = (double*)data;
+
+		for (uint8_t col = 0; col < 4; ++col) {
+
+			vec4f vec;
+			vec.x = (float)*ptr;
+			++ptr;
+			vec.y = (float)*ptr;
+			++ptr;
+			vec.z = (float)*ptr;
+			++ptr;
+			vec.w = (float)*ptr;
 			++ptr;
 
 			mat(vec, col);

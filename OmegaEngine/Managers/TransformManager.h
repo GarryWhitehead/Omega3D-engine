@@ -37,6 +37,16 @@ namespace OmegaEngine
 				local = OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);
 			}
 
+			uint32_t get_transform_offset() const
+			{
+				return transform_buffer_offset;
+			}
+
+			uint32_t get_skinned_offset() const
+			{
+				return skinned_buffer_offset;
+			}
+
 			void set_transform_offset(const uint32_t offset)
 			{
 				transform_buffer_offset = offset;
@@ -47,12 +57,68 @@ namespace OmegaEngine
 				skinned_buffer_offset = offset;
 			}
 
+			void set_translation(OEMaths::vec3f& trans)
+			{
+				local_trs.trans = trans;
+				recalculate_local = true;
+			}
+
+			void set_rotation(OEMaths::mat4f& rot)
+			{
+				local_trs.rotation = rot;
+				recalculate_local = true;
+			}
+
+			void set_rotation(OEMaths::quatf& q)
+			{
+				local_trs.rotation = OEMaths::quat_to_mat4(q);
+				recalculate_local = true;
+			}
+
+			void set_scale(OEMaths::vec3f& scale)
+			{
+				local_trs.scale = scale;
+				recalculate_local = true;
+			}
+
+			OEMaths::mat4f get_local_matrix()
+			{
+				if (recalculate_local) {
+					calculate_local();
+					recalculate_local = false;
+				}
+				return local;
+			}
+
+			void set_local_matrix(OEMaths::mat4f& local)
+			{
+				this->local = local;
+			}
+
+			void set_world_matrix(OEMaths::mat4f& world)
+			{
+				this->world = world;
+			}
+
+			void set_skin_index(const int32_t index)
+			{
+				skin_index = index;
+			}
+
+			int32_t get_skin_index() const
+			{
+				return skin_index;
+			}
+
+		private:
+
+			bool recalculate_local = false;
+
 			// decomposed form
 			LocalTRS local_trs;
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;
-			OEMaths::mat4f transform;
 
 			// an index to skinning data for this particular node - negative number indicates no skin info
 			int32_t skin_index = -1;
@@ -110,12 +176,6 @@ namespace OmegaEngine
 		void update_obj_scale(Object& obj, OEMaths::vec4f scale);
 		void update_obj_rotation(Object& obj, OEMaths::quatf rot);
 
-		OEMaths::mat4f& get_transform(uint32_t transform_index)
-		{
-			assert(transform_index < transformBuffer.size());
-			return transformBuffer[transform_index].transform;
-		}
-
 		uint32_t get_transform_offset(uint32_t id)
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
@@ -123,7 +183,7 @@ namespace OmegaEngine
 			if (transformBuffer.find(id) == transformBuffer.end()) {
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].transform_buffer_offset;
+			return transformBuffer[id].get_transform_offset();
 		}
 
 		uint32_t get_skinned_offset(uint32_t id)
@@ -133,7 +193,7 @@ namespace OmegaEngine
 			if (transformBuffer.find(id) == transformBuffer.end()) {
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].skinned_buffer_offset;
+			return transformBuffer[id].get_skinned_offset();
 		}
 
 	private:

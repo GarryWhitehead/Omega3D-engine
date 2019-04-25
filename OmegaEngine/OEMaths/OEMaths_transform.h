@@ -32,7 +32,8 @@ namespace OEMaths
 	vec4f mix_vec4(vec4f& v1, vec4f& v2, float u);
 
 	// matrices
-	mat4f convert_mat4(void* data);
+	mat4f convert_mat4_F(const float* data);
+	mat4f convert_mat4_D(const double* data);
 
 	mat4f translate_mat4(vec3f& trans);
 	mat4f scale_mat4(vec3f& scale);
