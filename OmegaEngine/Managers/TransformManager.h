@@ -32,7 +32,7 @@ namespace OmegaEngine
 				OEMaths::mat4f rotation;
 			};
 
-			OEMaths::mat4f calculate_local()
+			void calculate_local()
 			{
 				local = OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);
 			}

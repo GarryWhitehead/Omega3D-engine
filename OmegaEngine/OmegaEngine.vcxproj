@@ -33,10 +33,14 @@
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
+    <ClCompile Include="OEMaths\OEMaths_quat.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
     <ClCompile Include="Rendering\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Rendering\RenderQueue.cpp" />
+    <ClCompile Include="OEMaths\OEMaths_convert.cpp" />
     <ClCompile Include="Rendering\StockModels.cpp" />
+    <ClCompile Include="OEMaths\OEMaths.cpp" />
+    <ClCompile Include="OEMaths\OEMaths_transform.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />

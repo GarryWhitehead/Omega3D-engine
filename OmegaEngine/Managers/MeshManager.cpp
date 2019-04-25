@@ -100,25 +100,25 @@ namespace OmegaEngine
 
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
 					SkinnedVertex vertex; 
-					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
+					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
 					posBuffer += 3;
 
 					if (normBuffer) {
-						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
+						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
 						normBuffer += 3;
 					}
 					if (uvBuffer0) {
-						vertex.uv0 = OEMaths::convert_vec2<float>(uvBuffer0);
+						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
 						uvBuffer0 += 2;
 					}
 					if (uvBuffer1) {
-						vertex.uv1 = OEMaths::convert_vec2<float>(uvBuffer1);
+						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
 						uvBuffer1 += 2;
 					}
 
 					// if we have skin data, also convert this to a palatable form
-					vertex.joint = OEMaths::convert_vec4<float>(reinterpret_cast<const float*>(jointBuffer));
-					vertex.weight = OEMaths::convert_vec4<float>(weightBuffer);
+					vertex.joint = OEMaths::convert_vec4_F(reinterpret_cast<const float*>(jointBuffer));
+					vertex.weight = OEMaths::convert_vec4_F(weightBuffer);
 					jointBuffer += 4;
 					weightBuffer += 4;
 
@@ -131,19 +131,19 @@ namespace OmegaEngine
 
 				for (uint32_t j = 0; j < posAccessor.count; ++j) {
 					Vertex vertex; 
-					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3<float>(posBuffer), 1.0f);
+					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
 					posBuffer += 3;
 
 					if (normBuffer) {
-						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3<float>(normBuffer));
+						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
 						normBuffer += 3;
 					}
 					if (uvBuffer0) {
-						vertex.uv0 = OEMaths::convert_vec2<float>(uvBuffer0);
+						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
 						uvBuffer0 += 2;
 					}
 					if (uvBuffer1) {
-						vertex.uv1 = OEMaths::convert_vec2<float>(uvBuffer1);
+						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
 						uvBuffer1 += 2;
 					}
 					

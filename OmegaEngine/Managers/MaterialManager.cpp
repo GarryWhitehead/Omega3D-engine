@@ -80,7 +80,7 @@ namespace OmegaEngine
 			mat.factors.alphaMaskCutOff = static_cast<float>(gltf_mat.additionalValues["alphaCutOff"].Factor());
 		}
 		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end()) {
-			mat.factors.emissive = OEMaths::convert_vec3<float>(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
+			mat.factors.emissive = OEMaths::convert_vec3_D(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
 		}
 
 		// check for extensions

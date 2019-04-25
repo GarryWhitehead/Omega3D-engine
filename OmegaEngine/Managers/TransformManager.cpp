@@ -45,7 +45,7 @@ namespace OmegaEngine
 			is_decomposed = true;
 		}
 		if (node.rotation.size() == 4) {
-			OEMaths::quatf q = OEMaths::convert_quatf<double>(node.rotation.data());
+			OEMaths::quatf q = OEMaths::convert_quatf_D(node.rotation.data());
 			local_trs.rotation = OEMaths::quat_to_mat4(q);
 			is_decomposed = true;
 		}
