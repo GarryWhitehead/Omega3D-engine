@@ -34,7 +34,7 @@ namespace OmegaEngine
 
 			OEMaths::mat4f calculate_local()
 			{
-				return OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);
+				local = OEMaths::translate_mat4(local_trs.trans) * local_trs.rotation * OEMaths::scale_mat4(local_trs.scale);
 			}
 
 			void set_transform_offset(const uint32_t offset)
