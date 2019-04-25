@@ -1,3 +1,8 @@
+/*
+	A non-templeted maths library for speedier compile times.
+	(Who needs double vectors anyway?!)
+*/
+
 #pragma once
 
 #include <assert.h>
@@ -8,141 +13,128 @@
 
 namespace OEMaths
 {
-	template<typename T> class mat4;
-	template<typename T> class mat3;
-	template<typename T> class mat2;
-	template<typename T> class vec4;
-	template<typename T> class vec3;
-	template<typename T> class vec2;
-
-
 	// vec2 ==============================================
 
-	template<typename T>
-	class vec2
+	class vec2f
 	{
 	public:
 
-		vec2()
+		vec2f()
 		{
-			x = T(0);
-			y = T(0);
+			x = 0.0f;
+			y = 0.0f;
 		}
 
-		vec2(T n) :
+		vec2f(float n) :
 			x(n),
 			y(n)
 		{}
 
-		vec2(T in_x, T in_y) :
+		vec2f(float in_x, float in_y) :
 			x(in_x),
 			y(in_y)
 		{}
 
-		T x;
-		T y;
+		float x;
+		float y;
 	};
 
 
-	using vec2f = vec2<float>;
-	using vec2d = vec2<double>;
-
 	// =========================================== vec3 ====================================================================================
 
-	template<typename T>
-	class vec3
+	class vec3f
 	{
 	public:
 
-		vec3()
+		vec3f()
 		{
-			x = T(0);
-			y = T(0);
-			z = T(0);
+			x = 0.0f;
+			y = 0.0f;
+			z = 0.0f;
 		}
 
-		vec3(vec2<T> vec, T f) :
+		vec3f(vec2f vec, float f) :
 			x(vec.x),
 			y(vec.y),
 			z(f)
 		{}
 
-		vec3(T n) :
+		vec3f(float n) :
 			x(n),
 			y(n),
 			z(n)
 		{}
 
-		vec3(T in_x, T in_y, T in_z) :
+		vec3f(float in_x, float in_y, float in_z) :
 			x(in_x),
 			y(in_y),
 			z(in_z)
 		{}
 
-		vec3 operator-(const vec3& other) const
+		vec3f operator-(const vec3f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x - other.x;
 			result.y = y - other.y;
 			result.z = z - other.z;
 			return result;
 		}
 
-		vec3 operator+(const vec3& other) const
+		vec3f operator+(const vec3f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x + other.x;
 			result.y = y + other.y;
 			result.z = z + other.z;
 			return result;
 		}
 
-		vec3 operator*(const vec3& other) const
+		vec3f operator*(const vec3f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x * other.x;
 			result.y = y * other.y;
 			result.z = z * other.z;
 			return result;
 		}
 
-		vec3 operator*(const vec4<T>& other) const
+		vec3f operator*(const vec4f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x * other.x;
 			result.y = y * other.y;
 			result.z = z * other.z;
 			return result;
 		}
 
-		vec3 operator*(const float& other) const
+		vec3f operator*(const float& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x * other;
 			result.y = y * other;
 			result.z = z * other;
 			return result;
 		}
 
-		vec3 operator*(const mat4<T>& other) const
+		vec3f operator*(const mat4f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = other[0] * x + other[1] * y + other[2] * z;
 			result.y = other[4] * x + other[5] * y + other[6] * z;
 			result.z = other[8] * x + other[9] * y + other[10] * z;
 			return result;
 		}
 
-		vec3 operator/(const vec3& other) const
+		vec3f operator/(const vec3f& other) const
 		{
-			vec3 result;
+			vec3f result;
 			result.x = x / other.x;
 			result.y = y / other.y;
 			result.z = z / other.z;
 			return result;
 		}
 
-		vec3& operator-=(const vec3& other)
+		vec3f& operator-=(const vec3f& other)
 		{
 			x -= other.x;
 			y -= other.y;
@@ -163,60 +155,56 @@ namespace OEMaths
 	public:
 
 		// data
-		T x;
-		T y;
-		T z;
+		float x;
+		float y;
+		float z;
 
 	};
 
-	using vec3f = vec3<float>;
-	using vec3d = vec3<double>;
-
 	// ================================================= vec4 ===============================================================
-	template <typename T>
-	class vec4
+	class vec4f
 	{
 	public:
 
-		vec4()
+		vec4f()
 		{
-			x = T(0);
-			y = T(0);
-			z = T(0);
-			w = T(0);
+			x = 0.0f;
+			y = 0.0f;
+			z = 0.0f;
+			w = 0.0f;
 		}
 
-		vec4(vec2<T> vec, T _z, T _w) :
+		vec4f(vec2f& vec, float _z, float _w) :
 			x(vec.x),
 			y(vec.y),
 			z(_z),
 			w(_w)
 		{}
 
-		vec4(vec3<T> vec, T _w) :
+		vec4f(vec3f vec, float _w) :
 			x(vec.x),
 			y(vec.y),
 			z(vec.z),
 			w(_w)
 		{}
 
-		vec4(T n) :
+		vec4f(float n) :
 			x(n),
 			y(n),
 			z(n),
 			w(n)
 		{}
 
-		vec4(T in_x, T in_y, T in_z, T in_w) :
+		vec4f(float in_x, float in_y, float in_z, float in_w) :
 			x(in_x),
 			y(in_y),
 			z(in_z),
 			w(in_w)
 		{}
 
-		vec4 operator*(const vec4<T>& other) const
+		vec4f operator*(const vec4f& other) const
 		{
-			vec4 result;
+			vec4f result;
 			result.x = x * other.x;
 			result.y = y * other.y;
 			result.z = z * other.z;
@@ -225,38 +213,32 @@ namespace OEMaths
 		}
 
 		// data
-		T x;
-		T y;
-		T z;
-		T w;
+		float x;
+		float y;
+		float z;
+		float w;
 	};
-
-	using vec4f = vec4<float>;
-	using vec4d = vec4<double>;
-
-
 
 	// matrices ==============================================================================================================================
 	// mat2 =========================================
 
-	template<typename T>
-	class mat2
+	class mat2f
 	{
 	public:
 
-		mat2()
+		mat2f()
 		{
-			data[0] = T(1);
-			data[3] = T(1);
+			data[0] = 1.0f;
+			data[3] = 1.0f;
 		}
 
-		T& operator()(const uint8_t& col, const uint8_t& row)
+		float& operator()(const uint8_t& col, const uint8_t& row)
 		{
 			// col major
 			return data[col * 1 + row];
 		}
 
-		vec2<T>& operator()(const vec2<T>& vec, const uint8_t& col)
+		vec2f& operator()(const vec2f& vec, const uint8_t& col)
 		{
 			data[col * 2] = vec.x;
 			data[col * 2 + 1] = vec.y;
@@ -264,32 +246,29 @@ namespace OEMaths
 
 	private:
 
-		T data[4];
+		float data[4];
 	};
 
-	using mat2f = mat2<float>;
-	using mat2d = mat2<double>;
 
 	// ===================================================== mat3 =================================================================================
 
-	template<typename T>
-	class mat3
+	class mat3f
 	{
 	public:
 
 		mat3()
 		{
-			data[0] = T(1);
-			data[4] = T(1);
-			data[8] = T(1);
+			data[0] = 1.0f;
+			data[4] = 1.0f;
+			data[8] = 1.0f;
 		}
 
-		T& operator()(const uint8_t& col, const uint8_t& row)
+		float& operator()(const uint8_t& col, const uint8_t& row)
 		{
 			return data[col * 3 + row];
 		}
 
-		mat3& operator()(const vec3<T>& vec, const uint8_t& col)
+		mat3f& operator()(const vec3f& vec, const uint8_t& col)
 		{
 			data[col * 3] = vec.x;
 			data[col * 3 + 1] = vec.y;
@@ -298,36 +277,31 @@ namespace OEMaths
 
 	private:
 
-		T data[9];
+		float data[9];
 	};
-
-
-	using mat3f = mat3<float>;
-	using mat3d = mat3<double>;
 
 	// ======================================= mat4 =========================================================
 
-	template<typename T>
-	class mat4
+	class mat4f
 	{
 	public:
 
-		mat4()
+		mat4f()
 		{
-			data[0] = T(1);		data[1] = T(0);		data[2] = T(0);		data[3] = T(0);
-			data[4] = T(0);		data[5] = T(1);		data[6] = T(0);		data[7] = T(0);
-			data[8] = T(0);		data[9] = T(0);		data[10] = T(1);	data[11] = T(0);
-			data[12] = T(0);	data[13] = T(0);	data[14] = T(0);	data[15] = T(1);
+			data[0] = 1.0f;		data[1] = 0.0f;		data[2] = 0.0f;		data[3] = 0.0f;
+			data[4] = 0.0f;		data[5] = 1.0f;		data[6] = 0.0f;		data[7] = 0.0f;
+			data[8] = 0.0f;		data[9] = 0.0f;		data[10] = 1.0f;	data[11] = 0.0f;
+			data[12] = 0.0f;	data[13] = 0.0f;	data[14] = 0.0f;	data[15] = 1.0f;
 		}
 
-		T& operator()(const uint8_t& col, const uint8_t& row)
+		float& operator()(const uint8_t& col, const uint8_t& row)
 		{
 			// using col major
 			assert(row < 4 && col < 4);
 			return data[col * 4 + row];
 		}
 
-		inline mat4& operator()(const vec4<T>& vec, const uint8_t& col)
+		inline mat4f& operator()(const vec4f& vec, const uint8_t& col)
 		{
 			assert(col < 4);
 			data[col * 4] = vec.x;
@@ -337,9 +311,9 @@ namespace OEMaths
 			return *this;
 		}
 
-		inline mat4& operator/=(const T& div)
+		inline mat4f& operator/=(const float& div)
 		{
-			const T invDiv = 1 / div;
+			const float invDiv = 1 / div;
 			data[0] /= div;
 			data[1] /= div;
 			data[2] /= div;
@@ -362,13 +336,12 @@ namespace OEMaths
 			return *this;
 		}
 
-		T& operator[](const uint32_t& index)
+		float& operator[](const uint32_t& index)
 		{
 			return data[index];
 		}
 
-		template <typename T>
-		void setCol(const uint8_t col, vec4<T>& v)
+		void setCol(const uint8_t col, vec4f& v)
 		{
 			assert(col < 4);
 			uint8_t row = 0;
@@ -381,16 +354,12 @@ namespace OEMaths
 			data[col * 4 + row] = v.w;
 		}
 
-		T data[16];
+		float data[16];
 	};
 
-	using mat4f = mat4<float>;
-	using mat4d = mat4<double>;
-
-	template <typename T>
-	inline vec4<T> operator*(const mat4<T> mat, const vec4<T>& vec)
+	inline vec4f operator*(const mat4f& mat, const vec4f& vec)
 	{
-		vec4<T> result;
+		vec4f result;
 		result.x = mat.data[0] * vec.x + mat.data[1] * vec.y + mat.data[2] * vec.z + mat.data[3] * vec.w;
 		result.y = mat.data[4] * vec.x + mat.data[5] * vec.y + mat.data[6] * vec.z + mat.data[7] * vec.w;
 		result.z = mat.data[8] * vec.x + mat.data[9] * vec.y + mat.data[10] * vec.z + mat.data[11] * vec.w;
@@ -398,10 +367,9 @@ namespace OEMaths
 		return result;
 	}
 
-	template <typename T>
-	inline vec4<T> operator*(const vec4<T>& vec, const mat4<T> mat)
+	inline vec4f operator*(const vec4f& vec, const mat4f& mat)
 	{
-		vec4<T> result;
+		vec4f result;
 		result.x = vec.x * mat.data[0] + vec.y * mat.data[1] + vec.z * mat.data[2] + vec.w * mat.data[3];
 		result.y = vec.x * mat.data[4] + vec.y * mat.data[5] + vec.z * mat.data[6] + vec.w * mat.data[7];
 		result.z = vec.x * mat.data[8] + vec.y * mat.data[9] + vec.z * mat.data[10] + vec.w * mat.data[11];
@@ -409,10 +377,9 @@ namespace OEMaths
 		return result;
 	}
 
-	template <typename T>
-	inline mat4<T> operator*(const mat4<T>& m1, const mat4<T>& m2)
+	inline mat4f operator*(const mat4f& m1, const mat4f& m2)
 	{
-		mat4<T> result;
+		mat4f result;
 
 		for (uint8_t row = 0; row < 4; ++row) {
 

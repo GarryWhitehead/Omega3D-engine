@@ -9,12 +9,11 @@ namespace OEMaths
 {
 	// vec2 conversion ================================================================
 
-	template <typename T>
-	inline vec2<T> convert_vec2(const void* data)
+	inline vec2f convert_vec2(const void* data)
 	{
 		assert(data != nullptr);
-		T* ptr = (T*)data;
-		vec2<T> vec;
+		float* ptr = (float*)data;
+		vec2f vec;
 		vec.x = *ptr;
 		++ptr;
 		vec.y = *ptr;
@@ -24,12 +23,11 @@ namespace OEMaths
 	
 	// vec3 transform functions ========================================================================================================
 	
-	template <typename T>
-	inline vec3<T> convert_vec3(const void* data)
+	inline vec3f convert_vec3(const void* data)
 	{
 		assert(data != nullptr);
-		T* ptr = (T*)data;
-		vec3<T> vec;
+		float* ptr = (float*)data;
+		vec3f vec;
 		vec.x = *ptr;
 		++ptr;
 		vec.y = *ptr;
@@ -40,10 +38,9 @@ namespace OEMaths
 
 
 	// coversion from one vec type to another
-	template <typename T>
-	inline vec4<T> vec3_to_vec4(vec3<T> v3, T w)
+	inline vec4f vec3_to_vec4(vec3f v3, float w)
 	{
-		vec4<T> v4;
+		vec4f v4;
 		v4.x = v3.x;
 		v4.y = v3.y;
 		v4.z = v3.z;
@@ -53,17 +50,15 @@ namespace OEMaths
 
 	// Vector math functions ==============================================================
 
-	template <typename T>
-	inline T length_vec3(vec3<T>& v3)
+	inline float length_vec3(vec3f& v3)
 	{
 		return std::sqrt(v3.x * v3.x + v3.y * v3.y + v3.z * v3.z);
 	}
 
-	template <typename T>
-	inline vec3<T> normalise_vec3(vec3<T>& v3)
+	inline vec3f normalise_vec3(vec3f& v3)
 	{
-		vec3<T> retVec;
-		T length = length_vec3(v3);
+		vec3f retVec;
+		float length = length_vec3(v3);
 
 		retVec.x = v3.x / length;
 		retVec.y = v3.y / length;
@@ -71,43 +66,39 @@ namespace OEMaths
 		return retVec;
 	}
 
-	template <typename T>
-	inline vec3<T> cross_vec3(vec3<T>& v1, vec3<T>& v2)
+	inline vec3f cross_vec3(vec3f& v1, vec3f& v2)
 	{
-		vec3<T> retVec;
+		vec3f retVec;
 		retVec.x = v1.y * v2.z - v1.z * v2.y;
 		retVec.y = v1.z * v2.x - v1.x * v2.z;
 		retVec.z = v1.x * v2.y - v1.y * v2.x;
 		return retVec;
 	}
 
-	template <typename T>
-	inline T dot_vec3(vec3<T>& v1, vec3<T>& v2)
+	inline float dot_vec3(vec3f& v1, vec3f& v2)
 	{
 		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
 	}
 
 	// interpolation ===================================================================
 
-	template <typename T>
-	inline vec3<T> mix_vec3(vec3<T>& v1, vec3<T>& v2, float u)
+	inline vec3f mix_vec3(vec3f& v1, vec3f& v2, float u)
 	{
-		vec3<T> retVec;
-		retVec.x = v1.x * (T(1) - u) + v2.x * u;
-		retVec.y = v1.y * (T(1) - u) + v2.y * u;
-		retVec.z = v1.z * (T(1) - u) + v2.z * u;
+		vec3f retVec;
+		retVec.x = v1.x * (1.0f - u) + v2.x * u;
+		retVec.y = v1.y * (1.0f - u) + v2.y * u;
+		retVec.z = v1.z * (1.0f - u) + v2.z * u;
 		return retVec;
 	}
 
 	
 	// vec4 transform functions ========================================================================
 
-	template <typename T>
-	inline vec4<T> convert_vec4(const void* data)
+	inline vec4f convert_vec4(const void* data)
 	{
 		assert(data != nullptr);
-		T* ptr = (T*)data;
-		vec4<T> vec;
+		float* ptr = (float*)data;
+		vec4f vec;
 		vec.x = *ptr;
 		++ptr;
 		vec.y = *ptr;
@@ -118,17 +109,15 @@ namespace OEMaths
 		return vec;
 	}
 
-	template <typename T>
-	inline T length_vec4(vec4<T>& v4)
+	inline float length_vec4(vec4f& v4)
 	{
 		return std::sqrt(v4.x * v4.x + v4.y * v4.y + v4.z * v4.z + v4.w * v4.w);
 	}
 
-	template <typename T>
-	inline vec4<T> normalise_vec4(vec4<T>& v4)
+	inline vec4f normalise_vec4(vec4f& v4)
 	{
-		vec4<T> retVec;
-		T length = length_vec4(v4);
+		vec4f retVec;
+		float length = length_vec4(v4);
 
 		retVec.x = v4.x / length;
 		retVec.y = v4.y / length;
@@ -139,30 +128,28 @@ namespace OEMaths
 
 	// interpolation =========================================================
 
-	template <typename T>
-	inline vec4<T> mix_vec4(vec4<T>& v1, vec4<T>& v2, float u)
+	inline vec4f mix_vec4(vec4f& v1, vec4f& v2, float u)
 	{
-		vec4<T> retVec;
-		retVec.x = v1.x * (T(1) - u) + v2.x * u;
-		retVec.y = v1.y * (T(1) - u) + v2.y * u;
-		retVec.z = v1.z * (T(1) - u) + v2.z * u;
-		retVec.w = v1.w * (T(1) - u) + v2.w * u;
+		vec4f retVec;
+		retVec.x = v1.x * (1.0f- u) + v2.x * u;
+		retVec.y = v1.y * (1.0f - u) + v2.y * u;
+		retVec.z = v1.z * (1.0f - u) + v2.z * u;
+		retVec.w = v1.w * (1.0f - u) + v2.w * u;
 		return retVec;
 	}
 
 	// matrix conversion  ===============================================================================
 
-	template <typename T>
-	inline mat4<T> convert_mat4(void* data)
+	inline mat4f convert_mat4(void* data)
 	{
 		assert(data != nullptr);
 
-		mat4<T> mat;
-		T* ptr = (T*)data;
+		mat4<float> mat;
+		float* ptr = (float*)data;
 
 		for (uint8_t col = 0; col < 4; ++col) {
 			
-			vec4<T> vec;
+			vec4f vec;
 			vec.x = *ptr;
 			++ptr;
 			vec.y = *ptr;
@@ -179,65 +166,62 @@ namespace OEMaths
 
 
 	// matrix TRS ========================================================================================
-	template <typename T>
-	inline mat4<T> translate_mat4(vec3<T>& trans)
+
+	inline mat4f translate_mat4(vec3f& trans)
 	{
-		mat4<T> retMat;
+		mat4f retMat;
 		retMat(3, 0) = trans.x;
 		retMat(3, 1) = trans.y;
 		retMat(3, 2) = trans.x;
-		retMat(3, 3) = T(1);
+		retMat(3, 3) = 1.0f;
 
 		return retMat;
 	}
 
-	template <typename T>
-	inline mat4<T> scale_mat4(vec3<T>& scale)
+	inline mat4f scale_mat4(vec3f& scale)
 	{
-		mat4<T> result;
+		mat4f result;
 		result(0, 0) = scale.x;
 		result(1, 1) = scale.y;
 		result(2, 2) = scale.z;
-		result(3, 3) = T(1);
+		result(3, 3) = 1.0f;
 		return result;
 	}
 
-	template <typename T>
-	inline mat4<T> rotate_mat4(T theta, vec3<T> axis)
+	inline mat4f rotate_mat4(float theta, vec3f& axis)
 	{
-		mat4<T> retMat;
-		vec3<T> axis_norm = axis / (theta == T(0) ? T(1) : theta);	//avoid divide by zero
-		T xy = axis_norm.x * axis_norm.y;
-		T yz = axis_norm.y * axis_norm.z;
-		T zx = axis_norm.z * axis_norm.x;
+		mat4f retMat;
+		vec3f axis_norm = axis / (theta == 0.0f ? 1.0f : theta);	//avoid divide by zero
+		float xy = axis_norm.x * axis_norm.y;
+		float yz = axis_norm.y * axis_norm.z;
+		float zx = axis_norm.z * axis_norm.x;
 
-		T cosTheta = std::cos(theta);
-		T sinTheta = std::sin(theta);
+		float cosTheta = std::cos(theta);
+		float sinTheta = std::sin(theta);
 		
-		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (T(1) - cosTheta);
-		retMat(0, 1) = xy * (T(1) - cosTheta) - axis_norm.z * sinTheta;
-		retMat(0, 2) = zx * (T(1) - cosTheta) + axis_norm.y * sinTheta;
+		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (1.0f - cosTheta);
+		retMat(0, 1) = xy * (1.0f - cosTheta) - axis_norm.z * sinTheta;
+		retMat(0, 2) = zx * (1.0f - cosTheta) + axis_norm.y * sinTheta;
 
-		retMat(1, 0) = xy * (T(1) - cosTheta) + axis_norm.z * sinTheta;
-		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (T(1) - cosTheta);
-		retMat(1, 2) = yz * (T(1) - cosTheta) - axis_norm.x * sinTheta;
+		retMat(1, 0) = xy * (1.0f - cosTheta) + axis_norm.z * sinTheta;
+		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (1.0f - cosTheta);
+		retMat(1, 2) = yz * (1.0f - cosTheta) - axis_norm.x * sinTheta;
 
-		retMat(2, 0) = zx * (T(1) - cosTheta) - axis_norm.y * sinTheta;
-		retMat(2, 1) = yz * (T(1) - cosTheta) + axis_norm.x * sinTheta;
-		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (T(1) - cosTheta);
+		retMat(2, 0) = zx * (1.0f - cosTheta) - axis_norm.y * sinTheta;
+		retMat(2, 1) = yz * (1.0f - cosTheta) + axis_norm.x * sinTheta;
+		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (1.0f - cosTheta);
 
 		return retMat;
 	}
 
-	template <typename T>
-	inline mat4<T> lookAt(vec3<T>& position, vec3<T>& target, vec3<T>& up_vec)
+	inline mat4f lookAt(vec3f& position, vec3f& target, vec3f& up_vec)
 	{
-		vec3<T> dir = normalise_vec3(target - position);
-		vec3<T> right = normalise_vec3(cross_vec3(up_vec, dir));
-		vec3<T> cam_up = normalise_vec3(cross_vec3(dir, right));
+		vec3f dir = normalise_vec3(target - position);
+		vec3f right = normalise_vec3(cross_vec3(up_vec, dir));
+		vec3f cam_up = normalise_vec3(cross_vec3(dir, right));
 
 		// create the output lookat matrix
-		mat4<T> result;
+		mat4f result;
 		result(0, 0) = right.x;
 		result(0, 1) = right.y;
 		result(0, 2) = right.z;
@@ -257,46 +241,43 @@ namespace OEMaths
 		return result;
 	}
 
-	template <typename T>
-	inline mat4<T> orthoProjection(T zoom, T aspect, T zNear, T zFar)
+	inline mat4f orthoProjection(float zoom, float aspect, float zNear, float zFar)
 	{
-		mat4<T> result;
+		mat4f result;
 		result(0, 0) = zoom / aspect;
 		result(1, 1) = -zoom;
-		result(2, 2) = T(2) / (zFar - zNear);
+		result(2, 2) = 2.0f / (zFar - zNear);
 		result(2, 3) = -(zFar + zNear) / (zFar - zNear);
 
 		return result;
 	}
 
-	template <typename T>
-	inline mat4<T> perspective(T fov, T aspect, T zNear, T zFar)
+	inline mat4f perspective(float fov, float aspect, float zNear, float zFar)
 	{
 		// fov to radians
-		float rad_fov = fov * M_PI / T(180);
-		float tanHalfFov = std::tan(rad_fov * T(0.5));
+		float rad_fov = fov * M_PI / 180.0f;
+		float tanHalfFov = std::tan(rad_fov * 0.5f);
 	
-		mat4<T> result;
-		result(0, 0) = T(1) / (aspect * tanHalfFov);
+		mat4f result;
+		result(0, 0) = 1.0f / (aspect * tanHalfFov);
 		
-		result(1, 1) = T(1) / tanHalfFov;
+		result(1, 1) = 1.0f / tanHalfFov;
 
 		result(2, 2) = zFar / (zFar - zNear);		// note: this is Vulkan specific i.e. using 0-1 for depth
-		result(2, 3) = T(1);
+		result(2, 3) = 1.0f;
 
 		result(3, 2) = -(zFar * zNear) / (zFar - zNear);
-		result(3, 3) = T(0);
+		result(3, 3) = 0.0f;
 
 		return result;
 	}
 
-	template <typename T>
-	inline mat4<T> ortho(T left, T right, T top, T bottom, T zNear, T zFar)
+	inline mat4f ortho(float left, float right, float top, float bottom, float zNear, float zFar)
 	{
-		mat4<T> result;
-		result(0, 0) = T(2) / (right - left);
-		result(1, 1) = T(2) / (top - bottom);
-		result(2, 2) = T(2) / (zFar - zNear);
+		mat4f result;
+		result(0, 0) = 2.0f / (right - left);
+		result(1, 1) = 2.0f / (top - bottom);
+		result(2, 2) = 2.0f / (zFar - zNear);
 		result(3, 0) = -(right + left) / (right - left);
 		result(3, 1) = -(top + bottom) / (top - bottom);
 		result(3, 2) = -(zFar + zNear) / (zFar - zNear);
@@ -304,12 +285,11 @@ namespace OEMaths
 	}
 
 
-	template <typename T>
-	inline mat4<T> mat4_inverse(mat4<T>& m)
+	inline mat4f mat4_inverse(mat4f& m)
 	{
-		mat4<T> inv;
-		mat4<T> result;
-		T det;
+		mat4f inv;
+		mat4f result;
+		float det;
 
 		inv[0] = m[5]  * m[10] * m[15] - 
 				m[5]  * m[11] * m[14] - 
@@ -425,12 +405,12 @@ namespace OEMaths
 
 		det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
 
-		if (det == 0) {
+		if (det == 0.0f) {
 			// just return a identity matrix
 			return result;
 		}
 
-		det = 1.0 / det;
+		det = 1.0f / det;
 
 		for (uint32_t i = 0; i < 16; i++) {
 			result[i] = inv[i] * det;

@@ -6,8 +6,7 @@ namespace OEMaths
 {
 	
 	// some popular maths conversions (haven't decided were to locate these yet!)
-	template <typename T>
-	T radians(const T deg)
+	float radians(const float deg)
 	{
 		return deg * M_PI / 180;
 	}

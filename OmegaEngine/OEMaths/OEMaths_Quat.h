@@ -3,48 +3,43 @@
 namespace OEMaths
 {
 
-	template <typename T>
 	class quat
 	{
 	public:
 
-		quat() :
-			x(static_cast<T>(0)),
-			y(static_cast<T>(0)),
-			z(static_cast<T>(0)),
-			w(static_cast<T>(0))
+		quatf() :
+			x(0.0f),
+			y(0.0f),
+			z(0.0f),
+			w(0.0f)
 		{}
 
-		quat(T n) :
+		quatf(float n) :
 			x(n),
 			y(n),
 			z(n),
 			w(n)
 		{}
 
-		quat(T in_x, T in_y, T in_z, T in_w) :
+		quatf(float in_x, float in_y, float in_z, float in_w) :
 			x(in_x),
 			y(in_y),
 			z(in_z),
 			w(in_w)
 		{}
 
-		T x;
-		T y;
-		T z;
-		T w;
+		float x;
+		float y;
+		float z;
+		float w;
 	};
-
-	using quatf = quat<float>;
-	using quatd = quat<double>;
 
 
 	// conversion functions
-	template <typename T>
 	quatf convert_quatf(void* data)
 	{
 		assert(data != nullptr);
-		T* ptr = (T*)data;
+		float* ptr = (float*)data;
 		quatf qt;
 		qt.x = *ptr;
 		++ptr;
@@ -57,30 +52,29 @@ namespace OEMaths
 	}
 
 	// conversion
-	template <typename T>
-	inline mat4<T> quat_to_mat4(quat<T> q)
+	inline mat4f quat_to_mat4(quatf q)
 	{
-		mat4<T> mat;
+		mat4f mat;
 
-		T twoX = static_cast<T>(2) * q.x;
-		T twoY = static_cast<T>(2) * q.y;
-		T twoZ = static_cast<T>(2) * q.z;
+		float twoX = 2.0f * q.x;
+		float twoY = 2.0f * q.y;
+		float twoZ = 2.0f * q.z;
 
-		T twoXX = twoX * q.x;
-		T twoXY = twoX * q.y;
-		T twoXZ = twoX * q.z;
-		T twoXW = twoX * q.w;
+		float twoXX = twoX * q.x;
+		float twoXY = twoX * q.y;
+		float twoXZ = twoX * q.z;
+		float twoXW = twoX * q.w;
 
-		T twoYY = twoY * q.y;
-		T twoYZ = twoY * q.z;
-		T twoYW = twoY * q.w;
+		float twoYY = twoY * q.y;
+		float twoYZ = twoY * q.z;
+		float twoYW = twoY * q.w;
 
-		T twoZZ = twoZ * q.z;
-		T twoZW = twoZ * q.w;
+		float twoZZ = twoZ * q.z;
+		float twoZW = twoZ * q.w;
 
-		vec4f v0{ static_cast<T>(1.0) - (twoYY + twoZZ), twoXY - twoZW, twoXZ + twoYW, 0.0f };
-		vec4f v1{ twoXY + twoZW, static_cast<T>(1.0) - (twoXX + twoZZ), twoYZ - twoXW, 0.0f };
-		vec4f v2{ twoXZ - twoYW, twoYZ + twoXW, static_cast<T>(1.0) - (twoXX + twoYY), 0.0f };
+		vec4f v0{ 1.0f - (twoYY + twoZZ), twoXY - twoZW, twoXZ + twoYW, 0.0f };
+		vec4f v1{ twoXY + twoZW, 1.0f - (twoXX + twoZZ), twoYZ - twoXW, 0.0f };
+		vec4f v2{ twoXZ - twoYW, twoYZ + twoXW, 1.0f - (twoXX + twoYY), 0.0f };
 		vec4f v3{ 0.0f, 0.0f, 0.0f, 1.0f };
 
 		mat(v0, 0);
@@ -90,17 +84,15 @@ namespace OEMaths
 		return mat;
 	}
 
-	template <typename T>
-	inline T length_quat(quat<T>& q)
+	inline float length_quat(quatf& q)
 	{
 		return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
 	}
 
-	template <typename T>
-	inline quat<T> normalise_quat(quat<T>& q)
+	inline quatf normalise_quat(quatf& q)
 	{
-		quat<T> result;
-		T length = length_quat(q);
+		quatf result;
+		float length = length_quat(q);
 
 		result.x = q.x / length;
 		result.y = q.y / length;
@@ -109,22 +101,20 @@ namespace OEMaths
 		return result;
 	}
 
-	template <typename T>
-	inline quat<T> linear_mix_quat(quat<T>& q1, quat<T>& q2, float u)
+	inline quatf linear_mix_quat(quatf& q1, quatf& q2, float u)
 	{
-		quat<T> result;
-		result.x = q1.x * (T(1) - u) + q2.x * u;
-		result.y = q1.y * (T(1) - u) + q2.y * u;
-		result.z = q1.z * (T(1) - u) + q2.z * u;
-		result.w = q1.w * (T(1) - u) + q2.w * u;
+		quatf result;
+		result.x = q1.x * (1.0f - u) + q2.x * u;
+		result.y = q1.y * (1.0f - u) + q2.y * u;
+		result.z = q1.z * (1.0f - u) + q2.z * u;
+		result.w = q1.w * (1.0f - u) + q2.w * u;
 		return result;
 	}
 
-	template <typename T>
-	inline quat<T> cubic_mix_quat(quat<T>& q1, quat<T>& q2, quat<T>& q3, quat<T>& q4, float u)
+	inline quatf cubic_mix_quat(quatf& q1, quatf& q2, quatf& q3, quatf& q4, float u)
 	{
-		quat<T> retVec;
-		T a0, a1, a2, a3, u_sqr;
+		quatf retVec;
+		float a0, a1, a2, a3, u_sqr;
 		u_sqr = u * u;
 
 		// x
