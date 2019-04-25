@@ -153,8 +153,8 @@ namespace OmegaEngine
 
 		// the number of models to allocate mem space for - this will need optimising
 		// could also be dynamic and be altered to the archietecture being used
-		const uint32_t TransformBlockSize = 100;
-		const uint32_t SkinnedBlockSize = 100;
+		const uint32_t TransformBlockSize = 25;
+		const uint32_t SkinnedBlockSize = 25;
 
 		TransformManager();
 		~TransformManager();

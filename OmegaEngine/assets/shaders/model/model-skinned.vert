@@ -1,11 +1,11 @@
 #version 450
 
-layout (location = 0) in vec3 inPos;
+layout (location = 0) in vec4 inPos;
 layout (location = 1) in vec2 inUv0;
 layout (location = 2) in vec2 inUv1;
 layout (location = 3) in vec3 inNormal;
 layout (location = 4) in vec4 inWeights;
-layout (location = 5) in ivec4 inBoneId;
+layout (location = 5) in vec4 inBoneId;
 
 #define MAX_BONES 6
 
@@ -40,13 +40,13 @@ void main()
 {	
 	vec4 pos;
 	
-	mat4 boneTransform = skinned_ubo.bones[inBoneId[0]] * inWeights[0];
-	boneTransform += skinned_ubo.bones[inBoneId[1]] * inWeights[1];
-	boneTransform += skinned_ubo.bones[inBoneId[2]] * inWeights[2];
-	boneTransform += skinned_ubo.bones[inBoneId[3]] * inWeights[3];
+	mat4 boneTransform = skinned_ubo.bones[int(inBoneId.x)] * inWeights.x;
+	boneTransform += skinned_ubo.bones[int(inBoneId.y)] * inWeights.y;
+	boneTransform += skinned_ubo.bones[int(inBoneId.z)] * inWeights.z;
+	boneTransform += skinned_ubo.bones[int(inBoneId.w)] * inWeights.w;
 		
 	mat4 normalTransform = mesh_ubo.modelMatrix * boneTransform;
-	pos = normalTransform * vec4(inPos, 1.0);
+	pos = normalTransform * inPos;
 
     // inverse-transpose for non-uniform scaling - expensive computations here - maybe remove this?
 	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);    // 

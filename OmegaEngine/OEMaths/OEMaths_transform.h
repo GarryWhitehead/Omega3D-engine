@@ -27,6 +27,8 @@ namespace OEMaths
 
 	vec4f convert_vec4_F(const float* data);
 	vec4f convert_vec4_D(const double* data);
+	vec4f convert_vec4_I16(const uint16_t* data);
+
 	float length_vec4(vec4f& v4);
 	vec4f normalise_vec4(vec4f& v4);
 	vec4f mix_vec4(vec4f& v1, vec4f& v2, float u);

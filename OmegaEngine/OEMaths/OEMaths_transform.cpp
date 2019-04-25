@@ -144,6 +144,21 @@ namespace OEMaths
 		return vec;
 	}
 
+	vec4f convert_vec4_I16(const uint16_t* data)
+	{
+		assert(data != nullptr);
+		uint16_t* ptr = (uint16_t*)data;
+		vec4f vec;
+		vec.x = (float)*ptr;
+		++ptr;
+		vec.y = (float)*ptr;
+		++ptr;
+		vec.z = (float)*ptr;
+		++ptr;
+		vec.w = (float)*ptr;
+		return vec;
+	}
+
 	float length_vec4(vec4f& v4)
 	{
 		return std::sqrt(v4.x * v4.x + v4.y * v4.y + v4.z * v4.z + v4.w * v4.w);

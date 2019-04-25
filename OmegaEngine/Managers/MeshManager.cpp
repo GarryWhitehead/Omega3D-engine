@@ -117,7 +117,7 @@ namespace OmegaEngine
 					}
 
 					// if we have skin data, also convert this to a palatable form
-					vertex.joint = OEMaths::convert_vec4_F(reinterpret_cast<const float*>(jointBuffer));
+					vertex.joint = OEMaths::convert_vec4_I16(jointBuffer);
 					vertex.weight = OEMaths::convert_vec4_F(weightBuffer);
 					jointBuffer += 4;
 					weightBuffer += 4;
