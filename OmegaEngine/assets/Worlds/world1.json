@@ -1,33 +1,33 @@
 {
 	"Models": [
-		{ "Filename":"RiggedSimple/RiggedSimple.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
+		{ "Filename":"WaterBottle/WaterBottle.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
 	],
   "Lights": [
     {
       "Type": 0,
-      "Position": [ 3.0, 2.0, 1.0, 1.0 ],
+      "Position": [ 0.0, 3.0, 10.0, 1.0 ],
       "Colour": [ 1.0, 1.0, 1.0 ],
       "Radius": 50.0
     },
     {
       "Type": 1,
-      "Position": [ 0.0, -10.0, -2.0, 1.0 ],
+      "Position": [ 0.0, -1.0, -5.0, 1.0 ],
       "Colour": [ 1.0, 1.0, 1.0 ],
-      "Radius": 80.0,
+      "Radius": 100.0,
       "OuterCone": 15.0,
       "InnerCone":  25.0
     },
     {
       "Type": 0,
-      "Position": [ 0.0, -10.0, 0.0, 1.0 ],
+      "Position": [ 0.0, -1.0, -8.0, 1.0 ],
       "Colour": [ 1.0, 1.0, 1.0 ],
       "Radius": 90.0
     },
     {
       "Type": 0,
-      "Position": [ 0.0, 0.0, -1.0, 1.0 ],
+      "Position": [ 5.0, 0.0, 0.0, 1.0 ],
       "Colour": [ 1.0, 0.0, 0.0 ],
-      "Radius": 190.0
+      "Radius": 90.0
     }
   ]
 }

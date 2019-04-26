@@ -132,7 +132,9 @@ namespace OmegaEngine
 	{
 		// not all gltf files speciify sampler types so go with a default otherwise
 		if (samplers[set].empty()) {
-			return VulkanAPI::SamplerType::NotDefined;
+			// if no samplers defined then go with this as default for now
+			// TODO: Add option in shader reflection to add samplers based on image name
+			return VulkanAPI::SamplerType::Clamp;	
 		}
 		return samplers[set][index];
 	}
