@@ -10,9 +10,6 @@
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/MaterialManager.h"
-#include "Vulkan/MemoryAllocator.h"
-#include "Vulkan/DataTypes/Texture.h"
-#include "Vulkan/CommandBuffer.h"
 #include "Utility/logger.h"
 #include "Utility/FileUtil.h"
 #include "Threading/ThreadPool.h"
@@ -50,7 +47,7 @@ namespace OmegaEngine
 		render_queue = std::make_unique<RenderQueue>();
 		
 		// init the command buffer now ready for rendering later
-		cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		cmd_buffer_handle = vk_interface->get_cmd_buffer_manager()->create_instance();
 
 		// and also the swap chain presentation pass which will render the final composition to the screen
 		prepare_swapchain_pass();
@@ -132,11 +129,11 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore)
+	void RenderInterface::render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass)
 	{
 		RenderQueueInfo queue_info;
 		
-		auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
+		auto& cmd_buffer = vk_interface->get_cmd_buffer_manager()->get_cmd_buffer(cmd_buffer_handle);
 
 		for (auto& info : renderables) {
 
@@ -170,7 +167,6 @@ namespace OmegaEngine
 		// end the primary pass and buffer
 		cmd_buffer->end_pass();
 		cmd_buffer->end();
-
 	}
 
 	void RenderInterface::build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface)
@@ -208,7 +204,6 @@ namespace OmegaEngine
 			}
 
 			isDirty = false;
-			rebuildCmdBuffers = true;
 		}
 	}
 
@@ -244,28 +239,6 @@ namespace OmegaEngine
 			std::vector<vk::ImageView> image_views{ swap_chain.get_image_view(i), swapchain_present.depth_texture.get_image_view() };
 			swapchain_present.renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), width, height);
 		}
-	}
-
-	VulkanAPI::CommandBuffer& RenderInterface::begin_swapchain_pass(uint32_t index)
-	{
-		// setup the command buffer
-		swapchain_present.cmd_buffer[index].create_primary();
-
-		// begin the render pass
-		auto& begin_info = swapchain_present.renderpass.get_begin_info(static_cast<vk::ClearColorValue>(render_config.general.background_col), index);
-		swapchain_present.cmd_buffer[index].begin_renderpass(begin_info, false);
-
-		// set the dynamic viewport and scissor dimensions
-		swapchain_present.cmd_buffer[index].set_viewport();
-		swapchain_present.cmd_buffer[index].set_scissor();
-
-		return swapchain_present.cmd_buffer[index];
-	}
-
-	void RenderInterface::end_swapchain_pass(uint32_t index)
-	{
-		swapchain_present.cmd_buffer[index].end_pass();
-		swapchain_present.cmd_buffer[index].end();
 	}
 
 }

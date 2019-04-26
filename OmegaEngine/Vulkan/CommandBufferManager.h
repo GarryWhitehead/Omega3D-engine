@@ -2,6 +2,7 @@
 
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/Common.h"
+#include "Vulkan/Queue.h"
 
 namespace VulkanAPI
 {
@@ -23,7 +24,7 @@ namespace VulkanAPI
         vk::Semaphore semaphore;
 
         BufferState state = BufferState::Free;
-    }
+	};
 
     class CommandBufferManager
     {

@@ -16,16 +16,12 @@
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, RenderConfig _render_config, std::unique_ptr<VulkanAPI::Interface>& vk_interface) :
+	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, RenderConfig _render_config) :
 		device(dev),
 		gpu(physical),
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		// set up semaphores for later
-		auto& semaphore_manager = vk_interface->get_semaphore_manager();
-		image_semaphore = semaphore_manager->get_semaphore();
-		present_semaphore = semaphore_manager->get_semaphore();
 	}
 
 
@@ -140,48 +136,49 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::render_deferred(VulkanAPI::Queue& graph_queue, VulkanAPI::Swapchain& swapchain, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface)
+	void DeferredRenderer::render_deferred(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager)
 	{
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
 		// or just render straight to the swap chain presentation image
 		if (render_config.general.use_post_process) {
-
-			cmd_buffer.create_primary();
+			
+			auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
+			cmd_buffer->create_primary();
 
 			// begin the renderpass 
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-			cmd_buffer.begin_renderpass(begin_info);
+			cmd_buffer->begin_renderpass(begin_info);
 
 			// viewport and scissor
-			cmd_buffer.set_viewport();
-			cmd_buffer.set_scissor();
+			cmd_buffer->set_viewport();
+			cmd_buffer->set_scissor();
 
 			// bind everything required to draw
-			cmd_buffer.bind_pipeline(pipeline);
-			cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-			cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+			cmd_buffer->bind_pipeline(pipeline);
+			cmd_buffer->bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+			cmd_buffer->bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 			// render full screen quad to screen
-			cmd_buffer.draw_quad();
+			cmd_buffer->draw_quad();
 
 			// end this pass and cmd buffer
-			cmd_buffer.end_pass();
-			cmd_buffer.end();
+			cmd_buffer->end_pass();
+			cmd_buffer->end();
 		}
 		else {
 			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
 
-				auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
+				auto& cmd_buffer = cmd_buffer_manager->get_present_cmd_buffer();
 
 				// bind everything required to draw
-				sc_cmd_buffer.bind_pipeline(pipeline);
-				sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-				sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+				cmd_buffer->bind_pipeline(pipeline);
+				cmd_buffer->bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+				cmd_buffer->bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 				// render full screen quad to screen
-				sc_cmd_buffer.draw_quad();
-
-				render_interface->end_swapchain_pass(i);
+				cmd_buffer->draw_quad();
+				cmd_buffer->end_pass();
+				cmd_buffer->end();
 			}
 		}
 	}
@@ -189,7 +186,7 @@ namespace OmegaEngine
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
-		auto& swapchain = vk_interface->get_swapchain();
+		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
 
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
@@ -197,7 +194,7 @@ namespace OmegaEngine
 		render_interface->render_components(render_config, first_renderpass);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		render_deferred(swapchain, render_interface);
+		render_deferred(render_interface, cmd_buffer_manager);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {
@@ -206,6 +203,6 @@ namespace OmegaEngine
 		}
 		
 		// finally send to the swap-chain presentation
-		cmd_buffer_manager->submit_frame(swapchain);
+		cmd_buffer_manager->submit_frame(vk_interface->get_swapchain());
 	}
 }

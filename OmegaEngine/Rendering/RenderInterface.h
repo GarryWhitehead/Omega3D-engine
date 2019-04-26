@@ -7,6 +7,7 @@
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/CommandBufferManager.h"
 #include "RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
 
@@ -102,11 +103,14 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore);
+		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
 
 	private:
 
 		RenderConfig render_config;
+
+		// handle to the cmd buffer 
+		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 		std::unique_ptr<RendererBase> renderer;
@@ -128,7 +132,7 @@ namespace OmegaEngine
 
 		// preperation for final swapchain presentation
 		void prepare_swapchain_pass();
-		VulkanAPI::CommandBuffer& begin_swapchain_pass(uint32_t index);
+		void begin_swapchain_pass(uint32_t index);
 		void end_swapchain_pass(uint32_t index);
 
 		VulkanAPI::RenderPass& get_swapchain_renderpass()
@@ -136,22 +140,11 @@ namespace OmegaEngine
 			return swapchain_present.renderpass;
 		}
 
-		uint32_t get_swapchain_count() const
-		{
-			return swapchain_present.cmd_buffer.size();
-		}
-
-		VulkanAPI::CommandBuffer& get_sc_cmd_buffer(uint32_t index)
-		{
-			return swapchain_present.cmd_buffer[index];
-		}
-
 	private:
 
 		// final presentation pass
 		struct SwapChainPresentaion
 		{
-			std::vector<VulkanAPI::CommandBuffer> cmd_buffer;
 			VulkanAPI::RenderPass renderpass;
 			VulkanAPI::Texture depth_texture;
 
