@@ -163,7 +163,7 @@ namespace OmegaEngine
 
 			lights[i].radius = arr["Radius"].GetFloat();
 
-			if (lights[i].type == LightType::Spot) {
+			if (lights[i].type == LightType::Cone) {
 				lights[i].innerCone = arr["InnerCone"].GetFloat();
 				lights[i].outerCone = arr["OuterCone"].GetFloat();
 			}

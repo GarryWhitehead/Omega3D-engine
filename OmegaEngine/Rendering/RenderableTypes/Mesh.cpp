@@ -70,7 +70,14 @@ namespace OmegaEngine
 			
 		// materials 
 		// create a descriptor set for this material
-		VulkanAPI::VkTextureManager::TextureLayoutInfo layout_info = texture_manager->get_texture_descr_layout("Mesh");
+		VulkanAPI::VkTextureManager::TextureLayoutInfo layout_info;
+		if (mesh.type == MeshManager::MeshType::Static) {
+			layout_info = texture_manager->get_texture_descr_layout("Mesh");
+		}
+		else if (mesh.type == MeshManager::MeshType::Skinned) {
+			layout_info = texture_manager->get_texture_descr_layout("SkinnedMesh");
+		}
+
 		mesh_instance_data->descr_set.init(device, *layout_info.layout, layout_info.set_num); 
 		texture_manager->update_descr_set(mesh_instance_data->descr_set, mat.name, layout_info.set_num);
 
@@ -149,7 +156,12 @@ namespace OmegaEngine
 		// inform the texture manager the layout of textures associated with the mesh shader
 		// TODO : automate this somehow rather than hard coded values
 		const uint8_t material_set = 0;
-		texture_manager->bind_textures_to_layout("Mesh", &state->descr_layout, material_set);
+		if (type == MeshManager::MeshType::Static) {
+			texture_manager->bind_textures_to_layout("Mesh", &state->descr_layout, material_set);
+		}
+		else if (type == MeshManager::MeshType::Skinned) {
+			texture_manager->bind_textures_to_layout("SkinnedMesh", &state->descr_layout, material_set);
+		}
 
 		state->shader.pipeline_layout_reflect(state->pl_layout);
 		state->pl_layout.create(device, state->descr_layout.get_layout());

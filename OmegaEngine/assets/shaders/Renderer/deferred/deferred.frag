@@ -104,7 +104,7 @@ void main()
 
 		vec3 radiance;
 		if (light_ubo.lights[c].type == SPOTLIGHT) {
-			float attenuation = light_ubo.radius / (dist * dist);
+			float attenuation = light_ubo.lights[c].radius / (dist * dist);
 			radiance = light_ubo.lights[c].colour.rgb * attenuation;
 		}
 		if (light_ubo.lights[c].type == CONE) {

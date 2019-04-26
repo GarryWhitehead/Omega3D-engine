@@ -86,7 +86,7 @@ namespace VulkanAPI
 
 			next_offset = vertex_attr_descr[i].offset;
 			vertex_attr_descr[i].offset = current_offset;
-			current_offset = next_offset;
+			current_offset += next_offset;
 			total_size += next_offset;
 		}
 

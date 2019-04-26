@@ -16,7 +16,7 @@ namespace OmegaEngine
 	enum class LightType
 	{
 		Spot,
-		Point,
+		Cone,
 		Directional
 	};
 
