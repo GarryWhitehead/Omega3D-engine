@@ -33,7 +33,6 @@ namespace OmegaEngine
 		cmd_buffer.end();
     }
 
-
     void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
     {
 		uint32_t num_threads = std::thread::hardware_concurrency();
@@ -41,6 +40,8 @@ namespace OmegaEngine
 
 		// create the cmd pools and secondary buffers for each stage
 		cmd_buffer.create_secondary(num_threads);
+
+        uint32_t thread_count = 0;
 
 		// render by queue type - opaque, lighting and then transparent meshes
         for (auto queue : render_queues) {            
@@ -65,6 +66,8 @@ namespace OmegaEngine
                 thread_pool.submitTask([=]() {
 				    submit(sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size);
 			        });
+
+                ++thread_count;
 		    } 
         }
 
@@ -72,7 +75,7 @@ namespace OmegaEngine
 		thread_pool.wait_for_all();
 
 		// execute the recorded secondary command buffers - only for those threads we have actually used
-		cmd_buffer.execute_secondary_commands(2);
+		cmd_buffer.execute_secondary_commands(thread_count);
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
 		render_queues.clear();
