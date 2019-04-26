@@ -24,6 +24,10 @@ layout (location = 0) out vec4 outFrag;
 
 #define MAX_LIGHT_COUNT 100	// make sure this matches the manager - could use a specilization constant
 
+// light types - must reflect main code enums
+#define SPOTLIGHT 0
+#define CONE 1
+
 struct Light
 {
 		vec4 pos;
@@ -96,10 +100,22 @@ void main()
 		
 		vec3 lightPos = light_ubo.lights[c].pos.xyz - inPos;
 		float dist = length(lightPos);
-		float attenuation = 1.0 / dist * dist;
-		vec3 radiance = light_ubo.lights[c].colour.rgb * attenuation;
-		
 		vec3 L = normalize(lightPos);
+
+		vec3 radiance;
+		if (light_ubo.lights[c].type == SPOTLIGHT) {
+			float attenuation = light_ubo.radius / (dist * dist);
+			radiance = light_ubo.lights[c].colour.rgb * attenuation;
+		}
+		if (light_ubo.lights[c].type == CONE) {
+			float innerCosAngle = cos(light_ubo.lights[c].innerCone);
+			float outerCosAngle = cos(light_ubo.lights[c].outerCone);
+			float dir = dot(L, lightPos);
+			float spot = smoothstep(innerCosAngle, outerCosAngle, dir);
+			float attenuation = smoothstep(light_ubo.lights[c].radius, 0.0f, dist);
+			radiance = light_ubo.lights[c].colour.rgb * spot * attenuation;
+		}
+		
 		colour += specularContribution(L, V, N, F0, metallic, roughness, baseColour, radiance);
 	}
 	
