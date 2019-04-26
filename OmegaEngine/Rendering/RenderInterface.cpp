@@ -153,23 +153,10 @@ namespace OmegaEngine
 				queue_info.sorting_key = info.renderable->get_sort_key();
 				queue_info.queue_type = info.renderable->get_queue_type();
 
-				render_queue->add_to_queue(queue_info);
+				render_queue->add_to_queue(LayerType::First, queue_info);
 			}
 
-			// sort by the set order - layer, shader, material and depth
-			render_queue->sort_all();
-
-			// now draw all renderables to the pass - start by begining the renderpass 
-			cmd_buffer.create_primary();
-			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-			cmd_buffer.begin_renderpass(begin_info, true);
-
-			// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
-			render_queue->threaded_dispatch(cmd_buffer, this);
-
-			// end the primary pass and buffer
-			cmd_buffer.end_pass();
-			cmd_buffer.end();
+			
 
 			rebuildCmdBuffers = false;
 		}

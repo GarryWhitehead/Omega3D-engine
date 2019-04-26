@@ -78,6 +78,57 @@ namespace OmegaEngine
 		render_queues.clear();
 	}
 
+    void RenderQueue::draw(LayerType layer, std::vector<RenderQueueInfo>& queue)
+    {
+        // now draw all renderables to the pass - start by begining the renderpass 
+        cmd_buffer.create_primary();
+        vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+        cmd_buffer.begin_renderpass(begin_info, true);
+
+        // now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
+        render_queue->threaded_dispatch(cmd_buffer, this);
+
+        // end the primary pass and buffer
+        cmd_buffer.end_pass();
+        cmd_buffer.end();
+    }
+
+    void RenderQueue::draw_all(bool sort_queue)
+    {
+         // sort by the set order - layer, shader, material and depth
+        if (sort_queue) {
+            sort_all();
+        }
+
+        uint32_t layer_count = 0;
+        for (auto& queue : render_queue) {
+            
+            // do in order - check it exsists first
+            if (render_queue.find(layer_count) != render_queue.end()) {
+                
+                // first sort by queue type i.e transparency and opaque
+                std::vector<RenderQueueInfo> transparent_render;
+                std::vector<RenderQueueInfo> opaque_render;
+
+                for (auto& queue_obj : queue.second) {
+
+                    if (queue_obj.queue_type == QueueType::Opaque) {
+                        opaque_render.push_back(queue_obj);
+                    }
+                    else if(queue_obj.queue_type == QueueType::Transparent) {
+                        transparent_render.push_back(queue_obj);
+                    }
+                    else {
+                        continue;
+                    }
+                }
+
+            }
+            
+            
+        }
+    }
+
     void RenderQueue::sort_all()
     {
         for (auto queue : render_queues) {

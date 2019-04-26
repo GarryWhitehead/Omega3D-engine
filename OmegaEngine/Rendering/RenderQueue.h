@@ -30,7 +30,6 @@ namespace OmegaEngine
 			struct
 			{
 				// in order of sorting importance
-				uint64_t layer_id : 4;
 				uint64_t shader_id : 12;
 				uint64_t texture_id : 12;
 				uint64_t depth_id : 12;
@@ -48,6 +47,14 @@ namespace OmegaEngine
         Opaque,
         Transparent
     };
+
+	enum class LayerType
+	{
+		First,
+		Light,		// deferred only
+		Skybox,		// deferred only
+		Post
+	};
     
     // all the information required to render 
     struct RenderQueueInfo
@@ -93,8 +100,8 @@ namespace OmegaEngine
 
      private:
 
-        // ordered by queue type
-        std::unordered_map<QueueType, std::vector<RenderQueueInfo> > render_queues;
+        // ordered by the layer type
+        std::unordered_map<LayerType, std::vector<RenderQueueInfo> > render_queues;
 
     };
 }
