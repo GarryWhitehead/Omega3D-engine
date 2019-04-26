@@ -50,7 +50,7 @@ namespace OmegaEngine
 		render_queue = std::make_unique<RenderQueue>();
 		
 		// init the command buffer now ready for rendering later
-		cmd_buffer.init(device.getDevice(), vk_interface->get_graph_queue().get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+		cmd_buffer_handle = cmd_buffer_manager->create_instance();
 
 		// and also the swap chain presentation pass which will render the final composition to the screen
 		prepare_swapchain_pass();
@@ -136,46 +136,41 @@ namespace OmegaEngine
 	{
 		RenderQueueInfo queue_info;
 		
-		if (rebuildCmdBuffers) {
+		auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
 
-			for (auto& info : renderables) {
+		for (auto& info : renderables) {
 
-				switch (info.renderable->get_type()) {
-				case RenderTypes::SkinnedMesh:
-				case RenderTypes::StaticMesh: {
-					queue_info.renderable_handle = info.renderable->get_handle();
-					queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
-					break;
-				}
-				}
-
-				queue_info.renderable_data = info.renderable->get_instance_data();
-				queue_info.sorting_key = info.renderable->get_sort_key();
-				queue_info.queue_type = info.renderable->get_queue_type();
-
-				render_queue->add_to_queue(queue_info);
+			switch (info.renderable->get_type()) {
+			case RenderTypes::SkinnedMesh:
+			case RenderTypes::StaticMesh: {
+				queue_info.renderable_handle = info.renderable->get_handle();
+				queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
+				break;
+			}
 			}
 
-			// sort by the set order - layer, shader, material and depth
-			render_queue->sort_all();
+			queue_info.renderable_data = info.renderable->get_instance_data();
+			queue_info.sorting_key = info.renderable->get_sort_key();
+			queue_info.queue_type = info.renderable->get_queue_type();
 
-			// now draw all renderables to the pass - start by begining the renderpass 
-			cmd_buffer.create_primary();
-			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-			cmd_buffer.begin_renderpass(begin_info, true);
-
-			// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
-			render_queue->threaded_dispatch(cmd_buffer, this);
-
-			// end the primary pass and buffer
-			cmd_buffer.end_pass();
-			cmd_buffer.end();
-
-			rebuildCmdBuffers = false;
+			render_queue->add_to_queue(queue_info);
 		}
 
-		// submit to graphics queue
-		vk_interface->get_graph_queue().submit_cmd_buffer(cmd_buffer.get(), image_semaphore, component_semaphore);
+		// sort by the set order - layer, shader, material and depth
+		render_queue->sort_all();
+
+		// now draw all renderables to the pass - start by begining the renderpass 
+		cmd_buffer->create_primary();
+		vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+		cmd_buffer->begin_renderpass(begin_info, true);
+
+		// now draw everything in the queue - TODO: add all renderpasses to the queue (offscreen stuff, etc.)
+		render_queue->threaded_dispatch(cmd_buffer, this);
+
+		// end the primary pass and buffer
+		cmd_buffer->end_pass();
+		cmd_buffer->end();
+
 	}
 
 	void RenderInterface::build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface)
@@ -248,12 +243,6 @@ namespace OmegaEngine
 			// create a frame buffer for each swapchain image
 			std::vector<vk::ImageView> image_views{ swap_chain.get_image_view(i), swapchain_present.depth_texture.get_image_view() };
 			swapchain_present.renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), width, height);
-		}
-
-		// a command buffer is required for each presentation image
-		swapchain_present.cmd_buffer.resize(swap_chain.get_image_count());
-		for (uint32_t i = 0; i < swapchain_present.cmd_buffer.size(); ++i) {
-			swapchain_present.cmd_buffer[i].init(vk_interface->get_device(), vk_interface->get_graph_queue().get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
 		}
 	}
 

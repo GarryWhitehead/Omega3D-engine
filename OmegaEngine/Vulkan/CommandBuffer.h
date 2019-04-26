@@ -1,6 +1,5 @@
 #pragma once
 #include "Vulkan/Common.h"
-#include "Vulkan/MemoryAllocator.h"
 
 namespace VulkanAPI
 {

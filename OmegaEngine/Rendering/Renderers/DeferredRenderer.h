@@ -72,21 +72,12 @@ namespace OmegaEngine
 		VulkanAPI::DescriptorSet descr_set;
 		VulkanAPI::RenderPass renderpass;
 
-		VulkanAPI::CommandBuffer cmd_buffer;
-
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;
 
 		// keep a local copy of the render config
 		RenderConfig render_config;
 
-		// semaphores for syncing of the render pipeline
-		vk::Semaphore image_semaphore;
-		vk::Semaphore present_semaphore;
-
-		// dirty flag indicates whether the cmd buffers need rebuilding - will only be false
-		// if using a static scene
-		bool isDirty = true;
 	};
 
 }

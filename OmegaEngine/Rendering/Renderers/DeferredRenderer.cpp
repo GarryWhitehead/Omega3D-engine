@@ -146,91 +146,66 @@ namespace OmegaEngine
 		// or just render straight to the swap chain presentation image
 		if (render_config.general.use_post_process) {
 
-			if (isDirty) {
-				// TODO: will need to reset the cmd buffer if its already been recorded into
-				cmd_buffer.init(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
-				cmd_buffer.create_primary();
+			cmd_buffer.create_primary();
 
-				// begin the renderpass 
-				vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-				cmd_buffer.begin_renderpass(begin_info);
+			// begin the renderpass 
+			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+			cmd_buffer.begin_renderpass(begin_info);
 
-				// viewport and scissor
-				cmd_buffer.set_viewport();
-				cmd_buffer.set_scissor();
+			// viewport and scissor
+			cmd_buffer.set_viewport();
+			cmd_buffer.set_scissor();
 
-				// bind everything required to draw
-				cmd_buffer.bind_pipeline(pipeline);
-				cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-				cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+			// bind everything required to draw
+			cmd_buffer.bind_pipeline(pipeline);
+			cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+			cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
-				// render full screen quad to screen
-				cmd_buffer.draw_quad();
+			// render full screen quad to screen
+			cmd_buffer.draw_quad();
 
-				// end this pass and cmd buffer
-				cmd_buffer.end_pass();
-				cmd_buffer.end();
-
-				isDirty = false;
-			}
-
-			// submit to graphics queue
-			graph_queue.submit_cmd_buffer(cmd_buffer.get(), wait_semaphore, signal_semaphore);
+			// end this pass and cmd buffer
+			cmd_buffer.end_pass();
+			cmd_buffer.end();
 		}
 		else {
-			if (isDirty) {
-				for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
+			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
 
-					auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
+				auto& sc_cmd_buffer = render_interface->begin_swapchain_pass(i);
 
-					// bind everything required to draw
-					sc_cmd_buffer.bind_pipeline(pipeline);
-					sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
-					sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+				// bind everything required to draw
+				sc_cmd_buffer.bind_pipeline(pipeline);
+				sc_cmd_buffer.bind_descriptors(pl_layout, descr_set, VulkanAPI::PipelineType::Graphics);
+				sc_cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
-					// render full screen quad to screen
-					sc_cmd_buffer.draw_quad();
+				// render full screen quad to screen
+				sc_cmd_buffer.draw_quad();
 
-					render_interface->end_swapchain_pass(i);
-				}
+				render_interface->end_swapchain_pass(i);
 			}
-			graph_queue.submit_cmd_buffer(render_interface->get_sc_cmd_buffer(swapchain.get_image_index()).get(), wait_semaphore, present_semaphore);
-
-			isDirty = false;
 		}
 	}
 
 
 	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
 	{
-		auto& semaphore_manager = vk_interface->get_semaphore_manager();
-	
 		auto& swapchain = vk_interface->get_swapchain();
-		auto& graph_queue = vk_interface->get_graph_queue();
-
-		// begin the start of the frame by beginning the next new swapchain image
-		swapchain.begin_frame(image_semaphore);
 
 		// Note: only deferred supported at the moment but this will change once Forward rendering is added
 		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
-		vk::Semaphore component_semaphore = semaphore_manager->get_semaphore();
-		render_interface->render_components(render_config, first_renderpass, image_semaphore, component_semaphore);
+		render_interface->render_components(render_config, first_renderpass);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		vk::Semaphore deferred_semaphore = semaphore_manager->get_semaphore();
-		render_deferred(graph_queue, swapchain, component_semaphore, present_semaphore, render_interface);
+		render_deferred(swapchain, render_interface);
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {
-
-			vk::Semaphore post_semaphore = semaphore_manager->get_semaphore();
+			
 			pp_interface->render();
 		}
 		
 		// finally send to the swap-chain presentation
-		swapchain.submit_frame(present_semaphore, vk_interface->get_present_queue().get());
-
-		isDirty = false;
+		cmd_buffer_manager->submit_frame(swapchain);
 	}
 }

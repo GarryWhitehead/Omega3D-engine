@@ -33,15 +33,6 @@ namespace OmegaEngine
 		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
 	}
 
-	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer
-	enum class RenderStage
-	{
-		GBuffer,		// offscreen g-buffer fill
-		Deferred,		// renders to present queue if post-process not required
-		PostProcess,	// rendered in a forward_pass
-		Count
-	};
-
 	class RenderInterface
 	{
 
@@ -130,14 +121,8 @@ namespace OmegaEngine
 		// dirty flag indicates whether to rebuild the renderables
 		bool isDirty = true;
 
-		// indicates whether the cmd buffers need rebuilding
-		bool rebuildCmdBuffers = false;
-
 		// all the pipelines and shaders for each renderable type
 		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
-
-		// Vulkan stuff for rendering the compoennts
-		VulkanAPI::CommandBuffer cmd_buffer;
 
 	public:
 
