@@ -128,29 +128,6 @@ namespace OmegaEngine
 		// all the pipelines and shaders for each renderable type
 		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
 
-	public:
-
-		// preperation for final swapchain presentation
-		void prepare_swapchain_pass();
-		void begin_swapchain_pass(uint32_t index);
-		void end_swapchain_pass(uint32_t index);
-
-		VulkanAPI::RenderPass& get_swapchain_renderpass()
-		{
-			return swapchain_present.renderpass;
-		}
-
-	private:
-
-		// final presentation pass
-		struct SwapChainPresentaion
-		{
-			VulkanAPI::RenderPass renderpass;
-			VulkanAPI::Texture depth_texture;
-
-			std::array<vk::ClearValue, 2> clear_values = {};
-		} swapchain_present;
-
 	};
 
 }

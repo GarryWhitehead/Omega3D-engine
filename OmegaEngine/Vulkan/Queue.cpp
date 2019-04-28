@@ -34,15 +34,17 @@ namespace VulkanAPI
 		queue.waitIdle();
 	}
 
-	void Queue::submit_cmd_buffer(vk::CommandBuffer& cmd_buffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::PipelineStageFlags stage_flag)
+	void Queue::submit_cmd_buffer(vk::CommandBuffer& cmd_buffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence)
 	{
+		vk::PipelineStageFlags stage_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		
 		vk::SubmitInfo submit_info(
 			1, &wait_semaphore,
 			&stage_flag,
 			1, &cmd_buffer,
 			1, &signal_semaphore);
 
-		VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
+		VK_CHECK_RESULT(queue.submit(1, &submit_info, fence));
 		queue.waitIdle();
 	}
 

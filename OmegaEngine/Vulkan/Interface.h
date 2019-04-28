@@ -13,6 +13,7 @@ namespace VulkanAPI
 	class BufferManager;
 	class SemaphoreManager;
 	class VkTextureManager;
+	class CommandBufferManager;
 
 	class Interface
 	{
@@ -52,14 +53,14 @@ namespace VulkanAPI
 			return buffer_manager;
 		}
 
-		std::unique_ptr<SemaphoreManager>& get_semaphore_manager()
-		{
-			return semaphore_manager;
-		}
-
 		std::unique_ptr<VkTextureManager>& get_texture_manager()
 		{
 			return texture_manager;
+		}
+
+		std::unique_ptr<CommandBufferManager>& get_cmd_buffer_manager()
+		{
+			return cmd_buffer_manager;
 		}
 
 	private:
@@ -77,8 +78,8 @@ namespace VulkanAPI
 
 		// managers
 		std::unique_ptr<BufferManager> buffer_manager;
-		std::unique_ptr<SemaphoreManager> semaphore_manager;
 		std::unique_ptr<VkTextureManager> texture_manager;
+		std::unique_ptr<CommandBufferManager> cmd_buffer_manager;
 	};
 
 }

@@ -10,18 +10,22 @@
 #include "Vulkan/Descriptors.h"
 #include "Vulkan/Queue.h"
 #include "Vulkan/SemaphoreManager.h"
+#include "Vulkan/Swapchain.h"
 #include "PostProcess/PostProcessInterface.h"
 #include "Vulkan/Device.h"
 
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, RenderConfig _render_config) :
+	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, RenderConfig _render_config) :
 		device(dev),
 		gpu(physical),
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
+		if (render_config.general.use_post_process) {
+			cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		}
 	}
 
 
@@ -63,7 +67,7 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, RenderInterface* render_interface)
+	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
 		if (render_config.general.use_post_process) {
@@ -130,19 +134,21 @@ namespace OmegaEngine
 		}
 		else {
 			// render to the swapchain presentation 
-			pipeline.add_colour_attachment(VK_FALSE, render_interface->get_swapchain_renderpass());
-			pipeline.create(device, render_interface->get_swapchain_renderpass(), shader, pl_layout, VulkanAPI::PipelineType::Graphics);
+			pipeline.add_colour_attachment(VK_FALSE, swapchain.get_renderpass());
+			pipeline.create(device, swapchain.get_renderpass(), shader, pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 	}
 
 
-	void DeferredRenderer::render_deferred(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager)
+	void DeferredRenderer::render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
 		// or just render straight to the swap chain presentation image
 		if (render_config.general.use_post_process) {
 			
+			cmd_buffer_manager->new_frame(cmd_buffer_handle);
 			auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
+
 			cmd_buffer->create_primary();
 
 			// begin the renderpass 
@@ -166,9 +172,11 @@ namespace OmegaEngine
 			cmd_buffer->end();
 		}
 		else {
-			for (uint32_t i = 0; i < render_interface->get_swapchain_count(); ++i) {
 
-				auto& cmd_buffer = cmd_buffer_manager->get_present_cmd_buffer();
+			uint32_t image_count = cmd_buffer_manager->get_present_count();
+			for (uint32_t i = 0; i < image_count; ++i) {
+
+				auto& cmd_buffer = cmd_buffer_manager->begin_present_cmd_buffer(swapchain.get_renderpass(), render_config.general.background_col, i);
 
 				// bind everything required to draw
 				cmd_buffer->bind_pipeline(pipeline);
@@ -194,7 +202,7 @@ namespace OmegaEngine
 		render_interface->render_components(render_config, first_renderpass);
 
 		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		render_deferred(render_interface, cmd_buffer_manager);
+		render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
 
 		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
 		if (render_config.general.use_post_process) {

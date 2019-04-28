@@ -6,7 +6,14 @@
 
 namespace VulkanAPI
 {
-    enum class BufferState
+	// forward declerations
+	class RenderPass;
+	class Swapchain;
+	class SemaphoreManager;
+
+	using CmdBufferHandle = uint64_t;
+
+	enum class BufferState
     {
         Free,
         Recorded,
@@ -15,7 +22,7 @@ namespace VulkanAPI
 
     struct CommandBufferInfo
     {
-        std::unique_ptr<CommandBuffer> cmd_buffer;
+		std::unique_ptr<CommandBuffer> cmd_buffer;
 
         // sync buffer destruction
         vk::Fence fence;
@@ -30,22 +37,32 @@ namespace VulkanAPI
     {
     public:
 
-        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& queue);
+        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain);
         ~CommandBufferManager();
 
-        std::unique_ptr<CommandBuffer>& create_cmd_buffer();
+		CmdBufferHandle create_instance();
+		std::unique_ptr<CommandBuffer>& get_cmd_buffer(CmdBufferHandle handle);
+		void new_frame(CmdBufferHandle handle);
 
-        // submits all recorded cmd buffers to the queue
-        void submit_all();
-        
-        // submits a particular cmd buffer
-        void submit(uint32_t index, bool destroy = false);
+		void submit_once(CmdBufferHandle handle);
+		void submit_frame(Swapchain& swapchain);
+
+		std::unique_ptr<CommandBuffer>& begin_present_cmd_buffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index);
+
+		uint32_t get_present_count() const
+		{
+			return present_cmd_buffers.size();
+		}
 
     private:
 
         vk::Device& device;
         vk::PhysicalDevice gpu; 
         Queue graph_queue;
+		Queue present_queue;
+
+		// the semaphore manager is hosted here - though this may change.
+		std::unique_ptr<SemaphoreManager> semaphore_manager;
 
         // for image and presentaion syncing 
         vk::Semaphore begin_semaphore;  // image
@@ -55,6 +72,6 @@ namespace VulkanAPI
         std::vector<CommandBufferInfo> cmd_buffers;
 
         // presentation command bufefrs
-        std::vector<CommandBuffer> present_cmd_bufefrs;
+        std::vector<CommandBufferInfo> present_cmd_buffers;
     };
 }

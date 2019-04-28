@@ -34,7 +34,7 @@ namespace OmegaEngine
 		auto& mat = material_manager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::create_sort_key(RenderStage::GBuffer, primitive.materialId, RenderTypes::StaticMesh);
+		sort_key = RenderQueue::create_sort_key(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
 
 		// fill out the data which will be used for rendering
 		instance_data = new MeshInstance;

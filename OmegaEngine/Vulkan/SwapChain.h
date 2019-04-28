@@ -3,6 +3,9 @@
 #include "Vulkan/Common.h"
 #include "Vulkan/Device.h"
 #include "Vulkan/Image.h"
+#include "Vulkan/DataTypes/Texture.h"
+#include "Vulkan/RenderPass.h"
+
 #include <vector>
 
 namespace VulkanAPI
@@ -15,11 +18,14 @@ namespace VulkanAPI
 		Swapchain();
 		~Swapchain();
 		
-		void create(VulkanAPI::Device& device, const uint32_t screenWidth, const uint32_t screenHeight);
+		void create(Device& device, const uint32_t screenWidth, const uint32_t screenHeight);
 
 		// frame submit and presentation to the swapchain
 		void begin_frame(vk::Semaphore& image_semaphore);
 		void submit_frame(vk::Semaphore& present_semaphore, vk::Queue& present_queue);
+
+		// sets up the renderpass and framebuffers for the swapchain presentation
+		void prepare_swapchain_pass();
 
 		vk::SwapchainKHR& get()
 		{
@@ -29,11 +35,6 @@ namespace VulkanAPI
 		vk::Format& get_format()
 		{
 			return format.format;
-		}
-
-		vk::ImageView& get_image_view(uint32_t index)
-		{
-			return image_views[index].get_imageView();
 		}
 
 		uint32_t get_image_count() const
@@ -56,20 +57,31 @@ namespace VulkanAPI
 			return image_index;
 		}
 
+		RenderPass& get_renderpass()
+		{
+			return renderpass;
+		}
+
 	private:
 
 		vk::Device dev;
+		vk::PhysicalDevice gpu;
 
 		vk::SurfaceKHR surface;
 		vk::Extent2D extent;
 		vk::SurfaceFormatKHR format;
 		vk::SwapchainKHR swapchain;
 
-		std::vector<VulkanAPI::ImageView> image_views;
+		std::vector<ImageView> image_views;
 
 		// current image
 		uint32_t image_index = 0;
 
+		// swapchain presentation renderpass data
+		RenderPass renderpass;
+		Texture depth_texture;
+		std::array<vk::ClearValue, 2> clear_values = {};
+	
 	};
 }
 

@@ -84,7 +84,7 @@ namespace VulkanAPI
 		}
 		
 		// noew copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
-		CommandBuffer copy_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+		CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
 		copy_cmd_buff.create_primary();
 
         tex_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, copy_cmd_buff.get());
@@ -97,7 +97,7 @@ namespace VulkanAPI
 		// generate mip maps if required
 		if (mip_levels > 1) {
 
-			CommandBuffer blit_cmd_buff(device, graph_queue.get_index(), VulkanAPI::CommandBuffer::UsageType::Multi);
+			CommandBuffer blit_cmd_buff(device, graph_queue.get_index());
 			blit_cmd_buff.create_primary();
 
 			tex_image.generate_mipmap(blit_cmd_buff.get());

@@ -34,16 +34,16 @@ namespace OmegaEngine
 
 	public:
 
-		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, RenderConfig _render_config);
+		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, RenderConfig _render_config);
 		~DeferredRenderer();
 
 		// abstract override
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) override;
 
 		void create_gbuffer_pass();
-		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, RenderInterface* render_interface);
+		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);
 
-		void render_deferred(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager);
+		void render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain);
 		
 
 		VulkanAPI::RenderPass& get_deferred_pass()

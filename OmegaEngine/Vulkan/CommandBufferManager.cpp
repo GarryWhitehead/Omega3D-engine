@@ -1,21 +1,37 @@
 #include "Vulkan/CommandBufferManager.h"
+#include "Vulkan/SemaphoreManager.h"
 #include "Vulkan/SwapChain.h"
 #include "Vulkan/Renderpass.h"
 
 namespace VulkanAPI
 {
 
-    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& queue) :
+    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain) :
         device(dev),
         gpu(phys_dev),
-        graph_queue(queue)
+        graph_queue(g_queue),
+		present_queue(p_queue)
     {
         // set up the command buffers for swapchain presentaion now
-		present_cmd_buffers.resize(swap_chain.get_image_count());
+		present_cmd_buffers.resize(swapchain.get_image_count());
 		for (uint32_t i = 0; i < present_cmd_buffers.size(); ++i) {
-			present_cmd_buffers[i] = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+			present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+
+			vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
+			VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &present_cmd_buffers[i].fence));
+			VK_CHECK_RESULT(device.resetFences(1, &present_cmd_buffers[i].fence));
 		}
+
+		semaphore_manager = std::make_unique<SemaphoreManager>(device);
+		
+		// initialise semaphores required to sync frame begin and end queues
+		begin_semaphore = semaphore_manager->get_semaphore();
+		final_semaphore = semaphore_manager->get_semaphore();
     }
+
+	CommandBufferManager::~CommandBufferManager()
+	{
+	}
 
     CmdBufferHandle CommandBufferManager::create_instance()
     {
@@ -24,9 +40,12 @@ namespace VulkanAPI
 
         // create a fence which will be used to sync things
 		vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
-        device.createFence(&fence_info, nullptr, &buffer_info.fence);
+		VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &buffer_info.fence));
 
-        cmd_buffers.push_back(buffer_info);
+		// and the semaphore used to sync between queues
+		buffer_info.semaphore = semaphore_manager->get_semaphore();
+
+		cmd_buffers.emplace_back(std::move(buffer_info));
         
         return cmd_buffers.size() - 1;
     }
@@ -62,41 +81,51 @@ namespace VulkanAPI
 
         // begin the start of the frame by beginning the next new swapchain image
 		swapchain.begin_frame(begin_semaphore);
-        
-        for (uint32_t i = 0; i < cmd_buffers.size(); ++i) {
+
+		uint32_t frame_index = swapchain.get_image_index();
+
+        for (uint32_t i = 0; i <= cmd_buffers.size(); ++i) {
+
+			vk::CommandBuffer cmd_buffer;
+			vk::Fence fence;
 
             // work out the signalling and wait semaphores
             if (i == 0) {
                 wait_sync = begin_semaphore;
                 signal_sync = cmd_buffers[i].semaphore;
+				cmd_buffer = cmd_buffers[i].cmd_buffer->get();
+				fence = cmd_buffers[i].fence;
             }
-            if (i == cmd_buffers.size() - 1) {
-                wait_sync = cmd_buffers[i].semaphore;
+            else if (i == cmd_buffers.size()) {
+                wait_sync = cmd_buffers[i - 1].semaphore;
                 signal_sync = final_semaphore;
+				cmd_buffer = present_cmd_buffers[frame_index].cmd_buffer->get();
+				fence = present_cmd_buffers[frame_index].fence;
             }
             else {
                 wait_sync = cmd_buffers[i - 1].semaphore;
                 signal_sync = cmd_buffers[i].semaphore;
+				cmd_buffer = cmd_buffers[i].cmd_buffer->get();
+				fence = cmd_buffers[i].fence;
             }
 
-            vk::CommandBuffer cmd_buffer = cmd_buffers[i].cmd_buffer.get();
-            graph_queue.submit_cmd_buffer(cmd_buffer, wait_sync, signal_sync);
+            graph_queue.submit_cmd_buffer(cmd_buffer, wait_sync, signal_sync, fence);
 
         }
 
         // then the presentation part.....
-        swapchain.submit_frame(final_semaphore, present_queue().get());
+        swapchain.submit_frame(final_semaphore, present_queue.get());
     }
 
-	std::unique_ptr<CommandBuffer>& CommandBufferManager::get_present_cmd_buffer(RenderPass& renderpass, uint32_t index)
+	std::unique_ptr<CommandBuffer>& CommandBufferManager::begin_present_cmd_buffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index)
 	{
-		auto& cmd_buffer = present_cmd_buffers[index];
+		auto& cmd_buffer = present_cmd_buffers[index].cmd_buffer;
 
 		// setup the command buffer
 		cmd_buffer->create_primary();
 
 		// begin the render pass
-		auto& begin_info = renderpass.get_begin_info(static_cast<vk::ClearColorValue>(render_config.general.background_col), index);
+		auto& begin_info = renderpass.get_begin_info(clear_colour, index);
 		cmd_buffer->begin_renderpass(begin_info, false);
 
 		// set the dynamic viewport and scissor dimensions

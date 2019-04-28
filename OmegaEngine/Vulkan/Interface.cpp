@@ -4,6 +4,7 @@
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/SemaphoreManager.h"
 #include "Vulkan/VkTextureManager.h"
+#include "Vulkan/CommandBufferManager.h"
 
 namespace VulkanAPI
 {
@@ -28,8 +29,8 @@ namespace VulkanAPI
 
 		// establish vulkan managers
 		buffer_manager = std::make_unique<BufferManager>(device, gpu, graphics_queue);
-		semaphore_manager = std::make_unique<SemaphoreManager>(device);
 		texture_manager = std::make_unique<VkTextureManager>(device, gpu, graphics_queue);
+		cmd_buffer_manager = std::make_unique<CommandBufferManager>(device, gpu, graphics_queue, present_queue, swapchain_khr);
 	}
 
 

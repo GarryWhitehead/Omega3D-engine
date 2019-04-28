@@ -14,7 +14,7 @@ namespace VulkanAPI
 	// forward decleartions
 	class Pipeline;
 	class PipelineLayout;
-	class Buffer;
+	struct Buffer;
 	class DescriptorSet;
 	enum class PipelineType;
 
@@ -89,10 +89,10 @@ namespace VulkanAPI
         };
         
 		CommandBuffer();
-		CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type);
+		CommandBuffer(vk::Device dev, uint64_t q_family_index);
 		~CommandBuffer();
 
-		void init(vk::Device dev, uint64_t q_family_index, UsageType type);
+		void init(vk::Device dev, uint64_t q_family_index);
 		void create_primary();
 
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);

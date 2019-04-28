@@ -15,7 +15,6 @@ namespace OmegaEngine
 	class RenderInterface;
     class ComponentInterface;
 	enum class RenderTypes;
-	enum class RenderStage;
 
 	enum class RenderQueueType
 	{
@@ -41,6 +40,13 @@ namespace OmegaEngine
 		} u;
 
 		float depth;    // for transparency;
+	};
+
+	enum class RenderStage
+	{
+		First,
+		Light,
+		Post
 	};
 
     enum class QueueType
@@ -89,7 +95,7 @@ namespace OmegaEngine
 					uint32_t start, uint32_t end,
 					uint32_t thread_group_size);
 
-		void threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface);
+		void threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, RenderInterface* render_interface);
 
      private:
 
