@@ -61,6 +61,11 @@ namespace VulkanAPI
 			return present_cmd_buffers.size();
 		}
 
+        bool is_recorded(CmdBufferHandle handle)
+        {
+            return cmd_buffers[handle].cmd_buffer != nullptr;
+        }
+
     private:
 
         vk::Device& device;

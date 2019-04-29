@@ -67,8 +67,11 @@ namespace VulkanAPI
     void CommandBufferManager::new_frame(CmdBufferHandle handle)
     {
         
-        // is it's static then don't do anything to the cmd buffers - we shouldn't be here!
+        // if it's static then only create a new instance if it's null
         if (mode == NewFrameMode::Staic) {
+            if (cmd_buffers[handle].cmd_buffer == nullptr) {
+                cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+            }
             return;
         }
         else if (mode == NewFrameMode::New) {
@@ -84,10 +87,11 @@ namespace VulkanAPI
         }
         else {
             
+            // reset the cmd buffer keeping all of the memory allocated in the first instance
             VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
             VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
 
-            device.resetCmdBuffer();
+            cmd_buffers[handle].cmd_buffer.resetCmdBuffer({});
         }
     }
 

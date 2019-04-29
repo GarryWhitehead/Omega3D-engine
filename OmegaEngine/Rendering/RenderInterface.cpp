@@ -132,6 +132,11 @@ namespace OmegaEngine
 
 		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
 
+		// if it's a static scene and we've already recorded the buffer then don't do anything else
+		if (scene_mode == SceneMode::Static && cmd_buffer_manager->is_recorded(cmd_buffer_handle)) {
+			return;
+		}
+
 		cmd_buffer_manager->new_frame(cmd_buffer_handle);
 		auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
 
