@@ -33,13 +33,13 @@ namespace OmegaEngine
 		cmd_buffer.end();
     }
 
-    void RenderQueue::threaded_dispatch(VulkanAPI::CommandBuffer& cmd_buffer, RenderInterface* render_interface)
+    void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, RenderInterface* render_interface)
     {
 		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
 
 		// create the cmd pools and secondary buffers for each stage
-		cmd_buffer.create_secondary(num_threads);
+		cmd_buffer->create_secondary(num_threads);
 
         uint32_t thread_count = 0;
 
@@ -52,7 +52,7 @@ namespace OmegaEngine
 
             for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
 
-                VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer.get_secondary(thread);
+                VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer->get_secondary(thread);
 
                 // if we have no more threads left, then draw every thing that is remaining
                 if (i + 1 >= num_threads) {
@@ -75,7 +75,7 @@ namespace OmegaEngine
 		thread_pool.wait_for_all();
 
 		// execute the recorded secondary command buffers - only for those threads we have actually used
-		cmd_buffer.execute_secondary_commands(thread_count);
+		cmd_buffer->execute_secondary_commands(thread_count);
 
         // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
 		render_queues.clear();

@@ -5,6 +5,7 @@
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/RenderPass.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/CommandBufferManager.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Descriptors.h"
 #include "Rendering/RenderConfig.h"
@@ -33,16 +34,16 @@ namespace OmegaEngine
 
 	public:
 
-		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, RenderConfig _render_config, std::unique_ptr<VulkanAPI::Interface>& vk_interface);
+		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, RenderConfig _render_config);
 		~DeferredRenderer();
 
 		// abstract override
 		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) override;
 
 		void create_gbuffer_pass();
-		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, RenderInterface* render_interface);
+		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);
 
-		void render_deferred(VulkanAPI::Queue& graph_queue, VulkanAPI::Swapchain& swapchain, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, RenderInterface* render_interface);
+		void render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain);
 		
 
 		VulkanAPI::RenderPass& get_deferred_pass()
@@ -60,6 +61,8 @@ namespace OmegaEngine
 		vk::Device device;
 		vk::PhysicalDevice gpu;
 
+		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
+
 		// for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		
@@ -72,21 +75,12 @@ namespace OmegaEngine
 		VulkanAPI::DescriptorSet descr_set;
 		VulkanAPI::RenderPass renderpass;
 
-		VulkanAPI::CommandBuffer cmd_buffer;
-
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;
 
 		// keep a local copy of the render config
 		RenderConfig render_config;
 
-		// semaphores for syncing of the render pipeline
-		vk::Semaphore image_semaphore;
-		vk::Semaphore present_semaphore;
-
-		// dirty flag indicates whether the cmd buffers need rebuilding - will only be false
-		// if using a static scene
-		bool isDirty = true;
 	};
 
 }

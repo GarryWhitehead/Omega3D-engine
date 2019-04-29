@@ -52,10 +52,10 @@ namespace VulkanAPI
 	{
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type) :
+	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index) :
 		device(dev),
 		queue_family_index(q_family_index),
-		usage_type(type)
+		usage_type(UsageType::Single)
 	{
 		// create a cmd pool for this buffer
 		create_cmd_pool();
@@ -66,11 +66,11 @@ namespace VulkanAPI
 	{
 	}
 
-	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index, UsageType type)
+	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index)
 	{
 		device = dev;
 		queue_family_index = q_family_index;
-		usage_type = type;
+		usage_type = UsageType::Single;
 
 		// create a cmd pool for this buffer
 		create_cmd_pool();

@@ -64,6 +64,9 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "vector": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "__errc": "cpp",
+        "__node_handle": "cpp",
+        "optional": "cpp"
     }
 }

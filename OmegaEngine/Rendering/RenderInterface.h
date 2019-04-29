@@ -7,6 +7,7 @@
 #include "Vulkan/Shader.h"
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/CommandBufferManager.h"
 #include "RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
 
@@ -32,15 +33,6 @@ namespace OmegaEngine
 	{
 		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
 	}
-
-	// contain each stage of the render pipeline in the order in which to execute - each stage has its own framebuffer
-	enum class RenderStage
-	{
-		GBuffer,		// offscreen g-buffer fill
-		Deferred,		// renders to present queue if post-process not required
-		PostProcess,	// rendered in a forward_pass
-		Count
-	};
 
 	class RenderInterface
 	{
@@ -111,11 +103,14 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass, vk::Semaphore& image_semaphore, vk::Semaphore& component_semaphore);
+		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
 
 	private:
 
 		RenderConfig render_config;
+
+		// handle to the cmd buffer 
+		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 		std::unique_ptr<RendererBase> renderer;
@@ -130,48 +125,8 @@ namespace OmegaEngine
 		// dirty flag indicates whether to rebuild the renderables
 		bool isDirty = true;
 
-		// indicates whether the cmd buffers need rebuilding
-		bool rebuildCmdBuffers = false;
-
 		// all the pipelines and shaders for each renderable type
 		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
-
-		// Vulkan stuff for rendering the compoennts
-		VulkanAPI::CommandBuffer cmd_buffer;
-
-	public:
-
-		// preperation for final swapchain presentation
-		void prepare_swapchain_pass();
-		VulkanAPI::CommandBuffer& begin_swapchain_pass(uint32_t index);
-		void end_swapchain_pass(uint32_t index);
-
-		VulkanAPI::RenderPass& get_swapchain_renderpass()
-		{
-			return swapchain_present.renderpass;
-		}
-
-		uint32_t get_swapchain_count() const
-		{
-			return swapchain_present.cmd_buffer.size();
-		}
-
-		VulkanAPI::CommandBuffer& get_sc_cmd_buffer(uint32_t index)
-		{
-			return swapchain_present.cmd_buffer[index];
-		}
-
-	private:
-
-		// final presentation pass
-		struct SwapChainPresentaion
-		{
-			std::vector<VulkanAPI::CommandBuffer> cmd_buffer;
-			VulkanAPI::RenderPass renderpass;
-			VulkanAPI::Texture depth_texture;
-
-			std::array<vk::ClearValue, 2> clear_values = {};
-		} swapchain_present;
 
 	};
 

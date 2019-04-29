@@ -1,6 +1,6 @@
 {
 	"Models": [
-		{ "Filename":"WaterBottle/WaterBottle.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
+		{ "Filename":"DamagedHelmet/DamagedHelmet.gltf", "Rotation":[0.0,0.0,0.0], "Scale":[1.0,1.0,1.0], "Translation":[1.0,1.0,1.0] }
 	],
   "Lights": [
     {

@@ -167,6 +167,8 @@ namespace OmegaEngine
 		// end the primary pass and buffer
 		cmd_buffer->end_pass();
 		cmd_buffer->end();
+
+		isDirty = true;
 	}
 
 	void RenderInterface::build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface)

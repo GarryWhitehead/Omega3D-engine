@@ -9,9 +9,10 @@ namespace VulkanAPI
 	{
 	}
 
-	void Swapchain::create(VulkanAPI::Device& device, const uint32_t screen_width, const uint32_t screen_height)
+	void Swapchain::create(Device& device, const uint32_t screen_width, const uint32_t screen_height)
 	{
 		dev = device.getDevice();
+		gpu = device.getPhysicalDevice();
 
 		// Get the basic surface properties of the physical device
 		uint32_t surfaceCount = 0;
@@ -116,10 +117,12 @@ namespace VulkanAPI
 
 		for (int c = 0; c < images.size(); ++c)
 		{
-			VulkanAPI::ImageView imageView; 
+			ImageView imageView; 
 		    imageView.create(device.getDevice(), images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
 			image_views.push_back(imageView);
 		}
+
+		prepare_swapchain_pass();
 	}
 
 	Swapchain::~Swapchain()
@@ -147,5 +150,24 @@ namespace VulkanAPI
 		present_queue.waitIdle();
 	}
 
+	void Swapchain::prepare_swapchain_pass()
+	{
+		// depth image
+		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+		depth_texture.create_empty_image(dev, gpu, depth_format, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+
+		renderpass.init(dev);
+		renderpass.addAttachment(vk::ImageLayout::ePresentSrcKHR, format.format);
+		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
+		renderpass.prepareRenderPass();
+
+		// create presentation renderpass/framebuffer for each swap chain image
+		for (uint32_t i = 0; i < image_views.size(); ++i) {
+
+			// create a frame buffer for each swapchain image
+			std::vector<vk::ImageView> views{ image_views[i].get_imageView(), depth_texture.get_image_view() };
+			renderpass.prepareFramebuffer(static_cast<uint32_t>(views.size()), views.data(), extent.width, extent.height);
+		}
+	}
 
 }
