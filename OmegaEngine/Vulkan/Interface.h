@@ -11,16 +11,16 @@ namespace VulkanAPI
 {
 	// forward declerations
 	class BufferManager;
-	class SemaphoreManager;
 	class VkTextureManager;
 	class CommandBufferManager;
+	enum class NewFrameMode;
 
 	class Interface
 	{
 
 	public:
 
-		Interface(VulkanAPI::Device device, uint32_t win_width, uint32_t win_height);
+		Interface(VulkanAPI::Device device, uint32_t win_width, uint32_t win_height, NewFrameMode mode);
 		~Interface();
 
 		vk::Device& get_device()

@@ -192,24 +192,27 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface)
+	void DeferredRenderer::render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type)
 	{
 		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
 
-		// Note: only deferred supported at the moment but this will change once Forward rendering is added
-		// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
-		// This is done by the render interface. A little back and forth, but these functions are used by all renderers
-		render_interface->render_components(render_config, first_renderpass);
+		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) {
 
-		// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
-		render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
+			// Note: only deferred supported at the moment but this will change once Forward rendering is added
+			// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
+			// This is done by the render interface. A little back and forth, but these functions are used by all renderers
+			render_interface->render_components(render_config, first_renderpass);
 
-		// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
-		if (render_config.general.use_post_process) {
-			
-			pp_interface->render();
+			// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
+			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
+
+			// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
+			if (render_config.general.use_post_process) {
+
+				pp_interface->render();
+			}
 		}
-		
+
 		// finally send to the swap-chain presentation
 		cmd_buffer_manager->submit_frame(vk_interface->get_swapchain());
 	}

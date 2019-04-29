@@ -38,7 +38,7 @@ namespace OmegaEngine
 		~DeferredRenderer();
 
 		// abstract override
-		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) override;
+		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) override;
 
 		void create_gbuffer_pass();
 		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);

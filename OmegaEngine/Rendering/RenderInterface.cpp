@@ -14,6 +14,7 @@
 #include "Utility/FileUtil.h"
 #include "Threading/ThreadPool.h"
 #include "Engine/Omega_Global.h"
+#include "Engine/World.h"
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
@@ -25,7 +26,8 @@ namespace OmegaEngine
 	{
 	}
 
-	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height)
+	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type) :
+		scene_type(type)
 	{
 		init(device, width, height);
 	}
@@ -40,8 +42,19 @@ namespace OmegaEngine
 		// load the render config file if it exsists
 		load_render_config();
 
-		// initiliase the graphical backend - we are solely using Vulkan 
-		vk_interface = std::make_unique<VulkanAPI::Interface>(device, width, height);
+		// initiliase the graphical backend - we are solely using Vulkan
+		// The new frame mode depends on tehe scene type - static scenes will only have their cmd buffers recorded
+		// to once whilst dynamic scenes will be recorded to on a per frame basis.
+		VulkanAPI::NewFrameMode mode;
+		if (scene_type == SceneType::Static) {
+			mode = VulkanAPI::NewFrameMode::Static;
+		}
+		else {
+			// this could be either the renewal or resetting of cmd buffers - what;'s best needs to be checked
+			mode = VulkanAPI::NewFrameMode::Reset;
+		}
+
+		vk_interface = std::make_unique<VulkanAPI::Interface>(device, width, height, mode);
 		
 		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
@@ -132,11 +145,6 @@ namespace OmegaEngine
 
 		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
 
-		// if it's a static scene and we've already recorded the buffer then don't do anything else
-		if (scene_mode == SceneMode::Static && cmd_buffer_manager->is_recorded(cmd_buffer_handle)) {
-			return;
-		}
-
 		cmd_buffer_manager->new_frame(cmd_buffer_handle);
 		auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
 
@@ -217,7 +225,7 @@ namespace OmegaEngine
 		// update buffers before doing the rendering
 		vk_interface->get_buffer_manager()->update();
 
-		renderer->render(this, vk_interface);
+		renderer->render(this, vk_interface, scene_type);
 	}
 
 }

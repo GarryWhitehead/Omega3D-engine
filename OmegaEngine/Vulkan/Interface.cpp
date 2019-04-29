@@ -9,7 +9,7 @@
 namespace VulkanAPI
 {
 	
-	Interface::Interface(VulkanAPI::Device dev, uint32_t win_width, uint32_t win_height)
+	Interface::Interface(VulkanAPI::Device dev, uint32_t win_width, uint32_t win_height, NewFrameMode mode)
 	{
 		// prepare all the core elements required for the vulkan API to render to screen
 		// store locally all the handles we will need from the device
@@ -30,7 +30,7 @@ namespace VulkanAPI
 		// establish vulkan managers
 		buffer_manager = std::make_unique<BufferManager>(device, gpu, graphics_queue);
 		texture_manager = std::make_unique<VkTextureManager>(device, gpu, graphics_queue);
-		cmd_buffer_manager = std::make_unique<CommandBufferManager>(device, gpu, graphics_queue, present_queue, swapchain_khr);
+		cmd_buffer_manager = std::make_unique<CommandBufferManager>(device, gpu, graphics_queue, present_queue, swapchain_khr, mode);
 	}
 
 

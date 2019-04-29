@@ -21,6 +21,7 @@
 #include "Threading/ThreadPool.h"
 #include "Utility/BVH.hpp"
 #include "Omega_Common.h"
+#include "Vulkan/Device.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
@@ -41,9 +42,10 @@ namespace OmegaEngine
 
 	World::World(Managers managers, VulkanAPI::Device& device, EngineConfig& engine_config)
 	{
+		// all the boiler plater needed to generate the manager and interface instances
 		objectManager = std::make_unique<ObjectManager>();
 		component_interface = std::make_unique<ComponentInterface>();
-		render_interface = std::make_unique<RenderInterface>(device, component_interface, engine_config.screen_width, engine_config.screen_height);
+		render_interface = std::make_unique<RenderInterface>(device, component_interface, engine_config.screen_width, engine_config.screen_height, static_cast<SceneType>(engine_config.scene_type));
 		animation_manager = std::make_unique<AnimationManager>();
 		bvh = std::make_unique<BVH>();
 

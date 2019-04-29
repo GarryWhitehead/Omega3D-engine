@@ -61,6 +61,15 @@ namespace VulkanAPI
 		create_cmd_pool();
 	}
 
+	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type) :
+		device(dev),
+		queue_family_index(q_family_index),
+		usage_type(type)
+	{
+		// create a cmd pool for this buffer
+		create_cmd_pool();
+	}
+
 
 	CommandBuffer::~CommandBuffer()
 	{

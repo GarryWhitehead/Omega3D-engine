@@ -34,6 +34,12 @@ namespace OmegaEngine
 		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
 	}
 
+	enum class SceneType
+	{
+		Static,
+		Dynamic
+	};
+
 	class RenderInterface
 	{
 
@@ -63,7 +69,7 @@ namespace OmegaEngine
 		};
 
 		RenderInterface();
-		RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height);
+		RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type);
 		~RenderInterface();
 
 		void init(VulkanAPI::Device& device, const uint32_t width, const uint32_t height);
@@ -108,6 +114,9 @@ namespace OmegaEngine
 	private:
 
 		RenderConfig render_config;
+	
+		// states whether the scene is static, i.e. no additional will be drawn, or dynamic
+		SceneType scene_type;
 
 		// handle to the cmd buffer 
 		VulkanAPI::CmdBufferHandle cmd_buffer_handle;

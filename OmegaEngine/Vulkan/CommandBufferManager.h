@@ -20,12 +20,12 @@ namespace VulkanAPI
         Destroy
     };
 
-    enum class NewFrameMode
-    {
-        Static,     // static scene, cmd buffer recorded once 
-        Reset,      // re-use cmd buffers and reset once they have completed
-        New         // create a new cmd buffer each frame
-    }
+	enum class NewFrameMode
+	{
+		Static,     // static scene, cmd buffer recorded once 
+		Reset,      // re-use cmd buffers and reset once they have completed
+		New         // create a new cmd buffer each frame
+	};
 
     struct CommandBufferInfo
     {

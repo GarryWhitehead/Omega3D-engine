@@ -6,7 +6,7 @@
 namespace VulkanAPI
 {
 
-    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, , NewFrameMode _mode) :
+    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode _mode) :
         device(dev),
         gpu(phys_dev),
         graph_queue(g_queue),
@@ -18,14 +18,15 @@ namespace VulkanAPI
 		for (uint32_t i = 0; i < present_cmd_buffers.size(); ++i) {
 
             // single use cmd buffers if static or new uffers each frame, otherwise multi-use
-            if (mode == NewFrameMode::Static || mode == NewFrameMode::New) {
+            if (mode == NewFrameMode::New) {
 			    present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
             }
-            else {
-                present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), MultiUse);
+			else {
+				// static and reset cmd buffers will be submitted multiple times 
+                present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
             }
 
-			vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
+			vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
 			VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &present_cmd_buffers[i].fence));
 			VK_CHECK_RESULT(device.resetFences(1, &present_cmd_buffers[i].fence));
 		}
@@ -44,11 +45,11 @@ namespace VulkanAPI
     CmdBufferHandle CommandBufferManager::create_instance()
     {
         CommandBufferInfo buffer_info;
-        buffer_info.cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
-
+       
         // create a fence which will be used to sync things
-		vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
+		vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
 		VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &buffer_info.fence));
+		VK_CHECK_RESULT(device.resetFences(1, &buffer_info.fence)); 
 
 		// and the semaphore used to sync between queues
 		buffer_info.semaphore = semaphore_manager->get_semaphore();
@@ -68,31 +69,36 @@ namespace VulkanAPI
     {
         
         // if it's static then only create a new instance if it's null
-        if (mode == NewFrameMode::Staic) {
+        if (mode == NewFrameMode::Static) {
             if (cmd_buffers[handle].cmd_buffer == nullptr) {
-                cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+                cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
             }
-            return;
+			else {
+				VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
+				VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
+			}
         }
-        else if (mode == NewFrameMode::New) {
-            // ensure that the cmd buffer is finished with before creating a new one
-            // TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
-            // continuing so instead have two or three buffers per handle and switch between them
-            VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
-            VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
+		else {
+			// ensure that the cmd buffer is finished with before creating a new one
+			// TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
+			// continuing so instead have two or three buffers per handle and switch between them
+			VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
+			VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
 
-            // create a new buffer - the detructors will worry about destroying everything
-            // or just reset?
-            cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
-        }
-        else {
-            
-            // reset the cmd buffer keeping all of the memory allocated in the first instance
-            VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
-            VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
-
-            cmd_buffers[handle].cmd_buffer.resetCmdBuffer({});
-        }
+			// create a new buffer - the detructors will worry about destroying everything
+			// or just reset?
+			if (mode == NewFrameMode::New) {
+				cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+			}
+			else {
+				if (cmd_buffers[handle].cmd_buffer == nullptr) {
+					cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
+				}
+				else {
+					cmd_buffers[handle].cmd_buffer.reset({});
+				}
+			}
+		}
     }
 
     void CommandBufferManager::submit_once(CmdBufferHandle handle)
@@ -135,8 +141,8 @@ namespace VulkanAPI
 				fence = cmd_buffers[i].fence;
             }
 
+			VK_CHECK_RESULT(device.resetFences(1, &fence));
             graph_queue.submit_cmd_buffer(cmd_buffer, wait_sync, signal_sync, fence);
-
         }
 
         // then the presentation part.....

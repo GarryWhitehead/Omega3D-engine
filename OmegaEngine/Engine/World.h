@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Vulkan/Device.h"
 #include "OEMaths/OEMaths.h"
 
 #include "tiny_gltf.h"
@@ -9,6 +8,11 @@
 #include <vector>
 #include <memory>
 #include <unordered_map>
+
+namespace VulkanAPI
+{
+	class Device;
+}
 
 namespace OmegaEngine
 {

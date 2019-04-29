@@ -90,6 +90,7 @@ namespace VulkanAPI
         
 		CommandBuffer();
 		CommandBuffer(vk::Device dev, uint64_t q_family_index);
+		CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type);
 		~CommandBuffer();
 
 		void init(vk::Device dev, uint64_t q_family_index);

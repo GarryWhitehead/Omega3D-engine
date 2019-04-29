@@ -12,6 +12,7 @@ namespace OmegaEngine
 {
 	// forward defs
 	class RenderInterface;
+	enum class SceneType;
 
 	// Note: only deferred renderer is supported at the moment. More to follow....
 	enum class RendererType
@@ -40,7 +41,7 @@ namespace OmegaEngine
 		}
 
 		// abstract functions
-		virtual void render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface) = 0;
+		virtual void render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) = 0;
 
 	protected:
 

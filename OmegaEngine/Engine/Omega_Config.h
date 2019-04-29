@@ -14,6 +14,9 @@ namespace OmegaEngine
 		uint32_t screen_width = 1280;
 		uint32_t screen_height = 700;
 
+		// states whether we want a dynamic or static scene
+		// Mainly used to set whether the cmd buffers will be recordered each frame
+		uint32_t scene_type = 0;
 	};
 
 }
