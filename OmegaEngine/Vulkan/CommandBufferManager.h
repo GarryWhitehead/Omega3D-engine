@@ -20,6 +20,13 @@ namespace VulkanAPI
         Destroy
     };
 
+    enum class NewFrameMode
+    {
+        Static,     // static scene, cmd buffer recorded once 
+        Reset,      // re-use cmd buffers and reset once they have completed
+        New         // create a new cmd buffer each frame
+    }
+
     struct CommandBufferInfo
     {
 		std::unique_ptr<CommandBuffer> cmd_buffer;
@@ -37,7 +44,7 @@ namespace VulkanAPI
     {
     public:
 
-        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain);
+        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode mode);
         ~CommandBufferManager();
 
 		CmdBufferHandle create_instance();
@@ -60,6 +67,9 @@ namespace VulkanAPI
         vk::PhysicalDevice gpu; 
         Queue graph_queue;
 		Queue present_queue;
+
+        // States how to treat cmd buffers each frame
+        NewFrameMode mode;
 
 		// the semaphore manager is hosted here - though this may change.
 		std::unique_ptr<SemaphoreManager> semaphore_manager;

@@ -6,16 +6,24 @@
 namespace VulkanAPI
 {
 
-    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain) :
+    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, , NewFrameMode _mode) :
         device(dev),
         gpu(phys_dev),
         graph_queue(g_queue),
-		present_queue(p_queue)
+		present_queue(p_queue),
+        mode(_mode)
     {
         // set up the command buffers for swapchain presentaion now
 		present_cmd_buffers.resize(swapchain.get_image_count());
 		for (uint32_t i = 0; i < present_cmd_buffers.size(); ++i) {
-			present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+
+            // single use cmd buffers if static or new uffers each frame, otherwise multi-use
+            if (mode == NewFrameMode::Static || mode == NewFrameMode::New) {
+			    present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+            }
+            else {
+                present_cmd_buffers[i].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), MultiUse);
+            }
 
 			vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits::eSignaled);
 			VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &present_cmd_buffers[i].fence));
@@ -58,15 +66,29 @@ namespace VulkanAPI
 
     void CommandBufferManager::new_frame(CmdBufferHandle handle)
     {
-        // ensure that the cmd buffer is finished with before creating a new one
-        // TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
-        // continuing so instead have two or three buffers per handle and switch between them
-        VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
-        VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
+        
+        // is it's static then don't do anything to the cmd buffers - we shouldn't be here!
+        if (mode == NewFrameMode::Staic) {
+            return;
+        }
+        else if (mode == NewFrameMode::New) {
+            // ensure that the cmd buffer is finished with before creating a new one
+            // TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
+            // continuing so instead have two or three buffers per handle and switch between them
+            VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
+            VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
 
-        // create a new buffer - the detructors will worry about destroying everything
-        // or just reset?
-        cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+            // create a new buffer - the detructors will worry about destroying everything
+            // or just reset?
+            cmd_buffers[handle].cmd_buffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+        }
+        else {
+            
+            VK_CHECK_RESULT(device.waitForFences(1, &cmd_buffers[handle].fence, VK_TRUE, UINT64_MAX));
+            VK_CHECK_RESULT(device.resetFences(1, &cmd_buffers[handle].fence));
+
+            device.resetCmdBuffer();
+        }
     }
 
     void CommandBufferManager::submit_once(CmdBufferHandle handle)
