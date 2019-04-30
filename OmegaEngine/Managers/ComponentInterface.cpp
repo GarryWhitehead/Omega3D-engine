@@ -18,8 +18,8 @@ namespace OmegaEngine
 
 	void ComponentInterface::update_managers(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
 	{
-		for (auto& manager : managers) {
-
+		for (auto& manager : managers) 
+		{
 			manager.second->update_frame(time, dt, obj_manager, this);
 		}
 	}

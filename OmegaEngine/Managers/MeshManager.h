@@ -118,7 +118,8 @@ namespace OmegaEngine
 			memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(T));
 
 			// copy the data to our indices buffer at the correct offset
-			for (uint32_t j = 0; j < accessor.count; ++j) {
+			for (uint32_t j = 0; j < accessor.count; ++j) 
+			{
 				indiciesBuffer.push_back(buf[j] + indexStart);
 			}
 

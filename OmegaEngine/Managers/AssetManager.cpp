@@ -16,8 +16,8 @@ namespace OmegaEngine
     {
         KtxReader reader;
 
-        if (reader.loadFile(filename)) {
-            
+        if (reader.loadFile(filename)) 
+        {
             // ownership of the data is moved from the reader
             std::unique_ptr<ImageOutput> image = reader.get_image_data();
             FileId file_id = Util::generateTypeId(filename);

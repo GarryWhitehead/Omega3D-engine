@@ -29,7 +29,8 @@ namespace OmegaEngine
 		void registerManager(Args&&... args)
 		{
 			uint32_t man_id = Util::TypeId<T>::id();
-			if (managers.find(man_id) != managers.end()) {
+			if (managers.find(man_id) != managers.end()) 
+			{
 				LOGGER_ERROR("Fatal error! Duplicated manager ids!");
 			}
 
@@ -42,7 +43,8 @@ namespace OmegaEngine
 		T& getManager()
 		{
 			uint32_t man_id = Util::TypeId<T>::id();
-			if (managers.find(man_id) != managers.end()) {
+			if (managers.find(man_id) != managers.end()) 
+			{
 				T* derived = dynamic_cast<T*>(managers[man_id].get());
 				assert(derived != nullptr);
 				return *derived;
@@ -55,7 +57,8 @@ namespace OmegaEngine
 		void removeManager()
 		{
 			uint32_t man_id = Util::TypeId<T>::id();
-			if (managers.find(man_id) != manager.end()) {
+			if (managers.find(man_id) != manager.end()) 
+			{
 				managers.erase(man_id);
 			}
 			// continue for now but if we see this then somethings wrong
@@ -66,7 +69,8 @@ namespace OmegaEngine
 		bool hasManager()
 		{
 			uint32_t man_id = Util::event_type_id<T>();
-			if (managers.find(man_id) != manager.end()) {
+			if (managers.find(man_id) != manager.end()) 
+			{
 				return true;
 			}
 			return false;

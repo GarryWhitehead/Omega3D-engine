@@ -31,7 +31,8 @@ namespace OmegaEngine
 	{
 		vk::SamplerAddressMode ret;
 
-		switch (wrap) {
+		switch (wrap) 
+		{
 		case 10497:
 			ret = vk::SamplerAddressMode::eRepeat;
 			break;
@@ -52,7 +53,8 @@ namespace OmegaEngine
 	{
 		vk::Filter ret;
 
-		switch (filter) {
+		switch (filter) 
+		{
 		case 9728:
 			ret = vk::Filter::eNearest;
 			break;
@@ -81,16 +83,20 @@ namespace OmegaEngine
 		vk::SamplerAddressMode mode = get_wrap_mode(gltf_sampler.wrapS);
 		vk::Filter filter = get_filter_mode(gltf_sampler.minFilter);
 		
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) {
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) 
+		{
 			type = VulkanAPI::SamplerType::LinearWrap;
 		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear) {
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear) 
+		{
 			type = VulkanAPI::SamplerType::LinearClamp;
 		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest) {
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest) 
+		{
 			type = VulkanAPI::SamplerType::Clamp;
 		}
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) {
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) 
+		{
 			type = VulkanAPI::SamplerType::Wrap;
 		}
 
@@ -105,7 +111,8 @@ namespace OmegaEngine
 		// probably should check for different types - though only 4 channels supported
 		mappedTex.set_format(vk::Format::eR8G8B8A8Unorm); 
 
-		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data(), true)) {
+		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data(), true)) 
+		{
 			// need to use a default texture here!
 		}
 		textures[current_set].push_back(mappedTex);	
@@ -113,9 +120,10 @@ namespace OmegaEngine
 
 	uint32_t TextureManager::get_texture_index(uint32_t set, const char* name)
 	{
-		for (uint32_t i = 0; i < textures.size(); ++i) {
-
-			if (strcmp(name, textures[set][i].get_name()) == 0) {
+		for (uint32_t i = 0; i < textures.size(); ++i) 
+		{
+			if (strcmp(name, textures[set][i].get_name()) == 0) 
+			{
 				return i;
 			}
 		}
@@ -131,7 +139,8 @@ namespace OmegaEngine
 	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t set, uint32_t index)
 	{
 		// not all gltf files speciify sampler types so go with a default otherwise
-		if (samplers[set].empty()) {
+		if (samplers[set].empty()) 
+		{
 			// if no samplers defined then go with this as default for now
 			// TODO: Add option in shader reflection to add samplers based on image name
 			return VulkanAPI::SamplerType::Clamp;	
