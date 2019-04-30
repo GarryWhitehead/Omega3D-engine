@@ -50,7 +50,7 @@ namespace OmegaEngine
 		void loadCameraData();
 		void loadModels();
 		void loadTerrainData();
-		void loadEnvironment())
+		void loadEnvironment();
 		void loadLights();
 
 		std::string& getFilenames(uint32_t index)
@@ -83,7 +83,7 @@ namespace OmegaEngine
 			return lights[index];
 		}
 
-		EnvironmentInfo& get_env() 
+		EnvironmentInfo& get_environment() 
 		{
 			return environment;
 		}
@@ -96,8 +96,7 @@ namespace OmegaEngine
 
 		// TODO: allow multiple camera to be loaded
 		Camera camera;
-		WorldInfo worldInfo;
-		Environment environment;
+		EnvironmentInfo environment;
 
 		std::vector<ModelInfo> models;
 		std::vector<LightInfo> lights;

@@ -20,6 +20,7 @@ namespace OmegaEngine
 	class RenderInterface;
 	class ComponentInterface;
 	class AnimationManager;
+	class AssetManager;
 	class ObjectManager;
 	class Object;
 	class BVH;
@@ -99,6 +100,9 @@ namespace OmegaEngine
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> component_interface;
 		std::unique_ptr<AnimationManager> animation_manager;
+
+		// all assets that are not associated with a manager are dealt with here
+		std::unique_ptr<AssetManager> asset_manager;
 
 		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
 		std::unique_ptr<RenderInterface> render_interface;

@@ -34,7 +34,6 @@ namespace OmegaEngine
 		// read the json now were all ready to go.
 		// all data is optional. If not present then default values will be used
 		loadCameraData();
-		loadWorldInfo();
 		loadModels();
 		loadLights();
 		loadEnvironment();
@@ -156,19 +155,19 @@ namespace OmegaEngine
 		}
 	}
 
-	void SceneParser::loadEnvironamnetData()
+	void SceneParser::loadEnvironment()
 	{
 		// skybox
 		if (document.HasMember("Skybox")) {
-			worldInfo.skybox_filename = document["Skybox"].GetString();
+			environment.skybox_filename = document["Skybox"].GetString();
 		}
 		
 		// bdrf and IBL
 		if (document.HasMember("BRDF")) {
-			worldInfo.brdf_filename = document["BRDF"].GetString();
+			environment.brdf_filename = document["BRDF"].GetString();
 		}
 		if (document.HasMember("IBL-Irradiance")) {
-			worldInfo.irradiance_map_filename = document["IBL-Irradiance"].GetString();
+			environment.irradiance_map_filename = document["IBL-Irradiance"].GetString();
 		}
 
 	}

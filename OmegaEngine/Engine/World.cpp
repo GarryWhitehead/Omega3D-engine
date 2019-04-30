@@ -16,6 +16,7 @@
 #include "Managers/TextureManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/EventManager.h"
+#include "Managers/AssetManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Threading/ThreadPool.h"
@@ -47,6 +48,7 @@ namespace OmegaEngine
 		component_interface = std::make_unique<ComponentInterface>();
 		render_interface = std::make_unique<RenderInterface>(device, component_interface, engine_config.screen_width, engine_config.screen_height, static_cast<SceneType>(engine_config.scene_type));
 		animation_manager = std::make_unique<AnimationManager>();
+		asset_manager = std::make_unique<AssetManager>();
 		bvh = std::make_unique<BVH>();
 
 		// register all components managers required for this world
@@ -96,7 +98,7 @@ namespace OmegaEngine
 		// environment - load skybox and IBL files into memory if they exsist
 		asset_manager->load_image_file(parser.get_environment().skybox_filename);
 		asset_manager->load_image_file(parser.get_environment().brdf_filename);
-		asset_manager->load_image_file(parser.get_environment().ibl_irradiance_filename);
+		asset_manager->load_image_file(parser.get_environment().irradiance_map_filename);
 
 		// load and distribute the gltf data between the appropiate systems.
 #ifdef OMEGA_ENGINE_THREADED

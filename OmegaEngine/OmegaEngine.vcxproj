@@ -30,6 +30,7 @@
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
     <ClCompile Include="Image\KtxReader.cpp" />
+    <ClCompile Include="Managers\AssetManager.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
@@ -100,6 +101,7 @@
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
     <ClInclude Include="Image\KtxReader.h" />
+    <ClInclude Include="Managers\AssetManager.h" />
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Objects\ObjectManager.h" />
     <ClInclude Include="Rendering\RenderableTypes\Skybox.h" />

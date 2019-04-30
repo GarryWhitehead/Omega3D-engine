@@ -1,7 +1,7 @@
 #include "Skybox.h"
 #include "Vulkan/Shader.h"
-#include "Vulkan/BufferManager.h"
 #include "Vulkan/VkTextureManager.h"
+#include "Vulkan/CommandBuffer.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Utility/logger.h"
@@ -9,7 +9,8 @@
 namespace OmegaEngine
 {
 
-	RenderableSkybox::RenderableSkybox()
+	RenderableSkybox::RenderableSkybox() :
+		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
 		instance_data = new SkyboxInstance;
@@ -55,9 +56,9 @@ namespace OmegaEngine
 		for (auto& layout : state->image_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
-			if (layout.name == "SkyboxSampler") {
-				texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, layout.set, layout.binding, layout.type);
-			}
+			//if (layout.name == "SkyboxSampler") {
+			//	texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, layout.set, layout.binding, layout.type);
+			//}
 		}
 
 		state->shader.pipeline_layout_reflect(state->pl_layout);
@@ -79,12 +80,13 @@ namespace OmegaEngine
 								RenderInterface* render_interface)
 	{
 		SkyboxInstance* instance_data = (SkyboxInstance*)instance;
+		RenderInterface::ProgramState* pipeline = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
-		cmd_buffer.bind_pipeline(skybox_pipeline->pipeline);
-		cmd_buffer.bind_descriptors(skybox_pipeline->pl_layout, material_set, VulkanAPI::PipelineType::Graphics);
-		cmd_buffer.bind_push_block(skybox_pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
+		cmd_buffer.bind_pipeline(pipeline->pipeline);
+		cmd_buffer.bind_descriptors(pipeline->pl_layout, pipeline->descr_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_push_block(pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

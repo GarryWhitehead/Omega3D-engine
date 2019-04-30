@@ -40,7 +40,7 @@ namespace OmegaEngine
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) 
 		{
-			mat.factors.baseColour = OEMaths::convert_vec4_D(gltf_mat.values["baseColorFactor"].ColorFactor());
+			mat.factors.baseColour = OEMaths::convert_vec4_D(gltf_mat.values["baseColorFactor"].ColorFactor().data());
 		}
 		if (gltf_mat.values.find("metallicFactor") != gltf_mat.values.end()) 
 		{

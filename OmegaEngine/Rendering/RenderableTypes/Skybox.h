@@ -1,9 +1,19 @@
 #pragma once
 #include "RenderableBase.h"
+#include "Rendering/RenderInterface.h"
+#include "Vulkan/BufferManager.h"
+
+//forward declerations
+namespace VulkanAPI
+{
+	class BufferManager;
+	class VkTextureManager;
+	class SecondaryCommandBuffer;
+}
 
 namespace OmegaEngine
 {
-
+	
 	class RenderableSkybox : public RenderableBase
 	{
 

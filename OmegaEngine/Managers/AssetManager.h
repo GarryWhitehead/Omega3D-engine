@@ -23,6 +23,6 @@ namespace OmegaEngine
 
         // a place to store images from ktx files - this can be multiple layers and have
         // mip-maps associated with them
-        std::unordered_map<FileId, std::vector<std::unique_ptr<ImageData> > > images;
+        std::unordered_map<FileId, std::unique_ptr<ImageUtility::KtxReader::ImageOutput> > images;
     };
 }

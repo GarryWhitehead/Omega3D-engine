@@ -15,7 +15,7 @@
       "Colour": [ 1.0, 1.0, 1.0 ],
       "Radius": 100.0,
       "OuterCone": 15.0,
-      "InnerCone":  25.0
+      "InnerCone": 25.0
     },
     {
       "Type": 0,
@@ -29,5 +29,6 @@
       "Colour": [ 1.0, 0.0, 0.0 ],
       "Radius": 90.0
     }
-  ]
+  ],
+  "Skybox":  "assets/textures/skybox/cubemap.ktx"
 }
