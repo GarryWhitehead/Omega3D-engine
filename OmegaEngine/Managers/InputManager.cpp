@@ -46,25 +46,30 @@ namespace OmegaEngine
 	{
 		KeyboardPressEvent event;
 
-		if (key == GLFW_KEY_W) {							// forwrards (z-axis)
-			event.isMovingForward = true;
+		if (key == GLFW_KEY_W) 
+		{							
+			event.isMovingForward = true;	// forwrards (z-axis)
 		}
-		if (key == GLFW_KEY_S) {							// backwards (z-axis)
-			event.isMovingBackward = true;
+		if (key == GLFW_KEY_S) 
+		{							
+			event.isMovingBackward = true;	// backwards (z-axis)
 		}
-		if (key == GLFW_KEY_A) {							// leftwards movement (x-axis)
-			event.isMovingLeft = true;
+		if (key == GLFW_KEY_A) 
+		{							
+			event.isMovingLeft = true;		// leftwards movement (x-axis)
 		}
-		if (key == GLFW_KEY_D) {							// rightwards movement (x-axis)
-			event.isMovingRight = true;
+		if (key == GLFW_KEY_D) 
+		{							
+			event.isMovingRight = true;		// rightwards movement (x-axis)
 		}
 		
-		if (key == GLFW_KEY_ESCAPE) {						// exit
-			glfwSetWindowShouldClose(window, true);
+		if (key == GLFW_KEY_ESCAPE) 
+		{						
+			glfwSetWindowShouldClose(window, true);	// exit
 		}
 
-		if (Global::eventManager()) {
-
+		if (Global::eventManager()) 
+		{
 			// update the camera position instantly so we reduce the chnace of lag
 			Global::eventManager()->instantNotification<KeyboardPressEvent>(event);
 		}
@@ -73,29 +78,28 @@ namespace OmegaEngine
 	void InputManager::mouseButtonResponse(GLFWwindow *window, int button, int action, int mods)
 	{
 		// check the left mouse button
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
-
-			if (action == GLFW_PRESS) {
-
+		if (button == GLFW_MOUSE_BUTTON_LEFT) 
+		{
+			if (action == GLFW_PRESS) 
+			{
 				left_button_press = true;
-
 			}
-			else {
-
+			else 
+			{
 				left_button_press = false;
 			}
 		}
 
 		// and whther the right has changed
-		if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-
-			if (action == GLFW_PRESS) {
-
+		if (button == GLFW_MOUSE_BUTTON_RIGHT) 
+		{
+			if (action == GLFW_PRESS) 
+			{
 				right_button_press = true;
 
 			}
-			else {
-
+			else 
+			{
 				right_button_press = false;
 			}
 		}
@@ -105,9 +109,10 @@ namespace OmegaEngine
 	{
 		MouseMoveEvent event{ xpos, ypos };
 
-		if (Global::eventManager()) {
-
-			if (left_button_press) {
+		if (Global::eventManager()) 
+		{
+			if (left_button_press) 
+			{
 				// update the camera position instantly so we reduce the chnace of lag
 				Global::eventManager()->instantNotification<MouseMoveEvent>(event);
 			}
@@ -118,10 +123,12 @@ namespace OmegaEngine
 	{
 		bool state;
 
-		if (button == GLFW_MOUSE_BUTTON_LEFT) {
+		if (button == GLFW_MOUSE_BUTTON_LEFT) 
+		{
 			state = left_button_press;
 		}
-		else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+		else if (button == GLFW_MOUSE_BUTTON_RIGHT) 
+		{
 			state = right_button_press;
 		}
 

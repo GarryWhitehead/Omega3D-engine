@@ -37,6 +37,7 @@ namespace OmegaEngine
 		loadWorldInfo();
 		loadModels();
 		loadLights();
+		loadEnvironment();
 
 		return true;
 	}
@@ -72,21 +73,6 @@ namespace OmegaEngine
 		else if (type == "Third Person") {
 			camera.type = Camera::CameraType::ThirdPerson;
 		}
-	}
-
-	void SceneParser::loadWorldInfo()
-	{
-
-		if (document.HasMember("World Name")) {
-			worldInfo.name = document["World Name"].GetString();
-		}
-		if (document.HasMember("World Width")) {
-			worldInfo.width = document["World Width"].GetInt();
-		}
-		if (document.HasMember("World Height")) {
-			worldInfo.height = document["World Height"].GetInt();
-		}
-		
 	}
 
 	void SceneParser::loadModels()
@@ -172,6 +158,18 @@ namespace OmegaEngine
 
 	void SceneParser::loadEnvironamnetData()
 	{
+		// skybox
+		if (document.HasMember("Skybox")) {
+			worldInfo.skybox_filename = document["Skybox"].GetString();
+		}
+		
+		// bdrf and IBL
+		if (document.HasMember("BRDF")) {
+			worldInfo.brdf_filename = document["BRDF"].GetString();
+		}
+		if (document.HasMember("IBL-Irradiance")) {
+			worldInfo.irradiance_map_filename = document["IBL-Irradiance"].GetString();
+		}
 
 	}
 

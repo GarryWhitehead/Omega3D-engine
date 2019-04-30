@@ -140,16 +140,16 @@ bool KtxReader::parse()
 		uint32_t accumulatedSize = 0;
 
 		// get the image size
-		ImageData imageInfo;
+		ImageData imageInfo = std::make_unique<ImageData>();
 
 		memcpy(&imageInfo.size, &(*bufferPos), sizeof(uint32_t));
-		imageInfo.mipLevel = mips;
+		imageInfo->mipLevel = mips;
 		bufferPos += sizeof(uint32_t);
 
-		imageInfo.data.resize(header.numberOfArrayElements);
+		imageInfo->data.resize(header.numberOfArrayElements);
 		for (uint32_t element = 0; element < header.numberOfArrayElements; ++element) {
 
-			imageInfo.data[element].resize(header.numberOfFaces);
+			imageInfo->data[element].resize(header.numberOfFaces);
 			for (uint32_t faces = 0; faces < header.numberOfFaces; ++faces) {
 
 				// assuming pixel depth of one at the mo...
@@ -158,7 +158,7 @@ bool KtxReader::parse()
 					// sort image size for this face
 					uint32_t innerSize = header.pixelWidth * header.pixelHeight * byteAlignment;
 					uint8_t* dataPtr = new uint8_t[innerSize];
-					imageInfo.data[element][faces] = dataPtr;
+					imageInfo->data[element][faces] = dataPtr;
 
 					for (uint32_t row = 0; row < header.pixelHeight; ++row) {
 
@@ -177,7 +177,7 @@ bool KtxReader::parse()
 			LOGGER_ERROR("Mismtatch between accumulated image size and actual size.");
 			return false;
 		}
-		imageData.push_back(imageInfo);
+		imageData.push_back(std::move(imageInfo));
 	}
 }
 

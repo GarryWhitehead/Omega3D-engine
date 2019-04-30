@@ -93,6 +93,11 @@ namespace OmegaEngine
 			component_interface->getManager<LightManager>().add_light(parser.get_light(i));
 		}
 
+		// environment - load skybox and IBL files into memory if they exsist
+		asset_manager->load_image_file(parser.get_environment().skybox_filename);
+		asset_manager->load_image_file(parser.get_environment().brdf_filename);
+		asset_manager->load_image_file(parser.get_environment().ibl_irradiance_filename);
+
 		// load and distribute the gltf data between the appropiate systems.
 #ifdef OMEGA_ENGINE_THREADED
 		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);

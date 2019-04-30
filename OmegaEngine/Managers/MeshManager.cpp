@@ -30,18 +30,20 @@ namespace OmegaEngine
 		uint32_t local_index_offset = 0;
 
 		// get all the primitives associated with this mesh
-		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) {
-
+		for (uint32_t i = 0; i < mesh.primitives.size(); ++i) 
+		{
 			uint32_t vertex_start = static_cast<uint32_t>(static_vertices.size());
 			const tinygltf::Primitive& primitive = mesh.primitives[i];
 
 			// if this primitive has no indices associated with it, no point in continuing
-			if (primitive.indices < 0) {
+			if (primitive.indices < 0)
+			{
 				continue;
 			}
 
 			// lets get the vertex data....
-			if (primitive.attributes.find("POSITION") == primitive.attributes.end()) {
+			if (primitive.attributes.find("POSITION") == primitive.attributes.end()) 
+			{
 				LOGGER_ERROR("Problem parsing gltf file. Appears to be missing position attribute. Exiting....");
 			}
 
@@ -51,7 +53,8 @@ namespace OmegaEngine
 
 			// find normal data
 			const float *normBuffer = nullptr;
-			if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
+			if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) 
+			{
 				const tinygltf::Accessor& normAccessor = model.accessors[primitive.attributes.find("NORMAL")->second];
 				const tinygltf::BufferView& normBufferView = model.bufferViews[normAccessor.bufferView];
 				normBuffer = reinterpret_cast<const float*>(&(model.buffers[normBufferView.buffer].data[normAccessor.byteOffset + normBufferView.byteOffset]));
@@ -59,14 +62,16 @@ namespace OmegaEngine
 
 			// and parse uv data - there can be two tex coord buffers, we need to check for both
 			const float *uvBuffer0 = nullptr;
-			if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
+			if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) 
+			{
 				const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
 				const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
 				uvBuffer0 = reinterpret_cast<const float*>(&(model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset]));
 			}
 
 			const float *uvBuffer1 = nullptr;
-			if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
+			if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) 
+			{
 				const tinygltf::Accessor& uvAccessor = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
 				const tinygltf::BufferView& uvBufferView = model.bufferViews[uvAccessor.bufferView];
 				uvBuffer1 = reinterpret_cast<const float*>(&(model.buffers[uvBufferView.buffer].data[uvAccessor.byteOffset + uvBufferView.byteOffset]));
@@ -74,7 +79,8 @@ namespace OmegaEngine
 
 			// check whether this model has skinning data - joints first
 			const uint16_t *jointBuffer = nullptr;
-			if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) {
+			if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end()) 
+			{
 				const tinygltf::Accessor& jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
 				const tinygltf::BufferView& jointBufferView = model.bufferViews[jointAccessor.bufferView];
 				jointBuffer = reinterpret_cast<const uint16_t*>(&(model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset]));
@@ -82,7 +88,8 @@ namespace OmegaEngine
 
 			// and then weights. It must contain both to for the data to be used for animations
 			const float *weightBuffer = nullptr;
-			if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) {
+			if (primitive.attributes.find("WEIGHTS_0") != primitive.attributes.end()) 
+			{
 				const tinygltf::Accessor& weightAccessor = model.accessors[primitive.attributes.find("WEIGHTS_0")->second];
 				const tinygltf::BufferView& weightBufferView = model.bufferViews[weightAccessor.bufferView];
 				weightBuffer = reinterpret_cast<const float*>(&(model.buffers[weightBufferView.buffer].data[weightAccessor.byteOffset + weightBufferView.byteOffset]));
@@ -94,24 +101,28 @@ namespace OmegaEngine
 
 			// now convert the data to a form that we can use with Vulkan - skinned and non-skinned meshes treated separately
 			MeshType mesh_type;
-			if (weightBuffer && jointBuffer) {
-
+			if (weightBuffer && jointBuffer) 
+			{
 				mesh_type = MeshType::Skinned;
 
-				for (uint32_t j = 0; j < posAccessor.count; ++j) {
+				for (uint32_t j = 0; j < posAccessor.count; ++j) 
+				{
 					SkinnedVertex vertex; 
 					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
 					posBuffer += 3;
 
-					if (normBuffer) {
+					if (normBuffer) 
+					{
 						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
 						normBuffer += 3;
 					}
-					if (uvBuffer0) {
+					if (uvBuffer0) 
+					{
 						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
 						uvBuffer0 += 2;
 					}
-					if (uvBuffer1) {
+					if (uvBuffer1) 
+					{
 						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
 						uvBuffer1 += 2;
 					}
@@ -126,23 +137,28 @@ namespace OmegaEngine
 				}
 				local_vertex_offset += posAccessor.count;
 			}
-			else {
+			else 
+			{
 				mesh_type = MeshType::Static;
 
-				for (uint32_t j = 0; j < posAccessor.count; ++j) {
+				for (uint32_t j = 0; j < posAccessor.count; ++j) 
+				{
 					Vertex vertex; 
 					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
 					posBuffer += 3;
 
-					if (normBuffer) {
+					if (normBuffer) 
+					{
 						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
 						normBuffer += 3;
 					}
-					if (uvBuffer0) {
+					if (uvBuffer0) 
+					{
 						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
 						uvBuffer0 += 2;
 					}
-					if (uvBuffer1) {
+					if (uvBuffer1) 
+					{
 						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
 						uvBuffer1 += 2;
 					}
@@ -160,16 +176,20 @@ namespace OmegaEngine
 			uint32_t indexCount = static_cast<uint32_t>(indAccessor.count);
 			
 			// the indicies can be stored in various formats - this can be determined from the component type in the accessor
-			switch (indAccessor.componentType) {
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+			switch (indAccessor.componentType) 
+			{
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: 
+			{
 				parseIndices<uint32_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: 
+			{
 				parseIndices<uint16_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
-			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+			case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: 
+			{
 				parseIndices<uint8_t>(indAccessor, indBufferView, indBuffer, indices, vertex_start);
 				break;
 			}
@@ -199,14 +219,16 @@ namespace OmegaEngine
 
 	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
-		if (isDirty) {
-			
+		if (isDirty) 
+		{	
 			// static and skinned meshes if any
-			if (!static_vertices.empty()) {
+			if (!static_vertices.empty()) 
+			{
 				VulkanAPI::BufferUpdateEvent event{ "StaticVertices", static_vertices.data(), static_vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
-			if (!skinned_vertices.empty()) {
+			if (!skinned_vertices.empty()) 
+			{
 				VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", skinned_vertices.data(), skinned_vertices.size() * sizeof(SkinnedVertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}

@@ -25,14 +25,15 @@ namespace OmegaEngine
 
 	void LightManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_manager)
 	{
-		if (isDirty) {
-
+		if (isDirty) 
+		{
 			// TODO: update light positions, etc.
 
 			// now update ready for uploading on the gpu side
 			light_buffer.lightCount = lights.size();
 
-			for (uint32_t i = 0; i < light_buffer.lightCount; ++i) {
+			for (uint32_t i = 0; i < light_buffer.lightCount; ++i) 
+			{
 				light_buffer.lights[i] = lights[i];
 			}
 

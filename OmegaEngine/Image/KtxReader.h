@@ -21,6 +21,14 @@ public:
 		uint8_t mipLevel;
 	};
 
+	struct ImageOutput
+	{
+		uint32_t width;
+		uin32_t height;
+
+		std::vector<std::unique_ptr<ImageData> > mip_image;
+	}
+
 	struct KtxHeaderV1
 	{
 		uint32_t endianness;
@@ -48,6 +56,11 @@ public:
 
 	bool loadFile(const char* filename);
 
+	std::unique_ptr<ImageOuput> get_image_data()
+	{
+		return std::move(image);
+	}
+
 private:
 
 	bool open(const char* filename);
@@ -63,8 +76,7 @@ private:
 	vk::Format vk_format;
 
 	// image data for each mip level
-	std::vector<ImageData> imageData;
-
+	std::unique_ptr<ImageOutput> image;
 };
 
 

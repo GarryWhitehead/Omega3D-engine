@@ -24,8 +24,8 @@ namespace OmegaEngine
 
 	void CameraManager::mouse_move_event(MouseMoveEvent& event)
 	{
-		if (firstTime) {
-
+		if (firstTime) 
+		{
 			currentX = event.xpos;
 			currentY = event.ypos;
 			firstTime = false;
@@ -53,16 +53,20 @@ namespace OmegaEngine
 		float velocity = camera.velocity;
 
 		// check for forwards and strafe movement
-		if (event.isMovingForward) {
+		if (event.isMovingForward) 
+		{
 			current_pos += front_vec * velocity; // Engine::DT;	<- Needed?
 		}
-		if (event.isMovingBackward) {
+		if (event.isMovingBackward) 
+		{
 			current_pos -= front_vec * velocity; // Engine::DT;
 		}
-		if (event.isMovingLeft) {
+		if (event.isMovingLeft) 
+		{
 			current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
 		}
-		if (event.isMovingRight) {
+		if (event.isMovingRight) 
+		{
 			current_pos += OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
 		}
 
@@ -92,8 +96,8 @@ namespace OmegaEngine
 
 	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
-		if (isDirty) {
-
+		if (isDirty) 
+		{
 			updateViewMatrix();
 
 			// update everything in the buffer

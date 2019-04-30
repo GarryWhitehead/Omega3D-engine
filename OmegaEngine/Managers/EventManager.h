@@ -53,12 +53,14 @@ namespace OmegaEngine
 		{
 			// generate unique id for event type
 			uint64_t type = Util::TypeId<EventType>::id();
-			if (eventQueue.find(type) == eventQueue.end()) {
+			if (eventQueue.find(type) == eventQueue.end()) 
+			{
 				EventData event_data;
 				event_data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
 				eventQueue[type] = event_data;
 			}
-			else {
+			else 
+			{
 				eventQueue[type].listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
 			}
 		}
@@ -70,8 +72,8 @@ namespace OmegaEngine
 			auto iter = eventQueue.find(type);
 
 			// does the event type exsist?
-			if (iter != eventQueue.end()) {
-			
+			if (iter != eventQueue.end()) 
+			{
 				iter->second.events.emplace_back(new EventType(std::forward<Args>(args)...));
 			}
 		}
@@ -83,10 +85,11 @@ namespace OmegaEngine
 			uint64_t type = Util::TypeId<EventType>::id();
 			auto iter = eventQueue.find(type);
 
-			if (iter != eventQueue.end()) {
+			if (iter != eventQueue.end()) 
+			{
 				EventData data = iter->second;
-				for (auto& listener : data.listeners) {
-
+				for (auto& listener : data.listeners) 
+				{
 					// call registered member function with event
 					listener.listener_func(listener.listener_handle, event);
 				}

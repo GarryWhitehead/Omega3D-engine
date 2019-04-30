@@ -27,6 +27,14 @@ namespace OmegaEngine
 
 	TransformManager::~TransformManager()
 	{
+		if (transform_buffer_data) 
+		{
+			_aligned_free(transform_buffer_data);
+		}
+		if (skinned_buffer_data) 
+		{
+			_aligned_free(skinned_buffer_data);
+		}
 	}
 
 	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform)
@@ -34,13 +42,16 @@ namespace OmegaEngine
 		TransformData transform;
 
 		// we will save the matrix and the decomposed form
-		if (node.translation.size() == 3) {
+		if (node.translation.size() == 3) 
+		{
 			transform.set_translation(OEMaths::vec3f{ (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] });
 		}
-		if (node.scale.size() == 3) {
+		if (node.scale.size() == 3) 
+		{
 			transform.set_scale(OEMaths::vec3f{ (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] });
 		}
-		if (node.rotation.size() == 4) {
+		if (node.rotation.size() == 4) 
+		{
 			OEMaths::quatf q = OEMaths::convert_quatf_D(node.rotation.data());
 			transform.set_rotation(q);
 		}
@@ -48,7 +59,8 @@ namespace OmegaEngine
 		// world transform is obtained from the omega scene file
 		transform.set_world_matrix(world_transform);
 
-		if (node.matrix.size() == 16) {
+		if (node.matrix.size() == 16) 
+		{
 			transform.set_local_matrix(OEMaths::convert_mat4_D(node.matrix.data()));
 		}
 		
@@ -63,26 +75,29 @@ namespace OmegaEngine
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
 	{
-		for (tinygltf::Skin& skin : model.skins) {
+		for (tinygltf::Skin& skin : model.skins) 
+		{
 			SkinInfo skinInfo;
 			skinInfo.name = skin.name.c_str();
 
 			// Is this the skeleton root node?
-			if (skin.skeleton > -1) {
+			if (skin.skeleton > -1) 
+			{
 				assert(skin.skeleton < linearised_objects.size());
 				skinInfo.skeletonIndex = linearised_objects[skin.skeleton];
 			}
 
 			// Does this skin have joint nodes?
-			for (auto& jointIndex : skin.joints) {
-
+			for (auto& jointIndex : skin.joints) 
+			{
 				// we will check later if this node actually exsists
 				assert(jointIndex < linearised_objects.size() && jointIndex > -1);
 				skinInfo.joints.push_back(linearised_objects[jointIndex]);
 			}
 
 			// get the inverse bind matricies, if there are any
-			if (skin.inverseBindMatrices > -1) {
+			if (skin.inverseBindMatrices > -1) 
+			{
 				tinygltf::Accessor accessor = model.accessors[skin.inverseBindMatrices];
 				tinygltf::BufferView bufferView = model.bufferViews[accessor.bufferView];
 				tinygltf::Buffer buffer = model.buffers[bufferView.buffer];
@@ -100,8 +115,8 @@ namespace OmegaEngine
 		OEMaths::mat4f mat = transformBuffer[obj.get_id()].get_local_matrix();
 
 		uint64_t parent_id = obj.get_parent();
-		while (parent_id != UINT64_MAX) {
-
+		while (parent_id != UINT64_MAX) 
+		{
 			Object* parent_obj = obj_manager->get_object(parent_id);
 
 			uint32_t id = parent_obj->get_id();
@@ -114,8 +129,8 @@ namespace OmegaEngine
 
 	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
-		if (obj.hasComponent<MeshManager>()) {
-
+		if (obj.hasComponent<MeshManager>()) 
+		{
 			uint32_t id = obj.get_id();
 
 			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
@@ -128,8 +143,8 @@ namespace OmegaEngine
 			
 			++transform_buffer_size;
 
-			if (transformBuffer[id].get_skin_index() > -1) {
-
+			if (transformBuffer[id].get_skin_index() > -1) 
+			{
 				transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
 
 				uint32_t skin_index = transformBuffer[id].get_skin_index();
@@ -143,8 +158,8 @@ namespace OmegaEngine
 				// transform to local space
 				OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
 
-				for (uint32_t i = 0; i < joint_size; ++i) {
-					
+				for (uint32_t i = 0; i < joint_size; ++i) 
+				{	
 					Object joint_obj = skinBuffer[skin_index].joints[i];
 					OEMaths::mat4f joint_mat = create_matrix(joint_obj, obj_manager) * skinBuffer[skin_index].invBindMatrices[i];
 
@@ -160,8 +175,8 @@ namespace OmegaEngine
 		// now update all child nodes too - TODO: do this without recursion
 		auto children = obj.get_children();
 
-		for (auto& child : children) {
-
+		for (auto& child : children) 
+		{
 			// it is possible that the object has no transform, so check this first
 			if (child.hasComponent<TransformManager>()) {
 				update_transform_recursive(obj_manager, child, transform_alignment, skinned_alignment);
@@ -176,8 +191,8 @@ namespace OmegaEngine
 		transform_buffer_size = 0;
 		skinned_buffer_size = 0;
 
-		for (auto obj : object_list) {
-
+		for (auto obj : object_list)
+		 {
 			update_transform_recursive(obj_manager, obj.second, transform_aligned, skinned_aligned);
 		}
 	}
@@ -185,16 +200,17 @@ namespace OmegaEngine
 	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
 	{
 		// check whether static data need updating
-		if (is_dirty) {
-
+		if (is_dirty) 
+		{
 			update_transform(obj_manager);
 
-			if (transform_buffer_size) {
-
+			if (transform_buffer_size) 
+			{
 				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transform_buffer_data, transform_aligned * transform_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
-			if (skinned_buffer_size) {
+			if (skinned_buffer_size) 
+			{
 				VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinned_buffer_data, skinned_aligned * skinned_buffer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}

@@ -83,7 +83,8 @@ namespace OmegaEngine
 
 			OEMaths::mat4f get_local_matrix()
 			{
-				if (recalculate_local) {
+				if (recalculate_local) 
+				{
 					calculate_local();
 					recalculate_local = false;
 				}
@@ -180,7 +181,8 @@ namespace OmegaEngine
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
-			if (transformBuffer.find(id) == transformBuffer.end()) {
+			if (transformBuffer.find(id) == transformBuffer.end()) 
+			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
 			return transformBuffer[id].get_transform_offset();
@@ -190,7 +192,8 @@ namespace OmegaEngine
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
-			if (transformBuffer.find(id) == transformBuffer.end()) {
+			if (transformBuffer.find(id) == transformBuffer.end()) 
+			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
 			return transformBuffer[id].get_skinned_offset();

@@ -11,6 +11,9 @@ namespace OmegaEngine
 
 	RenderableSkybox::RenderableSkybox()
 	{
+		// fill out the data which will be used for rendering
+		instance_data = new SkyboxInstance;
+		SkyboxInstance* skybox_instance = reinterpret_cast<SkyboxInstance*>(instance_data);
 	}
 
 
@@ -39,12 +42,21 @@ namespace OmegaEngine
 			state->descr_set.init(device, state->descr_layout.get_layout(buffer.set), state->descr_layout.get_pool(), buffer.set);
 		}
 
-		// sort out the descriptor sets
+		// sort out the descriptor sets - buffers
 		for (auto& layout : state->buffer_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
 				buffer_manager->enqueueDescrUpdate("Camera", &state->descr_set, layout.set, layout.binding, layout.type);
+			}
+		}
+
+		// sort out the descriptor sets - images
+		for (auto& layout : state->image_layout) {
+
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "SkyboxSampler") {
+				texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 
@@ -60,5 +72,23 @@ namespace OmegaEngine
 		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
 		state->pipeline.create(device, renderer->get_first_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
+	}
+
+	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
+								void* instance,
+								RenderInterface* render_interface)
+	{
+		SkyboxInstance* instance_data = (SkyboxInstance*)instance;
+
+		cmd_buffer.set_viewport();
+		cmd_buffer.set_scissor();
+		cmd_buffer.bind_pipeline(skybox_pipeline->pipeline);
+		cmd_buffer.bind_descriptors(skybox_pipeline->pl_layout, material_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_push_block(skybox_pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
+
+		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
+		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);
+		cmd_buffer.bind_index_buffer(instance_data->index_buffer.buffer, instance_data->index_buffer.offset);
+		cmd_buffer.draw_indexed(instance_data->index_count);
 	}
 }

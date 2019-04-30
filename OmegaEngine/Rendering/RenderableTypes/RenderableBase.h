@@ -35,7 +35,12 @@ namespace OmegaEngine
 		{
 		}
 
-		virtual ~RenderableBase() {}
+		virtual ~RenderableBase() 
+		{
+			if(instance_data != nullptr) {
+				delete instance_data;
+			} 
+		}
 
 		// abstract render call
 		virtual void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer,
@@ -71,7 +76,7 @@ namespace OmegaEngine
 		RenderTypes type;
 
 		// data used for rendering 
-		void* instance_data;
+		void* instance_data = nullptr;
 
 		// determines sort order of renderable
 		SortKey sort_key;
