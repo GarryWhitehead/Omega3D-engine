@@ -27,6 +27,12 @@ namespace OmegaEngine
 
 	TransformManager::~TransformManager()
 	{
+		if (transform_buffer_data) {
+			_aligned_free(transform_buffer_data);
+		}
+		if (skinned_buffer_data) {
+			_aligned_free(skinned_buffer_data);
+		}
 	}
 
 	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform)

@@ -9,7 +9,18 @@ namespace OmegaEngine
 
 	EventManager::~EventManager()
 	{
+		if (!eventQueue.empty()) {
 
+			for (auto& queue : eventQueue) {
+				
+				if (!queue.second.events.empty()) {
+					for (auto& event : queue.second.events) {
+					
+						delete event;
+					}
+				}
+			}
+		}
 	}
 
 	void EventManager::notifyQueued()

@@ -11,6 +11,7 @@ namespace OmegaEngine
 	public:
 
 		MappedTexture();
+		~MappedTexture();
 
 		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, unsigned char* imageData, bool createMipMaps = false);
 		bool create_empty_texture(uint32_t w, uint32_t h, bool setToBlack);
@@ -70,7 +71,7 @@ namespace OmegaEngine
 		const char* name;
 
 		// the texture binary
-		unsigned char* bin;
+		unsigned char* bin = nullptr;
 
 		// vulkan info that is associated with this texture
 		vk::Format tex_format;
