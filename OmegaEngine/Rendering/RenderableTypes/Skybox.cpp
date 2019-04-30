@@ -39,12 +39,21 @@ namespace OmegaEngine
 			state->descr_set.init(device, state->descr_layout.get_layout(buffer.set), state->descr_layout.get_pool(), buffer.set);
 		}
 
-		// sort out the descriptor sets
+		// sort out the descriptor sets - buffers
 		for (auto& layout : state->buffer_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
 				buffer_manager->enqueueDescrUpdate("Camera", &state->descr_set, layout.set, layout.binding, layout.type);
+			}
+		}
+
+		// sort out the descriptor sets - images
+		for (auto& layout : state->image_layout) {
+
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "SkyboxSampler") {
+				texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 

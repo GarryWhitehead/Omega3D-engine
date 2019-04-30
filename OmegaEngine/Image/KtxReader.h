@@ -48,6 +48,11 @@ public:
 
 	bool loadFile(const char* filename);
 
+	std::vector<std::unique_ptr<ImageData>> get_image_data()
+	{
+		return std::move(imageData);
+	}
+
 private:
 
 	bool open(const char* filename);
@@ -63,7 +68,7 @@ private:
 	vk::Format vk_format;
 
 	// image data for each mip level
-	std::vector<ImageData> imageData;
+	std::vector<std::unique_ptr<ImageData> > imageData;
 
 };
 
