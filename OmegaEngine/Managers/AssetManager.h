@@ -16,6 +16,7 @@ namespace OmegaEngine
         AssetManager();
         ~AssetManager();
 
+        // loads compressed images stored in the ktx file format
         FileId load_image_file(const char* filename);
 
     private:
