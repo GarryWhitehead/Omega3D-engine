@@ -20,15 +20,6 @@ namespace OmegaEngine
 
 	public:
 
-		struct WorldInfo
-		{
-			const char* name;
-
-			// this refers to the scene grid dimensions 
-			uint32_t width;
-			uint32_t height;
-		};
-
 		struct ModelInfo
 		{
 			std::string gltfFilename;
@@ -39,14 +30,16 @@ namespace OmegaEngine
 
 		};
 
-		struct Environment
-		{
-			const char* skybox_filename;
-		};
-
 		struct Terrain
 		{
 
+		};
+
+		struct EnvironmentInfo
+		{
+			const char* skybox_filename = nullptr;
+			const char* brdf_filename = nullptr;
+			const char* irradiance_map_filename = nullptr;
 		};
 
 		SceneParser();
@@ -56,9 +49,8 @@ namespace OmegaEngine
 
 		void loadCameraData();
 		void loadModels();
-		void loadWorldInfo();
 		void loadTerrainData();
-		void loadEnvironamnetData();
+		void loadEnvironment())
 		void loadLights();
 
 		std::string& getFilenames(uint32_t index)
@@ -91,13 +83,21 @@ namespace OmegaEngine
 			return lights[index];
 		}
 
+		EnvironmentInfo& get_env() 
+		{
+			return environment;
+		}
+
 	private:
 
 		Document document;
 
+		const char* name = nullptr;
+
 		// TODO: allow multiple camera to be loaded
 		Camera camera;
 		WorldInfo worldInfo;
+		Environment environment;
 
 		std::vector<ModelInfo> models;
 		std::vector<LightInfo> lights;
