@@ -5,27 +5,11 @@ namespace ImageUtility
 
 	KtxReader::KtxReader()
 	{
-		image = std::make_unique<ImageOutput>();
 	}
 
 
 	KtxReader::~KtxReader()
 	{
-		// delete image data
-		/*for (uint32_t x = 0; x < image->mip_image.size(); ++x) {
-
-			for (uint32_t i = 0; i < image->mip_image[x]->data.size(); ++i) {
-
-				for (uint32_t j = 0; j < image->mip_image[x]->data[i].size(); ++j) {
-
-					if (image->mip_image[x]->data[i][j]) {
-
-						delete[] image->mip_image[x]->data[i][j];
-					}
-				}
-			}
-		}*/d
-
 		// value-key pair delete
 		if (valuePairData) 
 		{
@@ -55,7 +39,7 @@ namespace ImageUtility
 		return format;
 	}
 
-	bool KtxReader::open(const char* filename)
+	bool KtxReader::open(const char* filename, uint32_t& fileSize)
 	{
 		FILE* file = fopen(filename, "rb");
 		if (!file) 
@@ -65,7 +49,7 @@ namespace ImageUtility
 
 		// get the file size
 		fseek(file, 0, SEEK_END);
-		uint32_t fileSize = ftell(file);
+		fileSize = ftell(file);
 		rewind(file);
 
 		// load binary into vector for parsing
@@ -100,9 +84,12 @@ namespace ImageUtility
 		return true;
 	}
 
-	bool KtxReader::parse()
+	bool KtxReader::parse(const uint32_t file_size)
 	{
 		std::vector<uint8_t>::iterator bufferPos = fileBuffer.begin();
+		
+		// to calculate the size of the image data, keep a running tally of the header size,etc.
+		uint32_t data_offset = 0;
 
 		// check for the correct header
 		if (memcmp(&fileIdentifier, &(*bufferPos), sizeof(fileIdentifier))) 
@@ -111,10 +98,12 @@ namespace ImageUtility
 			return false;
 		}
 		bufferPos += sizeof(fileIdentifier);
+		data_offset += sizeof(fileIdentifier);
 
 		// get all the important info from the file header
 		memcpy(&header, &(*bufferPos), sizeof(KtxHeaderV1));
 		bufferPos += sizeof(KtxHeaderV1);
+		data_offset += sizeof(KtxHeaderV1);
 
 		// according to the spec, if undefined format then we can't continue
 		if (header.glFormat == 0) 
@@ -152,11 +141,13 @@ namespace ImageUtility
 		uint32_t valuePairSize = 0;
 		memcpy(&valuePairSize, &(*bufferPos), sizeof(uint32_t));
 		bufferPos += sizeof(uint32_t);
+		data_offset += sizeof(uint32_t);
 
 		// get the vlaue-pair data
 		valuePairData = new uint8_t[valuePairSize];
 		memcpy(valuePairData, &(*bufferPos), valuePairSize);
 		bufferPos += valuePairSize;
+		data_offset += valuePairSize;
 
 		// deal with padding if any
 		uint32_t paddingSize = 3 - ((valuePairSize + 3) % 4);
@@ -165,54 +156,48 @@ namespace ImageUtility
 			bufferPos += paddingSize;
 		}
 
+		// the data also contains the size of the image at each mip level, so account for this in the data offset
+		data_offset += sizeof(uint32_t) * header.numberOfMipmapLevels; 
+
+		// store the data in one big blob
+		image_output.data = new uint8_t[file_size - data_offset];
+		uint8_t* dataPtr = image_output.data;
+
+		// fill out what we can of the output container
+		image_output.array_count = header.numberOfArrayElements;
+		image_output.faces = header.numberOfFaces;
+		image_output.mip_levels = header.numberOfMipmapLevels;
+		image_output.width = header.pixelWidth;
+		image_output.height = header.pixelHeight;
+
 		// now for the actual images
 		for (uint32_t mips = 0; mips < header.numberOfMipmapLevels; ++mips) 
 		{
-			// get the image size
-			std::unique_ptr<ImageData> imageInfo = std::make_unique<ImageData>();
+			uint32_t mip_size;
+			image_output.mip_sizes.push_back(mip_size);
 
-			memcpy(&imageInfo->size, &(*bufferPos), sizeof(uint32_t));
-			imageInfo->mipLevel = mips;
+			memcpy(&mip_size, &(*bufferPos), sizeof(uint32_t));
 			bufferPos += sizeof(uint32_t);
 
-			imageInfo->data.resize(header.numberOfArrayElements);
 			for (uint32_t element = 0; element < header.numberOfArrayElements; ++element) 
 			{
-				imageInfo->data[element].resize(header.numberOfFaces);
 				for (uint32_t faces = 0; faces < header.numberOfFaces; ++faces) 
 				{
 					// assuming pixel depth of one at the mo...
 					for (uint32_t depth = 0; depth < header.pixelDepth; ++depth) 
 					{
-						// sort image size for this face
-						uint32_t innerSize = header.pixelWidth * header.pixelHeight * byteAlignment;
-						if (innerSize != imageInfo->size) 
-						{
-							fprintf(stderr, "Mismtatch between file image size and calculated size.");
-							return false;
-						}
-
-						uint8_t* dataPtr = new uint8_t[innerSize];
-						imageInfo->data[element][faces] = dataPtr;
-
-						for (uint32_t row = 0; row < header.pixelHeight; ++row) 
-						{
-							for (uint32_t pixel = 0; pixel < header.pixelWidth; ++pixel) 
-							{
- 								memcpy(dataPtr, &(*bufferPos), sizeof(byteAlignment));
-								dataPtr += byteAlignment;
-								bufferPos += byteAlignment;
-							}
-						}
+ 						memcpy(dataPtr, &(*bufferPos), mip_size);
+						dataPtr += mip_size;
+						bufferPos += mip_size;
 					}
 				}
 			}
-			
-			image->mip_image.emplace_back(std::move(imageInfo));
 		}
+
+		return true;
 	}
 
-	bool KtxReader::generate(const char* filename, std::vector<uint8_t>& data)
+	std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t array_count, uint32_t faces, uint32_t mip_levels)
 	{
 		std::vector<uint8_t> output_data;
 		
@@ -230,16 +215,16 @@ namespace ImageUtility
 		header.pixelWidth = width;
 		header.pixelHeight = height;
 		header.pixelDepth = 1;	// must be 1
-		header.numberOfArrayElements = num_array_elements;
-		header.numberOfFaces = num_faces;
+		header.numberOfArrayElements = array_count;
+		header.numberOfFaces = faces;
 		header.numberOfMipmapLevels = mip_levels;
 		insert_binary(header, output_data);
 
 		// key value pair - not using this but set it to be 32bytes
 		// this means that we don't need any padding after this struct
 		std::array<uint8_t, 32> value_pair;
-		insert_binary<value_pair.size(), output_data);
-		insert_binary<value_pair.data(), output_data);
+		insert_binary(value_pair.size(), output_data);
+		insert_binary(value_pair.data(), output_data);
 
 		uint32_t data_index = 0;
 
@@ -249,22 +234,24 @@ namespace ImageUtility
 			uint32_t mip_size = width * height * byteAlignment;
 			insert_binary(mip_size, output_data);
 
-			for (uint32_t element = 0; element < num_elements; ++element) 
+			for (uint32_t element = 0; element < array_count; ++element) 
 			{
-				uint32_t element_size = mip_size * (element * num_faces);
+				uint32_t element_size = mip_size * (element * faces);
 
-				for (uint32_t faces = 0; faces < num_faces; ++faces) 
+				for (uint32_t face = 0; face < faces; ++face) 
 				{
 					// assuming pixel depth of one at the mo...
 					for (uint32_t depth = 0; depth < 1; ++depth) 
 					{
-						data_index = element_size + (mip_size * faces);
-						auto offset = data_output.begin() + data_index;
+						data_index = element_size + (mip_size * face);
+						auto offset = output_data.begin() + data_index;
 						std::copy(offset, offset + mip_size, std::back_inserter(output_data));
 					}
 				}
 			}
 		}
+
+		return output_data;
 	}
 
 	bool KtxReader::loadFile(const char* filename)
@@ -275,13 +262,14 @@ namespace ImageUtility
 			return true;
 		}
 		
-		if (!open(filename)) 
+		uint32_t file_size = 0;
+		if (!open(filename, file_size)) 
 		{
 			fprintf(stderr, "Unable to open .ktx file: %s.", filename);
 			return false;
 		}
 
-		if (!parse()) 
+		if (!parse(file_size)) 
 		{
 			return false;
 		}
@@ -289,7 +277,7 @@ namespace ImageUtility
 		return true;
 	}
 
-	bool saveFile(const char* filename, uint8_t* data, uint32_t mip_levels, uint32_t num_faces, uint32_t width, uint32_t height)
+	bool KtxReader::saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mip_levels, uint32_t array_count, uint32_t num_faces, uint32_t width, uint32_t height)
 	{
 		if (!filename) 
 		{
@@ -297,8 +285,8 @@ namespace ImageUtility
 			return false;
 		}
 
-		std::vector<unit8_t> output = generate(data, mip_levels, num_faces, width, height);
-		if (!output)
+		std::vector<uint8_t> output = generate(data, width, height, array_count, num_faces, mip_levels);
+		if (output.empty())
 		{
 			fprintf(stderr, "Error whilst generating ktx file binary.\n", filename);
 			return false;
@@ -308,6 +296,8 @@ namespace ImageUtility
 		{
 			return false;
 		}
+
+		return true;
 	}
 
 }

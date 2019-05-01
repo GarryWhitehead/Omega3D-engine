@@ -55,10 +55,13 @@ namespace OmegaEngine
 		// sort out the descriptor sets - images
 		for (auto& layout : state->image_layout) {
 
-			// the shader must use these identifying names for uniform buffers -
-			//if (layout.name == "SkyboxSampler") {
-			//	texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, layout.set, layout.binding, layout.type);
-			//}
+			for (auto& image : layout.second)
+			{
+				// the shader must use these identifying names for uniform buffers -
+				if (image.name == "SkyboxSampler") {
+					texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, &image.sampler, image.set, image.binding);
+				}
+			}
 		}
 
 		state->shader.pipeline_layout_reflect(state->pl_layout);

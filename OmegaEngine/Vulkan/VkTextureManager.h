@@ -16,35 +16,49 @@ namespace VulkanAPI
 	class Texture;
 	class Queue;
 
-	struct TextureUpdateEvent : public OmegaEngine::Event
+	struct MaterialTextureUpdateEvent : public OmegaEngine::Event
 	{
-		TextureUpdateEvent(std::string _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
+		MaterialTextureUpdateEvent(std::string _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
 			id(_id),
 			binding(_binding),
 			mapped_tex(_mapped),
 			sampler(_sampler)
 		{
 		}
-		
-		//TextureUpdateEvent() {}
-		
+			
 		std::string id;
 		uint32_t binding = 0;
 		OmegaEngine::MappedTexture* mapped_tex = nullptr;
 		SamplerType sampler;
 	};
 
+	struct TextureUpdateEvent : public OmegaEngine::Event
+	{
+		TextureUpdateEvent(std::string _id, OmegaEngine::MappedTexture* _mapped) :
+			id(_id),
+			mapped_tex(_mapped)
+		{
+		}
+
+		std::string id;
+		OmegaEngine::MappedTexture* mapped_tex = nullptr;
+	};
 
 	class VkTextureManager
 	{
 
 	public:
 		
-		struct TextureInfo
+		struct MaterialTextureInfo
 		{
 			Texture texture;
 			Sampler sampler;
 			uint32_t binding = 0;
+		};
+
+		struct TextureInfo
+		{
+			Texture texture;
 		};
 
 		struct TextureLayoutInfo
@@ -57,6 +71,7 @@ namespace VulkanAPI
 		{
 			const char *id;
 			DescriptorSet* set = nullptr;
+			Sampler* sampler = nullptr;
 			uint32_t set_num = 0;
 			uint32_t binding = 0;
 		};
@@ -65,13 +80,17 @@ namespace VulkanAPI
 		~VkTextureManager();
 
 		void update_texture(TextureUpdateEvent& event);
+		void enqueueDescrUpdate(const char*, VulkanAPI::DescriptorSet*, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding);
 		void update_descriptors();
+
+		// updates a single descriptor set with a texture set identified by its unique id
+		void update_material_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
+
+		void update_material_texture(MaterialTextureUpdateEvent& event);
+		void update_material_descriptors();
 
 		// associates an id with a descriptor layout. Used for materials, etc. were there are multiple descriptor sets but one layout
 		void bind_textures_to_layout(const char* id, DescriptorLayout* layout, uint32_t set_num);
-
-		// updates a single descriptor set with a texture set identified by its unique id
-		void update_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
 
 		TextureLayoutInfo& get_texture_descr_layout(const char* id);
 
@@ -81,10 +100,13 @@ namespace VulkanAPI
 		vk::PhysicalDevice gpu;
 		VulkanAPI::Queue graph_queue;
 
-		// textures - can be grouped (i.e. materials) or single textures
-		std::unordered_map<std::string, std::vector<TextureInfo> > textures;
+		// dedicated container for material textures i.e. grouped
+		std::unordered_map<std::string, std::vector<MaterialTextureInfo> > mat_textures;
 
-		// a queue of descriptor sets which need updating on a per frame basis - not used yet, maybe remove?
+		// single textures derived from the asset manager
+		std::unordered_map<const char*, TextureInfo> textures;
+
+		// a queue of descriptor sets which need updating on a per frame basis - for single textures
 		std::vector<DescrSetUpdateInfo> descr_set_update_queue;
 
 		// associate textures with descriptor layouts

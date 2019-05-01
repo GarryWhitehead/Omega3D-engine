@@ -30,5 +30,5 @@
       "Radius": 90.0
     }
   ],
-  "Skybox":  "assets/textures/skybox/cubemap.ktx"
+  "Skybox":  "assets/textures/skybox/Skybox_cubemap.ktx"
 }

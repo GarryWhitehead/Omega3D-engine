@@ -44,6 +44,7 @@
     <ClCompile Include="OEMaths\OEMaths_transform.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Skybox.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
+    <ClCompile Include="utility\StringUtil.cpp" />
     <ClCompile Include="Vulkan\CommandBufferManager.cpp" />
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
@@ -115,6 +116,7 @@
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
     <ClInclude Include="Rendering\RenderUtil.h" />
+    <ClInclude Include="utility\StringUtil.h" />
     <ClInclude Include="utility\BVH.hpp" />
     <ClInclude Include="utility\Timer.h" />
     <ClInclude Include="Vulkan\CommandBufferManager.h" />

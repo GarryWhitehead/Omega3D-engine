@@ -213,6 +213,9 @@
     <ClCompile Include="Managers\AssetManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="utility\StringUtil.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Engine\World.h">
@@ -447,6 +450,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Managers\AssetManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utility\StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

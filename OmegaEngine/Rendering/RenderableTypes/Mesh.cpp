@@ -79,7 +79,7 @@ namespace OmegaEngine
 		}
 
 		mesh_instance_data->descr_set.init(device, *layout_info.layout, layout_info.set_num); 
-		texture_manager->update_descr_set(mesh_instance_data->descr_set, mat.name, layout_info.set_num);
+		texture_manager->update_material_descr_set(mesh_instance_data->descr_set, mat.name, layout_info.set_num);
 
 		// material push block
 		mesh_instance_data->material_push_block.baseColorFactor = mat.factors.baseColour;

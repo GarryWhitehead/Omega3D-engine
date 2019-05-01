@@ -15,21 +15,32 @@ namespace ImageUtility
 	public:
 
 		// assuming that compressed and uncompressed images are 4byte aligned
-		const uint32_t byteAlignment = 4;
-
-		struct ImageData
-		{
-			std::vector<std::vector<uint8_t*> > data;   // for each layer -> face -> image
-			uint32_t size;
-			uint8_t mipLevel;
-		};
+		constexpr static uint32_t byteAlignment = 4;
 
 		struct ImageOutput
 		{
-			uint32_t width;
-			uint32_t height;
+			ImageOutput() = default;
+			~ImageOutput() 
+			{
+				if (data)
+				{
+					delete[] data;
+				}
+			}
+			
+			// first mip level dimensions
+			uint32_t width = 0;
+			uint32_t height = 0;
+			uint32_t byte_alignment = 4;
+			uint32_t total_size = 0;
+			uint32_t mip_levels = 0;
+			uint32_t array_count = 0;
+			uint32_t faces = 0;
 
-			std::vector<std::unique_ptr<ImageData> > mip_image;
+			// total image size of each mip level (width * height * byteAlignment)
+			std::vector<uint32_t> mip_sizes;
+
+			uint8_t* data = nullptr;
 		};
 
 		struct KtxHeaderV1
@@ -58,11 +69,11 @@ namespace ImageUtility
 		vk::Format convertGlToVkFormat(uint32_t internalFormat);
 
 		bool loadFile(const char* filename);
-		bool saveFile(const char* filename, uint8_t* data, uint32_t mip_levels, uint32_t num_faces, uint32_t width, uint32_t height);
+		bool saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mip_levels, uint32_t array_count, uint32_t num_faces, uint32_t width, uint32_t height);
 
-		std::unique_ptr<ImageOutput> get_image_data()
+		ImageOutput& get_image_data()
 		{
-			return std::move(image);
+			return image_output;
 		}
 
 		template <typename T>
@@ -74,10 +85,10 @@ namespace ImageUtility
 
 	private:
 
-		bool open(const char* filename);
-		bool save(const char* filename);
-		bool parse();
-		bool generate();
+		bool open(const char* filename, uint32_t& fileSize);
+		bool save(const char* filename, std::vector<uint8_t>& output);
+		bool parse(const uint32_t file_size);
+		std::vector<uint8_t> generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t array_count, uint32_t faces, uint32_t mip_levels);
 
 		// holds the binary file
 		std::vector<uint8_t> fileBuffer;
@@ -89,7 +100,7 @@ namespace ImageUtility
 		vk::Format vk_format;
 
 		// image data for each mip level
-		std::unique_ptr<ImageOutput> image;
+		ImageOutput image_output;
 	};
 
 }

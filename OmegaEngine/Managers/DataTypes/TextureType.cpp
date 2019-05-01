@@ -18,7 +18,27 @@ namespace OmegaEngine
 		}
 	}
 
-	bool MappedTexture::map_texture(uint32_t w, uint32_t h, uint32_t comp, unsigned char* imageData, bool createMipMaps)
+	bool MappedTexture::map_texture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faces, uint32_t arrays, uint32_t mips, uint32_t size)
+	{
+		width = w;
+		height = h;
+		mip_levels = mips;
+		faces = _faces;
+		array_count = arrays;
+		total_size = size;
+
+		bin = new uint8_t[total_size];
+		if (!bin)
+		{
+			LOGGER_INFO("Error whilst allocationg memory for texture. Out of memory?");
+			return false;
+		}
+
+		memcpy(bin, data, total_size);
+		return true;
+	}
+
+	bool MappedTexture::map_texture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps)
 	{
 		if (comp == 3) 
 		{
@@ -38,7 +58,7 @@ namespace OmegaEngine
 		
 		// copy image to local store
 		uint32_t image_size = width * height * comp;	// assuming 4 channels here
-		bin = new unsigned char[image_size];
+		bin = new uint8_t[image_size];
 
 		if (!bin) 
 		{
@@ -58,7 +78,7 @@ namespace OmegaEngine
 		tex_format = vk::Format::eR8G8B8A8Unorm;
 
 		uint32_t image_size = width * height * 4;
-		bin = new unsigned char[image_size];
+		bin = new uint8_t[image_size];
 
 		if (!bin) 
 		{
@@ -66,11 +86,12 @@ namespace OmegaEngine
 			return false;
 		}
 
-		// fill with zer
+		// fill with zeros if required
 		if (setToBlack) 
 		{
 			memset(bin, 0, image_size);
 		}
+
 		return true;
 	}
 }

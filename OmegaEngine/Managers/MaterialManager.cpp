@@ -167,14 +167,14 @@ namespace OmegaEngine
 					// do we actually have an image for this particular pbr material
 					if (mat.texture_state[i]) 
 					{
-						VulkanAPI::TextureUpdateEvent event{ mat.name, i, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image),
+						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image),
 							tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler) };
-						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 					}
 					else 
 					{
-						VulkanAPI::TextureUpdateEvent event{ mat.name, i, &tex_manager.get_dummy_texture(), tex_manager.get_dummy_sampler() };
-						Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &tex_manager.get_dummy_texture(), tex_manager.get_dummy_sampler() };
+						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 					}
 				}
 			}

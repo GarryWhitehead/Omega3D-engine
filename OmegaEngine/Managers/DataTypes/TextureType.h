@@ -13,10 +13,11 @@ namespace OmegaEngine
 		MappedTexture();
 		~MappedTexture();
 
-		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, unsigned char* imageData, bool createMipMaps = false);
+		bool map_texture(uint8_t* data, uint32_t w, uint32_t h, uint32_t face_count, uint32_t arrays, uint32_t mips, uint32_t size);
+		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps = false);
 		bool create_empty_texture(uint32_t w, uint32_t h, bool setToBlack);
 		
-		int size() const
+		uint32_t size() const
 		{
 			return width * height * 4;		// must be rgba
 		}
@@ -26,17 +27,17 @@ namespace OmegaEngine
 			return bin;
 		}
 
-		int mipmapCount() const
+		uint32_t mipmapCount() const
 		{
 			return mip_levels;
 		}
 
-		int tex_width() const
+		uint32_t tex_width() const
 		{
 			return width;
 		}
 
-		int tex_height() const
+		uint32_t tex_height() const
 		{
 			return height;
 		}
@@ -65,13 +66,17 @@ namespace OmegaEngine
 
 		// This could probably be public but I am paranoid about unwanted chnages to texture data!
 		// info from gltf
-		int width;
-		int height;
-		int mip_levels;
-		const char* name;
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint32_t mip_levels = 1;
+		uint32_t array_count = 1;
+		uint32_t faces = 1;
+		uint32_t total_size = 0;
+
+		const char* name = nullptr;
 
 		// the texture binary
-		unsigned char* bin = nullptr;
+		uint8_t* bin = nullptr;
 
 		// vulkan info that is associated with this texture
 		vk::Format tex_format;
