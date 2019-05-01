@@ -260,6 +260,7 @@ namespace ImageUtility
 					{
 						data_index = element_size + (mip_size * faces);
 						auto offset = data_output.begin() + data_index;
+						std::copy(offset, offset + mip_size, std::back_inserter(output_data));
 					}
 				}
 			}
