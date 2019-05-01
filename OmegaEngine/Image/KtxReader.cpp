@@ -1,5 +1,4 @@
 #include "KtxReader.h"
-#include "Utility/Logger.h"
 
 namespace ImageUtility
 {
@@ -25,7 +24,7 @@ namespace ImageUtility
 					}
 				}
 			}
-		}*/
+		}*/d
 
 		// value-key pair delete
 		if (valuePairData) 
@@ -81,6 +80,26 @@ namespace ImageUtility
 		return true;
 	}
 
+	bool KtxReader::save(const char* filename, std::vector<uint8_t>& data)
+	{
+		FILE* file = fopen(filename, "wb");
+		if (!file)
+		{
+			fprintf(stderr, "Error creating file %s.\n", filename);
+			return false;
+		}
+
+		uint32_t write_size = fwrite(data.data(), sizeof(uint8_t), data.size(), file);
+		if (write_size != data.size()) 
+		{
+			fprintf(stderr, "Error writing to file %s - incomplete.\n", filename);
+			return false;
+		}
+
+		fclose(file);
+		return true;
+	}
+
 	bool KtxReader::parse()
 	{
 		std::vector<uint8_t>::iterator bufferPos = fileBuffer.begin();
@@ -88,7 +107,8 @@ namespace ImageUtility
 		// check for the correct header
 		if (memcmp(&fileIdentifier, &(*bufferPos), sizeof(fileIdentifier))) 
 		{
-			LOGGER_ERROR("File header not recognised. Incorrect file format.");
+			fprintf(stderr, "File header not recognised. Incorrect file format.");
+			return false;
 		}
 		bufferPos += sizeof(fileIdentifier);
 
@@ -99,7 +119,8 @@ namespace ImageUtility
 		// according to the spec, if undefined format then we can't continue
 		if (header.glFormat == 0) 
 		{
-			LOGGER_ERROR("glFormat is undefined. Unable to continue parsing file.");
+			fprintf(stderr, "glFormat is undefined. Unable to continue parsing file.");
+			return false;
 		}
 
 		vk_format = convertGlToVkFormat(header.glInternalFormat);
@@ -113,7 +134,8 @@ namespace ImageUtility
 		// 3d images not supported yet 
 		if (header.pixelDepth > 0)
 		{
-			LOGGER_ERROR("Using a .ktx file with depth > 1; 3D images are not yet supported.");
+			fprintf(stderr, "Using a .ktx file with depth > 1; 3D images are not yet supported.");
+			return false;
 		}
 		else 
 		{
@@ -166,7 +188,8 @@ namespace ImageUtility
 						uint32_t innerSize = header.pixelWidth * header.pixelHeight * byteAlignment;
 						if (innerSize != imageInfo->size) 
 						{
-							LOGGER_ERROR("Mismtatch between file image size and calculated size.");
+							fprintf(stderr, "Mismtatch between file image size and calculated size.");
+							return false;
 						}
 
 						uint8_t* dataPtr = new uint8_t[innerSize];
@@ -189,6 +212,60 @@ namespace ImageUtility
 		}
 	}
 
+	bool KtxReader::generate(const char* filename, std::vector<uint8_t>& data)
+	{
+		std::vector<uint8_t> output_data;
+		
+		// first the file identifier motif
+		insert_binary(fileIdentifier, output_data);
+
+		// then the data header
+		KtxHeaderV1 header;
+		header.endianness = 0;
+		header.glType = 0;                    // openGl not supported
+		header.glTypeSize = 0;
+		header.glFormat = 0;
+		header.glInternalFormat = 0;
+		header.glBaseInternalFormat = 0;
+		header.pixelWidth = width;
+		header.pixelHeight = height;
+		header.pixelDepth = 1;	// must be 1
+		header.numberOfArrayElements = num_array_elements;
+		header.numberOfFaces = num_faces;
+		header.numberOfMipmapLevels = mip_levels;
+		insert_binary(header, output_data);
+
+		// key value pair - not using this but set it to be 32bytes
+		// this means that we don't need any padding after this struct
+		std::array<uint8_t, 32> value_pair;
+		insert_binary<value_pair.size(), output_data);
+		insert_binary<value_pair.data(), output_data);
+
+		uint32_t data_index = 0;
+
+		// now for the actual images
+		for (uint32_t mips = 0; mips < mip_levels; ++mips) 
+		{
+			uint32_t mip_size = width * height * byteAlignment;
+			insert_binary(mip_size, output_data);
+
+			for (uint32_t element = 0; element < num_elements; ++element) 
+			{
+				uint32_t element_size = mip_size * (element * num_faces);
+
+				for (uint32_t faces = 0; faces < num_faces; ++faces) 
+				{
+					// assuming pixel depth of one at the mo...
+					for (uint32_t depth = 0; depth < 1; ++depth) 
+					{
+						data_index = element_size + (mip_size * faces);
+						auto offset = data_output.begin() + data_index;
+					}
+				}
+			}
+		}
+	}
+
 	bool KtxReader::loadFile(const char* filename)
 	{
 		if (!filename)
@@ -199,7 +276,8 @@ namespace ImageUtility
 		
 		if (!open(filename)) 
 		{
-			LOGGER_ERROR("Unable to open .ktx file: %s.", filename);
+			fprintf(stderr, "Unable to open .ktx file: %s.", filename);
+			return false;
 		}
 
 		if (!parse()) 
@@ -208,6 +286,27 @@ namespace ImageUtility
 		}
 
 		return true;
+	}
+
+	bool saveFile(const char* filename, uint8_t* data, uint32_t mip_levels, uint32_t num_faces, uint32_t width, uint32_t height)
+	{
+		if (!filename) 
+		{
+			fprintf(stderr, "No filename specified.\n", filename);
+			return false;
+		}
+
+		std::vector<unit8_t> output = generate(data, mip_levels, num_faces, width, height);
+		if (!output)
+		{
+			fprintf(stderr, "Error whilst generating ktx file binary.\n", filename);
+			return false;
+		}
+
+		if (!save(filename, output))
+		{
+			return false;
+		}
 	}
 
 }

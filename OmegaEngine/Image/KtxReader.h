@@ -34,18 +34,18 @@ namespace ImageUtility
 
 		struct KtxHeaderV1
 		{
-			uint32_t endianness;
-			uint32_t glType;                    // openGl not supported
-			uint32_t glTypeSize;
-			uint32_t glFormat;
-			uint32_t glInternalFormat;
-			uint32_t glBaseInternalFormat;
-			uint32_t pixelWidth;
-			uint32_t pixelHeight;
-			uint32_t pixelDepth;
-			uint32_t numberOfArrayElements;
-			uint32_t numberOfFaces;
-			uint32_t numberOfMipmapLevels;
+			uint32_t endianness = 0;
+			uint32_t glType = 0;                    // openGl not supported
+			uint32_t glTypeSize = 0;
+			uint32_t glFormat = 0;
+			uint32_t glInternalFormat = 0;
+			uint32_t glBaseInternalFormat = 0;
+			uint32_t pixelWidth = 0;
+			uint32_t pixelHeight = 0;
+			uint32_t pixelDepth = 0;
+			uint32_t numberOfArrayElements = 0;
+			uint32_t numberOfFaces = 0;
+			uint32_t numberOfMipmapLevels = 0;
 		} header;
 
 		uint8_t fileIdentifier[12] = {
@@ -58,16 +58,26 @@ namespace ImageUtility
 		vk::Format convertGlToVkFormat(uint32_t internalFormat);
 
 		bool loadFile(const char* filename);
+		bool saveFile(const char* filename, uint8_t* data, uint32_t mip_levels, uint32_t num_faces, uint32_t width, uint32_t height);
 
 		std::unique_ptr<ImageOutput> get_image_data()
 		{
 			return std::move(image);
 		}
 
+		template <typename T>
+		void insert_binary(T data, std::vector<uint8_t>& buffer)
+		{
+			uint8_t* bin = reinterpret_cast<uint8_t*>(&data);
+			std::copy(bin, bin + sizeof(T), std::back_inserter(buffer)); 
+		}
+
 	private:
 
 		bool open(const char* filename);
+		bool save(const char* filename);
 		bool parse();
+		bool generate();
 
 		// holds the binary file
 		std::vector<uint8_t> fileBuffer;
