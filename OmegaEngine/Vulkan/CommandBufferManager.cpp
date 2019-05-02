@@ -160,10 +160,6 @@ namespace VulkanAPI
 		auto& begin_info = renderpass.get_begin_info(clear_colour, index);
 		cmd_buffer->begin_renderpass(begin_info, false);
 
-		// set the dynamic viewport and scissor dimensions
-		cmd_buffer->set_viewport();
-		cmd_buffer->set_scissor();
-
 		return cmd_buffer;
 	}
 

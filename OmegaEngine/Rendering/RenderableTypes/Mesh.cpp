@@ -25,7 +25,8 @@ namespace OmegaEngine
 									std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 									MeshManager::StaticMesh mesh, 
 									MeshManager::PrimitiveMesh primitive,
-									Object& obj) :
+									Object& obj, 
+									RenderInterface* render_interface) :
 		RenderableBase(RenderTypes::StaticMesh)
 	{
 		
@@ -42,6 +43,14 @@ namespace OmegaEngine
 
 		// skinned ior non-skinned mesh?
 		mesh_instance_data->type = mesh.type;
+
+		// pointer to the mesh pipeline
+		if (mesh.type == MeshManager::MeshType::Static) {
+			mesh_instance_data->state = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
+		}
+		else {
+			mesh_instance_data->state = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
+		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
 		mesh_instance_data->vertex_offset = mesh.vertex_buffer_offset;
@@ -179,8 +188,7 @@ namespace OmegaEngine
 
 
 	void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
-								void* instance,
-								RenderInterface* render_interface)
+								void* instance)
 	{
 		MeshInstance* instance_data = (MeshInstance*)instance;
 
@@ -189,24 +197,17 @@ namespace OmegaEngine
 			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
 		}
 
-		RenderInterface::ProgramState* mesh_pipeline;
-		if (instance_data->type == MeshManager::MeshType::Static) {
-			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
-		}
-		else {
-			mesh_pipeline = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
-		}
-
 		// merge the material set with the mesh ubo sets
-		std::vector<vk::DescriptorSet> material_set = instance_data->descr_set.get();
-		std::vector<vk::DescriptorSet> mesh_set = mesh_pipeline->descr_set.get();
+		RenderInterface::ProgramState* state = instance_data->state;
+		std::vector<vk::DescriptorSet> material_set = state->descr_set.get();
+		std::vector<vk::DescriptorSet> mesh_set = state->descr_set.get();
 		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
-		cmd_buffer.bind_pipeline(mesh_pipeline->pipeline);
-		cmd_buffer.bind_dynamic_descriptors(mesh_pipeline->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
-		cmd_buffer.bind_push_block(mesh_pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
+		cmd_buffer.bind_pipeline(state->pipeline);
+		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_push_block(state->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

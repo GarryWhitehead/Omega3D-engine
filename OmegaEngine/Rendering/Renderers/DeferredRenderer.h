@@ -38,7 +38,7 @@ namespace OmegaEngine
 		~DeferredRenderer();
 
 		// abstract override
-		void render(RenderInterface* rendeer_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) override;
+		void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) override;
 
 		void create_gbuffer_pass();
 		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);
@@ -48,12 +48,12 @@ namespace OmegaEngine
 
 		VulkanAPI::RenderPass& get_deferred_pass()
 		{
-			return renderpass;
+			return deferred_state.renderpass;
 		}
 
 		uint32_t get_attach_count() const
 		{
-			return renderpass.get_attach_count();
+			return deferred_render_info.renderpass.get_attach_count();
 		}
 
 	private:
@@ -67,16 +67,14 @@ namespace OmegaEngine
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		
 		// for the rendering pipeline
-		VulkanAPI::Texture image;
-		VulkanAPI::Shader shader;
-		VulkanAPI::PipelineLayout pl_layout;
-		VulkanAPI::Pipeline pipeline;
-		VulkanAPI::DescriptorLayout descr_layout;
-		VulkanAPI::DescriptorSet descr_set;
-		VulkanAPI::RenderPass renderpass;
+		ProgramState deferred_state;
+		ProgramState shadow_state;
 
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;
+
+		// queued visible renderables
+		std::unique_ptr<RenderQueue> render_queue;
 
 		// keep a local copy of the render config
 		RenderConfig render_config;

@@ -41,7 +41,7 @@ namespace OmegaEngine
 		}
 
 		// abstract functions
-		virtual void render(RenderInterface* render_interface, std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) = 0;
+		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) = 0;
 
 	protected:
 

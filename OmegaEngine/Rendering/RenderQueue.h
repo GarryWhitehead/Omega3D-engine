@@ -3,7 +3,6 @@
 #include "Vulkan/Common.h"
 #include "Vulkan/CommandBuffer.h"
 
-
 #include <unordered_map>
 #include <vector>
 
@@ -12,7 +11,6 @@ namespace OmegaEngine
 	// forward declerations
 	class ThreadPool;
 	struct ProgramState;
-	class RenderInterface;
     class ComponentInterface;
 	enum class RenderTypes;
 
@@ -59,7 +57,7 @@ namespace OmegaEngine
     struct RenderQueueInfo
     {
         // render callback function
-        void (*render_function)(void*, VulkanAPI::SecondaryCommandBuffer&, void* renderable_data, RenderInterface*);
+        void (*render_function)(void*, VulkanAPI::SecondaryCommandBuffer&, void* renderable_data);
 		void *renderable_handle;
 
         // data specific to the renderable - mainly drawing information 
@@ -90,12 +88,11 @@ namespace OmegaEngine
         void sort_all();
 
 		void submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
-					RenderInterface* render_interface,
 					QueueType type,
 					uint32_t start, uint32_t end,
 					uint32_t thread_group_size);
 
-		void threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, RenderInterface* render_interface);
+		void threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer);
 
      private:
 

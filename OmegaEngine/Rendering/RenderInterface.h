@@ -28,8 +28,8 @@ namespace OmegaEngine
 	class RenderQueue;
 	class ObjectManager;
 
-	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface)>
-	FuncReturn get_member_render_function(void *object, VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data, RenderInterface* render_interface)
+	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)>
+	FuncReturn get_member_render_function(void *object, VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)
 	{
 		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
 	}
@@ -40,23 +40,23 @@ namespace OmegaEngine
 		Dynamic
 	};
 
+	struct ProgramState
+	{
+		VulkanAPI::Shader shader;
+		VulkanAPI::PipelineLayout pl_layout;
+		VulkanAPI::Pipeline pipeline;
+		VulkanAPI::DescriptorLayout descr_layout;
+		VulkanAPI::DescriptorSet descr_set;
+
+		// information extracted from shader reflection
+		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
+		VulkanAPI::ImageLayoutBuffer image_layout;
+	};
+
 	class RenderInterface
 	{
 
 	public:
-
-		struct ProgramState
-		{
-			VulkanAPI::Shader shader;
-			VulkanAPI::PipelineLayout pl_layout;
-			VulkanAPI::Pipeline pipeline;
-			VulkanAPI::DescriptorLayout descr_layout;
-			VulkanAPI::DescriptorSet descr_set;
-
-			// information extracted from shader reflection
-			std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-			VulkanAPI::ImageLayoutBuffer image_layout;
-		};
 
 		// expand the renderables to include other associated components
 		struct RenderableInfo
@@ -109,7 +109,6 @@ namespace OmegaEngine
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
 		void render(double interpolation);
-		void render_components(RenderConfig& render_config, VulkanAPI::RenderPass& renderpass);
 
 	private:
 
@@ -118,15 +117,11 @@ namespace OmegaEngine
 		// states whether the scene is static, i.e. no additional will be drawn, or dynamic
 		SceneType scene_type;
 
-		// handle to the cmd buffer 
-		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
-
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 		std::unique_ptr<RendererBase> renderer;
 
 		std::unique_ptr<VulkanAPI::Interface> vk_interface;
 		std::unique_ptr<PostProcessInterface> postprocess_interface;
-		std::unique_ptr<RenderQueue> render_queue;
 
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;

@@ -21,6 +21,9 @@ namespace OmegaEngine
 
 		struct SkyboxInstance
 		{
+			// pipeline
+			RenderInterface::ProgramState* state;
+			
 			// vertex and index buffer memory info for the cube
 			VulkanAPI::Buffer vertex_buffer;
 			VulkanAPI::Buffer index_buffer;
@@ -30,7 +33,7 @@ namespace OmegaEngine
 			float blur_factor = 0.0f;
 		};
 
-		RenderableSkybox();
+		RenderableSkybox(RenderInterface* render_interface);
 		~RenderableSkybox();
 		
 		static void create_skybox_pipeline(vk::Device& device,
@@ -46,8 +49,7 @@ namespace OmegaEngine
 		}
 
 		void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
-					void* instance_data,
-					RenderInterface* render_interface) override;
+					void* instance_data) override;
 					
 	private:
 

@@ -15,7 +15,6 @@ namespace OmegaEngine
     }
 
     void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
-							 RenderInterface* render_interface, 
                              QueueType type, 
                              uint32_t start, uint32_t end, 
 							 uint32_t thread_group_size)
@@ -27,13 +26,13 @@ namespace OmegaEngine
         for (uint32_t i = start; i < end; i++) {
             
             RenderQueueInfo& queue_info = render_queues[type][i];
-            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data, render_interface);
+            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data);
         }
 
 		cmd_buffer.end();
     }
 
-    void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, RenderInterface* render_interface)
+    void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer)
     {
 		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
@@ -58,13 +57,13 @@ namespace OmegaEngine
                 if (i + 1 >= num_threads) {
             
                     thread_pool.submitTask([=]() {
-				        submit(sec_cmd_buffer, render_interface, queue.first, i, queue.second.size(), thread_group_size);
+				        submit(sec_cmd_buffer, queue.first, i, queue.second.size(), thread_group_size);
 			            });
                     break;
                 }
 
                 thread_pool.submitTask([=]() {
-				    submit(sec_cmd_buffer, render_interface, queue.first, i, i + thread_group_size, thread_group_size);
+				    submit(sec_cmd_buffer, queue.first, i, i + thread_group_size, thread_group_size);
 			        });
 
                 ++thread_count;
@@ -97,7 +96,7 @@ namespace OmegaEngine
      {
          SortKey key;
 
-         key.u.s.layer_id = (uint64_t)layer;	// layer is the highest priority to group
+         key.u.s.layer_id = (uint64_t)layer;			// layer is the highest priority to group
          key.u.s.texture_id = material_id;				// then materials
          key.u.s.shader_id = (uint64_t)shader_id;		// then shader
          key.u.s.depth_id = 0;							// TODO - this is camera-view . mesh_centre - camera-pos

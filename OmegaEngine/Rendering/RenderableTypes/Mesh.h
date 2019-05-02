@@ -37,6 +37,9 @@ namespace OmegaEngine
 		{
 			MeshManager::MeshType type;
 			
+			// pipeline
+			RenderInterface::ProgramState* state = nullptr;
+
 			// per primitive index data
 			uint32_t index_primitive_offset;	// this equates to buffer_offset + sub-offset
 			uint32_t index_primitive_count;
@@ -103,11 +106,11 @@ namespace OmegaEngine
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive,
-										Object& obj); 
+										Object& obj,
+										RenderInterface* render_interface);
 
 		void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
-					void* instance_data,
-					RenderInterface* render_interface) override;
+					void* instance_data) override;
 
 		static void create_mesh_pipeline(vk::Device& device,
 										std::unique_ptr<RendererBase>& renderer, 

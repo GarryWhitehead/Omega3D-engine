@@ -9,12 +9,14 @@
 namespace OmegaEngine
 {
 
-	RenderableSkybox::RenderableSkybox() :
+	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
 		instance_data = new SkyboxInstance;
 		SkyboxInstance* skybox_instance = reinterpret_cast<SkyboxInstance*>(instance_data);
+		
+		skybox_instance->state = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
 	}
 
 
@@ -79,17 +81,17 @@ namespace OmegaEngine
 	}
 
 	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
-								void* instance,
-								RenderInterface* render_interface)
+								void* instance)
 	{
 		SkyboxInstance* instance_data = (SkyboxInstance*)instance;
-		RenderInterface::ProgramState* pipeline = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
+
+		RenderInterface::ProgramState* state = instance_data->state;
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
-		cmd_buffer.bind_pipeline(pipeline->pipeline);
-		cmd_buffer.bind_descriptors(pipeline->pl_layout, pipeline->descr_set, VulkanAPI::PipelineType::Graphics);
-		cmd_buffer.bind_push_block(pipeline->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
+		cmd_buffer.bind_pipeline(state->pipeline);
+		cmd_buffer.bind_descriptors(state->pl_layout, state->descr_set, VulkanAPI::PipelineType::Graphics);
+		cmd_buffer.bind_push_block(state->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

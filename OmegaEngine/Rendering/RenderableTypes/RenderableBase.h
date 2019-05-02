@@ -44,8 +44,7 @@ namespace OmegaEngine
 
 		// abstract render call
 		virtual void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer,
-			void* renderable_data,
-			RenderInterface* render_interface)
+			void* renderable_data)
 		{
 		}
 
