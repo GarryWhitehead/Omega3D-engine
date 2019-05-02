@@ -115,7 +115,7 @@ namespace OmegaEngine
 		{
 			// need to use a default texture here!
 		}
-		textures[current_set].push_back(mappedTex);	
+		textures[current_set].emplace_back(std::move(mappedTex));	
 	}
 
 	uint32_t TextureManager::get_texture_index(uint32_t set, const char* name)

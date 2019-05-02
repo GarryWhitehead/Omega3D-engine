@@ -96,24 +96,23 @@ namespace OmegaEngine
 		}
 
 		// environment - load skybox and IBL files into memory if they exsist
-		asset_manager->load_image_file(parser.get_environment().skybox_filename);
-		asset_manager->load_image_file(parser.get_environment().brdf_filename);
-		asset_manager->load_image_file(parser.get_environment().irradiance_map_filename);
+		if (parser.get_environment().skybox_filename)
+		{
+			asset_manager->load_image_file(parser.get_environment().skybox_filename);
+		}
+		if (parser.get_environment().brdf_filename)
+		{
+			asset_manager->load_image_file(parser.get_environment().brdf_filename);
+		}
+		if (parser.get_environment().irradiance_map_filename)
+		{
+			asset_manager->load_image_file(parser.get_environment().irradiance_map_filename);
+		}
 
 		// load and distribute the gltf data between the appropiate systems.
-#ifdef OMEGA_ENGINE_THREADED
-		ThreadPool threads(SCENE_LOAD_THREAD_COUNT);
-
-		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
-			threads.submitTask([&parser, this, i]() { 
-				this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i)); 
-			});
-		}
-#else
 		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
 			this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
 		}
-#endif
 
 		return true;
 	}

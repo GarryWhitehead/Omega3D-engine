@@ -18,6 +18,52 @@ namespace OmegaEngine
 		}
 	}
 
+	MappedTexture::MappedTexture(MappedTexture&& other) :
+		bin(nullptr)
+	{
+		width = other.width;
+		height = other.height;
+		mip_levels = other.mip_levels;
+		faces = other.faces;
+		array_count = other.array_count;
+		total_size = other.total_size;
+		tex_format = other.tex_format;
+		bin = other.bin;
+
+		other.width = 0;
+		other.height = 0;
+		other.mip_levels = 0;
+		other.faces = 0;
+		other.array_count = 0;
+		other.total_size = 0;
+		other.bin = nullptr;
+	}
+
+	MappedTexture& MappedTexture::operator=(MappedTexture&& other)
+	{
+		if (this != &other)
+		{
+			delete[] bin;
+			bin = other.bin;
+			width = other.width;
+			height = other.height;
+			mip_levels = other.mip_levels;
+			faces = other.faces;
+			array_count = other.array_count;
+			total_size = other.total_size;
+			tex_format = other.tex_format;
+
+			other.width = 0;
+			other.height = 0;
+			other.mip_levels = 0;
+			other.faces = 0;
+			other.array_count = 0;
+			other.total_size = 0;
+			other.bin = nullptr;
+		}
+		return *this;
+	}
+
 	bool MappedTexture::map_texture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faces, uint32_t arrays, uint32_t mips, uint32_t size)
 	{
 		width = w;
@@ -26,6 +72,7 @@ namespace OmegaEngine
 		faces = _faces;
 		array_count = arrays;
 		total_size = size;
+		tex_format = vk::Format::eR8G8B8A8Unorm;	// an assumption made here - should make this more flexible!
 
 		bin = new uint8_t[total_size];
 		if (!bin)
@@ -49,6 +96,7 @@ namespace OmegaEngine
 		width = w;
 		height = h;
 		mip_levels = 1;
+		tex_format = vk::Format::eR8G8B8A8Unorm;
 
 		// if using jpg, png, etc. and mip-maps are required, then calculate the max number based on image size
 		if (createMipMaps) 

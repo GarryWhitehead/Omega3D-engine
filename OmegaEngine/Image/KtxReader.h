@@ -25,6 +25,42 @@ namespace ImageUtility
 				if (data)
 				{
 					delete[] data;
+					data = nullptr;
+				}
+			}
+
+			ImageOutput(const ImageOutput& other)
+			{
+				width = other.width;
+				height = other.height;
+				byte_alignment = other.byte_alignment;
+				total_size = other.total_size;
+				mip_levels = other.mip_levels;
+				array_count = other.array_count;
+				faces = other.faces;
+
+				data = new uint8_t[total_size];
+				memcpy(data, other.data, total_size);
+			}
+
+			ImageOutput& operator=(const ImageOutput& other)
+			{
+				if (this != &other)
+				{
+					if (total_size != other.total_size)
+					{
+						delete[] data;
+						data = new uint8_t[total_size];
+					}
+					memcpy(data, other.data, total_size);
+
+					width = other.width;
+					height = other.height;
+					byte_alignment = other.byte_alignment;
+					total_size = other.total_size;
+					mip_levels = other.mip_levels;
+					array_count = other.array_count;
+					faces = other.faces;
 				}
 			}
 			

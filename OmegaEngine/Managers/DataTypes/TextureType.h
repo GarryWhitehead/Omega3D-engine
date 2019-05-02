@@ -13,6 +13,11 @@ namespace OmegaEngine
 		MappedTexture();
 		~MappedTexture();
 
+		MappedTexture(const MappedTexture&) = delete;
+		MappedTexture& operator=(const MappedTexture&) = delete;
+		MappedTexture(MappedTexture&& other);
+		MappedTexture& operator=(MappedTexture&& other);
+
 		bool map_texture(uint8_t* data, uint32_t w, uint32_t h, uint32_t face_count, uint32_t arrays, uint32_t mips, uint32_t size);
 		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps = false);
 		bool create_empty_texture(uint32_t w, uint32_t h, bool setToBlack);
