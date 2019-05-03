@@ -15,6 +15,17 @@ namespace OmegaEngine
 	class Object;
 	class ObjectManager;
 
+	enum class ManagerType
+	{
+		None,
+		Mesh,
+		Material,
+		Texture,
+		Camera,
+		Light,
+		Transform
+	};
+
 	class ComponentInterface
 	{
 

@@ -1,12 +1,13 @@
 #pragma once
 
 #include "Utility/GeneralUtil.h"
-
+#include "Objects/ObjectTypes.h"
 #include <stdint.h>
 #include <unordered_map>
 
 namespace OmegaEngine
 {
+	struct ComponentBase;
 
 	class Object
 	{
@@ -31,25 +32,35 @@ namespace OmegaEngine
 		uint64_t get_parent() const;
 
 		template <typename T>
-		uint32_t get_manager_index()
+		T& get_component()
 		{
-			uint32_t man_id = Util::TypeId<T>::id();
-			assert(components.find(man_id) != components.end());
-			return components[man_id];
+			uint32_t id = Util::TypeId<T>::id();
+			assert(components.find(id) != components.end());
+			
+			T* derived = dynamic_cast<T*>(components[id].get());
+			assert(derived != nullptr);
+			return *derived;
+		}
+
+		template <typename T, typename... Args>
+		void add_component(Args&&... args)
+		{
+			uint32_t id = Util::TypeId<T>::id();
+			components[id] = new T(std::forward<Args>(args)...);
 		}
 
 		template <typename T>
-		void add_manager(uint32_t index)
+		void add_component()
 		{
-			uint32_t man_id = Util::TypeId<T>::id();
-			components[man_id] = index;
+			uint32_t id = Util::TypeId<T>::id();
+			components[id] = new T;
 		}
 
 		template <typename T>
 		bool hasComponent()
 		{
-			uint32_t man_id = Util::TypeId<T>::id();
-			if (components.find(man_id) == components.end()) {
+			uint32_t id = Util::TypeId<T>::id();
+			if (components.find(id) == components.end()) {
 				return false;
 			}
 			return true;
@@ -63,7 +74,7 @@ namespace OmegaEngine
 		uint64_t parent_id = UINT64_MAX;
 		std::vector<Object> children;
 
-		std::unordered_map<ManagerId, ManagerIndex> components;
+		std::unordered_map<uint32_t, std::unique_ptr<ComponentBase> > components;
 
 	};
 

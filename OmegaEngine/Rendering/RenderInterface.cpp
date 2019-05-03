@@ -226,6 +226,8 @@ namespace OmegaEngine
 		// update buffers before doing the rendering
 		vk_interface->get_buffer_manager()->update();
 
+		prepare_object_queue();
+		
 		renderer->render(vk_interface, scene_type);
 	}
 

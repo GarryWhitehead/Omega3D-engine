@@ -70,7 +70,7 @@ namespace OmegaEngine
 		transformBuffer[obj->get_id()] = transform;
 
 		// add to the list of entites
-		obj->add_manager<TransformManager>(static_cast<uint32_t>(transformBuffer.size() - 1));
+		obj->add_compoennt<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
@@ -85,6 +85,7 @@ namespace OmegaEngine
 			{
 				assert(skin.skeleton < linearised_objects.size());
 				skinInfo.skeletonIndex = linearised_objects[skin.skeleton];
+				skinInfo.skeletonIndex.add_component<SkinnedComponent>(skinBuffer.size() - 1);
 			}
 
 			// Does this skin have joint nodes?
@@ -129,7 +130,7 @@ namespace OmegaEngine
 
 	void TransformManager::update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t transform_alignment, uint32_t skinned_alignment)
 	{
-		if (obj.hasComponent<MeshManager>()) 
+		if (obj.hasComponent<MeshComponent>() && obj.hasComponent<SkinnedComponent>()) 
 		{
 			uint32_t id = obj.get_id();
 
@@ -143,33 +144,45 @@ namespace OmegaEngine
 			
 			++transform_buffer_size;
 
-			if (transformBuffer[id].get_skin_index() > -1) 
-			{
-				transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
+			// skinned transform
+			transformBuffer[id].set_skinned_offset(skinned_buffer_size * skinned_alignment);
 
-				uint32_t skin_index = transformBuffer[id].get_skin_index();
+			uint32_t skin_index = transformBuffer[id].get_skin_index();
 
-				// prepare fianl output matrices buffer
-				uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
-				skinBuffer[skin_index].joint_matrices.resize(joint_size);
+			// prepare fianl output matrices buffer
+			uint64_t joint_size = static_cast<uint32_t>(skinBuffer[skin_index].joints.size()) > 256 ? 256 : skinBuffer[skin_index].joints.size();
+			skinBuffer[skin_index].joint_matrices.resize(joint_size);
 
-				skinned_buff->joint_count = joint_size;
+			skinned_buff->joint_count = joint_size;
 
-				// transform to local space
-				OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
+			// transform to local space
+			OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
 
-				for (uint32_t i = 0; i < joint_size; ++i) 
-				{	
-					Object joint_obj = skinBuffer[skin_index].joints[i];
-					OEMaths::mat4f joint_mat = create_matrix(joint_obj, obj_manager) * skinBuffer[skin_index].invBindMatrices[i];
+			for (uint32_t i = 0; i < joint_size; ++i) 
+			{	
+				Object joint_obj = skinBuffer[skin_index].joints[i];
+				OEMaths::mat4f joint_mat = create_matrix(joint_obj, obj_manager) * skinBuffer[skin_index].invBindMatrices[i];
 
-					// transform joint to local (joint) space
-					OEMaths::mat4f local_mat = inv_mat * joint_mat;
-					skinBuffer[skin_index].joint_matrices[i] = local_mat;
-					skinned_buff->joint_matrices[i] = local_mat;
-				}
-				++skinned_buffer_size;
+				// transform joint to local (joint) space
+				OEMaths::mat4f local_mat = inv_mat * joint_mat;
+				skinBuffer[skin_index].joint_matrices[i] = local_mat;
+				skinned_buff->joint_matrices[i] = local_mat;
 			}
+			++skinned_buffer_size;
+	
+		}
+		else if (obj.hasComponent<MeshComponent>())
+		{
+			uint32_t id = obj.get_id();
+
+			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
+			
+			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
+
+			OEMaths::mat4f mat = create_matrix(obj, obj_manager);
+			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+			
+			++transform_buffer_size;
 		}
 
 		// now update all child nodes too - TODO: do this without recursion

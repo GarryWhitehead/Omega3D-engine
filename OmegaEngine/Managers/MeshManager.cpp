@@ -214,7 +214,7 @@ namespace OmegaEngine
 		meshBuffer.push_back(staticMesh);
 				
 		// add mesh component to current object
-		obj->add_manager<MeshManager>(static_cast<uint32_t>(meshBuffer.size() - 1));
+		obj->add_component<MeshComponent>(static_cast<uint32_t>(meshBuffer.size() - 1));
 	}
 
 	void MeshManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)

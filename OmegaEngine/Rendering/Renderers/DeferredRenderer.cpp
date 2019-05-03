@@ -207,7 +207,7 @@ namespace OmegaEngine
 			// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
 
-			// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
+			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (render_config.use_skybox) {
 
 				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(skybox_cmd_buffer_handle, QueueType::Forward));
