@@ -108,11 +108,15 @@ namespace OmegaEngine
 		// shader init for each renderable type
 		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
 
+		// adds all renderables to render queue - TODO: add visisbility check
+		void prepare_object_queue();
+
+		// renders the frame using the defined renderer
 		void render(double interpolation);
 
 	private:
 
-		RenderConfig render_config;
+		static RenderConfig render_config;
 	
 		// states whether the scene is static, i.e. no additional will be drawn, or dynamic
 		SceneType scene_type;

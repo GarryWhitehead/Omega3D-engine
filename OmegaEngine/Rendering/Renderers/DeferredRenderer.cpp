@@ -1,7 +1,7 @@
 #include "DeferredRenderer.h"
 #include "Utility/logger.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/ObjectRenderer.h"
+#include "Rendering/RenderCommon.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
@@ -202,15 +202,15 @@ namespace OmegaEngine
 		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) {
 
 			// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::render_objects(render_queue, render_config, first_renderpass, renderables, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle));
+			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle, QueueType::Opaque));
 
 			// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
 
 			// post-processing is done in a separate forward pass using the offscreen buffer filled by the deferred pass
-			if (render_config.general.use_post_process) {
+			if (render_config.use_skybox) {
 
-				pp_interface->render();
+				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(skybox_cmd_buffer_handle, QueueType::Forward));
 			}
 		}
 

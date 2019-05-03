@@ -193,6 +193,34 @@ namespace OmegaEngine
 		}
 	}
 
+	void RenderInterface::prepare_object_queue()
+	{
+		RenderQueueInfo queue_info;
+
+		for (auto& info : renderables) {
+
+			switch (info.renderable->get_type()) {
+			case RenderTypes::SkinnedMesh:
+			case RenderTypes::StaticMesh: {
+				queue_info.renderable_handle = info.renderable->get_handle();
+				queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
+				break;
+			}
+			case RenderTypes::Skybox: {
+				queue_info.renderable_handle = info.renderable->get_handle();
+				queue_info.render_function = get_member_render_function<void, RenderableSkybox, &RenderableSkybox::render>;
+				break;
+			}
+			}
+
+			queue_info.renderable_data = info.renderable->get_instance_data();
+			queue_info.sorting_key = info.renderable->get_sort_key();
+			queue_info.queue_type = info.renderable->get_queue_type();
+
+			render_queue.add_to_queue(queue_info);
+		}
+	}
+
 	void RenderInterface::render(double interpolation)
 	{
 		// update buffers before doing the rendering
