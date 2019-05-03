@@ -48,7 +48,7 @@ namespace OmegaEngine
 
 		VulkanAPI::RenderPass& get_deferred_pass()
 		{
-			return deferred_state.renderpass;
+			return state.renderpass;
 		}
 
 		uint32_t get_attach_count() const
@@ -66,9 +66,8 @@ namespace OmegaEngine
 		// for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		
-		// for the rendering pipeline
-		ProgramState deferred_state;
-		ProgramState shadow_state;
+		// for the deferred rendering pipeline
+		ProgramState state;
 
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;

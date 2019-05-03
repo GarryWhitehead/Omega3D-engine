@@ -83,67 +83,67 @@ namespace OmegaEngine
 			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
 			
 			// now create the renderpasses and frame buffers
-			deferred_state.renderpass.init(device);
-			deferred_state.renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
-			deferred_state.renderpass.prepareRenderPass();
+			state.renderpass.init(device);
+			state.renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
+			state.renderpass.prepareRenderPass();
 
 			image.create_empty_image(device, gpu, deferred_format, 
 				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 
 				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-			deferred_state.renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+			state.renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 		}
 		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
-		if (!deferred_state.shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
+		if (!state.shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
 			LOGGER_ERROR("Unable to load deferred renderer shaders.");
 			throw std::runtime_error("Error whilst trying to open deferred shader file.");
 		}
 
 		// create the descriptors and pipeline layout through shader reflection
-		deferred_state.shader.descriptor_buffer_reflect (deferred_state.descr_layout, deferred_state.buffer_layout);
-		deferred_state.shader.descriptor_image_reflect(deferred_state.descr_layout, deferred_state.image_layout);
-		deferred_state.shader.pipeline_layout_reflect(deferred_state.pl_layout);
-		deferred_state.shader.pipeline_reflection(deferred_state.pipeline);
+		state.shader.descriptor_buffer_reflect (state.descr_layout, state.buffer_layout);
+		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
+		state.shader.pipeline_layout_reflect(state.pl_layout);
+		state.shader.pipeline_reflection(state.pipeline);
 
-		deferred_state.descr_layout.create(device);
-		deferred_state.descr_set.init(device, deferred_state.descr_layout);
+		state.descr_layout.create(device);
+		state.descr_set.init(device, state.descr_layout);
 
 		// not completely automated! We still need to manually adjust the set numbers for each type
 		const uint8_t DeferredSet = 1;
 		const uint8_t EnvironmentSet = 2;
 
-		for (uint8_t i = 0; i < deferred_state.image_layout[DeferredSet].size(); ++i) {
-			deferred_state.descr_set.write_set(deferred_state.image_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
+		for (uint8_t i = 0; i < state.image_layout[DeferredSet].size(); ++i) {
+			state.descr_set.write_set(state.image_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
 		}
 		
-		for (auto& layout : deferred_state.buffer_layout) {
+		for (auto& layout : state.buffer_layout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				buffer_manager->enqueueDescrUpdate("Camera", &deferred_state.descr_set, layout.set, layout.binding, layout.type);
+				buffer_manager->enqueueDescrUpdate("Camera", &state.descr_set, layout.set, layout.binding, layout.type);
 			}
 			if (layout.name == "LightUbo") {
-				buffer_manager->enqueueDescrUpdate("Light", &deferred_state.descr_set, layout.set, layout.binding, layout.type);
+				buffer_manager->enqueueDescrUpdate("Light", &state.descr_set, layout.set, layout.binding, layout.type);
 			}
 		}
 
 		// and finally create the pipeline
 		// first finish of the pipeline layout....
-		deferred_state.pl_layout.create(device, deferred_state.descr_layout.get_layout());
+		state.pl_layout.create(device, state.descr_layout.get_layout());
 
-		deferred_state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		deferred_state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		deferred_state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		deferred_state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
+		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
+		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
+		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
 		
 		if (render_config.general.use_post_process) {
-			deferred_state.pipeline.add_colour_attachment(VK_FALSE, deferred_state.renderpass);
-			deferred_state.pipeline.create(device, deferred_state.renderpass, deferred_state.shader, deferred_state.pl_layout, VulkanAPI::PipelineType::Graphics);
+			state.pipeline.add_colour_attachment(VK_FALSE, state.renderpass);
+			state.pipeline.create(device, state.renderpass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 		else {
 			// render to the swapchain presentation 
-			deferred_state.pipeline.add_colour_attachment(VK_FALSE, swapchain.get_renderpass());
-			deferred_state.pipeline.create(device, swapchain.get_renderpass(), deferred_state.shader, deferred_state.pl_layout, VulkanAPI::PipelineType::Graphics);
+			state.pipeline.add_colour_attachment(VK_FALSE, swapchain.get_renderpass());
+			state.pipeline.create(device, swapchain.get_renderpass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 	}
 
@@ -157,9 +157,9 @@ namespace OmegaEngine
 			cmd_buffer->set_scissor();
 
 			// bind everything required to draw
-			cmd_buffer->bind_pipeline(deferred_state.pipeline);
-			cmd_buffer->bind_descriptors(deferred_state.pl_layout, deferred_state.descr_set, VulkanAPI::PipelineType::Graphics);
-			cmd_buffer->bind_push_block(deferred_state.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+			cmd_buffer->bind_pipeline(state.pipeline);
+			cmd_buffer->bind_descriptors(state.pl_layout, state.descr_set, VulkanAPI::PipelineType::Graphics);
+			cmd_buffer->bind_push_block(state.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
 
 			// render full screen quad to screen
 			cmd_buffer->draw_quad();
@@ -179,7 +179,7 @@ namespace OmegaEngine
 			cmd_buffer->create_primary();
 
 			// begin the renderpass 
-			vk::RenderPassBeginInfo begin_info = deferred_state.renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+			vk::RenderPassBeginInfo begin_info = state.renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 			cmd_buffer->begin_renderpass(begin_info);
 			render(cmd_buffer);
 		}
@@ -203,9 +203,6 @@ namespace OmegaEngine
 
 			// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
 			Rendering::render_objects(render_queue, render_config, first_renderpass, renderables, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle));
-
-			// then render objects into the shadow buffer
-			//Rendering::render_objects(render_queue, render_config, ren);
 
 			// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
 			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
