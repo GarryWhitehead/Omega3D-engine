@@ -50,7 +50,8 @@ namespace OmegaEngine
     enum class QueueType
     {
         Opaque,
-        Transparent
+        Transparent,
+		Forward
     };
     
     // all the information required to render 
@@ -92,6 +93,7 @@ namespace OmegaEngine
 					uint32_t start, uint32_t end,
 					uint32_t thread_group_size);
 
+		void dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type);
 		void threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer);
 
      private:

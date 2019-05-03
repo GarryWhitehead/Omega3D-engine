@@ -32,7 +32,20 @@ namespace OmegaEngine
 		cmd_buffer.end();
     }
 
-    void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer)
+    void RenderQueue::dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type)
+    {
+		// render by queue type 
+        auto& queue = render_queues[type];          
+
+        for (uint32_t i = 0; i < queue.second.size(); ++i) {
+
+            RenderQueueInfo& queue_info = queue[i];
+            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data);
+        } 
+
+	}
+
+    void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type)
     {
 		uint32_t num_threads = std::thread::hardware_concurrency();
 		ThreadPool thread_pool(num_threads);
@@ -40,35 +53,34 @@ namespace OmegaEngine
 		// create the cmd pools and secondary buffers for each stage
 		cmd_buffer->create_secondary(num_threads);
 
+		// render by queue type 
+        auto& queue = render_queues[type];          
+
         uint32_t thread_count = 0;
 
-		// render by queue type - opaque, lighting and then transparent meshes
-        for (auto queue : render_queues) {            
+        // TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
+        uint32_t thread_group_size = queue.second.size() / num_threads;
+        thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
-			// TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
-			uint32_t thread_group_size = queue.second.size() / num_threads;
-			thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
+        for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
 
-            for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
+            VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer->get_secondary(thread);
 
-                VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer->get_secondary(thread);
-
-                // if we have no more threads left, then draw every thing that is remaining
-                if (i + 1 >= num_threads) {
-            
-                    thread_pool.submitTask([=]() {
-				        submit(sec_cmd_buffer, queue.first, i, queue.second.size(), thread_group_size);
-			            });
-                    break;
-                }
-
+            // if we have no more threads left, then draw every thing that is remaining
+            if (i + 1 >= num_threads) {
+        
                 thread_pool.submitTask([=]() {
-				    submit(sec_cmd_buffer, queue.first, i, i + thread_group_size, thread_group_size);
-			        });
+                    submit(sec_cmd_buffer, queue.first, i, queue.second.size(), thread_group_size);
+                    });
+                break;
+            }
 
-                ++thread_count;
-		    } 
-        }
+            thread_pool.submitTask([=]() {
+                submit(sec_cmd_buffer, queue.first, i, i + thread_group_size, thread_group_size);
+                });
+
+            ++thread_count;
+        } 
 
 		// check that all threads are finshed before executing the cmd buffers
 		thread_pool.wait_for_all();
@@ -76,8 +88,6 @@ namespace OmegaEngine
 		// execute the recorded secondary command buffers - only for those threads we have actually used
 		cmd_buffer->execute_secondary_commands(thread_count);
 
-        // TODO:: maybe optional? if the renderable data is hasn't changed then we can reuse the queue
-		render_queues.clear();
 	}
 
     void RenderQueue::sort_all()
@@ -90,7 +100,6 @@ namespace OmegaEngine
             });
         }
     }
-
 
      SortKey RenderQueue::create_sort_key(RenderStage layer, uint32_t material_id, RenderTypes shader_id)
      {
