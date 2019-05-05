@@ -38,7 +38,7 @@ namespace OmegaEngine
 			MeshManager::MeshType type;
 			
 			// pipeline
-			RenderInterface::ProgramState* state = nullptr;
+			ProgramState* state = nullptr;
 
 			// per primitive index data
 			uint32_t index_primitive_offset;	// this equates to buffer_offset + sub-offset
@@ -117,7 +117,7 @@ namespace OmegaEngine
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::MeshType type,
-										std::unique_ptr<RenderInterface::ProgramState>& state);
+										std::unique_ptr<ProgramState>& state);
 
 	private:
 

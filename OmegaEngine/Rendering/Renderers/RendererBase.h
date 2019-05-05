@@ -18,7 +18,6 @@ namespace OmegaEngine
 	enum class RendererType
 	{
 		Deferred,
-		Forward,
 		Count
 	};
 
@@ -40,13 +39,22 @@ namespace OmegaEngine
 			return first_renderpass;
 		}
 
+		VulkanAPI::RenderPass& get_shadow_pass()
+		{
+			return shadow_renderpass;
+		}
+
 		// abstract functions
-		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) = 0;
+		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue) = 0;
 
 	protected:
 
-		// main renderable types renderpass - the first pass in all renderers
+		// renderpasses which are common to all renderers
+		// deferred renderer - first pass = gbuffer
 		VulkanAPI::RenderPass first_renderpass;
+
+		// all renderers have shadow functionality
+		VulkanAPI::RenderPass shadow_renderpass;
 
 		RendererType type;
 	};

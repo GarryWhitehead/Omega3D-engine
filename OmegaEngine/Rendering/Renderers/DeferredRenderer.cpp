@@ -18,7 +18,11 @@
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device& dev, vk::PhysicalDevice& physical, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, RenderConfig _render_config) :
+	DeferredRenderer::DeferredRenderer(vk::Device& dev, 
+										vk::PhysicalDevice& physical, 
+										std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, 
+										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
+										VulkanAPI::Swapchain& swapchain, RenderConfig& _render_config) :
 		device(dev),
 		gpu(physical),
 		render_config(_render_config),
@@ -28,8 +32,13 @@ namespace OmegaEngine
 			cmd_buffer_handle = cmd_buffer_manager->create_instance();
 		}
 
-		// all renderable elements will be dispatched for drawing via this queue
-		render_queue = std::make_unique<RenderQueue>();
+		// set up the deferred passes and shadow stuff
+		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
+		create_gbuffer_pass();
+		// 2. render the objects again but this time into a depth buffer for shadows
+		create_shadow_pass();
+		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
+		create_deferred_pass(buffer_manager, swapchain);
 	}
 
 
@@ -74,6 +83,20 @@ namespace OmegaEngine
 			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
 	}
 
+	void DeferredRenderer::create_shadow_pass()
+	{
+		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+		
+		// renderpass
+		shadow_renderpass.init(device);
+		shadow_renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);	
+		shadow_renderpass.prepareRenderPass();
+
+		// framebuffer
+		shadow_image.create_empty_image(device, gpu, depth_format, render_config.shadow_width, render_config.shadow_height,
+			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+		shadow_renderpass.prepareFramebuffer(shadow_image.get_image_view(), render_config.shadow_width, render_config.shadow_height, 1);
+	}
 
 	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
@@ -83,14 +106,14 @@ namespace OmegaEngine
 			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
 			
 			// now create the renderpasses and frame buffers
-			state.renderpass.init(device);
-			state.renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
-			state.renderpass.prepareRenderPass();
+			deferred_pass.init(device);
+			deferred_pass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
+			deferred_pass.prepareRenderPass();
 
-			image.create_empty_image(device, gpu, deferred_format, 
+			deferred_offscreen_image.create_empty_image(device, gpu, deferred_format, 
 				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 
 				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-			state.renderpass.prepareFramebuffer(image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+			deferred_pass.prepareFramebuffer(deferred_offscreen_image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 		}
 		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
@@ -137,8 +160,8 @@ namespace OmegaEngine
 		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
 		
 		if (render_config.general.use_post_process) {
-			state.pipeline.add_colour_attachment(VK_FALSE, state.renderpass);
-			state.pipeline.create(device, state.renderpass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+			state.pipeline.add_colour_attachment(VK_FALSE, deferred_pass);
+			state.pipeline.create(device, deferred_pass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 		else {
 			// render to the swapchain presentation 
@@ -179,7 +202,7 @@ namespace OmegaEngine
 			cmd_buffer->create_primary();
 
 			// begin the renderpass 
-			vk::RenderPassBeginInfo begin_info = state.renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+			vk::RenderPassBeginInfo begin_info = deferred_pass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 			cmd_buffer->begin_renderpass(begin_info);
 			render(cmd_buffer);
 		}
@@ -195,7 +218,7 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type)
+	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue)
 	{
 		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
 

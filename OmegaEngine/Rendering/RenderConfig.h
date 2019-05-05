@@ -39,6 +39,13 @@ namespace OmegaEngine
 		bool shadowsEnabled = true;
 		bool bloomEnabled = true;
 		bool fogEnabled = true;
+
+		// shadows
+		uint32_t shadow_width = 2048;
+		uint32_t shadow_height = 2048;
+		float bias_constant = 1.25f;
+		float bias_slope = 1.75f;
+		float bias_clamp = 0.0f;
 	};
 
 }

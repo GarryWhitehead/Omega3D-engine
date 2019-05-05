@@ -76,7 +76,7 @@ namespace OmegaEngine
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order
-		void build_renderable_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface);
+		void build_renderable_mesh_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface, bool is_shadow);
 
 		// adds a list of objects to the tree using the function above
 		void update_renderables(std::unique_ptr<ObjectManager>& objecct_manager, std::unique_ptr<ComponentInterface>& comp_interface);
@@ -129,6 +129,9 @@ namespace OmegaEngine
 
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;
+
+		// queued visible renderables
+		std::unique_ptr<RenderQueue> render_queue;
 
 		// dirty flag indicates whether to rebuild the renderables
 		bool isDirty = true;

@@ -43,6 +43,7 @@ namespace VulkanAPI
 
 		void set_viewport();
 		void set_scissor();
+		void setDepthBias(float bias_constant, float bias_clamp, float bias_slope);
 
 		void draw_indexed(uint32_t index_count);
 
@@ -110,6 +111,9 @@ namespace VulkanAPI
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type);
 		void bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type);
 		void bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+
+		// dynamic bindings
+		void setDepthBias(float bias_constant, float bias_clamp, float bias_slope);
 
 		// secondary buffers
 		SecondaryCommandBuffer& create_secondary();

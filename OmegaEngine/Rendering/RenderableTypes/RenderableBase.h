@@ -20,7 +20,8 @@ namespace OmegaEngine
 		StaticMesh,
 		SkinnedMesh,
 		Skybox,
-		Shadow,
+		ShadowStatic,
+		ShadowDynamic,
 		Count
 	};
 

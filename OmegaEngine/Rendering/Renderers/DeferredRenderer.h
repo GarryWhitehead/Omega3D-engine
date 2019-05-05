@@ -34,13 +34,18 @@ namespace OmegaEngine
 
 	public:
 
-		DeferredRenderer(vk::Device& device, vk::PhysicalDevice& physical, std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, RenderConfig _render_config);
+		DeferredRenderer::DeferredRenderer(vk::Device& dev,
+			vk::PhysicalDevice& physical,
+			std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager,
+			std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+			VulkanAPI::Swapchain& swapchain, RenderConfig& _render_config);
 		~DeferredRenderer();
 
 		// abstract override
-		void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type) override;
+		void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue) override;
 
 		void create_gbuffer_pass();
+		void create_shadow_pass();
 		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);
 
 		void render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain);
@@ -48,12 +53,7 @@ namespace OmegaEngine
 
 		VulkanAPI::RenderPass& get_deferred_pass()
 		{
-			return state.renderpass;
-		}
-
-		uint32_t get_attach_count() const
-		{
-			return deferred_render_info.renderpass.get_attach_count();
+			return deferred_pass;
 		}
 
 	private:
@@ -63,17 +63,19 @@ namespace OmegaEngine
 
 		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
 
-		// for the gbuffer pass
+		// images - for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
+		VulkanAPI::Texture shadow_image;
+		VulkanAPI::Texture deferred_offscreen_image;
+		
+		// Renderpasses
+		VulkanAPI::RenderPass deferred_pass;
 		
 		// for the deferred rendering pipeline
 		ProgramState state;
 
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> pp_interface;
-
-		// queued visible renderables
-		std::unique_ptr<RenderQueue> render_queue;
 
 		// keep a local copy of the render config
 		RenderConfig render_config;

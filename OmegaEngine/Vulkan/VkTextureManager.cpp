@@ -142,4 +142,9 @@ namespace VulkanAPI
 
 		descr_set_update_queue.clear();
 	}
+
+	void VkTextureManager::update()
+	{
+		update_descriptors();
+	}
 }

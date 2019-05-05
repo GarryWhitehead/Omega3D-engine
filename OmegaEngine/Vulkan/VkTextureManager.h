@@ -82,6 +82,7 @@ namespace VulkanAPI
 		void update_texture(TextureUpdateEvent& event);
 		void enqueueDescrUpdate(const char*, VulkanAPI::DescriptorSet*, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding);
 		void update_descriptors();
+		void update();
 
 		// updates a single descriptor set with a texture set identified by its unique id
 		void update_material_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);

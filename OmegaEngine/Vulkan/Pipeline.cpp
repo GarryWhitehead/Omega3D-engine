@@ -141,6 +141,12 @@ namespace VulkanAPI
 
 	void Pipeline::add_dynamic_state(vk::DynamicState state)
 	{
+		// this needs to be enabled if using depth bias - TODO: should also check this is supported by the hardware
+		if (state == vk::DynamicState::eDepthBias)
+		{
+			raster_state.depthBiasEnable = VK_TRUE;
+		}
+
 		dynamic_states.push_back(state);
 		dynamic_create_state.dynamicStateCount = static_cast<uint32_t>(dynamic_states.size());
 		dynamic_create_state.pDynamicStates = dynamic_states.data();

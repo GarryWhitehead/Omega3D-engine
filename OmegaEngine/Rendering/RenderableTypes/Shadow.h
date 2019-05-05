@@ -2,17 +2,18 @@
 #include "RenderableBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Vulkan/BufferManager.h"
+#include "Managers/MeshManager.h"
 
 //forward declerations
 namespace VulkanAPI
 {
 	class BufferManager;
-	class VkTextureManager;
 	class SecondaryCommandBuffer;
 }
 
 namespace OmegaEngine
-{
+{	
+	struct ShadowComponent;
 	
 	class RenderableShadow : public RenderableBase
 	{
@@ -22,23 +23,26 @@ namespace OmegaEngine
 		struct ShadowInstance
 		{
 			// pipeline
-			RenderInterface::ProgramState* state;
+			ProgramState* state;
 			
 			// vertex and index buffer memory info for the cube
 			VulkanAPI::Buffer vertex_buffer;
 			VulkanAPI::Buffer index_buffer;
 			uint32_t index_count = 0;
 
+			float bias_constant = 0.0f;
+			float bias_clamp = 0.0f;
+			float bias_slope = 0.0f;
 		};
 
-		RenderableSkybox(RenderInterface* render_interface);
-		~RenderableSkybox();
+		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component);
+		~RenderableShadow();
 		
 		static void create_shadow_pipeline(vk::Device& device,
 										std::unique_ptr<RendererBase>& renderer, 
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
-										std::unique_ptr<RenderInterface::ProgramState>& state);
+										std::unique_ptr<ProgramState>& state,
+										MeshManager::MeshType type);
 		
 		// used to get the address of this instance
 		void* get_handle() override

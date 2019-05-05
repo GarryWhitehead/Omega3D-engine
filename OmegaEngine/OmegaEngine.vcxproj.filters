@@ -216,7 +216,10 @@
     <ClCompile Include="utility\StringUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Rendering\ObjectRenderer.cpp">
+    <ClCompile Include="Rendering\RenderCommon.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Rendering\RenderableTypes\Shadow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -458,7 +461,13 @@
     <ClInclude Include="utility\StringUtil.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Rendering\ObjectRenderer.h">
+    <ClInclude Include="Rendering\RenderCommon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Objects\ObjectTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rendering\RenderableTypes\Shadow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

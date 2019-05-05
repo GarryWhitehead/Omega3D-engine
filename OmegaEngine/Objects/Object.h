@@ -14,9 +14,6 @@ namespace OmegaEngine
 
 	public:
 
-		using ManagerId = uint32_t;
-		using ManagerIndex = uint32_t;
-
 		Object();
 		~Object();
 

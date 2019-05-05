@@ -86,19 +86,19 @@ namespace VulkanAPI
 	}
 
 	void CommandBuffer::create_primary()
-	{	
+	{
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::ePrimary, 1);
 
 		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
-        
-        vk::CommandBufferUsageFlags usage_flags;
-        if (usage_type == UsageType::Single) {
-            usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-        }
-        else {
-            usage_flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-        }
-        
+
+		vk::CommandBufferUsageFlags usage_flags;
+		if (usage_type == UsageType::Single) {
+			usage_flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
+		}
+		else {
+			usage_flags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+		}
+
 		vk::CommandBufferBeginInfo beginInfo(usage_flags, 0);
 		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
 	}
@@ -111,7 +111,7 @@ namespace VulkanAPI
 
 		assert(renderpass);
 		assert(framebuffer);
-		
+
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
 		view_port = vk::Viewport(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
 			begin_info.renderArea.extent.width, begin_info.renderArea.extent.height,
@@ -187,6 +187,11 @@ namespace VulkanAPI
 	void CommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
 	{
 		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
+	}
+
+	void CommandBuffer::setDepthBias(float bias_constant, float bias_clamp, float bias_slope)
+	{
+		cmd_buffer.setDepthBias(bias_constant, bias_clamp, bias_slope);
 	}
 
 	void CommandBuffer::execute_secondary_commands()
@@ -346,6 +351,11 @@ namespace VulkanAPI
 	void SecondaryCommandBuffer::set_scissor()
 	{
 		cmd_buffer.setScissor(0, 1, &scissor);
+	}
+
+	void SecondaryCommandBuffer::setDepthBias(float bias_constant, float bias_clamp, float bias_slope)
+	{
+		cmd_buffer.setDepthBias(bias_constant, bias_clamp, bias_slope);
 	}
 
 	void SecondaryCommandBuffer::draw_indexed(uint32_t index_count)

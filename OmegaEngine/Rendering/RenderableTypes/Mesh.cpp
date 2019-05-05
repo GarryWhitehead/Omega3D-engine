@@ -122,7 +122,7 @@ namespace OmegaEngine
 										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										MeshManager::MeshType type,
-										std::unique_ptr<RenderInterface::ProgramState>& state)
+										std::unique_ptr<ProgramState>& state)
 	{
 		// load shaders
 		if (type == MeshManager::MeshType::Static) {
@@ -198,7 +198,7 @@ namespace OmegaEngine
 		}
 
 		// merge the material set with the mesh ubo sets
-		RenderInterface::ProgramState* state = instance_data->state;
+		ProgramState* state = instance_data->state;
 		std::vector<vk::DescriptorSet> material_set = state->descr_set.get();
 		std::vector<vk::DescriptorSet> mesh_set = state->descr_set.get();
 		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());

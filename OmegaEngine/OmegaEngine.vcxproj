@@ -32,11 +32,12 @@
     <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\AssetManager.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
-    <ClCompile Include="Rendering\ObjectRenderer.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
     <ClCompile Include="OEMaths\OEMaths_quat.cpp" />
     <ClCompile Include="PostProcess\PostProcessInterface.cpp" />
+    <ClCompile Include="Rendering\RenderableTypes\Shadow.cpp" />
+    <ClCompile Include="Rendering\RenderCommon.cpp" />
     <ClCompile Include="Rendering\Renderers\DeferredRenderer.cpp" />
     <ClCompile Include="Rendering\RenderQueue.cpp" />
     <ClCompile Include="OEMaths\OEMaths_convert.cpp" />
@@ -104,10 +105,12 @@
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
     <ClInclude Include="Image\KtxReader.h" />
     <ClInclude Include="Managers\AssetManager.h" />
-    <ClInclude Include="Rendering\ObjectRenderer.h" />
+    <ClInclude Include="Objects\ObjectTypes.h" />
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Objects\ObjectManager.h" />
+    <ClInclude Include="Rendering\RenderableTypes\Shadow.h" />
     <ClInclude Include="Rendering\RenderableTypes\Skybox.h" />
+    <ClInclude Include="Rendering\RenderCommon.h" />
     <ClInclude Include="Rendering\Renderers\RendererBase.h" />
     <ClInclude Include="Rendering\RenderQueue.h" />
     <ClInclude Include="Rendering\StockModels.h" />

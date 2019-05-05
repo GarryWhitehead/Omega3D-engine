@@ -4,12 +4,13 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
+#include "Objects/ObjectTypes.h"
 #include "Utility/logger.h"
 
 namespace OmegaEngine
 {
 
-	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface) :
+	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
@@ -17,6 +18,7 @@ namespace OmegaEngine
 		SkyboxInstance* skybox_instance = reinterpret_cast<SkyboxInstance*>(instance_data);
 		
 		skybox_instance->state = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
+		skybox_instance->blur_factor = component.blur_factor;
 	}
 
 
@@ -28,7 +30,7 @@ namespace OmegaEngine
 		std::unique_ptr<RendererBase>& renderer,
 		std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
 		std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
-		std::unique_ptr<RenderInterface::ProgramState>& state)
+		std::unique_ptr<ProgramState>& state)
 	{
 		// load shaders
 		if (!state->shader.add(device, "env/Skybox/skybox-vert.spv", VulkanAPI::StageType::Vertex, "env/Skybox/skybox-frag.spv", VulkanAPI::StageType::Fragment)) {

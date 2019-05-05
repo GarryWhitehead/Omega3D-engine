@@ -105,10 +105,10 @@ namespace OmegaEngine
 
 		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& global_vertex_count, uint32_t& global_index_count);
 
-		StaticMesh& get_mesh(uint32_t index)
+		StaticMesh& get_mesh(MeshComponent comp)
 		{
-			assert(index < meshBuffer.size());
-			return meshBuffer[index];
+			assert(comp.index < meshBuffer.size());
+			return meshBuffer[comp.index];
 		}
 
 		template <typename T>
