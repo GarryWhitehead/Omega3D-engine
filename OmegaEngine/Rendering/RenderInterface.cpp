@@ -44,7 +44,7 @@ namespace OmegaEngine
 	void RenderInterface::init(VulkanAPI::Device& device, const uint32_t width, const uint32_t height)
 	{
 		// load the render config file if it exsists
-		load_render_config();
+		render_config.load();
 
 		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
@@ -65,32 +65,6 @@ namespace OmegaEngine
 
 		// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
 		vk_interface = std::make_unique<VulkanAPI::Interface>(device, width, height, mode);
-	}
-
-	void RenderInterface::load_render_config()
-	{
-		std::string json;
-		const char filename[] = "render_config.ini";		// probably need to check the current dir here
-		if (!FileUtil::readFileIntoBuffer(filename, json)) 
-		{
-			return;
-		}
-
-		// if we cant parse the config, then go with the default values
-		rapidjson::Document doc;
-		if (doc.Parse(json.c_str()).HasParseError())
-		{
-			LOGGER_INFO("Unable to find render_config file. Using default settings...");
-			return;
-		}
-
-		// general render settings
-		if (doc.HasMember("Renderer")) 
-		{
-			int renderer = doc["Renderer"].GetInt();
-			render_config.general.renderer = static_cast<RendererType>(renderer);
-		}
-		
 	}
 
 	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)

@@ -2,6 +2,8 @@
 
 #include <array>
 
+#include "rapidjson/document.h"
+
 namespace OmegaEngine
 {
 	// forward declerations
@@ -9,6 +11,9 @@ namespace OmegaEngine
 
 	struct RenderConfig
 	{
+		// fills the config struct with data if available
+		void load();
+
 		struct General
 		{
 			// type of renderer to use - at the moment only deferred is supported

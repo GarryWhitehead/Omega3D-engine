@@ -45,6 +45,7 @@
     <ClCompile Include="OEMaths\OEMaths.cpp" />
     <ClCompile Include="OEMaths\OEMaths_transform.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Skybox.cpp" />
+    <ClCompile Include="Rendering\RenderConfig.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
     <ClCompile Include="utility\StringUtil.cpp" />
     <ClCompile Include="Vulkan\CommandBufferManager.cpp" />

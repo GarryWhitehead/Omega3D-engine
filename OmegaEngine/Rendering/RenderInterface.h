@@ -100,8 +100,6 @@ namespace OmegaEngine
 			return render_states[(int)type];
 		}
 
-		void load_render_config();
-
 		void init_renderer(std::unique_ptr<ComponentInterface>& component_interface);
 		void init_environment_render();
 
