@@ -12,6 +12,7 @@ namespace OmegaEngine
 {
 	// forward defs
 	class RenderInterface;
+	class RenderQueue;
 	enum class SceneType;
 
 	// Note: only deferred renderer is supported at the moment. More to follow....

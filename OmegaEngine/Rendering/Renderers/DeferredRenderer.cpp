@@ -28,9 +28,10 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		if (render_config.general.use_post_process) {
-			cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		if (render_config.general.use_skybox) {
+			forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
 		}
+		obj_cmd_buffer_handle = cmd_buffer_manager->create_instance();
 
 		// set up the deferred passes and shadow stuff
 		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
@@ -101,7 +102,7 @@ namespace OmegaEngine
 	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
 		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
-		if (render_config.general.use_post_process) {
+		if (render_config.general.use_skybox) {
 
 			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
 			
@@ -170,7 +171,6 @@ namespace OmegaEngine
 		}
 	}
 
-
 	void DeferredRenderer::render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
 		auto render = [&](std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer) -> void
@@ -194,7 +194,7 @@ namespace OmegaEngine
 		
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
 		// or just render straight to the swap chain presentation image
-		if (render_config.general.use_post_process) {
+		if (render_config.general.use_skybox) {
 			
 			cmd_buffer_manager->new_frame(cmd_buffer_handle);
 			auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
@@ -224,16 +224,20 @@ namespace OmegaEngine
 
 		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) {
 
-			// first stage of the deferred render pipeline is to generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle, QueueType::Opaque));
+			// draw all objects into the shadow offscreen depth buffer 
+			Rendering::render_objects(render_queue, shadow_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Shadow);
 
-			// Now for the deferred specific rendering pipeline - render the deffered pass - lights and IBL
+			// generate the g-buffers by drawing the components into the offscreen frame-buffers
+			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Opaque);
+
+			// render the deffered pass - lights, shadow and IBL contribution
 			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
 
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
-			if (render_config.use_skybox) {
+			if (render_config.general.use_skybox) {
 
-				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(skybox_cmd_buffer_handle, QueueType::Forward));
+				// **ADD** blit depth buffer from deferred pass into the forward passes depth buffer **
+				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward);
 			}
 		}
 

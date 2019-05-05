@@ -35,7 +35,7 @@ namespace OmegaEngine
 			float bias_slope = 0.0f;
 		};
 
-		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component);
+		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager);
 		~RenderableShadow();
 		
 		static void create_shadow_pipeline(vk::Device& device,

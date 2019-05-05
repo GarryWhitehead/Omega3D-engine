@@ -7,6 +7,7 @@
 #include <vector>
 #include <deque>
 #include <memory>
+#include <unordered_map>
 
 #define MINIMUM_FREE_IDS 100
 

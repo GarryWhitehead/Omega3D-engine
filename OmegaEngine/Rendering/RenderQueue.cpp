@@ -37,12 +37,21 @@ namespace OmegaEngine
 		// render by queue type 
         auto& queue = render_queues[type];          
 
-        for (uint32_t i = 0; i < queue.second.size(); ++i) {
+		cmd_buffer->create_secondary(1);
+		VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer->get_secondary(0);
+
+		sec_cmd_buffer.begin();
+
+        for (uint32_t i = 0; i < queue.size(); ++i) {
 
             RenderQueueInfo& queue_info = queue[i];
-            queue_info.render_function(queue_info.renderable_handle, cmd_buffer, queue_info.renderable_data);
+            queue_info.render_function(queue_info.renderable_handle, sec_cmd_buffer, queue_info.renderable_data);
         } 
 
+		sec_cmd_buffer.end();
+
+		// execute the recorded secondary command buffers
+		cmd_buffer->execute_secondary_commands(1);
 	}
 
     void RenderQueue::threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type)
@@ -59,10 +68,10 @@ namespace OmegaEngine
         uint32_t thread_count = 0;
 
         // TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
-        uint32_t thread_group_size = queue.second.size() / num_threads;
+        uint32_t thread_group_size = queue.size() / num_threads;
         thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
-        for (uint32_t i = 0, thread = 0; i < queue.second.size(); i += thread_group_size, ++thread) {
+        for (uint32_t i = 0, thread = 0; i < queue.size(); i += thread_group_size, ++thread) {
 
             VulkanAPI::SecondaryCommandBuffer sec_cmd_buffer = cmd_buffer->get_secondary(thread);
 
@@ -70,13 +79,13 @@ namespace OmegaEngine
             if (i + 1 >= num_threads) {
         
                 thread_pool.submitTask([=]() {
-                    submit(sec_cmd_buffer, queue.first, i, queue.second.size(), thread_group_size);
+                    submit(sec_cmd_buffer, type, i, queue.size(), thread_group_size);
                     });
                 break;
             }
 
             thread_pool.submitTask([=]() {
-                submit(sec_cmd_buffer, queue.first, i, i + thread_group_size, thread_group_size);
+                submit(sec_cmd_buffer, type, i, i + thread_group_size, thread_group_size);
                 });
 
             ++thread_count;

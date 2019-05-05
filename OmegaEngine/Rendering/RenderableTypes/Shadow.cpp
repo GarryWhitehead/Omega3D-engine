@@ -1,22 +1,45 @@
 #include "Shadow.h"
 #include "Vulkan/Shader.h"
-#include "Vulkan/VkTextureManager.h"
+#include "Vulkan/BufferManager.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
+#include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
 #include "Objects/ObjectTypes.h"
 
 namespace OmegaEngine
 {
 
-	RenderableShadow::RenderableShadow(RenderInterface* render_interface, ShadowComponent& component) :
+	RenderableShadow::RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
 		instance_data = new ShadowInstance;
 		ShadowInstance* shadow_instance = reinterpret_cast<ShadowInstance*>(instance_data);
 		
+		// pointer to the mesh pipeline
+		if (mesh.type == MeshManager::MeshType::Static) {
+			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
+		}
+		else {
+			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
+		}
+
+		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
+		shadow_instance->vertex_offset = mesh.vertex_buffer_offset;
+		shadow_instance->index_offset = mesh.index_buffer_offset;
+
+		// actual vulkan buffers
+		if (mesh.type == MeshManager::MeshType::Static) {
+			shadow_instance->vertex_buffer = buffer_manager->get_buffer("StaticVertices");
+		}
+		else {
+			shadow_instance->vertex_buffer = buffer_manager->get_buffer("SkinnedVertices");
+		}
+
+		shadow_instance->index_buffer = buffer_manager->get_buffer("Indices");
+
 		shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::Shadow).get();
 		shadow_instance->bias_clamp = component.bias_clamp;
 		shadow_instance->bias_constant = component.bias_constant;

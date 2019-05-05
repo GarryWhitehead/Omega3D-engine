@@ -70,7 +70,7 @@ namespace OmegaEngine
 		transformBuffer[obj->get_id()] = transform;
 
 		// add to the list of entites
-		obj->add_compoennt<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
+		obj->add_component<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)

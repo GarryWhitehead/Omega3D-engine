@@ -13,6 +13,7 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
 #include "Rendering/RenderQueue.h"
+#include "Rendering/RenderCommon.h"
 #include "Managers/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
 

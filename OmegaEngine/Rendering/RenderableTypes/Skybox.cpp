@@ -5,6 +5,7 @@
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Objects/ObjectTypes.h"
+#include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
 
 namespace OmegaEngine
@@ -87,7 +88,7 @@ namespace OmegaEngine
 	{
 		SkyboxInstance* instance_data = (SkyboxInstance*)instance;
 
-		RenderInterface::ProgramState* state = instance_data->state;
+		ProgramState* state = instance_data->state;
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();

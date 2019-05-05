@@ -18,7 +18,7 @@ namespace OmegaEngine
 			// sort by the set order - layer, shader, material and depth
 			if (RenderInterface::render_config.sort_render_queue)
 			{
-				render_queue.sort_all();
+				render_queue->sort_all();
 			}
 
 			// now draw all renderables to the pass - start by begining the renderpass 
@@ -27,7 +27,7 @@ namespace OmegaEngine
 			cmd_buffer->begin_renderpass(begin_info, true);
 
 			// now draw everything in the designated queue 
-			render_queue.threaded_dispatch(cmd_buffer, type);
+			render_queue->threaded_dispatch(cmd_buffer, type);
 
 			// end the primary pass and buffer
 			cmd_buffer->end_pass();

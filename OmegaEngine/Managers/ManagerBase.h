@@ -1,7 +1,8 @@
 #pragma once
 
-#include <memory>
 #include "Objects/ObjectManager.h"
+
+#include <memory>
 
 namespace OmegaEngine
 {

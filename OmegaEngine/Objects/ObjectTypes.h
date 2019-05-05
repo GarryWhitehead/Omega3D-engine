@@ -1,10 +1,22 @@
 #pragma once
 
-#include "Managers/ComponentInterface.h"
+#include "Objects/ObjectTypes.h"
 
 namespace OmegaEngine
 {
-    struct ComponentBase
+	enum class ManagerType
+	{
+		None,
+		Mesh,
+		Material,
+		Texture,
+		Camera,
+		Light,
+		Transform
+	};
+
+
+	struct ComponentBase
     {
         ComponentBase(ManagerType _type) :
             type(_type)

@@ -9,6 +9,8 @@
 #include "Vulkan/Pipeline.h"
 #include "Vulkan/Descriptors.h"
 #include "Rendering/RenderConfig.h"
+#include "Rendering/RenderInterface.h"
+#include "Rendering/RenderCommon.h"
 
 #include <vector>
 #include <functional>
@@ -71,6 +73,10 @@ namespace OmegaEngine
 		// Renderpasses
 		VulkanAPI::RenderPass deferred_pass;
 		
+		// Command buffer hanldes
+		VulkanAPI::CmdBufferHandle forward_cmd_buffer_handle;
+		VulkanAPI::CmdBufferHandle obj_cmd_buffer_handle;
+
 		// for the deferred rendering pipeline
 		ProgramState state;
 

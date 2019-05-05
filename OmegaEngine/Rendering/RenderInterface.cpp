@@ -19,6 +19,8 @@
 #include "Engine/Omega_Global.h"
 #include "Engine/World.h"
 #include "Vulkan/VkTextureManager.h"
+#include "Vulkan/Device.h"
+#include "Vulkan/Interface.h"
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
@@ -159,8 +161,7 @@ namespace OmegaEngine
 			}
 			else
 			{
-				add_renderable<RenderableShadow>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(),
-					vk_interface->get_texture_manager(), mesh, primitive, obj);
+				add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), vk_interface->get_buffer_manager());
 			}
 		}
 	
@@ -168,7 +169,7 @@ namespace OmegaEngine
 		auto children = obj.get_children();
 		for (auto child : children) 
 		{
-			build_renderable_mesh_tree(child, comp_interface);
+			build_renderable_mesh_tree(child, comp_interface, is_shadow);
 		}
 	}
 
@@ -176,7 +177,7 @@ namespace OmegaEngine
 	{
 		if (isDirty)
 		{
-			// get all objects
+			// get all objects that are available this frame
 			auto& objects = object_manager->get_objects_list();
 
 			for (auto& object : objects) 
@@ -243,9 +244,11 @@ namespace OmegaEngine
 		vk_interface->get_buffer_manager()->update();
 		vk_interface->get_texture_manager()->update();
 
+		// add the renderables to the queue
+		// TODO: add visibility check
 		prepare_object_queue();
 		
-		renderer->render(vk_interface, scene_type);
+		renderer->render(vk_interface, scene_type, render_queue);
 	}
 
 }

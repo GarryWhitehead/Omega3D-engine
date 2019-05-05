@@ -2,6 +2,8 @@
 
 #include "Utility/GeneralUtil.h"
 #include "Objects/ObjectTypes.h"
+
+#include <memory>
 #include <stdint.h>
 #include <unordered_map>
 
@@ -43,7 +45,7 @@ namespace OmegaEngine
 		void add_component(Args&&... args)
 		{
 			uint32_t id = Util::TypeId<T>::id();
-			components[id] = new T(std::forward<Args>(args)...);
+			components[id] = std::make_unique<T>(std::forward<Args>(args)...);
 		}
 
 		template <typename T>

@@ -1,13 +1,5 @@
 #pragma once
 #include "Rendering/Renderers/RendererBase.h"
-#include "Vulkan/Device.h"
-#include "Vulkan/Datatypes/Texture.h"
-#include "Vulkan/Interface.h"
-#include "Vulkan/Descriptors.h"
-#include "Vulkan/Shader.h"
-#include "Vulkan/Pipeline.h"
-#include "Vulkan/CommandBuffer.h"
-#include "Vulkan/CommandBufferManager.h"
 #include "RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
 
@@ -15,6 +7,12 @@
 #include <memory>
 #include <functional>
 
+// forward declerations
+namespace VulkanAPI
+{
+	class Device;
+	class Interface;
+}
 
 namespace OmegaEngine
 {	
@@ -38,19 +36,6 @@ namespace OmegaEngine
 	{
 		Static,
 		Dynamic
-	};
-
-	struct ProgramState
-	{
-		VulkanAPI::Shader shader;
-		VulkanAPI::PipelineLayout pl_layout;
-		VulkanAPI::Pipeline pipeline;
-		VulkanAPI::DescriptorLayout descr_layout;
-		VulkanAPI::DescriptorSet descr_set;
-
-		// information extracted from shader reflection
-		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-		VulkanAPI::ImageLayoutBuffer image_layout;
 	};
 
 	class RenderInterface
