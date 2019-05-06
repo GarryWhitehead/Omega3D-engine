@@ -12,18 +12,19 @@ namespace OmegaEngine
 		void render_objects(std::unique_ptr<RenderQueue>& render_queue, 
 							VulkanAPI::RenderPass& renderpass,
 							std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer,
-							QueueType type)
+							QueueType type,
+							RenderConfig& render_config)
 		{
 
 			// sort by the set order - layer, shader, material and depth
-			if (RenderInterface::render_config.sort_render_queue)
+			if (render_config.general.sort_render_queue)
 			{
 				render_queue->sort_all();
 			}
 
 			// now draw all renderables to the pass - start by begining the renderpass 
 			cmd_buffer->create_primary();
-			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(RenderInterace::render_config.general.background_col));
+			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 			cmd_buffer->begin_renderpass(begin_info, true);
 
 			// now draw everything in the designated queue 

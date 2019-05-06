@@ -2,6 +2,7 @@
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/BufferManager.h"
+#include "Vulkan/Queue.h"
 #include "Utility/logger.h"
 
 namespace VulkanAPI
@@ -246,5 +247,39 @@ namespace VulkanAPI
 			image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, image_mip_levels, 0, 1));
 
 		cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
+	}
+
+	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue, vk::ImageAspectFlagBits aspect_flags)
+	{
+		// source
+		vk::ImageSubresourceLayers src(
+			vk::ImageAspectFlagBits::eColor,
+			0, 0, 1);
+		vk::Offset3D src_offset(
+			image_width, image_height, 1);
+
+		// destination
+		vk::ImageSubresourceLayers dst(
+			vk::ImageAspectFlagBits::eColor,
+			0, 0, 1);
+		vk::Offset3D dst_offset(
+			image_width, image_height, 1);
+
+		vk::ImageBlit image_blit;
+		image_blit.srcSubresource = src;
+		image_blit.srcOffsets[1] = src_offset;
+		image_blit.dstSubresource = dst;
+		image_blit.dstOffsets[1] = dst_offset;
+
+		// cmd buffer required for the image blit
+		CommandBuffer blit_cmd_buff(device, graph_queue.get_index());
+		blit_cmd_buff.create_primary();
+
+		// blit the image
+		blit_cmd_buff.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
+
+		// flush the cmd buffer
+		blit_cmd_buff.end();
+		graph_queue.flush_cmd_buffer(blit_cmd_buff.get());
 	}
 }

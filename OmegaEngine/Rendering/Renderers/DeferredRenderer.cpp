@@ -101,7 +101,7 @@ namespace OmegaEngine
 
 	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
-		// if we are using the colour image for further manipulation (e.g. post-process) render into full screen buffer, otherwise render into swapchain buffer
+		// if we are using the colour image for further manipulation (e.g. post-process) render into offscreen buffer, otherwise render into swapchain buffer
 		if (render_config.general.use_skybox) {
 
 			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
@@ -111,10 +111,21 @@ namespace OmegaEngine
 			deferred_pass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
 			deferred_pass.prepareRenderPass();
 
+			// colour
 			deferred_offscreen_image.create_empty_image(device, gpu, deferred_format, 
 				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 
 				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-			deferred_pass.prepareFramebuffer(deferred_offscreen_image.get_image_view(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+
+			// depth - this will be blitted with the depth buffer from the previous pass
+			vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+
+			deferred_offscreen_depth_image.create_empty_image(device, gpu, depth_format,
+				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height,
+				1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+
+			// frame buffer prep
+			std::vector<vk::ImageView> image_views{ deferred_offscreen_image.get_image_view() , deferred_offscreen_depth_image.get_image_view() };
+			deferred_pass.prepareFramebuffer(image_views.size(), image_views.data(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 		}
 		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
@@ -225,10 +236,10 @@ namespace OmegaEngine
 		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) {
 
 			// draw all objects into the shadow offscreen depth buffer 
-			Rendering::render_objects(render_queue, shadow_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Shadow);
+			Rendering::render_objects(render_queue, shadow_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Shadow, render_config);
 
 			// generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Opaque);
+			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Opaque, render_config);
 
 			// render the deffered pass - lights, shadow and IBL contribution
 			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
@@ -236,8 +247,9 @@ namespace OmegaEngine
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (render_config.general.use_skybox) {
 
-				// **ADD** blit depth buffer from deferred pass into the forward passes depth buffer **
-				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward);
+				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
+				deferred_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue(), vk::ImageAspectFlagBits::eDepth);
+				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
 			}
 		}
 

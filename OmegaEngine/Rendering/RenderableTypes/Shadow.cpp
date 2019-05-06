@@ -11,7 +11,7 @@
 namespace OmegaEngine
 {
 
-	RenderableShadow::RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager) :
+	RenderableShadow::RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, MeshManager::StaticMesh mesh) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
@@ -20,10 +20,10 @@ namespace OmegaEngine
 		
 		// pointer to the mesh pipeline
 		if (mesh.type == MeshManager::MeshType::Static) {
-			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
+			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::ShadowStatic).get();
 		}
 		else {
-			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
+			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::ShadowDynamic).get();
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
@@ -40,7 +40,6 @@ namespace OmegaEngine
 
 		shadow_instance->index_buffer = buffer_manager->get_buffer("Indices");
 
-		shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::Shadow).get();
 		shadow_instance->bias_clamp = component.bias_clamp;
 		shadow_instance->bias_constant = component.bias_constant;
 		shadow_instance->bias_slope = component.bias_slope;
@@ -73,11 +72,7 @@ namespace OmegaEngine
 		state->shader.descriptor_image_reflect(state->descr_layout, state->image_layout);
 		state->shader.descriptor_buffer_reflect(state->descr_layout, state->buffer_layout);
 		state->descr_layout.create(device);
-
-		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
-		for (auto& buffer : state->buffer_layout) {
-			state->descr_set.init(device, state->descr_layout.get_layout(buffer.set), state->descr_layout.get_pool(), buffer.set);
-		}
+		state->descr_set.init(device, state->descr_layout);
 
 		// sort out the descriptor sets - buffers
 		for (auto& layout : state->buffer_layout) {

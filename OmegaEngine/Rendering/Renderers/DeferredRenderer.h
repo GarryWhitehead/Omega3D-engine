@@ -69,6 +69,7 @@ namespace OmegaEngine
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		VulkanAPI::Texture shadow_image;
 		VulkanAPI::Texture deferred_offscreen_image;
+		VulkanAPI::Texture deferred_offscreen_depth_image;
 		
 		// Renderpasses
 		VulkanAPI::RenderPass deferred_pass;

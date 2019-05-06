@@ -77,7 +77,7 @@ namespace OmegaEngine
 		case RendererType::Deferred:
 		{
 			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), vk_interface->get_cmd_buffer_manager(), 
-				render_config, vk_interface->get_buffer_manager(), vk_interface->get_swapchain());
+				vk_interface->get_buffer_manager(), vk_interface->get_swapchain(), render_config);
 			break;
 		}
 		default:
@@ -157,11 +157,11 @@ namespace OmegaEngine
 			if (!is_shadow)
 			{
 				add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(),
-					vk_interface->get_texture_manager(), mesh, primitive, obj);
+					vk_interface->get_texture_manager(), mesh, primitive, obj, this);
 			}
 			else
 			{
-				add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), vk_interface->get_buffer_manager());
+				add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), vk_interface->get_buffer_manager(), mesh);
 			}
 		}
 	

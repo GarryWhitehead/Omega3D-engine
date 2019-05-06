@@ -8,6 +8,7 @@ namespace VulkanAPI
 	// forward decleartions
 	enum class TextureType;
 	class Image;
+	class Queue;
 
 	class ImageView
 	{
@@ -42,6 +43,7 @@ namespace VulkanAPI
 		void create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags, TextureType type);
 		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer& cmdBuff);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
+		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue, vk::ImageAspectFlagBits aspect_flags);
 
 		vk::Image& get()
 		{

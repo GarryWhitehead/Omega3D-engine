@@ -3,7 +3,6 @@
 #include "Utility/GeneralUtil.h"
 #include "Objects/ObjectTypes.h"
 
-#include <memory>
 #include <stdint.h>
 #include <unordered_map>
 
@@ -36,7 +35,7 @@ namespace OmegaEngine
 			uint32_t id = Util::TypeId<T>::id();
 			assert(components.find(id) != components.end());
 			
-			T* derived = dynamic_cast<T*>(components[id].get());
+			T* derived = dynamic_cast<T*>(components[id]);
 			assert(derived != nullptr);
 			return *derived;
 		}
@@ -45,14 +44,14 @@ namespace OmegaEngine
 		void add_component(Args&&... args)
 		{
 			uint32_t id = Util::TypeId<T>::id();
-			components[id] = std::make_unique<T>(std::forward<Args>(args)...);
+			components[id] = new T(std::forward<Args>(args)...);
 		}
 
 		template <typename T>
 		void add_component()
 		{
 			uint32_t id = Util::TypeId<T>::id();
-			components[id] = new T;
+			components[id] = new T();
 		}
 
 		template <typename T>
@@ -73,7 +72,7 @@ namespace OmegaEngine
 		uint64_t parent_id = UINT64_MAX;
 		std::vector<Object> children;
 
-		std::unordered_map<uint32_t, std::unique_ptr<ComponentBase> > components;
+		std::unordered_map<uint32_t, ComponentBase*> components;
 
 	};
 

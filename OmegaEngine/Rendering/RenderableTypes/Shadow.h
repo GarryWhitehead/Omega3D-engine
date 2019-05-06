@@ -30,12 +30,15 @@ namespace OmegaEngine
 			VulkanAPI::Buffer index_buffer;
 			uint32_t index_count = 0;
 
+			uint32_t vertex_offset = 0;
+			uint32_t index_offset = 0;
+
 			float bias_constant = 0.0f;
 			float bias_clamp = 0.0f;
 			float bias_slope = 0.0f;
 		};
 
-		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager);
+		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, MeshManager::StaticMesh mesh);
 		~RenderableShadow();
 		
 		static void create_shadow_pipeline(vk::Device& device,

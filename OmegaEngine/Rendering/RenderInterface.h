@@ -29,7 +29,7 @@ namespace OmegaEngine
 	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)>
 	FuncReturn get_member_render_function(void *object, VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)
 	{
-		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data, render_interface);
+		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data);
 	}
 
 	enum class SceneType
@@ -99,7 +99,7 @@ namespace OmegaEngine
 
 	private:
 
-		static RenderConfig render_config;
+		RenderConfig render_config;
 	
 		// states whether the scene is static, i.e. no additional will be drawn, or dynamic
 		SceneType scene_type;

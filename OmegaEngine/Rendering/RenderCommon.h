@@ -38,7 +38,8 @@ namespace OmegaEngine
 		void render_objects(std::unique_ptr<RenderQueue>& render_queue,
 			VulkanAPI::RenderPass& renderpass,
 			std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer,
-			QueueType type);
+			QueueType type,
+			RenderConfig& render_config);
 	}
 }
 

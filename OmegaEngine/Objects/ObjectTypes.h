@@ -18,7 +18,10 @@ namespace OmegaEngine
 
 	struct ComponentBase
     {
-        ComponentBase(ManagerType _type) :
+		virtual ~ComponentBase() = default;
+
+		ComponentBase() {}
+		ComponentBase(ManagerType _type) :
             type(_type)
         {}
 
@@ -27,7 +30,10 @@ namespace OmegaEngine
 
     struct MeshComponent : public ComponentBase
     {
-        MeshComponent(uint32_t _index) : 
+		MeshComponent() {}
+		~MeshComponent() {}
+
+		MeshComponent(uint32_t _index) : 
             index(_index),
             ComponentBase(ManagerType::Mesh) 
         {}

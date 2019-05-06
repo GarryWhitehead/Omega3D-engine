@@ -22,6 +22,7 @@ namespace OmegaEngine
 			std::array<float, 4> background_col = {0.0f, 0.0f, 0.0f, 1.0f};
 			bool use_post_process = false;
 			bool use_skybox = true;
+			bool sort_render_queue = true;
 			
 		} general;
 
