@@ -127,7 +127,7 @@ namespace VulkanAPI
 				}
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
-				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
+				size_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
 				buffer_layout.push_back({ type, binding, set, ubo.name, range });
 			}
 
@@ -144,7 +144,7 @@ namespace VulkanAPI
 				}
 
 				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
-				uint32_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
+				size_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
 				buffer_layout.push_back({ type, binding, set, ssbo.name, range });
 			}
 

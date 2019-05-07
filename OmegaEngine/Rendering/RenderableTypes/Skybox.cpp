@@ -75,8 +75,8 @@ namespace OmegaEngine
 		state->pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
 		state->pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_first_pass());
-		state->pipeline.create(device, renderer->get_first_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_forward_pass());
+		state->pipeline.create(device, renderer->get_forward_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 

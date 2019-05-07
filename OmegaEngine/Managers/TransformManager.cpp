@@ -85,7 +85,7 @@ namespace OmegaEngine
 			{
 				assert(skin.skeleton < linearised_objects.size());
 				skinInfo.skeletonIndex = linearised_objects[skin.skeleton];
-				skinInfo.skeletonIndex.add_component<SkinnedComponent>(skinBuffer.size() - 1);
+				skinInfo.skeletonIndex.add_component<SkinnedComponent>(static_cast<uint32_t>(skinBuffer.size() - 1));
 			}
 
 			// Does this skin have joint nodes?

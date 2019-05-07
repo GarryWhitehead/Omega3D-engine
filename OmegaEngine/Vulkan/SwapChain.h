@@ -39,7 +39,7 @@ namespace VulkanAPI
 
 		uint32_t get_image_count() const
 		{
-			return image_views.size();
+			return static_cast<uint32_t>(image_views.size());
 		}
 
 		uint32_t get_extents_height() const

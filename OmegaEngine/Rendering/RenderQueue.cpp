@@ -79,7 +79,7 @@ namespace OmegaEngine
             if (i + 1 >= num_threads) {
         
                 thread_pool.submitTask([=]() {
-                    submit(sec_cmd_buffer, type, i, queue.size(), thread_group_size);
+                    submit(sec_cmd_buffer, type, i, static_cast<uint32_t>(queue.size()), thread_group_size);
                     });
                 break;
             }

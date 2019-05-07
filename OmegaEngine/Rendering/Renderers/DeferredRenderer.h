@@ -55,7 +55,7 @@ namespace OmegaEngine
 
 		VulkanAPI::RenderPass& get_deferred_pass()
 		{
-			return deferred_pass;
+			return forward_pass;
 		}
 
 	private:
@@ -68,12 +68,9 @@ namespace OmegaEngine
 		// images - for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
 		VulkanAPI::Texture shadow_image;
-		VulkanAPI::Texture deferred_offscreen_image;
-		VulkanAPI::Texture deferred_offscreen_depth_image;
-		
-		// Renderpasses
-		VulkanAPI::RenderPass deferred_pass;
-		
+		VulkanAPI::Texture forward_offscreen_image;
+		VulkanAPI::Texture forward_offscreen_depth_image;
+	
 		// Command buffer hanldes
 		VulkanAPI::CmdBufferHandle forward_cmd_buffer_handle;
 		VulkanAPI::CmdBufferHandle obj_cmd_buffer_handle;

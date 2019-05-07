@@ -98,7 +98,7 @@ namespace VulkanAPI
 			return layout;
 		}
 
-		void add_push_constant(StageType stage, uint32_t size)
+		void add_push_constant(StageType stage, size_t size)
 		{
 			push_constant_sizes[(int)stage] = size;
 		}

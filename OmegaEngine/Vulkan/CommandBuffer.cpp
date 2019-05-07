@@ -174,14 +174,14 @@ namespace VulkanAPI
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), 0, nullptr);
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 	}
 
 	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), offset_count, offsets);
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), offset_count, offsets);
 	}
 
 	void CommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
@@ -204,7 +204,7 @@ namespace VulkanAPI
 			sec_cmd_buffers[i] = secondary_cmd_buffers[i].get();
 		}
 
-		cmd_buffer.executeCommands(sec_cmd_buffers.size(), sec_cmd_buffers.data());
+		cmd_buffer.executeCommands(static_cast<uint32_t>(sec_cmd_buffers.size()), sec_cmd_buffers.data());
 	}
 
 	void CommandBuffer::execute_secondary_commands(uint32_t count)

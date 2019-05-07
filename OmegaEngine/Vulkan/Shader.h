@@ -20,10 +20,10 @@ namespace VulkanAPI
 		vk::DescriptorType type;
 		uint32_t binding;
 		uint32_t set;
-		uint32_t range;
+		size_t range;
 		std::string name;
 
-		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, uint32_t _range) :
+		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, size_t _range) :
 			type(_type), binding(_bind), set(_set), name(_name), range(_range)
 		{}
 	};
@@ -65,7 +65,7 @@ namespace VulkanAPI
 
 		uint32_t size() const
 		{
-			return wrappers.size();
+			return static_cast<uint32_t>(wrappers.size());
 		}
 
 		vk::PipelineShaderStageCreateInfo* get_pipeline_data()

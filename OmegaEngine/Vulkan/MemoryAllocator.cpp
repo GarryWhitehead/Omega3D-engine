@@ -119,11 +119,11 @@ namespace VulkanAPI
 
 		if (mem_usage & MemoryUsage::VK_BUFFER_DYNAMIC) {
 
-			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST, ALLOC_BLOCK_SIZE_HOST);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST, static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST));
 		}
 		else if (mem_usage & MemoryUsage::VK_BUFFER_STATIC) {
 
-			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL, ALLOC_BLOCK_SIZE_LOCAL);
+			block_id = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL, static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL));
 		}
 
 		return block_id;
@@ -154,7 +154,7 @@ namespace VulkanAPI
 		vk::PhysicalDeviceProperties properties = gpu.getProperties();
 
 		size_t minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
-		uint32_t segment_size = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+		size_t segment_size = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
 
 		// ensure that there is enough free space in this particular block to accomodate the data segment
 		uint32_t offset = findFreeSegment(block_id, segment_size);
@@ -187,7 +187,7 @@ namespace VulkanAPI
 		return id;
 	}
 
-	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segment_size)
+	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const size_t segment_size)
 	{
 		if (segment_size > mem_blocks[id].total_size) {
 			return UINT32_MAX;

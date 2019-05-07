@@ -61,7 +61,7 @@ namespace VulkanAPI
 	private:
 
 		vk::Device device;
-		uint64_t queue_family_index;
+		uint32_t queue_family_index;
 		
 		vk::Viewport view_port;
 		vk::Rect2D scissor;

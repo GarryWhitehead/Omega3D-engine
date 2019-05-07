@@ -65,8 +65,6 @@ namespace OmegaEngine
 			throw std::runtime_error("Unable to open glfw window");
 		}
 
-		//VK_CHECK_RESULT(volkInitialize());
-
 		// now prepare the graphics device -  we can have multiple devices though this isn't fully implemented yet
 		VulkanAPI::Device device;
 		uint32_t instance_count;
@@ -168,7 +166,7 @@ namespace OmegaEngine
 				//printf("updated!\n");
 			}
 
-			double interpolation = accumulator.count() / time_step.count();
+			double interpolation = (double)accumulator.count() / (double)time_step.count();
 			world->render(interpolation);
 			//printf("rendered!\n");
 		}

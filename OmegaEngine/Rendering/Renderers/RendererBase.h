@@ -45,6 +45,11 @@ namespace OmegaEngine
 			return shadow_renderpass;
 		}
 
+		VulkanAPI::RenderPass& get_forward_pass()
+		{
+			return forward_pass;
+		}
+
 		// abstract functions
 		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue) = 0;
 
@@ -57,6 +62,9 @@ namespace OmegaEngine
 		// all renderers have shadow functionality
 		VulkanAPI::RenderPass shadow_renderpass;
 
+		// forward-pass - for skybox rendering in the deferred pipeline
+		VulkanAPI::RenderPass forward_pass;
+		
 		RendererType type;
 	};
 

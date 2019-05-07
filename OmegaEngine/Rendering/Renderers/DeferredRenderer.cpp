@@ -104,28 +104,28 @@ namespace OmegaEngine
 		// if we are using the colour image for further manipulation (e.g. post-process) render into offscreen buffer, otherwise render into swapchain buffer
 		if (render_config.general.use_skybox) {
 
-			vk::Format deferred_format = vk::Format::eR32G32B32A32Sfloat;
-			
+			vk::Format forward_format = vk::Format::eR16G16B16A16Sfloat;
+			vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+
 			// now create the renderpasses and frame buffers
-			deferred_pass.init(device);
-			deferred_pass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, deferred_format);
-			deferred_pass.prepareRenderPass();
+			forward_pass.init(device);
+			forward_pass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, forward_format);
+			forward_pass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
+			forward_pass.prepareRenderPass();
 
 			// colour
-			deferred_offscreen_image.create_empty_image(device, gpu, deferred_format, 
+			forward_offscreen_image.create_empty_image(device, gpu, forward_format, 
 				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 
 				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 
 			// depth - this will be blitted with the depth buffer from the previous pass
-			vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
-
-			deferred_offscreen_depth_image.create_empty_image(device, gpu, depth_format,
+			forward_offscreen_depth_image.create_empty_image(device, gpu, depth_format,
 				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height,
 				1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 			// frame buffer prep
-			std::vector<vk::ImageView> image_views{ deferred_offscreen_image.get_image_view() , deferred_offscreen_depth_image.get_image_view() };
-			deferred_pass.prepareFramebuffer(image_views.size(), image_views.data(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
+			std::vector<vk::ImageView> image_views{ forward_offscreen_image.get_image_view() , forward_offscreen_depth_image.get_image_view() };
+			forward_pass.prepareFramebuffer(image_views.size(), image_views.data(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
 		}
 		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
@@ -171,9 +171,9 @@ namespace OmegaEngine
 		state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
 		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
 		
-		if (render_config.general.use_post_process) {
-			state.pipeline.add_colour_attachment(VK_FALSE, deferred_pass);
-			state.pipeline.create(device, deferred_pass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+		if (render_config.general.use_skybox) {
+			state.pipeline.add_colour_attachment(VK_FALSE, forward_pass);
+			state.pipeline.create(device, forward_pass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
 		}
 		else {
 			// render to the swapchain presentation 
@@ -213,7 +213,7 @@ namespace OmegaEngine
 			cmd_buffer->create_primary();
 
 			// begin the renderpass 
-			vk::RenderPassBeginInfo begin_info = deferred_pass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
+			vk::RenderPassBeginInfo begin_info = forward_pass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 			cmd_buffer->begin_renderpass(begin_info);
 			render(cmd_buffer);
 		}
@@ -248,7 +248,7 @@ namespace OmegaEngine
 			if (render_config.general.use_skybox) {
 
 				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
-				deferred_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue(), vk::ImageAspectFlagBits::eDepth);
+				forward_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue(), vk::ImageAspectFlagBits::eDepth);
 				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
 			}
 		}
