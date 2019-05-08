@@ -28,9 +28,6 @@ namespace VulkanAPI
 		// as Vulkan will complain otherwise.
 		std::vector<vk::DescriptorSetLayout> layouts(descr_layout.size());
 
-		//std::sort(descr_layout.begin(), descr_layout.end(),
-		//	[](std::tuple<uint32_t, vk::DescriptorSetLayout> lhs, std::tuple<uint32_t, vk::DescriptorSetLayout> rhs) { return std::get<0>(lhs) < std::get<0>(rhs); });
-
 		for (auto& layout : descr_layout) {
 			layouts[std::get<0>(layout)] = std::get<1>(layout);
 		}

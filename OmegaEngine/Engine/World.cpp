@@ -52,22 +52,28 @@ namespace OmegaEngine
 		bvh = std::make_unique<BVH>();
 
 		// register all components managers required for this world
-		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL)
+		{
 			component_interface->registerManager<MeshManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL) 
+		{
 			component_interface->registerManager<MaterialManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_TEXTURE || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_TEXTURE || managers & Managers::OE_MANAGERS_ALL) 
+		{
 			component_interface->registerManager<TextureManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) 
+		{
 			component_interface->registerManager<LightManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL)
+		{
 			component_interface->registerManager<TransformManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) {
+		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) 
+		{
 			component_interface->registerManager<CameraManager>(engine_config.mouse_sensitivity);
 		}
 		
@@ -83,7 +89,8 @@ namespace OmegaEngine
 	bool World::create(const char* filename)
 	{
 		SceneParser parser;
-		if (!parser.parse(filename)) {
+		if (!parser.parse(filename))
+		{
 			return false;
 		}
 
@@ -91,7 +98,8 @@ namespace OmegaEngine
 		component_interface->getManager<CameraManager>().add_camera(parser.get_camera());
 
 		// add lights from scene file
-		for (uint32_t i = 0; i < parser.light_count(); ++i) {
+		for (uint32_t i = 0; i < parser.light_count(); ++i) 
+		{
 			component_interface->getManager<LightManager>().add_light(parser.get_light(i));
 		}
 
@@ -110,7 +118,8 @@ namespace OmegaEngine
 		}
 
 		// load and distribute the gltf data between the appropiate systems.
-		for (uint32_t i = 0; i < parser.modelCount(); ++i) {
+		for (uint32_t i = 0; i < parser.modelCount(); ++i) 
+		{
 			this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
 		}
 
@@ -137,7 +146,8 @@ namespace OmegaEngine
 
 	void World::render(double interpolation)
 	{
-		if (has_updated_once) {
+		if (has_updated_once) 
+		{
 			render_interface->render(interpolation);
 		}
 	}
@@ -153,31 +163,36 @@ namespace OmegaEngine
 
 		FileUtil::GetFileExtension(filename, ext);
 		bool ret = false;
-		if (ext.compare("glb") == 0) {
+		if (ext.compare("glb") == 0) 
+		{
 			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());
 		}
-		else {
+		else 
+		{
 			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename.c_str());
 		}
 
-		if (ret) {
-
+		if (ret) 
+		{
 			auto& texture_manager = component_interface->getManager<TextureManager>();
 			auto& material_manager = component_interface->getManager<MaterialManager>();
 
 			uint32_t set = texture_manager.get_current_set();
 
 			// first get all materials and textures associated with this model
-			for (auto& tex : model.textures) {
+			for (auto& tex : model.textures)
+			{
 				tinygltf::Image image = model.images[tex.source];
 				texture_manager.addGltfImage(image);
 			}
 
-			for (auto& sampler : model.samplers) {
+			for (auto& sampler : model.samplers) 
+			{
 				texture_manager.addGltfSampler(set, sampler);
 			}
 
-			for (auto& mat : model.materials) {
+			for (auto& mat : model.materials) 
+			{
 				material_manager.addGltfMaterial(set, mat, texture_manager);
 			}
 			texture_manager.next_set();
@@ -191,8 +206,8 @@ namespace OmegaEngine
 
 			// we also need to keep a linerised form of the objects for matching up joint indices later
 			std::unordered_map<uint32_t, Object> linearised_objects;
-			for (uint32_t i = 0; i < scene.nodes.size(); ++i) {
-
+			for (uint32_t i = 0; i < scene.nodes.size(); ++i) 
+			{
 				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
@@ -205,7 +220,8 @@ namespace OmegaEngine
 			// animation
 			animation_manager->addGltfAnimation(model, linearised_objects);
 		}
-		else {
+		else 
+		{
 			LOGGER_ERROR("Error whilst parsing gltf file: %s", err.c_str());
 		}
 	}
@@ -221,10 +237,12 @@ namespace OmegaEngine
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
 		Object* parentObject;
-		if (childObject) {
+		if (childObject) 
+		{
 			parentObject = objManager->createChildObject(*obj);
 		}
-		else {
+		else 
+		{
 			parentObject = obj;
 		}
 
@@ -233,15 +251,18 @@ namespace OmegaEngine
 		transform_man.addGltfTransform(node, parentObject, world_transform);
 
 		// if this node has children, recursively extract their info
-		if (node.children.size() > 0) {
-			for (uint32_t i = 0; i < node.children.size(); ++i) {
+		if (node.children.size() > 0) 
+		{
+			for (uint32_t i = 0; i < node.children.size(); ++i) 
+			{
 				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, 
 					parentObject, true, node.children[i], global_vertex_count, global_index_count);
 			}
 		}
 
 		// if the node has mesh data...
-		if (node.mesh > -1) {
+		if (node.mesh > -1) 
+		{
 			auto& mesh_manager = component_interface->getManager<MeshManager>();
 			mesh_manager.addGltfData(model, node, parentObject, global_vertex_count, global_index_count);
 		}

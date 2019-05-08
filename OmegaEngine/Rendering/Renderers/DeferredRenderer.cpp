@@ -238,6 +238,8 @@ namespace OmegaEngine
 
 		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) {
 
+			cmd_buffer_manager->new_frame(obj_cmd_buffer_handle);
+
 			// draw all objects into the shadow offscreen depth buffer 
 			Rendering::render_objects(render_queue, shadow_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Shadow, render_config);
 
