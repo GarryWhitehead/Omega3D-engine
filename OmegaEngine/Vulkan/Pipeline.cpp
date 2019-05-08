@@ -12,8 +12,7 @@ namespace VulkanAPI
 	}
 
 	void PipelineLayout::create(vk::Device& device, 
-								std::vector<std::tuple<uint32_t, 
-								vk::DescriptorSetLayout> >& descr_layout)
+								std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> >& descr_layout)
 	{	
 		// create push constants
 		std::vector<vk::PushConstantRange> push_constants;
@@ -28,6 +27,10 @@ namespace VulkanAPI
 		// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. The set number number will depict the order which is important
 		// as Vulkan will complain otherwise.
 		std::vector<vk::DescriptorSetLayout> layouts(descr_layout.size());
+
+		//std::sort(descr_layout.begin(), descr_layout.end(),
+		//	[](std::tuple<uint32_t, vk::DescriptorSetLayout> lhs, std::tuple<uint32_t, vk::DescriptorSetLayout> rhs) { return std::get<0>(lhs) < std::get<0>(rhs); });
+
 		for (auto& layout : descr_layout) {
 			layouts[std::get<0>(layout)] = std::get<1>(layout);
 		}
@@ -74,7 +77,8 @@ namespace VulkanAPI
 		}
 
 		// first sort the attributes so they are in order of location as when we reflect, we can get the inputs in any order
-		std::sort(vertex_attr_descr.begin(), vertex_attr_descr.end(), [](const vk::VertexInputAttributeDescription lhs, const vk::VertexInputAttributeDescription rhs) { return lhs.location < rhs.location; });
+		std::sort(vertex_attr_descr.begin(), vertex_attr_descr.end(), 
+			[](const vk::VertexInputAttributeDescription lhs, const vk::VertexInputAttributeDescription rhs) { return lhs.location < rhs.location; });
 		
 		// calculate the offset for each location - the size of each location is stored temporarily in the offset elemnt of the struct
 		uint32_t next_offset = 0;

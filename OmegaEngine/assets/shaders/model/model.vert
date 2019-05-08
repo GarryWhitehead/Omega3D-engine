@@ -5,13 +5,13 @@ layout (location = 1) in vec2 inUv0;
 layout (location = 2) in vec2 inUv1;
 layout (location = 3) in vec3 inNormal;
 
-layout (set = 1, binding = 0) uniform CameraUbo
+layout (set = 0, binding = 0) uniform CameraUbo
 {
 	mat4 mvp;
 
 } camera_ubo;
 
-layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
+layout (set = 1, binding = 0) uniform Dynamic_StaticMeshUbo
 {
 	mat4 modelMatrix;
 } mesh_ubo;

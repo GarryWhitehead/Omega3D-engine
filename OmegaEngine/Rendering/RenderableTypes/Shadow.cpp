@@ -58,12 +58,12 @@ namespace OmegaEngine
 	{
 		// load shaders - using the same shaders as the mesh, as we want to draw the vertices data, but aren't interested in colour information just depth
 		if (type == MeshManager::MeshType::Static) {
-			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "shadow-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex)) {
 				LOGGER_ERROR("Unable to create static shadow shaders.");
 			}
 		}
 		else if (type == MeshManager::MeshType::Skinned) {
-			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "shdaow-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex)) {
 				LOGGER_ERROR("Unable to create skinned shadow shaders.");
 			}
 		}

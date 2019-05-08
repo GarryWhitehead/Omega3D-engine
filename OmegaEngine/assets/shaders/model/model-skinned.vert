@@ -9,18 +9,18 @@ layout (location = 5) in vec4 inBoneId;
 
 #define MAX_BONES 6
 
-layout (set = 1, binding = 0) uniform CameraUbo
+layout (set = 0, binding = 0) uniform CameraUbo
 {
 	mat4 mvp;
 
 } camera_ubo;
 
-layout (set = 2, binding = 0) uniform Dynamic_StaticMeshUbo
+layout (set = 1, binding = 0) uniform Dynamic_StaticMeshUbo
 {
 	mat4 modelMatrix;
 } mesh_ubo;
 
-layout (set = 3, binding = 0) uniform Dynamic_SkinnedUbo
+layout (set = 1, binding = 1) uniform Dynamic_SkinnedUbo
 {
 	mat4 bones[MAX_BONES];
 	float jointCount;

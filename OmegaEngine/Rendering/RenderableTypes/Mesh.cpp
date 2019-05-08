@@ -165,7 +165,7 @@ namespace OmegaEngine
 
 		// inform the texture manager the layout of textures associated with the mesh shader
 		// TODO : automate this somehow rather than hard coded values
-		const uint8_t material_set = 0;
+		const uint8_t material_set = 2;
 		if (type == MeshManager::MeshType::Static) {
 			texture_manager->bind_textures_to_layout("Mesh", &state->descr_layout, material_set);
 		}

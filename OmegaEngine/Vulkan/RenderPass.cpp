@@ -145,6 +145,26 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
+		else if (depend_template == DependencyTemplate::DepthStencil_Subpass_Top)
+		{
+			depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+			depend.dstSubpass = 0;
+			depend.srcStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+			depend.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+			depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
+			depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
+		}
+		else if (depend_template == DependencyTemplate::DepthStencil_Subpass_Bottom)
+		{
+			depend.srcSubpass = 0;
+			depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+			depend.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+			depend.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
+			depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+			depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
+		}
 		dependency.push_back(depend);
 	}
 

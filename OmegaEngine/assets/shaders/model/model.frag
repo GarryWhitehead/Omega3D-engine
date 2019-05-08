@@ -1,10 +1,10 @@
 #version 450
 
-layout (set = 0, binding = 0) uniform sampler2D baseColourMap;
-layout (set = 0, binding = 1) uniform sampler2D normalMap;
-layout (set = 0, binding = 2) uniform sampler2D mrMap;
-layout (set = 0, binding = 3) uniform sampler2D emissiveMap;
-layout (set = 0, binding = 4) uniform sampler2D aoMap;
+layout (set = 2, binding = 0) uniform sampler2D baseColourMap;
+layout (set = 2, binding = 1) uniform sampler2D normalMap;
+layout (set = 2, binding = 2) uniform sampler2D mrMap;
+layout (set = 2, binding = 3) uniform sampler2D emissiveMap;
+layout (set = 2, binding = 4) uniform sampler2D aoMap;
 
 layout (location = 0) in vec2 inUv0;
 layout (location = 1) in vec2 inUv1;

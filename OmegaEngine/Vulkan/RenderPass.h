@@ -14,7 +14,8 @@ namespace VulkanAPI
 		Multi_Subpass,
 		Stencil_Subpass_Bottom,
 		Stencil_Subpass_Fragment,
-		Count
+		DepthStencil_Subpass_Top,
+		DepthStencil_Subpass_Bottom,
 	};
 
 	class RenderPass

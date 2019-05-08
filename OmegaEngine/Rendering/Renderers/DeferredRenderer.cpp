@@ -91,11 +91,14 @@ namespace OmegaEngine
 		// renderpass
 		shadow_renderpass.init(device);
 		shadow_renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);	
+		shadow_renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Top);
+		shadow_renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Bottom);
 		shadow_renderpass.prepareRenderPass();
 
 		// framebuffer
 		shadow_image.create_empty_image(device, gpu, depth_format, render_config.shadow_width, render_config.shadow_height,
 			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+
 		shadow_renderpass.prepareFramebuffer(shadow_image.get_image_view(), render_config.shadow_width, render_config.shadow_height, 1);
 	}
 
