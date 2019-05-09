@@ -82,8 +82,7 @@ namespace OmegaEngine
 
 	struct ShadowComponent : public ComponentBase
 	{
-		ShadowComponent(uint32_t _index, float clamp, float constant, float slope) :
-			index(_index),
+		ShadowComponent(float clamp, float constant, float slope) :
 			bias_clamp(clamp),
 			bias_constant(constant),
 			bias_slope(slope),

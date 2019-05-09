@@ -68,10 +68,17 @@ namespace OmegaEngine
 
 		// renderable type creation
 		template <typename T, typename... Args>
-		void add_renderable(Args&&... args)
+		uint32_t add_renderable(Args&&... args)
 		{
 			T* renderable = new T(std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
+			return renderables.size() - 1;
+		}
+
+		RenderableInfo& get_renderable(uint32_t index)
+		{
+			assert(index < renderables.size());
+			return renderables[index];
 		}
 
 		template<typename T, typename... Args>

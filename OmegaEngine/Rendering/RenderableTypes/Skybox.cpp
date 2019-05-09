@@ -18,6 +18,11 @@ namespace OmegaEngine
 		instance_data = new SkyboxInstance;
 		SkyboxInstance* skybox_instance = reinterpret_cast<SkyboxInstance*>(instance_data);
 		
+		// create the sorting key for this mesh
+		sort_key = RenderQueue::create_sort_key(RenderStage::First, 0, RenderTypes::Skybox);
+
+		queue_type = QueueType::Forward;
+
 		skybox_instance->state = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
 		skybox_instance->blur_factor = component.blur_factor;
 	}

@@ -107,16 +107,11 @@ namespace OmegaEngine
 
 		ProgramState* state = instance_data->state;
 
-		std::vector<uint32_t> dynamic_offsets{ instance_data->transform_dynamic_offset };
-		if (instance_data->type == MeshManager::MeshType::Skinned) {
-			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
-		}
-
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
 		cmd_buffer.setDepthBias(instance_data->bias_constant, instance_data->bias_clamp, instance_data->bias_slope);
 		cmd_buffer.bind_pipeline(state->pipeline);
-		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_descriptors(state->pl_layout, state->descr_set, VulkanAPI::PipelineType::Graphics);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

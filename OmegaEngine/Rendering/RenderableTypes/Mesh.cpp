@@ -21,16 +21,17 @@ namespace OmegaEngine
 {
 
 	RenderableMesh::RenderableMesh(vk::Device& device,
-									std::unique_ptr<ComponentInterface>& component_interface,
-									std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
-									std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
-									MeshManager::StaticMesh mesh, 
-									MeshManager::PrimitiveMesh primitive,
-									Object& obj, 
-									RenderInterface* render_interface) :
+		std::unique_ptr<ComponentInterface>& component_interface,
+		std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+		std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
+		MeshManager::StaticMesh mesh,
+		MeshManager::PrimitiveMesh primitive,
+		Object& obj,
+		RenderInterface* render_interface) :
 		RenderableBase(RenderTypes::StaticMesh)
 	{
-		
+		VulkanAPI::VkTextureManager::TextureLayoutInfo layout_info;
+
 		// get the material for this primitive mesh from the manager
 		auto& material_manager = component_interface->getManager<MaterialManager>();
 		auto& mat = material_manager.get(primitive.materialId);
@@ -45,49 +46,41 @@ namespace OmegaEngine
 		// skinned ior non-skinned mesh?
 		mesh_instance_data->type = mesh.type;
 
+		// queue type - opaque or transparent texture
+		if (mat.factors.alphaMask == MaterialInfo::AlphaMode::Opaque)
+		{
+			queue_type = QueueType::Opaque;
+		}
+		else if (mat.factors.alphaMask == MaterialInfo::AlphaMode::Blend)
+		{
+			queue_type = QueueType::Transparent;
+		}
+
+		auto& transform_manager = component_interface->getManager<TransformManager>();
+		mesh_instance_data->transform_dynamic_offset = transform_manager.get_transform_offset(obj.get_id());
+
 		// pointer to the mesh pipeline
 		if (mesh.type == MeshManager::MeshType::Static) {
 			mesh_instance_data->state = render_interface->get_render_pipeline(RenderTypes::StaticMesh).get();
+			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("StaticVertices");
+			layout_info = texture_manager->get_texture_descr_layout("Mesh");
 		}
 		else {
 			mesh_instance_data->state = render_interface->get_render_pipeline(RenderTypes::SkinnedMesh).get();
+			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("SkinnedVertices");
+			layout_info = texture_manager->get_texture_descr_layout("SkinnedMesh");
+			mesh_instance_data->skinned_dynamic_offset = transform_manager.get_skinned_offset(obj.get_id());
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
 		mesh_instance_data->vertex_offset = mesh.vertex_buffer_offset;
 		mesh_instance_data->index_offset = mesh.index_buffer_offset;
-
-		// actual vulkan buffers
-		if (mesh.type == MeshManager::MeshType::Static) {
-			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("StaticVertices");
-		}
-		else {
-			mesh_instance_data->vertex_buffer = buffer_manager->get_buffer("SkinnedVertices");
-		}
-		
 		mesh_instance_data->index_buffer = buffer_manager->get_buffer("Indices");
-		
-		// dynamic buffer offset to point at the transform matrix for this mesh
-		auto& transform_manager = component_interface->getManager<TransformManager>();
-		mesh_instance_data->transform_dynamic_offset = transform_manager.get_transform_offset(obj.get_id());
-		if (mesh.type == MeshManager::MeshType::Skinned) {
-			mesh_instance_data->skinned_dynamic_offset = transform_manager.get_skinned_offset(obj.get_id());
-		}
 		
 		// per face indicies
 		mesh_instance_data->index_primitive_offset = primitive.indexBase;
 		mesh_instance_data->index_primitive_count = primitive.indexCount;
 			
-		// materials 
-		// create a descriptor set for this material
-		VulkanAPI::VkTextureManager::TextureLayoutInfo layout_info;
-		if (mesh.type == MeshManager::MeshType::Static) {
-			layout_info = texture_manager->get_texture_descr_layout("Mesh");
-		}
-		else if (mesh.type == MeshManager::MeshType::Skinned) {
-			layout_info = texture_manager->get_texture_descr_layout("SkinnedMesh");
-		}
-
 		mesh_instance_data->descr_set.init(device, *layout_info.layout, layout_info.set_num); 
 		texture_manager->update_material_descr_set(mesh_instance_data->descr_set, mat.name, layout_info.set_num);
 
@@ -98,7 +91,7 @@ namespace OmegaEngine
 		mesh_instance_data->material_push_block.emissiveFactor = mat.factors.emissive;
 		mesh_instance_data->material_push_block.specularFactor = mat.factors.specular;
 		mesh_instance_data->material_push_block.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.x, mat.factors.diffuse.y, mat.factors.diffuse.z };
-		mesh_instance_data->material_push_block.alphaMask = mat.factors.alphaMask;
+		mesh_instance_data->material_push_block.alphaMask = (float)mat.factors.alphaMask;
 		mesh_instance_data->material_push_block.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
 		mesh_instance_data->material_push_block.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor] ? 1 : 0;
 		mesh_instance_data->material_push_block.haveMrMap = mat.texture_state[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;

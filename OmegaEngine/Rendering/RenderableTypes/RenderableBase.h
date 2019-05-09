@@ -55,6 +55,12 @@ namespace OmegaEngine
 			return type;
 		}
 
+		template <typename T>
+		T* get_instance_data()
+		{
+			return reinterpret_cast<T*>(instance_data);
+		}
+
 		void* get_instance_data()
 		{
 			return instance_data;

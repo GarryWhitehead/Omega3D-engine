@@ -107,6 +107,10 @@ namespace OmegaEngine
 		if (parser.get_environment().skybox_filename)
 		{
 			asset_manager->load_image_file(parser.get_environment().skybox_filename);
+
+			// add skybox as a object - TODO: blur factor should be obtained from the config settings
+			auto obj = objectManager->createObject();
+			obj->add_component<SkyboxComponent>(0.5f);
 		}
 		if (parser.get_environment().brdf_filename)
 		{

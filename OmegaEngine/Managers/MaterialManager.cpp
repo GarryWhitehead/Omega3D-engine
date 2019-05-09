@@ -80,11 +80,11 @@ namespace OmegaEngine
 			tinygltf::Parameter param = gltf_mat.additionalValues["alphaMode"];
 			if (param.string_value == "BLEND") 
 			{
-				mat.alphaMode = MaterialInfo::AlphaMode::Blend;
+				mat.factors.alphaMask = MaterialInfo::AlphaMode::Blend;
 			}
 			if (param.string_value == "MASK") 
 			{
-				mat.alphaMode = MaterialInfo::AlphaMode::Mask;
+				mat.factors.alphaMask = MaterialInfo::AlphaMode::Mask;
 			}
 		}
 		if (gltf_mat.additionalValues.find("alphaCutOff") != gltf_mat.additionalValues.end()) 
@@ -147,7 +147,7 @@ namespace OmegaEngine
 		materials.push_back(mat);
 	}
 
-	MaterialManager::MaterialInfo& MaterialManager::get(uint32_t index)
+	MaterialInfo& MaterialManager::get(uint32_t index)
 	{
 		assert(index < materials.size());
 		return materials[index];

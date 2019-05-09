@@ -1,8 +1,8 @@
 #pragma once
 #include "RenderableBase.h"
 #include "Rendering/RenderInterface.h"
-#include "Vulkan/BufferManager.h"
 #include "Managers/MeshManager.h"
+#include "Rendering/RenderableTypes/Mesh.h"
 
 //forward declerations
 namespace VulkanAPI
@@ -38,7 +38,7 @@ namespace OmegaEngine
 			float bias_slope = 0.0f;
 		};
 
-		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, MeshManager::StaticMesh mesh);
+		RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, RenderableMesh::MeshInstance* mesh_instance);
 		~RenderableShadow();
 		
 		static void create_shadow_pipeline(vk::Device& device,

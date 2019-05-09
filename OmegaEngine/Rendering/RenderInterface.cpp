@@ -154,13 +154,13 @@ namespace OmegaEngine
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives) 
 		{
-			add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(),
+			uint32_t index = add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(),
 				vk_interface->get_texture_manager(), mesh, primitive, obj, this);
 			
 			// if using shadows, then draw the meshes into the offscreen depth buffer too
 			obj.add_component<ShadowComponent>(render_config.bias_clamp, render_config.bias_constant, render_config.bias_slope);
 
-			add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), vk_interface->get_buffer_manager(), mesh);
+			add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), get_renderable(index).renderable->get_instance_data<RenderableMesh::MeshInstance>());
 		}
 	
 		// and do the same for all children associated with this mesh
@@ -183,10 +183,6 @@ namespace OmegaEngine
 				if (object.second.hasComponent<MeshComponent>())
 				{
 					build_renderable_mesh_tree(object.second, comp_interface, false);
-				}
-				if (object.second.hasComponent<ShadowComponent>())
-				{
-					build_renderable_mesh_tree(object.second, comp_interface, true);
 				}
 				if (object.second.hasComponent<SkyboxComponent>())
 				{
