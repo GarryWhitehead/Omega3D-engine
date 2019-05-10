@@ -2,6 +2,8 @@
 #include "Utility/logger.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderCommon.h"
+#include "Rendering/RenderableTypes/Shadow.h"
+#include "Rendering/RenderableTypes/Skybox.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
@@ -28,16 +30,20 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		if (render_config.general.use_skybox) {
-			forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
-		}
+		forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
 		obj_cmd_buffer_handle = cmd_buffer_manager->create_instance();
 
 		// set up the deferred passes and shadow stuff
 		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
 		create_gbuffer_pass();
+
 		// 2. render the objects again but this time into a depth buffer for shadows
-		create_shadow_pass();
+		RenderableShadow::create_shadow_pass(shadow_renderpass, shadow_image, device, gpu, 
+			render_config.shadow_format, render_config.shadow_width, render_config.shadow_height);
+
+		RenderableSkybox::create_skybox_pass(forward_pass, forward_offscreen_image, forward_offscreen_depth_image, 
+			device, gpu, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height);
+
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
 		create_deferred_pass(buffer_manager, swapchain);
 	}
@@ -84,53 +90,9 @@ namespace OmegaEngine
 			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
 	}
 
-	void DeferredRenderer::create_shadow_pass()
-	{
-		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
-		
-		// renderpass
-		shadow_renderpass.init(device);
-		shadow_renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);	
-		shadow_renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Top);
-		shadow_renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Bottom);
-		shadow_renderpass.prepareRenderPass();
-
-		// framebuffer
-		shadow_image.create_empty_image(device, gpu, depth_format, render_config.shadow_width, render_config.shadow_height,
-			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
-
-		shadow_renderpass.prepareFramebuffer(shadow_image.get_image_view(), render_config.shadow_width, render_config.shadow_height, 1);
-	}
 
 	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
 	{
-		// if we are using the colour image for further manipulation (e.g. post-process) render into offscreen buffer, otherwise render into swapchain buffer
-		if (render_config.general.use_skybox) {
-
-			vk::Format forward_format = vk::Format::eR16G16B16A16Sfloat;
-			vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
-
-			// now create the renderpasses and frame buffers
-			forward_pass.init(device);
-			forward_pass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, forward_format);
-			forward_pass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
-			forward_pass.prepareRenderPass();
-
-			// colour
-			forward_offscreen_image.create_empty_image(device, gpu, forward_format, 
-				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 
-				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
-
-			// depth - this will be blitted with the depth buffer from the previous pass
-			forward_offscreen_depth_image.create_empty_image(device, gpu, depth_format,
-				render_config.deferred.offscreen_width, render_config.deferred.offscreen_height,
-				1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-
-			// frame buffer prep
-			std::vector<vk::ImageView> image_views{ forward_offscreen_image.get_image_view() , forward_offscreen_depth_image.get_image_view() };
-			forward_pass.prepareFramebuffer(image_views.size(), image_views.data(), render_config.deferred.offscreen_width, render_config.deferred.offscreen_height, 1);
-		}
-		
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!state.shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) {
 			LOGGER_ERROR("Unable to load deferred renderer shaders.");

@@ -9,6 +9,7 @@ namespace VulkanAPI
 {
 	class BufferManager;
 	class SecondaryCommandBuffer;
+	class Texture;
 }
 
 namespace OmegaEngine
@@ -33,6 +34,10 @@ namespace OmegaEngine
 			uint32_t vertex_offset = 0;
 			uint32_t index_offset = 0;
 
+			uint32_t transform_dynamic_offset = 0;
+			uint32_t skinned_dynamic_offset = 0;
+			MeshManager::MeshType mesh_type;
+
 			float bias_constant = 0.0f;
 			float bias_clamp = 0.0f;
 			float bias_slope = 0.0f;
@@ -47,6 +52,12 @@ namespace OmegaEngine
 										std::unique_ptr<ProgramState>& state,
 										MeshManager::MeshType type);
 		
+		static void create_shadow_pass(VulkanAPI::RenderPass& renderpass, 
+										VulkanAPI::Texture& image,
+										vk::Device& device, vk::PhysicalDevice& gpu, 
+										const vk::Format format, 
+										const uint32_t width, const uint32_t height);
+
 		// used to get the address of this instance
 		void* get_handle() override
 		{

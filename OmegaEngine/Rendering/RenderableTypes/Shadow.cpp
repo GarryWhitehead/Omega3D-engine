@@ -5,6 +5,7 @@
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderCommon.h"
+#include "Vulkan/DataTypes/Texture.h"
 #include "Utility/logger.h"
 #include "Objects/ObjectTypes.h"
 
@@ -32,10 +33,13 @@ namespace OmegaEngine
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
+		shadow_instance->mesh_type = mesh_instance->type;
 		shadow_instance->vertex_offset = mesh_instance->vertex_offset;
 		shadow_instance->index_offset = mesh_instance->index_offset;
 		shadow_instance->vertex_buffer = mesh_instance->vertex_buffer;
 		shadow_instance->index_buffer = mesh_instance->index_buffer;
+		shadow_instance->transform_dynamic_offset = mesh_instance->transform_dynamic_offset;
+		shadow_instance->skinned_dynamic_offset = mesh_instance->skinned_dynamic_offset;
 
 		shadow_instance->bias_clamp = component.bias_clamp;
 		shadow_instance->bias_constant = component.bias_constant;
@@ -100,6 +104,24 @@ namespace OmegaEngine
 		state->pipeline.create(device, renderer->get_shadow_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
 	}
 
+	void RenderableShadow::create_shadow_pass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, 
+		vk::Device& device, vk::PhysicalDevice& gpu, const vk::Format format, const uint32_t width, const uint32_t height)
+	{
+		
+		// renderpass
+		renderpass.init(device);
+		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, format);
+		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Top);
+		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Bottom);
+		renderpass.prepareRenderPass();
+
+		// framebuffer
+		image.create_empty_image(device, gpu, format, width, height,
+			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+
+		renderpass.prepareFramebuffer(image.get_image_view(), width, height, 1);
+	}
+
 	void RenderableShadow::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
 								void* instance)
 	{
@@ -108,7 +130,7 @@ namespace OmegaEngine
 		ProgramState* state = instance_data->state;
 
 		std::vector<uint32_t> dynamic_offsets{ instance_data->transform_dynamic_offset };
-		if (instance_data->type == MeshManager::MeshType::Skinned) {
+		if (instance_data->mesh_type == MeshManager::MeshType::Skinned) {
 			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
 		}
 
@@ -116,7 +138,7 @@ namespace OmegaEngine
 		cmd_buffer.set_scissor();
 		cmd_buffer.setDepthBias(instance_data->bias_constant, instance_data->bias_clamp, instance_data->bias_slope);
 		cmd_buffer.bind_pipeline(state->pipeline);
-		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, state->descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
 		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);

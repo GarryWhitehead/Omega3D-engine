@@ -1,8 +1,9 @@
 #pragma once
 
-#include <array>
-
+#include "Vulkan/Common.h"
 #include "rapidjson/document.h"
+
+#include <array>
 
 namespace OmegaEngine
 {
@@ -49,6 +50,8 @@ namespace OmegaEngine
 		// shadows
 		uint32_t shadow_width = 2048;
 		uint32_t shadow_height = 2048;
+		vk::Format shadow_format = vk::Format::eD16Unorm;
+
 		float bias_constant = 1.25f;
 		float bias_slope = 1.75f;
 		float bias_clamp = 0.0f;

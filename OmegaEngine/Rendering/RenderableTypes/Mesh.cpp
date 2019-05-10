@@ -180,7 +180,6 @@ namespace OmegaEngine
 		state->pipeline.create(device, renderer->get_first_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
 	}
 
-
 	void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
 								void* instance)
 	{
@@ -193,14 +192,14 @@ namespace OmegaEngine
 
 		// merge the material set with the mesh ubo sets
 		ProgramState* state = instance_data->state;
-		std::vector<vk::DescriptorSet> material_set = state->descr_set.get();
+		std::vector<vk::DescriptorSet> material_set = instance_data->descr_set.get();
 		std::vector<vk::DescriptorSet> mesh_set = state->descr_set.get();
-		material_set.insert(material_set.end(), mesh_set.begin(), mesh_set.end());
+		mesh_set.insert(mesh_set.end(), material_set.begin(), material_set.end());
 
 		cmd_buffer.set_viewport();
 		cmd_buffer.set_scissor();
 		cmd_buffer.bind_pipeline(state->pipeline);
-		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, material_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, mesh_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
 		cmd_buffer.bind_push_block(state->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instance_data->material_push_block);
 
 		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };

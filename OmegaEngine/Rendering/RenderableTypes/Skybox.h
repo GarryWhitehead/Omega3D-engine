@@ -9,6 +9,7 @@ namespace VulkanAPI
 	class BufferManager;
 	class VkTextureManager;
 	class SecondaryCommandBuffer;
+	class Texture;
 }
 
 namespace OmegaEngine
@@ -43,6 +44,9 @@ namespace OmegaEngine
 										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
 										std::unique_ptr<ProgramState>& state);
 		
+		static void create_skybox_pass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depth_image,
+			vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height);
+
 		// used to get the address of this instance
 		void* get_handle() override
 		{

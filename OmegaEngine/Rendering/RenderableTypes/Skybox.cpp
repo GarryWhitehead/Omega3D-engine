@@ -2,6 +2,7 @@
 #include "Vulkan/Shader.h"
 #include "Vulkan/VkTextureManager.h"
 #include "Vulkan/CommandBuffer.h"
+#include "Vulkan/DataTypes/Texture.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Objects/ObjectTypes.h"
@@ -82,6 +83,31 @@ namespace OmegaEngine
 		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_forward_pass());
 		state->pipeline.create(device, renderer->get_forward_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
+	}
+
+	void RenderableSkybox::create_skybox_pass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depth_image, 
+		vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height)
+	{
+		vk::Format format = vk::Format::eR16G16B16A16Sfloat;
+		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+
+		// now create the renderpasses and frame buffers
+		renderpass.init(device);
+		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, format);
+		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
+		renderpass.prepareRenderPass();
+
+		// colour
+		image.create_empty_image(device, gpu, format, width, height,
+			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+
+		// depth - this will be blitted with the depth buffer from the previous pass
+		depth_image.create_empty_image(device, gpu, depth_format,
+			width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+
+		// frame buffer prep
+		std::vector<vk::ImageView> image_views{ image.get_image_view() , depth_image.get_image_view() };
+		renderpass.prepareFramebuffer(image_views.size(), image_views.data(), width, height, 1);
 	}
 
 	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
