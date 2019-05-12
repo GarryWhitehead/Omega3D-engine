@@ -15,49 +15,58 @@ namespace VulkanAPI
 	class Image;
 	class ImageView;
 
-	enum class TextureType
-	{
-		Normal,
-		Array,
-		Cube,
-		CubeArray
-	};
-
 	class Texture 
 	{
 
 	public:
 
 		Texture();
-		Texture(TextureType type);
+		Texture(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
 		~Texture();
 
-		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue, TextureType type);
-		void create_empty_image(vk::Device& device, vk::PhysicalDevice& gpu, vk::Format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags);
+		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
+		void init(vk::Device dev, vk::PhysicalDevice phys);
+
+		void create_empty_image(vk::Format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags);
 		void map(OmegaEngine::MappedTexture& tex);
 		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
 
 		vk::ImageView& get_image_view();
 
-		vk::Format& format()
+		vk::Format& get_format()
 		{
-			return tex_format;
-		}
-
-		TextureType type() const
-		{
-			return tex_type;
-		}
-
-		void setType(const TextureType type)
-		{
-			tex_type = type;
+			return format;
 		}
 
 		Image& get_image()
 		{
-			return tex_image;
+			return image;
+		}
+
+		uint32_t get_width() const
+		{
+			return width;
+		}
+
+		uint32_t get_height() const
+		{
+			return height;
+		}
+
+		uint32_t get_faces() const
+		{
+			return faces;
+		}
+
+		uint32_t get_array_count() const
+		{
+			return arrays;
+		}
+
+		uint32_t get_mip_levels() const
+		{
+			return mip_levels;
 		}
 
 	private:
@@ -67,15 +76,15 @@ namespace VulkanAPI
 		Queue graph_queue;
 
 		// texture info
-		TextureType tex_type;
-		vk::Format tex_format;
-		uint32_t tex_width = 0;
-		uint32_t tex_height = 0;
-		uint8_t tex_layers = 0;
-		uint32_t mip_levels = 0;
+		vk::Format format;
+		uint32_t width = 0;
+		uint32_t height = 0;
+		uint32_t faces = 1;
+		uint32_t arrays = 1;
+		uint32_t mip_levels = 1;
 
-		Image tex_image;
-		ImageView tex_imageView;
+		Image image;
+		ImageView imageView;
 	};
 
 }

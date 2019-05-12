@@ -22,9 +22,14 @@ namespace OmegaEngine
 		bool map_texture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps = false);
 		bool create_empty_texture(uint32_t w, uint32_t h, bool setToBlack);
 		
-		uint32_t size() const
+		uint32_t get_image_size() const
 		{
-			return width * height * 4;		// must be rgba
+			return width * height * 4;	// must be rgba
+		}
+
+		uint32_t get_size() const
+		{
+			return (width * height * 4 * faces) * array_count;		
 		}
 
 		void* data()
@@ -45,6 +50,16 @@ namespace OmegaEngine
 		uint32_t tex_height() const
 		{
 			return height;
+		}
+
+		uint32_t get_num_faces() const
+		{
+			return faces;
+		}
+
+		uint32_t get_array_count() const
+		{
+			return array_count;
 		}
 
 		vk::Format& get_format()

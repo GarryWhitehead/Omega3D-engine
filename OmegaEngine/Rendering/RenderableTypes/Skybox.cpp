@@ -98,11 +98,11 @@ namespace OmegaEngine
 		renderpass.prepareRenderPass();
 
 		// colour
-		image.create_empty_image(device, gpu, format, width, height,
+		image.create_empty_image(format, width, height,
 			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 
 		// depth - this will be blitted with the depth buffer from the previous pass
-		depth_image.create_empty_image(device, gpu, depth_format,
+		depth_image.create_empty_image(depth_format,
 			width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// frame buffer prep

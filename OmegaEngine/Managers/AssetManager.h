@@ -29,6 +29,6 @@ namespace OmegaEngine
         // mip-maps associated with them
         std::unordered_map<std::string, MappedTexture> images;
 
-		bool isDirty = true;
+		bool isDirty = false;
     };
 }

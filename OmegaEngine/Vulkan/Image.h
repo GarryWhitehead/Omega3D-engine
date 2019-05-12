@@ -6,15 +6,17 @@
 namespace VulkanAPI
 {
 	// forward decleartions
-	enum class TextureType;
 	class Image;
 	class Queue;
+	class Texture;
 
 	class ImageView
 	{
 	public:
 
 		ImageView();
+
+		static vk::ImageViewType get_texture_type(uint32_t faces, uint32_t array_count);
 
 		void create(vk::Device dev, Image& image);
 
@@ -40,7 +42,7 @@ namespace VulkanAPI
 		Image();
 		~Image();
 
-		void create(vk::Device dev, vk::PhysicalDevice& gpu, vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags, TextureType type);
+		void create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usage_flags);
 		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer& cmdBuff);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
 		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue, vk::ImageAspectFlagBits aspect_flags);
@@ -50,14 +52,19 @@ namespace VulkanAPI
 			return image;
 		}
 
-		vk::Format& format()
+		vk::Format& get_format()
 		{
-			return image_format;
+			return format;
 		}
 
-		TextureType textureType() const
+		uint32_t get_faces() const
 		{
-			return image_type;
+			return faces;
+		}
+
+		uint32_t get_array_count() const
+		{
+			return arrays;
 		}
 
 	private:
@@ -65,15 +72,14 @@ namespace VulkanAPI
 		vk::Device device;
 
 		vk::Image image;
-		vk::Format image_format;
+		vk::Format format;
 		vk::DeviceMemory image_memory;
 
-		uint32_t image_width;
-		uint32_t image_height;
-		int image_layers = 1;
-		int image_mip_levels = 0;
-
-		TextureType image_type;
+		uint32_t width;
+		uint32_t height;
+		uint32_t faces = 1;
+		uint32_t arrays = 1;
+		uint32_t mip_levels = 1;
 	};
 
 }

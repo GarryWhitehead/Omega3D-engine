@@ -154,7 +154,8 @@ namespace VulkanAPI
 	{
 		// depth image
 		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
-		depth_texture.create_empty_image(dev, gpu, depth_format, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		depth_texture.init(dev, gpu);
+		depth_texture.create_empty_image(depth_format, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		renderpass.init(dev);
 		renderpass.addAttachment(vk::ImageLayout::ePresentSrcKHR, format.format);

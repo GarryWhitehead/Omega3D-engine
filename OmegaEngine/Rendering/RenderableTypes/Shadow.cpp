@@ -116,7 +116,7 @@ namespace OmegaEngine
 		renderpass.prepareRenderPass();
 
 		// framebuffer
-		image.create_empty_image(device, gpu, format, width, height,
+		image.create_empty_image(format, width, height,
 			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 
 		renderpass.prepareFramebuffer(image.get_image_view(), width, height, 1);

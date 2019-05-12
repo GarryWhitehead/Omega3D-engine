@@ -26,7 +26,7 @@ namespace VulkanAPI
 		assert(event.mapped_tex != nullptr);
 
 		MaterialTextureInfo tex_info;
-		tex_info.texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
+		tex_info.texture.init(device, gpu, graph_queue);
 		tex_info.texture.map(*event.mapped_tex);
 		tex_info.sampler.create(device, event.sampler);
 		tex_info.binding = event.binding;
@@ -106,7 +106,7 @@ namespace VulkanAPI
 		assert(event.mapped_tex != nullptr);
 
 		TextureInfo tex_info;
-		tex_info.texture.init(device, gpu, graph_queue, VulkanAPI::TextureType::Normal);
+		tex_info.texture.init(device, gpu, graph_queue);
 		tex_info.texture.map(*event.mapped_tex);
 
 		textures[event.id.c_str()] = tex_info;

@@ -22,8 +22,8 @@ namespace OmegaEngine
 			const vk::Format lut_format = vk::Format::eR16G16Sfloat;
 			vk::ClearColorValue clear_value;
 
-			VulkanAPI::Texture texture(VulkanAPI::TextureType::Normal);
-			texture.create_empty_image(device, gpu, lut_format, lut_dim, lut_dim, 1, vk::ImageUsageFlagBits::eColorAttachment);
+			VulkanAPI::Texture texture(device, gpu, graph_queue);
+			texture.create_empty_image(lut_format, lut_dim, lut_dim, 1, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// setup renderpass
 			VulkanAPI::RenderPass renderpass(device);
@@ -66,12 +66,12 @@ namespace OmegaEngine
 			vk::ClearColorValue clear_value;
 			
 			// cube texture
-			VulkanAPI::Texture cube_tex(VulkanAPI::TextureType::CubeArray);
-			cube_tex.create_empty_image(device, gpu, vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
+			VulkanAPI::Texture cube_tex(device, gpu, graph_queue);
+			cube_tex.create_empty_image(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// offscreen texture
-			VulkanAPI::Texture offscreen_tex(VulkanAPI::TextureType::Normal);
-			offscreen_tex.create_empty_image(device, gpu, vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
+			VulkanAPI::Texture offscreen_tex(device, gpu, graph_queue);
+			offscreen_tex.create_empty_image(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mip_levels, vk::ImageUsageFlagBits::eColorAttachment);
 
 			// renderpass and framebuffer
 			VulkanAPI::RenderPass renderpass(device);

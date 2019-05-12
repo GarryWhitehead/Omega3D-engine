@@ -136,6 +136,9 @@ namespace OmegaEngine
 		// animation
 		animation_manager->update_anim(time, dt, component_interface->getManager<TransformManager>());
 
+		// newly added assets need to be hosted on the gpu
+		asset_manager->update();
+
 		// all other managers
 		component_interface->update_managers(time, dt, objectManager);
 
