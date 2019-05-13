@@ -77,7 +77,7 @@ namespace OmegaEngine
 		};
 
 		World();
-		World(Managers managers, VulkanAPI::Device& device, EngineConfig& engine_config);
+		World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engine_config);
 		~World();
 
 		bool create(const char* filename);

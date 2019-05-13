@@ -18,7 +18,7 @@ namespace VulkanAPI
 		Swapchain();
 		~Swapchain();
 		
-		void create(Device& device, const uint32_t screenWidth, const uint32_t screenHeight);
+		void create(std::unique_ptr<Device>& device, const uint32_t screenWidth, const uint32_t screenHeight);
 
 		// frame submit and presentation to the swapchain
 		void begin_frame(vk::Semaphore& image_semaphore);

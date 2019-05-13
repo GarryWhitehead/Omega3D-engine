@@ -20,19 +20,23 @@ namespace VulkanAPI
 														uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
 	{
 		// ignore access mask false positive
-		if (strcmp(layer_prefix, "DS") == 0 && code == 10) {
+		if (strcmp(layer_prefix, "DS") == 0 && code == 10) 
+		{
 			return VK_FALSE;
 		}
 
-		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) {
+		if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT) 
+		{
 			std::cerr << "Vulkan Error:" << layer_prefix << ": " << msg << "\n";
 			return VK_FALSE;
 		}
-		if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) {
+		if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT) 
+		{
 			std::cerr << "Vulkan Warning:" << layer_prefix << ": " << msg << "\n";
 			return VK_FALSE;
 		}
-		else {
+		else
+		{
 			// just output this as a log
 			LOGGER_INFO("Vulkan Information: %s: %s\n", layer_prefix, msg);
 		}
@@ -43,41 +47,49 @@ namespace VulkanAPI
 															VkDebugUtilsMessageTypeFlagsEXT type,
 															const VkDebugUtilsMessengerCallbackDataEXT* data, void* user_data)
 	{
-		switch (severity) {
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
-			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
+		switch (severity) 
+		{
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+				if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) 
+				{
+					std::cerr << "Validation Error: " << data->pMessage << "\n";
+				}
+				else
+				{
+					std::cerr << "Other Error: " << data->pMessage << "\n";
+				}
+				break;
 
-				std::cerr << "Validation Error: " << data->pMessage << "\n";
-			}
-			else {
-				std::cerr << "Other Error: " << data->pMessage << "\n";
-			}
-			break;
+			case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+				if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)
+				{
+					std::cerr << "Validation Warning: " << data->pMessage << "\n";
+				}
+				else 
+				{
+					std::cerr << "Other Warning: " << data->pMessage << "\n";
+				}
+				break;
 
-		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
-			if (type == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
-				std::cerr << "Validation Warning: " << data->pMessage << "\n";
-			}
-			else {
-				std::cerr << "Other Warning: " << data->pMessage << "\n";
-			}
-			break;
-
-		default:
-			break;
+			default:
+				break;
 		}
 
 		bool log_object_names = false;
-		for (uint32_t i = 0; i < data->objectCount; i++) {
+		for (uint32_t i = 0; i < data->objectCount; i++) 
+		{
 			auto *name = data->pObjects[i].pObjectName;
-			if (name) {
+			if (name) 
+			{
 				log_object_names = true;
 				break;
 			}
 		}
 
-		if (log_object_names) {
-			for (uint32_t i = 0; i < data->objectCount; i++) {
+		if (log_object_names) 
+		{
+			for (uint32_t i = 0; i < data->objectCount; i++) 
+			{
 				auto *name = data->pObjects[i].pObjectName;
 				LOGGER_INFO("  Object #%u: %s\n", i, name ? name : "N/A");
 			}
@@ -91,26 +103,35 @@ namespace VulkanAPI
 	{
 		static vk::Format find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu)
 		{
-			for (auto format : formats) {
+			vk::Format output_format;
+
+			for (auto format : formats) 
+			{
 				vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-				if (tiling == vk::ImageTiling::eLinear && format_feature == (properties.linearTilingFeatures & format_feature)) {
-					return format;
+				if (tiling == vk::ImageTiling::eLinear && format_feature == (properties.linearTilingFeatures & format_feature)) 
+				{
+					output_format = format;
 				}
-				else if (tiling == vk::ImageTiling::eOptimal && format_feature == (properties.optimalTilingFeatures & format_feature)) {
-					return format;
+				else if (tiling == vk::ImageTiling::eOptimal && format_feature == (properties.optimalTilingFeatures & format_feature)) 
+				{
+					output_format = format;
 				}
-				else {
-					throw std::runtime_error("Error! Unable to find supported vulkan format");
+				else 
+				{
+					LOGGER_ERROR("Error! Unable to find supported vulkan format");
 				}
 			}
+			return output_format;
 		}
 	}
 
 	bool Device::find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties)
 	{
-		for (auto& ext : properties) {
-			if (strcmp(ext.extensionName, name)) {
+		for (auto& ext : properties) 
+		{
+			if (strcmp(ext.extensionName, name)) 
+			{
 				return true;
 			}
 		}
@@ -142,31 +163,37 @@ namespace VulkanAPI
 
 		// glfw extensions
 		std::vector<const char*> extensions;
-		for (uint32_t c = 0; c < extCount; ++c) {
+		for (uint32_t c = 0; c < extCount; ++c) 
+		{
 			extensions.push_back(glfwExtension[c]);
 		}
 
 		// extension properties
 		std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
 
-		for (uint32_t i = 0; i < extCount; ++i) {
-			if (!find_ext_properties(extensions[i], extensionProps)) {
+		for (uint32_t i = 0; i < extCount; ++i) 
+		{
+			if (!find_ext_properties(extensions[i], extensionProps)) 
+			{
 				LOGGER_ERROR("Unable to find required extension properties for GLFW.");
 				throw std::runtime_error("Unable to initiliase Vulkan due to missing extension properties.");
 			}
 		}
 
-		if (find_ext_properties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps)) {
+		if (find_ext_properties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps)) 
+		{
 			extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 			device_ext.has_physical_device_props2 = true;
 
-			if (find_ext_properties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && find_ext_properties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) {
+			if (find_ext_properties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && find_ext_properties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) 
+			{
 				extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 				extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
 				device_ext.has_external_capabilities = true;
 			}
 		}
-		if (find_ext_properties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps)) {
+		if (find_ext_properties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps)) 
+		{
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 			device_ext.has_debug_utils = true;
 		}
@@ -174,9 +201,12 @@ namespace VulkanAPI
 		// layer extensions, if any
 		std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
 
-		auto findLayerExt = [&](const char *name) -> bool {
-			for (auto& ext : layerExt) {
-				if (strcmp(ext.layerName, name)) {
+		auto findLayerExt = [&](const char *name) -> bool 
+		{
+			for (auto& ext : layerExt) 
+			{
+				if (strcmp(ext.layerName, name)) 
+				{
 					return true;
 				}
 			}
@@ -185,15 +215,18 @@ namespace VulkanAPI
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
-		if (findLayerExt("VK_LAYER_LUNARG_standard_validation")) {
+		if (findLayerExt("VK_LAYER_LUNARG_standard_validation")) 
+		{
 			req_layers.push_back("VK_LAYER_LUNARG_standard_validation");
 		}
-		else {
+		else 
+		{
 			LOGGER_INFO("Unable to find validation standard layers.");
 		}
 
 		// if debug utils isn't supported, try debug report
-		if (!device_ext.has_debug_utils && find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) {
+		if (!device_ext.has_debug_utils && find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
+		{
 			extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);		
 		}
 #endif
@@ -211,8 +244,8 @@ namespace VulkanAPI
 
 		vk::DispatchLoaderDynamic dldi(instance);
 
-		if (device_ext.has_debug_utils) {
-
+		if (device_ext.has_debug_utils) 
+		{
 			vk::DebugUtilsMessengerCreateInfoEXT create_info({},
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
@@ -221,8 +254,8 @@ namespace VulkanAPI
 
 			auto debugReport = instance.createDebugUtilsMessengerEXT(&create_info, nullptr, &debug_messenger, dldi);
 		}
-		else if (find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) {
-
+		else if (find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
+		{
 			vk::DebugReportCallbackCreateInfoEXT create_info(
 				vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning,
 				DebugCallBack, this);
@@ -230,14 +263,13 @@ namespace VulkanAPI
 			instance.createDebugReportCallbackEXT(&create_info, nullptr, &debug_callback, dldi);
 		}
 #endif
-
 	}
 
 	void Device::prepareDevice()
 	{
-		if (!instance) {
+		if (!instance) 
+		{
 			LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
-			throw std::runtime_error("Error whilst initialising device");
 		}
 
 		// find a suitable gpu - at the moment this is pretty basic - find a gpu and that will do. In the future, find the best match
@@ -254,7 +286,6 @@ namespace VulkanAPI
 		if (!physical)
 		{
 			LOGGER_ERROR("Critcal error! No Vulkan supported GPU devices were found.");
-			throw std::runtime_error("Unable to find any vulkan-supported GPUs");
 		}
 
 		// Also get all the device extensions for querying later
@@ -268,7 +299,8 @@ namespace VulkanAPI
 		{
 			VkBool32 have_present_queue = false;
 			physical.getSurfaceSupportKHR(c, win_surface, &have_present_queue);
-			if (queues[c].queueCount > 0 && have_present_queue) {
+			if (queues[c].queueCount > 0 && have_present_queue) 
+			{
 				queue_family_index.present = c;
 				break;
 			}
@@ -277,7 +309,8 @@ namespace VulkanAPI
 		// graphics queue - if possible, use seperate queues for compute and graphic transfer
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) {
+			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) 
+			{
 				queue_family_index.graphics = c;
 				break;
 			}
@@ -286,7 +319,8 @@ namespace VulkanAPI
 		// compute queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			if (queues[c].queueCount > 0 && c != queue_family_index.present && queues[c].queueFlags & vk::QueueFlagBits::eCompute) {
+			if (queues[c].queueCount > 0 && c != queue_family_index.present && queues[c].queueFlags & vk::QueueFlagBits::eCompute) 
+			{
 				queue_family_index.compute = c;
 				break;
 			}
@@ -296,12 +330,11 @@ namespace VulkanAPI
 		if (queue_family_index.present == VK_QUEUE_FAMILY_IGNORED)
 		{
 			LOGGER_ERROR("Critcal error! Required queues not found.");
-			throw std::runtime_error("Error. Unable to initiliase presention queue.");
 		}
 
 		// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
-		if (queue_family_index.compute == VK_QUEUE_FAMILY_IGNORED) {
-			
+		if (queue_family_index.compute == VK_QUEUE_FAMILY_IGNORED) 
+		{
 			queue_family_index.compute = queue_family_index.graphics;
 		}
 
@@ -309,7 +342,8 @@ namespace VulkanAPI
 		std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
 		std::set<int> uniqueQueues = { queue_family_index.graphics, queue_family_index.present, queue_family_index.compute };
 
-		for (auto& queue : uniqueQueues) {
+		for (auto& queue : uniqueQueues) 
+		{
 			vk::DeviceQueueCreateInfo createInfo({}, queue, 1, &queuePriority);
 			queueInfo.push_back(createInfo);
 		}
@@ -317,28 +351,35 @@ namespace VulkanAPI
 		// enable required device features
 		vk::PhysicalDeviceFeatures req_features;
 		vk::PhysicalDeviceFeatures features = physical.getFeatures();
-		if (features.textureCompressionETC2) {
+		if (features.textureCompressionETC2) 
+		{
 			req_features.textureCompressionETC2 = VK_TRUE;
 		}
-		if (features.textureCompressionBC) {
+		if (features.textureCompressionBC) 
+		{
 			req_features.textureCompressionBC = VK_TRUE;
 		}
-		if (features.samplerAnisotropy) {
+		if (features.samplerAnisotropy)
+		{
 			req_features.samplerAnisotropy = VK_TRUE;
 		}
-		if (features.tessellationShader) {
+		if (features.tessellationShader) 
+		{
 			req_features.tessellationShader = VK_TRUE;
 		}
-		if (features.geometryShader) {
+		if (features.geometryShader) 
+		{
 			req_features.geometryShader = VK_TRUE;
 		}
-		if (features.shaderStorageImageExtendedFormats) {
+		if (features.shaderStorageImageExtendedFormats) 
+		{
 			req_features.shaderStorageImageExtendedFormats = VK_TRUE;
 		}
 
 		const std::vector<const char*> swapChainExt = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-		if (!find_ext_properties(swapChainExt[0], extensions)) {
+		if (!find_ext_properties(swapChainExt[0], extensions)) 
+		{
 			LOGGER_ERROR("Critical error! Swap chain extension not found.");
 			throw std::runtime_error("No swap chain extensions found.");
 		}
@@ -366,18 +407,19 @@ namespace VulkanAPI
 
 	uint32_t Device::getQueueIndex(QueueType type) const
 	{
-		switch (type) {
-		case QueueType::Graphics:
-			return queue_family_index.graphics;
-			break;
-		case QueueType::Present:
-			return queue_family_index.present;
-			break;
-		case QueueType::Compute:
-			return queue_family_index.compute;
-			break;
-		default:
-			return -1;
+		switch (type) 
+		{
+			case QueueType::Graphics:
+				return queue_family_index.graphics;
+				break;
+			case QueueType::Present:
+				return queue_family_index.present;
+				break;
+			case QueueType::Compute:
+				return queue_family_index.compute;
+				break;
+			default:
+				return -1;
 		}
 	}
 
@@ -385,16 +427,17 @@ namespace VulkanAPI
 	{
 		VulkanAPI::Queue ret_queue;
 
-		switch (type) {
-		case QueueType::Graphics:
-			ret_queue = graphQueue;
-			break;
-		case QueueType::Present:
-			ret_queue = presentQueue;
-			break;
-		case QueueType::Compute:
-			ret_queue = computeQueue;
-			break;
+		switch (type) 
+		{
+			case QueueType::Graphics:
+				ret_queue = graphQueue;
+				break;
+			case QueueType::Present:
+				ret_queue = presentQueue;
+				break;
+			case QueueType::Compute:
+				ret_queue = computeQueue;
+				break;
 		}
 
 		return ret_queue;

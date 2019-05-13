@@ -32,7 +32,7 @@ namespace OmegaEngine
 	{
 	}
 
-	RenderInterface::RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type) :
+	RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type) :
 		scene_type(type)
 	{
 		init(device, width, height);
@@ -43,7 +43,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void RenderInterface::init(VulkanAPI::Device& device, const uint32_t width, const uint32_t height)
+	void RenderInterface::init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height)
 	{
 		// load the render config file if it exsists
 		render_config.load();

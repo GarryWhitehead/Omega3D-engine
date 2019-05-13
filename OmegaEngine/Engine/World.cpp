@@ -41,7 +41,7 @@ namespace OmegaEngine
 
 	}
 
-	World::World(Managers managers, VulkanAPI::Device& device, EngineConfig& engine_config)
+	World::World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engine_config)
 	{
 		// all the boiler plater needed to generate the manager and interface instances
 		objectManager = std::make_unique<ObjectManager>();

@@ -54,10 +54,10 @@ namespace OmegaEngine
 		};
 
 		RenderInterface();
-		RenderInterface(VulkanAPI::Device& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type);
+		RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type);
 		~RenderInterface();
 
-		void init(VulkanAPI::Device& device, const uint32_t width, const uint32_t height);
+		void init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height);
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order

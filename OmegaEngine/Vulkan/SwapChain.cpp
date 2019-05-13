@@ -9,18 +9,18 @@ namespace VulkanAPI
 	{
 	}
 
-	void Swapchain::create(Device& device, const uint32_t screen_width, const uint32_t screen_height)
+	void Swapchain::create(std::unique_ptr<Device>& device, const uint32_t screen_width, const uint32_t screen_height)
 	{
-		dev = device.getDevice();
-		gpu = device.getPhysicalDevice();
+		dev = device->getDevice();
+		gpu = device->getPhysicalDevice();
 
 		// Get the basic surface properties of the physical device
 		uint32_t surfaceCount = 0;
 
-		auto& gpu = device.getPhysicalDevice();
-		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(device.getSurface());
-		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(device.getSurface());
-		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(device.getSurface());
+		auto& gpu = device->getPhysicalDevice();
+		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(device->getSurface());
+		std::vector<vk::SurfaceFormatKHR> formats = gpu.getSurfaceFormatsKHR(device->getSurface());
+		std::vector<vk::PresentModeKHR> present_modes = gpu.getSurfacePresentModesKHR(device->getSurface());
 
 		// make sure that we have suitable swap chain extensions available before continuing
 		if (formats.empty() || present_modes.empty()) {
@@ -83,8 +83,8 @@ namespace VulkanAPI
 		std::vector<uint32_t> queue_family_indicies;
 		vk::SharingMode sharing_mode = vk::SharingMode::eExclusive;
 
-		auto graphIndex = device.getQueueIndex(Device::QueueType::Graphics);
-		auto presentIndex = device.getQueueIndex(Device::QueueType::Present);
+		auto graphIndex = device->getQueueIndex(Device::QueueType::Graphics);
+		auto presentIndex = device->getQueueIndex(Device::QueueType::Present);
 
 		if (graphIndex != presentIndex)
 		{
@@ -94,7 +94,7 @@ namespace VulkanAPI
 		}
 
 		vk::SwapchainCreateInfoKHR createInfo({},
-			device.getSurface(),
+			device->getSurface(),
 			imageCount,
 			req_surf_format.format,
 			req_surf_format.colorSpace,
@@ -107,7 +107,7 @@ namespace VulkanAPI
 			vk::CompositeAlphaFlagBitsKHR::eOpaque,
 			req_mode, VK_TRUE, {});
 
-		auto& dev = device.getDevice();
+		auto& dev = device->getDevice();
 
 		// And finally, create the swap chain
 		VK_CHECK_RESULT(dev.createSwapchainKHR(&createInfo, nullptr, &swapchain));
@@ -118,7 +118,7 @@ namespace VulkanAPI
 		for (int c = 0; c < images.size(); ++c)
 		{
 			ImageView imageView; 
-		    imageView.create(device.getDevice(), images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
+		    imageView.create(device->getDevice(), images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
 			image_views.push_back(imageView);
 		}
 

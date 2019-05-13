@@ -20,7 +20,7 @@ namespace VulkanAPI
 
 	public:
 
-		Interface(VulkanAPI::Device device, uint32_t win_width, uint32_t win_height, NewFrameMode mode);
+		Interface(std::unique_ptr<VulkanAPI::Device>& device, uint32_t win_width, uint32_t win_height, NewFrameMode mode);
 		~Interface();
 
 		vk::Device& get_device()
