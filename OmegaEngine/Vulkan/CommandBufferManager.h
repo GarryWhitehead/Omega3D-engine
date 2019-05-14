@@ -56,9 +56,9 @@ namespace VulkanAPI
 
 		std::unique_ptr<CommandBuffer>& begin_present_cmd_buffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index);
 
-		size_t get_present_count() const
+		uint32_t get_present_count() const
 		{
-			return present_cmd_buffers.size();
+			return static_cast<uint32_t>(present_cmd_buffers.size());
 		}
 
         bool is_recorded(CmdBufferHandle handle)

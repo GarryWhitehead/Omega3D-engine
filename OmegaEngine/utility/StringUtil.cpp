@@ -14,7 +14,7 @@ namespace StringUtil
 		size_t pos = str.find_last_of(identifier);
 		if (pos == std::string::npos)
 		{
-			fprintf(stderr, "Error! The input string doesn't contain identifier %s.\n", identifier);
+			fprintf(stderr, "Error! The input string doesn't contain identifier.\n");
 			return "";
 		}
 

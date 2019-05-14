@@ -107,7 +107,7 @@ namespace OmegaEngine
 
 		// frame buffer prep
 		std::vector<vk::ImageView> image_views{ image.get_image_view() , depth_image.get_image_view() };
-		renderpass.prepareFramebuffer(image_views.size(), image_views.data(), width, height, 1);
+		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), width, height, 1);
 	}
 
 	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 

@@ -68,7 +68,7 @@ namespace OmegaEngine
         uint32_t thread_count = 0;
 
         // TODO: threading is a bit crude at the mo - find a better way of splitting this up - maybe based on materials types, etc.
-        uint32_t thread_group_size = queue.size() / num_threads;
+        uint32_t thread_group_size = static_cast<uint32_t>(queue.size() / num_threads);
         thread_group_size = thread_group_size < 1 ? 1 : thread_group_size;
 
         for (uint32_t i = 0, thread = 0; i < queue.size(); i += thread_group_size, ++thread) {

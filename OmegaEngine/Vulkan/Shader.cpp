@@ -209,7 +209,7 @@ namespace VulkanAPI
 
 			// get push constants struct sizes if any
 			if (!shader_res.push_constant_buffers.empty()) {
-				p_info.add_push_constant((StageType)i, compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id)));
+				p_info.add_push_constant((StageType)i, (uint32_t)compiler.get_declared_struct_size(compiler.get_type(shader_res.push_constant_buffers.front().base_type_id)));
 			}
 		}
 	}

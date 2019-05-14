@@ -92,7 +92,7 @@ namespace VulkanAPI
 		}
 
 		assert(!pools.empty());
-		uint32_t set_count = layout_bind.layouts.size();
+		uint32_t set_count = static_cast<uint32_t>(layout_bind.layouts.size());
 		if (image_sets > 1) {
 			set_count += image_sets - 1;
 		}

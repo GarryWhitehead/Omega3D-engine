@@ -336,13 +336,13 @@ namespace OmegaEngine
 
 	uint32_t BVH::octreeSize() const
 	{
-		return octree->octree.size();
+		return static_cast<uint32_t>(octree->octree.size());
 	}
 
 
 	uint32_t BVH::primitiveExtentsSize() const
 	{
-		return primitiveExtents.size();
+		return static_cast<uint32_t>(primitiveExtents.size());
 	}
 
 }

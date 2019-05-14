@@ -30,7 +30,7 @@ namespace OmegaEngine
 			// TODO: update light positions, etc.
 
 			// now update ready for uploading on the gpu side
-			light_buffer.lightCount = lights.size();
+			light_buffer.lightCount = static_cast<uint32_t>(lights.size());
 
 			for (uint32_t i = 0; i < light_buffer.lightCount; ++i) 
 			{

@@ -121,9 +121,9 @@ namespace ImageUtility
 
 	private:
 
-		bool open(const char* filename, uint32_t& fileSize);
+		bool open(const char* filename, size_t& fileSize);
 		bool save(const char* filename, std::vector<uint8_t>& output);
-		bool parse(const uint32_t file_size);
+		bool parse(const size_t file_size);
 		std::vector<uint8_t> generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t array_count, uint32_t faces, uint32_t mip_levels);
 
 		// holds the binary file

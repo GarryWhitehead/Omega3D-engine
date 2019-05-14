@@ -39,7 +39,7 @@ namespace ImageUtility
 		return format;
 	}
 
-	bool KtxReader::open(const char* filename, uint32_t& fileSize)
+	bool KtxReader::open(const char* filename, size_t& fileSize)
 	{
 		FILE* file = fopen(filename, "rb");
 		if (!file) 
@@ -54,7 +54,7 @@ namespace ImageUtility
 
 		// load binary into vector for parsing
 		fileBuffer.resize(fileSize);
-		uint32_t readSize = fread(fileBuffer.data(), sizeof(uint8_t), fileSize, file);
+		size_t readSize = fread(fileBuffer.data(), sizeof(uint8_t), fileSize, file);
 		if (readSize != fileSize) 
 		{
 			return false;
@@ -73,7 +73,7 @@ namespace ImageUtility
 			return false;
 		}
 
-		uint32_t write_size = fwrite(data.data(), sizeof(uint8_t), data.size(), file);
+		size_t write_size = fwrite(data.data(), sizeof(uint8_t), data.size(), file);
 		if (write_size != data.size()) 
 		{
 			fprintf(stderr, "Error writing to file %s - incomplete.\n", filename);
@@ -84,7 +84,7 @@ namespace ImageUtility
 		return true;
 	}
 
-	bool KtxReader::parse(const uint32_t file_size)
+	bool KtxReader::parse(const size_t file_size)
 	{
 		std::vector<uint8_t>::iterator bufferPos = fileBuffer.begin();
 		
@@ -262,7 +262,7 @@ namespace ImageUtility
 			return true;
 		}
 		
-		uint32_t file_size = 0;
+		size_t file_size = 0;
 		if (!open(filename, file_size)) 
 		{
 			fprintf(stderr, "Unable to open .ktx file: %s.", filename);
@@ -281,14 +281,14 @@ namespace ImageUtility
 	{
 		if (!filename) 
 		{
-			fprintf(stderr, "No filename specified.\n", filename);
+			fprintf(stderr, "No filename specified.\n");
 			return false;
 		}
 
 		std::vector<uint8_t> output = generate(data, width, height, array_count, num_faces, mip_levels);
 		if (output.empty())
 		{
-			fprintf(stderr, "Error whilst generating ktx file binary.\n", filename);
+			fprintf(stderr, "Error whilst generating ktx file binary.\n");
 			return false;
 		}
 

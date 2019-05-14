@@ -24,10 +24,10 @@ namespace VulkanAPI
 	public: 
 
 		SecondaryCommandBuffer();
-		SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
+		SecondaryCommandBuffer(vk::Device dev, uint32_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
 		~SecondaryCommandBuffer();
 
-		void init(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
+		void init(vk::Device dev, uint32_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor);
 		void create();
 		void begin();
 		void end();
@@ -90,11 +90,11 @@ namespace VulkanAPI
         };
         
 		CommandBuffer();
-		CommandBuffer(vk::Device dev, uint64_t q_family_index);
-		CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type);
+		CommandBuffer(vk::Device dev, uint32_t q_family_index);
+		CommandBuffer(vk::Device dev, uint32_t q_family_index, UsageType type);
 		~CommandBuffer();
 
-		void init(vk::Device dev, uint64_t q_family_index);
+		void init(vk::Device dev, uint32_t q_family_index);
 		void create_primary();
 
 		void begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary = false);
@@ -150,7 +150,7 @@ namespace VulkanAPI
 	private:
 
 		vk::Device device;
-		uint64_t queue_family_index;
+		uint32_t queue_family_index;
 		
 		// the type of cmd buffer, single or multi use, will decide the types of cmd pool, etc. to use
 		UsageType usage_type;

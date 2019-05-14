@@ -52,7 +52,7 @@ namespace VulkanAPI
 	{
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index) :
+	CommandBuffer::CommandBuffer(vk::Device dev, uint32_t q_family_index) :
 		device(dev),
 		queue_family_index(q_family_index),
 		usage_type(UsageType::Single)
@@ -61,7 +61,7 @@ namespace VulkanAPI
 		create_cmd_pool();
 	}
 
-	CommandBuffer::CommandBuffer(vk::Device dev, uint64_t q_family_index, UsageType type) :
+	CommandBuffer::CommandBuffer(vk::Device dev, uint32_t q_family_index, UsageType type) :
 		device(dev),
 		queue_family_index(q_family_index),
 		usage_type(type)
@@ -75,7 +75,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void CommandBuffer::init(vk::Device dev, uint64_t q_family_index)
+	void CommandBuffer::init(vk::Device dev, uint32_t q_family_index)
 	{
 		device = dev;
 		queue_family_index = q_family_index;
@@ -113,8 +113,8 @@ namespace VulkanAPI
 		assert(framebuffer);
 
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
-		view_port = vk::Viewport(begin_info.renderArea.offset.x, begin_info.renderArea.offset.y,
-			begin_info.renderArea.extent.width, begin_info.renderArea.extent.height,
+		view_port = vk::Viewport((float)begin_info.renderArea.offset.x, (float)begin_info.renderArea.offset.y,
+			(float)begin_info.renderArea.extent.width, (float)begin_info.renderArea.extent.height,
 			0.0f, 1.0f);
 
 		scissor = vk::Rect2D({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
@@ -253,7 +253,7 @@ namespace VulkanAPI
 	{
 	}
 
-	SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
+	SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint32_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
 	{
 		init(dev, q_family_index, rpass, fbuffer, view, _scissor);
 	}
@@ -262,7 +262,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void SecondaryCommandBuffer::init(vk::Device dev, uint64_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
+	void SecondaryCommandBuffer::init(vk::Device dev, uint32_t q_family_index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
 	{
 		device = dev;
 		queue_family_index = q_family_index;
@@ -312,20 +312,22 @@ namespace VulkanAPI
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), 0, nullptr);
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 	}
 
 	void SecondaryCommandBuffer::bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
 		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, sets.size(), sets.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 
+			static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
 	}
 
 	void SecondaryCommandBuffer::bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector<vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, descr_set.size(), descr_set.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(descr_set.size()), 
+			descr_set.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
 	}
 
 	void SecondaryCommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)

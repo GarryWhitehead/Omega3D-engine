@@ -72,7 +72,7 @@ namespace OmegaEngine
 		{
 			T* renderable = new T(std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
-			return renderables.size() - 1;
+			return static_cast<uint32_t>(renderables.size() - 1);
 		}
 
 		RenderableInfo& get_renderable(uint32_t index)

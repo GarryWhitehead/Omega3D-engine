@@ -153,8 +153,8 @@ namespace VulkanAPI
 		// segments which are smaller than this value will be adjusted accordingly and aligned
 		vk::PhysicalDeviceProperties properties = gpu.getProperties();
 
-		size_t minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
-		size_t segment_size = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
+		vk::DeviceSize minUboAlignment = properties.limits.minUniformBufferOffsetAlignment;
+		uint32_t segment_size = (size + minUboAlignment - 1) & ~(minUboAlignment - 1);
 
 		// ensure that there is enough free space in this particular block to accomodate the data segment
 		uint32_t offset = findFreeSegment(block_id, segment_size);
@@ -187,7 +187,7 @@ namespace VulkanAPI
 		return id;
 	}
 
-	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const size_t segment_size)
+	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segment_size)
 	{
 		if (segment_size > mem_blocks[id].total_size) {
 			return UINT32_MAX;
@@ -322,13 +322,13 @@ namespace VulkanAPI
 	void MemoryAllocator::outputLog()
 	{
 		// just outputting to stderr for now. Would be useful to write to csv file at some point
-		LOGGER_INFO("Current memory blocks in use: %i", mem_blocks.size());
+		LOGGER_INFO("Current memory blocks in use: %zu", mem_blocks.size());
 		
 		for (auto& block : mem_blocks) {
 			LOGGER_INFO("-----------------------------------------\n");
 			LOGGER_INFO("Block Id #%i :\n", block.block_id);
 			LOGGER_INFO("Total size = %i\n", block.total_size);
-			LOGGER_INFO("Number of allocated segments: %i\n", block.alloc_segments.size());
+			LOGGER_INFO("Number of allocated segments: %zu\n", block.alloc_segments.size());
 			
 			LOGGER("Allocated segments.....\n");
 			uint32_t count = 0;

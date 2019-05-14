@@ -75,7 +75,7 @@ namespace OmegaEngine
 
 		uint32_t light_count() const
 		{
-			return lights.size();
+			return static_cast<uint32_t>(lights.size());
 		}
 
 		LightInfo& get_light(const uint32_t index) 

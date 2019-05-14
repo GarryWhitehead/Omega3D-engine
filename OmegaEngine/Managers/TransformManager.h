@@ -208,8 +208,8 @@ namespace OmegaEngine
 		std::vector<SkinInfo> skinBuffer;
 
 		// store locally the aligned buffer sizes
-		size_t transform_aligned = 0;
-		size_t skinned_aligned = 0;
+		uint32_t transform_aligned = 0;
+		uint32_t skinned_aligned = 0;
 
 		// transform data for each object which will be added to the GPU
 		TransformBufferInfo* transform_buffer_data = nullptr;

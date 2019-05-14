@@ -193,8 +193,8 @@ namespace VulkanAPI
 		update_vertex_input();
 
 		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
-		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
-		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D(view_port.width, view_port.height));
+		vk::Viewport view_port(0.0f, 0.0f, (float)renderpass.get_image_width(), (float)renderpass.get_image_height(), 0.0f, 1.0f);
+		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)view_port.width, (uint32_t)view_port.height));
 		viewport_state.pViewports = &view_port;
 		viewport_state.viewportCount = 1;
 		viewport_state.pScissors = &scissor;
@@ -228,8 +228,8 @@ namespace VulkanAPI
 		update_vertex_input();
 
 		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
-		vk::Viewport view_port(0.0f, 0.0f, renderpass.get_image_width(), renderpass.get_image_height(), 0.0f, 1.0f);
-		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D(view_port.width, view_port.height));
+		vk::Viewport view_port(0.0f, 0.0f, (float)renderpass.get_image_width(), (float)renderpass.get_image_height(), 0.0f, 1.0f);
+		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)view_port.width, (uint32_t)view_port.height));
 		viewport_state.pViewports = &view_port;
 		viewport_state.viewportCount = 1;
 		viewport_state.pScissors = &scissor;

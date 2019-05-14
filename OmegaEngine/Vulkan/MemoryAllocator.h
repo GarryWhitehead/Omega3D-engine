@@ -41,7 +41,7 @@ namespace VulkanAPI
 
 		MemorySegment() {}
 
-		MemorySegment(uint32_t id, uint32_t os, size_t sz) :
+		MemorySegment(uint32_t id, uint32_t os, uint32_t sz) :
 			block_id(id),
 			offset(os),
 			size(sz)
@@ -52,7 +52,7 @@ namespace VulkanAPI
 			return offset;
 		}
 
-		size_t get_size() const
+		uint32_t get_size() const
 		{
 			return size;
 		}
@@ -85,7 +85,7 @@ namespace VulkanAPI
 
 		int32_t block_id;			// index into memory block container
 		uint32_t offset;
-		size_t size;
+		uint32_t size;
 		void *data = nullptr;
 	};
 
@@ -147,7 +147,7 @@ namespace VulkanAPI
 		// segment functions
 		void destroySegment(MemorySegment &segment);
 		uint32_t findBlockType(MemoryUsage usage);
-		uint32_t findFreeSegment(uint32_t block_id, size_t size);
+		uint32_t findFreeSegment(uint32_t block_id, uint32_t size);
 
 		// the current device 
 		vk::Device device;

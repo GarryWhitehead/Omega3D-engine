@@ -329,7 +329,7 @@ namespace OEMaths
 	mat4f perspective(float fov, float aspect, float zNear, float zFar)
 	{
 		// fov to radians
-		float rad_fov = fov * M_PI / 180.0f;
+		float rad_fov = fov * (float)M_PI / 180.0f;
 		float tanHalfFov = std::tan(rad_fov * 0.5f);
 
 		mat4f result;

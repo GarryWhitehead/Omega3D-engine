@@ -135,7 +135,7 @@ namespace OmegaEngine
 
 					skinned_vertices.push_back(vertex);
 				}
-				local_vertex_offset += posAccessor.count;
+				local_vertex_offset += static_cast<uint32_t>(posAccessor.count);
 			}
 			else 
 			{
@@ -165,7 +165,7 @@ namespace OmegaEngine
 					
 					static_vertices.push_back(vertex);
 				}
-				local_vertex_offset += posAccessor.count;
+				local_vertex_offset += static_cast<uint32_t>(posAccessor.count);
 			}
 			
 			// Now obtain the indicies data from the gltf file

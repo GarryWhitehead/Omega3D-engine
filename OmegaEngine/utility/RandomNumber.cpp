@@ -18,7 +18,7 @@ int RandomNumber::GenerateNegInt(const int min, const int max, bool nonZero)
 
 	if (min < 0) {
 
-		posmin = fabs(min);
+		posmin = std::abs(min);
 		minmax = max + posmin;
 	}
 
@@ -55,9 +55,9 @@ float RandomNumber::GaussRandomNumber(const float max)
 	gen1 /= RAND_MAX;
 	gen2 /= RAND_MAX;
 
-	if (gen1 < 0.000001) {
-		gen1 = 0.000001;
+	if (gen1 < 0.000001f) {
+		gen1 = 0.000001f;
 	}
 
-	return sqrt(-2 * logf(gen1)) * cosf(2 * PI * gen2);
+	return sqrt(-2.0f * std::logf(gen1)) * cosf(2.0f * PI * gen2);
 }
