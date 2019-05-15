@@ -7,6 +7,16 @@
 
 namespace OEMaths
 {
+    vec4f vec4f::operator*(const vec4f& other) const
+	{
+		vec4f result;
+		result.x = x * other.x;
+		result.y = y * other.y;
+		result.z = z * other.z;
+		result.w = w * other.w;
+		return result;
+	}
+    
     void vec4f::convert_F(const float* data)
 	{
 		assert(data != nullptr);

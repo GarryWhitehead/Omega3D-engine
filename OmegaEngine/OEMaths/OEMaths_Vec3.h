@@ -40,24 +40,24 @@ namespace OEMaths
 		vec3f operator-(const vec3f& other) const;
 		vec3f operator+(const vec3f& other) const;
 		vec3f operator*(const vec3f& other) const;
-		vec3f operator*(const vec4f& other) const;
+		vec3f operator*(vec4f& other) const;
 		vec3f operator*(const float& other) const;
 		vec3f operator*(const mat4f& other) const;
 		vec3f operator/(const vec3f& other) const;
 		vec3f& operator-=(const vec3f& other);
 		vec3f& operator+=(const vec3f& other);
 
-        float getX()
+        float getX() const
         {
             return x;
         }
 
-        float getY()
+        float getY() const
         {
             return y;
         }
 
-        float getZ()
+        float getZ() const
         {
             return z;
         }

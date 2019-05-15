@@ -30,21 +30,40 @@ namespace OEMaths
 			w(in_w)
 		{}
 
+		float getX() const
+        {
+            return x;
+        }
+
+        float getY() const
+        {
+            return y;
+        }
+
+        float getZ() const
+        {
+            return z;
+        }
+
+        float getW() const
+        {
+            return w;
+        }
+
+		void convert_F(const float* data);
+		void convert_D(const double* data);
+
+		float length();
+		void normalise();
+		quatf linear_mix(quatf& q1, float u);
+		quatf cubic_mix(quatf& q1, quatf& q2, quatf& q3, float u);
+
+	private:
+
 		float x;
 		float y;
 		float z;
 		float w;
 	};
-
-	// quarternoin static functions
-	quatf convert_quatf_F(const float* data);
-	quatf convert_quatf_D(const double* data);
-
-	mat4f quat_to_mat4(quatf& q);
-	float length_quat(quatf& q);
-	quatf normalise_quat(quatf& q);
-	quatf linear_mix_quat(quatf& q1, quatf& q2, float u);
-	quatf cubic_mix_quat(quatf& q1, quatf& q2, quatf& q3, quatf& q4, float u);
-
 
 }

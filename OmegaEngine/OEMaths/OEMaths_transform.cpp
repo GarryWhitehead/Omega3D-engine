@@ -1,151 +1,35 @@
 #include "OEMaths_transform.h"
+#include "OEMaths/OEMaths_Mat4.h"
+#include "OEMaths/OEMaths_Vec3.h"
 
 namespace OEMaths
 {
-	// vec2 conversion ================================================================
-
-	
-
-	// vec3 transform functions ========================================================================================================
-
-	
-
-
-	// coversion from one vec type to another
-	vec4f vec3_to_vec4(vec3f v3, float w)
-	{
-		vec4f v4;
-		v4.x = v3.x;
-		v4.y = v3.y;
-		v4.z = v3.z;
-		v4.w = w;
-		return v4;
-	}
-
-	
-	// matrix conversion  ===============================================================================
-
-	mat4f convert_mat4_F(const float* data)
-	{
-		assert(data != nullptr);
-
-		mat4f mat;
-		float* ptr = (float*)data;
-
-		for (uint8_t col = 0; col < 4; ++col) {
-
-			vec4f vec;
-			vec.x = *ptr;
-			++ptr;
-			vec.y = *ptr;
-			++ptr;
-			vec.z = *ptr;
-			++ptr;
-			vec.w = *ptr;
-			++ptr;
-
-			mat(vec, col);
-		}
-		return mat;
-	}
-
-	mat4f convert_mat4_D(const double* data)
-	{
-		assert(data != nullptr);
-
-		mat4f mat;
-		double* ptr = (double*)data;
-
-		for (uint8_t col = 0; col < 4; ++col) {
-
-			vec4f vec;
-			vec.x = (float)*ptr;
-			++ptr;
-			vec.y = (float)*ptr;
-			++ptr;
-			vec.z = (float)*ptr;
-			++ptr;
-			vec.w = (float)*ptr;
-			++ptr;
-
-			mat(vec, col);
-		}
-		return mat;
-	}
-
-
-	// matrix TRS ========================================================================================
-
-	mat4f translate_mat4(vec3f& trans)
-	{
-		mat4f retMat;
-		retMat(3, 0) = trans.x;
-		retMat(3, 1) = trans.y;
-		retMat(3, 2) = trans.x;
-		retMat(3, 3) = 1.0f;
-
-		return retMat;
-	}
-
-	mat4f scale_mat4(vec3f& scale)
-	{
-		mat4f result;
-		result(0, 0) = scale.x;
-		result(1, 1) = scale.y;
-		result(2, 2) = scale.z;
-		result(3, 3) = 1.0f;
-		return result;
-	}
-
-	mat4f rotate_mat4(float theta, vec3f& axis)
-	{
-		mat4f retMat;
-		vec3f axis_norm = axis / (theta == 0.0f ? 1.0f : theta);	//avoid divide by zero
-		float xy = axis_norm.x * axis_norm.y;
-		float yz = axis_norm.y * axis_norm.z;
-		float zx = axis_norm.z * axis_norm.x;
-
-		float cosTheta = std::cos(theta);
-		float sinTheta = std::sin(theta);
-
-		retMat(0, 0) = cosTheta + axis_norm.x * axis_norm.x * (1.0f - cosTheta);
-		retMat(0, 1) = xy * (1.0f - cosTheta) - axis_norm.z * sinTheta;
-		retMat(0, 2) = zx * (1.0f - cosTheta) + axis_norm.y * sinTheta;
-
-		retMat(1, 0) = xy * (1.0f - cosTheta) + axis_norm.z * sinTheta;
-		retMat(1, 1) = cosTheta + axis_norm.y * axis_norm.y * (1.0f - cosTheta);
-		retMat(1, 2) = yz * (1.0f - cosTheta) - axis_norm.x * sinTheta;
-
-		retMat(2, 0) = zx * (1.0f - cosTheta) - axis_norm.y * sinTheta;
-		retMat(2, 1) = yz * (1.0f - cosTheta) + axis_norm.x * sinTheta;
-		retMat(2, 2) = cosTheta + axis_norm.z * axis_norm.z * (1.0f - cosTheta);
-
-		return retMat;
-	}
-
 	mat4f lookAt(vec3f& position, vec3f& target, vec3f& up_vec)
 	{
-		vec3f dir = normalise_vec3(target - position);
-		vec3f right = normalise_vec3(cross_vec3(up_vec, dir));
-		vec3f cam_up = normalise_vec3(cross_vec3(dir, right));
+		vec3f dir = target - position;
+		dir.normalise();
+		vec3f right = up_vec.cross(dir);
+		right.normalise();
+		vec3f cam_up = dir.cross(right);
+		cam_up.normalise();
 
 		// create the output lookat matrix
 		mat4f result;
-		result(0, 0) = right.x;
-		result(0, 1) = right.y;
-		result(0, 2) = right.z;
+		result(0, 0) = right.getX();
+		result(0, 1) = right.getY();
+		result(0, 2) = right.getZ();
 
-		result(1, 0) = cam_up.x;
-		result(1, 1) = cam_up.y;
-		result(1, 2) = cam_up.z;
+		result(1, 0) = cam_up.getX();
+		result(1, 1) = cam_up.getY();
+		result(1, 2) = cam_up.getZ();
 
-		result(2, 0) = dir.x;
-		result(2, 1) = dir.y;
-		result(2, 2) = dir.z;
+		result(2, 0) = dir.getX();
+		result(2, 1) = dir.getY();
+		result(2, 2) = dir.getZ();
 
-		result(3, 0) = -dot_vec3(right, position);
-		result(3, 1) = -dot_vec3(cam_up, position);
-		result(3, 2) = -dot_vec3(dir, position);
+		result(3, 0) = -right.dot(position);
+		result(3, 1) = -cam_up.dot(position);
+		result(3, 2) = -dir.dot(position);
 
 		return result;
 	}
@@ -192,141 +76,5 @@ namespace OEMaths
 		result(3, 2) = -(zFar + zNear) / (zFar - zNear);
 		return result;
 	}
-
-
-	mat4f mat4_inverse(mat4f& m)
-	{
-		mat4f inv;
-		mat4f result;
-		float det;
-
-		inv[0] = m[5] * m[10] * m[15] -
-			m[5] * m[11] * m[14] -
-			m[9] * m[6] * m[15] +
-			m[9] * m[7] * m[14] +
-			m[13] * m[6] * m[11] -
-			m[13] * m[7] * m[10];
-
-		inv[4] = -m[4] * m[10] * m[15] +
-			m[4] * m[11] * m[14] +
-			m[8] * m[6] * m[15] -
-			m[8] * m[7] * m[14] -
-			m[12] * m[6] * m[11] +
-			m[12] * m[7] * m[10];
-
-		inv[8] = m[4] * m[9] * m[15] -
-			m[4] * m[11] * m[13] -
-			m[8] * m[5] * m[15] +
-			m[8] * m[7] * m[13] +
-			m[12] * m[5] * m[11] -
-			m[12] * m[7] * m[9];
-
-		inv[12] = -m[4] * m[9] * m[14] +
-			m[4] * m[10] * m[13] +
-			m[8] * m[5] * m[14] -
-			m[8] * m[6] * m[13] -
-			m[12] * m[5] * m[10] +
-			m[12] * m[6] * m[9];
-
-		inv[1] = -m[1] * m[10] * m[15] +
-			m[1] * m[11] * m[14] +
-			m[9] * m[2] * m[15] -
-			m[9] * m[3] * m[14] -
-			m[13] * m[2] * m[11] +
-			m[13] * m[3] * m[10];
-
-		inv[5] = m[0] * m[10] * m[15] -
-			m[0] * m[11] * m[14] -
-			m[8] * m[2] * m[15] +
-			m[8] * m[3] * m[14] +
-			m[12] * m[2] * m[11] -
-			m[12] * m[3] * m[10];
-
-		inv[9] = -m[0] * m[9] * m[15] +
-			m[0] * m[11] * m[13] +
-			m[8] * m[1] * m[15] -
-			m[8] * m[3] * m[13] -
-			m[12] * m[1] * m[11] +
-			m[12] * m[3] * m[9];
-
-		inv[13] = m[0] * m[9] * m[14] -
-			m[0] * m[10] * m[13] -
-			m[8] * m[1] * m[14] +
-			m[8] * m[2] * m[13] +
-			m[12] * m[1] * m[10] -
-			m[12] * m[2] * m[9];
-
-		inv[2] = m[1] * m[6] * m[15] -
-			m[1] * m[7] * m[14] -
-			m[5] * m[2] * m[15] +
-			m[5] * m[3] * m[14] +
-			m[13] * m[2] * m[7] -
-			m[13] * m[3] * m[6];
-
-		inv[6] = -m[0] * m[6] * m[15] +
-			m[0] * m[7] * m[14] +
-			m[4] * m[2] * m[15] -
-			m[4] * m[3] * m[14] -
-			m[12] * m[2] * m[7] +
-			m[12] * m[3] * m[6];
-
-		inv[10] = m[0] * m[5] * m[15] -
-			m[0] * m[7] * m[13] -
-			m[4] * m[1] * m[15] +
-			m[4] * m[3] * m[13] +
-			m[12] * m[1] * m[7] -
-			m[12] * m[3] * m[5];
-
-		inv[14] = -m[0] * m[5] * m[14] +
-			m[0] * m[6] * m[13] +
-			m[4] * m[1] * m[14] -
-			m[4] * m[2] * m[13] -
-			m[12] * m[1] * m[6] +
-			m[12] * m[2] * m[5];
-
-		inv[3] = -m[1] * m[6] * m[11] +
-			m[1] * m[7] * m[10] +
-			m[5] * m[2] * m[11] -
-			m[5] * m[3] * m[10] -
-			m[9] * m[2] * m[7] +
-			m[9] * m[3] * m[6];
-
-		inv[7] = m[0] * m[6] * m[11] -
-			m[0] * m[7] * m[10] -
-			m[4] * m[2] * m[11] +
-			m[4] * m[3] * m[10] +
-			m[8] * m[2] * m[7] -
-			m[8] * m[3] * m[6];
-
-		inv[11] = -m[0] * m[5] * m[11] +
-			m[0] * m[7] * m[9] +
-			m[4] * m[1] * m[11] -
-			m[4] * m[3] * m[9] -
-			m[8] * m[1] * m[7] +
-			m[8] * m[3] * m[5];
-
-		inv[15] = m[0] * m[5] * m[10] -
-			m[0] * m[6] * m[9] -
-			m[4] * m[1] * m[10] +
-			m[4] * m[2] * m[9] +
-			m[8] * m[1] * m[6] -
-			m[8] * m[2] * m[5];
-
-		det = m[0] * inv[0] + m[1] * inv[4] + m[2] * inv[8] + m[3] * inv[12];
-
-		if (det == 0.0f) {
-			// just return a identity matrix
-			return result;
-		}
-
-		det = 1.0f / det;
-
-		for (uint32_t i = 0; i < 16; i++) {
-			result[i] = inv[i] * det;
-		}
-
-		return result;
-	}
-
 
 }

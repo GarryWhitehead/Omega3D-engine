@@ -47,28 +47,32 @@ namespace OEMaths
 			w(in_w)
 		{}
 
-        float getX()
+        float getX() const
         {
             return x;
         }
 
-        float getY()
+        float getY() const
         {
             return y;
         }
 
-        float getZ()
+        float getZ() const
         {
             return z;
         }
 
-        float getW()
+        float getW() const
         {
             return w;
         }
 
 		vec4f operator*(const vec4f& other) const;
 
+        friend mat4f operator*(const mat4f& m1, const mat4f& m2);
+        friend vec4f operator*(const vec4f& vec, const mat4f& mat);
+        friend vec4f operator*(const mat4f& mat, const vec4f& vec);
+        
         void convert_F(const float* data);
         void convert_D(const double* data);
         void convert_I16(const uint16_t* data);
