@@ -4,57 +4,11 @@ namespace OEMaths
 {
 	// vec2 conversion ================================================================
 
-	vec2f convert_vec2_F(const float* data)
-	{
-		assert(data != nullptr);
-		float* ptr = (float*)data;
-		vec2f vec;
-		vec.x = *ptr;
-		++ptr;
-		vec.y = *ptr;
-
-		return vec;
-	}
-
-	vec2f convert_vec2_D(const double* data)
-	{
-		assert(data != nullptr);
-		double* ptr = (double*)data;
-		vec2f vec;
-		vec.x = (float)*ptr;
-		++ptr;
-		vec.y = (float)*ptr;
-
-		return vec;
-	}
+	
 
 	// vec3 transform functions ========================================================================================================
 
-	vec3f convert_vec3_F(const float* data)
-	{
-		assert(data != nullptr);
-		float* ptr = (float*)data;
-		vec3f vec;
-		vec.x = *ptr;
-		++ptr;
-		vec.y = *ptr;
-		++ptr;
-		vec.z = *ptr;
-		return vec;
-	}
-
-	vec3f convert_vec3_D(const double* data)
-	{
-		assert(data != nullptr);
-		double* ptr = (double*)data;
-		vec3f vec;
-		vec.x = (float)*ptr;
-		++ptr;
-		vec.y = (float)*ptr;
-		++ptr;
-		vec.z = (float)*ptr;
-		return vec;
-	}
+	
 
 
 	// coversion from one vec type to another
@@ -68,126 +22,7 @@ namespace OEMaths
 		return v4;
 	}
 
-	// Vector math functions ==============================================================
-
-	float length_vec3(vec3f& v3)
-	{
-		return std::sqrt(v3.x * v3.x + v3.y * v3.y + v3.z * v3.z);
-	}
-
-	vec3f normalise_vec3(vec3f& v3)
-	{
-		vec3f retVec;
-		float length = length_vec3(v3);
-
-		retVec.x = v3.x / length;
-		retVec.y = v3.y / length;
-		retVec.z = v3.z / length;
-		return retVec;
-	}
-
-	vec3f cross_vec3(vec3f& v1, vec3f& v2)
-	{
-		vec3f retVec;
-		retVec.x = v1.y * v2.z - v1.z * v2.y;
-		retVec.y = v1.z * v2.x - v1.x * v2.z;
-		retVec.z = v1.x * v2.y - v1.y * v2.x;
-		return retVec;
-	}
-
-	float dot_vec3(vec3f& v1, vec3f& v2)
-	{
-		return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
-	}
-
-	// interpolation ===================================================================
-
-	vec3f mix_vec3(vec3f& v1, vec3f& v2, float u)
-	{
-		vec3f retVec;
-		retVec.x = v1.x * (1.0f - u) + v2.x * u;
-		retVec.y = v1.y * (1.0f - u) + v2.y * u;
-		retVec.z = v1.z * (1.0f - u) + v2.z * u;
-		return retVec;
-	}
-
-
-	// vec4 transform functions ========================================================================
-
-	vec4f convert_vec4_F(const float* data)
-	{
-		assert(data != nullptr);
-		float* ptr = (float*)data;
-		vec4f vec;
-		vec.x = *ptr;
-		++ptr;
-		vec.y = *ptr;
-		++ptr;
-		vec.z = *ptr;
-		++ptr;
-		vec.w = *ptr;
-		return vec;
-	}
-
-	vec4f convert_vec4_D(const double* data)
-	{
-		assert(data != nullptr);
-		double* ptr = (double*)data;
-		vec4f vec;
-		vec.x = (float)*ptr;
-		++ptr;
-		vec.y = (float)*ptr;
-		++ptr;
-		vec.z = (float)*ptr;
-		++ptr;
-		vec.w = (float)*ptr;
-		return vec;
-	}
-
-	vec4f convert_vec4_I16(const uint16_t* data)
-	{
-		assert(data != nullptr);
-		uint16_t* ptr = (uint16_t*)data;
-		vec4f vec;
-		vec.x = (float)*ptr;
-		++ptr;
-		vec.y = (float)*ptr;
-		++ptr;
-		vec.z = (float)*ptr;
-		++ptr;
-		vec.w = (float)*ptr;
-		return vec;
-	}
-
-	float length_vec4(vec4f& v4)
-	{
-		return std::sqrt(v4.x * v4.x + v4.y * v4.y + v4.z * v4.z + v4.w * v4.w);
-	}
-
-	vec4f normalise_vec4(vec4f& v4)
-	{
-		vec4f retVec;
-		float length = length_vec4(v4);
-
-		retVec.x = v4.x / length;
-		retVec.y = v4.y / length;
-		retVec.z = v4.z / length;
-		retVec.w = v4.w / length;
-		return retVec;
-	}
-
-	// interpolation =========================================================
-
-	vec4f mix_vec4(vec4f& v1, vec4f& v2, float u)
-	{
-		vec4f retVec;
-		retVec.x = v1.x * (1.0f - u) + v2.x * u;
-		retVec.y = v1.y * (1.0f - u) + v2.y * u;
-		retVec.z = v1.z * (1.0f - u) + v2.z * u;
-		retVec.w = v1.w * (1.0f - u) + v2.w * u;
-		return retVec;
-	}
-
+	
 	// matrix conversion  ===============================================================================
 
 	mat4f convert_mat4_F(const float* data)
