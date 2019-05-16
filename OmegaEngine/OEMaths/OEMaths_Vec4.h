@@ -47,6 +47,10 @@ namespace OEMaths
 			w(in_w)
 		{}
 
+		vec4f(const float* data);
+		vec4f(const double* data);
+		vec4f(const uint16_t* data);
+
         float getX() const
         {
             return x;
@@ -73,13 +77,9 @@ namespace OEMaths
         friend vec4f operator*(const vec4f& vec, const mat4f& mat);
         friend vec4f operator*(const mat4f& mat, const vec4f& vec);
         
-        void convert_F(const float* data);
-        void convert_D(const double* data);
-        void convert_I16(const uint16_t* data);
-
         float length();
         void normalise();
-        vec4f mix(vec4f& v1, float u);
+		void mix(vec4f& v1, vec4f& v2, float u);
 
     private:
 

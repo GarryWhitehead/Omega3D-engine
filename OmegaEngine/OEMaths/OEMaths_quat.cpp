@@ -4,9 +4,7 @@
 
 namespace OEMaths
 {
-
-	// conversion functions
-	void quatf::convert_F(const float* data)
+	quatf::quatf(const float* data)
 	{
 		assert(data != nullptr);
 		float* ptr = (float*)data;
@@ -20,7 +18,7 @@ namespace OEMaths
 		this->w = *ptr;
 	}
 
-	void quatf::convert_D(const double* data)
+	quatf::quatf(const double* data)
 	{
 		assert(data != nullptr);
 		double* ptr = (double*)data;
@@ -34,8 +32,6 @@ namespace OEMaths
 		this->w = (float)*ptr;
 	}
 
-	// conversion
-	
 	float quatf::length()
 	{
 		return std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z + this->w * this->w);
@@ -51,14 +47,12 @@ namespace OEMaths
 		this->w = this->w / l;
 	}
 
-	quatf quatf::linear_mix(quatf& q1, float u)
+	void quatf::linear_mix(quatf& q1, quatf& q2, float u)
 	{
-		quatf result;
-		result.x = this->x * (1.0f - u) + q1.x * u;
-		result.y = this->y * (1.0f - u) + q1.y * u;
-		result.z = this->z * (1.0f - u) + q1.z * u;
-		result.w = this->w * (1.0f - u) + q1.w * u;
-		return result;
+		this->x = q1.x * (1.0f - u) + q2.x * u;
+		this->y = q1.y * (1.0f - u) + q2.y * u;
+		this->z = q1.z * (1.0f - u) + q2.z * u;
+		this->w = q1.w * (1.0f - u) + q2.w * u;
 	}
 
 	quatf quatf::cubic_mix(quatf& q1, quatf& q2, quatf& q3, float u)

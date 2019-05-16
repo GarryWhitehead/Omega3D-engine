@@ -10,8 +10,6 @@ namespace OEMaths
 	class mat3f;
 	class mat4f;
 
-	// vec2 ==============================================
-
 	class vec2f
 	{
 	public:
@@ -32,6 +30,9 @@ namespace OEMaths
 			y(in_y)
 		{}
 
+		vec2f(const float* data);
+		vec2f(const double* data);
+
         float getX() const
         {
             return x;
@@ -41,9 +42,6 @@ namespace OEMaths
         {
             return y;
         }
-
-        void convert_F(const float* data);
-        void convert_D(const double* data);
 
     private:
 

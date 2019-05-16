@@ -90,7 +90,7 @@ namespace OmegaEngine
 		mesh_instance_data->material_push_block.roughnessFactor = mat.factors.roughness;
 		mesh_instance_data->material_push_block.emissiveFactor = mat.factors.emissive;
 		mesh_instance_data->material_push_block.specularFactor = mat.factors.specular;
-		mesh_instance_data->material_push_block.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.x, mat.factors.diffuse.y, mat.factors.diffuse.z };
+		mesh_instance_data->material_push_block.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.getX(), mat.factors.diffuse.getY(), mat.factors.diffuse.getZ() };
 		mesh_instance_data->material_push_block.alphaMask = (float)mat.factors.alphaMask;
 		mesh_instance_data->material_push_block.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
 		mesh_instance_data->material_push_block.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor] ? 1 : 0;

@@ -52,8 +52,8 @@ namespace OmegaEngine
 		}
 		if (node.rotation.size() == 4) 
 		{
-			OEMaths::quatf q = OEMaths::convert_quatf_D(node.rotation.data());
-			transform.set_rotation(q);
+			OEMaths::quatf quat(node.rotation.data());
+			transform.set_rotation(quat);
 		}
 
 		// world transform is obtained from the omega scene file
@@ -61,7 +61,7 @@ namespace OmegaEngine
 
 		if (node.matrix.size() == 16) 
 		{
-			transform.set_local_matrix(OEMaths::convert_mat4_D(node.matrix.data()));
+			transform.set_local_matrix(OEMaths::mat4f(node.matrix.data()));
 		}
 		
 		// also add index to skinning information if applicable
@@ -140,7 +140,7 @@ namespace OmegaEngine
 			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
 
 			OEMaths::mat4f mat = create_matrix(obj, obj_manager);
-			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+			transform_buff->model_matrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
 			++transform_buffer_size;
 
@@ -156,7 +156,7 @@ namespace OmegaEngine
 			skinned_buff->joint_count = joint_size;
 
 			// transform to local space
-			OEMaths::mat4f inv_mat = OEMaths::mat4_inverse(mat);
+			OEMaths::mat4f inv_mat = mat.inverse();
 
 			for (uint32_t i = 0; i < joint_size; ++i) 
 			{	
@@ -180,7 +180,7 @@ namespace OmegaEngine
 			transformBuffer[id].set_transform_offset(transform_buffer_size * transform_alignment);
 
 			OEMaths::mat4f mat = create_matrix(obj, obj_manager);
-			transform_buff->model_matrix = mat * OEMaths::scale_mat4(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+			transform_buff->model_matrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
 			++transform_buffer_size;
 		}
@@ -235,7 +235,7 @@ namespace OmegaEngine
 	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)
 	{
 		uint32_t id = obj.get_id();
-		transformBuffer[id].set_translation(OEMaths::vec3f{ trans.x, trans.y, trans.z });
+		transformBuffer[id].set_translation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		is_dirty = true;		
@@ -244,7 +244,7 @@ namespace OmegaEngine
 	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
 	{
 		uint32_t id = obj.get_id();
-		transformBuffer[id].set_scale(OEMaths::vec3f{ scale.x, scale.y, scale.z });
+		transformBuffer[id].set_scale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
 		is_dirty = true;
 	}
 

@@ -5,7 +5,7 @@
 
 namespace OEMaths
 {
-	void vec2f::convert_F(const float* data)
+	vec2f::vec2f(const float* data)
 	{
 		assert(data != nullptr);
 		float* ptr = (float*)data;
@@ -15,7 +15,7 @@ namespace OEMaths
 		this->y = *ptr;
 	}
 
-	void vec2f::convert_D(const double* data)
+	vec2f::vec2f(const double* data)
 	{
 		assert(data != nullptr);
 		double* ptr = (double*)data;

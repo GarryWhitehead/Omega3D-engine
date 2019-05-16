@@ -37,6 +37,9 @@ namespace OEMaths
 			z(in_z)
 		{}
 
+		vec3f(const float* data);
+		vec3f(const double* data);
+
 		vec3f operator-(const vec3f& other) const;
 		vec3f operator+(const vec3f& other) const;
 		vec3f operator*(const vec3f& other) const;
@@ -62,8 +65,22 @@ namespace OEMaths
             return z;
         }
 
-        void convert_vec3_F(const float* data);
-        void convert_vec3_D(const double* data);
+		void setX(const float x)
+		{
+			this->x = x;
+		}
+
+		void setY(const float y)
+		{
+			this->y = y;
+		}
+		
+		void setZ(const float z)
+		{
+			this->z = z;
+		}
+		
+
         float length();
         void normalise();
         vec3f cross(vec3f& v1);

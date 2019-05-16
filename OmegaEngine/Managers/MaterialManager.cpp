@@ -40,7 +40,7 @@ namespace OmegaEngine
 		}
 		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) 
 		{
-			mat.factors.baseColour = OEMaths::convert_vec4_D(gltf_mat.values["baseColorFactor"].ColorFactor().data());
+			mat.factors.baseColour = OEMaths::vec4f(gltf_mat.values["baseColorFactor"].ColorFactor().data());
 		}
 		if (gltf_mat.values.find("metallicFactor") != gltf_mat.values.end()) 
 		{
@@ -93,7 +93,7 @@ namespace OmegaEngine
 		}
 		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end())
 		{
-			mat.factors.emissive = OEMaths::convert_vec3_D(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
+			mat.factors.emissive = OEMaths::vec3f(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
 		}
 
 		// check for extensions
@@ -122,24 +122,28 @@ namespace OmegaEngine
 			{
 				auto factor = extension->second.Get("diffuseFactor");
 				auto value = factor.Get(0);
-				mat.factors.diffuse.x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 				value = factor.Get(1);
-				mat.factors.diffuse.y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 				value = factor.Get(2);
-				mat.factors.diffuse.z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 				value = factor.Get(3);
-				mat.factors.diffuse.w = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float w = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+
+				mat.factors.diffuse = OEMaths::vec4f(x, y, z, w);
 				mat.usingSpecularGlossiness = true;
 			}
 			if (extension->second.Has("specularFactor")) 
 			{
 				auto factor = extension->second.Get("specularFactor");
 				auto value = factor.Get(0);
-				mat.factors.specular.x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float x = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 				value = factor.Get(1);
-				mat.factors.specular.y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float y = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 				value = factor.Get(2);
-				mat.factors.specular.z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+				float z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
+
+				mat.factors.specular = OEMaths::vec3f(x, y, z);
 				mat.usingSpecularGlossiness = true;
 			}
 		}

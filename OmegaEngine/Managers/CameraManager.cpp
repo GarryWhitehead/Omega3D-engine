@@ -1,7 +1,6 @@
 #include "CameraManager.h"
 #include "Engine/Omega_Global.h"
 #include "OEMaths/OEMaths_transform.h"
-#include "OEMaths/OEMaths_convert.h"
 #include "Vulkan/BufferManager.h"
 
 #include <algorithm>
@@ -63,11 +62,15 @@ namespace OmegaEngine
 		}
 		if (event.isMovingLeft) 
 		{
-			current_pos -= OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
+			OEMaths::vec3f camera_right = front_vec.cross(camera.camera_up);
+			camera_right.normalise();
+			current_pos -=  camera_right * velocity;
 		}
 		if (event.isMovingRight) 
 		{
-			current_pos += OEMaths::normalise_vec3(OEMaths::cross_vec3(front_vec, camera.camera_up)) * velocity;
+			OEMaths::vec3f camera_right = front_vec.cross(camera.camera_up);
+			camera_right.normalise();
+			current_pos += camera_right * velocity;
 		}
 
 		isDirty = true;
@@ -78,10 +81,10 @@ namespace OmegaEngine
 		Camera& camera = cameras[camera_index];
 
 		//calculate the pitch and yaw vectors
-		front_vec.x = std::cos(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch));
-		front_vec.y = std::sin(OEMaths::radians(pitch));
-		front_vec.z = std::sin(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch));
-		front_vec = OEMaths::normalise_vec3(front_vec);
+		front_vec = OEMaths::vec3f{ std::cos(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)),
+									std::sin(OEMaths::radians(pitch)),
+									std::sin(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)) };
+		front_vec.normalise();
 
 		isDirty = true;
 	}

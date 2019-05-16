@@ -201,9 +201,6 @@
     <ClCompile Include="OEMaths\OEMaths_quat.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="OEMaths\OEMaths_convert.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Vulkan\CommandBufferManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -223,6 +220,24 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Rendering\RenderConfig.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Mat2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Mat3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Mat4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Vec2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Vec3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="OEMaths\OEMaths_Vec4.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -362,9 +377,6 @@
     <ClInclude Include="OEMaths\OEMaths_transform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\OEMaths_convert.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="OEMaths\OEMaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -471,6 +483,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderableTypes\Shadow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Mat2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Mat3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Mat4.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Vec2.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Vec3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="OEMaths\OEMaths_Vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
