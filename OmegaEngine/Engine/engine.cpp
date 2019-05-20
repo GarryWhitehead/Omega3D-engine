@@ -77,8 +77,7 @@ namespace OmegaEngine
 		{
 			LOGGER_ERROR("Unable to create window surface.");
 		}
-		vk::SurfaceKHR surface = vk::SurfaceKHR(temp_surface);
-		device->set_window_surface(surface);
+		device->set_window_surface(vk::SurfaceKHR(temp_surface));
 
 		// prepare the physical and abstract device including queues
 		device->prepareDevice();
@@ -98,7 +97,7 @@ namespace OmegaEngine
 			LOGGER_ERROR("Unable to create world as no omega-scene file found.");
 		}
 
-		worlds.push_back(std::move(world));
+		worlds.emplace_back(std::move(world));
 		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);
 	}
 

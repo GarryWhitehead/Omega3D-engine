@@ -54,7 +54,7 @@ namespace OmegaEngine
 		};
 
 		RenderInterface();
-		RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type);
+		RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height, SceneType type);
 		~RenderInterface();
 
 		void init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height);

@@ -19,6 +19,10 @@ namespace VulkanAPI
 		init(dev, phys, queue);
 	}
 
+	Texture::Texture(vk::Device dev, vk::PhysicalDevice phys)
+	{
+		init(dev, phys);
+	}
 
 	Texture::~Texture()
 	{

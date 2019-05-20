@@ -4,7 +4,6 @@
 
 #define VULKAN_HPP_TYPESAFE_CONVERSION 
 #include "vulkan/vulkan.hpp"
-//#include "volk.h"
 
 // sets whether we should use validation layers for debugging
 #define VULKAN_VALIDATION_DEBUG 1

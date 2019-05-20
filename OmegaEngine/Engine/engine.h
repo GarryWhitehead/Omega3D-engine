@@ -95,7 +95,7 @@ namespace OmegaEngine
 		uint32_t currentWorldIndex = 0;		
 
 		// a list of all grpahics devices that are available
-		std::vector<std::unique_ptr<VulkanAPI::Device> > gfx_devices;
+		std::vector<std::unique_ptr<VulkanAPI::Device>> gfx_devices;
 		uint32_t current_gfx_device = 0;
 	};
 

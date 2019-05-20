@@ -32,7 +32,7 @@ namespace OmegaEngine
 	{
 	}
 
-	RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, std::unique_ptr<ComponentInterface>& component_interface, const uint32_t width, const uint32_t height, SceneType type) :
+	RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height, SceneType type) :
 		scene_type(type)
 	{
 		init(device, width, height);
@@ -46,7 +46,7 @@ namespace OmegaEngine
 	void RenderInterface::init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height)
 	{
 		// load the render config file if it exsists
-		render_config.load();
+		// render_config.load();
 
 		// all renderable elements will be dispatched for drawing via this queue
 		render_queue = std::make_unique<RenderQueue>();
@@ -66,7 +66,7 @@ namespace OmegaEngine
 		}
 
 		// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
-		vk_interface = std::make_unique<VulkanAPI::Interface>(device, width, height, mode);
+		vk_interface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
 	}
 
 	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)

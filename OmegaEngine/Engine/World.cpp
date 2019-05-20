@@ -46,7 +46,7 @@ namespace OmegaEngine
 		// all the boiler plater needed to generate the manager and interface instances
 		objectManager = std::make_unique<ObjectManager>();
 		component_interface = std::make_unique<ComponentInterface>();
-		render_interface = std::make_unique<RenderInterface>(device, component_interface, engine_config.screen_width, engine_config.screen_height, static_cast<SceneType>(engine_config.scene_type));
+		render_interface = std::make_unique<RenderInterface>(device, engine_config.screen_width, engine_config.screen_height, static_cast<SceneType>(engine_config.scene_type));
 		animation_manager = std::make_unique<AnimationManager>();
 		asset_manager = std::make_unique<AssetManager>();
 		bvh = std::make_unique<BVH>();

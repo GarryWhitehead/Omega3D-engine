@@ -13,6 +13,7 @@ namespace VulkanAPI
 	class BufferManager;
 	class VkTextureManager;
 	class CommandBufferManager;
+	class Device;
 	enum class NewFrameMode;
 
 	class Interface
@@ -20,7 +21,7 @@ namespace VulkanAPI
 
 	public:
 
-		Interface(std::unique_ptr<VulkanAPI::Device>& device, uint32_t win_width, uint32_t win_height, NewFrameMode mode);
+		Interface(VulkanAPI::Device& device, uint32_t win_width, uint32_t win_height, NewFrameMode mode);
 		~Interface();
 
 		vk::Device& get_device()

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Vulkan/Common.h"
-#include "Vulkan/Device.h"
 #include "Vulkan/Image.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Vulkan/RenderPass.h"
@@ -10,6 +9,8 @@
 
 namespace VulkanAPI
 {
+	class Device;
+
 	class Swapchain
 	{
 	
@@ -18,7 +19,11 @@ namespace VulkanAPI
 		Swapchain();
 		~Swapchain();
 		
-		void create(std::unique_ptr<Device>& device, const uint32_t screenWidth, const uint32_t screenHeight);
+		void create(vk::Device dev, 
+					vk::PhysicalDevice& phys_dev, 
+					vk::SurfaceKHR& surface, 
+					uint32_t graph_index, uint32_t present_index, 
+					uint32_t screen_width, uint32_t screen_height);
 
 		// frame submit and presentation to the swapchain
 		void begin_frame(vk::Semaphore& image_semaphore);
@@ -59,12 +64,12 @@ namespace VulkanAPI
 
 		RenderPass& get_renderpass()
 		{
-			return renderpass;
+			return *renderpass;
 		}
 
 	private:
 
-		vk::Device dev;
+		vk::Device device;
 		vk::PhysicalDevice gpu;
 
 		vk::SurfaceKHR surface;
@@ -78,8 +83,8 @@ namespace VulkanAPI
 		uint32_t image_index = 0;
 
 		// swapchain presentation renderpass data
-		RenderPass renderpass;
-		Texture depth_texture;
+		std::unique_ptr<RenderPass> renderpass;
+		std::unique_ptr<Texture> depth_texture;
 		std::array<vk::ClearValue, 2> clear_values = {};
 	
 	};
