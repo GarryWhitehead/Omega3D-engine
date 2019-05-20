@@ -108,28 +108,28 @@ namespace OmegaEngine
 				for (uint32_t j = 0; j < posAccessor.count; ++j) 
 				{
 					SkinnedVertex vertex; 
-					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
+					vertex.position = OEMaths::vec4f(OEMaths::vec3f(posBuffer), 1.0f);
 					posBuffer += 3;
 
 					if (normBuffer) 
 					{
-						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
+						vertex.normal = OEMaths::vec3f(normBuffer);
 						normBuffer += 3;
 					}
 					if (uvBuffer0) 
 					{
-						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
+						vertex.uv0 = OEMaths::vec2f(uvBuffer0);
 						uvBuffer0 += 2;
 					}
 					if (uvBuffer1) 
 					{
-						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
+						vertex.uv1 = OEMaths::vec2f(uvBuffer1);
 						uvBuffer1 += 2;
 					}
 
 					// if we have skin data, also convert this to a palatable form
-					vertex.joint = OEMaths::convert_vec4_I16(jointBuffer);
-					vertex.weight = OEMaths::convert_vec4_F(weightBuffer);
+					vertex.joint = OEMaths::vec4f(jointBuffer);
+					vertex.weight = OEMaths::vec4f(weightBuffer);
 					jointBuffer += 4;
 					weightBuffer += 4;
 
@@ -144,22 +144,22 @@ namespace OmegaEngine
 				for (uint32_t j = 0; j < posAccessor.count; ++j) 
 				{
 					Vertex vertex; 
-					vertex.position = OEMaths::vec3_to_vec4(OEMaths::convert_vec3_F(posBuffer), 1.0f);
+					vertex.position = OEMaths::vec4f(OEMaths::vec3f(posBuffer), 1.0f);
 					posBuffer += 3;
 
 					if (normBuffer) 
 					{
-						vertex.normal = OEMaths::normalise_vec3(OEMaths::convert_vec3_F(normBuffer));
+						vertex.normal = OEMaths::vec3f(normBuffer);
 						normBuffer += 3;
 					}
 					if (uvBuffer0) 
 					{
-						vertex.uv0 = OEMaths::convert_vec2_F(uvBuffer0);
+						vertex.uv0 = OEMaths::vec2f(uvBuffer0);
 						uvBuffer0 += 2;
 					}
 					if (uvBuffer1) 
 					{
-						vertex.uv1 = OEMaths::convert_vec2_F(uvBuffer1);
+						vertex.uv1 = OEMaths::vec2f(uvBuffer1);
 						uvBuffer1 += 2;
 					}
 					

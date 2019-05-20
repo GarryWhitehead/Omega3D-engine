@@ -201,34 +201,34 @@ namespace OmegaEngine
 				uint8_t childIndex = 0;
 
 				// check the x-axis
-				if (objCentroid.x > nodeCentroid.x) {
-					childBBox.bounds.min.x = nodeCentroid.x;
-					childBBox.bounds.max.x = currentBBox.bounds.max.x;
+				if (objCentroid.getX() > nodeCentroid.getX()) {
+					childBBox.bounds.min.setX(nodeCentroid.getX());
+					childBBox.bounds.max.setX(currentBBox.bounds.max.getX());
 					childIndex = 4;
 				}
 				else {
-					childBBox.bounds.min.x = currentBBox.bounds.min.x;
-					childBBox.bounds.max.x = nodeCentroid.x;
+					childBBox.bounds.min.setX(currentBBox.bounds.min.getX());
+					childBBox.bounds.max.setX(nodeCentroid.getX());
 				}
 				// check the y-axis
-				if (objCentroid.y > nodeCentroid.y) {
-					childBBox.bounds.min.y = nodeCentroid.y;
-					childBBox.bounds.max.y = currentBBox.bounds.max.y;
+				if (objCentroid.getY() > nodeCentroid.getY()) {
+					childBBox.bounds.min.setY(nodeCentroid.getY());
+					childBBox.bounds.max.setY(currentBBox.bounds.max.getY());
 					childIndex += 2;
 				}
 				else {
-					childBBox.bounds.min.y = currentBBox.bounds.min.y;
-					childBBox.bounds.max.y = nodeCentroid.y;
+					childBBox.bounds.min.setY(currentBBox.bounds.min.getY());
+					childBBox.bounds.max.setY(nodeCentroid.getY());
 				}
 				// check the z-axis
-				if (objCentroid.z > nodeCentroid.z) {
-					childBBox.bounds.min.z = nodeCentroid.z;
-					childBBox.bounds.max.z = currentBBox.bounds.max.z;
+				if (objCentroid.getZ() > nodeCentroid.getZ()) {
+					childBBox.bounds.min.setZ(nodeCentroid.getZ());
+					childBBox.bounds.max.setZ(currentBBox.bounds.max.getZ());
 					childIndex += 1;
 				}
 				else {
-					childBBox.bounds.min.z = currentBBox.bounds.min.z;
-					childBBox.bounds.max.z = nodeCentroid.z;
+					childBBox.bounds.min.setZ(currentBBox.bounds.min.getZ());
+					childBBox.bounds.max.setZ(nodeCentroid.getZ());
 				}
 
 				// if child doesn't exsist, create a new one (no child is signifyed by a zero value). Otherwise, keep traversing the tree
@@ -262,7 +262,7 @@ namespace OmegaEngine
 			for (uint8_t planeIndex = 0; planeIndex < Extents::boundingPlaneCount; ++planeIndex) {
 				
 				// calculate the angle between the plane normal and the primitive point point for min values
-				float distance = OEMaths::dot_vec3(planeNormals[planeIndex], primitives[primIndex].min);
+				float distance = planeNormals[planeIndex].dot(primitives[primIndex].min);
 
 				// set dnear
 				if (distance < primitiveExtents[primIndex].distance[planeIndex].near) {
@@ -274,7 +274,7 @@ namespace OmegaEngine
 				}
 
 				// calculate the angle between the plane normal and the primitive point point for max values
-				distance = OEMaths::dot_vec3(planeNormals[planeIndex], primitives[primIndex].max);
+				distance = planeNormals[planeIndex].dot(primitives[primIndex].max);
 
 				// set dnear
 				if (distance < primitiveExtents[primIndex].distance[planeIndex].near) {

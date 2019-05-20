@@ -181,7 +181,7 @@ namespace OmegaEngine
 						OEMaths::vec3f* buffer = reinterpret_cast<OEMaths::vec3f*>(&trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset]);
 						for (uint32_t i = 0; i < trsAccessor.count; ++i) 
 						{
-							samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 1.0f));
+							samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 0.0f));
 						}
 						break;
 					}
@@ -226,34 +226,38 @@ namespace OmegaEngine
 				{
 				case Channel::PathType::Translation: 
 				{
-					OEMaths::vec4f trans = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
+					OEMaths::vec4f trans;
+					trans.mix(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
 					transform_man.update_obj_translation(obj, trans);
 					break;
 				}
 				case Channel::PathType::Scale: 
 				{
-					OEMaths::vec4f scale = OEMaths::mix_vec4(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
+					OEMaths::vec4f scale;
+					scale.mix(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
 					transform_man.update_obj_scale(obj, scale);
 					break;
 				}
 				case Channel::PathType::Rotation: 
 				{
 					OEMaths::quatf quat1 {
-						sampler.outputs[time_index].x,
-						sampler.outputs[time_index].y,
-						sampler.outputs[time_index].z,
-						sampler.outputs[time_index].w,
+						sampler.outputs[time_index].getX(),
+						sampler.outputs[time_index].getY(),
+						sampler.outputs[time_index].getZ(),
+						sampler.outputs[time_index].getW(),
 					};
 
 					OEMaths::quatf quat2 {
-						sampler.outputs[time_index + 1].x,
-						sampler.outputs[time_index + 1].y,
-						sampler.outputs[time_index + 1].z,
-						sampler.outputs[time_index + 1].w
+						sampler.outputs[time_index + 1].getX(),
+						sampler.outputs[time_index + 1].getY(),
+						sampler.outputs[time_index + 1].getZ(),
+						sampler.outputs[time_index + 1].getW()
 					};
 
 					// TODO: add cubic and step interpolation
-					OEMaths::quatf rot = OEMaths::normalise_quat(OEMaths::linear_mix_quat(quat1, quat2, phase));
+					OEMaths::quatf rot;
+					rot.linear_mix(quat1, quat2, phase);
+					rot.normalise();
 					transform_man.update_obj_rotation(obj, rot);
 					break;
 				}

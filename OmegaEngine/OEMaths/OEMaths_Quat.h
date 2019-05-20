@@ -29,6 +29,9 @@ namespace OEMaths
 			z(in_z),
 			w(in_w)
 		{}
+		
+		quatf(const float* data);
+		quatf(const double* data);
 
 		float getX() const
         {
@@ -50,12 +53,9 @@ namespace OEMaths
             return w;
         }
 
-		void convert_F(const float* data);
-		void convert_D(const double* data);
-
 		float length();
 		void normalise();
-		quatf linear_mix(quatf& q1, float u);
+		void linear_mix(quatf& q1, quatf& q2, float u);
 		quatf cubic_mix(quatf& q1, quatf& q2, quatf& q3, float u);
 
 	private:

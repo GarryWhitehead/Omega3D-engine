@@ -8,7 +8,31 @@
 
 namespace OEMaths
 {
-    vec3f vec3f::operator-(const vec3f& other) const
+	vec3f::vec3f(const float* data)
+	{
+		assert(data != nullptr);
+		float* ptr = (float*)data;
+
+		this->x = *ptr;
+		++ptr;
+		this->y = *ptr;
+		++ptr;
+		this->z = *ptr;
+	}
+
+	vec3f::vec3f(const double* data)
+	{
+		assert(data != nullptr);
+		double* ptr = (double*)data;
+
+		this->x = (float)*ptr;
+		++ptr;
+		this->y = (float)*ptr;
+		++ptr;
+		this->z = (float)*ptr;
+	}
+
+	vec3f vec3f::operator-(const vec3f& other) const
 	{
 		vec3f result;
 		result.x = this->x - other.x;
@@ -56,9 +80,9 @@ namespace OEMaths
 	vec3f vec3f::operator*(const mat4f& other) const
 	{
 		vec3f result;
-		result.x = other.data[0] * x + other.data[1] * y + other.data[2] * z;
-		result.y = other.data[4] * x + other.data[5] * y + other.data[6] * z;
-		result.z = other.data[8] * x + other.data[9] * y + other.data[10] * z;
+		result.x = other.getValue(0) * x + other.getValue(1) * y + other.getValue(2) * z;
+		result.y = other.getValue(4) * x + other.getValue(5) * y + other.getValue(6) * z;
+		result.z = other.getValue(8) * x + other.getValue(9) * y + other.getValue(10) * z;
 		return result;
 	}
 
@@ -87,30 +111,6 @@ namespace OEMaths
 		return *this;
 	}
 
-    void vec3f::convert_vec3_F(const float* data)
-	{
-		assert(data != nullptr);
-		float* ptr = (float*)data;
-
-		this->x = *ptr;
-		++ptr;
-		this->y = *ptr;
-		++ptr;
-		this->z = *ptr;
-	}
-
-	void vec3f::convert_vec3_D(const double* data)
-	{
-		assert(data != nullptr);
-		double* ptr = (double*)data;
-
-		this->x = (float)*ptr;
-		++ptr;
-		this->y = (float)*ptr;
-		++ptr;
-		this->z = (float)*ptr;
-	}
-
     float vec3f::length()
 	{
 		return std::sqrt(this->x * this->x + this->y * this->y + this->z * this->z);
@@ -120,9 +120,9 @@ namespace OEMaths
 	{
 		float l = length();
 
-		this->x / l;
-		this->y / l;
-		this->z / l;
+		this->x /= l;
+		this->y /= l;
+		this->z /= l;
 	}
 
     vec3f vec3f::cross(vec3f& v1)

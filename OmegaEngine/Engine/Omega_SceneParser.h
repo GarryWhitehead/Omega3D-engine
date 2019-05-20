@@ -65,7 +65,7 @@ namespace OmegaEngine
 
 		OEMaths::mat4f getWorldMatrix(uint32_t index)
 		{
-			return OEMaths::translate_mat4(models[index].world_translation) * OEMaths::scale_mat4(models[index].world_scale);	// *OEMaths::vec4f(models[index].world_rot, 1.0f);
+			return OEMaths::mat4f::translate(models[index].world_translation) * OEMaths::mat4f::scale(models[index].world_scale);	// *OEMaths::vec4f(models[index].world_rot, 1.0f);
 		}
 
 		Camera& get_camera()

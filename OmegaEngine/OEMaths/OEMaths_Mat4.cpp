@@ -9,7 +9,37 @@
 
 namespace OEMaths
 {
-    mat4f::mat4f(quatf& q)
+	mat4f::mat4f(const float* mat_data)
+	{
+		assert(data != nullptr);
+		float* ptr = (float*)mat_data;
+
+		for (uint8_t col = 0; col < 4; ++col)
+		{
+			for (uint8_t row = 0; row < 4; ++row)
+			{
+				this->data[col * 4 + row] = *ptr;
+				++ptr;
+			}
+		}
+	}
+
+	mat4f::mat4f(const double* mat_data)
+	{
+		assert(data != nullptr);
+		double* ptr = (double*)mat_data;
+
+		for (uint8_t col = 0; col < 4; ++col)
+		{
+			for (uint8_t row = 0; row < 4; ++row)
+			{
+				this->data[col * 4 + row] = (float)*ptr;
+				++ptr;
+			}
+		}
+	}
+
+	mat4f::mat4f(quatf& q)
 	{
 		float twoX = 2.0f * q.getX();
 		float twoY = 2.0f * q.getY();
@@ -136,54 +166,29 @@ namespace OEMaths
 		return result;
 	}
 
-    void mat4f::convert_F(const float* mat_data)
+    mat4f mat4f::translate(vec3f& trans)
 	{
-		assert(data != nullptr);
-		float* ptr = (float*)mat_data;
-
-		for (uint8_t col = 0; col < 4; ++col) 
-        {   
-            for (uint8_t row = 0; row < 4; ++row) 
-            {   
-                this->data[col * 4 + row] = *ptr;
-                ++ptr;
-            }
-		}
+		mat4f result;
+		result[12] = trans.getX();
+		result[13] = trans.getY();
+		result[14] = trans.getX();
+		result[15] = 1.0f;
+		return result;
 	}
 
-	void mat4f::convert_D(const double* mat_data)
+	mat4f mat4f::scale(vec3f& scale)
 	{
-		assert(data != nullptr);
-		double* ptr = (double*)mat_data;
-
-		for (uint8_t col = 0; col < 4; ++col) 
-        {   
-            for (uint8_t row = 0; row < 4; ++row) 
-            {   
-                this->data[col * 4 + row] = (float)*ptr;
-                ++ptr;
-            }
-		}
+		mat4f result;
+		result[0] = scale.getX();
+		result[5] = scale.getY();
+		result[10] = scale.getZ();
+		result[15] = 1.0f;
+		return result;
 	}
 
-    void mat4f::translate(vec3f& trans)
+	mat4f mat4f::rotate(float theta, vec3f& axis)
 	{
-		this->data[12] = trans.getX();
-		this->data[13] = trans.getY();
-		this->data[14] = trans.getX();
-		this->data[15] = 1.0f;
-	}
-
-	void mat4f::scale(vec3f& scale)
-	{
-		data[0] = scale.getX();
-		data[5] = scale.getY();
-		data[10] = scale.getZ();
-		data[15] = 1.0f;
-	}
-
-	void mat4f::rotate(float theta, vec3f& axis)
-	{
+		mat4f result;
 		vec3f axis_norm = axis / (theta == 0.0f ? 1.0f : theta);	//avoid divide by zero
 		float xy = axis_norm.getX() * axis_norm.getY();
 		float yz = axis_norm.getY() * axis_norm.getZ();
@@ -192,22 +197,23 @@ namespace OEMaths
 		float cosTheta = std::cos(theta);
 		float sinTheta = std::sin(theta);
 
-		this->data[0] = cosTheta + axis_norm.getX() * axis_norm.getX() * (1.0f - cosTheta);
-		this->data[1] = xy * (1.0f - cosTheta) - axis_norm.getZ() * sinTheta;
-		this->data[2] = zx * (1.0f - cosTheta) + axis_norm.getY() * sinTheta;
+		result[0] = cosTheta + axis_norm.getX() * axis_norm.getX() * (1.0f - cosTheta);
+		result[1] = xy * (1.0f - cosTheta) - axis_norm.getZ() * sinTheta;
+		result[2] = zx * (1.0f - cosTheta) + axis_norm.getY() * sinTheta;
 
-		this->data[4] = xy * (1.0f - cosTheta) + axis_norm.getZ() * sinTheta;
-		this->data[5] = cosTheta + axis_norm.getY() * axis_norm.getY() * (1.0f - cosTheta);
-		this->data[6] = yz * (1.0f - cosTheta) - axis_norm.getX() * sinTheta;
+		result[4] = xy * (1.0f - cosTheta) + axis_norm.getZ() * sinTheta;
+		result[5] = cosTheta + axis_norm.getY() * axis_norm.getY() * (1.0f - cosTheta);
+		result[6] = yz * (1.0f - cosTheta) - axis_norm.getX() * sinTheta;
 
-		this->data[8] = zx * (1.0f - cosTheta) - axis_norm.getY() * sinTheta;
-		this->data[9] = yz * (1.0f - cosTheta) + axis_norm.getX() * sinTheta;
-		this->data[10] = cosTheta + axis_norm.getZ() * axis_norm.getZ() * (1.0f - cosTheta);
+		result[8] = zx * (1.0f - cosTheta) - axis_norm.getY() * sinTheta;
+		result[9] = yz * (1.0f - cosTheta) + axis_norm.getX() * sinTheta;
+		result[10] = cosTheta + axis_norm.getZ() * axis_norm.getZ() * (1.0f - cosTheta);
+		return result;
 	}
 
-    bool mat4f::inverse()
+    mat4f mat4f::inverse()
 	{
-		mat4f inv;
+		mat4f inv, result;
 		float det;
 
 		inv[0] = data[5] * data[10] * data[15] -
@@ -326,15 +332,15 @@ namespace OEMaths
 
 		if (det == 0.0f) {
 			// just return a identity matrix
-			return false;
+			return OEMaths::mat4f();
 		}
 
 		det = 1.0f / det;
 
 		for (uint32_t i = 0; i < 16; i++) {
-			data[i] = inv[i] * det;
+			result[i] = inv[i] * det;
 		}
 
-		return true;
+		return result;
 	}
 }

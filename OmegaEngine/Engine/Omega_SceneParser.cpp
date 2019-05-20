@@ -55,15 +55,11 @@ namespace OmegaEngine
 		camera.velocity = cam["Velocity"].GetFloat();
 		camera.fov = cam["fov"].GetFloat();
 
-		auto &pos = cam["Position"];
-		camera.start_position.x = pos[0].GetFloat();
-		camera.start_position.y = pos[1].GetFloat();
-		camera.start_position.z = pos[2].GetFloat();
+		auto &pos = cam["Position"]; 
+		camera.start_position = OEMaths::vec3f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat());
 
 		auto &up = cam["CameraUp"];
-		camera.camera_up.x = up[0].GetFloat();
-		camera.camera_up.y = up[1].GetFloat();
-		camera.camera_up.z = up[2].GetFloat();
+		camera.camera_up = OEMaths::vec3f(up[0].GetFloat(), up[1].GetFloat(), up[2].GetFloat());
 
 		std::string type = cam["Type"].GetString();
 		if (type == "FPS") {
@@ -96,19 +92,13 @@ namespace OmegaEngine
 			models[i].gltfFilename = dir + arr["Filename"].GetString();
 			
 			auto& rot = arr["Rotation"];
-			models[i].world_rot.x = rot[0].GetFloat();
-			models[i].world_rot.y = rot[1].GetFloat();
-			models[i].world_rot.z = rot[2].GetFloat();
+			models[i].world_rot = OEMaths::vec3f(rot[0].GetFloat(), rot[1].GetFloat(), rot[2].GetFloat());
 
 			auto& sca = arr["Scale"];
-			models[i].world_scale.x = sca[0].GetFloat();
-			models[i].world_scale.y = sca[1].GetFloat();
-			models[i].world_scale.z = sca[2].GetFloat();
+			models[i].world_scale = OEMaths::vec3f(sca[0].GetFloat(), sca[1].GetFloat(), sca[2].GetFloat());
 
 			auto& tran = arr["Translation"];
-			models[i].world_translation.x = tran[0].GetFloat();
-			models[i].world_translation.y = tran[1].GetFloat();
-			models[i].world_translation.z = tran[2].GetFloat();
+			models[i].world_translation = OEMaths::vec3f(tran[0].GetFloat(), tran[1].GetFloat(), tran[2].GetFloat());
 		}
 	}
 
@@ -136,15 +126,10 @@ namespace OmegaEngine
 			lights[i].type = static_cast<LightType>(arr["Type"].GetInt());
 
 			auto& pos = arr["Position"];
-			lights[i].postion.x = pos[0].GetFloat();
-			lights[i].postion.y = pos[1].GetFloat();
-			lights[i].postion.z = pos[2].GetFloat();
-			lights[i].postion.w = pos[3].GetFloat();
+			lights[i].postion = OEMaths::vec4f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat(), pos[3].GetFloat());
 
 			auto& col = arr["Colour"];
-			lights[i].colour.x = col[0].GetFloat();
-			lights[i].colour.y = col[1].GetFloat();
-			lights[i].colour.z = col[2].GetFloat();
+			lights[i].colour = OEMaths::vec3f(col[0].GetFloat(), col[1].GetFloat(), col[2].GetFloat());
 
 			lights[i].radius = arr["Radius"].GetFloat();
 

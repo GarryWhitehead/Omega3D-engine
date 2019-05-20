@@ -1,5 +1,6 @@
 
 #include "OEMaths_Vec4.h"
+#include "OEMaths/OEMaths_Vec3.h"
 
 #include <assert.h>
 #include <algorithm>
@@ -7,17 +8,7 @@
 
 namespace OEMaths
 {
-    vec4f vec4f::operator*(const vec4f& other) const
-	{
-		vec4f result;
-		result.x = x * other.x;
-		result.y = y * other.y;
-		result.z = z * other.z;
-		result.w = w * other.w;
-		return result;
-	}
-    
-    void vec4f::convert_F(const float* data)
+	vec4f::vec4f(const float* data)
 	{
 		assert(data != nullptr);
 		float* ptr = (float*)data;
@@ -31,7 +22,7 @@ namespace OEMaths
 		this->w = *ptr;
 	}
 
-	void vec4f::convert_D(const double* data)
+	vec4f::vec4f(const double* data)
 	{
 		assert(data != nullptr);
 		double* ptr = (double*)data;
@@ -43,10 +34,10 @@ namespace OEMaths
 		this->z = (float)*ptr;
 		++ptr;
 		this->w = (float)*ptr;
-		
+
 	}
 
-	void vec4f::convert_I16(const uint16_t* data)
+	vec4f::vec4f(const uint16_t* data)
 	{
 		assert(data != nullptr);
 		uint16_t* ptr = (uint16_t*)data;
@@ -60,6 +51,16 @@ namespace OEMaths
 		this->w = (float)*ptr;
 	}
 
+	vec4f vec4f::operator*(const vec4f& other) const
+	{
+		vec4f result;
+		result.x = x * other.x;
+		result.y = y * other.y;
+		result.z = z * other.z;
+		result.w = w * other.w;
+		return result;
+	}
+  
     float vec4f::length()
 	{
 		return std::sqrt(this->x * this->x +this->y * this->y + this->z * this->z + this->w * this->w);
@@ -75,13 +76,11 @@ namespace OEMaths
 		this->w = this->w / l;
 	}
 
-	vec4f vec4f::mix(vec4f& v1, float u)
+	void vec4f::mix(vec4f& v1, vec4f& v2, float u)
 	{
-		vec4f result;
-        result.x = this->x * (1.0f - u) + v1.x * u;
-		result.y = this->y * (1.0f - u) + v1.y * u;
-	    result.z = this->z * (1.0f - u) + v1.z * u;
-		result.w = this->w * (1.0f - u) + v1.w * u;
-		return result;
+        this->x = v1.x * (1.0f - u) + v2.x * u;
+		this->y = v1.y * (1.0f - u) + v2.y * u;
+		this->z = v1.z * (1.0f - u) + v2.z * u;
+		this->w = v1.w * (1.0f - u) + v2.w * u;
 	}
 }

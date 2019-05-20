@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <assert.h>
 
 namespace OEMaths
 {
@@ -23,6 +24,10 @@ namespace OEMaths
         // fron quaternoin to mat4 constructor
         mat4f(quatf& q);
 
+		// constructors to convert data array into mat4
+		mat4f(const float* mat_data);
+		mat4f(const double* mat_data);
+
 		float& operator()(const uint8_t& col, const uint8_t& row);
 		mat4f& operator()(const vec4f& vec, const uint8_t& col);
 		mat4f& operator/=(const float& div);
@@ -31,17 +36,25 @@ namespace OEMaths
         friend mat4f operator*(const mat4f& m1, const mat4f& m2);
         friend vec4f operator*(const vec4f& vec, const mat4f& mat);
         friend vec4f operator*(const mat4f& mat, const vec4f& vec);
-        friend vec3f vec3f::operator*(const mat4f& other) const;
 
 		void setCol(const uint8_t col, vec4f& v);
 
-        void convert_F(const float* data);
-        void convert_D(const double* data);
+        static mat4f translate(vec3f& trans);
+        static mat4f scale(vec3f& scale);
+        static mat4f rotate(float theta, vec3f& axis);
+        mat4f inverse();
 
-        void translate(vec3f& trans);
-        void scale(vec3f& scale);
-        void rotate(float theta, vec3f& axis);
-        bool inverse();
+		float getValue(const uint32_t index) const 
+		{
+			assert(index > 15);
+			return data[index];
+		}
+
+		void setValue(const uint32_t index, const float value)
+		{
+			assert(index > 15);
+			data[index] = value;
+		}
 
 	private:
 
