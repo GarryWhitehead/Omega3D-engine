@@ -1,10 +1,13 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.7 FATAL)
 CMAKE_POLICY(VERSION 3.7)
 
-project(Omega-Engine VERSION 1)
-
+PROJECT(OMEGA_ENGINE VERSION 1 LANGUAGES CXX C)
+ 
 # pre-processor flags
-set(OMEGA_CXX_FLAGS /MP /DNOMINMAX)
+SET(OMEGA_CXX_FLAGS /MP /DNOMINMAX)
+
+# compiler specific flags
+IF(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_
 
 # stop annoying warnings about fopen ect
 ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
@@ -13,16 +16,79 @@ ADD_DEFINITIONS(-std=c++14)
 OPTION(OMEGA_DEBUG_VERBOSE "Enable verbose debug output" OFF)
 OPTION(OMEGA_ENABLE_LAYERS "Enable Vulkan validation layers" OFF)
 OPTION(OMEGA_ENABLE_THREADING "Enable threaded engine mode" ON)
+OPTION(OMEGA_BUILD_TOOLS "Build all tools for engine" OFF)
+OPTION(OMEGA_TESTS "Run all tests" OFF)
+OPTION(THREAD_SANITIZE "Run thread sanitizer" OFF)
+OPTION(ADDRESS_SANITIZE "Run address sanitizer" OFF)
+OPTION(MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-set(BUILD_SHARED_LIBRARY OFF CACHE BOOL "Build shared libraries")
-set(SPIRV_CROSS_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/spirv-cross/" CACHE "Spirv-cross path")
-set(TINY_GLTF_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/tiny-gltf/" CACHE "tiny-gltf path")
+# external library paths
+SET(BUILD_SHARED_LIBRARY OFF CACHE BOOL "Build shared libraries")
+SET(SPIRV_CROSS_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/spirv-cross/" CACHE "Spirv-cross path")
+SET(TINY_GLTF_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/tiny-gltf/" CACHE "tiny-gltf path")
+SET(VULKAN_HPP_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/vulkan-hpp/" CACHE "vulkan-hpp path")
 
 # find vulkan using cmake module
 IF(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 	message(STATUS "Using cmake version which supports FindVulkan. Using this module to find Vulkan")
 	find_package(Vulkan)
 ENDIF()
+
+INCLUDE_DIRECTORIES("$(PROJECT_BINARY_DIR}")
 	
+# libraries required for Omega Engine
+ADD_LIBRARY(SPIRV_CROSS_LIB "${SPIRV_CROSS_EXTERNAL_PATH}/spirv_cross.hxx")
+INCLUDE_DIRECTORIES("${SPIRV_CROSS_EXTERNAL_PATH}")
+ADD_SUBDIRECTORY(SPIRV_CROSS_LIB)
+SET(OMEGA_LIBS ${OMEGA_LIBS} SPIRV_CROSS_LIB)
+
+ADD_LIBRARY(TINY_GLTF_LIB "${TINY_GLTF_EXTERNAL_PATH}/tiny_gltf.hxx")
+INCLUDE_DIRECTORIES("${TINY_GLTF_EXTERNAL_PATH}")
+ADD_SUBDIRECTORY(TINY_GLTF_LIB)
+SET(OMEGA_LIBS ${OMEGA_LIBS} TINY_GLTF_LIB)
+
+ADD_LIBRARY(VULKAN_HPP_LIB "${VULKAN_HPP_EXTERNAL_PATH}/vualkn_hpp.hxx)
+INCLUDE_DIRECTORIES("${VULKAN_HPP_EXTERNAL_PATH}")
+ADD_SUBDIRECTORY(VULKAN_HPP_LIB)
+SET(OMEGA_LIBS ${OMEGA_LIBS} VULKAN_HPP_LIB)
+
+# linking flags - sanitizers
+SET(LINK_FLAGS)
+IF(THREAD_SANITIZE)
+	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=thread)
+	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=thread)
+ENDIF()
+
+IF(ADDRESS_SANITIZE)
+	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=address)
+	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=address)
+ENDIF()
+
+IF(MEMORY_SANITIZE)
+	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=memory)
+	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=memory)
+ENDIF()
+
+# include targets
+TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
+	$(CMAKE_CURRENT_SOURCE_DIR}/Utilities
+)
+
+TARGET_SOURCES(OMEGA_ENGINE PUBLIC
+
+)
+
+# build tools if required
+IF(OMEGA_BUILD_TOOLS)
+	#ADD_EXECUTABLE(OMEGA-ENGINE )
+ENDIF()
+
+# main engine executable 
+ADD_EXECUTABLE(OMEGA_ENGINE omega_engine.hpp)
+TARGET_LINK_LIBRARIES(OMEGA_ENGINE ${OMEGA_LIBS})
+
+
+# run some tests to make sure I haven't broke anything!
+# to add later.....
