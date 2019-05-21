@@ -9,20 +9,20 @@
 namespace VulkanAPI
 {
 	
-	Interface::Interface(VulkanAPI::Device& dev, uint32_t win_width, uint32_t win_height, NewFrameMode mode)
+	Interface::Interface(VulkanAPI::Device& dev, const uint32_t win_width, const uint32_t win_height, NewFrameMode mode)
 	{
 		// prepare all the core elements required for the vulkan API to render to screen
 		// store locally all the handles we will need from the device
 		device = dev.getDevice();
 		gpu = dev.getPhysicalDevice();
 
-		graphics_queue = dev.getQueue(Device::QueueType::Graphics);
-		present_queue = dev.getQueue(Device::QueueType::Present);
-		compute_queue = dev.getQueue(Device::QueueType::Compute);
-
 		// prepare swap chain and attached image views - so we have something to render to
 		swapchain_khr.create(device, gpu, dev.getSurface(), dev.getQueueIndex(Device::QueueType::Graphics),
 			dev.getQueueIndex(Device::QueueType::Present), win_width, win_height);
+
+		graphics_queue = dev.getQueue(Device::QueueType::Graphics);
+		present_queue = dev.getQueue(Device::QueueType::Present);
+		compute_queue = dev.getQueue(Device::QueueType::Compute);
 
 		// init queues with swap-chain for ease of use later
 		graphics_queue.set_swapchain(swapchain_khr.get());

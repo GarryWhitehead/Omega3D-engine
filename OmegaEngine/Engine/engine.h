@@ -20,12 +20,12 @@ namespace OmegaEngine
 	class InputManager;
 
 	// current state of the application
-	class ProgramState
+	class EngineState
 	{
 	public:
 
-		ProgramState() = default;
-		~ProgramState() {}
+		EngineState() = default;
+		~EngineState() {}
 
 		bool is_running() const
 		{
@@ -37,17 +37,16 @@ namespace OmegaEngine
 			isRunning = true;
 		}
 
-		void destroy()
+		void stop()
 		{
 			isRunning = false;
 		}
 
 	private:
 
-		// general
 		std::chrono::high_resolution_clock::time_point start_time;
 		bool isRunning = true;
-		bool isPaused = true;
+		bool isPaused = false;
 	};
 
 	class Engine
@@ -75,13 +74,12 @@ namespace OmegaEngine
 		// configuration for the omega engine
 		EngineConfig engine_config;
 
-		std::unique_ptr<ProgramState> program_state;
+		EngineState program_state;
 
 		// glfw stuff
 		GLFWwindow* window = nullptr;
-		std::string windowTitle;
 		GLFWmonitor* monitor = nullptr;
-		const GLFWvidmode* vmode = nullptr;
+		const GLFWvidmode* vmode;
 		
 		// all keyboard, mouse, gamepad, ect. inputs dealt with here
 		std::unique_ptr<InputManager> inputManager;
@@ -89,6 +87,7 @@ namespace OmegaEngine
 		// windw details set on init
 		uint32_t windowWidth = 0;
 		uint32_t windowHeight = 0;
+		std::string windowTitle;
 
 		// a collection of worlds registered with the engine
 		std::vector<std::unique_ptr<World> > worlds;

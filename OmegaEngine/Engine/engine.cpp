@@ -33,8 +33,6 @@ namespace OmegaEngine
 
 		//create a new instance of the input manager
 		inputManager = std::make_unique<InputManager>(window, width, height);
-
-		program_state = std::make_unique<ProgramState>();
 	}
 
 	Engine::~Engine()
@@ -138,7 +136,7 @@ namespace OmegaEngine
 
 	void Engine::start_loop()
 	{
-		program_state->set_running();
+		program_state.set_running();
 		
 		// convert delta time to ms
 		const std::chrono::nanoseconds time_step(16ms);
@@ -150,7 +148,7 @@ namespace OmegaEngine
 		Timer timer;
 		timer.start_timer();
 
-		while (program_state->is_running())
+		while (program_state.is_running())
 		{
 			auto elapsed_time = timer.get_time_elapsed(true);
 			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed_time);

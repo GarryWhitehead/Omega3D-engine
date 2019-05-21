@@ -12,8 +12,8 @@ namespace VulkanAPI
 	void Swapchain::create(vk::Device dev, 
 							vk::PhysicalDevice& phys_dev, 
 							vk::SurfaceKHR& surface, 
-							uint32_t graph_index, uint32_t present_index, 
-							uint32_t screen_width, uint32_t screen_height)
+							const uint32_t graph_index, const uint32_t present_index, 
+							const uint32_t screen_width, const uint32_t screen_height)
 	{
 		this->device = dev;
 		this->gpu = phys_dev;
@@ -73,13 +73,12 @@ namespace VulkanAPI
 		// First of check if we can manually set the dimension - some GPUs allow this by setting the max as the size of uint32
 		if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 		{
-			extent = capabilities.currentExtent;	// go with the automatic settings
+			this->extent = capabilities.currentExtent;	// go with the automatic settings
 		} 
 		else
 		{
-			extent = { screen_width, screen_height };
-			extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, extent.width));
-			extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, extent.height));
+			this->extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, screen_width));
+			this->extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, screen_height));
 		}
 
 		// Get the number of possible images we can send to the queue

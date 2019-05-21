@@ -130,7 +130,7 @@ namespace VulkanAPI
 	{
 		for (auto& ext : properties) 
 		{
-			if (strcmp(ext.extensionName, name)) 
+			if (std::strcmp(ext.extensionName, name) == 0) 
 			{
 				return true;
 			}
@@ -176,7 +176,6 @@ namespace VulkanAPI
 			if (!find_ext_properties(extensions[i], extensionProps)) 
 			{
 				LOGGER_ERROR("Unable to find required extension properties for GLFW.");
-				throw std::runtime_error("Unable to initiliase Vulkan due to missing extension properties.");
 			}
 		}
 
@@ -205,7 +204,7 @@ namespace VulkanAPI
 		{
 			for (auto& ext : layerExt) 
 			{
-				if (strcmp(ext.layerName, name)) 
+				if (std::strcmp(ext.layerName, name) == 0) 
 				{
 					return true;
 				}
@@ -381,7 +380,6 @@ namespace VulkanAPI
 		if (!find_ext_properties(swapChainExt[0], extensions)) 
 		{
 			LOGGER_ERROR("Critical error! Swap chain extension not found.");
-			throw std::runtime_error("No swap chain extensions found.");
 		}
 
 		vk::DeviceCreateInfo createInfo({}, 

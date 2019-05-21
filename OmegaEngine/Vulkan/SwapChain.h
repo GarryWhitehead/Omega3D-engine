@@ -22,8 +22,8 @@ namespace VulkanAPI
 		void create(vk::Device dev, 
 					vk::PhysicalDevice& phys_dev, 
 					vk::SurfaceKHR& surface, 
-					uint32_t graph_index, uint32_t present_index, 
-					uint32_t screen_width, uint32_t screen_height);
+					const uint32_t graph_index, const uint32_t present_index, 
+					const uint32_t screen_width, const uint32_t screen_height);
 
 		// frame submit and presentation to the swapchain
 		void begin_frame(vk::Semaphore& image_semaphore);
