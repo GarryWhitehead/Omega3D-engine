@@ -13,6 +13,31 @@ namespace VulkanAPI
 
 	}
 
+	vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
+	{
+		vk::ImageAspectFlags aspect;
+
+		switch (format)
+		{
+			// depth/stencil image formats
+		case vk::Format::eD32SfloatS8Uint:
+			[[__fallthrough]]
+		case vk::Format::eD24UnormS8Uint:
+			aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+			break;
+			// depth only formats
+		case vk::Format::eD32Sfloat:
+			[[__fallthrough]]
+		case vk::Format::eD16Unorm:
+			aspect = vk::ImageAspectFlagBits::eDepth;
+			break;
+			// otherwist must be a colour format
+		default:
+			aspect = vk::ImageAspectFlagBits::eColor;
+		}
+		return aspect;
+	}
+
 	vk::ImageViewType ImageView::get_texture_type(uint32_t faces, uint32_t array_count)
 	{
 		if (array_count > 1 && faces == 1)
@@ -56,23 +81,7 @@ namespace VulkanAPI
 		vk::ImageViewType type = get_texture_type(image.get_faces(), image.get_array_count());
 
 		// making assumptions here based on the image format used
-		vk::ImageAspectFlags aspect;
-
-		switch (image.get_format()) 
-		{
-			case vk::Format::eD32Sfloat:
-				[[__fallthrough]]
-			case vk::Format::eD32SfloatS8Uint:
-				[[ __fallthrough ]]
-			case vk::Format::eD24UnormS8Uint:
-				aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-				break;
-			case vk::Format::eD16Unorm:
-				aspect = vk::ImageAspectFlagBits::eDepth;
-				break;
-			default:
-				aspect = vk::ImageAspectFlagBits::eColor;
-		}
+		vk::ImageAspectFlags aspect = getImageAspect(image.get_format());
 
 		vk::ImageViewCreateInfo createInfo({},
 			image.get(), type, image.get_format(),
@@ -94,6 +103,24 @@ namespace VulkanAPI
 	{
 	}
 
+	vk::Filter Image::getFilterType(vk::Format format)
+	{
+		vk::Filter filter;
+
+		if (format == vk::Format::eD32SfloatS8Uint ||
+			format == vk::Format::eD24UnormS8Uint ||
+			format == vk::Format::eD32Sfloat ||
+			format == vk::Format::eD16Unorm)
+		{
+			filter = vk::Filter::eNearest;
+		}
+		else
+		{
+			filter = vk::Filter::eLinear;
+		}
+		return filter;
+	}
+
 	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usage_flags)
 	{
 		device = dev;
@@ -108,12 +135,17 @@ namespace VulkanAPI
 		vk::ImageCreateInfo image_info({}, 
 			vk::ImageType::e2D, format, 
 			{ width, height, 1 },
-			mip_levels, 1,
+			mip_levels, faces * arrays,			// remeber that faces are also considered to be array layers 
 			vk::SampleCountFlagBits::e1,
 			vk::ImageTiling::eOptimal,
 			vk::ImageUsageFlagBits::eTransferDst | usage_flags,
 			vk::SharingMode::eExclusive,
 			0, nullptr, vk::ImageLayout::eUndefined);
+
+		if (faces == 6)
+		{
+			image_info.flags = vk::ImageCreateFlagBits::eCubeCompatible;
+		}
 
 		VK_CHECK_RESULT(device.createImage(&image_info, nullptr, &image));
 
@@ -131,24 +163,10 @@ namespace VulkanAPI
 		device.bindImageMemory(image, image_memory, 0);
 	}
 
-	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer& cmdBuff)
+	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel)
 	{
 
-		vk::ImageAspectFlags mask;
-		if (new_layout == vk::ImageLayout::eDepthStencilAttachmentOptimal) 
-		{
-			if (format == vk::Format::eD32SfloatS8Uint|| format == vk::Format::eD24UnormS8Uint) 
-			{
-				mask = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-			}
-			else 
-			{
-				mask = vk::ImageAspectFlagBits::eDepth;
-			}
-		}
-		else {
-			mask = vk::ImageAspectFlagBits::eColor;
-		}
+		vk::ImageAspectFlags mask = ImageView::getImageAspect(format);
 
 		vk::AccessFlags src_barr, dst_barr;
 
@@ -191,11 +209,19 @@ namespace VulkanAPI
 				dst_barr = (vk::AccessFlagBits)0;
 		}
 
+		vk::ImageSubresourceRange subresourceRange(mask, 0, mip_levels, 0, arrays * faces);
+
+		if (baseMipMapLevel != UINT32_MAX)
+		{
+			subresourceRange.baseMipLevel = baseMipMapLevel;
+			subresourceRange.levelCount = 1;
+		}
+
 		vk::ImageMemoryBarrier mem_barr(src_barr, dst_barr, 
 			old_layout, new_layout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
-			vk::ImageSubresourceRange(mask, 0, mip_levels, 0, arrays));
+			subresourceRange);
 
 		cmdBuff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
 	}
@@ -232,48 +258,31 @@ namespace VulkanAPI
 			image_blit.dstOffsets[1] = dst_offset;
 
 			// create image barrier - transition image to transfer 
-			vk::ImageMemoryBarrier write_mem_barrier(
-				(vk::AccessFlags)0, vk::AccessFlagBits::eTransferWrite,
-				vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal,
-				0, 0,
-				image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, i, 1, 0, 1));
-
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &write_mem_barrier);
+			transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmd_buffer, i);
 
 			// blit the image
 			cmd_buffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
-
-			vk::ImageMemoryBarrier read_mem_barrier(
-				vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
-				vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal,
-				0, 0,
-				image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, i, 1, 0, 1));
-
-			cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eTransfer, vk::PipelineStageFlagBits::eTransfer, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
+			transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmd_buffer, i);
 		}
 
 		// prepare for shader read
-		vk::ImageMemoryBarrier read_mem_barrier(
-			vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eTransferRead,
-			vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-			0, 0,
-			image, vk::ImageSubresourceRange(vk::ImageAspectFlagBits::eColor, 0, mip_levels, 0, 1));
-
-		cmd_buffer.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &read_mem_barrier);
+		transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmd_buffer);
 	}
 
-	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue, vk::ImageAspectFlagBits aspect_flags)
+	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue)
 	{
 		// source
+		vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(format);
+
 		vk::ImageSubresourceLayers src(
-			vk::ImageAspectFlagBits::eColor,
+			imageAspect,
 			0, 0, 1);
 		vk::Offset3D src_offset(
 			width, height, 1);
 
 		// destination
 		vk::ImageSubresourceLayers dst(
-			vk::ImageAspectFlagBits::eColor,
+			imageAspect,
 			0, 0, 1);
 		vk::Offset3D dst_offset(
 			width, height, 1);
@@ -288,8 +297,15 @@ namespace VulkanAPI
 		CommandBuffer blit_cmd_buff(device, graph_queue.get_index());
 		blit_cmd_buff.create_primary();
 
-		// blit the image
-		blit_cmd_buff.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
+		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blit_cmd_buff.get());
+		other_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blit_cmd_buff.get());
+
+		// blit the image 
+		vk::Filter filter = getFilterType(format);
+		blit_cmd_buff.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, filter);
+
+		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blit_cmd_buff.get());
+		other_image.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blit_cmd_buff.get());
 
 		// flush the cmd buffer
 		blit_cmd_buff.end();

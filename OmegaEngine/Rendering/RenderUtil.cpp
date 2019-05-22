@@ -111,7 +111,7 @@ namespace OmegaEngine
 			vk::RenderPassBeginInfo begin_info = renderpass.get_begin_info(clear_value);
 			
 			// transition cube texture for transfer
-			cube_tex.get_image().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, cmd_buffer.get());
+			cube_tex.get_image().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmd_buffer.get());
 
 			// record command buffer for each mip and their layers
 			for (uint8_t mip = 0; mip < mip_levels; ++mip) {
@@ -144,14 +144,14 @@ namespace OmegaEngine
 					vk::Extent3D extent(static_cast<uint32_t>(mip_dim), static_cast<uint32_t>(mip_dim), 1);
 					vk::ImageCopy image_copy(src_resource, src_offset, dst_resource, dst_offset, extent);
 
-					offscreen_tex.get_image().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, 1, cmd_buffer.get());
+					offscreen_tex.get_image().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, cmd_buffer.get());
 					cmd_buffer.get().copyImage(offscreen_tex.get_image().get(), vk::ImageLayout::eTransferSrcOptimal, cube_tex.get_image().get(), vk::ImageLayout::eTransferDstOptimal, 1, &image_copy);
 					
 					// transition the offscreen image back to colour attachment ready for the next image
-					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, 1, cmd_buffer.get());
+					offscreen_tex.get_image().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, cmd_buffer.get());
 				}
 			}
-			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, 1, cmd_buffer.get());
+			cube_tex.get_image().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, cmd_buffer.get());
 
 			graph_queue.flush_cmd_buffer(cmd_buffer.get());
 		}

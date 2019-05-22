@@ -169,6 +169,7 @@ namespace ImageUtility
 		image_output.mip_levels = header.numberOfMipmapLevels;
 		image_output.width = header.pixelWidth;
 		image_output.height = header.pixelHeight;
+		image_output.total_size = (header.pixelWidth * header.pixelHeight * 4 * header.numberOfMipmapLevels * header.numberOfFaces) *  header.numberOfArrayElements;
 
 		// now for the actual images
 		for (uint32_t mips = 0; mips < header.numberOfMipmapLevels; ++mips) 

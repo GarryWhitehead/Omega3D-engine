@@ -88,7 +88,7 @@ namespace OmegaEngine
 
 		// and the depth g-buffer
 		gbuffer_images[num_attachments - 1].create_empty_image(depth_format, 
-			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment| vk::ImageUsageFlagBits::eTransferSrc);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> image_views(num_attachments);
@@ -233,7 +233,7 @@ namespace OmegaEngine
 			if (render_config.general.use_skybox) 
 			{
 				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
-				forward_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue(), vk::ImageAspectFlagBits::eDepth);
+				forward_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue());
 				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
 			}
 		}

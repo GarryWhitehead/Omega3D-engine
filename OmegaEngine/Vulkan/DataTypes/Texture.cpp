@@ -107,9 +107,9 @@ namespace VulkanAPI
 		CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
 		copy_cmd_buff.create_primary();
 
-        image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, 1, copy_cmd_buff.get());
+        image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copy_cmd_buff.get());
 		copy_cmd_buff.get().copyBufferToImage(staging_buff, image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
-		image.transition(vk::ImageLayout::eTransferDstOptimal, final_transition_layout, 1, copy_cmd_buff.get());
+		image.transition(vk::ImageLayout::eTransferDstOptimal, final_transition_layout, copy_cmd_buff.get());
         
 		copy_cmd_buff.end();
 		graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
@@ -157,9 +157,9 @@ namespace VulkanAPI
 			{
 
 				vk::BufferImageCopy image_copy(offset, 0, 0,
-					{ vk::ImageAspectFlagBits::eColor, level, 1, face },
+					{ vk::ImageAspectFlagBits::eColor, level, face, 1},
 					{ 0, 0, 0 },
-					{ width, height, 1 });
+					{ width >> level, height >> level, 1 });
 				copy_buffers.emplace_back(image_copy);
 
 				offset += (width >> level) * (height >> level);

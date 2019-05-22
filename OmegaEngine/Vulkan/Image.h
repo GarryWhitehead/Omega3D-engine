@@ -16,6 +16,7 @@ namespace VulkanAPI
 
 		ImageView();
 
+		static vk::ImageAspectFlags getImageAspect(vk::Format format);
 		static vk::ImageViewType get_texture_type(uint32_t faces, uint32_t array_count);
 
 		void create(vk::Device dev, Image& image);
@@ -42,10 +43,12 @@ namespace VulkanAPI
 		Image();
 		~Image();
 
+		static vk::Filter getFilterType(vk::Format format);
+
 		void create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usage_flags);
-		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, uint32_t levelCount, vk::CommandBuffer& cmdBuff);
+		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
 		void generate_mipmap(vk::CommandBuffer cmd_buffer);
-		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue, vk::ImageAspectFlagBits aspect_flags);
+		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue);
 
 		vk::Image& get()
 		{

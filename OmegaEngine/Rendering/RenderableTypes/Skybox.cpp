@@ -99,7 +99,7 @@ namespace OmegaEngine
 
 		// colour
 		image.create_empty_image(format, width, height,
-			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 
 		// depth - this will be blitted with the depth buffer from the previous pass
 		depth_image.create_empty_image(depth_format,
