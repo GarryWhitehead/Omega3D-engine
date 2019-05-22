@@ -24,6 +24,7 @@ namespace OmegaEngine
 			bool use_post_process = false;
 			bool use_skybox = true;
 			bool sort_render_queue = true;
+			bool useStockModels = true;
 			
 		} general;
 

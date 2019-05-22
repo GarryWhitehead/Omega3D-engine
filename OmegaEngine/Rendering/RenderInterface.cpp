@@ -67,6 +67,13 @@ namespace OmegaEngine
 
 		// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
 		vk_interface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
+
+		// also add stock model vertices/indices if required
+		if (render_config.general.useStockModels)
+		{
+			cubeModel = std::make_unique<RenderUtil::CubeModel>();
+			planeModel = std::make_unique<RenderUtil::PlaneModel>();
+		}
 	}
 
 	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)
@@ -186,7 +193,7 @@ namespace OmegaEngine
 				}
 				if (object.second.hasComponent<SkyboxComponent>())
 				{
-					add_renderable<RenderableSkybox>(this, object.second.get_component<SkyboxComponent>());
+					add_renderable<RenderableSkybox>(this, object.second.get_component<SkyboxComponent>(), vk_interface->get_buffer_manager());
 				}
 			}
 
@@ -244,5 +251,4 @@ namespace OmegaEngine
 		
 		renderer->render(vk_interface, scene_type, render_queue);
 	}
-
 }

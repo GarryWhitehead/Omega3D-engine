@@ -15,8 +15,11 @@ namespace OmegaEngine
 		{
 		public:
 
+			static constexpr uint32_t indicesSize = 36;
+			static constexpr uint32_t verticesSize = 24;
+
 			// cube vertices
-			std::array<float, 24> vertices
+			std::array<float, verticesSize> vertices
 			{
 				// front
 				-1.0f, -1.0f, 1.0f,
@@ -31,7 +34,7 @@ namespace OmegaEngine
 			};
 
 			// cube indices
-			std::array<uint32_t, 36> indices
+			std::array<uint32_t, indicesSize> indices
 			{
 				// front
 				0, 1, 2,
@@ -55,27 +58,6 @@ namespace OmegaEngine
 
 			CubeModel();
 			~CubeModel();
-
-			VulkanAPI::MemorySegment& get_vertex_buffer()
-			{
-				return vertices_buffer;
-			}
-
-			VulkanAPI::MemorySegment& get_index_buffer()
-			{
-				return indices_buffer;
-			}
-
-			uint32_t get_index_count() const
-			{
-				return static_cast<uint32_t>(indices.size());
-			}
-
-		private:
-
-			VulkanAPI::MemorySegment vertices_buffer;
-			VulkanAPI::MemorySegment indices_buffer;
-
 		};
 
 		class PlaneModel
@@ -89,22 +71,9 @@ namespace OmegaEngine
 				OEMaths::vec3f normal;
 			};
 
-			VulkanAPI::MemorySegment& get_vertex_buffer()
-			{
-				return vertex_buffer;
-			}
-
-			VulkanAPI::MemorySegment& get_index_buffer()
-			{
-				return index_buffer;
-			}
-
 			PlaneModel();
 
-		private:
-
-			VulkanAPI::MemorySegment vertex_buffer;
-			VulkanAPI::MemorySegment index_buffer;
+			// TODO: destructor should remove buffers from buffer manager
 		};
 	}
 }

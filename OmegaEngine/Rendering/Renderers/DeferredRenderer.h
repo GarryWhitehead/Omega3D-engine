@@ -62,7 +62,7 @@ namespace OmegaEngine
 		vk::Device device;
 		vk::PhysicalDevice gpu;
 
-		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
+		
 
 		// images - for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gbuffer_images;
@@ -70,7 +70,8 @@ namespace OmegaEngine
 		VulkanAPI::Texture forward_offscreen_image;
 		VulkanAPI::Texture forward_offscreen_depth_image;
 	
-		// Command buffer hanldes
+		// Command buffer handles for all passes
+		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
 		VulkanAPI::CmdBufferHandle forward_cmd_buffer_handle;
 		VulkanAPI::CmdBufferHandle obj_cmd_buffer_handle;
 

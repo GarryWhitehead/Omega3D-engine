@@ -34,7 +34,7 @@ namespace OmegaEngine
 			};
 
 			// prepare indices
-			std::vector<uint32_t> indices = { 0,1,2, 2,3,0 };
+			std::vector<uint32_t> indices;
 			for (uint32_t i = 0; i < 3; ++i)
 			{
 				uint32_t values[6] = { 0,1,2, 2,3,0 };

@@ -2,6 +2,7 @@
 #include "Rendering/Renderers/RendererBase.h"
 #include "RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
+#include "Rendering/StockModels.h"
 
 #include <vector>
 #include <memory>
@@ -128,6 +129,10 @@ namespace OmegaEngine
 
 		// all the pipelines and shaders for each renderable type
 		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
+
+		// stock models
+		std::unique_ptr<RenderUtil::CubeModel> cubeModel;
+		std::unique_ptr<RenderUtil::PlaneModel> planeModel;
 
 	};
 

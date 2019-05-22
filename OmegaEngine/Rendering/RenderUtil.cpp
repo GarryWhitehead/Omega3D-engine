@@ -133,7 +133,7 @@ namespace OmegaEngine
 					cmd_buffer.bind_push_block(pl_layout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(FilterPushConstant), &push_block);
 					
 					// draw cube into offscreen framebuffer
-					cmd_buffer.draw_indexed(cube_model.get_index_count());
+					//cmd_buffer.draw_indexed(cube_model.get_index_count());
 					cmd_buffer.end_pass();
 
 					// copy the offscreen buffer to the current layer

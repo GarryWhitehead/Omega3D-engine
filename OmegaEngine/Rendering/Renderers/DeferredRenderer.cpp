@@ -30,8 +30,9 @@ namespace OmegaEngine
 		render_config(_render_config),
 		RendererBase(RendererType::Deferred)
 	{
-		forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		cmd_buffer_handle = cmd_buffer_manager->create_instance();
 		obj_cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
 
 		// set up the deferred passes and shadow stuff
 		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
@@ -195,7 +196,7 @@ namespace OmegaEngine
 
 			cmd_buffer->create_primary();
 
-			// begin the renderpass 
+                        // begin the renderpass 
 			vk::RenderPassBeginInfo begin_info = forward_pass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
 			cmd_buffer->begin_renderpass(begin_info);
 			render(cmd_buffer);
@@ -232,9 +233,11 @@ namespace OmegaEngine
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (render_config.general.use_skybox) 
 			{
+				cmd_buffer_manager->new_frame(forward_cmd_buffer_handle);
+
 				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
 				forward_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue());
-				Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
+				Rendering::render_objects(render_queue, forward_pass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
 			}
 		}
 

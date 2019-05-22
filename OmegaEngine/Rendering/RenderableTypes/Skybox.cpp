@@ -5,6 +5,7 @@
 #include "Vulkan/DataTypes/Texture.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
+#include "Rendering/StockModels.h"
 #include "Objects/ObjectTypes.h"
 #include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
@@ -12,7 +13,7 @@
 namespace OmegaEngine
 {
 
-	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component) :
+	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
@@ -26,6 +27,10 @@ namespace OmegaEngine
 
 		skybox_instance->state = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
 		skybox_instance->blur_factor = component.blur_factor;
+		
+		skybox_instance->vertex_buffer = buffer_manager->get_buffer("CubeModelVertices");
+		skybox_instance->index_buffer = buffer_manager->get_buffer("CubeModelIndices");
+		skybox_instance->index_count = RenderUtil::CubeModel::indicesSize;
 	}
 
 

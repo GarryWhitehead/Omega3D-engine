@@ -35,7 +35,7 @@ namespace OmegaEngine
 			float blur_factor = 0.0f;
 		};
 
-		RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component);
+		RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager);
 		~RenderableSkybox();
 		
 		static void create_skybox_pipeline(vk::Device& device,
