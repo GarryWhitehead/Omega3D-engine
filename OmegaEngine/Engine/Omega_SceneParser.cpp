@@ -92,13 +92,13 @@ namespace OmegaEngine
 			models[i].gltfFilename = dir + arr["Filename"].GetString();
 			
 			auto& rot = arr["Rotation"];
-			models[i].world_rot = OEMaths::vec3f(rot[0].GetFloat(), rot[1].GetFloat(), rot[2].GetFloat());
+			models[i].worldRotation = OEMaths::vec3f(rot[0].GetFloat(), rot[1].GetFloat(), rot[2].GetFloat());
 
 			auto& sca = arr["Scale"];
-			models[i].world_scale = OEMaths::vec3f(sca[0].GetFloat(), sca[1].GetFloat(), sca[2].GetFloat());
+			models[i].worldScale = OEMaths::vec3f(sca[0].GetFloat(), sca[1].GetFloat(), sca[2].GetFloat());
 
 			auto& tran = arr["Translation"];
-			models[i].world_translation = OEMaths::vec3f(tran[0].GetFloat(), tran[1].GetFloat(), tran[2].GetFloat());
+			models[i].worldTranslation = OEMaths::vec3f(tran[0].GetFloat(), tran[1].GetFloat(), tran[2].GetFloat());
 		}
 	}
 
@@ -144,15 +144,15 @@ namespace OmegaEngine
 	{
 		// skybox
 		if (document.HasMember("Skybox")) {
-			environment.skybox_filename = document["Skybox"].GetString();
+			environment.skyboxFilename = document["Skybox"].GetString();
 		}
 		
 		// bdrf and IBL
 		if (document.HasMember("BRDF")) {
-			environment.brdf_filename = document["BRDF"].GetString();
+			environment.brdfFilename = document["BRDF"].GetString();
 		}
 		if (document.HasMember("IBL-Irradiance")) {
-			environment.irradiance_map_filename = document["IBL-Irradiance"].GetString();
+			environment.irradianceMapFilename = document["IBL-Irradiance"].GetString();
 		}
 
 	}

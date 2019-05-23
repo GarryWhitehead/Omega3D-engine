@@ -14,8 +14,8 @@ namespace VulkanAPI
 		Multi_Subpass,
 		Stencil_Subpass_Bottom,
 		Stencil_Subpass_Fragment,
-		DepthStencil_Subpass_Top,
-		DepthStencil_Subpass_Bottom,
+		DepthStencilSubpassTop,
+		DepthStencilSubpassBottom,
 	};
 
 	class RenderPass
@@ -45,12 +45,12 @@ namespace VulkanAPI
 			return static_cast<uint32_t>(colorReference.size());
 		}
 
-		uint32_t get_image_width() const
+		uint32_t getImage_width() const
 		{
 			return image_width;
 		}
 
-		uint32_t get_image_height() const
+		uint32_t getImage_height() const
 		{
 			return image_height;
 		}
@@ -74,8 +74,8 @@ namespace VulkanAPI
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 
 		// for generating cmd buffer
-		vk::RenderPassBeginInfo get_begin_info(vk::ClearColorValue& bg_colour, uint32_t index = 0);
-		vk::RenderPassBeginInfo get_begin_info(uint32_t size, vk::ClearValue* bg_colour, uint32_t index = 0);
+		vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& bg_colour, uint32_t index = 0);
+		vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* bg_colour, uint32_t index = 0);
 
 	private:
 

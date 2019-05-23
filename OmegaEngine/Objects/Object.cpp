@@ -18,29 +18,29 @@ namespace OmegaEngine
 		return id == obj.id;
 	}
 
-	void Object::add_child(Object& obj)
+	void Object::addChild(Object& obj)
 	{
-		obj.parent_id = id;
+		obj.parentId = id;
 
 		children.push_back(obj);
 	}
 
 	// helper functions
-	uint64_t Object::get_id() const
+	uint64_t Object::getId() const
 	{
 		return id;
 	}
 
-	void Object::set_id(const uint64_t _id)
+	void Object::setId(const uint64_t _id)
 	{
 		id = _id;
 	}
 
-	uint64_t Object::get_parent() const
+	uint64_t Object::getParent() const
 	{
-		return parent_id;
+		return parentId;
 	}
-	Object& Object::get_last_child()
+	Object& Object::getLastChild()
 	{
 		if (!children.empty()) {
 			return children.back();
@@ -48,7 +48,7 @@ namespace OmegaEngine
 		throw std::out_of_range("No children in parent object. This shouldn't happen!");
 	}
 
-	std::vector<Object>& Object::get_children()
+	std::vector<Object>& Object::getChildren()
 	{
 		return children;
 	}

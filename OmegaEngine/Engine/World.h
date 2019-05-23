@@ -77,7 +77,7 @@ namespace OmegaEngine
 		};
 
 		World();
-		World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engine_config);
+		World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
 		~World();
 
 		bool create(const char* filename);
@@ -85,32 +85,32 @@ namespace OmegaEngine
 		void render(double interpolation);
 
 		// gltf based stuff. Will probably be moved into its own sperate file at some point
-		void addGltfData(std::string filename, OEMaths::mat4f world_mat);
+		void addGltfData(std::string filename, OEMaths::mat4f worldMatix);
 		void loadGltfNode(tinygltf::Model& model, tinygltf::Node& node,
-			std::unordered_map<uint32_t, Object>& linearised_objects,
-			OEMaths::mat4f world_transform,
+			std::unordered_map<uint32_t, Object>& linearisedObjects,
+			OEMaths::mat4f worldTransform,
 			std::unique_ptr<ObjectManager>& objManager,
 			Object* obj, bool childObject,
-			uint32_t node_index,
-			uint32_t& global_vertex_count, uint32_t& global_index_count);
+			uint32_t nodeIndex,
+			uint32_t& global_vertexCount, uint32_t& global_indexCount);
 
 	private:
 
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
-		std::unique_ptr<ComponentInterface> component_interface;
+		std::unique_ptr<ComponentInterface> componentInterface;
 		std::unique_ptr<AnimationManager> animation_manager;
 
 		// all assets that are not associated with a manager are dealt with here
-		std::unique_ptr<AssetManager> asset_manager;
+		std::unique_ptr<AssetManager> assetManager;
 
 		// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
-		std::unique_ptr<RenderInterface> render_interface;
+		std::unique_ptr<RenderInterface> renderInterface;
 
 		// the octree as a 3d spatial representation of the world
 		std::unique_ptr<BVH> bvh;
 
-		bool has_updated_once = false;
+		bool hasUpdatedOnce = false;
 	};
 
 }

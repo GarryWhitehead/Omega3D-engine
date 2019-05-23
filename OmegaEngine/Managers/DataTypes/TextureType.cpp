@@ -23,19 +23,19 @@ namespace OmegaEngine
 	{
 		width = other.width;
 		height = other.height;
-		mip_levels = other.mip_levels;
-		faces = other.faces;
-		array_count = other.array_count;
-		total_size = other.total_size;
-		tex_format = other.tex_format;
+		mipLevels = other.mipLevels;
+		faceCount = other.faceCount;
+		arrayCount = other.arrayCount;
+		totalSize = other.totalSize;
+		format = other.format;
 		bin = other.bin;
 
 		other.width = 0;
 		other.height = 0;
-		other.mip_levels = 0;
-		other.faces = 0;
-		other.array_count = 0;
-		other.total_size = 0;
+		other.mipLevels = 0;
+		other.faceCount = 0;
+		other.arrayCount = 0;
+		other.totalSize = 0;
 		other.bin = nullptr;
 	}
 
@@ -47,45 +47,45 @@ namespace OmegaEngine
 			bin = other.bin;
 			width = other.width;
 			height = other.height;
-			mip_levels = other.mip_levels;
-			faces = other.faces;
-			array_count = other.array_count;
-			total_size = other.total_size;
-			tex_format = other.tex_format;
+			mipLevels = other.mipLevels;
+			faceCount = other.faceCount;
+			arrayCount = other.arrayCount;
+			totalSize = other.totalSize;
+			format = other.format;
 
 			other.width = 0;
 			other.height = 0;
-			other.mip_levels = 0;
-			other.faces = 0;
-			other.array_count = 0;
-			other.total_size = 0;
+			other.mipLevels = 0;
+			other.faceCount = 0;
+			other.arrayCount = 0;
+			other.totalSize = 0;
 			other.bin = nullptr;
 		}
 		return *this;
 	}
 
-	bool MappedTexture::map_texture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faces, uint32_t arrays, uint32_t mips, uint32_t size)
+	bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays, uint32_t mips, uint32_t size)
 	{
 		width = w;
 		height = h;
-		mip_levels = mips;
-		faces = _faces;
-		array_count = arrays;
-		total_size = size;
-		tex_format = vk::Format::eR8G8B8A8Unorm;	// an assumption made here - should make this more flexible!
+		mipLevels = mips;
+		faceCount = _faceCount;
+		arrayCount = arrays;
+		totalSize = size;
+		format = vk::Format::eR8G8B8A8Unorm;	// an assumption made here - should make this more flexible!
 
-		bin = new uint8_t[total_size];
+		bin = new uint8_t[totalSize];
 		if (!bin)
 		{
 			LOGGER_INFO("Error whilst allocationg memory for texture. Out of memory?");
 			return false;
 		}
 
-		memcpy(bin, data, total_size);
+		memcpy(bin, data, totalSize);
 		return true;
 	}
 
-	bool MappedTexture::map_texture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps)
+	bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps)
 	{
 		if (comp == 3) 
 		{
@@ -95,18 +95,18 @@ namespace OmegaEngine
 
 		width = w;
 		height = h;
-		mip_levels = 1;
-		tex_format = vk::Format::eR8G8B8A8Unorm;
+		mipLevels = 1;
+		format = vk::Format::eR8G8B8A8Unorm;
 
 		// if using jpg, png, etc. and mip-maps are required, then calculate the max number based on image size
 		if (createMipMaps) 
 		{
-			mip_levels = static_cast<uint8_t>(std::floor(std::log2(std::max(w, h))) + 1.0);
+			mipLevels = static_cast<uint8_t>(std::floor(std::log2(std::max(w, h))) + 1.0);
 		}
 		
 		// copy image to local store
-		uint32_t image_size = width * height * comp;	// assuming 4 channels here
-		bin = new uint8_t[image_size];
+		uint32_t imageSize = width * height * comp;	// assuming 4 channels here
+		bin = new uint8_t[imageSize];
 
 		if (!bin) 
 		{
@@ -114,19 +114,19 @@ namespace OmegaEngine
 			return false;
 		}
 
-		memcpy(bin, imageData, image_size);
+		memcpy(bin, imageData, imageSize);
 		return true;
 	}
 
-	bool MappedTexture::create_empty_texture(uint32_t w, uint32_t h, bool setToBlack)
+	bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, bool setToBlack)
 	{
 		width = w;
 		height = h;
-		mip_levels = 1;
-		tex_format = vk::Format::eR8G8B8A8Unorm;
+		mipLevels = 1;
+		format = vk::Format::eR8G8B8A8Unorm;
 
-		uint32_t image_size = width * height * 4;
-		bin = new uint8_t[image_size];
+		uint32_t imageSize = width * height * 4;
+		bin = new uint8_t[imageSize];
 
 		if (!bin) 
 		{
@@ -137,7 +137,7 @@ namespace OmegaEngine
 		// fill with zeros if required
 		if (setToBlack) 
 		{
-			memset(bin, 0, image_size);
+			memset(bin, 0, imageSize);
 		}
 
 		return true;

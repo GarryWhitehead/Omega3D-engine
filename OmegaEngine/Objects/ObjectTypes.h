@@ -74,24 +74,24 @@ namespace OmegaEngine
     struct SkyboxComponent : public ComponentBase
     {
         SkyboxComponent(float factor) : 
-			blur_factor(factor),
+			blurFactor(factor),
 			ComponentBase(ManagerType::None) {}
 
-		float blur_factor = 0.0f;
+		float blurFactor = 0.0f;
     };
 
 	struct ShadowComponent : public ComponentBase
 	{
 		ShadowComponent(float clamp, float constant, float slope) :
-			bias_clamp(clamp),
-			bias_constant(constant),
-			bias_slope(slope),
+			biasClamp(clamp),
+			biasConstant(constant),
+			biasSlope(slope),
 			ComponentBase(ManagerType::Mesh) {}
 
 		uint32_t index = 0;
 
-		float bias_clamp = 0.0f;
-		float bias_constant = 0.0f;
-		float bias_slope = 0.0f;
+		float biasClamp = 0.0f;
+		float biasConstant = 0.0f;
+		float biasSlope = 0.0f;
 	};
 }

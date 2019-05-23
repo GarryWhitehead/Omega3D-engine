@@ -145,7 +145,7 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::DepthStencil_Subpass_Top)
+		else if (depend_template == DependencyTemplate::DepthStencilSubpassTop)
 		{
 			depend.srcSubpass = VK_SUBPASS_EXTERNAL;
 			depend.dstSubpass = 0;
@@ -155,7 +155,7 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::DepthStencil_Subpass_Bottom)
+		else if (depend_template == DependencyTemplate::DepthStencilSubpassBottom)
 		{
 			depend.srcSubpass = 0;
 			depend.dstSubpass = VK_SUBPASS_EXTERNAL;
@@ -271,7 +271,7 @@ namespace VulkanAPI
 		framebuffers.push_back(framebuffer);
 	}
 
-	vk::RenderPassBeginInfo RenderPass::get_begin_info(vk::ClearColorValue& bg_colour, uint32_t fb_index)
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& bg_colour, uint32_t fb_index)
 	{
 		// set up clear colour for each colour attachment
 		clear_values.resize(attachment.size());
@@ -284,25 +284,25 @@ namespace VulkanAPI
 			}
 		}
 		
-		vk::RenderPassBeginInfo begin_info(
+		vk::RenderPassBeginInfo beginInfo(
 			renderpass, framebuffers[fb_index],
 			{ { 0, 0 }, { image_width, image_height } },
 			static_cast<uint32_t>(clear_values.size()),
 			clear_values.data());
 
-		return begin_info;
+		return beginInfo;
 	}
 
-	vk::RenderPassBeginInfo RenderPass::get_begin_info(uint32_t size, vk::ClearValue* colour, uint32_t fb_index)
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue* colour, uint32_t fb_index)
 	{
 
-		vk::RenderPassBeginInfo begin_info(
+		vk::RenderPassBeginInfo beginInfo(
 			renderpass, framebuffers[fb_index],
 			{ { 0, 0 }, { image_width, image_height } },
 			size,
 			colour);
 
-		return begin_info;
+		return beginInfo;
 	}
 
 }

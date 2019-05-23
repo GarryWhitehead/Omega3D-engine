@@ -27,10 +27,10 @@ namespace OmegaEngine
 	class RenderQueue;
 	class ObjectManager;
 
-	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)>
-	FuncReturn get_member_render_function(void *object, VulkanAPI::SecondaryCommandBuffer& cmd_buffer, void* renderable_data)
+	template <typename FuncReturn, typename T, FuncReturn(T::*callback)(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* renderableData)>
+	FuncReturn getMemberRenderFunction(void *object, VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* renderableData)
 	{
-		return (reinterpret_cast<T*>(object)->*callback)(cmd_buffer, renderable_data);
+		return (reinterpret_cast<T*>(object)->*callback)(cmdBuffer, renderableData);
 	}
 
 	enum class SceneType
@@ -62,73 +62,73 @@ namespace OmegaEngine
 
 		// if expecting an object to have child objects (in the case of meshes for example), then use this function
 		// this avoids having to iterate over a node tree, as we are linearising the tree so we can render faster and in sorted order
-		void build_renderable_mesh_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface, bool is_shadow);
+		void buildRenderableMeshTree(Object& obj, std::unique_ptr<ComponentInterface>& componentInterface, bool is_shadow);
 
 		// adds a list of objects to the tree using the function above
-		void update_renderables(std::unique_ptr<ObjectManager>& objecct_manager, std::unique_ptr<ComponentInterface>& comp_interface);
+		void updateRenderables(std::unique_ptr<ObjectManager>& objecctManager, std::unique_ptr<ComponentInterface>& componentInterface);
 
 		// renderable type creation
 		template <typename T, typename... Args>
-		uint32_t add_renderable(Args&&... args)
+		uint32_t addRenderable(Args&&... args)
 		{
 			T* renderable = new T(std::forward<Args>(args)...);
 			renderables.push_back({ renderable });
 			return static_cast<uint32_t>(renderables.size() - 1);
 		}
 
-		RenderableInfo& get_renderable(uint32_t index)
+		RenderableInfo& getRenderable(uint32_t index)
 		{
 			assert(index < renderables.size());
 			return renderables[index];
 		}
 
 		template<typename T, typename... Args>
-		void set_renderer(Args&&... args)
+		void setRenderer(Args&&... args)
 		{
 			renderer = std::make_unique<T>(std::forward<Args>(args)...);
 		}
 
-		std::unique_ptr<ProgramState>& get_render_pipeline(RenderTypes type)
+		std::unique_ptr<ProgramState>& getRenderPipeline(RenderTypes type)
 		{
-			return render_states[(int)type];
+			return renderStates[(int)type];
 		}
 
-		void init_renderer(std::unique_ptr<ComponentInterface>& component_interface);
-		void init_environment_render();
+		void initRenderer(std::unique_ptr<ComponentInterface>& componentInterface);
+		void initEnvironmentRender();
 
 		// shader init for each renderable type
-		void add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface);
+		void addShader(RenderTypes type, std::unique_ptr<ComponentInterface>& componentInterface);
 
 		// adds all renderables to render queue - TODO: add visisbility check
-		void prepare_object_queue();
+		void prepareObjectQueue();
 
 		// renders the frame using the defined renderer
 		void render(double interpolation);
 
 	private:
 
-		RenderConfig render_config;
+		RenderConfig renderConfig;
 	
 		// states whether the scene is static, i.e. no additional will be drawn, or dynamic
-		SceneType scene_type;
+		SceneType sceneType;
 
 		// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 		std::unique_ptr<RendererBase> renderer;
 
-		std::unique_ptr<VulkanAPI::Interface> vk_interface;
-		std::unique_ptr<PostProcessInterface> postprocess_interface;
+		std::unique_ptr<VulkanAPI::Interface> vkInterface;
+		std::unique_ptr<PostProcessInterface> postProcessInterface;
 
 		// contains all objects that are renderable to the screen
 		std::vector<RenderableInfo> renderables;
 
 		// queued visible renderables
-		std::unique_ptr<RenderQueue> render_queue;
+		std::unique_ptr<RenderQueue> renderQueue;
 
 		// dirty flag indicates whether to rebuild the renderables
 		bool isDirty = true;
 
 		// all the pipelines and shaders for each renderable type
-		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> render_states;
+		std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> renderStates;
 
 		// stock models
 		std::unique_ptr<RenderUtil::CubeModel> cubeModel;

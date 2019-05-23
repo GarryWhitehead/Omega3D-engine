@@ -21,16 +21,16 @@ namespace OmegaEngine
 		// operator overloads
 		bool operator==(const Object& obj) const;
 
-		void add_child(Object& obj);
-		Object& get_last_child();
+		void addChild(Object& obj);
+		Object& getLastChild();
 
 		// helper functions
-		uint64_t get_id() const;
-		void set_id(const uint64_t _id);
-		uint64_t get_parent() const;
+		uint64_t getId() const;
+		void setId(const uint64_t _id);
+		uint64_t getParent() const;
 
 		template <typename T>
-		T& get_component()
+		T& getComponent()
 		{
 			uint32_t id = Util::TypeId<T>::id();
 			assert(components.find(id) != components.end());
@@ -41,14 +41,14 @@ namespace OmegaEngine
 		}
 
 		template <typename T, typename... Args>
-		void add_component(Args&&... args)
+		void addComponent(Args&&... args)
 		{
 			uint32_t id = Util::TypeId<T>::id();
 			components[id] = new T(std::forward<Args>(args)...);
 		}
 
 		template <typename T>
-		void add_component()
+		void addComponent()
 		{
 			uint32_t id = Util::TypeId<T>::id();
 			components[id] = new T();
@@ -64,12 +64,12 @@ namespace OmegaEngine
 			return true;
 		}
 
-		std::vector<Object>& get_children();
+		std::vector<Object>& getChildren();
 
 	private:
 
 		uint64_t id = UINT64_MAX;
-		uint64_t parent_id = UINT64_MAX;
+		uint64_t parentId = UINT64_MAX;
 		std::vector<Object> children;
 
 		std::unordered_map<uint32_t, ComponentBase*> components;

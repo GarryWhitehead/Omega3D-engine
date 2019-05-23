@@ -148,7 +148,7 @@ public:
 	// Overrides the identifier OpName of an ID.
 	// Identifiers beginning with underscores or identifiers which contain double underscores
 	// are reserved by the implementation.
-	void set_name(uint32_t id, const std::string &name);
+	void setName(uint32_t id, const std::string &name);
 
 	// Gets a bitmask for the decorations which are applied to ID.
 	// I.e. (1ull << spv::DecorationFoo) | (1ull << spv::DecorationBar)

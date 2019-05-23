@@ -27,18 +27,18 @@ namespace VulkanAPI
 		void add_vertex_input(uint32_t location, vk::Format format, uint32_t size);
 		void update_vertex_input();
 
-		void set_raster_cull_mode(vk::CullModeFlags cull_mode);
-		void set_raster_front_face(vk::FrontFace front_face);
+		void setRasterCullMode(vk::CullModeFlags cull_mode);
+		void setRasterFrontFace(vk::FrontFace front_face);
 		void set_raster_depth_clamp(bool state);
 
-		void set_topology(vk::PrimitiveTopology topology);
+		void setTopology(vk::PrimitiveTopology topology);
 
-		void add_colour_attachment(bool blend_factor, RenderPass& renderpass);
-		void add_dynamic_state(vk::DynamicState state);
+		void addColourAttachment(bool blend_factor, RenderPass& renderpass);
+		void addDynamicState(vk::DynamicState state);
 
-		void set_depth_state(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
+		void setDepthState(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
 		void set_renderpass(RenderPass r_pass);
-		void add_shader(Shader& shader);
+		void addShader(Shader& shader);
 		void add_layout(vk::PipelineLayout pl);
 		void add_empty_layout();
 
@@ -75,7 +75,7 @@ namespace VulkanAPI
 
 		Shader shader;
 		RenderPass renderpass;
-		vk::PipelineLayout pl_layout;
+		vk::PipelineLayout pipelineLayout;
 		vk::Pipeline pipeline;
 
 		PipelineType type;
@@ -91,7 +91,7 @@ namespace VulkanAPI
 
 		void create(vk::Device& device, 
 						std::vector<std::tuple<uint32_t,
-						vk::DescriptorSetLayout> >& descr_layout);
+						vk::DescriptorSetLayout> >& descriptorLayout);
 
 		vk::PipelineLayout& get()
 		{

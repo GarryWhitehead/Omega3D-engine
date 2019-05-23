@@ -41,7 +41,7 @@ namespace VulkanAPI
 		~Device();
 
 		static bool find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties);
-		static vk::Format get_depth_format(vk::PhysicalDevice& gpu);
+		static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
 			
 		void createInstance(const char **glfwExtension, uint32_t extCount);
 		void prepareDevice();
@@ -69,7 +69,7 @@ namespace VulkanAPI
 		uint32_t getQueueIndex(QueueType type) const;
 		VulkanAPI::Queue getQueue(QueueType type);
 
-		void set_window_surface(vk::SurfaceKHR& surface, SurfaceType type = SurfaceType::SurfaceKHR)
+		void setWindowSurface(vk::SurfaceKHR& surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{
 			assert(surface);
 			win_surface = surface;

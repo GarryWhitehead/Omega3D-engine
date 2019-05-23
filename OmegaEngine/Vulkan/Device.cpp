@@ -138,7 +138,7 @@ namespace VulkanAPI
 		return false;
 	};
 
-	vk::Format Device::get_depth_format(vk::PhysicalDevice& gpu)
+	vk::Format Device::getDepthFormat(vk::PhysicalDevice& gpu)
 	{
 		// in order of preference - TODO: allow user to define whether stencil format is required or not
 		std::vector<vk::Format> formats =
@@ -297,7 +297,7 @@ namespace VulkanAPI
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
 			VkBool32 have_present_queue = false;
-			physical.getSurfaceSupportKHR(c, win_surface, &have_present_queue);
+			physical.getSurfaceCountupportKHR(c, win_surface, &have_present_queue);
 			if (queues[c].queueCount > 0 && have_present_queue) 
 			{
 				queue_family_index.present = c;

@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-#define MAX_LIGHT_COUNT 100
+#define MAX_lightCount 100
 
 namespace OmegaEngine
 {
@@ -39,7 +39,7 @@ namespace OmegaEngine
 		// a mirror of the shader buffer
 		struct LightUboBuffer
 		{
-			LightInfo lights[MAX_LIGHT_COUNT];
+			LightInfo lights[MAX_lightCount];
 			uint32_t lightCount;
 		};
 
@@ -47,7 +47,7 @@ namespace OmegaEngine
 		~LightManager();
 
 		// not used at present - just here to keep the inheritance demons happy
-		void update_frame(double time, double dt,
+		void updateFrame(double time, double dt,
 			std::unique_ptr<ObjectManager>& obj_manager,
 			ComponentInterface* component_manager) override;
 

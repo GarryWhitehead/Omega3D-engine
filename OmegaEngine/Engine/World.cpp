@@ -41,44 +41,44 @@ namespace OmegaEngine
 
 	}
 
-	World::World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engine_config)
+	World::World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig)
 	{
 		// all the boiler plater needed to generate the manager and interface instances
 		objectManager = std::make_unique<ObjectManager>();
-		component_interface = std::make_unique<ComponentInterface>();
-		render_interface = std::make_unique<RenderInterface>(device, engine_config.screen_width, engine_config.screen_height, static_cast<SceneType>(engine_config.scene_type));
+		componentInterface = std::make_unique<ComponentInterface>();
+		renderInterface = std::make_unique<RenderInterface>(device, engineConfig.screenWidth, engineConfig.screenHeight, static_cast<SceneType>(engineConfig.sceneType));
 		animation_manager = std::make_unique<AnimationManager>();
-		asset_manager = std::make_unique<AssetManager>();
+		assetManager = std::make_unique<AssetManager>();
 		bvh = std::make_unique<BVH>();
 
 		// register all components managers required for this world
 		if (managers & Managers::OE_MANAGERS_MESH || managers & Managers::OE_MANAGERS_ALL)
 		{
-			component_interface->registerManager<MeshManager>();
+			componentInterface->registerManager<MeshManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL) 
 		{
-			component_interface->registerManager<MaterialManager>();
+			componentInterface->registerManager<MaterialManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_TEXTURE || managers & Managers::OE_MANAGERS_ALL) 
 		{
-			component_interface->registerManager<TextureManager>();
+			componentInterface->registerManager<TextureManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) 
 		{
-			component_interface->registerManager<LightManager>();
+			componentInterface->registerManager<LightManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL)
 		{
-			component_interface->registerManager<TransformManager>();
+			componentInterface->registerManager<TransformManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) 
 		{
-			component_interface->registerManager<CameraManager>(engine_config.mouse_sensitivity);
+			componentInterface->registerManager<CameraManager>(engineConfig.mouseSensitivity);
 		}
 		
 		// setup the preferred renderer and associated elements
-		render_interface->init_renderer(component_interface);
+		renderInterface->initRenderer(componentInterface);
 	}
 
 	World::~World()
@@ -95,30 +95,30 @@ namespace OmegaEngine
 		}
 
 		// update camera manager 
-		component_interface->getManager<CameraManager>().add_camera(parser.get_camera());
+		componentInterface->getManager<CameraManager>().add_camera(parser.getCamera());
 
 		// add lights from scene file
-		for (uint32_t i = 0; i < parser.light_count(); ++i) 
+		for (uint32_t i = 0; i < parser.lightCount(); ++i) 
 		{
-			component_interface->getManager<LightManager>().add_light(parser.get_light(i));
+			componentInterface->getManager<LightManager>().add_light(parser.getLights(i));
 		}
 
 		// environment - load skybox and IBL files into memory if they exsist
-		if (parser.get_environment().skybox_filename)
+		if (parser.getEnvironment().skyboxFilename)
 		{
-			asset_manager->load_image_file(parser.get_environment().skybox_filename);
+			assetManager->loadImageFile(parser.getEnvironment().skyboxFilename);
 
 			// add skybox as a object - TODO: blur factor should be obtained from the config settings
 			auto obj = objectManager->createObject();
-			obj->add_component<SkyboxComponent>(0.5f);
+			obj->addComponent<SkyboxComponent>(0.5f);
 		}
-		if (parser.get_environment().brdf_filename)
+		if (parser.getEnvironment().brdfFilename)
 		{
-			asset_manager->load_image_file(parser.get_environment().brdf_filename);
+			assetManager->loadImageFile(parser.getEnvironment().brdfFilename);
 		}
-		if (parser.get_environment().irradiance_map_filename)
+		if (parser.getEnvironment().irradianceMapFilename)
 		{
-			asset_manager->load_image_file(parser.get_environment().irradiance_map_filename);
+			assetManager->loadImageFile(parser.getEnvironment().irradianceMapFilename);
 		}
 
 		// load and distribute the gltf data between the appropiate systems.
@@ -134,32 +134,32 @@ namespace OmegaEngine
 	{
 		// update on a per-frame basis
 		// animation
-		animation_manager->update_anim(time, dt, component_interface->getManager<TransformManager>());
+		animation_manager->updateAnimation(time, dt, componentInterface->getManager<TransformManager>());
 
 		// newly added assets need to be hosted on the gpu
-		asset_manager->update();
+		assetManager->update();
 
 		// all other managers
-		component_interface->update_managers(time, dt, objectManager);
+		componentInterface->update_managers(time, dt, objectManager);
 
 		// check whether there are any queued events to deal with
 		Global::eventManager()->notifyQueued();
 
 		// add all objects as renderable targets unless they flagged otherwise 
-		render_interface->update_renderables(objectManager, component_interface);
+		renderInterface->updateRenderables(objectManager, componentInterface);
 
-		has_updated_once = true;
+		hasUpdatedOnce = true;
 	}
 
 	void World::render(double interpolation)
 	{
-		if (has_updated_once) 
+		if (hasUpdatedOnce) 
 		{
-			render_interface->render(interpolation);
+			renderInterface->render(interpolation);
 		}
 	}
 
-	void World::addGltfData(std::string filename, OEMaths::mat4f world_mat)
+	void World::addGltfData(std::string filename, OEMaths::mat4f worldMatix)
 	{
 		// open the gltf file
 		tinygltf::Model model;
@@ -181,51 +181,51 @@ namespace OmegaEngine
 
 		if (ret) 
 		{
-			auto& texture_manager = component_interface->getManager<TextureManager>();
-			auto& material_manager = component_interface->getManager<MaterialManager>();
+			auto& textureManager = componentInterface->getManager<TextureManager>();
+			auto& materialManager = componentInterface->getManager<MaterialManager>();
 
-			uint32_t set = texture_manager.get_current_set();
+			uint32_t set = textureManager.getCurrentSet();
 
 			// first get all materials and textures associated with this model
 			for (auto& tex : model.textures)
 			{
 				tinygltf::Image image = model.images[tex.source];
-				texture_manager.addGltfImage(image);
+				textureManager.addGltfImage(image);
 			}
 
 			for (auto& sampler : model.samplers) 
 			{
-				texture_manager.addGltfSampler(set, sampler);
+				textureManager.addGltfSampler(set, sampler);
 			}
 
 			for (auto& mat : model.materials) 
 			{
-				material_manager.addGltfMaterial(set, mat, texture_manager);
+				materialManager.addGltfMaterial(set, mat, textureManager);
 			}
-			texture_manager.next_set();
+			textureManager.nextSet();
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
 			// data will be passed to all the relevant managers for this object and components added automatically
 			tinygltf::Scene &scene = model.scenes[model.defaultScene];
 
-			uint32_t vertex_count = 0;
-			uint32_t index_count = 0;
+			uint32_t vertexCount = 0;
+			uint32_t indexCount = 0;
 
 			// we also need to keep a linerised form of the objects for matching up joint indices later
-			std::unordered_map<uint32_t, Object> linearised_objects;
+			std::unordered_map<uint32_t, Object> linearisedObjects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) 
 			{
 				Object* obj = objectManager->createObject();
 
 				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				loadGltfNode(model, node, linearised_objects, world_mat, objectManager, obj, false, scene.nodes[i], vertex_count, index_count);
+				loadGltfNode(model, node, linearisedObjects, worldMatix, objectManager, obj, false, scene.nodes[i], vertexCount, indexCount);
 			}
 
 			// skinning info
-			component_interface->getManager<TransformManager>().addGltfSkin(model, linearised_objects);
+			componentInterface->getManager<TransformManager>().addGltfSkin(model, linearisedObjects);
 
 			// animation
-			animation_manager->addGltfAnimation(model, linearised_objects);
+			animation_manager->addGltfAnimation(model, linearisedObjects);
 		}
 		else 
 		{
@@ -234,12 +234,12 @@ namespace OmegaEngine
 	}
 
 	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, 
-							std::unordered_map<uint32_t, Object>& linearised_objects, 
-							OEMaths::mat4f world_transform, 
+							std::unordered_map<uint32_t, Object>& linearisedObjects, 
+							OEMaths::mat4f worldTransform, 
 							std::unique_ptr<ObjectManager>& objManager, 
 							Object* obj, bool childObject,
-							uint32_t node_index,
-							uint32_t& global_vertex_count, uint32_t& global_index_count)
+							uint32_t nodeIndex,
+							uint32_t& global_vertexCount, uint32_t& global_indexCount)
 	{
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
@@ -254,28 +254,28 @@ namespace OmegaEngine
 		}
 
 		// add all local and world transforms to the transform manager - also combines skinning info
-		auto &transform_man = component_interface->getManager<TransformManager>();
-		transform_man.addGltfTransform(node, parentObject, world_transform);
+		auto &transformManager = componentInterface->getManager<TransformManager>();
+		transformManager.addGltfTransform(node, parentObject, worldTransform);
 
 		// if this node has children, recursively extract their info
 		if (node.children.size() > 0) 
 		{
 			for (uint32_t i = 0; i < node.children.size(); ++i) 
 			{
-				loadGltfNode(model, model.nodes[node.children[i]], linearised_objects, world_transform, objManager, 
-					parentObject, true, node.children[i], global_vertex_count, global_index_count);
+				loadGltfNode(model, model.nodes[node.children[i]], linearisedObjects, worldTransform, objManager, 
+					parentObject, true, node.children[i], globalVertexCount, globalIndexCount);
 			}
 		}
 
 		// if the node has mesh data...
 		if (node.mesh > -1) 
 		{
-			auto& mesh_manager = component_interface->getManager<MeshManager>();
-			mesh_manager.addGltfData(model, node, parentObject, global_vertex_count, global_index_count);
+			auto& meshManager = componentInterface->getManager<MeshManager>();
+			meshManager.addGltfData(model, node, parentObject, globalVertexCount, globalIndexCount);
 		}
 
 		// create the linearised list of objects - parents and children
-		linearised_objects[node_index] = *parentObject;
+		linearisedObjects[nodeIndex] = *parentObject;
 	}
 
 }

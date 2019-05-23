@@ -24,9 +24,9 @@ namespace OmegaEngine
 		{
 			std::string gltfFilename;
 
-			OEMaths::vec3f world_translation;
-			OEMaths::vec3f world_scale;
-			OEMaths::vec3f world_rot;
+			OEMaths::vec3f worldTranslation;
+			OEMaths::vec3f worldScale;
+			OEMaths::vec3f worldRotation;
 
 		};
 
@@ -37,9 +37,9 @@ namespace OmegaEngine
 
 		struct EnvironmentInfo
 		{
-			const char* skybox_filename = nullptr;
-			const char* brdf_filename = nullptr;
-			const char* irradiance_map_filename = nullptr;
+			const char* skyboxFilename = nullptr;
+			const char* brdfFilename = nullptr;
+			const char* irradianceMapFilename = nullptr;
 		};
 
 		SceneParser();
@@ -65,25 +65,25 @@ namespace OmegaEngine
 
 		OEMaths::mat4f getWorldMatrix(uint32_t index)
 		{
-			return OEMaths::mat4f::translate(models[index].world_translation) * OEMaths::mat4f::scale(models[index].world_scale);	// *OEMaths::vec4f(models[index].world_rot, 1.0f);
+			return OEMaths::mat4f::translate(models[index].worldTranslation) * OEMaths::mat4f::scale(models[index].worldScale);	// *OEMaths::vec4f(models[index].worldRotation, 1.0f);
 		}
 
-		Camera& get_camera()
+		Camera& getCamera()
 		{
 			return camera;
 		}
 
-		uint32_t light_count() const
+		uint32_t lightCount() const
 		{
 			return static_cast<uint32_t>(lights.size());
 		}
 
-		LightInfo& get_light(const uint32_t index) 
+		LightInfo& getLights(const uint32_t index) 
 		{
 			return lights[index];
 		}
 
-		EnvironmentInfo& get_environment() 
+		EnvironmentInfo& getEnvironment() 
 		{
 			return environment;
 		}

@@ -15,14 +15,6 @@ namespace OmegaEngine
 {
 	// forward declerations
 
-	struct HashObject
-	{
-		size_t operator()(const Object& obj) const
-		{
-			return(std::hash<uint64_t>()(obj.get_id()));
-		}
-	};
-
 	class ObjectManager
 	{
 	public:
@@ -35,16 +27,16 @@ namespace OmegaEngine
 
 		void destroyObject(Object& obj);
 
-		Object* get_object_recursive(uint64_t id, Object& parent)
+		Object* getObjectRecursive(uint64_t id, Object& parent)
 		{
 			Object* obj = nullptr;
-			if (parent.get_id() == id) {
+			if (parent.getId() == id) {
 				return &parent;
 			}
 
-			auto& children = parent.get_children();
+			auto& children = parent.getChildren();
 			for (auto& child : children) {
-				obj = get_object_recursive(id, child);
+				obj = getObjectRecursive(id, child);
 				if (obj) {
 					break;
 				}
@@ -53,25 +45,25 @@ namespace OmegaEngine
 			return obj;
 		}
 
-		Object* get_object(uint64_t id)
+		Object* getObject(uint64_t id)
 		{
-			Object* required_obj = nullptr;
+			Object* requiredObj = nullptr;
 			for (auto& obj : objects) {
 
-				required_obj = get_object_recursive(id, obj.second);
-				if (required_obj) {
+				requiredObj = getObjectRecursive(id, obj.second);
+				if (requiredObj) {
 					break;
 				}
 			}
 
-			if (!required_obj) {
+			if (!requiredObj) {
 				LOGGER_ERROR("Fatal Error. Unable to find object with index %I64i.\n", id);
 			}
 
-			return required_obj;
+			return requiredObj;
 		}
 
-		std::unordered_map<uint64_t, Object>& get_objects_list()
+		std::unordered_map<uint64_t, Object>& getObjectsList()
 		{
 			return objects;
 		}

@@ -101,7 +101,7 @@ namespace VulkanAPI
 		wrappers.push_back(createInfo);
 	}
 
-	void Shader::descriptor_buffer_reflect(DescriptorLayout& descr_layout, std::vector<ShaderBufferLayout>& buffer_layout)
+	void Shader::bufferReflection(DescriptorLayout& descriptorLayout, std::vector<ShaderBufferLayout>& bufferLayout)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -126,9 +126,9 @@ namespace VulkanAPI
 					type = vk::DescriptorType::eUniformBufferDynamic;
 				}
 
-				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
+				descriptorLayout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				size_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
-				buffer_layout.push_back({ type, binding, set, ubo.name, range });
+				bufferLayout.push_back({ type, binding, set, ubo.name, range });
 			}
 
 			// storage
@@ -143,9 +143,9 @@ namespace VulkanAPI
 					type = vk::DescriptorType::eStorageBufferDynamic;
 				}
 
-				descr_layout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
+				descriptorLayout.add_layout(set, binding, type, get_stage_flag_bits(StageType(i)));
 				size_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
-				buffer_layout.push_back({ type, binding, set, ssbo.name, range });
+				bufferLayout.push_back({ type, binding, set, ssbo.name, range });
 			}
 
 			// image storage
@@ -153,12 +153,12 @@ namespace VulkanAPI
 
 				uint32_t set = compiler.get_decoration(image.id, spv::DecorationDescriptorSet);
 				uint32_t binding = compiler.get_decoration(image.id, spv::DecorationBinding);
-				descr_layout.add_layout(set, binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(StageType(i)));
+				descriptorLayout.add_layout(set, binding, vk::DescriptorType::eStorageImage, get_stage_flag_bits(StageType(i)));
 			}
 		}
 	}
 
-	void Shader::descriptor_image_reflect(DescriptorLayout& descr_layout, ImageLayoutBuffer& image_layout)
+	void Shader::imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayout)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -182,19 +182,19 @@ namespace VulkanAPI
 				// the image layout can also be set via the sampler name - Depth:: for depth sampler, Colour:: for colour samplers (default if none found)
 				vk::ImageLayout imageLayout = getImageLayout(image.name);
 
-				descr_layout.add_layout(set, binding, vk::DescriptorType::eCombinedImageSampler, get_stage_flag_bits(StageType(i)));
-				image_layout[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
+				descriptorLayout.add_layout(set, binding, vk::DescriptorType::eCombinedImageSampler, get_stage_flag_bits(StageType(i)));
+				imageLayout[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
 			}
 
 			// make sure that the samplers bindings are sorted into ascending order - spirv cross seems to mess the order up
-			for (auto& layout : image_layout) {
+			for (auto& layout : imageLayout) {
 
 				std::sort(layout.second.begin(), layout.second.end(), [](const ShaderImageLayout lhs, const ShaderImageLayout rhs) { return lhs.binding < rhs.binding; });
 			}
 		}
 	}
 
-	void Shader::pipeline_layout_reflect(PipelineLayout& p_info)
+	void Shader::pipelineLayoutReflect(PipelineLayout& p_info)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -214,7 +214,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void Shader::pipeline_reflection(Pipeline& pipeline)
+	void Shader::pipelineReflection(Pipeline& pipeline)
 	{
 		if (!curr_stages[(int)StageType::Vertex]) {
 			LOGGER_ERROR("Unable to reflect pipeline as vertex shader has not been initialised.");

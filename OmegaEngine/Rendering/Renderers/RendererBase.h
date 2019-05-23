@@ -35,35 +35,35 @@ namespace OmegaEngine
 
 		virtual ~RendererBase() {};
 
-		VulkanAPI::RenderPass& get_first_pass()
+		VulkanAPI::RenderPass& getFirstPass()
 		{
-			return first_renderpass;
+			return firstRenderpass;
 		}
 
-		VulkanAPI::RenderPass& get_shadow_pass()
+		VulkanAPI::RenderPass& getShadowPass()
 		{
-			return shadow_renderpass;
+			return shadowRenderpass;
 		}
 
-		VulkanAPI::RenderPass& get_forward_pass()
+		VulkanAPI::RenderPass& getForwardPass()
 		{
-			return forward_pass;
+			return forwardRenderpass;
 		}
 
 		// abstract functions
-		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue) = 0;
+		virtual void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue) = 0;
 
 	protected:
 
 		// renderpasses which are common to all renderers
 		// deferred renderer - first pass = gbuffer
-		VulkanAPI::RenderPass first_renderpass;
+		VulkanAPI::RenderPass firstRenderpass;
 
 		// all renderers have shadow functionality
-		VulkanAPI::RenderPass shadow_renderpass;
+		VulkanAPI::RenderPass shadowRenderpass;
 
 		// forward-pass - for skybox rendering in the deferred pipeline
-		VulkanAPI::RenderPass forward_pass;
+		VulkanAPI::RenderPass forwardRenderpass;
 		
 		RendererType type;
 	};

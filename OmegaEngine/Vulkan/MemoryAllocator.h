@@ -19,8 +19,8 @@ namespace VulkanAPI
 	{
 		VK_UNIFORM_BUFFER = 1 << 0,
 		VK_STORAGE_BUFFER = 1 << 1,
-		VK_VERTEX_BUFFER = 1 << 2,
-		VK_INDEX_BUFFER = 1 << 3,
+		VK_vertexBuffer = 1 << 2,
+		VK_indexBuffer = 1 << 3,
 		VK_BUFFER_STATIC = 1 << 4,		
 		VK_BUFFER_DYNAMIC = 1 << 5
 	};
@@ -52,12 +52,12 @@ namespace VulkanAPI
 			return offset;
 		}
 
-		uint32_t get_size() const
+		uint32_t getSize() const
 		{
 			return size;
 		}
 
-		int32_t get_id() const
+		int32_t getId() const
 		{
 			return block_id;
 		}
@@ -112,7 +112,7 @@ namespace VulkanAPI
 		void createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
 		vk::Buffer& get_memory_buffer(const uint32_t id);
-		vk::DeviceMemory& get_device_memory(const uint32_t id);
+		vk::DeviceMemory& getDevice_memory(const uint32_t id);
 
 		// Segment allocation functions and mapping
 		MemorySegment allocate(MemoryUsage usage, uint32_t size);
@@ -128,7 +128,7 @@ namespace VulkanAPI
 			int32_t block_id = -1;
 
 			MemoryType type;
-			uint32_t total_size = 0;
+			uint32_t totalSize = 0;
 
 			std::unordered_map<uint32_t, uint32_t> alloc_segments;
 			std::unordered_map<uint32_t, uint32_t> free_segments;		// fisrt = offset - second = size

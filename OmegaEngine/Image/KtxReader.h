@@ -33,45 +33,45 @@ namespace ImageUtility
 			{
 				width = other.width;
 				height = other.height;
-				byte_alignment = other.byte_alignment;
-				total_size = other.total_size;
-				mip_levels = other.mip_levels;
-				array_count = other.array_count;
-				faces = other.faces;
+				byteAlignment = other.byteAlignment;
+				totalSize = other.totalSize;
+				mipLevels = other.mipLevels;
+				arrayCount = other.arrayCount;
+				faceCount = other.faceCount;
 
-				data = new uint8_t[total_size];
-				memcpy(data, other.data, total_size);
+				data = new uint8_t[totalSize];
+				memcpy(data, other.data, totalSize);
 			}
 
 			ImageOutput& operator=(const ImageOutput& other)
 			{
 				if (this != &other)
 				{
-					if (total_size != other.total_size)
+					if (totalSize != other.totalSize)
 					{
 						delete[] data;
-						data = new uint8_t[total_size];
+						data = new uint8_t[totalSize];
 					}
-					memcpy(data, other.data, total_size);
+					memcpy(data, other.data, totalSize);
 
 					width = other.width;
 					height = other.height;
-					byte_alignment = other.byte_alignment;
-					total_size = other.total_size;
-					mip_levels = other.mip_levels;
-					array_count = other.array_count;
-					faces = other.faces;
+					byteAlignment = other.byteAlignment;
+					totalSize = other.totalSize;
+					mipLevels = other.mipLevels;
+					arrayCount = other.arrayCount;
+					faceCount = other.faceCount;
 				}
 			}
 			
 			// first mip level dimensions
 			uint32_t width = 0;
 			uint32_t height = 0;
-			uint32_t byte_alignment = 4;
-			uint32_t total_size = 0;
-			uint32_t mip_levels = 0;
-			uint32_t array_count = 0;
-			uint32_t faces = 0;
+			uint32_t byteAlignment = 4;
+			uint32_t totalSize = 0;
+			uint32_t mipLevels = 0;
+			uint32_t arrayCount = 0;
+			uint32_t faceCount = 0;
 
 			// total image size of each mip level (width * height * byteAlignment)
 			std::vector<uint32_t> mip_sizes;
@@ -91,7 +91,7 @@ namespace ImageUtility
 			uint32_t pixelHeight = 0;
 			uint32_t pixelDepth = 0;
 			uint32_t numberOfArrayElements = 0;
-			uint32_t numberOfFaces = 0;
+			uint32_t numberOffaceCount = 0;
 			uint32_t numberOfMipmapLevels = 0;
 		} header;
 
@@ -105,11 +105,11 @@ namespace ImageUtility
 		vk::Format convertGlToVkFormat(uint32_t internalFormat);
 
 		bool loadFile(const char* filename);
-		bool saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mip_levels, uint32_t array_count, uint32_t num_faces, uint32_t width, uint32_t height);
+		bool saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount, uint32_t num_faceCount, uint32_t width, uint32_t height);
 
-		ImageOutput& get_image_data()
+		ImageOutput& getImage_data()
 		{
-			return image_output;
+			return imageOutput;
 		}
 
 		template <typename T>
@@ -123,8 +123,8 @@ namespace ImageUtility
 
 		bool open(const char* filename, size_t& fileSize);
 		bool save(const char* filename, std::vector<uint8_t>& output);
-		bool parse(const size_t file_size);
-		std::vector<uint8_t> generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t array_count, uint32_t faces, uint32_t mip_levels);
+		bool parse(const size_t fileSize);
+		std::vector<uint8_t> generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t arrayCount, uint32_t faceCount, uint32_t mipLevels);
 
 		// holds the binary file
 		std::vector<uint8_t> fileBuffer;
@@ -136,7 +136,7 @@ namespace ImageUtility
 		vk::Format vk_format;
 
 		// image data for each mip level
-		ImageOutput image_output;
+		ImageOutput imageOutput;
 	};
 
 }

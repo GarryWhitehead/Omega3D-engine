@@ -13,8 +13,8 @@ namespace OmegaEngine
 {
 
 	InputManager::InputManager(GLFWwindow *window, uint32_t width, uint32_t height) :
-		left_button_press(false),
-		right_button_press(false),
+		leftButtonPress(false),
+		rightButtonPress(false),
 		cursorState(true)
 	{
 		assert(window != nullptr);
@@ -82,11 +82,11 @@ namespace OmegaEngine
 		{
 			if (action == GLFW_PRESS) 
 			{
-				left_button_press = true;
+				leftButtonPress = true;
 			}
 			else 
 			{
-				left_button_press = false;
+				leftButtonPress = false;
 			}
 		}
 
@@ -95,12 +95,12 @@ namespace OmegaEngine
 		{
 			if (action == GLFW_PRESS) 
 			{
-				right_button_press = true;
+				rightButtonPress = true;
 
 			}
 			else 
 			{
-				right_button_press = false;
+				rightButtonPress = false;
 			}
 		}
 	}
@@ -111,7 +111,7 @@ namespace OmegaEngine
 
 		if (Global::eventManager()) 
 		{
-			if (left_button_press) 
+			if (leftButtonPress) 
 			{
 				// update the camera position instantly so we reduce the chnace of lag
 				Global::eventManager()->instantNotification<MouseMoveEvent>(event);
@@ -125,11 +125,11 @@ namespace OmegaEngine
 
 		if (button == GLFW_MOUSE_BUTTON_LEFT) 
 		{
-			state = left_button_press;
+			state = leftButtonPress;
 		}
 		else if (button == GLFW_MOUSE_BUTTON_RIGHT) 
 		{
-			state = right_button_press;
+			state = rightButtonPress;
 		}
 
 		return state;

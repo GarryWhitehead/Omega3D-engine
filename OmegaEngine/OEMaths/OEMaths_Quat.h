@@ -55,7 +55,7 @@ namespace OEMaths
 
 		float length();
 		void normalise();
-		void linear_mix(quatf& q1, quatf& q2, float u);
+		void linearMix(quatf& q1, quatf& q2, float u);
 		quatf cubic_mix(quatf& q1, quatf& q2, quatf& q3, float u);
 
 	private:

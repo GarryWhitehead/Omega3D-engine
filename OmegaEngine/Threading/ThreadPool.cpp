@@ -72,7 +72,7 @@ namespace OmegaEngine
 		return taskCount == 0 && tasks.empty();
 	}
 
-	void ThreadPool::wait_for_all()
+	void ThreadPool::waitForAll()
 	{
 		//for (auto& thread : threads) {
 			std::unique_lock<std::mutex> lock(mut);

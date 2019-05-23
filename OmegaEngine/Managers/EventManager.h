@@ -30,8 +30,8 @@ namespace OmegaEngine
 
 	struct Listener
 	{
-		void (*listener_func)(void*, Event&);
-		void* listener_handle;
+		void (*listenerFunction)(void*, Event&);
+		void* listenerHandle;
 	};
 
 	class EventManager
@@ -48,20 +48,20 @@ namespace OmegaEngine
 		EventManager();
 		~EventManager();
 
-		template <typename T, typename EventType, void (T::*listener_func)(EventType&)>
+		template <typename T, typename EventType, void (T::*listenerFunction)(EventType&)>
 		void registerListener(T* listener)
 		{
 			// generate unique id for event type
 			uint64_t type = Util::TypeId<EventType>::id();
 			if (eventQueue.find(type) == eventQueue.end()) 
 			{
-				EventData event_data;
-				event_data.listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
-				eventQueue[type] = event_data;
+				EventData eventData;
+				eventData.listeners.push_back({ get_member_function<void, T, EventType, listenerFunction>, listener });
+				eventQueue[type] = eventData;
 			}
 			else 
 			{
-				eventQueue[type].listeners.push_back({ get_member_function<void, T, EventType, listener_func>, listener });
+				eventQueue[type].listeners.push_back({ get_member_function<void, T, EventType, listenerFunction>, listener });
 			}
 		}
 
@@ -91,7 +91,7 @@ namespace OmegaEngine
 				for (auto& listener : data.listeners) 
 				{
 					// call registered member function with event
-					listener.listener_func(listener.listener_handle, event);
+					listener.listenerFunction(listener.listenerHandle, event);
 				}
 			}
 		}

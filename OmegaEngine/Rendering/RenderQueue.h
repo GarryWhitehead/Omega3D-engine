@@ -27,10 +27,10 @@ namespace OmegaEngine
 			struct
 			{
 				// in order of sorting importance
-				uint64_t layer_id : 4;
-				uint64_t shader_id : 12;
-				uint64_t texture_id : 12;
-				uint64_t depth_id : 12;
+				uint64_t layerId : 4;
+				uint64_t shaderId : 12;
+				uint64_t textureId : 12;
+				uint64_t depthId : 12;
 			} s;
 
 			uint64_t flags;
@@ -59,16 +59,16 @@ namespace OmegaEngine
     struct RenderQueueInfo
     {
         // render callback function
-        void (*render_function)(void*, VulkanAPI::SecondaryCommandBuffer&, void* renderable_data);
-		void *renderable_handle;
+        void (*renderFunction)(void*, VulkanAPI::SecondaryCommandBuffer&, void* renderableData);
+		void *renderableHandle;
 
         // data specific to the renderable - mainly drawing information 
-        void *renderable_data;
+        void *renderableData;
 
         // the point in the render this will be drawn
-        SortKey sorting_key;
+        SortKey sortingKey;
 
-		QueueType queue_type;
+		QueueType queueType;
     };
 
    
@@ -80,27 +80,27 @@ namespace OmegaEngine
         RenderQueue();
         ~RenderQueue();
 
-        void add_to_queue(RenderQueueInfo& render_info)
+        void addRenderableToQueue(RenderQueueInfo& renderInfo)
         {
-            render_queues[render_info.queue_type].push_back(render_info);
+            renderQueues[renderInfo.queueType].push_back(renderInfo);
         }
 
 
-		static SortKey create_sort_key(RenderStage layer, uint32_t material_id, RenderTypes shader_id);
-        void sort_all();
+		static SortKey createSortKey(RenderStage layer, uint32_t materialId, RenderTypes shaderId);
+        void sortAll();
 
-		void submit(VulkanAPI::SecondaryCommandBuffer cmd_buffer,
+		void submit(VulkanAPI::SecondaryCommandBuffer cmdBuffer,
 					QueueType type,
 					uint32_t start, uint32_t end,
-					uint32_t thread_group_size);
+					uint32_t threadGroupSize);
 
-		void dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type);
-		void threaded_dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer, QueueType type);
+		void dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer, QueueType type);
+		void threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer, QueueType type);
 
      private:
 
         // ordered by queue type
-        std::unordered_map<QueueType, std::vector<RenderQueueInfo> > render_queues;
+        std::unordered_map<QueueType, std::vector<RenderQueueInfo> > renderQueues;
 
     };
 }

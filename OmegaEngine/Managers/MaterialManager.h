@@ -71,7 +71,7 @@ namespace OmegaEngine
 
 		// material image indicies
 		std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
-		std::array<bool, static_cast<int>(PbrMaterials::Count)> texture_state = { false };
+		std::array<bool, static_cast<int>(PbrMaterials::Count)> textureState = { false };
 
 		// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 		bool usingSpecularGlossiness = false;
@@ -86,7 +86,7 @@ namespace OmegaEngine
 		~MaterialManager();
 
 		// a per-frame update if the material data becomes dirty
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
 		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
 		MaterialInfo& get(uint32_t index);

@@ -196,7 +196,7 @@ void CompilerMSL::build_implicit_builtins()
 		auto &type = set<SPIRType>(struct_id, struct_type);
 		type.self = struct_id;
 		set_decoration(struct_id, DecorationBlock);
-		set_name(struct_id, "spvAux");
+		setName(struct_id, "spvAux");
 		set_member_name(struct_id, 0, "swizzleConst");
 		set_member_decoration(struct_id, 0, DecorationOffset, 0);
 
@@ -208,7 +208,7 @@ void CompilerMSL::build_implicit_builtins()
 		ptr_type.self = struct_id;
 
 		set<SPIRVariable>(var_id, struct_ptr_id, StorageClassUniform);
-		set_name(var_id, "spvAuxBuffer");
+		setName(var_id, "spvAuxBuffer");
 		// This should never match anything.
 		set_decoration(var_id, DecorationDescriptorSet, 0xFFFFFFFE);
 		set_decoration(var_id, DecorationBinding, msl_options.aux_buffer_index);
@@ -714,7 +714,7 @@ void CompilerMSL::extract_global_variables_from_function(uint32_t func_id, std::
 				set<SPIRVariable>(next_id, type_id, StorageClassFunction, 0, arg_id);
 
 				// Ensure the existing variable has a valid name and the new variable has all the same meta info
-				set_name(arg_id, ensure_valid_name(to_name(arg_id), "v"));
+				setName(arg_id, ensure_valid_name(to_name(arg_id), "v"));
 				ir.meta[next_id] = ir.meta[arg_id];
 			}
 		}
@@ -855,8 +855,8 @@ uint32_t CompilerMSL::add_interface_block(StorageClass storage)
 		break;
 	}
 
-	set_name(ib_type_id, to_name(ir.default_entry_point) + "_" + ib_var_ref);
-	set_name(ib_var_id, ib_var_ref);
+	setName(ib_type_id, to_name(ir.default_entry_point) + "_" + ib_var_ref);
+	setName(ib_var_id, ib_var_ref);
 
 	auto &entry_func = get<SPIRFunction>(ir.default_entry_point);
 

@@ -85,11 +85,11 @@ namespace VulkanAPI
 		create_cmd_pool();
 	}
 
-	void CommandBuffer::create_primary()
+	void CommandBuffer::createPrimary()
 	{
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::ePrimary, 1);
 
-		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
+		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
 
 		vk::CommandBufferUsageFlags usage_flags;
 		if (usage_type == UsageType::Single) {
@@ -100,39 +100,39 @@ namespace VulkanAPI
 		}
 
 		vk::CommandBufferBeginInfo beginInfo(usage_flags, 0);
-		VK_CHECK_RESULT(cmd_buffer.begin(&beginInfo));
+		VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 	}
 
-	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, bool use_secondary)
+	void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, bool use_secondary)
 	{
 		// stor the renderpass and framebuffer locally
-		renderpass = begin_info.renderPass;
-		framebuffer = begin_info.framebuffer;
+		renderpass = beginInfo.renderPass;
+		framebuffer = beginInfo.framebuffer;
 
 		assert(renderpass);
 		assert(framebuffer);
 
 		// set viewport and scissor using values from renderpass. Shoule be overridable too
-		view_port = vk::Viewport((float)begin_info.renderArea.offset.x, (float)begin_info.renderArea.offset.y,
-			(float)begin_info.renderArea.extent.width, (float)begin_info.renderArea.extent.height,
+		view_port = vk::Viewport((float)beginInfo.renderArea.offset.x, (float)beginInfo.renderArea.offset.y,
+			(float)beginInfo.renderArea.extent.width, (float)beginInfo.renderArea.extent.height,
 			0.0f, 1.0f);
 
-		scissor = vk::Rect2D({ { begin_info.renderArea.offset.x, begin_info.renderArea.offset.y },
-			{ begin_info.renderArea.extent.width, begin_info.renderArea.extent.height } });
+		scissor = vk::Rect2D({ { beginInfo.renderArea.offset.x, beginInfo.renderArea.offset.y },
+			{ beginInfo.renderArea.extent.width, beginInfo.renderArea.extent.height } });
 
 		if (!use_secondary) {
-			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+			cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
 		}
 		else {
-			cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eSecondaryCommandBuffers);
+			cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
 		}
 	}
 
-	void CommandBuffer::begin_renderpass(vk::RenderPassBeginInfo& begin_info, vk::Viewport& view_port)
+	void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, vk::Viewport& view_port)
 	{
 		// stor the renderpass and framebuffer locally
-		renderpass = begin_info.renderPass;
-		framebuffer = begin_info.framebuffer;
+		renderpass = beginInfo.renderPass;
+		framebuffer = beginInfo.framebuffer;
 
 		assert(renderpass);
 		assert(framebuffer);
@@ -141,111 +141,111 @@ namespace VulkanAPI
 		vk::Rect2D scissor({ { static_cast<int32_t>(view_port.x), static_cast<int32_t>(view_port.y) },
 			{ static_cast<uint32_t>(view_port.width), static_cast<uint32_t>(view_port.height) } });
 
-		cmd_buffer.beginRenderPass(&begin_info, vk::SubpassContents::eInline);
+		cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
 	}
 
-	void CommandBuffer::end_pass()
+	void CommandBuffer::endRenderpass()
 	{
-		cmd_buffer.endRenderPass();
+		cmdBuffer.endRenderPass();
 	}
 
 	void CommandBuffer::end()
 	{
-		cmd_buffer.end();
+		cmdBuffer.end();
 	}
 
-	void CommandBuffer::set_viewport()
+	void CommandBuffer::setViewport()
 	{
-		cmd_buffer.setViewport(0, 1, &view_port);
+		cmdBuffer.setViewport(0, 1, &view_port);
 	}
 
-	void CommandBuffer::set_scissor()
+	void CommandBuffer::setScissor()
 	{
-		cmd_buffer.setScissor(0, 1, &scissor);
+		cmdBuffer.setScissor(0, 1, &scissor);
 	}
 
-	void CommandBuffer::bind_pipeline(Pipeline& pipeline)
+	void CommandBuffer::bindPipeline(Pipeline& pipeline)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(pipeline.get_pipeline_type());
-		cmd_buffer.bindPipeline(bind_point, pipeline.get());
+		cmdBuffer.bindPipeline(bind_point, pipeline.get());
 	}
 
-	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type)
+	void CommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
+		std::vector<vk::DescriptorSet> sets = descriptorSet.get();
+		cmdBuffer.bindDescriptorSets(bind_point, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 	}
 
-	void CommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, uint32_t offset_count, uint32_t* offsets, PipelineType type)
+	void CommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, uint32_t offset_count, uint32_t* offsets, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), offset_count, offsets);
+		std::vector<vk::DescriptorSet> sets = descriptorSet.get();
+		cmdBuffer.bindDescriptorSets(bind_point, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), offset_count, offsets);
 	}
 
-	void CommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
+	void CommandBuffer::bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data)
 	{
-		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
+		cmdBuffer.pushConstants(pipelineLayout.get(), stage, 0, size, data);
 	}
 
-	void CommandBuffer::setDepthBias(float bias_constant, float bias_clamp, float bias_slope)
+	void CommandBuffer::setDepthBias(float biasConstant, float biasClamp, float biasSlope)
 	{
-		cmd_buffer.setDepthBias(bias_constant, bias_clamp, bias_slope);
+		cmdBuffer.setDepthBias(biasConstant, biasClamp, biasSlope);
 	}
 
-	void CommandBuffer::execute_secondary_commands()
+	void CommandBuffer::executeSecondaryCommands()
 	{
-		assert(!secondary_cmd_buffers.empty());
+		assert(!secondary_cmdBuffers.empty());
 
 		// trasnfer all the secondary cmd buffers into a container for execution
-		std::vector<vk::CommandBuffer> sec_cmd_buffers(secondary_cmd_buffers.size());
-		for (uint32_t i = 0; i < secondary_cmd_buffers.size(); ++i) {
-			sec_cmd_buffers[i] = secondary_cmd_buffers[i].get();
+		std::vector<vk::CommandBuffer> secondaryCmdBuffers(secondary_cmdBuffers.size());
+		for (uint32_t i = 0; i < secondary_cmdBuffers.size(); ++i) {
+			secondaryCmdBuffers[i] = secondary_cmdBuffers[i].get();
 		}
 
-		cmd_buffer.executeCommands(static_cast<uint32_t>(sec_cmd_buffers.size()), sec_cmd_buffers.data());
+		cmdBuffer.executeCommands(static_cast<uint32_t>(secondaryCmdBuffers.size()), secondaryCmdBuffers.data());
 	}
 
-	void CommandBuffer::execute_secondary_commands(uint32_t count)
+	void CommandBuffer::executeSecondaryCommands(uint32_t count)
 	{
-		assert(!secondary_cmd_buffers.empty());
+		assert(!secondary_cmdBuffers.empty());
 
 		// trasnfer the specified amount of secondary cmd buffers into a container for execution
-		std::vector<vk::CommandBuffer> sec_cmd_buffers(count);
+		std::vector<vk::CommandBuffer> secondaryCmdBuffers(count);
 		for (uint32_t i = 0; i < count; ++i) {
-			sec_cmd_buffers[i] = secondary_cmd_buffers[i].get();
+			secondaryCmdBuffers[i] = secondary_cmdBuffers[i].get();
 		}
 
-		cmd_buffer.executeCommands(count, sec_cmd_buffers.data());
+		cmdBuffer.executeCommands(count, secondaryCmdBuffers.data());
 	}
 
-	SecondaryCommandBuffer& CommandBuffer::create_secondary()
+	SecondaryCommandBuffer& CommandBuffer::createSecondary()
 	{
 		SecondaryCommandBuffer buffer{ device, queue_family_index, renderpass, framebuffer, view_port, scissor };
 		buffer.create();
-		secondary_cmd_buffers.push_back(buffer);
-		return secondary_cmd_buffers.back();
+		secondary_cmdBuffers.push_back(buffer);
+		return secondary_cmdBuffers.back();
 	}
 
-	void CommandBuffer::create_secondary(uint32_t count)
+	void CommandBuffer::createSecondary(uint32_t count)
 	{
-		secondary_cmd_buffers.resize(count);
+		secondary_cmdBuffers.resize(count);
 		for (uint32_t i = 0; i < count; ++i) {
-			secondary_cmd_buffers[i] = {device, queue_family_index, renderpass, framebuffer, view_port, scissor};
-			secondary_cmd_buffers[i].create();
+			secondary_cmdBuffers[i] = {device, queue_family_index, renderpass, framebuffer, view_port, scissor};
+			secondary_cmdBuffers[i].create();
 		}
 	}
 
 	// drawing functions 
-	void CommandBuffer::draw_indexed(uint32_t index_count)
+	void CommandBuffer::drawIndexed(uint32_t indexCount)
 	{
-		cmd_buffer.drawIndexed(index_count, 1, 0, 0, 0);
+		cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 	}
 
-	void CommandBuffer::draw_quad()
+	void CommandBuffer::drawQuad()
 	{
-		cmd_buffer.draw(3, 1, 0, 0);
+		cmdBuffer.draw(3, 1, 0, 0);
 	}
 
 	// secondary command buffer functions ===========================
@@ -274,7 +274,7 @@ namespace VulkanAPI
 
 	void SecondaryCommandBuffer::end()
 	{
-		cmd_buffer.end();
+		cmdBuffer.end();
 	}
 
 	void SecondaryCommandBuffer::create()
@@ -287,7 +287,7 @@ namespace VulkanAPI
 
 		// create secondary cmd buffers
 		vk::CommandBufferAllocateInfo allocInfo(cmd_pool, vk::CommandBufferLevel::eSecondary, 1);
-		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmd_buffer));
+		VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
 	}
 
 	void SecondaryCommandBuffer::begin()
@@ -298,71 +298,71 @@ namespace VulkanAPI
 			(vk::QueryControlFlagBits)0, 
 			(vk::QueryPipelineStatisticFlagBits)0);
 	
-		vk::CommandBufferBeginInfo begin_info(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritance_info);
-		VK_CHECK_RESULT(cmd_buffer.begin(&begin_info));
+		vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritance_info);
+		VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 	}
 
-	void SecondaryCommandBuffer::bind_pipeline(Pipeline& pipeline)
+	void SecondaryCommandBuffer::bindPipeline(Pipeline& pipeline)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(pipeline.get_pipeline_type());
-		cmd_buffer.bindPipeline(bind_point, pipeline.get());
+		cmdBuffer.bindPipeline(bind_point, pipeline.get());
 	}
 
-	void SecondaryCommandBuffer::bind_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type)
+	void SecondaryCommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
+		std::vector<vk::DescriptorSet> sets = descriptorSet.get();
+		cmdBuffer.bindDescriptorSets(bind_point, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 	}
 
-	void SecondaryCommandBuffer::bind_dynamic_descriptors(PipelineLayout& pl_layout, DescriptorSet& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets)
+	void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type, std::vector<uint32_t>& dynamicOffsets)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		std::vector<vk::DescriptorSet> sets = descr_set.get();
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 
-			static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+		std::vector<vk::DescriptorSet> sets = descriptorSet.get();
+		cmdBuffer.bindDescriptorSets(bind_point, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 
+			static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
 	}
 
-	void SecondaryCommandBuffer::bind_dynamic_descriptors(PipelineLayout& pl_layout, std::vector<vk::DescriptorSet>& descr_set, PipelineType type, std::vector<uint32_t>& dynamic_offsets)
+	void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, std::vector<vk::DescriptorSet>& descriptorSet, PipelineType type, std::vector<uint32_t>& dynamicOffsets)
 	{
 		vk::PipelineBindPoint bind_point = create_bind_point(type);
-		cmd_buffer.bindDescriptorSets(bind_point, pl_layout.get(), 0, static_cast<uint32_t>(descr_set.size()), 
-			descr_set.data(), static_cast<uint32_t>(dynamic_offsets.size()), dynamic_offsets.data());
+		cmdBuffer.bindDescriptorSets(bind_point, pipelineLayout.get(), 0, static_cast<uint32_t>(descriptorSet.size()), 
+			descriptorSet.data(), static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
 	}
 
-	void SecondaryCommandBuffer::bind_push_block(PipelineLayout& pl_layout, vk::ShaderStageFlags stage, uint32_t size, void* data)
+	void SecondaryCommandBuffer::bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data)
 	{
-		cmd_buffer.pushConstants(pl_layout.get(), stage, 0, size, data);
+		cmdBuffer.pushConstants(pipelineLayout.get(), stage, 0, size, data);
 	}
 
-	void SecondaryCommandBuffer::bind_vertex_buffer(vk::Buffer& buffer, vk::DeviceSize offset)
+	void SecondaryCommandBuffer::bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset)
 	{
-		cmd_buffer.bindVertexBuffers(0, 1, &buffer, &offset);
+		cmdBuffer.bindVertexBuffers(0, 1, &buffer, &offset);
 	}
 
-	void SecondaryCommandBuffer::bind_index_buffer(vk::Buffer& buffer, uint32_t offset)
+	void SecondaryCommandBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
 	{
-		cmd_buffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
+		cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 	}
 
-	void SecondaryCommandBuffer::set_viewport()
+	void SecondaryCommandBuffer::setViewport()
 	{
-		cmd_buffer.setViewport(0, 1, &view_port);
+		cmdBuffer.setViewport(0, 1, &view_port);
 	}
 
-	void SecondaryCommandBuffer::set_scissor()
+	void SecondaryCommandBuffer::setScissor()
 	{
-		cmd_buffer.setScissor(0, 1, &scissor);
+		cmdBuffer.setScissor(0, 1, &scissor);
 	}
 
-	void SecondaryCommandBuffer::setDepthBias(float bias_constant, float bias_clamp, float bias_slope)
+	void SecondaryCommandBuffer::setDepthBias(float biasConstant, float biasClamp, float biasSlope)
 	{
-		cmd_buffer.setDepthBias(bias_constant, bias_clamp, bias_slope);
+		cmdBuffer.setDepthBias(biasConstant, biasClamp, biasSlope);
 	}
 
-	void SecondaryCommandBuffer::draw_indexed(uint32_t index_count)
+	void SecondaryCommandBuffer::drawIndexed(uint32_t indexCount)
 	{
-		cmd_buffer.drawIndexed(index_count, 1, 0, 0, 0);
+		cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 	}
 
 	// command pool functions =====================================================================

@@ -36,34 +36,34 @@ namespace OmegaEngine
 		~TextureManager();
 
 		// not used at present - just here to keep the inheritance demons happy
-		void update_frame(double time, double dt,
+		void updateFrame(double time, double dt,
 			std::unique_ptr<ObjectManager>& obj_manager,
 			ComponentInterface* component_manager) override;
 
 		void addGltfSampler(uint32_t set, tinygltf::Sampler& sampler);
 		void addGltfImage(tinygltf::Image& image);
 
-		vk::SamplerAddressMode get_wrap_mode(int32_t wrap);
-		vk::Filter get_filter_mode(int32_t filter);
+		vk::SamplerAddressMode getWrapMode(int32_t wrap);
+		vk::Filter getFilterMode(int32_t filter);
 
-		uint32_t get_texture_index(uint32_t set, const char* name);
-		MappedTexture& get_texture(uint32_t set, int index);
-		VulkanAPI::SamplerType get_sampler(uint32_t set, uint32_t index);
-		VulkanAPI::SamplerType get_dummy_sampler();
+		uint32_t getTextureIndex(uint32_t set, const char* name);
+		MappedTexture& getTexture(uint32_t set, int index);
+		VulkanAPI::SamplerType getSampler(uint32_t set, uint32_t index);
+		VulkanAPI::SamplerType getDummySampler();
 
-		void next_set()
+		void nextSet()
 		{
-			++current_set;
+			++currentSet;
 		}
 
-		uint32_t get_current_set() const
+		uint32_t getCurrentSet() const
 		{
-			return current_set;
+			return currentSet;
 		}
 
-		MappedTexture& get_dummy_texture()
+		MappedTexture& getDummyTexture()
 		{
-			return dummy_texture;
+			return dummyTexture;
 		}
 
 		
@@ -71,13 +71,13 @@ namespace OmegaEngine
 	private:
 
 		// keep a record of the current texture set
-		uint32_t current_set = 0;
+		uint32_t currentSet = 0;
 
 		std::unordered_map<uint32_t, std::vector<MappedTexture> > textures;
 		std::unordered_map<uint32_t, std::vector<VulkanAPI::SamplerType> > samplers;
 
 		// dummy texture
-		MappedTexture dummy_texture;
+		MappedTexture dummyTexture;
 	};
 
 }

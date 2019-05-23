@@ -40,12 +40,12 @@ void rename_interface_variable(spirv_cross::Compiler &compiler, const std::vecto
 		// structs as well and make sure all the names match up.
 		if (type.basetype == SPIRType::Struct)
 		{
-			compiler.set_name(v.base_type_id, join("SPIRV_Cross_Interface_Location", location));
+			compiler.setName(v.base_type_id, join("SPIRV_Cross_Interface_Location", location));
 			for (uint32_t i = 0; i < uint32_t(type.member_types.size()); i++)
 				compiler.set_member_name(v.base_type_id, i, join("InterfaceMember", i));
 		}
 
-		compiler.set_name(v.id, name);
+		compiler.setName(v.id, name);
 	}
 }
 

@@ -22,34 +22,34 @@ namespace OmegaEngine
 	
 	DeferredRenderer::DeferredRenderer(vk::Device& dev, 
 										vk::PhysicalDevice& physical, 
-										std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, 
-										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, 
-										VulkanAPI::Swapchain& swapchain, RenderConfig& _render_config) :
+										std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, 
+										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, 
+										VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig) :
 		device(dev),
 		gpu(physical),
-		render_config(_render_config),
+		renderConfig(_renderConfig),
 		RendererBase(RendererType::Deferred)
 	{
-		cmd_buffer_handle = cmd_buffer_manager->create_instance();
-		obj_cmd_buffer_handle = cmd_buffer_manager->create_instance();
-		forward_cmd_buffer_handle = cmd_buffer_manager->create_instance();
+		deferredCmdBufferHandle = cmdBufferManager->createInstance();
+		objectCmdBufferHandle = cmdBufferManager->createInstance();
+		forwardCmdBufferHandle = cmdBufferManager->createInstance();
 
 		// set up the deferred passes and shadow stuff
 		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
-		create_gbuffer_pass();
+		createGbufferPass();
 
 		// 2. render the objects again but this time into a depth buffer for shadows
-		shadow_image.init(device, gpu);
-		RenderableShadow::create_shadow_pass(shadow_renderpass, shadow_image, device, gpu, 
-			render_config.shadow_format, render_config.shadow_width, render_config.shadow_height);
+		shadowImage.init(device, gpu);
+		RenderableShadow::createShadowPass(shadowRenderpass, shadowImage, device, gpu, 
+			renderConfig.shadow_format, renderConfig.shadow_width, renderConfig.shadow_height);
 
-		forward_offscreen_image.init(device, gpu);
-		forward_offscreen_depth_image.init(device, gpu);
-		RenderableSkybox::create_skybox_pass(forward_pass, forward_offscreen_image, forward_offscreen_depth_image, 
-			device, gpu, render_config.deferred.offscreen_width, render_config.deferred.offscreen_height);
+		forwardOffscreenImage.init(device, gpu);
+		forwardOffscreenDepthImage.init(device, gpu);
+		RenderableSkybox::createSkyboxPass(forwardRenderpass, forwardOffscreenImage, forwardOffscreenDepthImage, 
+			device, gpu, renderConfig.deferred.offscreenWidth, renderConfig.deferred.offscreenHeight);
 
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
-		create_deferred_pass(buffer_manager, swapchain);
+		createDeferredPass(bufferManager, swapchain);
 	}
 
 
@@ -57,54 +57,54 @@ namespace OmegaEngine
 	{
 	}
 
-	void DeferredRenderer::create_gbuffer_pass()
+	void DeferredRenderer::createGbufferPass()
 	{
 		// a list of the formats required for each buffer
-		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
-		first_renderpass.init(device);
-		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// position
-		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);			// colour
-		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// normal
-		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16Sfloat);				// pbr
-		first_renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// emissive
-		first_renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);					// depth
-		first_renderpass.prepareRenderPass();
+		firstRenderpass.init(device);
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// position
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);			// colour
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// normal
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16Sfloat);				// pbr
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// emissive
+		firstRenderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);					// depth
+		firstRenderpass.prepareRenderPass();
 
-		const uint8_t num_attachments = 6;
+		const uint8_t attachmentCount = 6;
 
 		// init textures
-		for (auto& texture : gbuffer_images)
+		for (auto& texture : gBufferImages)
 		{
 			texture.init(device, gpu);
 		}
 
 		// create a empty texture for each state - these will be filled by the shader
-		for (uint8_t i = 0; i < num_attachments - 1; ++i) 
+		for (uint8_t i = 0; i < attachmentCount - 1; ++i) 
 		{
-			gbuffer_images[i].create_empty_image(first_renderpass.get_attachment_format(i), 
-				render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 
+			gBufferImages[i].createEmptyImage(firstRenderpass.get_attachment_format(i), 
+				renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 
 				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
 		}
 
 		// and the depth g-buffer
-		gbuffer_images[num_attachments - 1].create_empty_image(depth_format, 
-			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment| vk::ImageUsageFlagBits::eTransferSrc);
+		gBufferImages[attachmentCount - 1].createEmptyImage(depthFormat, 
+			renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment| vk::ImageUsageFlagBits::eTransferSrc);
 
 		// tie the image-views to the frame buffer
-		std::vector<vk::ImageView> image_views(num_attachments);
+		std::vector<vk::ImageView> imageViews(attachmentCount);
 
-		for (uint8_t i = 0; i < num_attachments; ++i) 
+		for (uint8_t i = 0; i < attachmentCount; ++i) 
 		{
-			image_views[i] = gbuffer_images[i].get_image_view();
+			imageViews[i] = gBufferImages[i].getImageView();
 		}
 
-		first_renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), 
-			render_config.deferred.gbuffer_width, render_config.deferred.gbuffer_height);
+		firstRenderpass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), 
+			renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight);
 	}
 
 
-	void DeferredRenderer::create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain)
+	void DeferredRenderer::createDeferredPass(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain)
 	{
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!state.shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) 
@@ -114,134 +114,134 @@ namespace OmegaEngine
 		}
 
 		// create the descriptors and pipeline layout through shader reflection
-		state.shader.descriptor_buffer_reflect (state.descr_layout, state.buffer_layout);
-		state.shader.descriptor_image_reflect(state.descr_layout, state.image_layout);
-		state.shader.pipeline_layout_reflect(state.pl_layout);
-		state.shader.pipeline_reflection(state.pipeline);
+		state.shader.bufferReflection (state.descriptorLayout, state.bufferLayout);
+		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
+		state.shader.pipelineLayoutReflect(state.pipelineLayout);
+		state.shader.pipelineReflection(state.pipeline);
 
-		state.descr_layout.create(device);
-		state.descr_set.init(device, state.descr_layout);
+		state.descriptorLayout.create(device);
+		state.descriptorSet.init(device, state.descriptorLayout);
 
 		// not completely automated! We still need to manually adjust the set numbers for each type
 		const uint8_t DeferredSet = 1;
 		const uint8_t EnvironmentSet = 2;
 
-		for (uint8_t i = 0; i < state.image_layout[DeferredSet].size(); ++i) 
+		for (uint8_t i = 0; i < state.imageLayout[DeferredSet].size(); ++i) 
 		{
-			state.descr_set.write_set(state.image_layout[DeferredSet][i], gbuffer_images[i].get_image_view());
+			state.descriptorSet.writeSet(state.imageLayout[DeferredSet][i], gBufferImages[i].getImageView());
 		}
 		
-		for (auto& layout : state.buffer_layout) 
+		for (auto& layout : state.bufferLayout) 
 		{
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") 
 			{
-				buffer_manager->enqueueDescrUpdate("Camera", &state.descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Camera", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			if (layout.name == "LightUbo") 
 			{
-				buffer_manager->enqueueDescrUpdate("Light", &state.descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Light", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
 		// and finally create the pipeline
 		// first finish of the pipeline layout....
-		state.pl_layout.create(device, state.descr_layout.get_layout());
+		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
 
-		state.pipeline.set_depth_state(VK_TRUE, VK_TRUE);
-		state.pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		state.pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
+		state.pipeline.setDepthState(VK_TRUE, VK_TRUE);
+		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		
-		if (render_config.general.use_skybox) 
+		if (renderConfig.general.useSkybox) 
 		{
-			state.pipeline.add_colour_attachment(VK_FALSE, forward_pass);
-			state.pipeline.create(device, forward_pass, state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+			state.pipeline.addColourAttachment(VK_FALSE, forwardRenderpass);
+			state.pipeline.create(device, forwardRenderpass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 		}
 		else 
 		{
 			// render to the swapchain presentation 
-			state.pipeline.add_colour_attachment(VK_FALSE, swapchain.get_renderpass());
-			state.pipeline.create(device, swapchain.get_renderpass(), state.shader, state.pl_layout, VulkanAPI::PipelineType::Graphics);
+			state.pipeline.addColourAttachment(VK_FALSE, swapchain.getRenderpass());
+			state.pipeline.create(device, swapchain.getRenderpass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 		}
 	}
 
-	void DeferredRenderer::render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain)
+	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain)
 	{
-		auto render = [&](std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer) -> void
+		auto render = [&](std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer) -> void
 		{
 			// viewport and scissor
-			cmd_buffer->set_viewport();
-			cmd_buffer->set_scissor();
+			cmdBuffer->setViewport();
+			cmdBuffer->setScissor();
 
 			// bind everything required to draw
-			cmd_buffer->bind_pipeline(state.pipeline);
-			cmd_buffer->bind_descriptors(state.pl_layout, state.descr_set, VulkanAPI::PipelineType::Graphics);
-			cmd_buffer->bind_push_block(state.pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &render_config.ibl);
+			cmdBuffer->bindPipeline(state.pipeline);
+			cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
+			cmdBuffer->bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
 
 			// render full screen quad to screen
-			cmd_buffer->draw_quad();
+			cmdBuffer->drawQuad();
 
 			// end this pass and cmd buffer
-			cmd_buffer->end_pass();
-			cmd_buffer->end();
+			cmdBuffer->endRenderpass();
+			cmdBuffer->end();
 		};
 		
 		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
 		// or just render straight to the swap chain presentation image
-		if (render_config.general.use_skybox) 
+		if (renderConfig.general.useSkybox) 
 		{	
-			cmd_buffer_manager->new_frame(cmd_buffer_handle);
-			auto& cmd_buffer = cmd_buffer_manager->get_cmd_buffer(cmd_buffer_handle);
+			cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
+			auto& cmdBuffer = cmdBufferManager->getCmdBuffer(deferredCmdBufferHandle);
 
-			cmd_buffer->create_primary();
+			cmdBuffer->createPrimary();
 
                         // begin the renderpass 
-			vk::RenderPassBeginInfo begin_info = forward_pass.get_begin_info(vk::ClearColorValue(render_config.general.background_col));
-			cmd_buffer->begin_renderpass(begin_info);
-			render(cmd_buffer);
+			vk::RenderPassBeginInfo beginInfo = forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
+			cmdBuffer->beginRenderpass(beginInfo);
+			render(cmdBuffer);
 		}
 		else 
 		{
-			uint32_t image_count = cmd_buffer_manager->get_present_count();
-			for (uint32_t i = 0; i < image_count; ++i) 
+			uint32_t imageCount = cmdBufferManager->getPresentImageCount();
+			for (uint32_t i = 0; i < imageCount; ++i) 
 			{
-				auto& cmd_buffer = cmd_buffer_manager->begin_present_cmd_buffer(swapchain.get_renderpass(), render_config.general.background_col, i);
-				render(cmd_buffer);
+				auto& cmdBuffer = cmdBufferManager->beginPresentCmdBuffer(swapchain.getRenderpass(), renderConfig.general.backgroundColour, i);
+				render(cmdBuffer);
 			}
 		}
 	}
 
 
-	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue)
+	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue)
 	{
-		auto& cmd_buffer_manager = vk_interface->get_cmd_buffer_manager();
+		auto& cmdBufferManager = vkInterface->getCmdBufferManager();
 
-		if (scene_type == SceneType::Dynamic || (scene_type == SceneType::Static && !cmd_buffer_manager->is_recorded(cmd_buffer_handle))) 
+		if (sceneType == SceneType::Dynamic || (sceneType == SceneType::Static && !cmdBufferManager->is_recorded(deferredCmdBufferHandle))) 
 		{
-			cmd_buffer_manager->new_frame(obj_cmd_buffer_handle);
+			cmdBufferManager->beginNewFame(objectCmdBufferHandle);
 
 			// draw all objects into the shadow offscreen depth buffer 
-			Rendering::render_objects(render_queue, shadow_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Shadow, render_config);
+			Rendering::renderObjects(renderQueue, shadowRenderpass, cmdBufferManager->getCmdBuffer(objectCmdBufferHandle), QueueType::Shadow, renderConfig);
 
 			// generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::render_objects(render_queue, first_renderpass, cmd_buffer_manager->get_cmd_buffer(obj_cmd_buffer_handle), QueueType::Opaque, render_config);
+			Rendering::renderObjects(renderQueue, firstRenderpass, cmdBufferManager->getCmdBuffer(objectCmdBufferHandle), QueueType::Opaque, renderConfig);
 
 			// render the deffered pass - lights, shadow and IBL contribution
-			render_deferred(cmd_buffer_manager, vk_interface->get_swapchain());
+			renderDeferredPass(cmdBufferManager, vkInterface->getSwapchain());
 
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
-			if (render_config.general.use_skybox) 
+			if (renderConfig.general.useSkybox) 
 			{
-				cmd_buffer_manager->new_frame(forward_cmd_buffer_handle);
+				cmdBufferManager->beginNewFame(forwardCmdBufferHandle);
 
 				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
-				forward_offscreen_depth_image.get_image().blit(gbuffer_images[5].get_image(), vk_interface->get_graph_queue());
-				Rendering::render_objects(render_queue, forward_pass, cmd_buffer_manager->get_cmd_buffer(forward_cmd_buffer_handle), QueueType::Forward, render_config);
+				forwardOffscreenDepthImage.getImage().blit(gBufferImages[5].getImage(), vkInterface->getGraphicsQueue());
+				Rendering::renderObjects(renderQueue, forwardRenderpass, cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle), QueueType::Forward, renderConfig);
 			}
 		}
 
 		// finally send to the swap-chain presentation
-		cmd_buffer_manager->submit_frame(vk_interface->get_swapchain());
+		cmdBufferManager->submitFrame(vkInterface->getSwapchain());
 	}
 }

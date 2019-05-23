@@ -37,15 +37,15 @@ namespace VulkanAPI
 	void VkTextureManager::update_material_descriptors()
 	{
 
-		for (auto& descr : descr_set_update_queue) {
+		for (auto& descr : descriptorSet_update_queue) {
 
 			assert(descr.set != nullptr);
 			MaterialTextureInfo texture = mat_textures[descr.id][descr.binding];
-			descr.set->write_set(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.get_sampler(), texture.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+			descr.set->writeSet(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
 
-	void VkTextureManager::bind_textures_to_layout(const char* id, DescriptorLayout* layout, uint32_t set_num)
+	void VkTextureManager::bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t set_num)
 	{
 		assert(layout != nullptr);
 
@@ -64,7 +64,7 @@ namespace VulkanAPI
 		texture_layouts[id] = { layout, set_num };
 	}
 
-	VkTextureManager::TextureLayoutInfo& VkTextureManager::get_texture_descr_layout(const char* id)
+	VkTextureManager::TextureLayoutInfo& VkTextureManager::getTexture_descriptorLayout(const char* id)
 	{
 		auto iter = texture_layouts.begin();
 		while (iter != texture_layouts.end()) {
@@ -81,7 +81,7 @@ namespace VulkanAPI
 		return iter->second;
 	}
 
-	void VkTextureManager::update_material_descr_set(DescriptorSet& set, const char* id, uint32_t set_num)
+	void VkTextureManager::update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t set_num)
 	{
 		auto iter = mat_textures.begin();
 		while (iter != mat_textures.end()) {
@@ -97,7 +97,7 @@ namespace VulkanAPI
 		}
 
 		for (auto& texture : iter->second) {
-			set.write_set(set_num, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.get_sampler(), texture.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+			set.writeSet(set_num, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
 
@@ -112,17 +112,17 @@ namespace VulkanAPI
 		textures[event.id.c_str()] = tex_info;
 	}
 
-	void VkTextureManager::enqueueDescrUpdate(const char* id, VulkanAPI::DescriptorSet* descr_set, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding)
+	void VkTextureManager::enqueueDescrUpdate(const char* id, VulkanAPI::DescriptorSet* descriptorSet, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding)
 	{
-		descr_set_update_queue.push_back({ id, descr_set, sampler, set, binding });
+		descriptorSet_update_queue.push_back({ id, descriptorSet, sampler, set, binding });
 	}
 
 	void VkTextureManager::update_descriptors()
 	{
 
-		if (!descr_set_update_queue.empty()) {
+		if (!descriptorSet_update_queue.empty()) {
 
-			for (auto& descr : descr_set_update_queue) {
+			for (auto& descr : descriptorSet_update_queue) {
 
 				auto iter = textures.begin();
 				while (iter != textures.end()) {
@@ -135,12 +135,12 @@ namespace VulkanAPI
 
 				if (iter != textures.end()) {
 
-					descr.set->write_set(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, descr.sampler->get_sampler(), iter->second.texture.get_image_view(), vk::ImageLayout::eShaderReadOnlyOptimal);
+					descr.set->writeSet(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, descr.sampler->getSampler(), iter->second.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 				}
 			}
 		}
 
-		descr_set_update_queue.clear();
+		descriptorSet_update_queue.clear();
 	}
 
 	void VkTextureManager::update()

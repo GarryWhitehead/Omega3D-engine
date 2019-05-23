@@ -64,12 +64,12 @@ namespace VulkanAPI
 
 	void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo& descr_update)
 	{
-		descr_set_update_queue.emplace_back(descr_update);
+		descriptorSet_update_queue.emplace_back(descr_update);
 	}
 
 	void BufferManager::enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type)
 	{
-		descr_set_update_queue.push_back({ id, set, set_num, binding, descr_type });
+		descriptorSet_update_queue.push_back({ id, set, set_num, binding, descr_type });
 	}
 
 	void BufferManager::update_buffer(BufferUpdateEvent& event)
@@ -96,7 +96,7 @@ namespace VulkanAPI
 			memory_allocator->mapDataToSegment(buffer, event.data, event.size);
 
 			if (event.flush_memory) {
-				vk::MappedMemoryRange mem_range(memory_allocator->get_device_memory(buffer.get_id()), (uint64_t)buffer.get_offset(), event.size);
+				vk::MappedMemoryRange mem_range(memory_allocator->getDevice_memory(buffer.getId()), (uint64_t)buffer.get_offset(), event.size);
 				device.flushMappedMemoryRanges(1, &mem_range);
 			}
 		}
@@ -111,9 +111,9 @@ namespace VulkanAPI
 	void BufferManager::update_descriptors()
 	{
 	
-		if (!descr_set_update_queue.empty()) {
+		if (!descriptorSet_update_queue.empty()) {
 
-			for (auto& descr : descr_set_update_queue) {
+			for (auto& descr : descriptorSet_update_queue) {
 
 				auto iter = buffers.begin();
 				while (iter != buffers.end()) {
@@ -128,12 +128,12 @@ namespace VulkanAPI
 					// this may not potentially be an error. For instance, the skinned program state is set up though there is no data
 					// so the descriptors won't be updated.
 					MemorySegment segment = iter->second;
-					descr.set->write_set(descr.set_num, descr.binding, descr.descr_type, memory_allocator->get_memory_buffer(segment.get_id()), segment.get_offset(), segment.get_size());
+					descr.set->writeSet(descr.set_num, descr.binding, descr.descr_type, memory_allocator->get_memory_buffer(segment.getId()), segment.get_offset(), segment.getSize());
 				}
 			}
 		}
 
-		descr_set_update_queue.clear();
+		descriptorSet_update_queue.clear();
 	}
 
 	void BufferManager::update()
@@ -141,7 +141,7 @@ namespace VulkanAPI
 		update_descriptors();
 	}
 
-	Buffer BufferManager::get_buffer(const char* id)
+	Buffer BufferManager::getBuffer(const char* id)
 	{
 		auto iter = buffers.begin();
 		while (iter != buffers.end()) {
@@ -155,6 +155,6 @@ namespace VulkanAPI
 		if (iter == buffers.end()) {
 			LOGGER_ERROR("Error. Unable to find id: %s within buffer list", id);
 		}
-		return { memory_allocator->get_memory_buffer(iter->second.get_id()), iter->second.get_offset() };
+		return { memory_allocator->get_memory_buffer(iter->second.getId()), iter->second.get_offset() };
 	}
 }

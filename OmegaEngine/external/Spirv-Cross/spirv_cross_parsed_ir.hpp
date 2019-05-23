@@ -34,7 +34,7 @@ class ParsedIR
 {
 public:
 	// Resizes ids, meta and block_meta.
-	void set_id_bounds(uint32_t bounds);
+	void setId_bounds(uint32_t bounds);
 
 	// The raw SPIR-V, instructions and opcodes refer to this by offset + count.
 	std::vector<uint32_t> spirv;
@@ -85,7 +85,7 @@ public:
 	// Can be useful for simple "raw" reflection.
 	// However, most members are here because the Parser needs most of these,
 	// and might as well just have the whole suite of decoration/name handling in one place.
-	void set_name(uint32_t id, const std::string &name);
+	void setName(uint32_t id, const std::string &name);
 	const std::string &get_name(uint32_t id) const;
 	void set_decoration(uint32_t id, spv::Decoration decoration, uint32_t argument = 0);
 	void set_decoration_string(uint32_t id, spv::Decoration decoration, const std::string &argument);

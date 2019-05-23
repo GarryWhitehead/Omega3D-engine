@@ -13,7 +13,7 @@ namespace VulkanAPI
 							vk::PhysicalDevice& phys_dev, 
 							vk::SurfaceKHR& surface, 
 							const uint32_t graph_index, const uint32_t present_index, 
-							const uint32_t screen_width, const uint32_t screen_height)
+							const uint32_t screenWidth, const uint32_t screenHeight)
 	{
 		this->device = dev;
 		this->gpu = phys_dev;
@@ -77,8 +77,8 @@ namespace VulkanAPI
 		} 
 		else
 		{
-			this->extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, screen_width));
-			this->extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, screen_height));
+			this->extent.width = std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, screenWidth));
+			this->extent.height = std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, screenHeight));
 		}
 
 		// Get the number of possible images we can send to the queue
@@ -122,7 +122,7 @@ namespace VulkanAPI
 		{
 			ImageView imageView; 
 		    imageView.create(device, images[c], req_surf_format.format, vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
-			image_views.emplace_back(std::move(imageView));
+			imageViews.emplace_back(std::move(imageView));
 		}
 
 		prepare_swapchain_pass();
@@ -130,9 +130,9 @@ namespace VulkanAPI
 
 	Swapchain::~Swapchain()
 	{
-		/*for (int c = 0; c < image_views.size(); ++c)
+		/*for (int c = 0; c < imageViews.size(); ++c)
 		{
-			device.destroyImageView(image_views[c].get_imageView(), nullptr);
+			device.destroyImageView(imageViews[c].getImageView(), nullptr);
 		}
 
 		device.destroySwapchainKHR(swapchain, nullptr);*/
@@ -143,7 +143,7 @@ namespace VulkanAPI
 		device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), semaphore, {}, &image_index);
 	}
 
-	void Swapchain::submit_frame(vk::Semaphore& present_semaphore, vk::Queue& present_queue)
+	void Swapchain::submitFrame(vk::Semaphore& present_semaphore, vk::Queue& present_queue)
 	{
 		vk::PresentInfoKHR present_info(
 			1, &present_semaphore,
@@ -158,21 +158,21 @@ namespace VulkanAPI
 	void Swapchain::prepare_swapchain_pass()
 	{
 		// depth image
-		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 		
 		depth_texture = std::make_unique<Texture>(device, gpu);
-		depth_texture->create_empty_image(depth_format, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		depth_texture->createEmptyImage(depthFormat, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		renderpass = std::make_unique<RenderPass>(device);
 		renderpass->addAttachment(vk::ImageLayout::ePresentSrcKHR, format.format);
-		renderpass->addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
+		renderpass->addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
 		renderpass->prepareRenderPass();
 
 		// create presentation renderpass/framebuffer for each swap chain image
-		for (uint32_t i = 0; i < image_views.size(); ++i) {
+		for (uint32_t i = 0; i < imageViews.size(); ++i) {
 
 			// create a frame buffer for each swapchain image
-			std::vector<vk::ImageView> views{ image_views[i].get_imageView(), depth_texture->get_image_view() };
+			std::vector<vk::ImageView> views{ imageViews[i].getImageView(), depth_texture->getImageView() };
 			renderpass->prepareFramebuffer(static_cast<uint32_t>(views.size()), views.data(), extent.width, extent.height);
 		}
 	}

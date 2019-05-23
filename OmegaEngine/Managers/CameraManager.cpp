@@ -9,7 +9,7 @@ namespace OmegaEngine
 {
 
 	CameraManager::CameraManager(float sensitivity) :
-		mouse_sensitivity(sensitivity)
+		mouseSensitivity(sensitivity)
 	{
 		// set up events
 		Global::eventManager()->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouse_move_event>(this);
@@ -36,8 +36,8 @@ namespace OmegaEngine
 		currentX = event.xpos;
 		currentY = event.ypos;
 
-		yaw -= deltaX * mouse_sensitivity;
-		pitch -= deltaY * mouse_sensitivity;
+		yaw -= deltaX * mouseSensitivity;
+		pitch -= deltaY * mouseSensitivity;
 
 		pitch = pitch > 89.0 ? 89.0 : pitch;
 		pitch = pitch < -89.0 ? -89.0 : pitch;
@@ -97,7 +97,7 @@ namespace OmegaEngine
 		currentViewMatrix = OEMaths::lookAt(current_pos, target, camera.camera_up);
 	}
 
-	void CameraManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
+	void CameraManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* componentInterface)
 	{
 		if (isDirty) 
 		{

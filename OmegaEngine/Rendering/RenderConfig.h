@@ -20,20 +20,20 @@ namespace OmegaEngine
 			// type of renderer to use - at the moment only deferred is supported
 			RendererType renderer;
 
-			std::array<float, 4> background_col = {0.0f, 0.0f, 0.0f, 1.0f};
+			std::array<float, 4> backgroundColour = {0.0f, 0.0f, 0.0f, 1.0f};
 			bool use_post_process = false;
-			bool use_skybox = true;
-			bool sort_render_queue = true;
+			bool useSkybox = true;
+			bool sort_renderQueue = true;
 			bool useStockModels = true;
 			
 		} general;
 
 		struct Deferred
 		{
-			uint32_t gbuffer_width = 2048;
-			uint32_t gbuffer_height = 2048;
-			uint32_t offscreen_width = 2048;
-			uint32_t offscreen_height = 2048;
+			uint32_t gBufferWidth = 2048;
+			uint32_t gBufferHeight = 2048;
+			uint32_t offscreenWidth = 2048;
+			uint32_t offscreenHeight = 2048;
 		} deferred;
 
 		struct IBLInfo
@@ -53,9 +53,9 @@ namespace OmegaEngine
 		uint32_t shadow_height = 2048;
 		vk::Format shadow_format = vk::Format::eD16Unorm;
 
-		float bias_constant = 1.25f;
-		float bias_slope = 1.75f;
-		float bias_clamp = 0.0f;
+		float biasConstant = 1.25f;
+		float biasSlope = 1.75f;
+		float biasClamp = 0.0f;
 	};
 
 }

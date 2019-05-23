@@ -12,7 +12,7 @@ namespace OmegaEngine
 	TextureManager::TextureManager()
 	{
 		// this won't be used, just required to keep vulkan happy
-		dummy_texture.create_empty_texture(1024, 1024, true);
+		dummyTexture.createEmptyTexture(1024, 1024, true);
 	}
 
 
@@ -20,14 +20,14 @@ namespace OmegaEngine
 	{
 	}
 
-	void TextureManager::update_frame(double time, double dt,
+	void TextureManager::updateFrame(double time, double dt,
 		std::unique_ptr<ObjectManager>& obj_manager,
 		ComponentInterface* component_manager)
 	{
 
 	}
 
-	vk::SamplerAddressMode TextureManager::get_wrap_mode(int32_t wrap)
+	vk::SamplerAddressMode TextureManager::getWrapMode(int32_t wrap)
 	{
 		vk::SamplerAddressMode ret;
 
@@ -49,7 +49,7 @@ namespace OmegaEngine
 		return ret;
 	}
 
-	vk::Filter TextureManager::get_filter_mode(int32_t filter)
+	vk::Filter TextureManager::getFilterMode(int32_t filter)
 	{
 		vk::Filter ret;
 
@@ -80,8 +80,8 @@ namespace OmegaEngine
 	void TextureManager::addGltfSampler(uint32_t set, tinygltf::Sampler& gltf_sampler)
 	{
 		VulkanAPI::SamplerType type;
-		vk::SamplerAddressMode mode = get_wrap_mode(gltf_sampler.wrapS);
-		vk::Filter filter = get_filter_mode(gltf_sampler.minFilter);
+		vk::SamplerAddressMode mode = getWrapMode(gltf_sampler.wrapS);
+		vk::Filter filter = getFilterMode(gltf_sampler.minFilter);
 		
 		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) 
 		{
@@ -106,23 +106,23 @@ namespace OmegaEngine
 	void TextureManager::addGltfImage(tinygltf::Image& image)
 	{
 		MappedTexture mappedTex;
-		mappedTex.set_name(image.uri.c_str());
+		mappedTex.setName(image.uri.c_str());
 
 		// probably should check for different types - though only 4 channels supported
-		mappedTex.set_format(vk::Format::eR8G8B8A8Unorm); 
+		mappedTex.setFormat(vk::Format::eR8G8B8A8Unorm); 
 
-		if (!mappedTex.map_texture(image.width, image.height, image.component, image.image.data(), true)) 
+		if (!mappedTex.mapTexture(image.width, image.height, image.component, image.image.data(), true)) 
 		{
 			// need to use a default texture here!
 		}
-		textures[current_set].emplace_back(std::move(mappedTex));	
+		textures[currentSet].emplace_back(std::move(mappedTex));	
 	}
 
-	uint32_t TextureManager::get_texture_index(uint32_t set, const char* name)
+	uint32_t TextureManager::getTextureIndex(uint32_t set, const char* name)
 	{
 		for (uint32_t i = 0; i < textures.size(); ++i) 
 		{
-			if (strcmp(name, textures[set][i].get_name()) == 0) 
+			if (strcmp(name, textures[set][i].getName()) == 0) 
 			{
 				return i;
 			}
@@ -130,13 +130,13 @@ namespace OmegaEngine
 		return UINT32_MAX;
 	}
 
-	MappedTexture& TextureManager::get_texture(uint32_t set, int index)
+	MappedTexture& TextureManager::getTexture(uint32_t set, int index)
 	{
 		assert(index < textures[set].size());
 		return textures[set][index];
 	}
 
-	VulkanAPI::SamplerType TextureManager::get_sampler(uint32_t set, uint32_t index)
+	VulkanAPI::SamplerType TextureManager::getSampler(uint32_t set, uint32_t index)
 	{
 		// not all gltf files speciify sampler types so go with a default otherwise
 		if (samplers[set].empty()) 
@@ -148,7 +148,7 @@ namespace OmegaEngine
 		return samplers[set][index];
 	}
 
-	VulkanAPI::SamplerType TextureManager::get_dummy_sampler()
+	VulkanAPI::SamplerType TextureManager::getDummySampler()
 	{
 		// this could be anything as its not used
 		return VulkanAPI::SamplerType::Clamp;

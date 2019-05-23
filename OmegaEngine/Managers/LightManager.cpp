@@ -23,7 +23,7 @@ namespace OmegaEngine
 		
 	}
 
-	void LightManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_manager)
+	void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_manager)
 	{
 		if (isDirty) 
 		{

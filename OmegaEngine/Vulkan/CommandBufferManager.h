@@ -29,7 +29,7 @@ namespace VulkanAPI
 
     struct CommandBufferInfo
     {
-		std::unique_ptr<CommandBuffer> cmd_buffer;
+		std::unique_ptr<CommandBuffer> cmdBuffer;
 
         // sync buffer destruction
         vk::Fence fence;
@@ -47,23 +47,23 @@ namespace VulkanAPI
         CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode mode);
         ~CommandBufferManager();
 
-		CmdBufferHandle create_instance();
-		std::unique_ptr<CommandBuffer>& get_cmd_buffer(CmdBufferHandle handle);
-		void new_frame(CmdBufferHandle handle);
+		CmdBufferHandle createInstance();
+		std::unique_ptr<CommandBuffer>& getCmdBuffer(CmdBufferHandle handle);
+		void beginNewFame(CmdBufferHandle handle);
 
 		void submit_once(CmdBufferHandle handle);
-		void submit_frame(Swapchain& swapchain);
+		void submitFrame(Swapchain& swapchain);
 
-		std::unique_ptr<CommandBuffer>& begin_present_cmd_buffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index);
+		std::unique_ptr<CommandBuffer>& beginPresentCmdBuffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index);
 
-		uint32_t get_present_count() const
+		uint32_t getPresentImageCount() const
 		{
-			return static_cast<uint32_t>(present_cmd_buffers.size());
+			return static_cast<uint32_t>(present_cmdBuffers.size());
 		}
 
         bool is_recorded(CmdBufferHandle handle)
         {
-            return cmd_buffers[handle].cmd_buffer != nullptr;
+            return cmdBuffers[handle].cmdBuffer != nullptr;
         }
 
     private:
@@ -84,9 +84,9 @@ namespace VulkanAPI
         vk::Semaphore final_semaphore;  // present
 
         // all the cmd buffers currently active
-        std::vector<CommandBufferInfo> cmd_buffers;
+        std::vector<CommandBufferInfo> cmdBuffers;
 
         // presentation command bufefrs
-        std::vector<CommandBufferInfo> present_cmd_buffers;
+        std::vector<CommandBufferInfo> present_cmdBuffers;
     };
 }

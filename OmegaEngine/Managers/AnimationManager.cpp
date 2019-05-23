@@ -18,58 +18,58 @@ namespace OmegaEngine
 	}
 
 	// channel functions
-	uint32_t AnimationManager::Sampler::index_from_time(double time)
+	uint32_t AnimationManager::Sampler::indexFromTime(double time)
 	{
 		uint32_t index = 0;
-		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
-		if (timestamp_count <= 1 || time <= time_stamps.front()) 
+		uint32_t timestampCount = static_cast<uint32_t>(timeStamps.size());
+		if (timestampCount <= 1 || time <= timeStamps.front()) 
 		{
 			index = 0;
 		}
-		else if (time >= time_stamps.back()) 
+		else if (time >= timeStamps.back()) 
 		{
-			index = timestamp_count - 1;
+			index = timestampCount - 1;
 		}
 		else 
 		{
-			uint32_t end_time = 0;
-			while (time > time_stamps[end_time]) 
+			uint32_t endTime = 0;
+			while (time > timeStamps[endTime]) 
 			{
-				++end_time;
+				++endTime;
 			}
-			index = end_time - 1;
+			index = endTime - 1;
 		}
 		return index;
 	}
 
-	float AnimationManager::Sampler::get_phase(double time)
+	float AnimationManager::Sampler::getPhase(double time)
 	{
 		double phase = 0.0;
-		uint32_t timestamp_count = static_cast<uint32_t>(time_stamps.size());
-		if (timestamp_count <= 1 || time <= time_stamps.front()) 
+		uint32_t timestampCount = static_cast<uint32_t>(timeStamps.size());
+		if (timestampCount <= 1 || time <= timeStamps.front()) 
 		{
 			phase = 0.0f;
 		}
-		else if (time >= time_stamps.back()) 
+		else if (time >= timeStamps.back()) 
 		{
 			phase = 1.0f;
 		}
 		else 
 		{
-			uint32_t end_time = 0;
-			while (time > time_stamps[end_time]) 
+			uint32_t endTime = 0;
+			while (time > timeStamps[endTime]) 
 			{
-				++end_time;
+				++endTime;
 			}
 
-			uint32_t denom = (time_stamps[end_time] - time_stamps[end_time - 1]);
+			uint32_t denom = (timeStamps[endTime] - timeStamps[endTime - 1]);
 			denom = denom == 0 ? 1 : denom;
-			phase = (time - time_stamps[end_time - 1]) / denom;
+			phase = (time - timeStamps[endTime - 1]) / denom;
 		}
 		return static_cast<float>(phase);
 	}
 
-	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
+	void AnimationManager::addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects)
 	{
 
 		for (tinygltf::Animation& anim : model.animations) 
@@ -104,7 +104,7 @@ namespace OmegaEngine
 
 				// reference to which object mesh this animation targets - note: this needs thinking about as at the moment we could be pointing to an object
 				// that has been destroyed. TODO: first instance add a function that will iterate through, find and remove a object potentially driven by an event
-				channel.object = linearised_objects[source.target_node];
+				channel.object = linearisedObjects[source.target_node];
 				animInfo.channels.push_back(channel);
 			}
 
@@ -133,25 +133,24 @@ namespace OmegaEngine
 				// only supporting floats at the moment. This can be expaned on if the need arises...
 				switch (timeAccessor.componentType) 
 				{
-				case TINYGLTF_COMPONENT_TYPE_FLOAT: 
-				{
-					float* buffer = new float[timeAccessor.count];
-					memcpy(buffer, &timeBuffer.data[timeAccessor.byteOffset + timeBufferView.byteOffset], timeAccessor.count * sizeof(float));
-
-					for (uint32_t i = 0; i < timeAccessor.count; ++i) 
+					case TINYGLTF_COMPONENT_TYPE_FLOAT: 
 					{
-						samplerInfo.time_stamps.push_back(buffer[i]);
+						float* buffer = new float[timeAccessor.count];
+						memcpy(buffer, &timeBuffer.data[timeAccessor.byteOffset + timeBufferView.byteOffset], timeAccessor.count * sizeof(float));
+
+						for (uint32_t i = 0; i < timeAccessor.count; ++i) 
+						{
+							samplerInfo.timeStamps.push_back(buffer[i]);
+						}
+						delete buffer;
+						break;
 					}
-					delete buffer;
-					break;
-				}
-				default:
-					LOGGER_ERROR("Unsupported component type used for time accessor.");
-					throw std::runtime_error("Unsupported component type whilst parsing gltf file.");
+					default:
+						LOGGER_ERROR("Unsupported component type used for time accessor.");
 				}
 
 				// time and end points
-				for (auto input : samplerInfo.time_stamps) 
+				for (auto input : samplerInfo.timeStamps) 
 				{
 					if (input < animInfo.start) 
 					{
@@ -176,24 +175,23 @@ namespace OmegaEngine
 					// all types will be converted to vec4 for ease of use
 					switch (trsAccessor.type) 
 					{
-					case TINYGLTF_TYPE_VEC3: 
-					{
-						OEMaths::vec3f* buffer = reinterpret_cast<OEMaths::vec3f*>(&trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset]);
-						for (uint32_t i = 0; i < trsAccessor.count; ++i) 
+						case TINYGLTF_TYPE_VEC3: 
 						{
-							samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 0.0f));
+							OEMaths::vec3f* buffer = reinterpret_cast<OEMaths::vec3f*>(&trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset]);
+							for (uint32_t i = 0; i < trsAccessor.count; ++i) 
+							{
+								samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 0.0f));
+							}
+							break;
 						}
-						break;
-					}
-					case TINYGLTF_TYPE_VEC4: 
-					{
-						samplerInfo.outputs.resize(trsAccessor.count);
-						memcpy(samplerInfo.outputs.data(), &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset], trsAccessor.count * sizeof(OEMaths::vec4f));
-						break;
-					}
-					default:
-						LOGGER_ERROR("Unsupported component type used for TRS accessor.");
-						throw std::runtime_error("Unsupported component type whilst parsing gltf file.");
+						case TINYGLTF_TYPE_VEC4: 
+						{
+							samplerInfo.outputs.resize(trsAccessor.count);
+							memcpy(samplerInfo.outputs.data(), &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset], trsAccessor.count * sizeof(OEMaths::vec4f));
+							break;
+						}
+						default:
+							LOGGER_ERROR("Unsupported component type used for TRS accessor.");
 					}
 				}
 				}
@@ -205,13 +203,13 @@ namespace OmegaEngine
 		} 
 	}
 
-	void AnimationManager::update_anim(double time, double dt, TransformManager& transform_man)
+	void AnimationManager::updateAnimation(double time, double dt, TransformManager& transformManager)
 	{
-		double time_secs = time / 1000000000;
+		double timeSecs = time / 1000000000;
 
 		for (auto& anim : animationBuffer) 
 		{
-			float anim_time = std::fmod(time_secs - anim.start, anim.end);
+			float animTime = std::fmod(timeSecs - anim.start, anim.end);
 
 			// go through each target an, caluclate the animation transform and update on the transform manager side
 			for (auto& channel : anim.channels) 
@@ -219,46 +217,46 @@ namespace OmegaEngine
 				Object obj = channel.object;
 				Sampler& sampler = anim.samplers[channel.samplerIndex];
 
-				uint32_t time_index = sampler.index_from_time(anim_time);
-				float phase = sampler.get_phase(anim_time);
+				uint32_t timeIndex = sampler.indexFromTime(animTime);
+				float phase = sampler.getPhase(animTime);
 
 				switch (channel.pathType) 
 				{
 				case Channel::PathType::Translation: 
 				{
 					OEMaths::vec4f trans;
-					trans.mix(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
-					transform_man.update_obj_translation(obj, trans);
+					trans.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
+					transformManager.updateObjectTranslation(obj, trans);
 					break;
 				}
 				case Channel::PathType::Scale: 
 				{
 					OEMaths::vec4f scale;
-					scale.mix(sampler.outputs[time_index], sampler.outputs[time_index + 1], phase);
-					transform_man.update_obj_scale(obj, scale);
+					scale.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
+					transformManager.updateObjectScale(obj, scale);
 					break;
 				}
 				case Channel::PathType::Rotation: 
 				{
 					OEMaths::quatf quat1 {
-						sampler.outputs[time_index].getX(),
-						sampler.outputs[time_index].getY(),
-						sampler.outputs[time_index].getZ(),
-						sampler.outputs[time_index].getW(),
+						sampler.outputs[timeIndex].getX(),
+						sampler.outputs[timeIndex].getY(),
+						sampler.outputs[timeIndex].getZ(),
+						sampler.outputs[timeIndex].getW(),
 					};
 
 					OEMaths::quatf quat2 {
-						sampler.outputs[time_index + 1].getX(),
-						sampler.outputs[time_index + 1].getY(),
-						sampler.outputs[time_index + 1].getZ(),
-						sampler.outputs[time_index + 1].getW()
+						sampler.outputs[timeIndex + 1].getX(),
+						sampler.outputs[timeIndex + 1].getY(),
+						sampler.outputs[timeIndex + 1].getZ(),
+						sampler.outputs[timeIndex + 1].getW()
 					};
 
 					// TODO: add cubic and step interpolation
 					OEMaths::quatf rot;
-					rot.linear_mix(quat1, quat2, phase);
+					rot.linearMix(quat1, quat2, phase);
 					rot.normalise();
-					transform_man.update_obj_rotation(obj, rot);
+					transformManager.updateObjectRotation(obj, rot);
 					break;
 				}
 				case Channel::PathType::CubicScale:

@@ -33,7 +33,7 @@ namespace OmegaEngine
 	}
 
 	RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height, SceneType type) :
-		scene_type(type)
+		sceneType(type)
 	{
 		init(device, width, height);
 	}
@@ -46,16 +46,16 @@ namespace OmegaEngine
 	void RenderInterface::init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height)
 	{
 		// load the render config file if it exsists
-		// render_config.load();
+		// renderConfig.load();
 
 		// all renderable elements will be dispatched for drawing via this queue
-		render_queue = std::make_unique<RenderQueue>();
+		renderQueue = std::make_unique<RenderQueue>();
 
 		// initiliase the graphical backend - we are solely using Vulkan
 		// The new frame mode depends on tehe scene type - static scenes will only have their cmd buffers recorded
 		// to once whilst dynamic scenes will be recorded to on a per frame basis.
 		VulkanAPI::NewFrameMode mode;
-		if (scene_type == SceneType::Static)
+		if (sceneType == SceneType::Static)
 		{
 			mode = VulkanAPI::NewFrameMode::Static;
 		}
@@ -66,25 +66,25 @@ namespace OmegaEngine
 		}
 
 		// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
-		vk_interface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
+		vkInterface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
 
 		// also add stock model vertices/indices if required
-		if (render_config.general.useStockModels)
+		if (renderConfig.general.useStockModels)
 		{
 			cubeModel = std::make_unique<RenderUtil::CubeModel>();
 			planeModel = std::make_unique<RenderUtil::PlaneModel>();
 		}
 	}
 
-	void RenderInterface::init_renderer(std::unique_ptr<ComponentInterface>& component_interface)
+	void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface>& componentInterface)
 	{
 		// setup the renderer pipeline
-		switch (static_cast<RendererType>(render_config.general.renderer)) 
+		switch (static_cast<RendererType>(renderConfig.general.renderer)) 
 		{
 		case RendererType::Deferred:
 		{
-			set_renderer<DeferredRenderer>(vk_interface->get_device(), vk_interface->get_gpu(), vk_interface->get_cmd_buffer_manager(), 
-				vk_interface->get_buffer_manager(), vk_interface->get_swapchain(), render_config);
+			setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->get_gpu(), vkInterface->getCmdBufferManager(), 
+				vkInterface->getBufferManager(), vkInterface->getSwapchain(), renderConfig);
 			break;
 		}
 		default:
@@ -95,19 +95,19 @@ namespace OmegaEngine
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
 		for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type) 
 		{
-			this->add_shader((RenderTypes)r_type, component_interface);
+			this->addShader((RenderTypes)r_type, componentInterface);
 		}
 
 		// setup environment rendering if needded
-		init_environment_render();
+		initEnvironmentRender();
 	}
 	
-	void RenderInterface::init_environment_render()
+	void RenderInterface::initEnvironmentRender()
 	{
 
 	}
 
-	void RenderInterface::add_shader(RenderTypes type, std::unique_ptr<ComponentInterface>& component_interface)
+	void RenderInterface::addShader(RenderTypes type, std::unique_ptr<ComponentInterface>& componentInterface)
 	{
 		auto& state = std::make_unique<ProgramState>();
 
@@ -115,35 +115,35 @@ namespace OmegaEngine
 		{
 		case OmegaEngine::RenderTypes::StaticMesh:
 		{
-			 RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
-				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Static, state);
-			 render_states[(int)RenderTypes::StaticMesh] = std::move(state);
+			 RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
+				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Static, state);
+			 renderStates[(int)RenderTypes::StaticMesh] = std::move(state);
 			break;
 		}
 		case OmegaEngine::RenderTypes::SkinnedMesh: 
 		{
-			RenderableMesh::create_mesh_pipeline(vk_interface->get_device(),
-				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), MeshManager::MeshType::Skinned, state);
-			render_states[(int)RenderTypes::SkinnedMesh] = std::move(state);
+			RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
+				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Skinned, state);
+			renderStates[(int)RenderTypes::SkinnedMesh] = std::move(state);
 			break;
 		}
 		case OmegaEngine::RenderTypes::ShadowStatic:
 		{
-			RenderableShadow::create_shadow_pipeline(vk_interface->get_device(), renderer, vk_interface->get_buffer_manager(), state, MeshManager::MeshType::Static);
-			render_states[(int)RenderTypes::ShadowStatic] = std::move(state);
+			RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Static);
+			renderStates[(int)RenderTypes::ShadowStatic] = std::move(state);
 			break;
 		}
 		case OmegaEngine::RenderTypes::ShadowDynamic:
 		{
-			RenderableShadow::create_shadow_pipeline(vk_interface->get_device(), renderer, vk_interface->get_buffer_manager(), state, MeshManager::MeshType::Skinned);
-			render_states[(int)RenderTypes::ShadowDynamic] = std::move(state);
+			RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Skinned);
+			renderStates[(int)RenderTypes::ShadowDynamic] = std::move(state);
 			break;
 		}
 		case OmegaEngine::RenderTypes::Skybox: 
 		{
-			RenderableSkybox::create_skybox_pipeline(vk_interface->get_device(),
-				renderer, vk_interface->get_buffer_manager(), vk_interface->get_texture_manager(), state);
-			render_states[(int)RenderTypes::Skybox] = std::move(state);
+			RenderableSkybox::createSkyboxPipeline(vkInterface->getDevice(),
+				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), state);
+			renderStates[(int)RenderTypes::Skybox] = std::move(state);
 			break;
 		}
 		default:
@@ -151,49 +151,50 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderInterface::build_renderable_mesh_tree(Object& obj, std::unique_ptr<ComponentInterface>& comp_interface, bool is_shadow)
+	void RenderInterface::buildRenderableMeshTree(Object& obj, std::unique_ptr<ComponentInterface>& componentInterface, bool isShadow)
 	{
-		auto& mesh_manager = comp_interface->getManager<MeshManager>();
+		auto& meshManager = componentInterface->getManager<MeshManager>();
 
-		MeshComponent comp = obj.get_component<MeshComponent>();
-		MeshManager::StaticMesh mesh = mesh_manager.get_mesh(comp);
+		MeshComponent component = obj.getComponent<MeshComponent>();
+		MeshManager::StaticMesh mesh = meshManager.getMesh(component);
 
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives) 
 		{
-			uint32_t index = add_renderable<RenderableMesh>(vk_interface->get_device(), comp_interface, vk_interface->get_buffer_manager(),
-				vk_interface->get_texture_manager(), mesh, primitive, obj, this);
+			uint32_t meshIndex = addRenderable<RenderableMesh>(vkInterface->getDevice(), componentInterface, vkInterface->getBufferManager(),
+				vkInterface->gettextureManager(), mesh, primitive, obj, this);
 			
 			// if using shadows, then draw the meshes into the offscreen depth buffer too
-			obj.add_component<ShadowComponent>(render_config.bias_clamp, render_config.bias_constant, render_config.bias_slope);
+			// TODO : this should be done elsewhere
+			obj.addComponent<ShadowComponent>(renderConfig.biasClamp, renderConfig.biasConstant, renderConfig.biasSlope);
 
-			add_renderable<RenderableShadow>(this, obj.get_component<ShadowComponent>(), get_renderable(index).renderable->get_instance_data<RenderableMesh::MeshInstance>());
+			addRenderable<RenderableShadow>(this, obj.getComponent<ShadowComponent>(), getRenderable(meshIndex).renderable->getInstanceData<RenderableMesh::MeshInstance>());
 		}
 	
 		// and do the same for all children associated with this mesh
-		auto children = obj.get_children();
+		auto children = obj.getChildren();
 		for (auto child : children) 
 		{
-			build_renderable_mesh_tree(child, comp_interface, is_shadow);
+			buildRenderableMeshTree(child, componentInterface, isShadow);
 		}
 	}
 
-	void RenderInterface::update_renderables(std::unique_ptr<ObjectManager>& object_manager, std::unique_ptr<ComponentInterface>& comp_interface)
+	void RenderInterface::updateRenderables(std::unique_ptr<ObjectManager>& objectManager, std::unique_ptr<ComponentInterface>& componentInterface)
 	{
 		if (isDirty)
 		{
 			// get all objects that are available this frame
-			auto& objects = object_manager->get_objects_list();
+			auto& objects = objectManager->getObjectsList();
 
 			for (auto& object : objects) 
 			{
 				if (object.second.hasComponent<MeshComponent>())
 				{
-					build_renderable_mesh_tree(object.second, comp_interface, false);
+					buildRenderableMeshTree(object.second, componentInterface, false);
 				}
 				if (object.second.hasComponent<SkyboxComponent>())
 				{
-					add_renderable<RenderableSkybox>(this, object.second.get_component<SkyboxComponent>(), vk_interface->get_buffer_manager());
+					addRenderable<RenderableSkybox>(this, object.second.getComponent<SkyboxComponent>(), vkInterface->getBufferManager());
 				}
 			}
 
@@ -201,54 +202,54 @@ namespace OmegaEngine
 		}
 	}
 
-	void RenderInterface::prepare_object_queue()
+	void RenderInterface::prepareObjectQueue()
 	{
-		RenderQueueInfo queue_info;
+		RenderQueueInfo queueInfo;
 
 		for (auto& info : renderables) {
 
-			switch (info.renderable->get_type()) 
+			switch (info.renderable->getType()) 
 			{
 				case RenderTypes::SkinnedMesh:
 				case RenderTypes::StaticMesh: 
 				{
-					queue_info.renderable_handle = info.renderable->get_handle();
-					queue_info.render_function = get_member_render_function<void, RenderableMesh, &RenderableMesh::render>;
+					queueInfo.renderableHandle = info.renderable->getHandle();
+					queueInfo.renderFunction = getMemberRenderFunction<void, RenderableMesh, &RenderableMesh::render>;
 					break;
 				}
 				case RenderTypes::ShadowStatic: 
 				case RenderTypes::ShadowDynamic:
 				{
-					queue_info.renderable_handle = info.renderable->get_handle();
-					queue_info.render_function = get_member_render_function<void, RenderableShadow, &RenderableShadow::render>;
+					queueInfo.renderableHandle = info.renderable->getHandle();
+					queueInfo.renderFunction = getMemberRenderFunction<void, RenderableShadow, &RenderableShadow::render>;
 					break;
 				}
 				case RenderTypes::Skybox: 
 				{
-					queue_info.renderable_handle = info.renderable->get_handle();
-					queue_info.render_function = get_member_render_function<void, RenderableSkybox, &RenderableSkybox::render>;
+					queueInfo.renderableHandle = info.renderable->getHandle();
+					queueInfo.renderFunction = getMemberRenderFunction<void, RenderableSkybox, &RenderableSkybox::render>;
 					break;
 				}
 			}
 
-			queue_info.renderable_data = info.renderable->get_instance_data();
-			queue_info.sorting_key = info.renderable->get_sort_key();
-			queue_info.queue_type = info.renderable->get_queue_type();
+			queueInfo.renderableData = info.renderable->getInstanceData();
+			queueInfo.sortingKey = info.renderable->getSortKey();
+			queueInfo.queueType = info.renderable->getQueueType();
 
-			render_queue->add_to_queue(queue_info);
+			renderQueue->addRenderableToQueue(queueInfo);
 		}
 	}
 
 	void RenderInterface::render(double interpolation)
 	{
 		// update buffer and texture descriptors before doing the rendering
-		vk_interface->get_buffer_manager()->update();
-		vk_interface->get_texture_manager()->update();
+		vkInterface->getBufferManager()->update();
+		vkInterface->gettextureManager()->update();
 
 		// add the renderables to the queue
 		// TODO: add visibility check
-		prepare_object_queue();
+		prepareObjectQueue();
 		
-		renderer->render(vk_interface, scene_type, render_queue);
+		renderer->render(vkInterface, sceneType, renderQueue);
 	}
 }

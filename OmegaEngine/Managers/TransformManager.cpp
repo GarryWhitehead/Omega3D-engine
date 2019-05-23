@@ -37,7 +37,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform)
+	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f worldTransform)
 	{
 		TransformData transform;
 
@@ -57,7 +57,7 @@ namespace OmegaEngine
 		}
 
 		// world transform is obtained from the omega scene file
-		transform.set_world_matrix(world_transform);
+		transform.set_worldMatixrix(worldTransform);
 
 		if (node.matrix.size() == 16) 
 		{
@@ -67,13 +67,13 @@ namespace OmegaEngine
 		// also add index to skinning information if applicable
 		transform.set_skin_index(node.skin);
 
-		transformBuffer[obj->get_id()] = transform;
+		transformBuffer[obj->getId()] = transform;
 
 		// add to the list of entites
-		obj->add_component<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
+		obj->addComponent<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
 	}
 
-	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects)
+	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects)
 	{
 		for (tinygltf::Skin& skin : model.skins) 
 		{
@@ -83,17 +83,17 @@ namespace OmegaEngine
 			// Is this the skeleton root node?
 			if (skin.skeleton > -1) 
 			{
-				assert(skin.skeleton < linearised_objects.size());
-				skinInfo.skeletonIndex = linearised_objects[skin.skeleton];
-				skinInfo.skeletonIndex.add_component<SkinnedComponent>(static_cast<uint32_t>(skinBuffer.size() - 1));
+				assert(skin.skeleton < linearisedObjects.size());
+				skinInfo.skeletonIndex = linearisedObjects[skin.skeleton];
+				skinInfo.skeletonIndex.addComponent<SkinnedComponent>(static_cast<uint32_t>(skinBuffer.size() - 1));
 			}
 
 			// Does this skin have joint nodes?
 			for (auto& jointIndex : skin.joints) 
 			{
 				// we will check later if this node actually exsists
-				assert(jointIndex < linearised_objects.size() && jointIndex > -1);
-				skinInfo.joints.push_back(linearised_objects[jointIndex]);
+				assert(jointIndex < linearisedObjects.size() && jointIndex > -1);
+				skinInfo.joints.push_back(linearisedObjects[jointIndex]);
 			}
 
 			// get the inverse bind matricies, if there are any
@@ -113,16 +113,16 @@ namespace OmegaEngine
 
 	OEMaths::mat4f TransformManager::create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager)
 	{
-		OEMaths::mat4f mat = transformBuffer[obj.get_id()].get_local_matrix();
+		OEMaths::mat4f mat = transformBuffer[obj.getId()].get_local_matrix();
 
-		uint64_t parent_id = obj.get_parent();
-		while (parent_id != UINT64_MAX) 
+		uint64_t parentId = obj.getParent();
+		while (parentId != UINT64_MAX) 
 		{
-			Object* parent_obj = obj_manager->get_object(parent_id);
+			Object* parent_obj = obj_manager->getObject(parentId);
 
-			uint32_t id = parent_obj->get_id();
+			uint32_t id = parent_obj->getId();
 			mat = transformBuffer[id].get_local_matrix() * mat;
-			parent_id = parent_obj->get_parent();
+			parentId = parent_obj->getParent();
 		}
 
 		return mat;
@@ -132,7 +132,7 @@ namespace OmegaEngine
 	{
 		if (obj.hasComponent<MeshComponent>() && obj.hasComponent<SkinnedComponent>()) 
 		{
-			uint32_t id = obj.get_id();
+			uint32_t id = obj.getId();
 
 			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
 			SkinnedBufferInfo* skinned_buff = (SkinnedBufferInfo*)((uint64_t)skinned_buffer_data + (skinned_alignment * skinned_buffer_size));
@@ -173,7 +173,7 @@ namespace OmegaEngine
 		}
 		else if (obj.hasComponent<MeshComponent>())
 		{
-			uint32_t id = obj.get_id();
+			uint32_t id = obj.getId();
 
 			TransformBufferInfo* transform_buff = (TransformBufferInfo*)((uint64_t)transform_buffer_data + (transform_alignment * transform_buffer_size));
 			
@@ -186,7 +186,7 @@ namespace OmegaEngine
 		}
 
 		// now update all child nodes too - TODO: do this without recursion
-		auto children = obj.get_children();
+		auto children = obj.getChildren();
 
 		for (auto& child : children) 
 		{
@@ -199,7 +199,7 @@ namespace OmegaEngine
 
 	void TransformManager::update_transform(std::unique_ptr<ObjectManager>& obj_manager)
 	{
-		auto object_list = obj_manager->get_objects_list();
+		auto object_list = obj_manager->getObjectsList();
 
 		transform_buffer_size = 0;
 		skinned_buffer_size = 0;
@@ -210,7 +210,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
+	void TransformManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* componentInterface)
 	{
 		// check whether static data need updating
 		if (is_dirty) 
@@ -232,25 +232,25 @@ namespace OmegaEngine
 		}
 	}
 	
-	void TransformManager::update_obj_translation(Object& obj, OEMaths::vec4f trans)
+	void TransformManager::updateObjectTranslation(Object& obj, OEMaths::vec4f trans)
 	{
-		uint32_t id = obj.get_id();
+		uint32_t id = obj.getId();
 		transformBuffer[id].set_translation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		is_dirty = true;		
 	}
 
-	void TransformManager::update_obj_scale(Object& obj, OEMaths::vec4f scale)
+	void TransformManager::updateObjectScale(Object& obj, OEMaths::vec4f scale)
 	{
-		uint32_t id = obj.get_id();
+		uint32_t id = obj.getId();
 		transformBuffer[id].set_scale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
 		is_dirty = true;
 	}
 
-	void TransformManager::update_obj_rotation(Object& obj, OEMaths::quatf rot)
+	void TransformManager::updateObjectRotation(Object& obj, OEMaths::quatf rot)
 	{
-		uint32_t id = obj.get_id();
+		uint32_t id = obj.getId();
 		transformBuffer[id].set_rotation(rot);
 		is_dirty = true;
 	}

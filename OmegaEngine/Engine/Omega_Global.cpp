@@ -23,7 +23,7 @@ namespace OmegaEngine
 			return managers.eventManager;
 		}
 
-		void init_eventManager()
+		void initEventManager()
 		{
 			managers.eventManager = new EventManager();
 			assert(managers.eventManager != nullptr);
@@ -31,7 +31,7 @@ namespace OmegaEngine
 
 		void init()
 		{
-			init_eventManager();
+			initEventManager();
 		}
 	}
 }

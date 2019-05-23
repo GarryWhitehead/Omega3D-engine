@@ -19,7 +19,7 @@ namespace OmegaEngine
         ~AssetManager();
 
         // loads compressed images stored in the ktx file format
-        void load_image_file(std::string filename);
+        void loadImageFile(std::string filename);
 
 		void update();
 

@@ -7,7 +7,7 @@
 #include "OEMaths/OEMaths.h"
 
 // Number of combined image sampler sets allowed for materials. This allows for materials to be added - this value will need monitoring
-#define TOTAL_MATERIAL_SETS 50
+#define TOTAL_materialSetS 50
 
 // forward decleartions
 namespace VulkanAPI
@@ -41,16 +41,16 @@ namespace OmegaEngine
 			ProgramState* state = nullptr;
 
 			// per primitive index data
-			uint32_t index_primitive_offset;	// this equates to buffer_offset + sub-offset
-			uint32_t index_primitive_count;
+			uint32_t indexPrimitiveOffset;	// this equates to buffer_offset + sub-offset
+			uint32_t indexPrimitiveCount;
 			
 			// the starting offsets within the main vertices/indices buffer
-			uint32_t index_offset;				// index into large buffer
-			uint32_t vertex_offset;
+			uint32_t indexOffset;				// index into large buffer
+			uint32_t vertexOffset;
 
 			// vertex and index buffer memory info
-			VulkanAPI::Buffer vertex_buffer;
-			VulkanAPI::Buffer index_buffer;
+			VulkanAPI::Buffer vertexBuffer;
+			VulkanAPI::Buffer indexBuffer;
 
 			// all material data required to draw
 			// storing this material data in two places for threading purposes.
@@ -85,37 +85,37 @@ namespace OmegaEngine
 				uint32_t haveMrMap;
 				uint32_t haveAoMap;
 				uint32_t usingSpecularGlossiness;
-			} material_push_block;
+			} materialPushBlock;
 
 			// vulkan stuff for material textures
-			VulkanAPI::DescriptorSet descr_set;
+			VulkanAPI::DescriptorSet descriptorSet;
 
 			// offset into transform buffer for this mesh
-			uint32_t transform_dynamic_offset = 0;
-			uint32_t skinned_dynamic_offset = 0;
+			uint32_t transformDynamicOffset = 0;
+			uint32_t skinnedDynamicOffset = 0;
 		};
 		
-		void* get_handle() override
+		void* getHandle() override
 		{
 			return this;
 		}
 
 		RenderableMesh::RenderableMesh(vk::Device& device,
 										std::unique_ptr<ComponentInterface>& component_manager,
-										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
+										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
+										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
 										MeshManager::StaticMesh mesh, 
 										MeshManager::PrimitiveMesh primitive,
 										Object& obj,
-										RenderInterface* render_interface);
+										RenderInterface* renderInterface);
 
-		void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
-					void* instance_data) override;
+		void render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
+					void* instanceData) override;
 
-		static void create_mesh_pipeline(vk::Device& device,
+		static void createMeshPipeline(vk::Device& device,
 										std::unique_ptr<RendererBase>& renderer, 
-										std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-										std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
+										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
+										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
 										MeshManager::MeshType type,
 										std::unique_ptr<ProgramState>& state);
 

@@ -20,7 +20,7 @@ namespace OmegaEngine
 	{
 		for (auto& manager : managers) 
 		{
-			manager.second->update_frame(time, dt, obj_manager, this);
+			manager.second->updateFrame(time, dt, obj_manager, this);
 		}
 	}
 }

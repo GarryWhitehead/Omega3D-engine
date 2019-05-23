@@ -24,7 +24,7 @@ namespace VulkanAPI
 		Interface(VulkanAPI::Device& device, const uint32_t win_width, const uint32_t win_height, NewFrameMode mode);
 		~Interface();
 
-		vk::Device& get_device()
+		vk::Device& getDevice()
 		{
 			return device;
 		}
@@ -34,7 +34,7 @@ namespace VulkanAPI
 			return gpu;
 		}
 
-		Queue& get_graph_queue()
+		Queue& getGraphicsQueue()
 		{
 			return graphics_queue;
 		}
@@ -44,24 +44,24 @@ namespace VulkanAPI
 			return present_queue;
 		}
 
-		Swapchain& get_swapchain()
+		Swapchain& getSwapchain()
 		{
 			return swapchain_khr;
 		}
 
-		std::unique_ptr<BufferManager>& get_buffer_manager()
+		std::unique_ptr<BufferManager>& getBufferManager()
 		{
-			return buffer_manager;
+			return bufferManager;
 		}
 
-		std::unique_ptr<VkTextureManager>& get_texture_manager()
+		std::unique_ptr<VkTextureManager>& gettextureManager()
 		{
-			return texture_manager;
+			return textureManager;
 		}
 
-		std::unique_ptr<CommandBufferManager>& get_cmd_buffer_manager()
+		std::unique_ptr<CommandBufferManager>& getCmdBufferManager()
 		{
-			return cmd_buffer_manager;
+			return cmdBufferManager;
 		}
 
 	private:
@@ -78,9 +78,9 @@ namespace VulkanAPI
 		VulkanAPI::Swapchain swapchain_khr;
 
 		// managers
-		std::unique_ptr<BufferManager> buffer_manager;
-		std::unique_ptr<VkTextureManager> texture_manager;
-		std::unique_ptr<CommandBufferManager> cmd_buffer_manager;
+		std::unique_ptr<BufferManager> bufferManager;
+		std::unique_ptr<VkTextureManager> textureManager;
+		std::unique_ptr<CommandBufferManager> cmdBufferManager;
 	};
 
 }

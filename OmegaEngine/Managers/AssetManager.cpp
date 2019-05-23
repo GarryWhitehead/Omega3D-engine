@@ -18,14 +18,14 @@ namespace OmegaEngine
     {
     }
 
-    void AssetManager::load_image_file(std::string filename)
+    void AssetManager::loadImageFile(std::string filename)
     {
         ImageUtility::KtxReader reader;
 
         if (reader.loadFile(filename.c_str())) 
         {
             // ownership of the data is moved from the reader
-            ImageUtility::KtxReader::ImageOutput image = reader.get_image_data();
+            ImageUtility::KtxReader::ImageOutput image = reader.getImage_data();
 
 			// ids are stored in the format: filename must be identfier_...
 			std::string name = StringUtil::lastPart(filename, '/');
@@ -36,7 +36,7 @@ namespace OmegaEngine
 			}
 
 			MappedTexture texture;
-			texture.map_texture(image.data, image.width, image.height, image.faces, image.array_count, image.mip_levels, image.total_size);
+			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize);
 			images.insert(std::make_pair(id, std::move(texture)));
 			isDirty = true;
         }

@@ -17,8 +17,8 @@ using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
-	Engine::Engine(std::string win_title, uint32_t width, uint32_t height) :
-		windowTitle(win_title),
+	Engine::Engine(std::string windowTitle, uint32_t width, uint32_t height) :
+		windowTitle(windowTitle),
 		windowWidth(width),
 		windowHeight(height)
 	{
@@ -62,32 +62,32 @@ namespace OmegaEngine
 
 		// now prepare the graphics device -  we can have multiple devices though this isn't fully implemented yet
 		auto& device = std::make_unique<VulkanAPI::Device>();
-		uint32_t instance_count;
+		uint32_t instanceCount;
 
-		const char** instance_ext = glfwGetRequiredInstanceExtensions(&instance_count);
-		device->createInstance(instance_ext, instance_count);
+		const char** instanceExt = glfwGetRequiredInstanceExtensions(&instanceCount);
+		device->createInstance(instanceExt, instanceCount);
 
 		// create a which will be the abstract scrren surface which will be used for creating swapchains
-		// TODO: add more cross-platform compatibility by adding more surfaces
-		VkSurfaceKHR temp_surface;
-		VkResult err = glfwCreateWindowSurface(device->getInstance(), window, nullptr, &temp_surface);
+		// TODO: add more cross-platform compatibility by adding more surfaceCount
+		VkSurfaceKHR tempSurface;
+		VkResult err = glfwCreateWindowSurface(device->getInstance(), window, nullptr, &tempSurface);
 		if (err) 
 		{
 			LOGGER_ERROR("Unable to create window surface.");
 		}
-		device->set_window_surface(vk::SurfaceKHR(temp_surface));
+		device->setWindowSurface(vk::SurfaceKHR(tempSurface));
 
 		// prepare the physical and abstract device including queues
 		device->prepareDevice();
 
-		gfx_devices.emplace_back(std::move(device));
-		current_gfx_device = static_cast<uint32_t>(gfx_devices.size() - 1);
+		vkDevices.emplace_back(std::move(device));
+		currentVkDevice = static_cast<uint32_t>(vkDevices.size() - 1);
 	}
 
 	void Engine::createWorld(std::string filename, std::string name)
 	{
 		// create a world using a omega engine scene file
-		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, gfx_devices[current_gfx_device], engine_config);
+		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
 		
 		// throw an error here as calling a function for specifically creating a world with a scene file.
 		if (!world->create(filename.c_str())) 
@@ -102,7 +102,7 @@ namespace OmegaEngine
 	void Engine::loadConfigFile()
 	{
 		std::string json;
-		const char filename[] = "omega_engine_config.ini";		// probably need to check the current dir here
+		const char filename[] = "omega_engineConfig.ini";		// probably need to check the current dir here
 		if (!FileUtil::readFileIntoBuffer(filename, json)) 
 		{
 			return;
@@ -118,56 +118,56 @@ namespace OmegaEngine
 		// general engine settings
 		if (doc.HasMember("FPS")) 
 		{
-			engine_config.fps = doc["FPS"].GetFloat();
+			engineConfig.fps = doc["FPS"].GetFloat();
 		}
 		if (doc.HasMember("Screen Width")) 
 		{
-			engine_config.screen_width = doc["Screen Width"].GetInt();
+			engineConfig.screenWidth = doc["Screen Width"].GetInt();
 		}
 		if (doc.HasMember("Screen Height")) 
 		{
-			engine_config.screen_height = doc["Screen Height"].GetInt();
+			engineConfig.screenHeight = doc["Screen Height"].GetInt();
 		}
 		if (doc.HasMember("Mouse Sensitivity")) 
 		{
-			engine_config.mouse_sensitivity = doc["Mouse Sensitivity"].GetFloat();
+			engineConfig.mouseSensitivity = doc["Mouse Sensitivity"].GetFloat();
 		}
 	}
 
-	void Engine::start_loop()
+	void Engine::startLoop()
 	{
-		program_state.set_running();
+		programState.setRunning();
 		
 		// convert delta time to ms
-		const std::chrono::nanoseconds time_step(16ms);
+		const std::chrono::nanoseconds timeStep(16ms);
 
 		// fixed-step loop
 		std::chrono::nanoseconds accumulator(0ns);
-		double total_time = 0.0;
+		double totalTime = 0.0;
 
 		Timer timer;
-		timer.start_timer();
+		timer.startTimer();
 
-		while (program_state.is_running())
+		while (programState.getIsRunning())
 		{
-			auto elapsed_time = timer.get_time_elapsed(true);
-			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsed_time);
+			auto elapsedTime = timer.getTimeElapsed(true);
+			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime);
 
 			auto& world = worlds[currentWorldIndex];
-			while (accumulator >= time_step) 
+			while (accumulator >= timeStep) 
 			{
 				// poll for any input
 				inputManager->update();
 
 				// update everything else
-				world->update(total_time, static_cast<double>(elapsed_time.count()));
+				world->update(total_time, static_cast<double>(elapsedTime.count()));
 
-				total_time += static_cast<double>(time_step.count());
-				accumulator -= time_step;
+				totalTime += static_cast<double>(timeStep.count());
+				accumulator -= timeStep;
 				//printf("updated!\n");
 			}
 
-			double interpolation = (double)accumulator.count() / (double)time_step.count();
+			double interpolation = (double)accumulator.count() / (double)timeStep.count();
 			world->render(interpolation);
 			//printf("rendered!\n");
 		}

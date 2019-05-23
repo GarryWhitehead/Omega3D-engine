@@ -23,23 +23,23 @@ namespace OmegaEngine
 	struct ProgramState
 	{
 		VulkanAPI::Shader shader;
-		VulkanAPI::PipelineLayout pl_layout;
+		VulkanAPI::PipelineLayout pipelineLayout;
 		VulkanAPI::Pipeline pipeline;
-		VulkanAPI::DescriptorLayout descr_layout;
-		VulkanAPI::DescriptorSet descr_set;
+		VulkanAPI::DescriptorLayout descriptorLayout;
+		VulkanAPI::DescriptorSet descriptorSet;
 
 		// information extracted from shader reflection
-		std::vector<VulkanAPI::ShaderBufferLayout> buffer_layout;
-		VulkanAPI::ImageLayoutBuffer image_layout;
+		std::vector<VulkanAPI::ShaderBufferLayout> bufferLayout;
+		VulkanAPI::ImageLayoutBuffer imageLayout;
 	};
 
 	namespace Rendering
 	{
-		void render_objects(std::unique_ptr<RenderQueue>& render_queue,
+		void renderObjects(std::unique_ptr<RenderQueue>& renderQueue,
 			VulkanAPI::RenderPass& renderpass,
-			std::unique_ptr<VulkanAPI::CommandBuffer>& cmd_buffer,
+			std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer,
 			QueueType type,
-			RenderConfig& render_config);
+			RenderConfig& renderConfig);
 	}
 }
 

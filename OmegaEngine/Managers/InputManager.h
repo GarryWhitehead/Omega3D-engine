@@ -26,8 +26,8 @@ namespace OmegaEngine
 
 	private:
 
-		bool left_button_press;
-		bool right_button_press;
+		bool leftButtonPress;
+		bool rightButtonPress;
 		bool cursorState;
 	};
 

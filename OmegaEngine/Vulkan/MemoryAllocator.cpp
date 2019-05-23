@@ -63,7 +63,7 @@ namespace VulkanAPI
 		return mem_blocks[id].block_buffer;
 	}
 
-	vk::DeviceMemory& MemoryAllocator::get_device_memory(const uint32_t id)
+	vk::DeviceMemory& MemoryAllocator::getDevice_memory(const uint32_t id)
 	{
 		assert(id < mem_blocks.size());
 		return mem_blocks[id].block_mem;
@@ -107,7 +107,7 @@ namespace VulkanAPI
 		}
 
 		block.block_id = static_cast<int32_t>(mem_blocks.size());
-		block.total_size = alloc_size;
+		block.totalSize = alloc_size;
 		mem_blocks.push_back(block);
 
 		return block.block_id;
@@ -189,7 +189,7 @@ namespace VulkanAPI
 
 	uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segment_size)
 	{
-		if (segment_size > mem_blocks[id].total_size) {
+		if (segment_size > mem_blocks[id].totalSize) {
 			return UINT32_MAX;
 		}
 
@@ -203,7 +203,7 @@ namespace VulkanAPI
 			mem_blocks[id].alloc_segments.insert(std::make_pair(offset, segment_size));
 
 			// add segment with available space remaining in block
-			mem_blocks[id].free_segments.insert(std::make_pair(offset + segment_size, mem_blocks[id].total_size - segment_size));
+			mem_blocks[id].free_segments.insert(std::make_pair(offset + segment_size, mem_blocks[id].totalSize - segment_size));
 		}
 		else {
 
@@ -213,7 +213,7 @@ namespace VulkanAPI
 				if (segment.second >= segment_size) {				// first = offset; second = size
 
 					offset = segment.first;
-					assert(offset + segment_size < mem_blocks[id].total_size);
+					assert(offset + segment_size < mem_blocks[id].totalSize);
 
 					// add to the allocated segments pool
 					mem_blocks[id].alloc_segments.insert(std::make_pair(offset, segment_size));
@@ -241,8 +241,8 @@ namespace VulkanAPI
 	// override of the segment mapping function that allows data of type *void to be passed
 	void MemoryAllocator::mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize, uint32_t offset)
 	{
-		assert(segment.get_id() < (int32_t)mem_blocks.size());
-		MemoryBlock block = mem_blocks[segment.get_id()];
+		assert(segment.getId() < (int32_t)mem_blocks.size());
+		MemoryBlock block = mem_blocks[segment.getId()];
 
 		// How we map the data depends on the memory type; 
 		// For host-visible memory, the memory is mapped and the data is just mem-copied across
@@ -258,19 +258,19 @@ namespace VulkanAPI
 			// start by creating host-visible buffers
 			vk::Buffer temp_buffer;
 			vk::DeviceMemory temp_memory;
-			createBuffer(segment.get_size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
+			createBuffer(segment.getSize(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, temp_memory, temp_buffer);
 
 			// map data to temporary buffer
 			segment.map(device, temp_memory, 0, data, totalSize, offset);		// mem offseting not allowed for device local buffer
 
 			// create cmd buffer for copy and transfer to device local memory
 			CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
-			copy_cmd_buff.create_primary();
+			copy_cmd_buff.createPrimary();
 			
-			vk::BufferCopy buffer_copy(0, segment.get_offset(), segment.get_size());
+			vk::BufferCopy buffer_copy(0, segment.get_offset(), segment.getSize());
 			copy_cmd_buff.get().copyBuffer(temp_buffer, block.block_buffer, 1, &buffer_copy);
 			copy_cmd_buff.end();
-			graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
+			graph_queue.flush_cmdBuffer(copy_cmd_buff.get());
 
 			// clear up and we are done
 			device.destroyBuffer(temp_buffer, nullptr);
@@ -280,12 +280,12 @@ namespace VulkanAPI
 
 	void MemoryAllocator::destroySegment(MemorySegment &segment)
 	{
-		if (segment.get_size() <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
+		if (segment.getSize() <= 0) {		// if the segment size is zero, it obviously hasn't yet been allocated
 			return;
 		}
 
 		// check that the segment exsists within the map
-		auto & alloc_segments = mem_blocks[segment.get_id()].alloc_segments;
+		auto & alloc_segments = mem_blocks[segment.getId()].alloc_segments;
 		auto& iter = alloc_segments.find(segment.get_offset());
 
 		if (iter != alloc_segments.end()) {
@@ -294,7 +294,7 @@ namespace VulkanAPI
 			alloc_segments.erase(segment.get_offset());
 
 			// and add to the free segments pool
-			mem_blocks[segment.get_id()].free_segments.insert(std::make_pair(segment.get_offset(), segment.get_size()));
+			mem_blocks[segment.getId()].free_segments.insert(std::make_pair(segment.get_offset(), segment.getSize()));
 		}
 	}
 
@@ -327,7 +327,7 @@ namespace VulkanAPI
 		for (auto& block : mem_blocks) {
 			LOGGER_INFO("-----------------------------------------\n");
 			LOGGER_INFO("Block Id #%i :\n", block.block_id);
-			LOGGER_INFO("Total size = %i\n", block.total_size);
+			LOGGER_INFO("Total size = %i\n", block.totalSize);
 			LOGGER_INFO("Number of allocated segments: %zu\n", block.alloc_segments.size());
 			
 			LOGGER("Allocated segments.....\n");
@@ -340,7 +340,7 @@ namespace VulkanAPI
 				totalUsed += segment.second;
 			}
 			LOGGER_INFO("Total memory used = %i\n", totalUsed);
-			LOGGER_INFO("Memory available: %i\n", block.total_size - totalUsed);
+			LOGGER_INFO("Memory available: %i\n", block.totalSize - totalUsed);
 			
 			LOGGER("Free segments.....\n");
 			count = 0;

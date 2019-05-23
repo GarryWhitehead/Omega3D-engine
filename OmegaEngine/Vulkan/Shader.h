@@ -81,10 +81,10 @@ namespace VulkanAPI
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
-		void descriptor_buffer_reflect(DescriptorLayout& descr_layout, std::vector<ShaderBufferLayout>& buffer_layout);
-		void descriptor_image_reflect(DescriptorLayout& descr_layout, ImageLayoutBuffer& image_layout);
-		void pipeline_layout_reflect(PipelineLayout& p_info);
-		void pipeline_reflection(Pipeline& pipeline);
+		void bufferReflection(DescriptorLayout& descriptorLayout, std::vector<ShaderBufferLayout>& bufferLayout);
+		void imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayout);
+		void pipelineLayoutReflect(PipelineLayout& p_info);
+		void pipelineReflection(Pipeline& pipeline);
 
 		std::vector<uint32_t> getData(StageType type)
 		{

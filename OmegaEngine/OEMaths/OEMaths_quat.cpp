@@ -47,7 +47,7 @@ namespace OEMaths
 		this->w = this->w / l;
 	}
 
-	void quatf::linear_mix(quatf& q1, quatf& q2, float u)
+	void quatf::linearMix(quatf& q1, quatf& q2, float u)
 	{
 		this->x = q1.x * (1.0f - u) + q2.x * u;
 		this->y = q1.y * (1.0f - u) + q2.y * u;

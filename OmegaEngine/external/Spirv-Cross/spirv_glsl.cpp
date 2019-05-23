@@ -2139,9 +2139,9 @@ void CompilerGLSL::emit_declared_builtin_block(StorageClass storage, ExecutionMo
 	{
 		// Make sure the array has a supported name in the code.
 		if (storage == StorageClassOutput)
-			set_name(block_var->self, "gl_out");
+			setName(block_var->self, "gl_out");
 		else if (storage == StorageClassInput)
-			set_name(block_var->self, "gl_in");
+			setName(block_var->self, "gl_in");
 
 		if (model == ExecutionModelTessellationControl && storage == StorageClassOutput)
 			end_scope_decl(join(to_name(block_var->self), "[", get_entry_point().output_vertices, "]"));

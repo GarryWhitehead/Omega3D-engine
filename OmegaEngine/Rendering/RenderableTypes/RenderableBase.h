@@ -37,43 +37,44 @@ namespace OmegaEngine
 
 		virtual ~RenderableBase() 
 		{
-			if(instance_data != nullptr) {
-				delete instance_data;
+			if(instanceData != nullptr) 
+			{
+				delete instanceData;
 			} 
 		}
 
 		// abstract render call
-		virtual void render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer,
-			void* renderable_data)
+		virtual void render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer,
+			void* renderableData)
 		{
 		}
 
-		virtual void* get_handle() = 0;
+		virtual void* getHandle() = 0;
 
-		RenderTypes get_type() const
+		RenderTypes getRenderType() const
 		{
 			return type;
 		}
 
 		template <typename T>
-		T* get_instance_data()
+		T* getInstanceData()
 		{
-			return reinterpret_cast<T*>(instance_data);
+			return reinterpret_cast<T*>(instanceData);
 		}
 
-		void* get_instance_data()
+		void* getInstanceData()
 		{
-			return instance_data;
+			return instanceData;
 		}
 
-		SortKey& get_sort_key()
+		SortKey& getSortKey()
 		{
 			return sort_key;
 		}
 
-		QueueType& get_queue_type()
+		QueueType& getQueueType()
 		{
-			return queue_type;
+			return queueType;
 		}
 		
 	protected:
@@ -81,13 +82,13 @@ namespace OmegaEngine
 		RenderTypes type;
 
 		// data used for rendering 
-		void* instance_data = nullptr;
+		void* instanceData = nullptr;
 
 		// determines sort order of renderable
-		SortKey sort_key;
+		SortKey sortKey;
 
 		// how to render this renderable
-		QueueType queue_type;
+		QueueType queueType;
 	};
 
 }

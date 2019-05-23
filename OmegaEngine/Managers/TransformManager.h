@@ -37,7 +37,7 @@ namespace OmegaEngine
 				local = OEMaths::mat4f::translate(local_trs.trans) * local_trs.rotation * OEMaths::mat4f::scale(local_trs.scale);
 			}
 
-			uint32_t get_transform_offset() const
+			uint32_t getTransformOffset() const
 			{
 				return transform_buffer_offset;
 			}
@@ -96,7 +96,7 @@ namespace OmegaEngine
 				this->local = local;
 			}
 
-			void set_world_matrix(OEMaths::mat4f& world)
+			void set_worldMatixrix(OEMaths::mat4f& world)
 			{
 				this->world = world;
 			}
@@ -161,11 +161,11 @@ namespace OmegaEngine
 		~TransformManager();
 
 		// update per frame 
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* componentInterface) override;
 
 		// gltf loading - The skinning data is going in the transform manager for now as it's needed most here for calculating skinning transforms
-		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects);
-		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f world_transform);
+		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
+		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f worldTransform);
 
 		// local transform and skinning update
 		OEMaths::mat4f create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager);
@@ -173,11 +173,11 @@ namespace OmegaEngine
 		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t alignment, uint32_t skinned_alignment);
 
 		// object update functions
-		void update_obj_translation(Object& obj, OEMaths::vec4f trans);
-		void update_obj_scale(Object& obj, OEMaths::vec4f scale);
-		void update_obj_rotation(Object& obj, OEMaths::quatf rot);
+		void updateObjectTranslation(Object& obj, OEMaths::vec4f trans);
+		void updateObjectScale(Object& obj, OEMaths::vec4f scale);
+		void updateObjectRotation(Object& obj, OEMaths::quatf rot);
 
-		uint32_t get_transform_offset(uint32_t id)
+		uint32_t getTransformOffset(uint32_t id)
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
@@ -185,7 +185,7 @@ namespace OmegaEngine
 			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].get_transform_offset();
+			return transformBuffer[id].getTransformOffset();
 		}
 
 		uint32_t get_skinned_offset(uint32_t id)

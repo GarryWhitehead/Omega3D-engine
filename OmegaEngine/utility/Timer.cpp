@@ -14,13 +14,13 @@ Timer::~Timer()
 void Timer::start_timer()
 {
 	this->current = std::chrono::high_resolution_clock::now();
-	this->is_running = true;
+	this->getIsRunning = true;
 	
 }
 
 void Timer::pasue_timer()
 {
-	this->is_running = false;
+	this->getIsRunning = false;
 }
 
 Timer::TimeMs Timer::get_time_elapsed(bool reset)

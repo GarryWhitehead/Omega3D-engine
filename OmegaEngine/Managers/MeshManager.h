@@ -93,19 +93,19 @@ namespace OmegaEngine
 			std::vector<PrimitiveMesh> primitives;
 
 			// offset into mega buffer
-			uint32_t vertex_buffer_offset;
-			uint32_t index_buffer_offset;
+			uint32_t vertexBufferOffset;
+			uint32_t indexBufferOffset;
 		};
 
 		MeshManager();
 		~MeshManager();
 
 		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
-		void update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface) override;
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		void addGltfData(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& global_vertex_count, uint32_t& global_index_count);
+		void addGltfMesh(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& globalVertexCount, uint32_t& globalIndexCount);
 
-		StaticMesh& get_mesh(MeshComponent comp)
+		StaticMesh& getMesh(MeshComponent comp)
 		{
 			assert(comp.index < meshBuffer.size());
 			return meshBuffer[comp.index];
@@ -133,7 +133,7 @@ namespace OmegaEngine
 
 		// all vertices and indices held in one large buffer
 		std::vector<Vertex> static_vertices;
-		std::vector<SkinnedVertex> skinned_vertices;
+		std::vector<SkinnedVertex> skinnedVertices;
 		std::vector<uint32_t> indices;
 
 		bool isDirty = true;

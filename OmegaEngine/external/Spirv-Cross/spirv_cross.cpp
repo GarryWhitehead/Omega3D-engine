@@ -940,9 +940,9 @@ void Compiler::update_name_cache(unordered_set<string> &cache, string &name)
 	cache.insert(name);
 }
 
-void Compiler::set_name(uint32_t id, const std::string &name)
+void Compiler::setName(uint32_t id, const std::string &name)
 {
-	ir.set_name(id, name);
+	ir.setName(id, name);
 }
 
 const SPIRType &Compiler::get_type(uint32_t id) const
@@ -2023,7 +2023,7 @@ void Compiler::CombinedImageSamplerHandler::register_combined_image_sampler(SPIR
 
 		param.id = combined_id;
 
-		compiler.set_name(combined_id,
+		compiler.setName(combined_id,
 		                  join("SPIRV_Cross_Combined", compiler.to_name(image_id), compiler.to_name(sampler_id)));
 
 		caller.combined_parameters.push_back(param);
@@ -2319,7 +2319,7 @@ uint32_t Compiler::build_dummy_sampler_for_combined_images()
 		ptr_sampler.pointer = true;
 
 		set<SPIRVariable>(var_id, ptr_type_id, StorageClassUniformConstant, 0);
-		set_name(var_id, "SPIRV_Cross_DummySampler");
+		setName(var_id, "SPIRV_Cross_DummySampler");
 		dummy_sampler_id = var_id;
 		return var_id;
 	}

@@ -21,7 +21,7 @@ namespace OmegaEngine
 
 		vk::Device device;
 
-		VulkanAPI::CommandBuffer cmd_buffer;
+		VulkanAPI::CommandBuffer cmdBuffer;
 	};
 
 }

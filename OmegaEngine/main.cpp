@@ -14,6 +14,6 @@ int main(int argc, char *argv[])
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running
-	engine.start_loop();
+	engine.startLoop();
 
 }

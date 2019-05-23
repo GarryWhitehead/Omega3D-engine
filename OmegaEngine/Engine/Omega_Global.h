@@ -17,7 +17,7 @@ namespace OmegaEngine
 		EventManager* eventManager();
 
 		// all global initilisation functions for global managers
-		void init_eventManager();
+		void initEventManager();
 
 		void init();
 

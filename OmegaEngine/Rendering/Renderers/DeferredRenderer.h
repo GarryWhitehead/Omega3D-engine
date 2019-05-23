@@ -38,51 +38,43 @@ namespace OmegaEngine
 
 		DeferredRenderer::DeferredRenderer(vk::Device& dev,
 			vk::PhysicalDevice& physical,
-			std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager,
-			std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-			VulkanAPI::Swapchain& swapchain, RenderConfig& _render_config);
+			std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager,
+			std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
+			VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig);
 		~DeferredRenderer();
 
 		// abstract override
-		void render(std::unique_ptr<VulkanAPI::Interface>& vk_interface, SceneType scene_type, std::unique_ptr<RenderQueue>& render_queue) override;
+		void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue) override;
 
-		void create_gbuffer_pass();
-		void create_deferred_pass(std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager, VulkanAPI::Swapchain& swapchain);
+		void createGbufferPass();
+		void createDeferredPass(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
 
-		void render_deferred(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmd_buffer_manager, VulkanAPI::Swapchain& swapchain);
-		
-
-		VulkanAPI::RenderPass& get_deferred_pass()
-		{
-			return forward_pass;
-		}
+		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain);
 
 	private:
 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
 
-		
-
 		// images - for the gbuffer pass
-		std::array<VulkanAPI::Texture, 6> gbuffer_images;
-		VulkanAPI::Texture shadow_image;
-		VulkanAPI::Texture forward_offscreen_image;
-		VulkanAPI::Texture forward_offscreen_depth_image;
+		std::array<VulkanAPI::Texture, 6> gBufferImages;
+		VulkanAPI::Texture shadowImage;
+		VulkanAPI::Texture forwardOffscreenImage;
+		VulkanAPI::Texture forwardOffscreenDepthImage;
 	
 		// Command buffer handles for all passes
-		VulkanAPI::CmdBufferHandle cmd_buffer_handle;
-		VulkanAPI::CmdBufferHandle forward_cmd_buffer_handle;
-		VulkanAPI::CmdBufferHandle obj_cmd_buffer_handle;
+		VulkanAPI::deferredCmdBufferHandle deferredCmdBufferHandle;
+		VulkanAPI::deferredCmdBufferHandle forwardCmdBufferHandle;
+		VulkanAPI::deferredCmdBufferHandle objectCmdBufferHandle;
 
 		// for the deferred rendering pipeline
 		ProgramState state;
 
 		// the post-processing manager
-		std::unique_ptr<PostProcessInterface> pp_interface;
+		std::unique_ptr<PostProcessInterface> postProcessInterface;
 
 		// keep a local copy of the render config
-		RenderConfig render_config;
+		RenderConfig renderConfig;
 
 	};
 

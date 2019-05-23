@@ -85,15 +85,15 @@ namespace VulkanAPI
 		void update();
 
 		// updates a single descriptor set with a texture set identified by its unique id
-		void update_material_descr_set(DescriptorSet& set, const char* id, uint32_t set_num);
+		void update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t set_num);
 
 		void update_material_texture(MaterialTextureUpdateEvent& event);
 		void update_material_descriptors();
 
 		// associates an id with a descriptor layout. Used for materials, etc. were there are multiple descriptor sets but one layout
-		void bind_textures_to_layout(const char* id, DescriptorLayout* layout, uint32_t set_num);
+		void bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t set_num);
 
-		TextureLayoutInfo& get_texture_descr_layout(const char* id);
+		TextureLayoutInfo& getTexture_descriptorLayout(const char* id);
 
 	private:
 
@@ -108,7 +108,7 @@ namespace VulkanAPI
 		std::unordered_map<const char*, TextureInfo> textures;
 
 		// a queue of descriptor sets which need updating on a per frame basis - for single textures
-		std::vector<DescrSetUpdateInfo> descr_set_update_queue;
+		std::vector<DescrSetUpdateInfo> descriptorSet_update_queue;
 
 		// associate textures with descriptor layouts
 		std::unordered_map<const char*, TextureLayoutInfo> texture_layouts;

@@ -22,7 +22,7 @@ using namespace spv;
 
 namespace spirv_cross
 {
-void ParsedIR::set_id_bounds(uint32_t bounds)
+void ParsedIR::setId_bounds(uint32_t bounds)
 {
 	ids.resize(bounds);
 	meta.resize(bounds);
@@ -80,7 +80,7 @@ const string &ParsedIR::get_member_name(uint32_t id, uint32_t index) const
 	return m.members[index].alias;
 }
 
-void ParsedIR::set_name(uint32_t id, const string &name)
+void ParsedIR::setName(uint32_t id, const string &name)
 {
 	auto &str = meta[id].decoration.alias;
 	str.clear();

@@ -8,7 +8,7 @@ namespace OmegaEngine
 	void RenderConfig::load()
 	{
 		std::string json;
-		const char filename[] = "render_config.ini";		// probably need to check the current dir here
+		const char filename[] = "renderConfig.ini";		// probably need to check the current dir here
 		if (!FileUtil::readFileIntoBuffer(filename, json))
 		{
 			return;
@@ -18,7 +18,7 @@ namespace OmegaEngine
 		rapidjson::Document doc;
 		if (doc.Parse(json.c_str()).HasParseError())
 		{
-			LOGGER_INFO("Unable to find render_config file. Using default settings...");
+			LOGGER_INFO("Unable to find renderConfig file. Using default settings...");
 			return;
 		}
 

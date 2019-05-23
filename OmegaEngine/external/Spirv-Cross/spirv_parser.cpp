@@ -84,7 +84,7 @@ void Parser::parse()
 		SPIRV_CROSS_THROW("Invalid SPIRV format.");
 
 	uint32_t bound = s[3];
-	ir.set_id_bounds(bound);
+	ir.setId_bounds(bound);
 
 	uint32_t offset = 5;
 
@@ -261,7 +261,7 @@ void Parser::parse(const Instruction &instruction)
 		e.interface_variables.insert(end(e.interface_variables), ops + strlen_words + 2, ops + instruction.length);
 
 		// Set the name of the entry point in case OpName is not provided later.
-		ir.set_name(ops[1], e.name);
+		ir.setName(ops[1], e.name);
 
 		// If we don't have an entry, make the first one our "default".
 		if (!ir.default_entry_point)
@@ -300,7 +300,7 @@ void Parser::parse(const Instruction &instruction)
 	case OpName:
 	{
 		uint32_t id = ops[0];
-		ir.set_name(id, extract_string(ir.spirv, instruction.offset + 1));
+		ir.setName(id, extract_string(ir.spirv, instruction.offset + 1));
 		break;
 	}
 

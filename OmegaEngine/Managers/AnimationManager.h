@@ -33,11 +33,11 @@ namespace OmegaEngine
 			} interpolationType;
 
 
-			std::vector<float> time_stamps;
+			std::vector<float> timeStamps;
 			std::vector<OEMaths::vec4f> outputs;
 
-			uint32_t index_from_time(double time);
-			float get_phase(double time);
+			uint32_t indexFromTime(double time);
+			float getPhase(double time);
 		};
 
 		struct Channel
@@ -69,9 +69,9 @@ namespace OmegaEngine
 		AnimationManager();
 		~AnimationManager();
 
-		void addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearised_objects);
+		void addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
 
-		void update_anim(double time, double dt, TransformManager& transform_man);
+		void updateAnimation(double time, double dt, TransformManager& transformManager);
 
 	private:
 

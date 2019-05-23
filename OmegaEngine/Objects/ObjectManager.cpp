@@ -27,7 +27,7 @@ namespace OmegaEngine
 			id = nextId++;
 		}
 		
-		newObject.set_id(id);
+		newObject.setId(id);
 		objects.insert(std::make_pair(id, newObject));
 		return &objects[id];
 	}
@@ -47,15 +47,15 @@ namespace OmegaEngine
 			id = nextId++;
 		}
 
-		newObject.set_id(id);
-		obj.add_child(newObject);
+		newObject.setId(id);
+		obj.addChild(newObject);
 		
-		return &obj.get_last_child();
+		return &obj.getLastChild();
 	}
 
 	void ObjectManager::destroyObject(Object& obj)
 	{
-		uint64_t id = obj.get_id();
+		uint64_t id = obj.getId();
 		objects.erase(id);
 		freeIds.push_front(id);
 	}

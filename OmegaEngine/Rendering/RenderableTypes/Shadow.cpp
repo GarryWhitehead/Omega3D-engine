@@ -12,38 +12,38 @@
 namespace OmegaEngine
 {
 
-	RenderableShadow::RenderableShadow(RenderInterface* render_interface, ShadowComponent& component, RenderableMesh::MeshInstance* mesh_instance) :
+	RenderableShadow::RenderableShadow(RenderInterface* renderInterface, ShadowComponent& component, RenderableMesh::MeshInstance* meshInstance) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
-		instance_data = new ShadowInstance;
-		ShadowInstance* shadow_instance = reinterpret_cast<ShadowInstance*>(instance_data);
+		instanceData = new ShadowInstance;
+		ShadowInstance* shadowInstance = reinterpret_cast<ShadowInstance*>(instanceData);
 		
 		// create the sorting key  TODO: actually implement this!
-		sort_key = RenderQueue::create_sort_key(RenderStage::First, 0, RenderTypes::ShadowStatic);
+		sort_key = RenderQueue::createSortKey(RenderStage::First, 0, RenderTypes::ShadowStatic);
 
-		queue_type = QueueType::Shadow;
+		queueType = QueueType::Shadow;
 
 		// pointer to the mesh pipeline
-		if (mesh_instance->type == MeshManager::MeshType::Static) {
-			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::ShadowStatic).get();
+		if (meshInstance->type == MeshManager::MeshType::Static) {
+			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowStatic).get();
 		}
 		else {
-			shadow_instance->state = render_interface->get_render_pipeline(RenderTypes::ShadowDynamic).get();
+			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowDynamic).get();
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
-		shadow_instance->mesh_type = mesh_instance->type;
-		shadow_instance->vertex_offset = mesh_instance->vertex_offset;
-		shadow_instance->index_offset = mesh_instance->index_offset;
-		shadow_instance->vertex_buffer = mesh_instance->vertex_buffer;
-		shadow_instance->index_buffer = mesh_instance->index_buffer;
-		shadow_instance->transform_dynamic_offset = mesh_instance->transform_dynamic_offset;
-		shadow_instance->skinned_dynamic_offset = mesh_instance->skinned_dynamic_offset;
+		shadowInstance->meshType = meshInstance->type;
+		shadowInstance->vertexOffset = meshInstance->vertexOffset;
+		shadowInstance->indexOffset = meshInstance->indexOffset;
+		shadowInstance->vertexBuffer = meshInstance->vertexBuffer;
+		shadowInstance->indexBuffer = meshInstance->indexBuffer;
+		shadowInstance->transformDynamicOffset = meshInstance->transformDynamicOffset;
+		shadowInstance->skinnedDynamicOffset = meshInstance->skinnedDynamicOffset;
 
-		shadow_instance->bias_clamp = component.bias_clamp;
-		shadow_instance->bias_constant = component.bias_constant;
-		shadow_instance->bias_slope = component.bias_slope;
+		shadowInstance->biasClamp = component.biasClamp;
+		shadowInstance->biasConstant = component.biasConstant;
+		shadowInstance->biasSlope = component.biasSlope;
 	}
 
 
@@ -51,9 +51,9 @@ namespace OmegaEngine
 	{
 	}
 
-	void RenderableShadow::create_shadow_pipeline(vk::Device& device,
+	void RenderableShadow::createShadowPipeline(vk::Device& device,
 		std::unique_ptr<RendererBase>& renderer,
-		std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
+		std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
 		std::unique_ptr<ProgramState>& state,
 		MeshManager::MeshType type)
 	{
@@ -70,79 +70,79 @@ namespace OmegaEngine
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state->shader.descriptor_image_reflect(state->descr_layout, state->image_layout);
-		state->shader.descriptor_buffer_reflect(state->descr_layout, state->buffer_layout);
-		state->descr_layout.create(device);
-		state->descr_set.init(device, state->descr_layout);
+		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
+		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
+		state->descriptorLayout.create(device);
+		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state->buffer_layout) {
+		for (auto& layout : state->bufferLayout) {
 			
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				buffer_manager->enqueueDescrUpdate("Camera", &state->descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_StaticMeshUbo") {
-				buffer_manager->enqueueDescrUpdate("Transform", &state->descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_SkinnedUbo") {
-				buffer_manager->enqueueDescrUpdate("SkinnedTransform", &state->descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
-		state->shader.pipeline_layout_reflect(state->pl_layout);
-		state->pl_layout.create(device, state->descr_layout.get_layout());
+		state->shader.pipelineLayoutReflect(state->pipelineLayout);
+		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
 
 		// create the graphics pipeline
-		state->shader.pipeline_reflection(state->pipeline);
+		state->shader.pipelineReflection(state->pipeline);
 
-		state->pipeline.set_depth_state(VK_TRUE, VK_FALSE);
-		state->pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eFront);
-		state->pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state->pipeline.add_dynamic_state(vk::DynamicState::eDepthBias);
-		state->pipeline.create(device, renderer->get_shadow_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.addDynamicState(vk::DynamicState::eDepthBias);
+		state->pipeline.create(device, renderer->getShadowPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void RenderableShadow::create_shadow_pass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, 
+	void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, 
 		vk::Device& device, vk::PhysicalDevice& gpu, const vk::Format format, const uint32_t width, const uint32_t height)
 	{
 		
 		// renderpass
 		renderpass.init(device);
 		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, format);
-		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Top);
-		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencil_Subpass_Bottom);
+		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencilSubpassTop);
+		renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencilSubpassBottom);
 		renderpass.prepareRenderPass();
 
 		// framebuffer
-		image.create_empty_image(format, width, height,
+		image.createEmptyImage(format, width, height,
 			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 
-		renderpass.prepareFramebuffer(image.get_image_view(), width, height, 1);
+		renderpass.prepareFramebuffer(image.getImageView(), width, height, 1);
 	}
 
-	void RenderableShadow::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
+	void RenderableShadow::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
 								void* instance)
 	{
-		ShadowInstance* instance_data = (ShadowInstance*)instance;
+		ShadowInstance* instanceData = (ShadowInstance*)instance;
 
-		ProgramState* state = instance_data->state;
+		ProgramState* state = instanceData->state;
 
-		std::vector<uint32_t> dynamic_offsets{ instance_data->transform_dynamic_offset };
-		if (instance_data->mesh_type == MeshManager::MeshType::Skinned) {
-			dynamic_offsets.push_back(instance_data->skinned_dynamic_offset);
+		std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
+		if (instanceData->meshType == MeshManager::MeshType::Skinned) {
+			dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
 		}
 
-		cmd_buffer.set_viewport();
-		cmd_buffer.set_scissor();
-		cmd_buffer.setDepthBias(instance_data->bias_constant, instance_data->bias_clamp, instance_data->bias_slope);
-		cmd_buffer.bind_pipeline(state->pipeline);
-		cmd_buffer.bind_dynamic_descriptors(state->pl_layout, state->descr_set, VulkanAPI::PipelineType::Graphics, dynamic_offsets);
+		cmdBuffer.setViewport();
+		cmdBuffer.setScissor();
+		cmdBuffer.setDepthBias(instanceData->biasConstant, instanceData->biasClamp, instanceData->biasSlope);
+		cmdBuffer.bindPipeline(state->pipeline);
+		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
 
-		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
-		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);
-		cmd_buffer.bind_index_buffer(instance_data->index_buffer.buffer, instance_data->index_buffer.offset);
-		cmd_buffer.draw_indexed(instance_data->index_count);
+		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
+		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+		cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
+		cmdBuffer.drawIndexed(instanceData->indexCount);
 	}
 }

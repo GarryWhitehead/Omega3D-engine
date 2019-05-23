@@ -41,14 +41,14 @@ namespace VulkanAPI
 		gpu = phys;
 	}
 
-	void Texture::create_empty_image(vk::Format format, uint32_t width, uint32_t height, uint8_t mip_levels, vk::ImageUsageFlags usage_flags)
+	void Texture::createEmptyImage(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usage_flags)
 	{
 		assert(device);
 
 		this->format = format;
 		this->width = width;
 		this->height = height;
-		this->mip_levels = mip_levels;
+		this->mipLevels = mipLevels;
 
 		// create an empty image
 		image.create(device, gpu, *this, usage_flags);
@@ -62,28 +62,28 @@ namespace VulkanAPI
 		assert(device);
 
 		// store some of the texture attributes locally
-		format = tex.get_format();
-		width = tex.tex_width();
-		height = tex.tex_height();
-		mip_levels = tex.mipmapCount();
-		faces = tex.get_num_faces();
-		arrays = tex.get_array_count();
+		format = tex.getFormat();
+		width = tex.textureWidth();
+		height = tex.textureHeight();
+		mipLevels = tex.mipmapCount();
+		faceCount = tex.getFaceCount();
+		arrays = tex.getArrayCount();
 		
 		vk::DeviceMemory stagingMemory;
 		vk::Buffer staging_buff;
 
-		Util::createBuffer(device, gpu, tex.get_size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingMemory, staging_buff);
+		Util::createBuffer(device, gpu, tex.getSize(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, stagingMemory, staging_buff);
 
 		void *data_dst;
-		device.mapMemory(stagingMemory, 0, tex.get_size(), {}, &data_dst);
-		memcpy(data_dst, tex.data(), tex.get_size());
+		device.mapMemory(stagingMemory, 0, tex.getSize(), {}, &data_dst);
+		memcpy(data_dst, tex.data(), tex.getSize());
 		device.unmapMemory(stagingMemory);
 
 		// if generating mip maps, then we need to set the transfer and destination usage flags too
 		vk::ImageUsageFlags usage_flags = vk::ImageUsageFlagBits::eSampled;
 		vk::ImageLayout final_transition_layout = vk::ImageLayout::eShaderReadOnlyOptimal;
 		
-		if (mip_levels > 1) 
+		if (mipLevels > 1) 
 		{
 			usage_flags |= vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
 			// if blitting when creating mip-maps, then wwe will transition to shader read after blitting
@@ -94,7 +94,7 @@ namespace VulkanAPI
 	
 		// create the info required for the copy
 		std::vector<vk::BufferImageCopy> copy_buffers;
-		if (faces == 1 && arrays == 1) 
+		if (faceCount == 1 && arrays == 1) 
 		{
 			createCopyBuffer(copy_buffers);
 		}
@@ -105,25 +105,25 @@ namespace VulkanAPI
 		
 		// noew copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
 		CommandBuffer copy_cmd_buff(device, graph_queue.get_index());
-		copy_cmd_buff.create_primary();
+		copy_cmd_buff.createPrimary();
 
         image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copy_cmd_buff.get());
 		copy_cmd_buff.get().copyBufferToImage(staging_buff, image.get(), vk::ImageLayout::eTransferDstOptimal, static_cast<uint32_t>(copy_buffers.size()), copy_buffers.data());
 		image.transition(vk::ImageLayout::eTransferDstOptimal, final_transition_layout, copy_cmd_buff.get());
         
 		copy_cmd_buff.end();
-		graph_queue.flush_cmd_buffer(copy_cmd_buff.get());
+		graph_queue.flush_cmdBuffer(copy_cmd_buff.get());
 
 		// generate mip maps if required
-		if (mip_levels > 1) 
+		if (mipLevels > 1) 
 		{
 			CommandBuffer blit_cmd_buff(device, graph_queue.get_index());
-			blit_cmd_buff.create_primary();
+			blit_cmd_buff.createPrimary();
 
 			image.generate_mipmap(blit_cmd_buff.get());
 
 			blit_cmd_buff.end();
-			graph_queue.flush_cmd_buffer(blit_cmd_buff.get());
+			graph_queue.flush_cmdBuffer(blit_cmd_buff.get());
 		}
 
 		// create an image view of the texture image
@@ -136,7 +136,7 @@ namespace VulkanAPI
 	void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers)
 	{
 		uint32_t offset = 0;
-		for (uint32_t level = 0; level < mip_levels; ++level) 
+		for (uint32_t level = 0; level < mipLevels; ++level) 
 		{
 			vk::BufferImageCopy image_copy(offset, 0, 0,
 				vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, 0, 1),
@@ -151,9 +151,9 @@ namespace VulkanAPI
 	void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers)
 	{
 		uint32_t offset = 0;
-		for (uint32_t face = 0; face < faces; ++face) 
+		for (uint32_t face = 0; face < faceCount; ++face) 
 		{
-			for (uint32_t level = 0; level < mip_levels; ++level) 
+			for (uint32_t level = 0; level < mipLevels; ++level) 
 			{
 
 				vk::BufferImageCopy image_copy(offset, 0, 0,
@@ -167,9 +167,9 @@ namespace VulkanAPI
 		}
 	}
 
-	vk::ImageView& Texture::get_image_view()
+	vk::ImageView& Texture::getImageView()
 	{
-		return imageView.get_imageView();
+		return imageView.getImageView();
 	}
 
 }

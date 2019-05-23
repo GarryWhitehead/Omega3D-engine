@@ -27,12 +27,12 @@ namespace OmegaEngine
 		EngineState() = default;
 		~EngineState() {}
 
-		bool is_running() const
+		bool getIsRunning() const
 		{
 			return isRunning;
 		}
 
-		void set_running()
+		void setRunning()
 		{
 			isRunning = true;
 		}
@@ -44,7 +44,7 @@ namespace OmegaEngine
 
 	private:
 
-		std::chrono::high_resolution_clock::time_point start_time;
+		std::chrono::high_resolution_clock::time_point startTime;
 		bool isRunning = true;
 		bool isPaused = false;
 	};
@@ -60,10 +60,10 @@ namespace OmegaEngine
 		void createWindow(std::string win_title);
 		void loadConfigFile();
 
-		void start_loop();
+		void startLoop();
 
 		// helper functions
-		GLFWwindow* get_glfw_window() 
+		GLFWwindow* getGlfwWindow() 
 		{ 
 			assert(window != nullptr);
 			return window; 
@@ -72,9 +72,9 @@ namespace OmegaEngine
 	private:
 
 		// configuration for the omega engine
-		EngineConfig engine_config;
+		EngineConfig engineConfig;
 
-		EngineState program_state;
+		EngineState programState;
 
 		// glfw stuff
 		GLFWwindow* window = nullptr;
@@ -94,8 +94,8 @@ namespace OmegaEngine
 		uint32_t currentWorldIndex = 0;		
 
 		// a list of all grpahics devices that are available
-		std::vector<std::unique_ptr<VulkanAPI::Device>> gfx_devices;
-		uint32_t current_gfx_device = 0;
+		std::vector<std::unique_ptr<VulkanAPI::Device>> vkDevices;
+		uint32_t currentVkDevice = 0;
 	};
 
 }

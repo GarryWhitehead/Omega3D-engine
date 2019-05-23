@@ -37,7 +37,7 @@ namespace OmegaEngine
 			{
 				for (uint32_t j = 0; j < listeners.size(); ++j) 
 				{
-					listeners[j].listener_func(listeners[j].listener_handle, *iter->second.events[index]);
+					listeners[j].listenerFunction(listeners[j].listenerHandle, *iter->second.events[index]);
 				}
 
 				if (iter->second.events[index]->shouldDelete) 

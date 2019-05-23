@@ -18,11 +18,11 @@ namespace OmegaEngine
 		virtual ~ManagerBase() {}
 
 		// virtual update function -
-		virtual void update_frame(double time, double dt,
+		virtual void updateFrame(double time, double dt,
 			std::unique_ptr<ObjectManager>& obj_manager,
 			ComponentInterface* component_manager) = 0;
 
-		void set_id(const uint32_t id)
+		void setId(const uint32_t id)
 		{
 			manager_id = id;
 		}

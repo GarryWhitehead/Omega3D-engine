@@ -13,24 +13,24 @@
 namespace OmegaEngine
 {
 
-	RenderableSkybox::RenderableSkybox(RenderInterface* render_interface, SkyboxComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager) :
+	RenderableSkybox::RenderableSkybox(RenderInterface* renderInterface, SkyboxComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& bufferManager) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
-		instance_data = new SkyboxInstance;
-		SkyboxInstance* skybox_instance = reinterpret_cast<SkyboxInstance*>(instance_data);
+		instanceData = new SkyboxInstance;
+		SkyboxInstance* skyboxInstance = reinterpret_cast<SkyboxInstance*>(instanceData);
 		
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::create_sort_key(RenderStage::First, 0, RenderTypes::Skybox);
+		sort_key = RenderQueue::createSortKey(RenderStage::First, 0, RenderTypes::Skybox);
 
-		queue_type = QueueType::Forward;
+		queueType = QueueType::Forward;
 
-		skybox_instance->state = render_interface->get_render_pipeline(RenderTypes::Skybox).get();
-		skybox_instance->blur_factor = component.blur_factor;
+		skyboxInstance->state = renderInterface->getRenderPipeline(RenderTypes::Skybox).get();
+		skyboxInstance->blurFactor = component.blurFactor;
 		
-		skybox_instance->vertex_buffer = buffer_manager->get_buffer("CubeModelVertices");
-		skybox_instance->index_buffer = buffer_manager->get_buffer("CubeModelIndices");
-		skybox_instance->index_count = RenderUtil::CubeModel::indicesSize;
+		skyboxInstance->vertexBuffer = bufferManager->getBuffer("CubeModelVertices");
+		skyboxInstance->indexBuffer = bufferManager->getBuffer("CubeModelIndices");
+		skyboxInstance->indexCount = RenderUtil::CubeModel::indicesSize;
 	}
 
 
@@ -38,10 +38,10 @@ namespace OmegaEngine
 	{
 	}
 
-	void RenderableSkybox::create_skybox_pipeline(vk::Device& device,
+	void RenderableSkybox::createSkyboxPipeline(vk::Device& device,
 		std::unique_ptr<RendererBase>& renderer,
-		std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager,
-		std::unique_ptr<VulkanAPI::VkTextureManager>& texture_manager,
+		std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
+		std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
 		std::unique_ptr<ProgramState>& state)
 	{
 		// load shaders
@@ -50,87 +50,87 @@ namespace OmegaEngine
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state->shader.descriptor_image_reflect(state->descr_layout, state->image_layout);
-		state->shader.descriptor_buffer_reflect(state->descr_layout, state->buffer_layout);
-		state->descr_layout.create(device);
-		state->descr_set.init(device, state->descr_layout);
+		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
+		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
+		state->descriptorLayout.create(device);
+		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state->buffer_layout) {
+		for (auto& layout : state->bufferLayout) {
 
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				buffer_manager->enqueueDescrUpdate("Camera", &state->descr_set, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
 		// sort out the descriptor sets - images
-		for (auto& layout : state->image_layout) {
+		for (auto& layout : state->imageLayout) {
 
 			for (auto& image : layout.second)
 			{
 				// the shader must use these identifying names for uniform buffers -
 				if (image.name == "SkyboxSampler") {
-					texture_manager->enqueueDescrUpdate("Skybox", &state->descr_set, &image.sampler, image.set, image.binding);
+					textureManager->enqueueDescrUpdate("Skybox", &state->descriptorSet, &image.sampler, image.set, image.binding);
 				}
 			}
 		}
 
-		state->shader.pipeline_layout_reflect(state->pl_layout);
-		state->pl_layout.create(device, state->descr_layout.get_layout());
+		state->shader.pipelineLayoutReflect(state->pipelineLayout);
+		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
 
 		// create the graphics pipeline
-		state->shader.pipeline_reflection(state->pipeline);
+		state->shader.pipelineReflection(state->pipeline);
 
-		state->pipeline.set_depth_state(VK_TRUE, VK_FALSE);
-		state->pipeline.set_raster_cull_mode(vk::CullModeFlagBits::eBack);
-		state->pipeline.set_raster_front_face(vk::FrontFace::eClockwise);
-		state->pipeline.set_topology(vk::PrimitiveTopology::eTriangleList);
-		state->pipeline.add_colour_attachment(VK_FALSE, renderer->get_forward_pass());
-		state->pipeline.create(device, renderer->get_forward_pass(), state->shader, state->pl_layout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());
+		state->pipeline.create(device, renderer->getForwardPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void RenderableSkybox::create_skybox_pass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depth_image, 
+	void RenderableSkybox::createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage, 
 		vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height)
 	{
 		vk::Format format = vk::Format::eR16G16B16A16Sfloat;
-		vk::Format depth_format = VulkanAPI::Device::get_depth_format(gpu);
+		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
 		// now create the renderpasses and frame buffers
 		renderpass.init(device);
 		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, format);
-		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depth_format);
+		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
 		renderpass.prepareRenderPass();
 
 		// colour
-		image.create_empty_image(format, width, height,
+		image.createEmptyImage(format, width, height,
 			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 
 		// depth - this will be blitted with the depth buffer from the previous pass
-		depth_image.create_empty_image(depth_format,
+		depthImage.createEmptyImage(depthFormat,
 			width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// frame buffer prep
-		std::vector<vk::ImageView> image_views{ image.get_image_view() , depth_image.get_image_view() };
-		renderpass.prepareFramebuffer(static_cast<uint32_t>(image_views.size()), image_views.data(), width, height, 1);
+		std::vector<vk::ImageView> imageViews{ image.getImageView() , depthImage.getImageView() };
+		renderpass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), width, height, 1);
 	}
 
-	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmd_buffer, 
+	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
 								void* instance)
 	{
-		SkyboxInstance* instance_data = (SkyboxInstance*)instance;
+		SkyboxInstance* instanceData = (SkyboxInstance*)instance;
 
-		ProgramState* state = instance_data->state;
+		ProgramState* state = instanceData->state;
 
-		cmd_buffer.set_viewport();
-		cmd_buffer.set_scissor();
-		cmd_buffer.bind_pipeline(state->pipeline);
-		cmd_buffer.bind_descriptors(state->pl_layout, state->descr_set, VulkanAPI::PipelineType::Graphics);
-		cmd_buffer.bind_push_block(state->pl_layout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instance_data->blur_factor);
+		cmdBuffer.setViewport();
+		cmdBuffer.setScissor();
+		cmdBuffer.bindPipeline(state->pipeline);
+		cmdBuffer.bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics);
+		cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instanceData->blurFactor);
 
-		vk::DeviceSize offset = { instance_data->vertex_buffer.offset };
-		cmd_buffer.bind_vertex_buffer(instance_data->vertex_buffer.buffer, offset);
-		cmd_buffer.bind_index_buffer(instance_data->index_buffer.buffer, instance_data->index_buffer.offset);
-		cmd_buffer.draw_indexed(instance_data->index_count);
+		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
+		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+		cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
+		cmdBuffer.drawIndexed(instanceData->indexCount);
 	}
 }

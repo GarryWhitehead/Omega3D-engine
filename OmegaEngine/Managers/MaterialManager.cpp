@@ -18,66 +18,66 @@ namespace OmegaEngine
 	{
 	}
 
-	void MaterialManager::addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager)
+	void MaterialManager::addGltfMaterial(uint32_t set, tinygltf::Material& gltfMaterial, TextureManager& textureManager)
 	{
 		MaterialInfo mat;
-		mat.name = _strdup(gltf_mat.name.c_str());
+		mat.name = _strdup(gltfMaterial.name.c_str());
 
 		// go through each material type and see if they exsist - we are only saving the index
-		if (gltf_mat.values.find("baseColorTexture") != gltf_mat.values.end()) 
+		if (gltfMaterial.values.find("baseColorTexture") != gltfMaterial.values.end()) 
 		{
-			mat.textures[(int)PbrMaterials::BaseColor].image = gltf_mat.values["baseColorTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::BaseColor].image = gltfMaterial.values["baseColorTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::BaseColor].set = set;
 			mat.texture_state[(int)PbrMaterials::BaseColor] = true;
-			mat.uvSets.baseColour = gltf_mat.values["baseColorTexture"].TextureTexCoord();
+			mat.uvSets.baseColour = gltfMaterial.values["baseColorTexture"].TextureTexCoord();
 		}
-		if (gltf_mat.values.find("metallicRoughnessTexture") != gltf_mat.values.end()) 
+		if (gltfMaterial.values.find("metallicRoughnessTexture") != gltfMaterial.values.end()) 
 		{
-			mat.textures[(int)PbrMaterials::MetallicRoughness].image = gltf_mat.values["metallicRoughnessTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::MetallicRoughness].image = gltfMaterial.values["metallicRoughnessTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::MetallicRoughness].set = set;
 			mat.texture_state[(int)PbrMaterials::MetallicRoughness] = true;
-			mat.uvSets.metallicRoughness = gltf_mat.values["metallicRoughnessTexture"].TextureTexCoord();
+			mat.uvSets.metallicRoughness = gltfMaterial.values["metallicRoughnessTexture"].TextureTexCoord();
 		}
-		if (gltf_mat.values.find("baseColorFactor") != gltf_mat.values.end()) 
+		if (gltfMaterial.values.find("baseColorFactor") != gltfMaterial.values.end()) 
 		{
-			mat.factors.baseColour = OEMaths::vec4f(gltf_mat.values["baseColorFactor"].ColorFactor().data());
+			mat.factors.baseColour = OEMaths::vec4f(gltfMaterial.values["baseColorFactor"].ColorFactor().data());
 		}
-		if (gltf_mat.values.find("metallicFactor") != gltf_mat.values.end()) 
+		if (gltfMaterial.values.find("metallicFactor") != gltfMaterial.values.end()) 
 		{
-			mat.factors.metallic = static_cast<float>(gltf_mat.values["metallicFactor"].Factor());
+			mat.factors.metallic = static_cast<float>(gltfMaterial.values["metallicFactor"].Factor());
 		}
-		if (gltf_mat.values.find("roughnessFactor") != gltf_mat.values.end()) 
+		if (gltfMaterial.values.find("roughnessFactor") != gltfMaterial.values.end()) 
 		{
-			mat.factors.roughness = static_cast<float>(gltf_mat.values["roughnessFactor"].Factor());
+			mat.factors.roughness = static_cast<float>(gltfMaterial.values["roughnessFactor"].Factor());
 		}
 
 		// any additional textures?
-		if (gltf_mat.additionalValues.find("normalTexture") != gltf_mat.additionalValues.end()) 
+		if (gltfMaterial.additionalValues.find("normalTexture") != gltfMaterial.additionalValues.end()) 
 		{
-			mat.textures[(int)PbrMaterials::Normal].image = gltf_mat.additionalValues["normalTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Normal].image = gltfMaterial.additionalValues["normalTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Normal].set = set;
 			mat.texture_state[(int)PbrMaterials::Normal] = true;
-			mat.uvSets.normal = gltf_mat.additionalValues["normalTexture"].TextureTexCoord();
+			mat.uvSets.normal = gltfMaterial.additionalValues["normalTexture"].TextureTexCoord();
 		}
-		if (gltf_mat.additionalValues.find("emissiveTexture") != gltf_mat.additionalValues.end()) 
+		if (gltfMaterial.additionalValues.find("emissiveTexture") != gltfMaterial.additionalValues.end()) 
 		{
-			mat.textures[(int)PbrMaterials::Emissive].image = gltf_mat.additionalValues["emissiveTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Emissive].image = gltfMaterial.additionalValues["emissiveTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Emissive].set = set;
 			mat.texture_state[(int)PbrMaterials::Emissive] = true;
-			mat.uvSets.emissive = gltf_mat.additionalValues["emissiveTexture"].TextureTexCoord();
+			mat.uvSets.emissive = gltfMaterial.additionalValues["emissiveTexture"].TextureTexCoord();
 		}
-		if (gltf_mat.additionalValues.find("occlusionTexture") != gltf_mat.additionalValues.end()) 
+		if (gltfMaterial.additionalValues.find("occlusionTexture") != gltfMaterial.additionalValues.end()) 
 		{
-			mat.textures[(int)PbrMaterials::Occlusion].image = gltf_mat.additionalValues["occlusionTexture"].TextureIndex();
+			mat.textures[(int)PbrMaterials::Occlusion].image = gltfMaterial.additionalValues["occlusionTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Occlusion].set = set;
 			mat.texture_state[(int)PbrMaterials::Occlusion] = true;
-			mat.uvSets.occlusion = gltf_mat.additionalValues["occlusionTexture"].TextureTexCoord();
+			mat.uvSets.occlusion = gltfMaterial.additionalValues["occlusionTexture"].TextureTexCoord();
 		}
 
 		// check for aplha modes
-		if (gltf_mat.additionalValues.find("alphaMode") != gltf_mat.additionalValues.end()) 
+		if (gltfMaterial.additionalValues.find("alphaMode") != gltfMaterial.additionalValues.end()) 
 		{
-			tinygltf::Parameter param = gltf_mat.additionalValues["alphaMode"];
+			tinygltf::Parameter param = gltfMaterial.additionalValues["alphaMode"];
 			if (param.string_value == "BLEND") 
 			{
 				mat.factors.alphaMask = MaterialInfo::AlphaMode::Blend;
@@ -87,18 +87,18 @@ namespace OmegaEngine
 				mat.factors.alphaMask = MaterialInfo::AlphaMode::Mask;
 			}
 		}
-		if (gltf_mat.additionalValues.find("alphaCutOff") != gltf_mat.additionalValues.end()) 
+		if (gltfMaterial.additionalValues.find("alphaCutOff") != gltfMaterial.additionalValues.end()) 
 		{
-			mat.factors.alphaMaskCutOff = static_cast<float>(gltf_mat.additionalValues["alphaCutOff"].Factor());
+			mat.factors.alphaMaskCutOff = static_cast<float>(gltfMaterial.additionalValues["alphaCutOff"].Factor());
 		}
-		if (gltf_mat.additionalValues.find("emissiveFactor") != gltf_mat.additionalValues.end())
+		if (gltfMaterial.additionalValues.find("emissiveFactor") != gltfMaterial.additionalValues.end())
 		{
-			mat.factors.emissive = OEMaths::vec3f(gltf_mat.additionalValues["emissiveFactor"].ColorFactor().data());
+			mat.factors.emissive = OEMaths::vec3f(gltfMaterial.additionalValues["emissiveFactor"].ColorFactor().data());
 		}
 
 		// check for extensions
-		auto extension = gltf_mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
-		if (extension != gltf_mat.extensions.end()) 
+		auto extension = gltfMaterial.extensions.find("KHR_materials_pbrSpecularGlossiness");
+		if (extension != gltfMaterial.extensions.end()) 
 		{
 			if (extension->second.Has("specularGlossinessTexture")) 
 			{
@@ -115,8 +115,8 @@ namespace OmegaEngine
 				mat.textures[(int)PbrMaterials::BaseColor].image = index.Get<int>();
 				mat.usingSpecularGlossiness = true;
 
-				auto uv_index = extension->second.Get("diffuseTexture").Get("texCoord");
-				mat.uvSets.diffuse = uv_index.Get<int>();
+				auto uvIndex = extension->second.Get("diffuseTexture").Get("texCoord");
+				mat.uvSets.diffuse = uvIndex.Get<int>();
 			}
 			if (extension->second.Has("diffuseFactor")) 
 			{
@@ -157,11 +157,11 @@ namespace OmegaEngine
 		return materials[index];
 	}
 
-	void MaterialManager::update_frame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_interface)
+	void MaterialManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)
 	{
 		if (isDirty) 
 		{
-			auto& tex_manager = component_interface->getManager<TextureManager>();
+			auto& textureManager = componentInterface->getManager<TextureManager>();
 
 			for (auto& mat : materials) 
 			{
@@ -171,13 +171,13 @@ namespace OmegaEngine
 					// do we actually have an image for this particular pbr material
 					if (mat.texture_state[i]) 
 					{
-						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &tex_manager.get_texture(mat.textures[i].set, mat.textures[i].image),
-							tex_manager.get_sampler(mat.textures[i].set, mat.textures[i].sampler) };
+						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureManager.getTexture(mat.textures[i].set, mat.textures[i].image),
+							textureManager.getSampler(mat.textures[i].set, mat.textures[i].sampler) };
 						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 					}
 					else 
 					{
-						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &tex_manager.get_dummy_texture(), tex_manager.get_dummy_sampler() };
+						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureMmanager.getDummyTexture(), textureManager.getDummySampler() };
 						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 					}
 				}

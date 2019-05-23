@@ -21,6 +21,6 @@ private:
 
 	Time current;
 
-	bool is_running = false;
+	bool getIsRunning = false;
 };
 

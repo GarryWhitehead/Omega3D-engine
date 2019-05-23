@@ -25,7 +25,7 @@ namespace VulkanAPI
 
 		void create(vk::Device dev, SamplerType type);
 
-		vk::Sampler& get_sampler()
+		vk::Sampler& getSampler()
 		{
 			return sampler;
 		}

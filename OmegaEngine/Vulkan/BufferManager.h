@@ -74,7 +74,7 @@ namespace VulkanAPI
 		void update_buffer(BufferUpdateEvent& event);
 
 		// returns a wrapper containing vulkan memory buffer information
-		Buffer get_buffer(const char* id);
+		Buffer getBuffer(const char* id);
 
 	private:
 
@@ -88,7 +88,7 @@ namespace VulkanAPI
 		std::unordered_map<const char *, MemorySegment> buffers;
 
 		// a queue of descriptor sets which need updating this frame
-		std::vector<DescrSetUpdateInfo> descr_set_update_queue;
+		std::vector<DescrSetUpdateInfo> descriptorSet_update_queue;
 	};
 
 }
