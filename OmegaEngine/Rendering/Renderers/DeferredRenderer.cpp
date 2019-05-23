@@ -168,50 +168,30 @@ namespace OmegaEngine
 
 	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain)
 	{
-		auto render = [&](std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer) -> void
-		{
-			// viewport and scissor
-			cmdBuffer->setViewport();
-			cmdBuffer->setScissor();
+		cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
+		auto& cmdBuffer = cmdBufferManager->getCmdBuffer(deferredCmdBufferHandle);
 
-			// bind everything required to draw
-			cmdBuffer->bindPipeline(state.pipeline);
-			cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
-			cmdBuffer->bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
-
-			// render full screen quad to screen
-			cmdBuffer->drawQuad();
-
-			// end this pass and cmd buffer
-			cmdBuffer->endRenderpass();
-			cmdBuffer->end();
-		};
+		cmdBuffer->createPrimary();
+		vk::RenderPassBeginInfo beginInfo = forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
+		cmdBuffer->beginRenderpass(beginInfo);
 		
-		// the renderpass depends wheter we are going to forward render the deferred pass into a offscreen buffer for transparency, sampling, etc.
-		// or just render straight to the swap chain presentation image
-		if (renderConfig.general.useSkybox) 
-		{	
-			cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
-			auto& cmdBuffer = cmdBufferManager->getCmdBuffer(deferredCmdBufferHandle);
+		// viewport and scissor
+		cmdBuffer->setViewport();
+		cmdBuffer->setScissor();
 
-			cmdBuffer->createPrimary();
+		// bind everything required to draw
+		cmdBuffer->bindPipeline(state.pipeline);
+		cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
+		cmdBuffer->bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
 
-                        // begin the renderpass 
-			vk::RenderPassBeginInfo beginInfo = forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
-			cmdBuffer->beginRenderpass(beginInfo);
-			render(cmdBuffer);
-		}
-		else 
-		{
-			uint32_t imageCount = cmdBufferManager->getPresentImageCount();
-			for (uint32_t i = 0; i < imageCount; ++i) 
-			{
-				auto& cmdBuffer = cmdBufferManager->beginPresentCmdBuffer(swapchain.getRenderpass(), renderConfig.general.backgroundColour, i);
-				render(cmdBuffer);
-			}
-		}
+		// render full screen quad to screen
+		cmdBuffer->drawQuad();
+
+		// end this pass and cmd buffer
+		cmdBuffer->endRenderpass();
+		cmdBuffer->end();
+	
 	}
-
 
 	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue)
 	{
