@@ -83,7 +83,7 @@ namespace OmegaEngine
 		{
 		case RendererType::Deferred:
 		{
-			setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->get_gpu(), vkInterface->getCmdBufferManager(), 
+			setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->getGpu(), vkInterface->getCmdBufferManager(), 
 				vkInterface->getBufferManager(), vkInterface->getSwapchain(), renderConfig);
 			break;
 		}

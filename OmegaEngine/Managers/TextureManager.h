@@ -37,8 +37,8 @@ namespace OmegaEngine
 
 		// not used at present - just here to keep the inheritance demons happy
 		void updateFrame(double time, double dt,
-			std::unique_ptr<ObjectManager>& obj_manager,
-			ComponentInterface* component_manager) override;
+			std::unique_ptr<ObjectManager>& objectManager,
+			ComponentInterface* componentInterface) override;
 
 		void addGltfSampler(uint32_t set, tinygltf::Sampler& sampler);
 		void addGltfImage(tinygltf::Image& image);

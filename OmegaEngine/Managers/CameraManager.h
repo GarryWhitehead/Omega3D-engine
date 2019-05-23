@@ -31,8 +31,8 @@ namespace OmegaEngine
 
 		CameraType type = CameraType::FirstPerson;
 
-		OEMaths::vec3f start_position{ 0.0f, 0.0f, 6.0f };
-		OEMaths::vec3f camera_up{ 0.0f, 1.0f, 0.0f };
+		OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
+		OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
 		
 	};
 
@@ -72,7 +72,7 @@ namespace OmegaEngine
 		{
 			// not everything in this buffer needs to be declarded in the shader but must be in this order
 			OEMaths::mat4f mvp;
-			OEMaths::vec3f camera_pos;
+			OEMaths::vec3f cameraPosition;
 			float pad0;
 
 			// in case we need individual matrices
@@ -88,21 +88,21 @@ namespace OmegaEngine
 		CameraManager(float sensitivity);
 		~CameraManager();
 
-		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* componentInterface) override;
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		void update_camera_rotation();
+		void updateCameraRotation();
 		void updateViewMatrix();
 
 		// event functions
-		void keyboard_press_event(KeyboardPressEvent& event);
-		void mouse_move_event(MouseMoveEvent& event);
+		void keyboardPressEvent(KeyboardPressEvent& event);
+		void mouseMoveEvent(MouseMoveEvent& event);
 
-		void add_camera(Camera& camera)
+		void addCamera(Camera& camera)
 		{
 			cameras.push_back(camera);
-			camera_index = static_cast<uint32_t>(cameras.size() - 1);
+			cameraIndex = static_cast<uint32_t>(cameras.size() - 1);
 
-			current_pos = camera.start_position;
+			currentPosition = camera.startPosition;
 			currentProjMatrix = camera.getPerspectiveMat();
 		}
 
@@ -112,13 +112,13 @@ namespace OmegaEngine
 		std::vector<Camera> cameras;
 
 		// current camera
-		uint32_t camera_index;
+		uint32_t cameraIndex;
 
 		// data calculated using the currently selected camera
 		OEMaths::mat4f currentProjMatrix;
 		OEMaths::mat4f currentViewMatrix;
-		OEMaths::vec3f current_pos;
-		OEMaths::vec3f front_vec{ 0.0f, 0.0f, -1.0f };
+		OEMaths::vec3f currentPosition;
+		OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
 
 		double yaw = -45.0;
 		double pitch = 0.0;
@@ -128,7 +128,7 @@ namespace OmegaEngine
 		float mouseSensitivity;
 
 		// current camera data which will be uploaded to the gpu
-		CameraBufferInfo buffer_info;
+		CameraBufferInfo cameraBuffer;
 
 		// signfies whether the camera buffer needs updating both here and on the GPU side
 		bool isDirty = true;

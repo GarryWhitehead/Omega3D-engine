@@ -13,7 +13,7 @@ namespace VulkanAPI
 	{
 	}
 
-	vk::Semaphore SemaphoreManager::get_semaphore()
+	vk::Semaphore SemaphoreManager::getSemaphore()
 	{
 		vk::Semaphore semaphore;
 
@@ -23,8 +23,8 @@ namespace VulkanAPI
 		}
 		else {
 			// create a new semaphore
-			vk::SemaphoreCreateInfo create_info;
-			VK_CHECK_RESULT(device.createSemaphore(&create_info, nullptr, &semaphore));
+			vk::SemaphoreCreateInfo createInfo;
+			VK_CHECK_RESULT(device.createSemaphore(&createInfo, nullptr, &semaphore));
 		}
 		return semaphore;
 	}

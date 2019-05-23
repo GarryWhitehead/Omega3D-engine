@@ -8,7 +8,7 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
-		vk::Format find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu);
+		vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu);
 	}
 
 	class Device
@@ -31,16 +31,16 @@ namespace VulkanAPI
 
 		struct Extensions
 		{
-			bool has_physical_device_props2 = false;
-			bool has_external_capabilities = false;
-			bool has_debug_utils = false;
+			bool hasPhysicalDeviceProps2 = false;
+			bool hasExternalCapabilities = false;
+			bool hasDebugUtils = false;
 		};
 
 
 		Device();
 		~Device();
 
-		static bool find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties);
+		static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
 		static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
 			
 		void createInstance(const char **glfwExtension, uint32_t extCount);
@@ -63,7 +63,7 @@ namespace VulkanAPI
 
 		vk::SurfaceKHR& getSurface()
 		{
-			return win_surface;
+			return windowSurface;
 		}
 
 		uint32_t getQueueIndex(QueueType type) const;
@@ -72,8 +72,8 @@ namespace VulkanAPI
 		void setWindowSurface(vk::SurfaceKHR& surface, SurfaceType type = SurfaceType::SurfaceKHR)
 		{
 			assert(surface);
-			win_surface = surface;
-			surface_type = type;
+			windowSurface = surface;
+			surfaceType = type;
 		}
 
 	private:
@@ -89,9 +89,9 @@ namespace VulkanAPI
 			int compute = VK_QUEUE_FAMILY_IGNORED;
 			int present = VK_QUEUE_FAMILY_IGNORED;
 			int graphics = VK_QUEUE_FAMILY_IGNORED;
-		} queue_family_index;
+		} queueFamilyIndex;
 
-		VulkanAPI::Queue graphQueue;
+		VulkanAPI::Queue graphicsQueue;
 		VulkanAPI::Queue presentQueue;
 		VulkanAPI::Queue computeQueue;
 
@@ -112,19 +112,19 @@ namespace VulkanAPI
 		vk::Semaphore presentSemaphore;
 
 		// supported extensions
-		Extensions device_ext;
+		Extensions deviceExtensions;
 
 		// validation layers
-		std::vector<const char*> req_layers;
+		std::vector<const char*> requiredLayers;
 
 		// the window surface that is linked to this device
-		SurfaceType surface_type;
-		vk::SurfaceKHR win_surface;
+		SurfaceType surfaceType;
+		vk::SurfaceKHR windowSurface;
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
-		vk::DebugReportCallbackEXT debug_callback;
-		vk::DebugUtilsMessengerEXT debug_messenger;
+		vk::DebugReportCallbackEXT debugCallback;
+		vk::DebugUtilsMessengerEXT debugMessenger;
 
 #endif
 

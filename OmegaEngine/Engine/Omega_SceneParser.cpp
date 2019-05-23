@@ -56,10 +56,10 @@ namespace OmegaEngine
 		camera.fov = cam["fov"].GetFloat();
 
 		auto &pos = cam["Position"]; 
-		camera.start_position = OEMaths::vec3f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat());
+		camera.startPosition = OEMaths::vec3f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat());
 
 		auto &up = cam["CameraUp"];
-		camera.camera_up = OEMaths::vec3f(up[0].GetFloat(), up[1].GetFloat(), up[2].GetFloat());
+		camera.cameraUp = OEMaths::vec3f(up[0].GetFloat(), up[1].GetFloat(), up[2].GetFloat());
 
 		std::string type = cam["Type"].GetString();
 		if (type == "FPS") {

@@ -38,7 +38,7 @@ namespace VulkanAPI
 		return aspect;
 	}
 
-	vk::ImageViewType ImageView::getTexture_type(uint32_t faceCount, uint32_t arrayCount)
+	vk::ImageViewType ImageView::getTextureType(uint32_t faceCount, uint32_t arrayCount)
 	{
 		if (arrayCount > 1 && faceCount == 1)
 		{
@@ -71,14 +71,14 @@ namespace VulkanAPI
 			vk::ComponentSwizzle::eIdentity },
 			{ aspect, 0, 1, 0, 1 });
 
-		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
+		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &imageView));
 	}
 
 	void ImageView::create(vk::Device dev, Image& image)
 	{
 		device = dev;
 
-		vk::ImageViewType type = getTexture_type(image.get_faceCount(), image.getArrayCount());
+		vk::ImageViewType type = getTextureType(image.getFaceCount(), image.getArrayCount());
 
 		// making assumptions here based on the image format used
 		vk::ImageAspectFlags aspect = getImageAspect(image.getFormat());
@@ -91,7 +91,7 @@ namespace VulkanAPI
 			vk::ComponentSwizzle::eIdentity },
 			vk::ImageSubresourceRange(aspect, 0, 1, 0, 1 ));
 
-		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &image_view));
+		VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &imageView));
 	}
 
 	Image::Image()
@@ -121,12 +121,12 @@ namespace VulkanAPI
 		return filter;
 	}
 
-	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usage_flags)
+	void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usageFlags)
 	{
 		device = dev;
 
 		format = texture.getFormat();
-		faceCount = texture.get_faceCount();
+		faceCount = texture.getFaceCount();
 		arrays = texture.getArrayCount();
 		mipLevels = texture.get_mipLevels();
 		width = texture.get_width();
@@ -138,7 +138,7 @@ namespace VulkanAPI
 			mipLevels, faceCount * arrays,			// remeber that faceCount are also considered to be array layers 
 			vk::SampleCountFlagBits::e1,
 			vk::ImageTiling::eOptimal,
-			vk::ImageUsageFlagBits::eTransferDst | usage_flags,
+			vk::ImageUsageFlagBits::eTransferDst | usageFlags,
 			vk::SharingMode::eExclusive,
 			0, nullptr, vk::ImageLayout::eUndefined);
 
@@ -150,63 +150,63 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createImage(&image_info, nullptr, &image));
 
 		// allocate memory for this image
-		vk::MemoryRequirements mem_req = device.getImageMemoryRequirements(image);
+		vk::MemoryRequirements requiredMemory = device.getImageMemoryRequirements(image);
 
-		uint32_t mem_type = Util::findMemoryType(mem_req.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
-		if (mem_type == UINT32_MAX) 
+		uint32_t memoryType = Util::findMemoryType(requiredMemory.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
+		if (memoryType == UINT32_MAX) 
 		{
 			LOGGER_ERROR("Unable to find required gpu memory type.");
 		}
-		vk::MemoryAllocateInfo alloc_info(mem_req.size, mem_type);
+		vk::MemoryAllocateInfo allocateInfo(requiredMemory.size, memoryType);
 
-		VK_CHECK_RESULT(device.allocateMemory(&alloc_info, nullptr, &image_memory));
-		device.bindImageMemory(image, image_memory, 0);
+		VK_CHECK_RESULT(device.allocateMemory(&allocateInfo, nullptr, &imageMemory));
+		device.bindImageMemory(image, imageMemory, 0);
 	}
 
-	void Image::transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel)
+	void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel)
 	{
 
 		vk::ImageAspectFlags mask = ImageView::getImageAspect(format);
 
-		vk::AccessFlags src_barr, dst_barr;
+		vk::AccessFlags srcBarrier, dstBarrier;
 
-		switch (old_layout) 
+		switch (oldLayout) 
 		{
 			case vk::ImageLayout::eUndefined:
-				src_barr = (vk::AccessFlagBits)0;
+				srcBarrier = (vk::AccessFlagBits)0;
 				break;
 			case vk::ImageLayout::eTransferDstOptimal:
-				src_barr = vk::AccessFlagBits::eTransferWrite;
+				srcBarrier = vk::AccessFlagBits::eTransferWrite;
 				break;
 			case vk::ImageLayout::eTransferSrcOptimal:
-				src_barr = vk::AccessFlagBits::eTransferRead;
+				srcBarrier = vk::AccessFlagBits::eTransferRead;
 				break;
 			case vk::ImageLayout::eColorAttachmentOptimal:
-				src_barr = vk::AccessFlagBits::eColorAttachmentWrite;
+				srcBarrier = vk::AccessFlagBits::eColorAttachmentWrite;
 				break;
 			default:
-				src_barr = (vk::AccessFlagBits)0;
+				srcBarrier = (vk::AccessFlagBits)0;
 		}
 
-		switch (new_layout) 
+		switch (newLayout) 
 		{
 			case vk::ImageLayout::eTransferDstOptimal:
-				dst_barr = vk::AccessFlagBits::eTransferWrite;
+				dstBarrier = vk::AccessFlagBits::eTransferWrite;
 				break;
 			case vk::ImageLayout::eTransferSrcOptimal:
-				dst_barr = vk::AccessFlagBits::eTransferRead;
+				dstBarrier = vk::AccessFlagBits::eTransferRead;
 				break;
 			case vk::ImageLayout::eColorAttachmentOptimal:
-				dst_barr = vk::AccessFlagBits::eColorAttachmentWrite;
+				dstBarrier = vk::AccessFlagBits::eColorAttachmentWrite;
 				break;
 			case vk::ImageLayout::eShaderReadOnlyOptimal:
-				dst_barr = vk::AccessFlagBits::eShaderRead;
+				dstBarrier = vk::AccessFlagBits::eShaderRead;
 				break;
 			case vk::ImageLayout::eDepthStencilAttachmentOptimal:
-				dst_barr = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+				dstBarrier = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 				break;
 			default:
-				dst_barr = (vk::AccessFlagBits)0;
+				dstBarrier = (vk::AccessFlagBits)0;
 		}
 
 		vk::ImageSubresourceRange subresourceRange(mask, 0, mipLevels, 0, arrays * faceCount);
@@ -217,8 +217,8 @@ namespace VulkanAPI
 			subresourceRange.levelCount = 1;
 		}
 
-		vk::ImageMemoryBarrier mem_barr(src_barr, dst_barr, 
-			old_layout, new_layout, 
+		vk::ImageMemoryBarrier mem_barr(srcBarrier, dstBarrier, 
+			oldLayout, newLayout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
 			subresourceRange);
@@ -227,7 +227,7 @@ namespace VulkanAPI
 	}
 
 	// image-based functions =======
-	void Image::generate_mipmap(vk::CommandBuffer cmdBuffer)
+	void Image::generateMipMap(vk::CommandBuffer cmdBuffer)
 	{
 		for (uint8_t i = 1; i < mipLevels; ++i) 
 		{
@@ -236,7 +236,7 @@ namespace VulkanAPI
 				vk::ImageAspectFlagBits::eColor,
 				i - 1,
 				0, 1);
-			vk::Offset3D src_offset(
+			vk::Offset3D srcOffset(
 				width >> (i - 1),
 				height >> (i - 1),
 				1);
@@ -246,16 +246,16 @@ namespace VulkanAPI
 				vk::ImageAspectFlagBits::eColor,
 				i,
 				0, 1);
-			vk::Offset3D dst_offset(
+			vk::Offset3D dstOffset(
 				width >> i,
 				height >> i,
 				1);
 
 			vk::ImageBlit image_blit;
 			image_blit.srcSubresource = src;
-			image_blit.srcOffsets[1] = src_offset;
+			image_blit.newLayouts[1] = srcOffset;
 			image_blit.dstSubresource = dst;
-			image_blit.dstOffsets[1] = dst_offset;
+			image_blit.dstOffsets[1] = dstOffset;
 
 			// create image barrier - transition image to transfer 
 			transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
@@ -269,7 +269,7 @@ namespace VulkanAPI
 		transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
 	}
 
-	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue)
+	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graphicsQueue)
 	{
 		// source
 		vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(format);
@@ -277,38 +277,38 @@ namespace VulkanAPI
 		vk::ImageSubresourceLayers src(
 			imageAspect,
 			0, 0, 1);
-		vk::Offset3D src_offset(
+		vk::Offset3D srcOffset(
 			width, height, 1);
 
 		// destination
 		vk::ImageSubresourceLayers dst(
 			imageAspect,
 			0, 0, 1);
-		vk::Offset3D dst_offset(
+		vk::Offset3D dstOffset(
 			width, height, 1);
 
 		vk::ImageBlit image_blit;
 		image_blit.srcSubresource = src;
-		image_blit.srcOffsets[1] = src_offset;
+		image_blit.newLayouts[1] = srcOffset;
 		image_blit.dstSubresource = dst;
-		image_blit.dstOffsets[1] = dst_offset;
+		image_blit.dstOffsets[1] = dstOffset;
 
 		// cmd buffer required for the image blit
-		CommandBuffer blit_cmd_buff(device, graph_queue.get_index());
-		blit_cmd_buff.createPrimary();
+		CommandBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
+		blitCmdBuffer.createPrimary();
 
-		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blit_cmd_buff.get());
-		other_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blit_cmd_buff.get());
+		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blitCmdBuffer.get());
+		other_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
 
 		// blit the image 
 		vk::Filter filter = getFilterType(format);
-		blit_cmd_buff.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, filter);
+		blitCmdBuffer.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, filter);
 
-		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blit_cmd_buff.get());
-		other_image.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blit_cmd_buff.get());
+		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
+		other_image.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
 
 		// flush the cmd buffer
-		blit_cmd_buff.end();
-		graph_queue.flush_cmdBuffer(blit_cmd_buff.get());
+		blitCmdBuffer.end();
+		graphicsQueue.flushCmdBuffer(blitCmdBuffer.get());
 	}
 }

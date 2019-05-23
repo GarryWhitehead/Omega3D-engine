@@ -16,7 +16,7 @@ namespace VulkanAPI
 	{
 	}
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallBack(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, 
+	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, 
 														uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
 	{
 		// ignore access mask false positive
@@ -75,18 +75,18 @@ namespace VulkanAPI
 				break;
 		}
 
-		bool log_object_names = false;
+		bool logObjectNames = false;
 		for (uint32_t i = 0; i < data->objectCount; i++) 
 		{
 			auto *name = data->pObjects[i].pObjectName;
 			if (name) 
 			{
-				log_object_names = true;
+				logObjectNames = true;
 				break;
 			}
 		}
 
-		if (log_object_names) 
+		if (logObjectNames) 
 		{
 			for (uint32_t i = 0; i < data->objectCount; i++) 
 			{
@@ -101,32 +101,32 @@ namespace VulkanAPI
 	// static functions - should probably get elsewhere at some point
 	namespace Util
 	{
-		static vk::Format find_supported_format(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags format_feature, vk::PhysicalDevice& gpu)
+		static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling, vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu)
 		{
-			vk::Format output_format;
+			vk::Format outputFormat;
 
 			for (auto format : formats) 
 			{
 				vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-				if (tiling == vk::ImageTiling::eLinear && format_feature == (properties.linearTilingFeatures & format_feature)) 
+				if (tiling == vk::ImageTiling::eLinear && formatFeature == (properties.linearTilingFeatures & formatFeature)) 
 				{
-					output_format = format;
+					outputFormat = format;
 				}
-				else if (tiling == vk::ImageTiling::eOptimal && format_feature == (properties.optimalTilingFeatures & format_feature)) 
+				else if (tiling == vk::ImageTiling::eOptimal && formatFeature == (properties.optimalTilingFeatures & formatFeature)) 
 				{
-					output_format = format;
+					outputFormat = format;
 				}
 				else 
 				{
 					LOGGER_ERROR("Error! Unable to find supported vulkan format");
 				}
 			}
-			return output_format;
+			return outputFormat;
 		}
 	}
 
-	bool Device::find_ext_properties(const char* name, std::vector<vk::ExtensionProperties>& properties)
+	bool Device::findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties)
 	{
 		for (auto& ext : properties) 
 		{
@@ -148,7 +148,7 @@ namespace VulkanAPI
 			vk::Format::eD32Sfloat
 		};
 
-		return Util::find_supported_format(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
+		return Util::findSupportedFormat(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
 		
 	}
 
@@ -173,34 +173,34 @@ namespace VulkanAPI
 
 		for (uint32_t i = 0; i < extCount; ++i) 
 		{
-			if (!find_ext_properties(extensions[i], extensionProps)) 
+			if (!findExtensionProperties(extensions[i], extensionProps)) 
 			{
 				LOGGER_ERROR("Unable to find required extension properties for GLFW.");
 			}
 		}
 
-		if (find_ext_properties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps)) 
+		if (findExtensionProperties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps)) 
 		{
 			extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
-			device_ext.has_physical_device_props2 = true;
+			deviceExtensions.hasPhysicalDeviceProps2 = true;
 
-			if (find_ext_properties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && find_ext_properties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) 
+			if (findExtensionProperties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) && findExtensionProperties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps)) 
 			{
 				extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 				extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
-				device_ext.has_external_capabilities = true;
+				deviceExtensions.hasExternalCapabilities = true;
 			}
 		}
-		if (find_ext_properties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps)) 
+		if (findExtensionProperties(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, extensionProps)) 
 		{
 			extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-			device_ext.has_debug_utils = true;
+			deviceExtensions.hasDebugUtils = true;
 		}
 
 		// layer extensions, if any
 		std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
 
-		auto findLayerExt = [&](const char *name) -> bool 
+		auto findLayerExtension = [&](const char *name) -> bool 
 		{
 			for (auto& ext : layerExt) 
 			{
@@ -214,9 +214,9 @@ namespace VulkanAPI
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
-		if (findLayerExt("VK_LAYER_LUNARG_standard_validation")) 
+		if (findLayerExtension("VK_LAYER_LUNARG_standard_validation")) 
 		{
-			req_layers.push_back("VK_LAYER_LUNARG_standard_validation");
+			requiredLayers.push_back("VK_LAYER_LUNARG_standard_validation");
 		}
 		else 
 		{
@@ -224,7 +224,7 @@ namespace VulkanAPI
 		}
 
 		// if debug utils isn't supported, try debug report
-		if (!device_ext.has_debug_utils && find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
+		if (!deviceExtensions.hasDebugUtils && findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
 		{
 			extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);		
 		}
@@ -232,8 +232,8 @@ namespace VulkanAPI
 
 		vk::InstanceCreateInfo createInfo({},
 		&appInfo,
-		static_cast<uint32_t>(req_layers.size()),
-		req_layers.data(),
+		static_cast<uint32_t>(requiredLayers.size()),
+		requiredLayers.data(),
 		static_cast<uint32_t>(extensions.size()),
 		extensions.data());
 
@@ -243,23 +243,23 @@ namespace VulkanAPI
 
 		vk::DispatchLoaderDynamic dldi(instance);
 
-		if (device_ext.has_debug_utils) 
+		if (deviceExtensions.hasDebugUtils) 
 		{
-			vk::DebugUtilsMessengerCreateInfoEXT create_info({},
+			vk::DebugUtilsMessengerCreateInfoEXT createInfo({},
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
 				vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
 				vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
 				DebugMessenger, this);
 
-			auto debugReport = instance.createDebugUtilsMessengerEXT(&create_info, nullptr, &debug_messenger, dldi);
+			auto debugReport = instance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger, dldi);
 		}
-		else if (find_ext_properties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
+		else if (findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps)) 
 		{
-			vk::DebugReportCallbackCreateInfoEXT create_info(
+			vk::DebugReportCallbackCreateInfoEXT createInfo(
 				vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning,
-				DebugCallBack, this);
+				requiredLayers, this);
 
-			instance.createDebugReportCallbackEXT(&create_info, nullptr, &debug_callback, dldi);
+			instance.createDebugReportCallbackEXT(&createInfo, nullptr, &debugCallback, dldi);
 		}
 #endif
 	}
@@ -296,11 +296,11 @@ namespace VulkanAPI
 		// presentation queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			VkBool32 have_present_queue = false;
-			physical.getSurfaceCountupportKHR(c, win_surface, &have_present_queue);
-			if (queues[c].queueCount > 0 && have_present_queue) 
+			VkBool32 hasPesentionQueue = false;
+			physical.getSurfaceCountupportKHR(c, windowSurface, &hasPresentionQueue);
+			if (queues[c].queueCount > 0 && hasPresentionQueue) 
 			{
-				queue_family_index.present = c;
+				queueFamilyIndex.present = c;
 				break;
 			}
 		}
@@ -310,7 +310,7 @@ namespace VulkanAPI
 		{
 			if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics) 
 			{
-				queue_family_index.graphics = c;
+				queueFamilyIndex.graphics = c;
 				break;
 			}
 		}
@@ -318,28 +318,28 @@ namespace VulkanAPI
 		// compute queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			if (queues[c].queueCount > 0 && c != queue_family_index.present && queues[c].queueFlags & vk::QueueFlagBits::eCompute) 
+			if (queues[c].queueCount > 0 && c != queueFamilyIndex.present && queues[c].queueFlags & vk::QueueFlagBits::eCompute) 
 			{
-				queue_family_index.compute = c;
+				queueFamilyIndex.compute = c;
 				break;
 			}
 		}
 
 		// graphics and presentation queues are compulsory
-		if (queue_family_index.present == VK_QUEUE_FAMILY_IGNORED)
+		if (queueFamilyIndex.present == VK_QUEUE_FAMILY_IGNORED)
 		{
 			LOGGER_ERROR("Critcal error! Required queues not found.");
 		}
 
 		// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
-		if (queue_family_index.compute == VK_QUEUE_FAMILY_IGNORED) 
+		if (queueFamilyIndex.compute == VK_QUEUE_FAMILY_IGNORED) 
 		{
-			queue_family_index.compute = queue_family_index.graphics;
+			queueFamilyIndex.compute = queueFamilyIndex.graphics;
 		}
 
 		float queuePriority = 1.0f;
 		std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
-		std::set<int> uniqueQueues = { queue_family_index.graphics, queue_family_index.present, queue_family_index.compute };
+		std::set<int> uniqueQueues = { queueFamilyIndex.graphics, queueFamilyIndex.present, queueFamilyIndex.compute };
 
 		for (auto& queue : uniqueQueues) 
 		{
@@ -348,59 +348,59 @@ namespace VulkanAPI
 		}
 
 		// enable required device features
-		vk::PhysicalDeviceFeatures req_features;
+		vk::PhysicalDeviceFeatures requiredFeatures;
 		vk::PhysicalDeviceFeatures features = physical.getFeatures();
 		if (features.textureCompressionETC2) 
 		{
-			req_features.textureCompressionETC2 = VK_TRUE;
+			requiredFeatures.textureCompressionETC2 = VK_TRUE;
 		}
 		if (features.textureCompressionBC) 
 		{
-			req_features.textureCompressionBC = VK_TRUE;
+			requiredFeatures.textureCompressionBC = VK_TRUE;
 		}
 		if (features.samplerAnisotropy)
 		{
-			req_features.samplerAnisotropy = VK_TRUE;
+			requiredFeatures.samplerAnisotropy = VK_TRUE;
 		}
 		if (features.tessellationShader) 
 		{
-			req_features.tessellationShader = VK_TRUE;
+			requiredFeatures.tessellationShader = VK_TRUE;
 		}
 		if (features.geometryShader) 
 		{
-			req_features.geometryShader = VK_TRUE;
+			requiredFeatures.geometryShader = VK_TRUE;
 		}
 		if (features.shaderStorageImageExtendedFormats) 
 		{
-			req_features.shaderStorageImageExtendedFormats = VK_TRUE;
+			requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
 		}
 
-		const std::vector<const char*> swapChainExt = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		const std::vector<const char*> swapChainExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
-		if (!find_ext_properties(swapChainExt[0], extensions)) 
+		if (!findExtensionProperties(swapChainExtension[0], extensions)) 
 		{
 			LOGGER_ERROR("Critical error! Swap chain extension not found.");
 		}
 
 		vk::DeviceCreateInfo createInfo({}, 
 		static_cast<uint32_t>(queueInfo.size()), queueInfo.data(),
-		static_cast<uint32_t>(req_layers.size()), req_layers.empty() ? nullptr : req_layers.data(),
-		static_cast<uint32_t>(swapChainExt.size()), swapChainExt.data(),
-		&req_features);
+		static_cast<uint32_t>(requiredLayers.size()), requiredLayers.empty() ? nullptr : requiredLayers.data(),
+		static_cast<uint32_t>(swapChainExtension.size()), swapChainExtension.data(),
+		&requiredFeatures);
 
 		VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 
 		// prepare queue for each type
-		vk::Queue vkComputeQueue, vkGraphQueue, vkPresentQueue;
+		vk::Queue vkComputeQueue, vkgraphicsQueue, vkPresentQueue;
 
-		device.getQueue(queue_family_index.compute, 0, &vkComputeQueue);
-		device.getQueue(queue_family_index.graphics, 0, &vkGraphQueue);
-		device.getQueue(queue_family_index.present, 0, &vkPresentQueue);
+		device.getQueue(queueFamilyIndex.compute, 0, &vkComputeQueue);
+		device.getQueue(queueFamilyIndex.graphics, 0, &vkgraphicsQueue);
+		device.getQueue(queueFamilyIndex.present, 0, &vkPresentQueue);
 
 		// init vulkan api queue wrapper
-		graphQueue.create(vkGraphQueue, device, queue_family_index.graphics);
-		presentQueue.create(vkPresentQueue, device, queue_family_index.present);
-		computeQueue.create(vkComputeQueue, device, queue_family_index.compute);
+		graphicsQueue.create(vkgraphicsQueue, device, queueFamilyIndex.graphics);
+		presentQueue.create(vkPresentQueue, device, queueFamilyIndex.present);
+		computeQueue.create(vkComputeQueue, device, queueFamilyIndex.compute);
 	}
 
 	uint32_t Device::getQueueIndex(QueueType type) const
@@ -408,13 +408,13 @@ namespace VulkanAPI
 		switch (type) 
 		{
 			case QueueType::Graphics:
-				return queue_family_index.graphics;
+				return queueFamilyIndex.graphics;
 				break;
 			case QueueType::Present:
-				return queue_family_index.present;
+				return queueFamilyIndex.present;
 				break;
 			case QueueType::Compute:
-				return queue_family_index.compute;
+				return queueFamilyIndex.compute;
 				break;
 			default:
 				return -1;
@@ -428,7 +428,7 @@ namespace VulkanAPI
 		switch (type) 
 		{
 			case QueueType::Graphics:
-				ret_queue = graphQueue;
+				ret_queue = graphicsQueue;
 				break;
 			case QueueType::Present:
 				ret_queue = presentQueue;

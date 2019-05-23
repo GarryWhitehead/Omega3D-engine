@@ -16,11 +16,11 @@ namespace OmegaEngine
 	{
 	}
 
-	void ComponentInterface::update_managers(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager)
+	void ComponentInterface::update_managers(double time, double dt, std::unique_ptr<ObjectManager>& objectManager)
 	{
 		for (auto& manager : managers) 
 		{
-			manager.second->updateFrame(time, dt, obj_manager, this);
+			manager.second->updateFrame(time, dt, objectManager, this);
 		}
 	}
 }

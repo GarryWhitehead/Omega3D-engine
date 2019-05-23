@@ -42,12 +42,12 @@ namespace VulkanAPI
 		MemorySegment() {}
 
 		MemorySegment(uint32_t id, uint32_t os, uint32_t sz) :
-			block_id(id),
+			blockId(id),
 			offset(os),
 			size(sz)
 		{}
 
-		uint32_t get_offset() const
+		uint32_t getOffset() const
 		{
 			return offset;
 		}
@@ -59,31 +59,31 @@ namespace VulkanAPI
 
 		int32_t getId() const
 		{
-			return block_id;
+			return blockId;
 		}
 
 		// memory mapping functions
-		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mapped_offset);		// for data types of *void
+		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* data, uint32_t totalSize, uint32_t mappedOffset);		// for data types of *void
 
 		template <typename T>
-		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, std::vector<T>& data_src)
+		void map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, std::vector<T>& sourceData)
 		{
-			uint32_t data_size = sizeof(T) * data.size();
-			assert(data_size <= size);
+			uint32_t dataSize = sizeof(T) * data.size();
+			assert(dataSize <= size);
 
 			if (data == nullptr) {
 				VK_CHECK_RESULT(dev.mapMemory(memory, offset, size, 0, &data));
-				memcpy(data, data_src.data(), data_size);
+				memcpy(data, sourceData.data(), dataSize);
 				dev.unmapMemory(memory);
 			}
 			else {
-				memcpy(data, data_src.data(), data_size);
+				memcpy(data, sourceData.data(), dataSize);
 			}
 		}
 
 	private:
 
-		int32_t block_id;			// index into memory block container
+		int32_t blockId;			// index into memory block container
 		uint32_t offset;
 		uint32_t size;
 		void *data = nullptr;
@@ -111,8 +111,8 @@ namespace VulkanAPI
 		// helper functions
 		void createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags);
-		vk::Buffer& get_memory_buffer(const uint32_t id);
-		vk::DeviceMemory& getDevice_memory(const uint32_t id);
+		vk::Buffer& getMemoryBuffer(const uint32_t id);
+		vk::DeviceMemory& getDeviceMemory(const uint32_t id);
 
 		// Segment allocation functions and mapping
 		MemorySegment allocate(MemoryUsage usage, uint32_t size);
@@ -125,36 +125,36 @@ namespace VulkanAPI
 
 		struct MemoryBlock
 		{
-			int32_t block_id = -1;
+			int32_t blockId = -1;
 
 			MemoryType type;
 			uint32_t totalSize = 0;
 
-			std::unordered_map<uint32_t, uint32_t> alloc_segments;
-			std::unordered_map<uint32_t, uint32_t> free_segments;		// fisrt = offset - second = size
+			std::unordered_map<uint32_t, uint32_t> allocatedSegments;
+			std::unordered_map<uint32_t, uint32_t> freeSegments;		// fisrt = offset - second = size
 
 			// vulkan info
-			vk::DeviceMemory block_mem;
-			vk::Buffer block_buffer;
+			vk::DeviceMemory blockMemory;
+			vk::Buffer blockBuffer;
 		};
 
 		// Block allocation functions
 		uint32_t allocateBlock(MemoryType type, uint32_t size);
 		uint32_t allocateBlock(MemoryUsage usage);
-		void destroyBlock(uint32_t block_id);
+		void destroyBlock(uint32_t blockId);
 		void destroyAllBlocks();
 
 		// segment functions
 		void destroySegment(MemorySegment &segment);
 		uint32_t findBlockType(MemoryUsage usage);
-		uint32_t findFreeSegment(uint32_t block_id, uint32_t size);
+		uint32_t findFreeSegment(uint32_t blockId, uint32_t size);
 
 		// the current device 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		Queue graph_queue;
+		Queue graphicsQueue;
 
-		std::vector<MemoryBlock> mem_blocks;
+		std::vector<MemoryBlock> memoryBlocks;
 	};
 
 	

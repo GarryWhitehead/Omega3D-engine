@@ -4,14 +4,14 @@
 
 namespace OEMaths
 {
-	mat4f lookAt(vec3f& position, vec3f& target, vec3f& up_vec)
+	mat4f lookAt(vec3f& position, vec3f& target, vec3f& upVec)
 	{
 		vec3f dir = target - position;
 		dir.normalise();
-		vec3f right = up_vec.cross(dir);
+		vec3f right = upVec.cross(dir);
 		right.normalise();
-		vec3f cam_up = dir.cross(right);
-		cam_up.normalise();
+		vec3f camUp = dir.cross(right);
+		camUp.normalise();
 
 		// create the output lookat matrix
 		mat4f result;
@@ -19,16 +19,16 @@ namespace OEMaths
 		result(0, 1) = right.getY();
 		result(0, 2) = right.getZ();
 
-		result(1, 0) = cam_up.getX();
-		result(1, 1) = cam_up.getY();
-		result(1, 2) = cam_up.getZ();
+		result(1, 0) = camUp.getX();
+		result(1, 1) = camUp.getY();
+		result(1, 2) = camUp.getZ();
 
 		result(2, 0) = dir.getX();
 		result(2, 1) = dir.getY();
 		result(2, 2) = dir.getZ();
 
 		result(3, 0) = -right.dot(position);
-		result(3, 1) = -cam_up.dot(position);
+		result(3, 1) = -camUp.dot(position);
 		result(3, 2) = -dir.dot(position);
 
 		return result;

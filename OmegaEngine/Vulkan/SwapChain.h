@@ -20,17 +20,17 @@ namespace VulkanAPI
 		~Swapchain();
 		
 		void create(vk::Device dev, 
-					vk::PhysicalDevice& phys_dev, 
+					vk::PhysicalDevice& physicalDevice, 
 					vk::SurfaceKHR& surface, 
-					const uint32_t graph_index, const uint32_t present_index, 
+					const uint32_t graphIndex, const uint32_t presentIndex, 
 					const uint32_t screenWidth, const uint32_t screenHeight);
 
 		// frame submit and presentation to the swapchain
 		void begin_frame(vk::Semaphore& image_semaphore);
-		void submitFrame(vk::Semaphore& present_semaphore, vk::Queue& present_queue);
+		void submitFrame(vk::Semaphore& presentSemaphore, vk::Queue& presentionQueue);
 
 		// sets up the renderpass and framebuffers for the swapchain presentation
-		void prepare_swapchain_pass();
+		void prepareSwapchainPass();
 
 		vk::SwapchainKHR& get()
 		{
@@ -47,19 +47,19 @@ namespace VulkanAPI
 			return static_cast<uint32_t>(imageViews.size());
 		}
 
-		uint32_t get_extents_height() const
+		uint32_t getExtentsHeight() const
 		{
 			return extent.height;
 		}
 
-		uint32_t get_extents_width() const
+		uint32_t getExtentsWidth() const
 		{
 			return extent.width;
 		}
 
-		uint32_t getImage_index() const
+		uint32_t getImageIndex() const
 		{
-			return image_index;
+			return imageIndex;
 		}
 
 		RenderPass& getRenderpass()
@@ -74,18 +74,18 @@ namespace VulkanAPI
 
 		vk::SurfaceKHR surface;
 		vk::Extent2D extent;
-		vk::SurfaceFormatKHR format;
+		vk::SurfaceFormatKHR surfaceFormat;
 		vk::SwapchainKHR swapchain;
 
 		std::vector<ImageView> imageViews;
 
 		// current image
-		uint32_t image_index = 0;
+		uint32_t imageIndex = 0;
 
 		// swapchain presentation renderpass data
 		std::unique_ptr<RenderPass> renderpass;
-		std::unique_ptr<Texture> depth_texture;
-		std::array<vk::ClearValue, 2> clear_values = {};
+		std::unique_ptr<Texture> depthTexture;
+		std::array<vk::ClearValue, 2> clearValues = {};
 	
 	};
 }

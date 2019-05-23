@@ -217,7 +217,7 @@ namespace OmegaEngine
 	{
 		auto& cmdBufferManager = vkInterface->getCmdBufferManager();
 
-		if (sceneType == SceneType::Dynamic || (sceneType == SceneType::Static && !cmdBufferManager->is_recorded(deferredCmdBufferHandle))) 
+		if (sceneType == SceneType::Dynamic || (sceneType == SceneType::Static && !cmdBufferManager->isRecorded(deferredCmdBufferHandle))) 
 		{
 			cmdBufferManager->beginNewFame(objectCmdBufferHandle);
 

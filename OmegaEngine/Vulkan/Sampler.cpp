@@ -21,41 +21,42 @@ namespace VulkanAPI
 	{
 		device = dev;
 
-		switch (type) {
-		case SamplerType::Clamp:
-			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::Wrap:
-			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::LinearClamp:
-			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::TriLinearClamp:
-			create_sampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
-			break;
-		case SamplerType::LinearWrap:
-			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
-			break;
-		case SamplerType::TrilinearWrap:
-			create_sampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
-			break;
+		switch (type) 
+		{
+			case SamplerType::Clamp:
+				createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+				break;
+			case SamplerType::Wrap:
+				createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+				break;
+			case SamplerType::LinearClamp:
+				createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+				break;
+			case SamplerType::TriLinearClamp:
+				createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+				break;
+			case SamplerType::LinearWrap:
+				createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+				break;
+			case SamplerType::TrilinearWrap:
+				createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+				break;
 		}
 	}
 
-	void Sampler::create_sampler(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op)
+	void Sampler::createSampler(vk::SamplerAddressMode addressMode, vk::Filter filter, vk::SamplerMipmapMode mipMapMode, bool compareOp)
 	{
-		vk::SamplerCreateInfo sampler_info({},
+		vk::SamplerCreateInfo samplerInfo({},
 			filter, filter,
-			mipmap_mode,
-			address_mode, address_mode, address_mode,
+			mipMapMode,
+			addressMode, addressMode, addressMode,
 			0.0f,
 			VK_TRUE, 1.0f,			// TODO: add user control of max antriospy
-			compare_op ? VK_TRUE : VK_FALSE, vk::CompareOp::eLessOrEqual,
+			compareOp ? VK_TRUE : VK_FALSE, vk::CompareOp::eLessOrEqual,
 			0.0f, VK_LOD_CLAMP_NONE,			// maxLod should equal the mip-map count?
 			vk::BorderColor::eFloatTransparentBlack,
 			VK_FALSE);
 
-		VK_CHECK_RESULT(device.createSampler(&sampler_info, nullptr, &sampler));
+		VK_CHECK_RESULT(device.createSampler(&samplerInfo, nullptr, &sampler));
 	}
 }

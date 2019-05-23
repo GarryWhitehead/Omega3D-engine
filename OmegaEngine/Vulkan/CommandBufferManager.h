@@ -44,24 +44,24 @@ namespace VulkanAPI
     {
     public:
 
-        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode mode);
+        CommandBufferManager(vk::Device& device, vk::PhysicalDevice& physicalDevice, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode mode);
         ~CommandBufferManager();
 
 		CmdBufferHandle createInstance();
 		std::unique_ptr<CommandBuffer>& getCmdBuffer(CmdBufferHandle handle);
 		void beginNewFame(CmdBufferHandle handle);
 
-		void submit_once(CmdBufferHandle handle);
+		void submitOnce(CmdBufferHandle handle);
 		void submitFrame(Swapchain& swapchain);
 
 		std::unique_ptr<CommandBuffer>& beginPresentCmdBuffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index);
 
 		uint32_t getPresentImageCount() const
 		{
-			return static_cast<uint32_t>(present_cmdBuffers.size());
+			return static_cast<uint32_t>(presentionCmdBuffers.size());
 		}
 
-        bool is_recorded(CmdBufferHandle handle)
+        bool isRecorded(CmdBufferHandle handle)
         {
             return cmdBuffers[handle].cmdBuffer != nullptr;
         }
@@ -70,23 +70,23 @@ namespace VulkanAPI
 
         vk::Device& device;
         vk::PhysicalDevice gpu; 
-        Queue graph_queue;
-		Queue present_queue;
+        Queue graphicsQueue;
+		Queue presentionQueue;
 
         // States how to treat cmd buffers each frame
         NewFrameMode mode;
 
 		// the semaphore manager is hosted here - though this may change.
-		std::unique_ptr<SemaphoreManager> semaphore_manager;
+		std::unique_ptr<SemaphoreManager> semaphoreManager;
 
         // for image and presentaion syncing 
-        vk::Semaphore begin_semaphore;  // image
-        vk::Semaphore final_semaphore;  // present
+        vk::Semaphore beginSemaphore;  // image
+        vk::Semaphore finalSemaphore;  // present
 
         // all the cmd buffers currently active
         std::vector<CommandBufferInfo> cmdBuffers;
 
         // presentation command bufefrs
-        std::vector<CommandBufferInfo> present_cmdBuffers;
+        std::vector<CommandBufferInfo> presentionCmdBuffers;
     };
 }

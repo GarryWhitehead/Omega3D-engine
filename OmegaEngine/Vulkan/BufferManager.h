@@ -12,7 +12,7 @@ namespace VulkanAPI
 	{
 		void createBuffer(vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer);
 		uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu);
-		uint32_t alignment_size(const uint32_t size);
+		uint32_t alignmentSize(const uint32_t size);
 	}
 
 	// forward decleartions
@@ -24,15 +24,15 @@ namespace VulkanAPI
 			id(_id),
 			data(_data),
 			size(_size),
-			mem_type(_usage)
+			memoryType(_usage)
 		{}
 
 		BufferUpdateEvent(const char* _id, void* _data, uint64_t _size, MemoryUsage _usage, bool flush) :
 			id(_id),
 			data(_data),
 			size(_size),
-			mem_type(_usage),
-			flush_memory(flush)
+			memoryType(_usage),
+			flushMemory(flush)
 		{}
 
 		BufferUpdateEvent() {}
@@ -40,8 +40,8 @@ namespace VulkanAPI
 		const char* id;
 		void* data = nullptr;
 		uint64_t size = 0;
-		MemoryUsage mem_type;
-		bool flush_memory = false;
+		MemoryUsage memoryType;
+		bool flushMemory = false;
 	};
 
 	struct Buffer
@@ -58,20 +58,20 @@ namespace VulkanAPI
 		{
 			const char *id;
 			DescriptorSet* set;
-			uint32_t set_num = 0;
+			uint32_t setValue = 0;
 			uint32_t binding = 0;
-			vk::DescriptorType descr_type;
+			vk::DescriptorType descriptorType;
 		};
 
-		BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, Queue qeuue);
+		BufferManager(vk::Device dev, vk::PhysicalDevice physicalDevice, Queue qeuue);
 		~BufferManager();
 
-		void enqueueDescrUpdate(DescrSetUpdateInfo& descr_update);
-		void enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type);
+		void enqueueDescrUpdate(DescrSetUpdateInfo& descriptorUpdate);
+		void enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t setValue, uint32_t binding, vk::DescriptorType descriptorType);
 
 		void update();
-		void update_descriptors();
-		void update_buffer(BufferUpdateEvent& event);
+		void updateDescriptors();
+		void updateBuffer(BufferUpdateEvent& event);
 
 		// returns a wrapper containing vulkan memory buffer information
 		Buffer getBuffer(const char* id);
@@ -81,14 +81,14 @@ namespace VulkanAPI
 		// local vulkan instance
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		Queue graph_queue;
+		Queue graphicsQueue;
 
-		std::unique_ptr<MemoryAllocator> memory_allocator;
+		std::unique_ptr<MemoryAllocator> memoryAllocator;
 
 		std::unordered_map<const char *, MemorySegment> buffers;
 
 		// a queue of descriptor sets which need updating this frame
-		std::vector<DescrSetUpdateInfo> descriptorSet_update_queue;
+		std::vector<DescrSetUpdateInfo> descriptorSetUpdateQueue;
 	};
 
 }

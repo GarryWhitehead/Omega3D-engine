@@ -21,9 +21,9 @@ namespace OmegaEngine
 			RendererType renderer;
 
 			std::array<float, 4> backgroundColour = {0.0f, 0.0f, 0.0f, 1.0f};
-			bool use_post_process = false;
+			bool usePostProcess = false;
 			bool useSkybox = true;
-			bool sort_renderQueue = true;
+			bool sortRenderQueue = true;
 			bool useStockModels = true;
 			
 		} general;
@@ -49,9 +49,9 @@ namespace OmegaEngine
 		bool fogEnabled = true;
 
 		// shadows
-		uint32_t shadow_width = 2048;
-		uint32_t shadow_height = 2048;
-		vk::Format shadow_format = vk::Format::eD16Unorm;
+		uint32_t shadowWidth = 2048;
+		uint32_t shadowHeight = 2048;
+		vk::Format shadowFormat = vk::Format::eD16Unorm;
 
 		float biasConstant = 1.25f;
 		float biasSlope = 1.75f;

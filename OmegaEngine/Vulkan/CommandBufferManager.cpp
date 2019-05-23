@@ -6,36 +6,36 @@
 namespace VulkanAPI
 {
 
-    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode _mode) :
+    CommandBufferManager::CommandBufferManager(vk::Device& dev, vk::PhysicalDevice& physicalDevice, Queue& g_queue, Queue& p_queue, Swapchain& swapchain, NewFrameMode _mode) :
         device(dev),
-        gpu(phys_dev),
-        graph_queue(g_queue),
-		present_queue(p_queue),
+        gpu(physicalDevice),
+        graphicsQueue(g_queue),
+		presentionQueue(p_queue),
         mode(_mode)
     {
         // set up the command buffers for swapchain presentaion now
-		present_cmdBuffers.resize(swapchain.getImageCount());
-		for (uint32_t i = 0; i < present_cmdBuffers.size(); ++i) {
+		presentionCmdBuffers.resize(swapchain.getImageCount());
+		for (uint32_t i = 0; i < presentionCmdBuffers.size(); ++i) {
 
             // single use cmd buffers if static or new uffers each frame, otherwise multi-use
             if (mode == NewFrameMode::New) {
-			    present_cmdBuffers[i].cmdBuffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+			    presentionCmdBuffers[i].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex());
             }
 			else {
 				// static and reset cmd buffers will be submitted multiple times 
-                present_cmdBuffers[i].cmdBuffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
+                presentionCmdBuffers[i].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
             }
 
 			vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-			VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &present_cmdBuffers[i].fence));
-			VK_CHECK_RESULT(device.resetFences(1, &present_cmdBuffers[i].fence));
+			VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &presentionCmdBuffers[i].fence));
+			VK_CHECK_RESULT(device.resetFences(1, &presentionCmdBuffers[i].fence));
 		}
 
-		semaphore_manager = std::make_unique<SemaphoreManager>(device);
+		semaphoreManager = std::make_unique<SemaphoreManager>(device);
 		
 		// initialise semaphores required to sync frame begin and end queues
-		begin_semaphore = semaphore_manager->get_semaphore();
-		final_semaphore = semaphore_manager->get_semaphore();
+		beginSemaphore = semaphoreManager->getSemaphore();
+		finalSemaphore = semaphoreManager->getSemaphore();
     }
 
 	CommandBufferManager::~CommandBufferManager()
@@ -52,7 +52,7 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.resetFences(1, &buffer_info.fence)); 
 
 		// and the semaphore used to sync between queues
-		buffer_info.semaphore = semaphore_manager->get_semaphore();
+		buffer_info.semaphore = semaphoreManager->getSemaphore();
 
 		cmdBuffers.emplace_back(std::move(buffer_info));
         
@@ -71,7 +71,7 @@ namespace VulkanAPI
         // if it's static then only create a new instance if it's null
         if (mode == NewFrameMode::Static) {
             if (cmdBuffers[handle].cmdBuffer == nullptr) {
-                cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
+                cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
             }
 			else {
 				VK_CHECK_RESULT(device.waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
@@ -88,11 +88,11 @@ namespace VulkanAPI
 			// create a new buffer - the detructors will worry about destroying everything
 			// or just reset?
 			if (mode == NewFrameMode::New) {
-				cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index());
+				cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex());
 			}
 			else {
 				if (cmdBuffers[handle].cmdBuffer == nullptr) {
-					cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graph_queue.get_index(), CommandBuffer::UsageType::Multi);
+					cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
 				}
 				else {
 					cmdBuffers[handle].cmdBuffer.reset({});
@@ -101,20 +101,20 @@ namespace VulkanAPI
 		}
     }
 
-    void CommandBufferManager::submit_once(CmdBufferHandle handle)
+    void CommandBufferManager::submitOnce(CmdBufferHandle handle)
     {
         
     }
     
     void CommandBufferManager::submitFrame(Swapchain& swapchain)
     {
-        vk::Semaphore wait_sync;
-        vk::Semaphore signal_sync;
+        vk::Semaphore waitSync;
+        vk::Semaphore signalSync;
 
         // begin the start of the frame by beginning the next new swapchain image
-		swapchain.begin_frame(begin_semaphore);
+		swapchain.begin_frame(beginSemaphore);
 
-		uint32_t frame_index = swapchain.getImage_index();
+		uint32_t frameIndex = swapchain.getImageIndex();
 
         for (uint32_t i = 0; i <= cmdBuffers.size(); ++i) {
 
@@ -123,35 +123,35 @@ namespace VulkanAPI
 
             // work out the signalling and wait semaphores
             if (i == 0) {
-                wait_sync = begin_semaphore;
-                signal_sync = cmdBuffers[i].semaphore;
+                waitSync = beginSemaphore;
+                signalSync = cmdBuffers[i].semaphore;
 				cmdBuffer = cmdBuffers[i].cmdBuffer->get();
 				fence = cmdBuffers[i].fence;
             }
             else if (i == cmdBuffers.size()) {
-                wait_sync = cmdBuffers[i - 1].semaphore;
-                signal_sync = final_semaphore;
-				cmdBuffer = present_cmdBuffers[frame_index].cmdBuffer->get();
-				fence = present_cmdBuffers[frame_index].fence;
+                waitSync = cmdBuffers[i - 1].semaphore;
+                signalSync = finalSemaphore;
+				cmdBuffer = presentionCmdBuffers[frameIndex].cmdBuffer->get();
+				fence = presentionCmdBuffers[frameIndex].fence;
             }
             else {
-                wait_sync = cmdBuffers[i - 1].semaphore;
-                signal_sync = cmdBuffers[i].semaphore;
+                waitSync = cmdBuffers[i - 1].semaphore;
+                signalSync = cmdBuffers[i].semaphore;
 				cmdBuffer = cmdBuffers[i].cmdBuffer->get();
 				fence = cmdBuffers[i].fence;
             }
 
 			VK_CHECK_RESULT(device.resetFences(1, &fence));
-            graph_queue.submit_cmdBuffer(cmdBuffer, wait_sync, signal_sync, fence);
+            graphicsQueue.submitCmdBuffer(cmdBuffer, waitSync, signalSync, fence);
         }
 
         // then the presentation part.....
-        swapchain.submitFrame(final_semaphore, present_queue.get());
+        swapchain.submitFrame(finalSemaphore, presentionQueue.get());
     }
 
 	std::unique_ptr<CommandBuffer>& CommandBufferManager::beginPresentCmdBuffer(RenderPass& renderpass, vk::ClearColorValue clear_colour, uint32_t index)
 	{
-		auto& cmdBuffer = present_cmdBuffers[index].cmdBuffer;
+		auto& cmdBuffer = presentionCmdBuffers[index].cmdBuffer;
 
 		// setup the command buffer
 		cmdBuffer->createPrimary();

@@ -101,7 +101,7 @@ namespace OmegaEngine
 		}
 
 		RenderableMesh::RenderableMesh(vk::Device& device,
-										std::unique_ptr<ComponentInterface>& component_manager,
+										std::unique_ptr<ComponentInterface>& componentInterface,
 										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
 										MeshManager::StaticMesh mesh, 

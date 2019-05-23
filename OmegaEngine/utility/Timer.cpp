@@ -11,28 +11,28 @@ Timer::~Timer()
 {
 }
 
-void Timer::start_timer()
+void Timer::startTimer()
 {
 	this->current = std::chrono::high_resolution_clock::now();
-	this->getIsRunning = true;
+	this->isRunning = true;
 	
 }
 
-void Timer::pasue_timer()
+void Timer::pasueTimer()
 {
-	this->getIsRunning = false;
+	this->isRunning = false;
 }
 
-Timer::TimeMs Timer::get_time_elapsed(bool reset)
+Timer::TimeMs Timer::getTimeElapsed(bool reset)
 {
-	auto time_now = std::chrono::high_resolution_clock::now(); 
-	auto delta_time = time_now - this->current;
+	auto timeNow = std::chrono::high_resolution_clock::now(); 
+	auto deltaTime = timeNow - this->current;
 
 	if (reset) {
-		this->current = time_now;
+		this->current = timeNow;
 	}
 
-	return delta_time;
+	return deltaTime;
 }
 
 

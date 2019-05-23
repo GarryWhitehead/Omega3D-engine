@@ -95,7 +95,7 @@ namespace OmegaEngine
 		}
 
 		// update camera manager 
-		componentInterface->getManager<CameraManager>().add_camera(parser.getCamera());
+		componentInterface->getManager<CameraManager>().addCamera(parser.getCamera());
 
 		// add lights from scene file
 		for (uint32_t i = 0; i < parser.lightCount(); ++i) 

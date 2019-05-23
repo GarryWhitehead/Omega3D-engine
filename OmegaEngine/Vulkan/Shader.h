@@ -68,22 +68,22 @@ namespace VulkanAPI
 			return static_cast<uint32_t>(wrappers.size());
 		}
 
-		vk::PipelineShaderStageCreateInfo* get_pipeline_data()
+		vk::PipelineShaderStageCreateInfo* getPipelineData()
 		{
 			return (vk::PipelineShaderStageCreateInfo*)wrappers.data();
 		}
 
 		Sampler getSamplerType(std::string name);
 		vk::ImageLayout getImageLayout(std::string name);
-		std::tuple<vk::Format, uint32_t> get_type_format(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type);
+		std::tuple<vk::Format, uint32_t> getTypeFormat(uint32_t width, uint32_t vecSize, spirv_cross::SPIRType::BaseType type);
 
-		static vk::ShaderStageFlagBits get_stage_flag_bits(StageType type);
+		static vk::ShaderStageFlagBits getStageFlags(StageType type);
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
 		void bufferReflection(DescriptorLayout& descriptorLayout, std::vector<ShaderBufferLayout>& bufferLayout);
 		void imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayout);
-		void pipelineLayoutReflect(PipelineLayout& p_info);
+		void pipelineLayoutReflect(PipelineLayout& layout);
 		void pipelineReflection(Pipeline& pipeline);
 
 		std::vector<uint32_t> getData(StageType type)
@@ -102,7 +102,7 @@ namespace VulkanAPI
 
 		std::array<vk::ShaderModule, (int)StageType::Count> modules;
 		std::array<std::vector<uint32_t>, (int)StageType::Count > data;
-		std::array<bool, (int)StageType::Count > curr_stages = { false };
+		std::array<bool, (int)StageType::Count > currentStages = { false };
 	};
 
 }

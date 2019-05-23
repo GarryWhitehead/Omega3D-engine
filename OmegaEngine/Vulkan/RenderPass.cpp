@@ -62,8 +62,8 @@ namespace VulkanAPI
 		subpassDescr.pInputAttachments = inputRef.data();
 
 		// depth attachment - if required
-		if (depthRef != nullptr) {
-
+		if (depthRef != nullptr) 
+		{
 			subpassDescr.pDepthStencilAttachment = depthRef;
 		}
 
@@ -83,20 +83,20 @@ namespace VulkanAPI
 		subpassDescr.pColorAttachments = colorRef.data();
 
 		// depth attachment - if required
-		if (depthRef != nullptr) {
-
+		if (depthRef != nullptr) 
+		{
 			subpassDescr.pDepthStencilAttachment = depthRef;
 		}
 
 		subpass.push_back(subpassDescr);
 	}
 
-	void RenderPass::addSubpassDependency(DependencyTemplate depend_template, uint32_t srcSubpass, uint32_t dstSubpass)
+	void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass, uint32_t dstSubpass)
 	{
 		vk::SubpassDependency depend;
 
-		if (depend_template == DependencyTemplate::Top_Of_Pipe) {
-
+		if (dependencyTemplate == DependencyTemplate::Top_Of_Pipe) 
+		{
 			depend.srcSubpass = VK_SUBPASS_EXTERNAL;
 			depend.dstSubpass = 0;
 			depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
@@ -105,8 +105,8 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::Bottom_Of_Pipe) {
-
+		else if (dependencyTemplate == DependencyTemplate::Bottom_Of_Pipe) 
+		{
 			depend.srcSubpass = 0;
 			depend.dstSubpass = VK_SUBPASS_EXTERNAL;
 			depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -115,8 +115,8 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::Multi_Subpass) {
-
+		else if (dependencyTemplate == DependencyTemplate::Multi_Subpass) 
+		{
 			depend.srcSubpass = srcSubpass;
 			depend.dstSubpass = dstSubpass;
 			depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
@@ -125,8 +125,8 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::Stencil_Subpass_Bottom) {
-
+		else if (dependencyTemplate == DependencyTemplate::Stencil_Subpass_Bottom) 
+		{
 			depend.srcSubpass = VK_SUBPASS_EXTERNAL;
 			depend.dstSubpass = 0;
 			depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
@@ -135,8 +135,8 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::Stencil_Subpass_Fragment) {
-
+		else if (dependencyTemplate == DependencyTemplate::Stencil_Subpass_Fragment) 
+		{
 			depend.srcSubpass = 0;
 			depend.dstSubpass = VK_SUBPASS_EXTERNAL;
 			depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
@@ -145,7 +145,7 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::DepthStencilSubpassTop)
+		else if (dependencyTemplate == DependencyTemplate::DepthStencilSubpassTop)
 		{
 			depend.srcSubpass = VK_SUBPASS_EXTERNAL;
 			depend.dstSubpass = 0;
@@ -155,7 +155,7 @@ namespace VulkanAPI
 			depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 			depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 		}
-		else if (depend_template == DependencyTemplate::DepthStencilSubpassBottom)
+		else if (dependencyTemplate == DependencyTemplate::DepthStencilSubpassBottom)
 		{
 			depend.srcSubpass = 0;
 			depend.dstSubpass = VK_SUBPASS_EXTERNAL;
@@ -175,46 +175,50 @@ namespace VulkanAPI
 
 		// create the colour .depth refs
 		uint32_t attach_id = 0;
-		for (auto& attach : attachment) {
-
-			if (attach.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
+		for (auto& attach : attachment) 
+		{
+			if (attach.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) 
+			{
 				depthReference.push_back({ attach_id, vk::ImageLayout::eDepthStencilAttachmentOptimal });
 			}
-			else {
+			else 
+			{
 				colorReference.push_back({ attach_id, vk::ImageLayout::eColorAttachmentOptimal });
 			}
 			++attach_id;
 		}
 
 		// if dependency container is empty, go with the default layout
-		if (dependency.empty()) {
-
-			vk::SubpassDependency depend_top(VK_SUBPASS_EXTERNAL, 0,
+		if (dependency.empty()) 
+		{
+			vk::SubpassDependency dependencyTop(VK_SUBPASS_EXTERNAL, 0,
 				vk::PipelineStageFlagBits::eBottomOfPipe, vk::PipelineStageFlagBits::eColorAttachmentOutput,
 				vk::AccessFlagBits::eMemoryRead,
 				vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
 				vk::DependencyFlagBits::eByRegion);
-			dependency.push_back(depend_top);
+			dependency.push_back(dependencyTop);
 
-			vk::SubpassDependency depend_bott(0, VK_SUBPASS_EXTERNAL,
-			vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eBottomOfPipe,
-			vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
-			vk::AccessFlagBits::eMemoryRead,
-			vk::DependencyFlagBits::eByRegion);
-			dependency.push_back(depend_bott);
+			vk::SubpassDependency dependencyBottom(0, VK_SUBPASS_EXTERNAL,
+				vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eBottomOfPipe,
+				vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite,
+				vk::AccessFlagBits::eMemoryRead,
+				vk::DependencyFlagBits::eByRegion);
+			dependency.push_back(dependencyBottom);
 		}
 
 		// if subpass vector empty, use default subpass layout
-		if (subpass.empty()) {
-
+		if (subpass.empty()) 
+		{
 			vk::SubpassDescription sPassDescr;
 			sPassDescr.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 
-			if (!colorReference.empty()) {
+			if (!colorReference.empty()) 
+			{
 				sPassDescr.colorAttachmentCount = static_cast<uint32_t>(colorReference.size());
 				sPassDescr.pColorAttachments = colorReference.data();
 			}
-			if (!depthReference.empty()) {
+			if (!depthReference.empty()) 
+			{
 				sPassDescr.pDepthStencilAttachment = depthReference.data();
 			}
 			subpass.push_back(sPassDescr);
@@ -237,14 +241,14 @@ namespace VulkanAPI
 		assert(renderpass);
 
 		// store locally the screen extents for use later
-		image_width = width;
-		image_height = height;
+		imageWidth = width;
+		imageHeight = height;
 
 		vk::FramebufferCreateInfo frameInfo({},
-		renderpass, 
-		1, &imageView,
-		width, height,
-		layerCount);
+			renderpass, 
+			1, &imageView,
+			width, height,
+			layerCount);
 
 		vk::Framebuffer framebuffer;
 		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
@@ -257,38 +261,41 @@ namespace VulkanAPI
 		assert(renderpass);
 
 		// store locally the screen extents for use later
-		image_width = width;
-		image_height = height;
+		imageWidth = width;
+		imageHeight = height;
 
 		vk::FramebufferCreateInfo frameInfo({},
-		renderpass,
-		size, imageView,
-		width, height,
-		layerCount);
+			renderpass,
+			size, imageView,
+			width, height,
+			layerCount);
 
 		vk::Framebuffer framebuffer;
 		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
 		framebuffers.push_back(framebuffer);
 	}
 
-	vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& bg_colour, uint32_t fb_index)
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t fb_index)
 	{
 		// set up clear colour for each colour attachment
-		clear_values.resize(attachment.size());
-		for (uint32_t i = 0; i < attachment.size(); ++i) {
-			if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) {
-				clear_values[i].depthStencil = { 1.0f, 0 }; 
+		clearValues.resize(attachment.size());
+		for (uint32_t i = 0; i < attachment.size(); ++i) 
+		{
+			if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal) 
+			{
+				clearValues[i].depthStencil = { 1.0f, 0 }; 
 			}
-			else {
-				clear_values[i].color = bg_colour;
+			else 
+			{
+				clearValues[i].color = backgroundColour;
 			}
 		}
 		
 		vk::RenderPassBeginInfo beginInfo(
 			renderpass, framebuffers[fb_index],
-			{ { 0, 0 }, { image_width, image_height } },
-			static_cast<uint32_t>(clear_values.size()),
-			clear_values.data());
+			{ { 0, 0 }, { imageWidth, imageHeight } },
+			static_cast<uint32_t>(clearValues.size()),
+			clearValues.data());
 
 		return beginInfo;
 	}
@@ -298,7 +305,7 @@ namespace VulkanAPI
 
 		vk::RenderPassBeginInfo beginInfo(
 			renderpass, framebuffers[fb_index],
-			{ { 0, 0 }, { image_width, image_height } },
+			{ { 0, 0 }, { imageWidth, imageHeight } },
 			size,
 			colour);
 

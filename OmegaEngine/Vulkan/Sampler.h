@@ -32,7 +32,7 @@ namespace VulkanAPI
 		
 	private:
 
-		void create_sampler(vk::SamplerAddressMode address_mode, vk::Filter filter, vk::SamplerMipmapMode mipmap_mode, bool compare_op);
+		void createSampler(vk::SamplerAddressMode addressMode, vk::Filter filter, vk::SamplerMipmapMode mipMapMode, bool compare_op);
 
 		vk::Device device;
 		vk::Sampler sampler;

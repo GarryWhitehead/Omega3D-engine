@@ -69,7 +69,7 @@ namespace OmegaEngine
 			meshInstance->state = renderInterface->getRenderPipeline(RenderTypes::SkinnedMesh).get();
 			meshInstance->vertexBuffer = bufferManager->getBuffer("SkinnedVertices");
 			layoutInfo = textureManager->getTextureDescriptorLayout("SkinnedMesh");
-			meshInstance->skinnedDynamicOffset = transformManagerager.get_skinned_offset(obj.getId());
+			meshInstance->skinnedDynamicOffset = transformManagerager.getSkinnedOffset(obj.getId());
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
@@ -81,8 +81,8 @@ namespace OmegaEngine
 		meshInstance->indexPrimitiveOffset = primitive.indexBase;
 		meshInstance->indexPrimitiveCount = primitive.indexCount;
 			
-		meshInstance->descriptorSet.init(device, *layoutInfo.layout, layoutInfo.set_num); 
-		textureManager->update_material_descriptorSet(meshInstance->descriptorSet, mat.name, layoutInfo.set_num);
+		meshInstance->descriptorSet.init(device, *layoutInfo.layout, layoutInfo.setValue); 
+		textureManager->update_material_descriptorSet(meshInstance->descriptorSet, mat.name, layoutInfo.setValue);
 
 		// material push block
 		meshInstance->materialPushBlock.baseColorFactor = mat.factors.baseColour;
@@ -137,7 +137,7 @@ namespace OmegaEngine
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
 		for (auto& buffer : state->bufferLayout) {
-			state->descriptorSet.init(device, state->descriptorLayout.getLayout(buffer.set), state->descriptorLayout.get_pool(), buffer.set);
+			state->descriptorSet.init(device, state->descriptorLayout.getLayout(buffer.set), state->descriptorLayout.getDescriptorPool(), buffer.set);
 		}
 
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet

@@ -10,7 +10,7 @@ namespace VulkanAPI
 	namespace Util
 	{
 		// static functions
-		uint32_t alignment_size(const uint32_t size)
+		uint32_t alignmentSize(const uint32_t size)
 		{
 			// we are presuming the min alignment size here so we don't have to use the vulkan api within the peripheral managers
 			uint32_t min_align = 256;
@@ -39,40 +39,40 @@ namespace VulkanAPI
 			vk::MemoryRequirements memoryReq;
 			device.getBufferMemoryRequirements(buffer, &memoryReq);
 
-			uint32_t mem_type = findMemoryType(memoryReq.memoryTypeBits, props, gpu);
+			uint32_t memoryType = findMemoryType(memoryReq.memoryTypeBits, props, gpu);
 
-			vk::MemoryAllocateInfo memoryInfo(memoryReq.size, mem_type);
+			vk::MemoryAllocateInfo memoryInfo(memoryReq.size, memoryType);
 
 			VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
 			device.bindBufferMemory(buffer, memory, 0);
 		}
 	}
 
-	BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice phys_dev, Queue queue) :
+	BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice physicalDevice, Queue queue) :
 		device(dev),
-		gpu(phys_dev),
-		graph_queue(queue)
+		gpu(physicalDevice),
+		graphicsQueue(queue)
 	{
-		OmegaEngine::Global::eventManager()->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::update_buffer>(this);
+		OmegaEngine::Global::eventManager()->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::updateBuffer>(this);
 		
-		memory_allocator = std::make_unique<MemoryAllocator>(device, gpu, graph_queue);
+		memoryAllocator = std::make_unique<MemoryAllocator>(device, gpu, graphicsQueue);
 	}
 
 	BufferManager::~BufferManager()
 	{
 	}
 
-	void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo& descr_update)
+	void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo& descriptorUpdate)
 	{
-		descriptorSet_update_queue.emplace_back(descr_update);
+		descriptorSetUpdateQueue.emplace_back(descriptorUpdate);
 	}
 
-	void BufferManager::enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t set_num, uint32_t binding, vk::DescriptorType descr_type)
+	void BufferManager::enqueueDescrUpdate(const char *id, DescriptorSet* set, uint32_t setValue, uint32_t binding, vk::DescriptorType descriptorType)
 	{
-		descriptorSet_update_queue.push_back({ id, set, set_num, binding, descr_type });
+		descriptorSetUpdateQueue.push_back({ id, set, setValue, binding, descriptorType });
 	}
 
-	void BufferManager::update_buffer(BufferUpdateEvent& event)
+	void BufferManager::updateBuffer(BufferUpdateEvent& event)
 	{
 		// sanity debugging checks
 		assert(event.data != nullptr);
@@ -93,27 +93,27 @@ namespace VulkanAPI
 		if (iter != buffers.end()) {
 
 			buffer = iter->second;
-			memory_allocator->mapDataToSegment(buffer, event.data, event.size);
+			memoryAllocator->mapDataToSegment(buffer, event.data, event.size);
 
-			if (event.flush_memory) {
-				vk::MappedMemoryRange mem_range(memory_allocator->getDevice_memory(buffer.getId()), (uint64_t)buffer.get_offset(), event.size);
+			if (event.flushMemory) {
+				vk::MappedMemoryRange mem_range(memoryAllocator->getDeviceMemory(buffer.getId()), (uint64_t)buffer.getOffset(), event.size);
 				device.flushMappedMemoryRanges(1, &mem_range);
 			}
 		}
 		else {
 			// otherwise create a new memory segment
-			MemorySegment buffer = memory_allocator->allocate(event.mem_type, event.size);
-			memory_allocator->mapDataToSegment(buffer, event.data, event.size);
+			MemorySegment buffer = memoryAllocator->allocate(event.memoryType, event.size);
+			memoryAllocator->mapDataToSegment(buffer, event.data, event.size);
 			buffers[event.id] = buffer;
 		}
 	}
 
-	void BufferManager::update_descriptors()
+	void BufferManager::updateDescriptors()
 	{
 	
-		if (!descriptorSet_update_queue.empty()) {
+		if (!descriptorSetUpdateQueue.empty()) {
 
-			for (auto& descr : descriptorSet_update_queue) {
+			for (auto& descr : descriptorSetUpdateQueue) {
 
 				auto iter = buffers.begin();
 				while (iter != buffers.end()) {
@@ -128,17 +128,17 @@ namespace VulkanAPI
 					// this may not potentially be an error. For instance, the skinned program state is set up though there is no data
 					// so the descriptors won't be updated.
 					MemorySegment segment = iter->second;
-					descr.set->writeSet(descr.set_num, descr.binding, descr.descr_type, memory_allocator->get_memory_buffer(segment.getId()), segment.get_offset(), segment.getSize());
+					descr.set->writeSet(descr.setValue, descr.binding, descr.descriptorType, memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(), segment.getSize());
 				}
 			}
 		}
 
-		descriptorSet_update_queue.clear();
+		descriptorSetUpdateQueue.clear();
 	}
 
 	void BufferManager::update()
 	{
-		update_descriptors();
+		updateDescriptors();
 	}
 
 	Buffer BufferManager::getBuffer(const char* id)
@@ -155,6 +155,6 @@ namespace VulkanAPI
 		if (iter == buffers.end()) {
 			LOGGER_ERROR("Error. Unable to find id: %s within buffer list", id);
 		}
-		return { memory_allocator->get_memory_buffer(iter->second.getId()), iter->second.get_offset() };
+		return { memoryAllocator->getMemoryBuffer(iter->second.getId()), iter->second.getOffset() };
 	}
 }

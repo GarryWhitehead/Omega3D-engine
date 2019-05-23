@@ -499,18 +499,18 @@
         #define STB_IMAGE_IMPLEMENTATION
         #include <stb_image.h>
         [...]
-        int my_image_width, my_image_height;
-        unsigned char* my_image_data = stbi_load("my_image.png", &my_image_width, &my_image_height, NULL, 4);
+        int my_image_width, my_imageHeight;
+        unsigned char* my_image_data = stbi_load("my_image.png", &my_image_width, &my_imageHeight, NULL, 4);
 
         // Turn the RGBA pixel data into an OpenGL texture:
         GLuint my_opengl_texture;
         glGenTextures(1, &my_opengl_texture);
         glBindTexture(GL_TEXTURE_2D, my_opengl_texture);
         glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, image_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width, imageHeight, 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data);
 
         // Now that we have an OpenGL texture, assuming our imgui rendering function (imgui_impl_xxx.cpp file) takes GLuint as ImTextureID, we can display it:
-        ImGui::Image((void*)(intptr_t)my_opengl_texture, ImVec2(my_image_width, my_image_height));
+        ImGui::Image((void*)(intptr_t)my_opengl_texture, ImVec2(my_image_width, my_imageHeight));
 
     C/C++ tip: a void* is pointer-sized storage. You may safely store any pointer or integer into it by casting your value to ImTexture / void*, and vice-versa. 
     Because both end-points (user code and rendering function) are under your control, you know exactly what is stored inside the ImTexture / void*.

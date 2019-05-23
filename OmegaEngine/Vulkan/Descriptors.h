@@ -7,7 +7,7 @@ namespace VulkanAPI
 {
 	namespace Util
 	{
-		void writeSet(vk::Device device, vk::DescriptorSet& descriptorSet, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout);
+		void writeSet(vk::Device device, vk::DescriptorSet& descriptorSet, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout);
 	}
 
 	struct ShaderImageLayout;
@@ -24,20 +24,20 @@ namespace VulkanAPI
 
 			// running counts of each descriptor type - required for creating descriptor pools
 			// using one pool for multiple sets
-			uint32_t ubo_count = 0;
-			uint32_t ssbo_count = 0;
-			uint32_t sampler_count = 0;
-			uint32_t ubo_dynamic_count = 0;
-			uint32_t ssbo_dynamic_count = 0;
-			uint32_t storage_imageCount = 0;
+			uint32_t uboCount = 0;
+			uint32_t ssboCount = 0;
+			uint32_t samplerCount = 0;
+			uint32_t uboDynamicCount = 0;
+			uint32_t ssboDynamicCount = 0;
+			uint32_t storageImageCount = 0;
 		};
 
 		DescriptorLayout();
 		~DescriptorLayout();
 
-		void add_layout(uint32_t set, uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags);
+		void addLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType, vk::ShaderStageFlags flags);
 		
-		void create(vk::Device device, const uint32_t image_sets = 1);
+		void create(vk::Device device, const uint32_t imageSets = 1);
 		
 		std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> >& getLayout()
 		{
@@ -56,7 +56,7 @@ namespace VulkanAPI
 		}
 
 
-		vk::DescriptorPool& get_pool()
+		vk::DescriptorPool& getDescriptorPool()
 		{
 			assert(pool);
 			return pool;
@@ -88,10 +88,10 @@ namespace VulkanAPI
 		void init(vk::Device& device, vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool, uint32_t set);
 
 		void writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range);
-		void writeSet(ShaderImageLayout& imageLayout, vk::ImageView& image_view);
+		void writeSet(ShaderImageLayout& imageLayout, vk::ImageView& imageView);
 
 		// use this when you haven't reflected the shader
-		void writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout);
+		void writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout);
 
 		vk::DescriptorSet& get(uint32_t set)
 		{
@@ -104,7 +104,8 @@ namespace VulkanAPI
 			assert(!descriptorSets.empty());
 			// first get the bindings
 			std::vector<uint32_t> bindings;
-			for (auto& set : descriptorSets) {
+			for (auto& set : descriptorSets) 
+			{
 				bindings.push_back(set.first);
 			}
 
@@ -113,7 +114,8 @@ namespace VulkanAPI
 
 			// now create the sets
 			std::vector< vk::DescriptorSet> sets;
-			for (auto& bind : bindings) {
+			for (auto& bind : bindings) 
+			{
 				sets.push_back(descriptorSets[bind]);
 			}
 			return sets;
@@ -121,7 +123,8 @@ namespace VulkanAPI
 
 		uint32_t getSize() const
 		{
-			if (descriptorSets.empty()) {
+			if (descriptorSets.empty()) 
+			{
 				return 0;
 			}
 			return static_cast<uint32_t>(descriptorSets.size());

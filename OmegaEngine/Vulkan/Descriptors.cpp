@@ -6,9 +6,9 @@ namespace VulkanAPI
 	namespace Util
 	{
 		// a static version or the write set function, useful for updating a single descriptor set
-		void writeSet(vk::Device device, vk::DescriptorSet& descriptorSet, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout)
+		void writeSet(vk::Device device, vk::DescriptorSet& descriptorSet, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout)
 		{
-			vk::DescriptorImageInfo image_info(sampler, image_view, layout);
+			vk::DescriptorImageInfo image_info(sampler, imageView, layout);
 			vk::WriteDescriptorSet writeSet(descriptorSet, binding, 0, 1, type, &image_info, nullptr, nullptr);
 			device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 		}
@@ -23,35 +23,35 @@ namespace VulkanAPI
 	{
 	}
 
-	void DescriptorLayout::add_layout(uint32_t set, uint32_t binding, vk::DescriptorType bind_type, vk::ShaderStageFlags flags)
+	void DescriptorLayout::addLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType, vk::ShaderStageFlags flags)
 	{
 		vk::DescriptorSetLayoutBinding layout(
 			binding, 
-			bind_type, 1, flags, nullptr);
+			bindType, 1, flags, nullptr);
 
 		layout_bind.layouts[set].push_back(layout);
 
 		// increase count depending on type
-		switch (bind_type) {
+		switch (bindType) {
 		case vk::DescriptorType::eUniformBuffer:
-			++layout_bind.ubo_count;
+			++layout_bind.uboCount;
 			break;
 		case vk::DescriptorType::eStorageBuffer:
-			++layout_bind.ssbo_count;
+			++layout_bind.ssboCount;
 			break;
 		case vk::DescriptorType::eUniformBufferDynamic:
-			++layout_bind.ubo_dynamic_count;
+			++layout_bind.uboDynamicCount;
 			break;
 		case vk::DescriptorType::eStorageBufferDynamic:
-			++layout_bind.ssbo_dynamic_count;
+			++layout_bind.ssboDynamicCount;
 			break;
 		case vk::DescriptorType::eCombinedImageSampler:
-			++layout_bind.sampler_count;
+			++layout_bind.samplerCount;
 			break;
 		}
 	}
 
-	void DescriptorLayout::create(vk::Device dev, const uint32_t image_sets)
+	void DescriptorLayout::create(vk::Device dev, const uint32_t imageSets)
 	{
 		// store for destructor
 		device = dev;
@@ -59,42 +59,42 @@ namespace VulkanAPI
 		// initialise descriptor pool first based on layouts that have been added
 		std::vector<vk::DescriptorPoolSize> pools;
 
-		if (layout_bind.ubo_count) {
+		if (layout_bind.uboCount) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBuffer, layout_bind.ubo_count);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBuffer, layout_bind.uboCount);
 			pools.push_back(pool);
 		}
-		if (layout_bind.sampler_count) {
+		if (layout_bind.samplerCount) {
 
 			// we can have multiple sets of images - useful in the case of materials for instance
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.sampler_count * image_sets);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.samplerCount * imageSets);
 			pools.push_back(pool);
 		}
-		if (layout_bind.ssbo_count) {
+		if (layout_bind.ssboCount) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBuffer, layout_bind.ssbo_count);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBuffer, layout_bind.ssboCount);
 			pools.push_back(pool);
 		}
-		if (layout_bind.ubo_dynamic_count) {
+		if (layout_bind.uboDynamicCount) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBufferDynamic, layout_bind.ubo_dynamic_count);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBufferDynamic, layout_bind.uboDynamicCount);
 			pools.push_back(pool);
 		}
-		if (layout_bind.ssbo_dynamic_count) {
+		if (layout_bind.ssboDynamicCount) {
 
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBufferDynamic, layout_bind.ssbo_dynamic_count);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBufferDynamic, layout_bind.ssboDynamicCount);
 			pools.push_back(pool);
 		}
-		if (layout_bind.storage_imageCount) {
+		if (layout_bind.storageImageCount) {
 			
-			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageImage, layout_bind.storage_imageCount);
+			vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageImage, layout_bind.storageImageCount);
 			pools.push_back(pool);
 		}
 
 		assert(!pools.empty());
 		uint32_t set_count = static_cast<uint32_t>(layout_bind.layouts.size());
-		if (image_sets > 1) {
-			set_count += image_sets - 1;
+		if (imageSets > 1) {
+			set_count += imageSets - 1;
 		}
 		vk::DescriptorPoolCreateInfo createInfo({}, set_count, static_cast<uint32_t>(pools.size()), pools.data());
 		VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
@@ -142,7 +142,7 @@ namespace VulkanAPI
 			vk::DescriptorSetLayout set_layout;
 			std::tie(set, set_layout) = layout[i];
 
-			vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.get_pool(), 1, &set_layout);
+			vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1, &set_layout);
 
 			vk::DescriptorSet descriptorSet;
 			VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descriptorSet));
@@ -154,7 +154,7 @@ namespace VulkanAPI
 	{
 		this->device = device;
 
-		vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.get_pool(), 1, &descriptorLayout.getLayout(set));
+		vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1, &descriptorLayout.getLayout(set));
 
 		vk::DescriptorSet descriptorSet;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descriptorSet));
@@ -172,9 +172,9 @@ namespace VulkanAPI
 		descriptorSets[set] = descriptorSet;
 	}
 
-	void DescriptorSet::writeSet(ShaderImageLayout& imageLayout, vk::ImageView& image_view)
+	void DescriptorSet::writeSet(ShaderImageLayout& imageLayout, vk::ImageView& imageView)
 	{
-		vk::DescriptorImageInfo image_info(imageLayout.sampler.getSampler(), image_view, imageLayout.layout);
+		vk::DescriptorImageInfo image_info(imageLayout.sampler.getSampler(), imageView, imageLayout.layout);
 		vk::WriteDescriptorSet writeSet(descriptorSets[imageLayout.set], imageLayout.binding, 0, 1, imageLayout.type, &image_info, nullptr, nullptr);
 		device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 	}
@@ -187,9 +187,9 @@ namespace VulkanAPI
 
 	}
 
-	void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& image_view, vk::ImageLayout layout)
+	void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout)
 	{
-		vk::DescriptorImageInfo image_info(sampler, image_view, layout);
+		vk::DescriptorImageInfo image_info(sampler, imageView, layout);
 		vk::WriteDescriptorSet writeSet(descriptorSets[set], binding, 0, 1, type, &image_info, nullptr, nullptr);
 		device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 	}

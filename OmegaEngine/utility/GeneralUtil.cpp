@@ -25,10 +25,10 @@ namespace Util
 		return crc32c(0, typeName, std::strlen(typeName));		
 	}
 
-	void* alloc_align(size_t alignment_size, size_t size)
+	void* alloc_align(size_t alignmentSize, size_t size)
 	{
 		void *data = nullptr;
-		data = _aligned_malloc(size, alignment_size);
+		data = _aligned_malloc(size, alignmentSize);
 		assert(data);
 		return data;
 	}

@@ -12,15 +12,15 @@ public:
 	Timer();
 	~Timer();
 
-	void start_timer();
-	void pasue_timer();
+	void startTimer();
+	void pasueTimer();
 
-	TimeMs get_time_elapsed(bool reset);
+	TimeMs getTimeElapsed(bool reset);
 
 private:
 
 	Time current;
 
-	bool getIsRunning = false;
+	bool isRunning = false;
 };
 

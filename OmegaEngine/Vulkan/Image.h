@@ -17,7 +17,7 @@ namespace VulkanAPI
 		ImageView();
 
 		static vk::ImageAspectFlags getImageAspect(vk::Format format);
-		static vk::ImageViewType getTexture_type(uint32_t faceCount, uint32_t arrayCount);
+		static vk::ImageViewType getTextureType(uint32_t faceCount, uint32_t arrayCount);
 
 		void create(vk::Device dev, Image& image);
 
@@ -25,13 +25,13 @@ namespace VulkanAPI
 
 		vk::ImageView& getImageView()
 		{
-			return image_view;
+			return imageView;
 		}
 
 	private:
 
 		vk::Device device;
-		vk::ImageView image_view;
+		vk::ImageView imageView;
 
 	};
 
@@ -45,10 +45,10 @@ namespace VulkanAPI
 
 		static vk::Filter getFilterType(vk::Format format);
 
-		void create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usage_flags);
-		void transition(vk::ImageLayout old_layout, vk::ImageLayout new_layout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
-		void generate_mipmap(vk::CommandBuffer cmdBuffer);
-		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graph_queue);
+		void create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usageFlags);
+		void transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
+		void generateMipMap(vk::CommandBuffer cmdBuffer);
+		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graphicsQueue);
 
 		vk::Image& get()
 		{
@@ -60,7 +60,7 @@ namespace VulkanAPI
 			return format;
 		}
 
-		uint32_t get_faceCount() const
+		uint32_t getFaceCount() const
 		{
 			return faceCount;
 		}
@@ -76,7 +76,7 @@ namespace VulkanAPI
 
 		vk::Image image;
 		vk::Format format;
-		vk::DeviceMemory image_memory;
+		vk::DeviceMemory imageMemory;
 
 		uint32_t width;
 		uint32_t height;

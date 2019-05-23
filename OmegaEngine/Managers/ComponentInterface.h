@@ -23,7 +23,7 @@ namespace OmegaEngine
 		ComponentInterface();
 		~ComponentInterface();
 
-		void update_managers(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager);
+		void update_managers(double time, double dt, std::unique_ptr<ObjectManager>& objectManager);
 		
 		template<typename T, typename... Args>
 		void registerManager(Args&&... args)

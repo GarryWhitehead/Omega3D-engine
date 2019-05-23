@@ -28,10 +28,10 @@ namespace VulkanAPI
 		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
 		void init(vk::Device dev, vk::PhysicalDevice phys);
 
-		void createEmptyImage(vk::Format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usage_flags);
+		void createEmptyImage(vk::Format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
 		void map(OmegaEngine::MappedTexture& tex);
-		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
-		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copy_buffers);
+		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
+		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
 
 		vk::ImageView& getImageView();
 
@@ -55,7 +55,7 @@ namespace VulkanAPI
 			return height;
 		}
 
-		uint32_t get_faceCount() const
+		uint32_t getFaceCount() const
 		{
 			return faceCount;
 		}
@@ -74,7 +74,7 @@ namespace VulkanAPI
 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		Queue graph_queue;
+		Queue graphicsQueue;
 
 		// texture info
 		vk::Format format;

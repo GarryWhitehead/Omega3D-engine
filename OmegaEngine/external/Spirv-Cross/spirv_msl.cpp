@@ -4598,7 +4598,7 @@ string CompilerMSL::image_type_glsl(const SPIRType &type, uint32_t id)
 			img_type_name += (img_type.arrayed ? "depthcube_array" : "depthcube");
 			break;
 		default:
-			img_type_name += "unknown_depth_texture_type";
+			img_type_name += "unknown_depthTexture_type";
 			break;
 		}
 	}

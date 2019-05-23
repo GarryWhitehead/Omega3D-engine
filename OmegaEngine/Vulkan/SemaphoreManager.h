@@ -12,7 +12,7 @@ namespace VulkanAPI
 		SemaphoreManager(vk::Device dev);
 		~SemaphoreManager();
 
-		vk::Semaphore get_semaphore();
+		vk::Semaphore getSemaphore();
 		void recycle(vk::Semaphore semaphore);
 		
 		void init(vk::Device dev)

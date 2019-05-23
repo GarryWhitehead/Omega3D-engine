@@ -13,22 +13,22 @@ namespace VulkanAPI
 		Queue(vk::Queue q, vk::Device dev);
 		~Queue();
 
-		void submit_cmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffer, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags = nullptr);
-		void submit_cmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence);
-		void flush_cmdBuffer(vk::CommandBuffer cmdBuffer);
+		void submitmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffer, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags = nullptr);
+		void submitmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence);
+		void flushCmdBuffer(vk::CommandBuffer cmdBuffer);
 
-		void create(vk::Queue& q, vk::Device& dev, const uint32_t queue_index)
+		void create(vk::Queue& q, vk::Device& dev, const uint32_t queueIndex)
 		{
 			assert(q);
 			queue = q;
 			device = dev;
-			queue_family_index = queue_index;
+			queueFamilyIndex = queueIndex;
 		}
 
-		void set_swapchain(vk::SwapchainKHR& sc)
+		void setSwapchain(vk::SwapchainKHR& sc)
 		{
 			assert(sc);
-			swap_chain = sc;
+			swapchain = sc;
 		}
 
 		vk::Queue& get()
@@ -36,18 +36,18 @@ namespace VulkanAPI
 			return queue;
 		}
 
-		uint32_t get_index() const
+		uint32_t getIndex() const
 		{
-			return queue_family_index;
+			return queueFamilyIndex;
 		}
 
 	private:
 
 		vk::Device device;
 		vk::Queue queue;
-		vk::SwapchainKHR swap_chain;
+		vk::SwapchainKHR swapchain;
 
-		uint32_t queue_family_index = 0;
+		uint32_t queueFamilyIndex = 0;
 	};
 
 }

@@ -23,21 +23,21 @@ namespace OmegaEngine
 		
 	}
 
-	void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* component_manager)
+	void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)
 	{
 		if (isDirty) 
 		{
 			// TODO: update light positions, etc.
 
 			// now update ready for uploading on the gpu side
-			light_buffer.lightCount = static_cast<uint32_t>(lights.size());
+			lightBuffer.lightCount = static_cast<uint32_t>(lights.size());
 
-			for (uint32_t i = 0; i < light_buffer.lightCount; ++i) 
+			for (uint32_t i = 0; i < lightBuffer.lightCount; ++i) 
 			{
-				light_buffer.lights[i] = lights[i];
+				lightBuffer.lights[i] = lights[i];
 			}
 
-			VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&light_buffer, sizeof(LightUboBuffer), VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+			VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer), VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 
 			// let the buffer manager know that the buffers needs creating/updating via the event process
 			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);

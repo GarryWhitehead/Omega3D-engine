@@ -25,120 +25,120 @@ namespace OmegaEngine
 		struct TransformData
 		{
 			// static 
-			struct LocalTRS
+			struct LocalTansform
 			{
 				OEMaths::vec3f trans;
 				OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
 				OEMaths::mat4f rotation;
 			};
 
-			void calculate_local()
+			void calculateLocalMatrix()
 			{
-				local = OEMaths::mat4f::translate(local_trs.trans) * local_trs.rotation * OEMaths::mat4f::scale(local_trs.scale);
+				local = OEMaths::mat4f::translate(localTransform.trans) * localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
 			}
 
 			uint32_t getTransformOffset() const
 			{
-				return transform_buffer_offset;
+				return transformBufferOffset;
 			}
 
-			uint32_t get_skinned_offset() const
+			uint32_t getSkinnedOffset() const
 			{
-				return skinned_buffer_offset;
+				return skinnedBufferOffset;
 			}
 
-			void set_transform_offset(const uint32_t offset)
+			void setTransformOffset(const uint32_t offset)
 			{
-				transform_buffer_offset = offset;
+				transformBufferOffset = offset;
 			}
 
-			void set_skinned_offset(const uint32_t offset)
+			void setSkinnedOffset(const uint32_t offset)
 			{
-				skinned_buffer_offset = offset;
+				skinnedBufferOffset = offset;
 			}
 
-			void set_translation(OEMaths::vec3f& trans)
+			void setTranslation(OEMaths::vec3f& trans)
 			{
-				local_trs.trans = trans;
-				recalculate_local = true;
+				localTransform.trans = trans;
+				recalculateLocal = true;
 			}
 
-			void set_rotation(OEMaths::mat4f& rot)
+			void setRotation(OEMaths::mat4f& rot)
 			{
-				local_trs.rotation = rot;
-				recalculate_local = true;
+				localTransform.rotation = rot;
+				recalculateLocal = true;
 			}
 
-			void set_rotation(OEMaths::quatf& q)
+			void setRotation(OEMaths::quatf& q)
 			{
-				local_trs.rotation = OEMaths::mat4f(q);
-				recalculate_local = true;
+				localTransform.rotation = OEMaths::mat4f(q);
+				recalculateLocal = true;
 			}
 
-			void set_scale(OEMaths::vec3f& scale)
+			void setScale(OEMaths::vec3f& scale)
 			{
-				local_trs.scale = scale;
-				recalculate_local = true;
+				localTransform.scale = scale;
+				recalculateLocal = true;
 			}
 
-			OEMaths::mat4f get_local_matrix()
+			OEMaths::mat4f getLocalMatrix()
 			{
-				if (recalculate_local) 
+				if (recalculateLocal) 
 				{
-					calculate_local();
-					recalculate_local = false;
+					calculateLocalMatrix();
+					recalculateLocal = false;
 				}
 				return local;
 			}
 
-			void set_local_matrix(OEMaths::mat4f& local)
+			void setLocalMatrix(OEMaths::mat4f& local)
 			{
 				this->local = local;
 			}
 
-			void set_worldMatixrix(OEMaths::mat4f& world)
+			void setWorldMatixrix(OEMaths::mat4f& world)
 			{
 				this->world = world;
 			}
 
-			void set_skin_index(const int32_t index)
+			void setSkinIndex(const int32_t index)
 			{
-				skin_index = index;
+				skinIndex = index;
 			}
 
-			int32_t get_skin_index() const
+			int32_t getSkinIndex() const
 			{
-				return skin_index;
+				return skinIndex;
 			}
 
 		private:
 
-			bool recalculate_local = false;
+			bool recalculateLocal = false;
 
 			// decomposed form
-			LocalTRS local_trs;
+			localTransform localTransform;
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;
 
 			// an index to skinning data for this particular node - negative number indicates no skin info
-			int32_t skin_index = -1;
+			int32_t skinIndex = -1;
 
 			// buffer offsets for tranform and skinned data
-			uint32_t transform_buffer_offset = 0;
-			uint32_t skinned_buffer_offset = 0;
+			uint32_t transformBufferOffset = 0;
+			uint32_t skinnedBufferOffset = 0;
 		};
 
 		// data that will be hosted on the gpu side
 		struct TransformBufferInfo
 		{
-			OEMaths::mat4f model_matrix;
+			OEMaths::mat4f modelMatrix;
 		};
 
 		struct SkinnedBufferInfo
 		{
-			OEMaths::mat4f joint_matrices[6];
-			float joint_count;
+			OEMaths::mat4f jointMatrices[6];
+			float jointCount;
 		};
 
 		// skinning data derived from file 
@@ -149,7 +149,7 @@ namespace OmegaEngine
 
 			std::vector<Object> joints;
 			std::vector<OEMaths::mat4f> invBindMatrices;
-			std::vector<OEMaths::mat4f> joint_matrices;
+			std::vector<OEMaths::mat4f> jointMatrices;
 		};
 
 		// the number of models to allocate mem space for - this will need optimising
@@ -161,16 +161,16 @@ namespace OmegaEngine
 		~TransformManager();
 
 		// update per frame 
-		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& obj_manager, ComponentInterface* componentInterface) override;
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
 		// gltf loading - The skinning data is going in the transform manager for now as it's needed most here for calculating skinning transforms
 		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
 		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f worldTransform);
 
 		// local transform and skinning update
-		OEMaths::mat4f create_matrix(Object& obj, std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform(std::unique_ptr<ObjectManager>& obj_manager);
-		void update_transform_recursive(std::unique_ptr<ObjectManager>& obj_manager, Object& obj, uint32_t alignment, uint32_t skinned_alignment);
+		OEMaths::mat4f updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager);
+		void updateTransform(std::unique_ptr<ObjectManager>& objectManager);
+		void updateTransformRecursive(std::unique_ptr<ObjectManager>& objectManager, Object& obj, uint32_t alignment, uint32_t skinnedAlignment);
 
 		// object update functions
 		void updateObjectTranslation(Object& obj, OEMaths::vec4f trans);
@@ -188,7 +188,7 @@ namespace OmegaEngine
 			return transformBuffer[id].getTransformOffset();
 		}
 
-		uint32_t get_skinned_offset(uint32_t id)
+		uint32_t getSkinnedOffset(uint32_t id)
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
@@ -196,7 +196,7 @@ namespace OmegaEngine
 			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].get_skinned_offset();
+			return transformBuffer[id].getSkinnedOffset();
 		}
 
 	private:
@@ -208,18 +208,18 @@ namespace OmegaEngine
 		std::vector<SkinInfo> skinBuffer;
 
 		// store locally the aligned buffer sizes
-		uint32_t transform_aligned = 0;
-		uint32_t skinned_aligned = 0;
+		uint32_t transformAligned = 0;
+		uint32_t skinnedAligned = 0;
 
 		// transform data for each object which will be added to the GPU
-		TransformBufferInfo* transform_buffer_data = nullptr;
-		SkinnedBufferInfo* skinned_buffer_data = nullptr;
+		TransformBufferInfo* transformBufferData = nullptr;
+		SkinnedBufferInfo* skinnedBufferData = nullptr;
 
-		uint32_t transform_buffer_size = 0;
-		uint32_t skinned_buffer_size = 0;
+		uint32_t transformBufferSize = 0;
+		uint32_t skinnedBufferSize = 0;
 
 		// flag which tells us whether we need to update the static data
-		bool is_dirty = true;
+		bool isDirty = true;
 	};
 
 }

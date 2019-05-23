@@ -7,10 +7,10 @@
 namespace VulkanAPI
 {
 
-	VkTextureManager::VkTextureManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, VulkanAPI::Queue& queue) :
+	VkTextureManager::VkTextureManager(vk::Device& dev, vk::PhysicalDevice& physicalDevice, VulkanAPI::Queue& queue) :
 		device(dev),
-		gpu(phys_dev),
-		graph_queue(queue)
+		gpu(physicalDevice),
+		graphicsQueue(queue)
 	{
 		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, TextureUpdateEvent, &VkTextureManager::update_texture>(this);
 		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, MaterialTextureUpdateEvent, &VkTextureManager::update_material_texture>(this);
@@ -23,34 +23,34 @@ namespace VulkanAPI
 
 	void VkTextureManager::update_material_texture(MaterialTextureUpdateEvent& event)
 	{
-		assert(event.mapped_tex != nullptr);
+		assert(event.mappedTexture != nullptr);
 
 		MaterialTextureInfo tex_info;
-		tex_info.texture.init(device, gpu, graph_queue);
-		tex_info.texture.map(*event.mapped_tex);
+		tex_info.texture.init(device, gpu, graphicsQueue);
+		tex_info.texture.map(*event.mappedTexture);
 		tex_info.sampler.create(device, event.sampler);
 		tex_info.binding = event.binding;
 
-		mat_textures[event.id].push_back(tex_info);
+		materialTextures[event.id].push_back(tex_info);
 	}
 
 	void VkTextureManager::update_material_descriptors()
 	{
 
-		for (auto& descr : descriptorSet_update_queue) {
+		for (auto& descr : descriptorSetUpdateQueue) {
 
 			assert(descr.set != nullptr);
-			MaterialTextureInfo texture = mat_textures[descr.id][descr.binding];
-			descr.set->writeSet(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
+			MaterialTextureInfo texture = materialTextures[descr.id][descr.binding];
+			descr.set->writeSet(descr.setValue, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
 
-	void VkTextureManager::bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t set_num)
+	void VkTextureManager::bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t setValue)
 	{
 		assert(layout != nullptr);
 
-		auto iter = texture_layouts.begin();
-		while (iter != texture_layouts.end()) {
+		auto iter = textureLayouts.begin();
+		while (iter != textureLayouts.end()) {
 
 			if (std::strcmp(iter->first, id) == 0) {
 				break;
@@ -58,16 +58,16 @@ namespace VulkanAPI
 			iter++;
 		}
 
-		if (iter != texture_layouts.end()) {
+		if (iter != textureLayouts.end()) {
 			LOGGER_INFO("Texture layout binding of id %s was already registered.\n", id);
 		}
-		texture_layouts[id] = { layout, set_num };
+		textureLayouts[id] = { layout, setValue };
 	}
 
 	VkTextureManager::TextureLayoutInfo& VkTextureManager::getTexture_descriptorLayout(const char* id)
 	{
-		auto iter = texture_layouts.begin();
-		while (iter != texture_layouts.end()) {
+		auto iter = textureLayouts.begin();
+		while (iter != textureLayouts.end()) {
 
 			if (std::strcmp(iter->first, id) == 0) {
 				break;
@@ -75,16 +75,16 @@ namespace VulkanAPI
 			iter++;
 		}
 
-		if (iter == texture_layouts.end()) {
+		if (iter == textureLayouts.end()) {
 			LOGGER_ERROR("Layout with id %s was not registered with vulkan texture manager.\n", id);
 		}
 		return iter->second;
 	}
 
-	void VkTextureManager::update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t set_num)
+	void VkTextureManager::update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t setValue)
 	{
-		auto iter = mat_textures.begin();
-		while (iter != mat_textures.end()) {
+		auto iter = materialTextures.begin();
+		while (iter != materialTextures.end()) {
 
 			if (iter->first == id) {
 				break;
@@ -92,37 +92,37 @@ namespace VulkanAPI
 			iter++;
 		}
 
-		if (iter == mat_textures.end()) {
+		if (iter == materialTextures.end()) {
 			LOGGER_ERROR("An id of %s has not been registered with the vulkan texture manager.\n", id);
 		}
 
 		for (auto& texture : iter->second) {
-			set.writeSet(set_num, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
+			set.writeSet(setValue, texture.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
 
 	void VkTextureManager::update_texture(TextureUpdateEvent& event)
 	{
-		assert(event.mapped_tex != nullptr);
+		assert(event.mappedTexture != nullptr);
 
 		TextureInfo tex_info;
-		tex_info.texture.init(device, gpu, graph_queue);
-		tex_info.texture.map(*event.mapped_tex);
+		tex_info.texture.init(device, gpu, graphicsQueue);
+		tex_info.texture.map(*event.mappedTexture);
 
 		textures[event.id.c_str()] = tex_info;
 	}
 
 	void VkTextureManager::enqueueDescrUpdate(const char* id, VulkanAPI::DescriptorSet* descriptorSet, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding)
 	{
-		descriptorSet_update_queue.push_back({ id, descriptorSet, sampler, set, binding });
+		descriptorSetUpdateQueue.push_back({ id, descriptorSet, sampler, set, binding });
 	}
 
-	void VkTextureManager::update_descriptors()
+	void VkTextureManager::updateDescriptors()
 	{
 
-		if (!descriptorSet_update_queue.empty()) {
+		if (!descriptorSetUpdateQueue.empty()) {
 
-			for (auto& descr : descriptorSet_update_queue) {
+			for (auto& descr : descriptorSetUpdateQueue) {
 
 				auto iter = textures.begin();
 				while (iter != textures.end()) {
@@ -135,16 +135,16 @@ namespace VulkanAPI
 
 				if (iter != textures.end()) {
 
-					descr.set->writeSet(descr.set_num, descr.binding, vk::DescriptorType::eCombinedImageSampler, descr.sampler->getSampler(), iter->second.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
+					descr.set->writeSet(descr.setValue, descr.binding, vk::DescriptorType::eCombinedImageSampler, descr.sampler->getSampler(), iter->second.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 				}
 			}
 		}
 
-		descriptorSet_update_queue.clear();
+		descriptorSetUpdateQueue.clear();
 	}
 
 	void VkTextureManager::update()
 	{
-		update_descriptors();
+		updateDescriptors();
 	}
 }

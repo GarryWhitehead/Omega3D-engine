@@ -45,14 +45,14 @@ namespace VulkanAPI
 			return static_cast<uint32_t>(colorReference.size());
 		}
 
-		uint32_t getImage_width() const
+		uint32_t getImageWidth() const
 		{
-			return image_width;
+			return imageWidth;
 		}
 
-		uint32_t getImage_height() const
+		uint32_t getImageHeight() const
 		{
-			return image_height;
+			return imageHeight;
 		}
 
 		vk::Format& get_attachment_format(uint32_t index)
@@ -66,7 +66,7 @@ namespace VulkanAPI
 		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef = nullptr);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, vk::AttachmentReference *depthRef = nullptr);												// override without input attachments
-		void addSubpassDependency(DependencyTemplate depend_template, uint32_t srcSubpass = 0, uint32_t dstSubpass = 0);											// templated version
+		void addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass = 0, uint32_t dstSubpass = 0);											// templated version
 		void prepareRenderPass();
 
 		// frame buffer functions
@@ -74,8 +74,8 @@ namespace VulkanAPI
 		void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
 
 		// for generating cmd buffer
-		vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& bg_colour, uint32_t index = 0);
-		vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* bg_colour, uint32_t index = 0);
+		vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index = 0);
+		vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* backgroundColour, uint32_t index = 0);
 
 	private:
 
@@ -84,8 +84,8 @@ namespace VulkanAPI
 		vk::RenderPass renderpass;
 		std::vector<vk::Framebuffer> framebuffers;
 
-		uint32_t image_width = 0; 
-		uint32_t image_height = 0;
+		uint32_t imageWidth = 0; 
+		uint32_t imageHeight = 0;
 
 		std::vector<vk::AttachmentDescription> attachment;
 		std::vector<vk::AttachmentReference> colorReference;
@@ -94,7 +94,7 @@ namespace VulkanAPI
 		std::vector<vk::SubpassDependency> dependency;
 
 		// local store of clear values for render passes
-		std::vector<vk::ClearValue> clear_values;
+		std::vector<vk::ClearValue> clearValues;
 	};
 
 }

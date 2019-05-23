@@ -21,7 +21,7 @@ namespace VulkanAPI
 
 	public:
 
-		Interface(VulkanAPI::Device& device, const uint32_t win_width, const uint32_t win_height, NewFrameMode mode);
+		Interface(VulkanAPI::Device& device, const uint32_t windowWidth, const uint32_t winHeight, NewFrameMode mode);
 		~Interface();
 
 		vk::Device& getDevice()
@@ -29,24 +29,24 @@ namespace VulkanAPI
 			return device;
 		}
 
-		vk::PhysicalDevice& get_gpu()
+		vk::PhysicalDevice& getGpu()
 		{
 			return gpu;
 		}
 
 		Queue& getGraphicsQueue()
 		{
-			return graphics_queue;
+			return graphicsQueue;
 		}
 
-		Queue& get_present_queue()
+		Queue& getPresentionQueue()
 		{
-			return present_queue;
+			return presentionQueue;
 		}
 
 		Swapchain& getSwapchain()
 		{
-			return swapchain_khr;
+			return swapchainKhr;
 		}
 
 		std::unique_ptr<BufferManager>& getBufferManager()
@@ -70,12 +70,12 @@ namespace VulkanAPI
 		vk::PhysicalDevice gpu;
 
 		// queues associated with this device
-		Queue graphics_queue;
-		Queue present_queue;
-		Queue compute_queue;
+		Queue graphicsQueue;
+		Queue presentionQueue;
+		Queue computeQueue;
 
 		// the swap-chain
-		VulkanAPI::Swapchain swapchain_khr;
+		VulkanAPI::Swapchain swapchainKhr;
 
 		// managers
 		std::unique_ptr<BufferManager> bufferManager;

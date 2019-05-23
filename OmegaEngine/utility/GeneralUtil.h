@@ -31,6 +31,6 @@ namespace Util
 	};
 
 	// aligned memory allocation
-	void* alloc_align(size_t alignment_size, size_t size);
+	void* alloc_align(size_t alignmentSize, size_t size);
 
 }

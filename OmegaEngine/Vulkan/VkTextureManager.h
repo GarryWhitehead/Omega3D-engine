@@ -21,14 +21,14 @@ namespace VulkanAPI
 		MaterialTextureUpdateEvent(std::string _id, uint32_t _binding, OmegaEngine::MappedTexture* _mapped, SamplerType _sampler) :
 			id(_id),
 			binding(_binding),
-			mapped_tex(_mapped),
+			mappedTexture(_mapped),
 			sampler(_sampler)
 		{
 		}
 			
 		std::string id;
 		uint32_t binding = 0;
-		OmegaEngine::MappedTexture* mapped_tex = nullptr;
+		OmegaEngine::MappedTexture* mappedTexture = nullptr;
 		SamplerType sampler;
 	};
 
@@ -36,12 +36,12 @@ namespace VulkanAPI
 	{
 		TextureUpdateEvent(std::string _id, OmegaEngine::MappedTexture* _mapped) :
 			id(_id),
-			mapped_tex(_mapped)
+			mappedTexture(_mapped)
 		{
 		}
 
 		std::string id;
-		OmegaEngine::MappedTexture* mapped_tex = nullptr;
+		OmegaEngine::MappedTexture* mappedTexture = nullptr;
 	};
 
 	class VkTextureManager
@@ -64,7 +64,7 @@ namespace VulkanAPI
 		struct TextureLayoutInfo
 		{
 			DescriptorLayout* layout = nullptr;
-			uint32_t set_num;
+			uint32_t setValue;
 		};
 
 		struct DescrSetUpdateInfo
@@ -72,26 +72,26 @@ namespace VulkanAPI
 			const char *id;
 			DescriptorSet* set = nullptr;
 			Sampler* sampler = nullptr;
-			uint32_t set_num = 0;
+			uint32_t setValue = 0;
 			uint32_t binding = 0;
 		};
 
-		VkTextureManager(vk::Device& dev, vk::PhysicalDevice& phys_dev, VulkanAPI::Queue& queue);
+		VkTextureManager(vk::Device& dev, vk::PhysicalDevice& physicalDevice, VulkanAPI::Queue& queue);
 		~VkTextureManager();
 
 		void update_texture(TextureUpdateEvent& event);
 		void enqueueDescrUpdate(const char*, VulkanAPI::DescriptorSet*, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding);
-		void update_descriptors();
+		void updateDescriptors();
 		void update();
 
 		// updates a single descriptor set with a texture set identified by its unique id
-		void update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t set_num);
+		void update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t setValue);
 
 		void update_material_texture(MaterialTextureUpdateEvent& event);
 		void update_material_descriptors();
 
 		// associates an id with a descriptor layout. Used for materials, etc. were there are multiple descriptor sets but one layout
-		void bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t set_num);
+		void bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t setValue);
 
 		TextureLayoutInfo& getTexture_descriptorLayout(const char* id);
 
@@ -99,19 +99,19 @@ namespace VulkanAPI
 
 		vk::Device device;
 		vk::PhysicalDevice gpu;
-		VulkanAPI::Queue graph_queue;
+		VulkanAPI::Queue graphicsQueue;
 
 		// dedicated container for material textures i.e. grouped
-		std::unordered_map<std::string, std::vector<MaterialTextureInfo> > mat_textures;
+		std::unordered_map<std::string, std::vector<MaterialTextureInfo> > materialTextures;
 
 		// single textures derived from the asset manager
 		std::unordered_map<const char*, TextureInfo> textures;
 
 		// a queue of descriptor sets which need updating on a per frame basis - for single textures
-		std::vector<DescrSetUpdateInfo> descriptorSet_update_queue;
+		std::vector<DescrSetUpdateInfo> descriptorSetUpdateQueue;
 
 		// associate textures with descriptor layouts
-		std::unordered_map<const char*, TextureLayoutInfo> texture_layouts;
+		std::unordered_map<const char*, TextureLayoutInfo> textureLayouts;
 	};
 
 }

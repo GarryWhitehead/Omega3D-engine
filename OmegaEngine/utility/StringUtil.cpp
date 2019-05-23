@@ -31,23 +31,23 @@ namespace StringUtil
 			return "";
 		}
 
-		std::vector<std::string> split_strings;
+		std::vector<std::string> splitStrings;
 		size_t pos = str.find_first_of(identifier);
 		while (pos != std::string::npos)
 		{
 			std::string split = str.substr(0, pos);
-			printf("Split string = %s\n", split.c_str());
-			split_strings.emplace_back(split);
+		
+			splitStrings.emplace_back(split);
 			str = str.substr(pos + 1, str.size());
-			printf("New str = %s\n", str.c_str());
+			
 			pos = str.find_first_of(identifier);
 		}
 
-		if (split_strings.empty() || split_strings.size() < part)
+		if (splitStrings.empty() || splitStrings.size() < part)
 		{
 			return "";
 		}
 
-		return split_strings[part];
+		return splitStrings[part];
 	}
 }

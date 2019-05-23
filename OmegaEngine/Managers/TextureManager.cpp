@@ -21,8 +21,8 @@ namespace OmegaEngine
 	}
 
 	void TextureManager::updateFrame(double time, double dt,
-		std::unique_ptr<ObjectManager>& obj_manager,
-		ComponentInterface* component_manager)
+		std::unique_ptr<ObjectManager>& objectManager,
+		ComponentInterface* componentInterface)
 	{
 
 	}

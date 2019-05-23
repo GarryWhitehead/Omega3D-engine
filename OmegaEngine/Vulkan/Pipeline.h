@@ -24,12 +24,12 @@ namespace VulkanAPI
 		Pipeline();
 		~Pipeline();
 
-		void add_vertex_input(uint32_t location, vk::Format format, uint32_t size);
-		void update_vertex_input();
+		void addVertexInput(uint32_t location, vk::Format format, uint32_t size);
+		void updateVertexInput();
 
 		void setRasterCullMode(vk::CullModeFlags cull_mode);
 		void setRasterFrontFace(vk::FrontFace front_face);
-		void set_raster_depth_clamp(bool state);
+		void setRasterDepthClamp(bool state);
 
 		void setTopology(vk::PrimitiveTopology topology);
 
@@ -37,15 +37,15 @@ namespace VulkanAPI
 		void addDynamicState(vk::DynamicState state);
 
 		void setDepthState(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
-		void set_renderpass(RenderPass r_pass);
+		void setRenderpass(RenderPass r_pass);
 		void addShader(Shader& shader);
-		void add_layout(vk::PipelineLayout pl);
-		void add_empty_layout();
+		void addLayout(vk::PipelineLayout pl);
+		void addEmptyLayout();
 
 		void create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineLayout& layout, PipelineType _type);
 		void create(vk::Device dev, PipelineType _type);
 	
-		PipelineType get_pipeline_type() const
+		PipelineType getPipelineType() const
 		{
 			return type;
 		}
@@ -60,18 +60,18 @@ namespace VulkanAPI
 		vk::Device device;
 
 		// everything needeed to build the pipeline
-		std::vector<vk::VertexInputAttributeDescription> vertex_attr_descr;
-		std::vector<vk::VertexInputBindingDescription> vertex_bind_descr;
-		vk::PipelineVertexInputStateCreateInfo vertex_input_state;
-		vk::PipelineInputAssemblyStateCreateInfo assembly_state;
-		vk::PipelineViewportStateCreateInfo viewport_state;
-		vk::PipelineRasterizationStateCreateInfo raster_state;
-		vk::PipelineMultisampleStateCreateInfo multi_sample_state;
-		std::vector<vk::PipelineColorBlendAttachmentState> color_attach_state;
-		vk::PipelineColorBlendStateCreateInfo color_blend_state;
-		vk::PipelineDepthStencilStateCreateInfo depth_stencil_state;
-		std::vector<vk::DynamicState> dynamic_states;
-		vk::PipelineDynamicStateCreateInfo dynamic_create_state;
+		std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
+		std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
+		vk::PipelineVertexInputStateCreateInfo vertexInputState;
+		vk::PipelineInputAssemblyStateCreateInfo assemblyState;
+		vk::PipelineViewportStateCreateInfo viewportState;
+		vk::PipelineRasterizationStateCreateInfo rasterState;
+		vk::PipelineMultisampleStateCreateInfo multiSampleState;
+		std::vector<vk::PipelineColorBlendAttachmentState> colorAttachState;
+		vk::PipelineColorBlendStateCreateInfo colorBlendState;
+		vk::PipelineDepthStencilStateCreateInfo depthStencilState;
+		std::vector<vk::DynamicState> dynamicStates;
+		vk::PipelineDynamicStateCreateInfo dynamicCreateState;
 
 		Shader shader;
 		RenderPass renderpass;
@@ -100,13 +100,13 @@ namespace VulkanAPI
 
 		void add_push_constant(StageType stage, uint32_t size)
 		{
-			push_constant_sizes[(int)stage] = size;
+			pushConstantSizes[(int)stage] = size;
 		}
 
 	private:
 
 		// usually set through shader reflection
-		std::array<uint32_t, (int)StageType::Count> push_constant_sizes = {};
+		std::array<uint32_t, (int)StageType::Count> pushConstantSizes = {};
 
 		vk::PipelineLayout layout;
 	};

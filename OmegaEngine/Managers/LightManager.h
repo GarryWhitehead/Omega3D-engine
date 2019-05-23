@@ -8,7 +8,7 @@
 #include <cstdint>
 #include <vector>
 
-#define MAX_lightCount 100
+#define MAX_LIGHTS 100
 
 namespace OmegaEngine
 {
@@ -39,7 +39,7 @@ namespace OmegaEngine
 		// a mirror of the shader buffer
 		struct LightUboBuffer
 		{
-			LightInfo lights[MAX_lightCount];
+			LightInfo lights[MAX_LIGHTS];
 			uint32_t lightCount;
 		};
 
@@ -48,8 +48,8 @@ namespace OmegaEngine
 
 		// not used at present - just here to keep the inheritance demons happy
 		void updateFrame(double time, double dt,
-			std::unique_ptr<ObjectManager>& obj_manager,
-			ComponentInterface* component_manager) override;
+			std::unique_ptr<ObjectManager>& objectManager,
+			ComponentInterface* componentInterface) override;
 
 		void parseGltfLight(uint32_t spaceId, tinygltf::Model& model);
 
@@ -66,7 +66,7 @@ namespace OmegaEngine
 		std::vector<LightInfo> lights;
 
 		// buffer on the vulkan side which will hold all lighting info 
-		LightUboBuffer light_buffer;
+		LightUboBuffer lightBuffer;
 
 		bool isDirty = false;
 	};

@@ -18,7 +18,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void Queue::submit_cmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffers, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags)
+	void Queue::submitCmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffers, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags)
 	{
 		assert(!cmdBuffers.empty() && !wait_semaphores.empty() && !signal_semaphores.empty() && stage_flags != nullptr);
 
@@ -34,7 +34,7 @@ namespace VulkanAPI
 		queue.waitIdle();
 	}
 
-	void Queue::submit_cmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence)
+	void Queue::submitCmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence)
 	{
 		vk::PipelineStageFlags stage_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		
@@ -48,7 +48,7 @@ namespace VulkanAPI
 		queue.waitIdle();
 	}
 
-	void Queue::flush_cmdBuffer(vk::CommandBuffer cmdBuffer)
+	void Queue::flushCmdBuffer(vk::CommandBuffer cmdBuffer)
 	{
 		vk::SubmitInfo submit_info(
 			0, nullptr, nullptr,
