@@ -164,7 +164,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void Shader::imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayout)
+	void Shader::imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayoutBuffer)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -190,11 +190,11 @@ namespace VulkanAPI
 				vk::ImageLayout imageLayout = getImageLayout(image.name);
 
 				descriptorLayout.addLayout(set, binding, vk::DescriptorType::eCombinedImageSampler, getStageFlags(StageType(i)));
-				imageLayout[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
+				imageLayoutBuffer[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
 			}
 
 			// make sure that the samplers bindings are sorted into ascending order - spirv cross seems to mess the order up
-			for (auto& layout : imageLayout) 
+			for (auto& layout : imageLayoutBuffer) 
 			{
 				std::sort(layout.second.begin(), layout.second.end(), [](const ShaderImageLayout lhs, const ShaderImageLayout rhs) { return lhs.binding < rhs.binding; });
 			}

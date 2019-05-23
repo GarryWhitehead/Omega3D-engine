@@ -28,14 +28,14 @@ namespace OmegaEngine
 		{
 			mat.textures[(int)PbrMaterials::BaseColor].image = gltfMaterial.values["baseColorTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::BaseColor].set = set;
-			mat.texture_state[(int)PbrMaterials::BaseColor] = true;
+			mat.textureState[(int)PbrMaterials::BaseColor] = true;
 			mat.uvSets.baseColour = gltfMaterial.values["baseColorTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.values.find("metallicRoughnessTexture") != gltfMaterial.values.end()) 
 		{
 			mat.textures[(int)PbrMaterials::MetallicRoughness].image = gltfMaterial.values["metallicRoughnessTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::MetallicRoughness].set = set;
-			mat.texture_state[(int)PbrMaterials::MetallicRoughness] = true;
+			mat.textureState[(int)PbrMaterials::MetallicRoughness] = true;
 			mat.uvSets.metallicRoughness = gltfMaterial.values["metallicRoughnessTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.values.find("baseColorFactor") != gltfMaterial.values.end()) 
@@ -56,21 +56,21 @@ namespace OmegaEngine
 		{
 			mat.textures[(int)PbrMaterials::Normal].image = gltfMaterial.additionalValues["normalTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Normal].set = set;
-			mat.texture_state[(int)PbrMaterials::Normal] = true;
+			mat.textureState[(int)PbrMaterials::Normal] = true;
 			mat.uvSets.normal = gltfMaterial.additionalValues["normalTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.additionalValues.find("emissiveTexture") != gltfMaterial.additionalValues.end()) 
 		{
 			mat.textures[(int)PbrMaterials::Emissive].image = gltfMaterial.additionalValues["emissiveTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Emissive].set = set;
-			mat.texture_state[(int)PbrMaterials::Emissive] = true;
+			mat.textureState[(int)PbrMaterials::Emissive] = true;
 			mat.uvSets.emissive = gltfMaterial.additionalValues["emissiveTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.additionalValues.find("occlusionTexture") != gltfMaterial.additionalValues.end()) 
 		{
 			mat.textures[(int)PbrMaterials::Occlusion].image = gltfMaterial.additionalValues["occlusionTexture"].TextureIndex();
 			mat.textures[(int)PbrMaterials::Occlusion].set = set;
-			mat.texture_state[(int)PbrMaterials::Occlusion] = true;
+			mat.textureState[(int)PbrMaterials::Occlusion] = true;
 			mat.uvSets.occlusion = gltfMaterial.additionalValues["occlusionTexture"].TextureTexCoord();
 		}
 
@@ -169,7 +169,7 @@ namespace OmegaEngine
 				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
 
 					// do we actually have an image for this particular pbr material
-					if (mat.texture_state[i]) 
+					if (mat.textureState[i]) 
 					{
 						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureManager.getTexture(mat.textures[i].set, mat.textures[i].image),
 							textureManager.getSampler(mat.textures[i].set, mat.textures[i].sampler) };
@@ -177,7 +177,7 @@ namespace OmegaEngine
 					}
 					else 
 					{
-						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureMmanager.getDummyTexture(), textureManager.getDummySampler() };
+						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureManager.getDummyTexture(), textureManager.getDummySampler() };
 						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 					}
 				}

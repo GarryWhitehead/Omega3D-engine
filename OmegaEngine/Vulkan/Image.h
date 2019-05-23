@@ -48,7 +48,7 @@ namespace VulkanAPI
 		void create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usageFlags);
 		void transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
 		void generateMipMap(vk::CommandBuffer cmdBuffer);
-		void blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graphicsQueue);
+		void blit(VulkanAPI::Image& otherImage, VulkanAPI::Queue& graphicsQueue);
 
 		vk::Image& get()
 		{

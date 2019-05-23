@@ -69,7 +69,7 @@ namespace OmegaEngine
 
 		SortKey& getSortKey()
 		{
-			return sort_key;
+			return sortKey;
 		}
 
 		QueueType& getQueueType()

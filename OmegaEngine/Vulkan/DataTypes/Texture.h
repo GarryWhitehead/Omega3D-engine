@@ -45,12 +45,12 @@ namespace VulkanAPI
 			return image;
 		}
 
-		uint32_t get_width() const
+		uint32_t getWidth() const
 		{
 			return width;
 		}
 
-		uint32_t get_height() const
+		uint32_t getHeight() const
 		{
 			return height;
 		}
@@ -65,7 +65,7 @@ namespace VulkanAPI
 			return arrays;
 		}
 
-		uint32_t get_mipLevels() const
+		uint32_t getMipLevels() const
 		{
 			return mipLevels;
 		}

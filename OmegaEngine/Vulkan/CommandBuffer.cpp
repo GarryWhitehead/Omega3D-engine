@@ -205,13 +205,13 @@ namespace VulkanAPI
 		assert(!secondaryCmdBuffers.empty());
 
 		// trasnfer all the secondary cmd buffers into a container for execution
-		std::vector<vk::CommandBuffer> secondaryCmdBuffers(secondaryCmdBuffers.size());
+		std::vector<vk::CommandBuffer> executeCmdBuffers(secondaryCmdBuffers.size());
 		for (uint32_t i = 0; i < secondaryCmdBuffers.size(); ++i) 
 		{
-			secondaryCmdBuffers[i] = secondaryCmdBuffers[i].get();
+			executeCmdBuffers[i] = secondaryCmdBuffers[i].get();
 		}
 
-		cmdBuffer.executeCommands(static_cast<uint32_t>(secondaryCmdBuffers.size()), secondaryCmdBuffers.data());
+		cmdBuffer.executeCommands(static_cast<uint32_t>(executeCmdBuffers.size()), executeCmdBuffers.data());
 	}
 
 	void CommandBuffer::executeSecondaryCommands(uint32_t count)

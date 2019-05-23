@@ -204,10 +204,10 @@ namespace OmegaEngine
 			localIndexOffset += indexCount;
 		}
 
-		staticMesh.vertexBuffer_offset = globalVertexOffset;
+		staticMesh.vertexBufferOffset = globalVertexOffset;
 		globalVertexOffset += localVertexOffset;
 
-		staticMesh.indexBuffer_offset = globalIndexOffset * sizeof(uint32_t);
+		staticMesh.indexBufferOffset = globalIndexOffset * sizeof(uint32_t);
 		globalIndexOffset += localIndexOffset;
 
 		// sort offsets 

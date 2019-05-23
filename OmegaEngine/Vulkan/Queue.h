@@ -13,8 +13,8 @@ namespace VulkanAPI
 		Queue(vk::Queue q, vk::Device dev);
 		~Queue();
 
-		void submitmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffer, std::vector<vk::Semaphore>& wait_semaphores, std::vector<vk::Semaphore>& signal_semaphores, vk::PipelineStageFlags* stage_flags = nullptr);
-		void submitmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& wait_semaphore, vk::Semaphore& signal_semaphore, vk::Fence& fence);
+		void submitCmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffer, std::vector<vk::Semaphore>& waitSemaphores, std::vector<vk::Semaphore>& signalSemaphores, vk::PipelineStageFlags* stageFlags = nullptr);
+		void submitCmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence);
 		void flushCmdBuffer(vk::CommandBuffer cmdBuffer);
 
 		void create(vk::Queue& q, vk::Device& dev, const uint32_t queueIndex)

@@ -164,7 +164,7 @@ namespace VulkanAPI
 		depthTexture->createEmptyImage(depthFormat, extent.width, extent.height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		renderpass = std::make_unique<RenderPass>(device);
-		renderpass->addAttachment(vk::ImageLayout::ePresentSrcKHR, format.format);
+		renderpass->addAttachment(vk::ImageLayout::ePresentSrcKHR, surfaceFormat.format);
 		renderpass->addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
 		renderpass->prepareRenderPass();
 

@@ -37,9 +37,9 @@ namespace VulkanAPI
 		void addDynamicState(vk::DynamicState state);
 
 		void setDepthState(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
-		void setRenderpass(RenderPass r_pass);
+		void setRenderpass(RenderPass& pass);
 		void addShader(Shader& shader);
-		void addLayout(vk::PipelineLayout pl);
+		void addLayout(vk::PipelineLayout& layout);
 		void addEmptyLayout();
 
 		void create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineLayout& layout, PipelineType _type);

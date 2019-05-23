@@ -132,7 +132,7 @@ namespace OmegaEngine
 		std::vector<StaticMesh> meshBuffer;
 
 		// all vertices and indices held in one large buffer
-		std::vector<Vertex> static_vertices;
+		std::vector<Vertex> staticVertices;
 		std::vector<SkinnedVertex> skinnedVertices;
 		std::vector<uint32_t> indices;
 

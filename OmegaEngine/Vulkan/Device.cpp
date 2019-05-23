@@ -16,7 +16,7 @@ namespace VulkanAPI
 	{
 	}
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, 
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type, 
 														uint64_t obj, size_t loc, int32_t code, const char *layer_prefix, const char *msg, void *data)
 	{
 		// ignore access mask false positive
@@ -257,7 +257,7 @@ namespace VulkanAPI
 		{
 			vk::DebugReportCallbackCreateInfoEXT createInfo(
 				vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning | vk::DebugReportFlagBitsEXT::ePerformanceWarning,
-				requiredLayers, this);
+				DebugCallback, this);
 
 			instance.createDebugReportCallbackEXT(&createInfo, nullptr, &debugCallback, dldi);
 		}
@@ -296,8 +296,8 @@ namespace VulkanAPI
 		// presentation queue
 		for (uint32_t c = 0; c < queues.size(); ++c)
 		{
-			VkBool32 hasPesentionQueue = false;
-			physical.getSurfaceCountupportKHR(c, windowSurface, &hasPresentionQueue);
+			VkBool32 hasPresentionQueue = false;
+			physical.getSurfaceSupportKHR(c, windowSurface, &hasPresentionQueue);
 			if (queues[c].queueCount > 0 && hasPresentionQueue) 
 			{
 				queueFamilyIndex.present = c;

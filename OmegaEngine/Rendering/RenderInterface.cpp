@@ -208,7 +208,7 @@ namespace OmegaEngine
 
 		for (auto& info : renderables) {
 
-			switch (info.renderable->getType()) 
+			switch (info.renderable->getRenderType()) 
 			{
 				case RenderTypes::SkinnedMesh:
 				case RenderTypes::StaticMesh: 

@@ -6,16 +6,17 @@
 
 namespace OmegaEngine
 {
+	struct RenderConfig;
 
 	struct PostProcessInfo
 	{
 		// render callback function
-        void (*renderFunction)(void* postProcessData);
+        void (*renderFunction)(void*, void*);
 		void *postProcessHandle;
 
         // data specific to the renderable - mainly drawing information 
         void *postProcessData;
-	}
+	};
 
 	class PostProcessInterface
 	{
@@ -26,7 +27,7 @@ namespace OmegaEngine
 		~PostProcessInterface();
 
 		void init(RenderConfig& renderConfig);
-		void render();
+		void render(RenderConfig& renderConfig);
 
 	private:
 

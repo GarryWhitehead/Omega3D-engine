@@ -239,7 +239,7 @@ namespace OmegaEngine
 							std::unique_ptr<ObjectManager>& objManager, 
 							Object* obj, bool childObject,
 							uint32_t nodeIndex,
-							uint32_t& global_vertexCount, uint32_t& global_indexCount)
+							uint32_t& globalVertexCount, uint32_t& globalIndexCount)
 	{
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
@@ -271,7 +271,7 @@ namespace OmegaEngine
 		if (node.mesh > -1) 
 		{
 			auto& meshManager = componentInterface->getManager<MeshManager>();
-			meshManager.addGltfData(model, node, parentObject, globalVertexCount, globalIndexCount);
+			meshManager.addGltfMesh(model, node, parentObject, globalVertexCount, globalIndexCount);
 		}
 
 		// create the linearised list of objects - parents and children

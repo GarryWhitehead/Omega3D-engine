@@ -160,7 +160,7 @@ namespace OmegaEngine
 				inputManager->update();
 
 				// update everything else
-				world->update(total_time, static_cast<double>(elapsedTime.count()));
+				world->update(totalTime, static_cast<double>(elapsedTime.count()));
 
 				totalTime += static_cast<double>(timeStep.count());
 				accumulator -= timeStep;

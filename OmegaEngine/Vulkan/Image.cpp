@@ -128,9 +128,9 @@ namespace VulkanAPI
 		format = texture.getFormat();
 		faceCount = texture.getFaceCount();
 		arrays = texture.getArrayCount();
-		mipLevels = texture.get_mipLevels();
-		width = texture.get_width();
-		height = texture.get_height();
+		mipLevels = texture.getMipLevels();
+		width = texture.getWidth();
+		height = texture.getHeight();
 
 		vk::ImageCreateInfo image_info({}, 
 			vk::ImageType::e2D, format, 
@@ -217,13 +217,13 @@ namespace VulkanAPI
 			subresourceRange.levelCount = 1;
 		}
 
-		vk::ImageMemoryBarrier mem_barr(srcBarrier, dstBarrier, 
+		vk::ImageMemoryBarrier memoryBarrier(srcBarrier, dstBarrier, 
 			oldLayout, newLayout, 
 			VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, 
 			image,
 			subresourceRange);
 
-		cmdBuff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &mem_barr);
+		cmdBuff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
 	}
 
 	// image-based functions =======
@@ -251,17 +251,17 @@ namespace VulkanAPI
 				height >> i,
 				1);
 
-			vk::ImageBlit image_blit;
-			image_blit.srcSubresource = src;
-			image_blit.newLayouts[1] = srcOffset;
-			image_blit.dstSubresource = dst;
-			image_blit.dstOffsets[1] = dstOffset;
+			vk::ImageBlit imageBlit;
+			imageBlit.srcSubresource = src;
+			imageBlit.srcOffsets[1] = srcOffset;
+			imageBlit.dstSubresource = dst;
+			imageBlit.dstOffsets[1] = dstOffset;
 
 			// create image barrier - transition image to transfer 
 			transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
 
 			// blit the image
-			cmdBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, vk::Filter::eLinear);
+			cmdBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, vk::Filter::eLinear);
 			transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer, i);
 		}
 
@@ -269,7 +269,7 @@ namespace VulkanAPI
 		transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
 	}
 
-	void Image::blit(VulkanAPI::Image& other_image, VulkanAPI::Queue& graphicsQueue)
+	void Image::blit(VulkanAPI::Image& otherImage, VulkanAPI::Queue& graphicsQueue)
 	{
 		// source
 		vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(format);
@@ -287,25 +287,25 @@ namespace VulkanAPI
 		vk::Offset3D dstOffset(
 			width, height, 1);
 
-		vk::ImageBlit image_blit;
-		image_blit.srcSubresource = src;
-		image_blit.newLayouts[1] = srcOffset;
-		image_blit.dstSubresource = dst;
-		image_blit.dstOffsets[1] = dstOffset;
+		vk::ImageBlit imageBlit;
+		imageBlit.srcSubresource = src;
+		imageBlit.srcOffsets[1] = srcOffset;
+		imageBlit.dstSubresource = dst;
+		imageBlit.dstOffsets[1] = dstOffset;
 
 		// cmd buffer required for the image blit
 		CommandBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
 		blitCmdBuffer.createPrimary();
 
 		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blitCmdBuffer.get());
-		other_image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
+		otherImage.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
 
 		// blit the image 
 		vk::Filter filter = getFilterType(format);
-		blitCmdBuffer.get().blitImage(other_image.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &image_blit, filter);
+		blitCmdBuffer.get().blitImage(otherImage.get(), vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
 
 		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
-		other_image.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
+		otherImage.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
 
 		// flush the cmd buffer
 		blitCmdBuffer.end();

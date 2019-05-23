@@ -41,5 +41,20 @@ namespace OmegaEngine
 			QueueType type,
 			RenderConfig& renderConfig);
 	}
+
+	class PresentationPass
+	{
+	public:
+
+		PresentationPass();
+		~PresentationPass();
+
+		void createPipeline();
+		void render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig);
+
+	private:
+
+		ProgramState state;
+	};
 }
 

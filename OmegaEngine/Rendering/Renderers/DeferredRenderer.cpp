@@ -41,7 +41,7 @@ namespace OmegaEngine
 		// 2. render the objects again but this time into a depth buffer for shadows
 		shadowImage.init(device, gpu);
 		RenderableShadow::createShadowPass(shadowRenderpass, shadowImage, device, gpu, 
-			renderConfig.shadow_format, renderConfig.shadow_width, renderConfig.shadow_height);
+			renderConfig.shadowFormat, renderConfig.shadowWidth, renderConfig.shadowHeight);
 
 		forwardOffscreenImage.init(device, gpu);
 		forwardOffscreenDepthImage.init(device, gpu);
@@ -219,6 +219,8 @@ namespace OmegaEngine
 				forwardOffscreenDepthImage.getImage().blit(gBufferImages[5].getImage(), vkInterface->getGraphicsQueue());
 				Rendering::renderObjects(renderQueue, forwardRenderpass, cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle), QueueType::Forward, renderConfig);
 			}
+
+			postProcessInterface->render();
 		}
 
 		// finally send to the swap-chain presentation

@@ -67,10 +67,10 @@ namespace OmegaEngine
 		// also add index to skinning information if applicable
 		transform.setSkinIndex(node.skin);
 
-		transformBuffer[obj->getId()] = transform;
+		transforms[obj->getId()] = transform;
 
 		// add to the list of entites
-		obj->addComponent<TransformComponent>(static_cast<uint32_t>(transformBuffer.size() - 1));
+		obj->addComponent<TransformComponent>(static_cast<uint32_t>(transforms.size() - 1));
 	}
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects)
@@ -113,7 +113,7 @@ namespace OmegaEngine
 
 	OEMaths::mat4f TransformManager::updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager)
 	{
-		OEMaths::mat4f mat = transformBuffer[obj.getId()].getLocalMatrix();
+		OEMaths::mat4f mat = transforms[obj.getId()].getLocalMatrix();
 
 		uint64_t parentId = obj.getParent();
 		while (parentId != UINT64_MAX) 
@@ -121,7 +121,7 @@ namespace OmegaEngine
 			Object* parentObject = objectManager->getObject(parentId);
 
 			uint32_t id = parentObject->getId();
-			mat = transformBuffer[id].getLocalMatrix() * mat;
+			mat = transforms[id].getLocalMatrix() * mat;
 			parentId = parentObject->getParent();
 		}
 
@@ -134,26 +134,26 @@ namespace OmegaEngine
 		{
 			uint32_t id = obj.getId();
 
-			TransformBufferInfo* transformBuffer = (TransformBufferInfo*)((uint64_t)transformBufferData + (transformAlignment * transformBufferer_size));
-			SkinnedBufferInfo* skinnedBuffer = (SkinnedBufferInfo*)((uint64_t)skinnedBufferData + (skinnedAlignment * skinnedBufferSize));
+			TransformBufferInfo* transformBufferPtr = (TransformBufferInfo*)((uint64_t)transformBufferData + (transformAlignment * transformBufferSize));
+			SkinnedBufferInfo* skinnedBufferPtr = (SkinnedBufferInfo*)((uint64_t)skinnedBufferData + (skinnedAlignment * skinnedBufferSize));
 			
-			transformBuffer[id].setTransformOffset(transformBufferSize* transformAlignment);
+			transforms[id].setTransformOffset(transformBufferSize * transformAlignment);
 
 			OEMaths::mat4f mat = updateMatrixFromTree(obj, objectManager);
-			transformBuffer->modelMatrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+			transformBufferPtr->modelMatrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
 			++transformBufferSize;
 
 			// skinned transform
-			transformBuffer[id].setSkinnedOffset(skinnedBufferSize * skinnedAlignment);
+			transforms[id].setSkinnedOffset(skinnedBufferSize * skinnedAlignment);
 
-			uint32_t skinIndex = transformBuffer[id].getSkinIndex();
+			uint32_t skinIndex = transforms[id].getSkinIndex();
 
 			// prepare fianl output matrices buffer
 			uint64_t jointSize = static_cast<uint32_t>(skinBuffer[skinIndex].joints.size()) > 256 ? 256 : skinBuffer[skinIndex].joints.size();
 			skinBuffer[skinIndex].jointMatrices.resize(jointSize);
 
-			skinnedBuffer->jointCount = jointSize;
+			skinnedBufferPtr->jointCount = jointSize;
 
 			// transform to local space
 			OEMaths::mat4f inverseMat = mat.inverse();
@@ -166,7 +166,7 @@ namespace OmegaEngine
 				// transform joint to local (joint) space
 				OEMaths::mat4f localMatrix = inverseMat * jointMatrix;
 				skinBuffer[skinIndex].jointMatrices[i] = localMatrix;
-				skinnedBuffer->jointMatrices[i] = localMatrix;
+				skinnedBufferPtr->jointMatrices[i] = localMatrix;
 			}
 			++skinnedBufferSize;
 	
@@ -177,7 +177,7 @@ namespace OmegaEngine
 
 			TransformBufferInfo* transformBuffer = (TransformBufferInfo*)((uint64_t)transformBufferData + (transformAlignment * transformBufferSize));
 			
-			transformBuffer[id].setTransformOffset(transformBufferSize* transformAlignment);
+			transforms[id].setTransformOffset(transformBufferSize * transformAlignment);
 
 			OEMaths::mat4f mat = updateMatrixFromTree(obj, objectManager);
 			transformBuffer->modelMatrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
@@ -191,7 +191,8 @@ namespace OmegaEngine
 		for (auto& child : children) 
 		{
 			// it is possible that the object has no transform, so check this first
-			if (child.hasComponent<TransformManager>()) {
+			if (child.hasComponent<TransformManager>()) 
+			{
 				updateTransformRecursive(objectManager, child, transformAlignment, skinnedAlignment);
 			}
 		}
@@ -219,7 +220,7 @@ namespace OmegaEngine
 
 			if (transformBufferSize) 
 			{
-				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transformBufferData, transformAligned * transformBufferer_size, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
+				VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transformBufferData, transformAligned * transformBufferSize, VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 				Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 			}
 			if (skinnedBufferSize) 
@@ -235,7 +236,7 @@ namespace OmegaEngine
 	void TransformManager::updateObjectTranslation(Object& obj, OEMaths::vec4f trans)
 	{
 		uint32_t id = obj.getId();
-		transformBuffer[id].setTranslation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
+		transforms[id].setTranslation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		isDirty = true;		
@@ -244,14 +245,14 @@ namespace OmegaEngine
 	void TransformManager::updateObjectScale(Object& obj, OEMaths::vec4f scale)
 	{
 		uint32_t id = obj.getId();
-		transformBuffer[id].setScale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
+		transforms[id].setScale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
 		isDirty = true;
 	}
 
 	void TransformManager::updateObjectRotation(Object& obj, OEMaths::quatf rot)
 	{
 		uint32_t id = obj.getId();
-		transformBuffer[id].setRotation(rot);
+		transforms[id].setRotation(rot);
 		isDirty = true;
 	}
 }

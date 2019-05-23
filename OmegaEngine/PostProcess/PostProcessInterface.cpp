@@ -1,4 +1,5 @@
 #include "PostProcessInterface.h"
+#include "Rendering/RenderConfig.h"
 
 namespace OmegaEngine
 {
@@ -15,7 +16,7 @@ namespace OmegaEngine
 
 	
 
-	void PostProcessInterface::init()
+	void PostProcessInterface::init(RenderConfig& renderConfig)
 	{
 		if (renderConfig.postProcess.useHdr)
 		{
@@ -23,28 +24,12 @@ namespace OmegaEngine
 		}
 	}
 
-	void PostProcessInterface::renderToSurface()
-	{
-		uint32_t imageCount = cmdBufferManager->getPresentImageCount();
-		for (uint32_t i = 0; i < imageCount; ++i) 
-		{
-			auto& cmdBuffer = cmdBufferManager->beginPresentCmdBuffer(swapchain.getRenderpass(), renderConfig.general.backgroundColour, i);
-			
-		}
-	}
-
 	void PostProcessInterface::render(RenderConfig& renderConfig)
 	{
 		// run through all post processing passes required
-		// if there is no post-processing, render straight to the surface
-		if (postProcessPasses.empty())
+		for (auto& pass : postProcessPasses)
 		{
-			renderToSurface();
-		}
-
-		for (uint32_t i = 0; i < postProcessPasses.size(); ++i)
-		{
-
+			pass.renderFunction(pass.postProcessHandle, pass.postProcessData);
 		}
 		
 	}

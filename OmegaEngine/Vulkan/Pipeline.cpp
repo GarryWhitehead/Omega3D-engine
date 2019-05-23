@@ -37,7 +37,7 @@ namespace VulkanAPI
 
 		vk::PipelineLayoutCreateInfo pipelineInfo({},
 			static_cast<uint32_t>(layouts.size()), layouts.data(),
-			static_cast<uint32_t>(push_constants.size()), push_constants.data());
+			static_cast<uint32_t>(pushConstants.size()), pushConstants.data());
 
 		VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
 	}

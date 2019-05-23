@@ -42,11 +42,15 @@ namespace OmegaEngine
 			bool isContributing = false;
 		} ibl;
 
-		bool useSSAO = false;
-		bool useMSAA = false;
-		bool shadowsEnabled = true;
-		bool bloomEnabled = true;
-		bool fogEnabled = true;
+		struct PostProcess
+		{
+			bool useSSAO = false;
+			bool useMSAA = false;
+			bool useHdr = false;
+			bool shadowsEnabled = true;
+			bool bloomEnabled = true;
+			bool fogEnabled = true;
+		} postProcess;
 
 		// shadows
 		uint32_t shadowWidth = 2048;

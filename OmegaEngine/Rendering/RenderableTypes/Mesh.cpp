@@ -37,7 +37,7 @@ namespace OmegaEngine
 		auto& mat = materialManager.get(primitive.materialId);
 
 		// create the sorting key for this mesh
-		sort_key = RenderQueue::createSortKey(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
+		sortKey = RenderQueue::createSortKey(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
 
 		// fill out the data which will be used for rendering
 		instanceData = new MeshInstance;
@@ -93,11 +93,11 @@ namespace OmegaEngine
 		meshInstance->materialPushBlock.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.getX(), mat.factors.diffuse.getY(), mat.factors.diffuse.getZ() };
 		meshInstance->materialPushBlock.alphaMask = (float)mat.factors.alphaMask;
 		meshInstance->materialPushBlock.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
-		meshInstance->materialPushBlock.haveBaseColourMap = mat.texture_state[(int)PbrMaterials::BaseColor] ? 1 : 0;
-		meshInstance->materialPushBlock.haveMrMap = mat.texture_state[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;
-		meshInstance->materialPushBlock.haveNormalMap = mat.texture_state[(int)PbrMaterials::Normal] ? 1 : 0;
-		meshInstance->materialPushBlock.haveAoMap = mat.texture_state[(int)PbrMaterials::Occlusion] ? 1 : 0;
-		meshInstance->materialPushBlock.haveEmissiveMap = mat.texture_state[(int)PbrMaterials::Emissive] ? 1 : 0;
+		meshInstance->materialPushBlock.haveBaseColourMap = mat.textureState[(int)PbrMaterials::BaseColor] ? 1 : 0;
+		meshInstance->materialPushBlock.haveMrMap = mat.textureState[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;
+		meshInstance->materialPushBlock.haveNormalMap = mat.textureState[(int)PbrMaterials::Normal] ? 1 : 0;
+		meshInstance->materialPushBlock.haveAoMap = mat.textureState[(int)PbrMaterials::Occlusion] ? 1 : 0;
+		meshInstance->materialPushBlock.haveEmissiveMap = mat.textureState[(int)PbrMaterials::Emissive] ? 1 : 0;
 		meshInstance->materialPushBlock.usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
 		meshInstance->materialPushBlock.baseColourUvSet = mat.uvSets.baseColour;
 		meshInstance->materialPushBlock.metallicRoughnessUvSet = mat.uvSets.metallicRoughness;
@@ -120,39 +120,39 @@ namespace OmegaEngine
 	{
 		// load shaders
 		if (type == MeshManager::MeshType::Static) {
-			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 				LOGGER_ERROR("Unable to create static model shaders.");
 			}
 		}
 		else if (type == MeshManager::MeshType::Skinned) {
-			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
+			if (!state.shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) {
 				LOGGER_ERROR("Unable to create skinned model shaders.");
 			}
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
-		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
-		state->descriptorLayout.create(device, TOTAL_materialSetS);
+		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
+		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
+		state.descriptorLayout.create(device, MAX_MATERIAL_SETS);
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
-		for (auto& buffer : state->bufferLayout) {
-			state->descriptorSet.init(device, state->descriptorLayout.getLayout(buffer.set), state->descriptorLayout.getDescriptorPool(), buffer.set);
+		for (auto& buffer : state.bufferLayout) {
+			state.descriptorSet.init(device, state.descriptorLayout.getLayout(buffer.set), state.descriptorLayout.getDescriptorPool(), buffer.set);
 		}
 
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
-		for (auto& layout : state->bufferLayout) {
+		for (auto& layout : state.bufferLayout) {
 			
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") {
-				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Camera", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_StaticMeshUbo") {
-				bufferManager->enqueueDescrUpdate("Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("Transform", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_SkinnedUbo") {
-				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state->descriptorSet, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
@@ -160,24 +160,24 @@ namespace OmegaEngine
 		// TODO : automate this somehow rather than hard coded values
 		const uint8_t materialSet = 2;
 		if (type == MeshManager::MeshType::Static) {
-			textureManager->bindTexturesToDescriptorLayout("Mesh", &state->descriptorLayout, materialSet);
+			textureManager->bindTexturesToDescriptorLayout("Mesh", &state.descriptorLayout, materialSet);
 		}
 		else if (type == MeshManager::MeshType::Skinned) {
-			textureManager->bindTexturesToDescriptorLayout("SkinnedMesh", &state->descriptorLayout, materialSet);
+			textureManager->bindTexturesToDescriptorLayout("SkinnedMesh", &state.descriptorLayout, materialSet);
 		}
 
-		state->shader.pipelineLayoutReflect(state->pipelineLayout);
-		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
+		state.shader.pipelineLayoutReflect(state.pipelineLayout);
+		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
 
 		// create the graphics pipeline
-		state->shader.pipelineReflection(state->pipeline);
+		state.shader.pipelineReflection(state.pipeline);
 
-		state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
-		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
-		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
-		state->pipeline.addColourAttachment(VK_FALSE, renderer->getFirstPass());
-		state->pipeline.create(device, renderer->getFirstPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.setDepthState(VK_TRUE, VK_TRUE);
+		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
+		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.addColourAttachment(VK_FALSE, renderer->getFirstPass());
+		state.pipeline.create(device, renderer->getFirstPass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
@@ -193,14 +193,14 @@ namespace OmegaEngine
 		// merge the material set with the mesh ubo sets
 		ProgramState* state = instanceData->state;
 		std::vector<vk::DescriptorSet> materialSet = instanceData->descriptorSet.get();
-		std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
+		std::vector<vk::DescriptorSet> meshSet = state.descriptorSet.get();
 		mesh_set.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
 		cmdBuffer.setViewport();
 		cmdBuffer.setScissor();
-		cmdBuffer.bindPipeline(state->pipeline);
-		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
-		cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
+		cmdBuffer.bindPipeline(state.pipeline);
+		cmdBuffer.bindDynamicDescriptors(state.pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
+		cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
 
 		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);

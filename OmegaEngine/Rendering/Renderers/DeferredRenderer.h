@@ -63,9 +63,9 @@ namespace OmegaEngine
 		VulkanAPI::Texture forwardOffscreenDepthImage;
 	
 		// Command buffer handles for all passes
-		VulkanAPI::deferredCmdBufferHandle deferredCmdBufferHandle;
-		VulkanAPI::deferredCmdBufferHandle forwardCmdBufferHandle;
-		VulkanAPI::deferredCmdBufferHandle objectCmdBufferHandle;
+		VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;
+		VulkanAPI::CmdBufferHandle forwardCmdBufferHandle;
+		VulkanAPI::CmdBufferHandle objectCmdBufferHandle;
 
 		// for the deferred rendering pipeline
 		ProgramState state;

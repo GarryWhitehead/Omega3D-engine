@@ -37,9 +37,9 @@ namespace VulkanAPI
 			return swapchain;
 		}
 
-		vk::Format& getFormat()
+		vk::Format& getSurfaceFormat()
 		{
-			return format.format;
+			return surfaceFormat.format;
 		}
 
 		uint32_t getImageCount() const

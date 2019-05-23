@@ -25,7 +25,7 @@ namespace OmegaEngine
 		struct TransformData
 		{
 			// static 
-			struct LocalTansform
+			struct LocalTransform
 			{
 				OEMaths::vec3f trans;
 				OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
@@ -116,7 +116,7 @@ namespace OmegaEngine
 			bool recalculateLocal = false;
 
 			// decomposed form
-			localTransform localTransform;
+			LocalTransform localTransform;
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;
@@ -181,28 +181,28 @@ namespace OmegaEngine
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
-			if (transformBuffer.find(id) == transformBuffer.end()) 
+			if (transforms.find(id) == transforms.end()) 
 			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].getTransformOffset();
+			return transforms[id].getTransformOffset();
 		}
 
 		uint32_t getSkinnedOffset(uint32_t id)
 		{
 			// the transform buffer stores both parents and children so unfortunately we need to iterate through
 			// to find the id.
-			if (transformBuffer.find(id) == transformBuffer.end()) 
+			if (transforms.find(id) == transforms.end()) 
 			{
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
-			return transformBuffer[id].getSkinnedOffset();
+			return transforms[id].getSkinnedOffset();
 		}
 
 	private:
 
 		// transform data for static meshes - stored with object id for faster look up
-		std::unordered_map<uint32_t, TransformData> transformBuffer;
+		std::unordered_map<uint32_t, TransformData> transforms;
 
 		// skinned transform data
 		std::vector<SkinInfo> skinBuffer;
