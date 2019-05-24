@@ -44,7 +44,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void PresentationPass::createPipeline()
+	void PresentationPass::createPipeline(vk::ImageView& postProcessImageView)
 	{
 		
 		if (!state.shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "presentation-frag.spv", VulkanAPI::StageType::Fragment)) 
@@ -61,6 +61,11 @@ namespace OmegaEngine
 		// sort out the descriptor sets - buffers
 		for (auto& layout : state.bufferLayout) {
 
+		}
+
+		for (uint8_t i = 0; i < state.imageLayout[DeferredSet].size(); ++i) 
+		{
+			state.descriptorSet.writeSet(state.imageLayout[DeferredSet][i], postProcessImageView);
 		}
 
 		state.shader.pipelineLayoutReflect(state.pipelineLayout);
