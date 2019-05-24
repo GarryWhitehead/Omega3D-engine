@@ -22,11 +22,10 @@ namespace OmegaEngine
 		bool operator==(const Object& obj) const;
 
 		void addChild(Object& obj);
-		Object& getLastChild();
 
 		// helper functions
 		uint64_t getId() const;
-		void setId(const uint64_t _id);
+		void setId(const uint64_t id);
 		uint64_t getParent() const;
 
 		template <typename T>
@@ -58,7 +57,8 @@ namespace OmegaEngine
 		bool hasComponent()
 		{
 			uint32_t id = Util::TypeId<T>::id();
-			if (components.find(id) == components.end()) {
+			if (components.find(id) == components.end()) 
+			{
 				return false;
 			}
 			return true;

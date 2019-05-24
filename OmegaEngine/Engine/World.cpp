@@ -206,19 +206,13 @@ namespace OmegaEngine
 
 			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
 			// data will be passed to all the relevant managers for this object and components added automatically
-			tinygltf::Scene &scene = model.scenes[model.defaultScene];
-
-			uint32_t vertexCount = 0;
-			uint32_t indexCount = 0;
+			tinygltf::Scene &scene = model.scenes[model.defaultScene];;
 
 			// we also need to keep a linerised form of the objects for matching up joint indices later
 			std::unordered_map<uint32_t, Object> linearisedObjects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) 
 			{
-				Object* obj = objectManager->createObject();
-
-				tinygltf::Node node = model.nodes[scene.nodes[i]];
-				loadGltfNode(model, node, linearisedObjects, worldMatix, objectManager, obj, false, scene.nodes[i], vertexCount, indexCount);
+				loadGltfNode(model, linearisedObjects, worldMatix, objectManager, nullptr, scene.nodes[i]);
 			}
 
 			// skinning info
@@ -233,24 +227,26 @@ namespace OmegaEngine
 		}
 	}
 
-	void World::loadGltfNode(tinygltf::Model& model, tinygltf::Node& node, 
+	void World::loadGltfNode(tinygltf::Model& model,
 							std::unordered_map<uint32_t, Object>& linearisedObjects, 
 							OEMaths::mat4f worldTransform, 
 							std::unique_ptr<ObjectManager>& objManager, 
-							Object* obj, bool childObject,
-							uint32_t nodeIndex,
-							uint32_t& globalVertexCount, uint32_t& globalIndexCount)
+							Object* parentObject,
+							uint32_t nodeIndex)
 	{
+		tinygltf::Node node = model.nodes[nodeIndex];
+
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
-		// indice to these objects in the parent. This will then allow these meshes to be used by other objects.
-		Object* parentObject;
-		if (childObject) 
+		// indices to these objects in the parent. This will then allow these meshes to be used by other objects.
+		Object* childObject = nullptr;
+		if (!obj) 
 		{
-			parentObject = objManager->createChildObject(*obj);
+			childObject = objectManager->createObject();
+			
 		}
 		else 
 		{
-			parentObject = obj;
+			childObject = objManager->createChildObject(*parentObject);
 		}
 
 		// add all local and world transforms to the transform manager - also combines skinning info
@@ -262,8 +258,8 @@ namespace OmegaEngine
 		{
 			for (uint32_t i = 0; i < node.children.size(); ++i) 
 			{
-				loadGltfNode(model, model.nodes[node.children[i]], linearisedObjects, worldTransform, objManager, 
-					parentObject, true, node.children[i], globalVertexCount, globalIndexCount);
+				loadGltfNode(model,linearisedObjects, worldTransform, objManager, 
+					childObject, node.children[i]);
 			}
 		}
 
@@ -271,11 +267,11 @@ namespace OmegaEngine
 		if (node.mesh > -1) 
 		{
 			auto& meshManager = componentInterface->getManager<MeshManager>();
-			meshManager.addGltfMesh(model, node, parentObject, globalVertexCount, globalIndexCount);
+			meshManager.addGltfMesh(model, node, childObject);
 		}
 
 		// create the linearised list of objects - parents and children
-		linearisedObjects[nodeIndex] = *parentObject;
+		linearisedObjects[nodeIndex] = *childObject;
 	}
 
 }

@@ -15,12 +15,12 @@ namespace OmegaEngine
 
 	bool Object::operator==(const Object& obj) const
 	{
-		return id == obj.id;
+		return this->id == obj.id;
 	}
 
 	void Object::addChild(Object& obj)
 	{
-		obj.parentId = id;
+		obj.parentId = this->id;
 
 		children.push_back(obj);
 	}
@@ -28,24 +28,17 @@ namespace OmegaEngine
 	// helper functions
 	uint64_t Object::getId() const
 	{
-		return id;
+		return this->id;
 	}
 
-	void Object::setId(const uint64_t _id)
+	void Object::setId(const uint64_t id)
 	{
-		id = _id;
+		this->id = id;
 	}
 
 	uint64_t Object::getParent() const
 	{
-		return parentId;
-	}
-	Object& Object::getLastChild()
-	{
-		if (!children.empty()) {
-			return children.back();
-		}
-		throw std::out_of_range("No children in parent object. This shouldn't happen!");
+		return this->parentId;
 	}
 
 	std::vector<Object>& Object::getChildren()

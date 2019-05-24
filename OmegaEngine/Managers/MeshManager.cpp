@@ -20,7 +20,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void MeshManager::addGltfMesh(tinygltf::Model& model, tinygltf::Node& node, Object* obj, uint32_t& globalVertexOffset, uint32_t& globalIndexOffset)
+	void MeshManager::addGltfMesh(tinygltf::Model& model, tinygltf::Node& node, Object* obj)
 	{
 		const tinygltf::Mesh& mesh = model.meshes[node.mesh];
 		
@@ -205,10 +205,10 @@ namespace OmegaEngine
 		}
 
 		staticMesh.vertexBufferOffset = globalVertexOffset;
-		globalVertexOffset += localVertexOffset;
+		this->globalVertexOffset += localVertexOffset;
 
 		staticMesh.indexBufferOffset = globalIndexOffset * sizeof(uint32_t);
-		globalIndexOffset += localIndexOffset;
+		this->globalIndexOffset += localIndexOffset;
 
 		// sort offsets 
 		meshBuffer.push_back(staticMesh);
