@@ -503,6 +503,9 @@
     <ClInclude Include="OEMaths\OEMaths_Vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="utility\result.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="cpp.hint" />

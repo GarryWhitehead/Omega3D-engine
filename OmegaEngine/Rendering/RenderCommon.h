@@ -12,6 +12,7 @@
 namespace VulkanAPI
 {
 	class RenderPass;
+	class Swapchain;
 }
 
 namespace OmegaEngine
@@ -49,8 +50,8 @@ namespace OmegaEngine
 		PresentationPass();
 		~PresentationPass();
 
-		void createPipeline();
-		void render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig);
+		void createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain);
+		void render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig, VulkanAPI::Swapchain& swapchain);
 
 	private:
 

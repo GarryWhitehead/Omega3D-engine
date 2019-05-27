@@ -73,6 +73,9 @@ namespace OmegaEngine
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> postProcessInterface;
 
+		// the final render call
+		std::unique_ptr<PresentationPass> presentPass;
+
 		// keep a local copy of the render config
 		RenderConfig renderConfig;
 

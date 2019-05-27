@@ -79,21 +79,21 @@ namespace VulkanAPI
 		VkTextureManager(vk::Device& dev, vk::PhysicalDevice& physicalDevice, VulkanAPI::Queue& queue);
 		~VkTextureManager();
 
-		void update_texture(TextureUpdateEvent& event);
+		void updateTexture(TextureUpdateEvent& event);
 		void enqueueDescrUpdate(const char*, VulkanAPI::DescriptorSet*, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding);
 		void updateDescriptors();
 		void update();
 
 		// updates a single descriptor set with a texture set identified by its unique id
-		void update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t setValue);
+		void updateMaterialDescriptorSet(DescriptorSet& set, const char* id, uint32_t setValue);
 
-		void update_material_texture(MaterialTextureUpdateEvent& event);
-		void update_material_descriptors();
+		void updateMaterialTexture(MaterialTextureUpdateEvent& event);
+		void updateMaterialDescriptors();
 
 		// associates an id with a descriptor layout. Used for materials, etc. were there are multiple descriptor sets but one layout
 		void bindTexturesToDescriptorLayout(const char* id, DescriptorLayout* layout, uint32_t setValue);
 
-		TextureLayoutInfo& getTexture_descriptorLayout(const char* id);
+		TextureLayoutInfo& getTextureDescriptorLayout(const char* id);
 
 	private:
 

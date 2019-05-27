@@ -219,13 +219,13 @@ namespace VulkanAPI
 		assert(!secondaryCmdBuffers.empty());
 
 		// trasnfer the specified amount of secondary cmd buffers into a container for execution
-		std::vector<vk::CommandBuffer> secondaryCmdBuffers(count);
+		std::vector<vk::CommandBuffer> executeCmdBuffers(count);
 		for (uint32_t i = 0; i < count; ++i) 
 		{
-			secondaryCmdBuffers[i] = secondaryCmdBuffers[i].get();
+			executeCmdBuffers[i] = secondaryCmdBuffers[i].get();
 		}
 
-		cmdBuffer.executeCommands(count, secondaryCmdBuffers.data());
+		cmdBuffer.executeCommands(count, executeCmdBuffers.data());
 	}
 
 	SecondaryCommandBuffer& CommandBuffer::createSecondary()
@@ -239,7 +239,8 @@ namespace VulkanAPI
 	void CommandBuffer::createSecondary(uint32_t count)
 	{
 		secondaryCmdBuffers.resize(count);
-		for (uint32_t i = 0; i < count; ++i) {
+		for (uint32_t i = 0; i < count; ++i) 
+		{
 			secondaryCmdBuffers[i] = {device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor};
 			secondaryCmdBuffers[i].create();
 		}

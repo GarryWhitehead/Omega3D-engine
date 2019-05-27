@@ -30,6 +30,9 @@ namespace OmegaEngine
 		renderConfig(_renderConfig),
 		RendererBase(RendererType::Deferred)
 	{
+		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
+		presentPass = std::make_unique<PresentationPass>();
+
 		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		objectCmdBufferHandle = cmdBufferManager->createInstance();
 		forwardCmdBufferHandle = cmdBufferManager->createInstance();
@@ -50,6 +53,12 @@ namespace OmegaEngine
 
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
 		createDeferredPass(bufferManager, swapchain);
+
+		// 4. post processing 
+		vk::ImageView finalImage = postProcessInterface->createPipelines(forwardOffscreenImage.getImageView(), renderConfig);
+
+		// 5. final render pass - draws to the surface
+		presentPass->createPipeline(dev, finalImage, swapchain);
 	}
 
 
@@ -64,7 +73,7 @@ namespace OmegaEngine
 
 		firstRenderpass.init(device);
 		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// position
-		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);			// colour
+		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);				// colour
 		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// normal
 		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16Sfloat);				// pbr
 		firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16B16A16Sfloat);		// emissive
@@ -153,17 +162,8 @@ namespace OmegaEngine
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		
-		if (renderConfig.general.useSkybox) 
-		{
-			state.pipeline.addColourAttachment(VK_FALSE, forwardRenderpass);
-			state.pipeline.create(device, forwardRenderpass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
-		}
-		else 
-		{
-			// render to the swapchain presentation 
-			state.pipeline.addColourAttachment(VK_FALSE, swapchain.getRenderpass());
-			state.pipeline.create(device, swapchain.getRenderpass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
-		}
+		state.pipeline.addColourAttachment(VK_FALSE, forwardRenderpass);
+		state.pipeline.create(device, forwardRenderpass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain)
@@ -190,7 +190,6 @@ namespace OmegaEngine
 		// end this pass and cmd buffer
 		cmdBuffer->endRenderpass();
 		cmdBuffer->end();
-	
 	}
 
 	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue)
@@ -220,8 +219,11 @@ namespace OmegaEngine
 				Rendering::renderObjects(renderQueue, forwardRenderpass, cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle), QueueType::Forward, renderConfig);
 			}
 
-			postProcessInterface->render();
+			postProcessInterface->render(renderConfig);
 		}
+
+		// and finally render to the presentation surface the final composition with final effects added - fog, etc.
+		presentPass->render(cmdBufferManager, renderConfig, vkInterface->getSwapchain());
 
 		// finally send to the swap-chain presentation
 		cmdBufferManager->submitFrame(vkInterface->getSwapchain());

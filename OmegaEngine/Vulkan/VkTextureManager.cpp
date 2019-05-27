@@ -12,8 +12,8 @@ namespace VulkanAPI
 		gpu(physicalDevice),
 		graphicsQueue(queue)
 	{
-		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, TextureUpdateEvent, &VkTextureManager::update_texture>(this);
-		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, MaterialTextureUpdateEvent, &VkTextureManager::update_material_texture>(this);
+		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, TextureUpdateEvent, &VkTextureManager::updateTexture>(this);
+		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, MaterialTextureUpdateEvent, &VkTextureManager::updateMaterialTexture>(this);
 	}
 
 
@@ -21,7 +21,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void VkTextureManager::update_material_texture(MaterialTextureUpdateEvent& event)
+	void VkTextureManager::updateMaterialTexture(MaterialTextureUpdateEvent& event)
 	{
 		assert(event.mappedTexture != nullptr);
 
@@ -34,7 +34,7 @@ namespace VulkanAPI
 		materialTextures[event.id].push_back(tex_info);
 	}
 
-	void VkTextureManager::update_material_descriptors()
+	void VkTextureManager::updateMaterialDescriptors()
 	{
 
 		for (auto& descr : descriptorSetUpdateQueue) {
@@ -64,7 +64,7 @@ namespace VulkanAPI
 		textureLayouts[id] = { layout, setValue };
 	}
 
-	VkTextureManager::TextureLayoutInfo& VkTextureManager::getTexture_descriptorLayout(const char* id)
+	VkTextureManager::TextureLayoutInfo& VkTextureManager::getTextureDescriptorLayout(const char* id)
 	{
 		auto iter = textureLayouts.begin();
 		while (iter != textureLayouts.end()) {
@@ -81,7 +81,7 @@ namespace VulkanAPI
 		return iter->second;
 	}
 
-	void VkTextureManager::update_material_descriptorSet(DescriptorSet& set, const char* id, uint32_t setValue)
+	void VkTextureManager::updateMaterialDescriptorSet(DescriptorSet& set, const char* id, uint32_t setValue)
 	{
 		auto iter = materialTextures.begin();
 		while (iter != materialTextures.end()) {
@@ -101,7 +101,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void VkTextureManager::update_texture(TextureUpdateEvent& event)
+	void VkTextureManager::updateTexture(TextureUpdateEvent& event)
 	{
 		assert(event.mappedTexture != nullptr);
 

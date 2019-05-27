@@ -137,7 +137,7 @@ namespace OmegaEngine
 		std::vector<uint32_t> indices;
 
 		uint32_t globalVertexOffset = 0;
-		uint32_t indexVertexOffset = 0;
+		uint32_t globalIndexOffset = 0;
 
 		bool isDirty = true;
 	};

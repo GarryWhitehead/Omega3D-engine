@@ -3,6 +3,7 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Rendering/RenderableTypes/Skybox.h"
+#include "Vulkan/Swapchain.h"
 
 namespace OmegaEngine
 {
@@ -44,12 +45,12 @@ namespace OmegaEngine
 	{
 	}
 
-	void PresentationPass::createPipeline(vk::ImageView& postProcessImageView)
+	void PresentationPass::createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain)
 	{
 		
-		if (!state.shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "presentation-frag.spv", VulkanAPI::StageType::Fragment)) 
+		if (!state.shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "PostProcess/final-composition-frag.spv", VulkanAPI::StageType::Fragment)) 
 		{
-			LOGGER_ERROR("Unable to create static model shaders.");
+			LOGGER_ERROR("Unable to create shaders for final composition.");
 		}
 			
 		// get pipeline layout and vertedx attributes by reflection of shader
@@ -63,9 +64,15 @@ namespace OmegaEngine
 
 		}
 
-		for (uint8_t i = 0; i < state.imageLayout[DeferredSet].size(); ++i) 
+		for (auto& layout : state.imageLayout)
 		{
-			state.descriptorSet.writeSet(state.imageLayout[DeferredSet][i], postProcessImageView);
+			for (auto& image : layout.second)
+			{
+				if (image.name == "ImageSampler")
+				{
+					state.descriptorSet.writeSet(state.imageLayout[image.set][image.binding], postProcessImageView);
+				}
+			}
 		}
 
 		state.shader.pipelineLayoutReflect(state.pipelineLayout);
@@ -78,10 +85,11 @@ namespace OmegaEngine
 		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.create(device, renderer->getShadowPass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.addColourAttachment(VK_FALSE, swapchain.getRenderpass());
+		state.pipeline.create(device, swapchain.getRenderpass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void PresentationPass::render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig)
+	void PresentationPass::render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig, VulkanAPI::Swapchain& swapchain)
 	{
 		uint32_t imageCount = cmdBufferManager->getPresentImageCount();
 		for (uint32_t i = 0; i < imageCount; ++i)

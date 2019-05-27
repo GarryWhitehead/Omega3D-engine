@@ -13,7 +13,7 @@ namespace OmegaEngine
 	{
 	}
 
-	Object ObjectManager::createObject()
+	Object& ObjectManager::createObject()
 	{
 		uint32_t id = 0;
 		if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS) 
@@ -32,7 +32,7 @@ namespace OmegaEngine
 		return nextObject;
 	}
 
-	Object ObjectManager::createChildObject(Object& parentObj)
+	Object& ObjectManager::createChildObject(Object& parentObj)
 	{
 		uint32_t id = 0;
 		if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)

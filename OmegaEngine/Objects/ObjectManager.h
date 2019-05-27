@@ -22,8 +22,8 @@ namespace OmegaEngine
 		ObjectManager();
 		~ObjectManager();
 
-		Object createObject();
-		Object createChildObject(Object& parentObj);
+		Object& createObject();
+		Object& createChildObject(Object& parentObj);
 
 		void destroyObject(Object& obj);
 

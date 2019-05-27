@@ -133,6 +133,7 @@
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
     <ClInclude Include="Rendering\RenderUtil.h" />
+    <ClInclude Include="utility\result.h" />
     <ClInclude Include="utility\StringUtil.h" />
     <ClInclude Include="utility\BVH.hpp" />
     <ClInclude Include="utility\Timer.h" />

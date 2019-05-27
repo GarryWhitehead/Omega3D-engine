@@ -110,7 +110,7 @@ namespace OmegaEngine
 
 			// add skybox as a object - TODO: blur factor should be obtained from the config settings
 			auto obj = objectManager->createObject();
-			obj->addComponent<SkyboxComponent>(0.5f);
+			obj.addComponent<SkyboxComponent>(0.5f);
 		}
 		if (parser.getEnvironment().brdfFilename)
 		{
@@ -212,7 +212,7 @@ namespace OmegaEngine
 			std::unordered_map<uint32_t, Object> linearisedObjects;
 			for (uint32_t i = 0; i < scene.nodes.size(); ++i) 
 			{
-				loadGltfNode(model, linearisedObjects, worldMatix, objectManager, nullptr, scene.nodes[i]);
+				loadGltfNode(model, linearisedObjects, worldMatix, nullptr, scene.nodes[i]);
 			}
 
 			// skinning info
@@ -230,7 +230,6 @@ namespace OmegaEngine
 	void World::loadGltfNode(tinygltf::Model& model,
 							std::unordered_map<uint32_t, Object>& linearisedObjects, 
 							OEMaths::mat4f worldTransform, 
-							std::unique_ptr<ObjectManager>& objManager, 
 							Object* parentObject,
 							uint32_t nodeIndex)
 	{
@@ -239,26 +238,26 @@ namespace OmegaEngine
 		// TODO: rather than store the objects in the actual parent, store these as part of the object list and only store the
 		// indices to these objects in the parent. This will then allow these meshes to be used by other objects.
 		Object* childObject = nullptr;
-		if (!obj) 
+		if (!parentObject)
 		{
-			childObject = objectManager->createObject();
+			childObject = &objectManager->createObject();
 			
 		}
 		else 
 		{
-			childObject = objManager->createChildObject(*parentObject);
+			childObject = &objectManager->createChildObject(*parentObject);
 		}
 
 		// add all local and world transforms to the transform manager - also combines skinning info
 		auto &transformManager = componentInterface->getManager<TransformManager>();
-		transformManager.addGltfTransform(node, parentObject, worldTransform);
+		transformManager.addGltfTransform(node, childObject, worldTransform);
 
 		// if this node has children, recursively extract their info
 		if (node.children.size() > 0) 
 		{
 			for (uint32_t i = 0; i < node.children.size(); ++i) 
 			{
-				loadGltfNode(model,linearisedObjects, worldTransform, objManager, 
+				loadGltfNode(model,linearisedObjects, worldTransform, 
 					childObject, node.children[i]);
 			}
 		}

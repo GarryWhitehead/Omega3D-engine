@@ -22,7 +22,7 @@ namespace VulkanAPI
 		uint32_t surfaceCount = 0;
 
 		vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
-		std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfacesurfaceFormatsKHR(surface);
+		std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfaceFormatsKHR(surface);
 		std::vector<vk::PresentModeKHR> presentModes = gpu.getSurfacePresentModesKHR(surface);
 
 		// make sure that we have suitable swap chain extensions available before continuing

@@ -1,5 +1,6 @@
 #include "PostProcessInterface.h"
 #include "Rendering/RenderConfig.h"
+#include "Vulkan/Image.h"
 
 namespace OmegaEngine
 {
@@ -16,12 +17,16 @@ namespace OmegaEngine
 
 	
 
-	void PostProcessInterface::init(RenderConfig& renderConfig)
+	vk::ImageView& PostProcessInterface::createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig)
 	{
+		vk::ImageView finalImage = forwardImage;
+
 		if (renderConfig.postProcess.useHdr)
 		{
 			
 		}
+
+		return finalImage;
 	}
 
 	void PostProcessInterface::render(RenderConfig& renderConfig)

@@ -25,10 +25,12 @@ namespace OmegaEngine
 		queueType = QueueType::Shadow;
 
 		// pointer to the mesh pipeline
-		if (meshInstance->type == MeshManager::MeshType::Static) {
+		if (meshInstance->type == MeshManager::MeshType::Static) 
+		{
 			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowStatic).get();
 		}
-		else {
+		else 
+		{
 			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowDynamic).get();
 		}
 
@@ -58,56 +60,62 @@ namespace OmegaEngine
 		MeshManager::MeshType type)
 	{
 		// load shaders - using the same shaders as the mesh, as we want to draw the vertices data, but aren't interested in colour information just depth
-		if (type == MeshManager::MeshType::Static) {
-			if (!state.shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex)) {
+		if (type == MeshManager::MeshType::Static)
+		{
+			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex))
+			{
 				LOGGER_ERROR("Unable to create static shadow shaders.");
 			}
 		}
-		else if (type == MeshManager::MeshType::Skinned) {
-			if (!state.shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex)) {
+		else if (type == MeshManager::MeshType::Skinned) 
+		{
+			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex))
+			{
 				LOGGER_ERROR("Unable to create skinned shadow shaders.");
 			}
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
-		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
-		state.descriptorLayout.create(device);
-		state.descriptorSet.init(device, state.descriptorLayout);
+		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
+		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
+		state->descriptorLayout.create(device);
+		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state.bufferLayout) {
-			
+		for (auto& layout : state->bufferLayout) 
+		{
 			// the shader must use these identifying names for uniform buffers -
-			if (layout.name == "CameraUbo") {
-				bufferManager->enqueueDescrUpdate("Camera", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			if (layout.name == "CameraUbo")
+			{
+				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
-			else if (layout.name == "Dynamic_StaticMeshUbo") {
-				bufferManager->enqueueDescrUpdate("Transform", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			else if (layout.name == "Dynamic_StaticMeshUbo")
+			{
+				bufferManager->enqueueDescrUpdate("Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
-			else if (layout.name == "Dynamic_SkinnedUbo") {
-				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			else if (layout.name == "Dynamic_SkinnedUbo")
+			{
+				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
-		state.shader.pipelineLayoutReflect(state.pipelineLayout);
-		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
+		state->shader.pipelineLayoutReflect(state->pipelineLayout);
+		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
 
 		// create the graphics pipeline
-		state.shader.pipelineReflection(state.pipeline);
+		state->shader.pipelineReflection(state->pipeline);
 
-		state.pipeline.setDepthState(VK_TRUE, VK_FALSE);
-		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
-		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
-		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.addDynamicState(vk::DynamicState::eDepthBias);
-		state.pipeline.create(device, renderer->getShadowPass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.addDynamicState(vk::DynamicState::eDepthBias);
+		state->pipeline.create(device, renderer->getShadowPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, 
 		vk::Device& device, vk::PhysicalDevice& gpu, const vk::Format format, const uint32_t width, const uint32_t height)
 	{
-		
 		// renderpass
 		renderpass.init(device);
 		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, format);
@@ -130,15 +138,16 @@ namespace OmegaEngine
 		ProgramState* state = instanceData->state;
 
 		std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
-		if (instanceData->meshType == MeshManager::MeshType::Skinned) {
+		if (instanceData->meshType == MeshManager::MeshType::Skinned) 
+		{
 			dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
 		}
 
 		cmdBuffer.setViewport();
 		cmdBuffer.setScissor();
 		cmdBuffer.setDepthBias(instanceData->biasConstant, instanceData->biasClamp, instanceData->biasSlope);
-		cmdBuffer.bindPipeline(state.pipeline);
-		cmdBuffer.bindDynamicDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
+		cmdBuffer.bindPipeline(state->pipeline);
+		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
 
 		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);

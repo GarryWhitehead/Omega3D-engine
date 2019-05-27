@@ -33,7 +33,6 @@ namespace OmegaEngine
 		skyboxInstance->indexCount = RenderUtil::CubeModel::indicesSize;
 	}
 
-
 	RenderableSkybox::~RenderableSkybox()
 	{
 	}
@@ -45,49 +44,52 @@ namespace OmegaEngine
 		std::unique_ptr<ProgramState>& state)
 	{
 		// load shaders
-		if (!state.shader.add(device, "env/Skybox/skybox-vert.spv", VulkanAPI::StageType::Vertex, "env/Skybox/skybox-frag.spv", VulkanAPI::StageType::Fragment)) {
+		if (!state->shader.add(device, "env/Skybox/skybox-vert.spv", VulkanAPI::StageType::Vertex, "env/Skybox/skybox-frag.spv", VulkanAPI::StageType::Fragment)) 
+		{
 			LOGGER_ERROR("Unable to create skybox shaders.");
 		}
 
 		// get pipeline layout and vertedx attributes by reflection of shader
-		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
-		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
-		state.descriptorLayout.create(device);
-		state.descriptorSet.init(device, state.descriptorLayout);
+		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
+		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
+		state->descriptorLayout.create(device);
+		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state.bufferLayout) {
-
+		for (auto& layout : state->bufferLayout)
+		{
 			// the shader must use these identifying names for uniform buffers -
-			if (layout.name == "CameraUbo") {
-				bufferManager->enqueueDescrUpdate("Camera", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			if (layout.name == "CameraUbo")
+			{
+				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
 		// sort out the descriptor sets - images
-		for (auto& layout : state.imageLayout) {
-
+		for (auto& layout : state->imageLayout) 
+		{
 			for (auto& image : layout.second)
 			{
 				// the shader must use these identifying names for uniform buffers -
-				if (image.name == "SkyboxSampler") {
-					textureManager->enqueueDescrUpdate("Skybox", &state.descriptorSet, &image.sampler, image.set, image.binding);
+				if (image.name == "SkyboxSampler") 
+				{
+					textureManager->enqueueDescrUpdate("Skybox", &state->descriptorSet, &image.sampler, image.set, image.binding);
 				}
 			}
 		}
 
-		state.shader.pipelineLayoutReflect(state.pipelineLayout);
-		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
+		state->shader.pipelineLayoutReflect(state->pipelineLayout);
+		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
 
 		// create the graphics pipeline
-		state.shader.pipelineReflection(state.pipeline);
+		state->shader.pipelineReflection(state->pipeline);
 
-		state.pipeline.setDepthState(VK_TRUE, VK_FALSE);
-		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
-		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());
-		state.pipeline.create(device, renderer->getForwardPass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());
+		state->pipeline.create(device, renderer->getForwardPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableSkybox::createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage, 
@@ -124,9 +126,9 @@ namespace OmegaEngine
 
 		cmdBuffer.setViewport();
 		cmdBuffer.setScissor();
-		cmdBuffer.bindPipeline(state.pipeline);
-		cmdBuffer.bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
-		cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instanceData->blurFactor);
+		cmdBuffer.bindPipeline(state->pipeline);
+		cmdBuffer.bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics);
+		cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float), &instanceData->blurFactor);
 
 		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);

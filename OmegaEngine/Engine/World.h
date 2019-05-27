@@ -89,7 +89,6 @@ namespace OmegaEngine
 		void loadGltfNode(tinygltf::Model& model,
 							std::unordered_map<uint32_t, Object>& linearisedObjects,
 							OEMaths::mat4f worldTransform,
-							std::unique_ptr<ObjectManager>& objManager,
 							Object* obj,
 							uint32_t nodeIndex);
 
