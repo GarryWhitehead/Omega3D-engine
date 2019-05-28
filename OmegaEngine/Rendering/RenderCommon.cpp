@@ -4,6 +4,9 @@
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Rendering/RenderableTypes/Skybox.h"
 #include "Vulkan/Swapchain.h"
+#include "Vulkan/BufferManager.h"
+#include "Managers/EventManager.h"
+#include "Engine/Omega_Global.h"
 
 namespace OmegaEngine
 {
@@ -37,15 +40,20 @@ namespace OmegaEngine
 		}
 	}
 
-	PresentationPass::PresentationPass()
+	PresentationPass::PresentationPass(RenderConfig& renderConfig)
 	{
+		// create the ubo buffer data now for the shader as this will remain static
+		VulkanAPI::BufferUpdateEvent event{ "Present", (void*)&renderConfig.toneMapSettings, sizeof(RenderConfig::ToneMapSettings), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+
+		// let the buffer manager know that the buffers needs creating/updating via the event process
+		Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 	}
 
 	PresentationPass::~PresentationPass()
 	{
 	}
 
-	void PresentationPass::createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain)
+	void PresentationPass::createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain, std::unique_ptr<VulkanAPI::BufferManager>& bufferManager)
 	{
 		
 		if (!state.shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "PostProcess/final-composition-frag.spv", VulkanAPI::StageType::Fragment)) 
@@ -60,17 +68,26 @@ namespace OmegaEngine
 		state.descriptorSet.init(device, state.descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state.bufferLayout) {
-
+		for (auto& layout : state.bufferLayout.layouts)
+		{
+			if (layout.name == "UboBuffer")
+			{
+				bufferManager->enqueueDescrUpdate("Present", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			}
 		}
 
-		for (auto& layout : state.imageLayout)
+		for (auto& layout : state.imageLayout.layouts)
 		{
-			for (auto& image : layout.second)
+			if (layout.name == "imageSampler")
 			{
-				if (image.name == "ImageSampler")
+				auto& image = state.imageLayout.find(layout.set, layout.binding);
+				if (image)
 				{
-					state.descriptorSet.writeSet(state.imageLayout[image.set][image.binding], postProcessImageView);
+					state.descriptorSet.writeSet(image.value(), postProcessImageView);
+				}
+				else
+				{
+					LOGGER_ERROR("Unable to find image sampler %s after shader reflection\n", layout.name.c_str());
 				}
 			}
 		}
@@ -102,7 +119,6 @@ namespace OmegaEngine
 			// bind everything required to draw
 			cmdBuffer->bindPipeline(state.pipeline);
 			cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
-			cmdBuffer->bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
 
 			// render full screen quad to screen
 			cmdBuffer->drawQuad();

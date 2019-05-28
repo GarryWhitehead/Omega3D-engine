@@ -42,6 +42,12 @@ namespace OmegaEngine
 			bool isContributing = false;
 		} ibl;
 
+		struct ToneMapSettings
+		{
+			float expBias = 1.0f;
+			float gamma = 0.5;
+		} toneMapSettings;
+
 		struct PostProcess
 		{
 			bool useSSAO = false;

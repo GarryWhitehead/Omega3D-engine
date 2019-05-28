@@ -143,14 +143,14 @@ namespace OmegaEngine
 		state->descriptorLayout.create(device, MAX_MATERIAL_SETS);
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
-		for (auto& buffer : state->bufferLayout) 
+		for (auto& buffer : state->bufferLayout.layouts) 
 		{
 			state->descriptorSet.init(device, state->descriptorLayout.getLayout(buffer.set), state->descriptorLayout.getDescriptorPool(), buffer.set);
 		}
 
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
 		// material sets will be created and owned by the actual material - note: these will always be set ZERO
-		for (auto& layout : state->bufferLayout) 
+		for (auto& layout : state->bufferLayout.layouts) 
 		{
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") 

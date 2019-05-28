@@ -1,5 +1,7 @@
 #pragma once
 #include "Vulkan/Common.h"
+#include "Vulkan/Shader.h"
+
 #include <unordered_map>
 #include <tuple>
 
@@ -9,8 +11,6 @@ namespace VulkanAPI
 	{
 		void writeSet(vk::Device device, vk::DescriptorSet& descriptorSet, uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout);
 	}
-
-	struct ShaderImageLayout;
 
 	class DescriptorLayout
 	{
@@ -88,7 +88,7 @@ namespace VulkanAPI
 		void init(vk::Device& device, vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool, uint32_t set);
 
 		void writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset, uint32_t range);
-		void writeSet(ShaderImageLayout& imageLayout, vk::ImageView& imageView);
+		void writeSet(ImageReflection::ShaderImageLayout& imageLayout, vk::ImageView& imageView);
 
 		// use this when you haven't reflected the shader
 		void writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler, vk::ImageView& imageView, vk::ImageLayout layout);

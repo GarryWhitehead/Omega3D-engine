@@ -1,6 +1,6 @@
 #version 450
 
-layout (set = 0, binding = 0) uniform uboBuffer			
+layout (set = 0, binding = 0) uniform UboBuffer			
 {			 
 	//float rayDir;
 	//float sunDir;				

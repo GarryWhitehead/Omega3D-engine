@@ -1,5 +1,4 @@
 #include "Descriptors.h"
-#include "Vulkan/Shader.h"
 
 namespace VulkanAPI
 {
@@ -172,7 +171,7 @@ namespace VulkanAPI
 		descriptorSets[set] = descriptorSet;
 	}
 
-	void DescriptorSet::writeSet(ShaderImageLayout& imageLayout, vk::ImageView& imageView)
+	void DescriptorSet::writeSet(ImageReflection::ShaderImageLayout& imageLayout, vk::ImageView& imageView)
 	{
 		vk::DescriptorImageInfo image_info(imageLayout.sampler.getSampler(), imageView, imageLayout.layout);
 		vk::WriteDescriptorSet writeSet(descriptorSets[imageLayout.set], imageLayout.binding, 0, 1, imageLayout.type, &image_info, nullptr, nullptr);

@@ -30,8 +30,8 @@ namespace OmegaEngine
 		VulkanAPI::DescriptorSet descriptorSet;
 
 		// information extracted from shader reflection
-		std::vector<VulkanAPI::ShaderBufferLayout> bufferLayout;
-		VulkanAPI::ImageLayoutBuffer imageLayout;
+		VulkanAPI::BufferReflection bufferLayout;
+		VulkanAPI::ImageReflection imageLayout;
 	};
 
 	namespace Rendering
@@ -47,10 +47,10 @@ namespace OmegaEngine
 	{
 	public:
 
-		PresentationPass();
+		PresentationPass(RenderConfig& renderConfig);
 		~PresentationPass();
 
-		void createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain);
+		void createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain, std::unique_ptr<VulkanAPI::BufferManager>& buffer_manager);
 		void render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig, VulkanAPI::Swapchain& swapchain);
 
 	private:

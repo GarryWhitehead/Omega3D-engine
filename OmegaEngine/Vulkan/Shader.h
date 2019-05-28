@@ -4,6 +4,8 @@
 
 #include "external/Spirv-Cross/spirv_cross.hpp"
 
+#include <optional>
+
 namespace VulkanAPI
 {
 	// forward decleartions
@@ -13,36 +15,71 @@ namespace VulkanAPI
 	class Sampler;
 	enum class StageType;
 
-	// contains useful information in regards to the bindings, sets and names of buffers, samplers, etc.
-	// Avoids having to use the descriptor layouts and offers more flexibility
-	struct ShaderBufferLayout
+	struct BufferReflection
 	{
-		vk::DescriptorType type;
-		uint32_t binding;
-		uint32_t set;
-		size_t range;
-		std::string name;
-
-		ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, size_t _range) :
-			type(_type), binding(_bind), set(_set), name(_name), range(_range)
-		{}
-	};
-
-	struct ShaderImageLayout
-	{
-		uint32_t binding;
-		uint32_t set;
-		std::string name;
-		vk::ImageLayout layout;
-		vk::DescriptorType type;
-		Sampler sampler;
-
-		ShaderImageLayout() {}
-		ShaderImageLayout(vk::DescriptorType _type, vk::ImageLayout lo, uint32_t bind, uint32_t s, std::string n, Sampler spl) :
-			 type(_type), layout(lo), binding(bind), set(s), name(n), sampler(spl)
+		// contains useful information in regards to the bindings, sets and names of buffers, samplers, etc.
+		// Avoids having to use the descriptor layouts and offers more flexibility
+		struct ShaderBufferLayout
 		{
+			vk::DescriptorType type;
+			uint32_t binding;
+			uint32_t set;
+			size_t range;
+			std::string name;
+
+			ShaderBufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, size_t _range) :
+				type(_type), binding(_bind), set(_set), name(_name), range(_range)
+			{}
+		};
+
+		std::vector<ShaderBufferLayout> layouts;
+
+		std::optional<ShaderBufferLayout> find(uint32_t set, uint32_t binding)
+		{
+			for (auto& layout : layouts)
+			{
+				if (layout.set == set && layout.binding == binding)
+				{
+					return layout;
+				}
+			}
+			return std::nullopt;
 		}
 	};
+
+	struct ImageReflection
+	{
+		struct ShaderImageLayout
+		{
+			uint32_t binding;
+			uint32_t set;
+			std::string name;
+			vk::ImageLayout layout;
+			vk::DescriptorType type;
+			Sampler sampler;
+
+			ShaderImageLayout() {}
+			ShaderImageLayout(vk::DescriptorType _type, vk::ImageLayout lo, uint32_t bind, uint32_t s, std::string n, Sampler spl) :
+				type(_type), layout(lo), binding(bind), set(s), name(n), sampler(spl)
+			{
+			}
+		};
+
+		std::vector<ShaderImageLayout> layouts;
+
+		std::optional<ShaderImageLayout> find(uint32_t set, uint32_t binding)
+		{
+			for (auto& layout : layouts)
+			{
+				if (layout.set == set && layout.binding == binding)
+				{
+					return layout;
+				}
+			}
+			return std::nullopt;
+		}
+	};
+	
 
 	enum class StageType
 	{
@@ -52,8 +89,6 @@ namespace VulkanAPI
 		Compute,
 		Count
 	};
-
-	using ImageLayoutBuffer = std::unordered_map<uint32_t, std::vector<ShaderImageLayout> >;
 
 	class Shader
 	{
@@ -81,8 +116,8 @@ namespace VulkanAPI
 
 		bool add(vk::Device device, const char* filename, StageType type);
 		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
-		void bufferReflection(DescriptorLayout& descriptorLayout, std::vector<ShaderBufferLayout>& bufferLayout);
-		void imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayout);
+		void bufferReflection(DescriptorLayout& descriptorLayout, BufferReflection& bufferReflection);
+		void imageReflection(DescriptorLayout& descriptorLayout, ImageReflection& imageReflect);
 		void pipelineLayoutReflect(PipelineLayout& layout);
 		void pipelineReflection(Pipeline& pipeline);
 

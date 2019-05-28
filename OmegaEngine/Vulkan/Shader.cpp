@@ -105,7 +105,7 @@ namespace VulkanAPI
 		wrappers.push_back(createInfo);
 	}
 
-	void Shader::bufferReflection(DescriptorLayout& descriptorLayout, std::vector<ShaderBufferLayout>& bufferLayout)
+	void Shader::bufferReflection(DescriptorLayout& descriptorLayout, BufferReflection& bufferReflect)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -133,7 +133,7 @@ namespace VulkanAPI
 
 				descriptorLayout.addLayout(set, binding, type, getStageFlags(StageType(i)));
 				size_t range = compiler.get_declared_struct_size(compiler.get_type(ubo.base_type_id));
-				bufferLayout.push_back({ type, binding, set, ubo.name, range });
+				bufferReflect.layouts.push_back({ type, binding, set, ubo.name, range });
 			}
 
 			// storage
@@ -151,7 +151,7 @@ namespace VulkanAPI
 
 				descriptorLayout.addLayout(set, binding, type, getStageFlags(StageType(i)));
 				size_t range = compiler.get_declared_struct_size(compiler.get_type(ssbo.base_type_id));
-				bufferLayout.push_back({ type, binding, set, ssbo.name, range });
+				bufferReflect.layouts.push_back({ type, binding, set, ssbo.name, range });
 			}
 
 			// image storage
@@ -164,7 +164,7 @@ namespace VulkanAPI
 		}
 	}
 
-	void Shader::imageReflection(DescriptorLayout& descriptorLayout, ImageLayoutBuffer& imageLayoutBuffer)
+	void Shader::imageReflection(DescriptorLayout& descriptorLayout, ImageReflection& imageReflect)
 	{
 		// reflect for each stage that has been setup
 		for (uint8_t i = 0; i < (uint8_t)StageType::Count; ++i) {
@@ -190,14 +190,14 @@ namespace VulkanAPI
 				vk::ImageLayout imageLayout = getImageLayout(image.name);
 
 				descriptorLayout.addLayout(set, binding, vk::DescriptorType::eCombinedImageSampler, getStageFlags(StageType(i)));
-				imageLayoutBuffer[set].push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
+				imageReflect.layouts.push_back({ vk::DescriptorType::eCombinedImageSampler, imageLayout, binding, set, image.name, sampler });
 			}
 
 			// make sure that the samplers bindings are sorted into ascending order - spirv cross seems to mess the order up
-			for (auto& layout : imageLayoutBuffer) 
-			{
-				std::sort(layout.second.begin(), layout.second.end(), [](const ShaderImageLayout lhs, const ShaderImageLayout rhs) { return lhs.binding < rhs.binding; });
-			}
+			std::sort(imageReflect.layouts.begin(), imageReflect.layouts.end(), 
+				[](const ImageReflection::ShaderImageLayout lhs, const ImageReflection::ShaderImageLayout rhs) 
+				{ return lhs.binding < rhs.binding; });
+			
 		}
 	}
 

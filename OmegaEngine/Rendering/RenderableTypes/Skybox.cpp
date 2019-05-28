@@ -56,7 +56,7 @@ namespace OmegaEngine
 		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state->bufferLayout)
+		for (auto& layout : state->bufferLayout.layouts)
 		{
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo")
@@ -66,15 +66,12 @@ namespace OmegaEngine
 		}
 
 		// sort out the descriptor sets - images
-		for (auto& layout : state->imageLayout) 
+		for (auto& layout : state->imageLayout.layouts) 
 		{
-			for (auto& image : layout.second)
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "SkyboxSampler") 
 			{
-				// the shader must use these identifying names for uniform buffers -
-				if (image.name == "SkyboxSampler") 
-				{
-					textureManager->enqueueDescrUpdate("Skybox", &state->descriptorSet, &image.sampler, image.set, image.binding);
-				}
+				textureManager->enqueueDescrUpdate("Skybox", &state->descriptorSet, &layout.sampler, layout.set, layout.binding);
 			}
 		}
 

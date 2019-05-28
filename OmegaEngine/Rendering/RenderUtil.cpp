@@ -87,13 +87,13 @@ namespace OmegaEngine
 			
 			// use reflection to fill in the pipeline layout and descriptors
 			shader.pipelineLayoutReflect(pipelineLayout);
-			VulkanAPI::ImageLayoutBuffer sampler_layout;
+			VulkanAPI::ImageReflection sampler_layout;
 			shader.imageReflection(descriptorLayout, sampler_layout);
 
 			// descriptor sets
 			VulkanAPI::DescriptorSet descriptorSet(device, descriptorLayout);
 			VulkanAPI::Sampler linear_sampler(device, VulkanAPI::SamplerType::LinearClamp);
-			descriptorSet.writeSet(sampler_layout[0][0].set, sampler_layout[0][0].binding, vk::DescriptorType::eSampler, linear_sampler.getSampler(), cube_tex.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
+			//descriptorSet.writeSet(sampler_layout[0][0].set, sampler_layout[0][0].binding, vk::DescriptorType::eSampler, linear_sampler.getSampler(), cube_tex.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 
 			// pipeline
 			VulkanAPI::Pipeline pipeline;

@@ -82,7 +82,7 @@ namespace OmegaEngine
 		state->descriptorSet.init(device, state->descriptorLayout);
 
 		// sort out the descriptor sets - buffers
-		for (auto& layout : state->bufferLayout) 
+		for (auto& layout : state->bufferLayout.layouts) 
 		{
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo")

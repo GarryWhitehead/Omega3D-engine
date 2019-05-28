@@ -31,7 +31,7 @@ namespace OmegaEngine
 		RendererBase(RendererType::Deferred)
 	{
 		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
-		presentPass = std::make_unique<PresentationPass>();
+		presentPass = std::make_unique<PresentationPass>(renderConfig);
 
 		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		objectCmdBufferHandle = cmdBufferManager->createInstance();
@@ -58,7 +58,7 @@ namespace OmegaEngine
 		vk::ImageView finalImage = postProcessInterface->createPipelines(forwardOffscreenImage.getImageView(), renderConfig);
 
 		// 5. final render pass - draws to the surface
-		presentPass->createPipeline(dev, finalImage, swapchain);
+		presentPass->createPipeline(dev, finalImage, swapchain, bufferManager);
 	}
 
 
@@ -132,15 +132,15 @@ namespace OmegaEngine
 		state.descriptorSet.init(device, state.descriptorLayout);
 
 		// not completely automated! We still need to manually adjust the set numbers for each type
-		const uint8_t DeferredSet = 1;
-		const uint8_t EnvironmentSet = 2;
+		const uint8_t deferredSet = 1;
+		const uint8_t environmentSet = 2;
 
-		for (uint8_t i = 0; i < state.imageLayout[DeferredSet].size(); ++i) 
+		for (uint8_t i = 0; i < state.imageLayout.layouts.size(); ++i) 
 		{
-			state.descriptorSet.writeSet(state.imageLayout[DeferredSet][i], gBufferImages[i].getImageView());
+			state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, i).value(), gBufferImages[i].getImageView());
 		}
 		
-		for (auto& layout : state.bufferLayout) 
+		for (auto& layout : state.bufferLayout.layouts) 
 		{
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") 
