@@ -82,9 +82,9 @@ namespace OmegaEngine
 		state->shader.pipelineReflection(state->pipeline);
 
 		// only draw the skybox where there is no geometry
-		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eReplace, vk::StencilOp::eReplace, vk::StencilOp::eKeep, 0xff, 0xff, 1);;
+		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep, vk::StencilOp::eKeep, vk::StencilOp::eReplace, 0xff, 0x00, 1);;
 
-		state->pipeline.setDepthState(VK_FALSE, VK_TRUE, vk::CompareOp::eLessOrEqual);
+		state->pipeline.setDepthState(VK_FALSE, VK_FALSE, vk::CompareOp::eLessOrEqual);
 		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
@@ -93,28 +93,19 @@ namespace OmegaEngine
 	}
 
 	void RenderableSkybox::createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage, 
-		vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height)
+		vk::Device& device, vk::PhysicalDevice& gpu, RenderConfig& renderConfig)
 	{
-		vk::Format format = vk::Format::eR8G8B8A8Snorm;
 		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
-		// now create the renderpasses and frame buffers
+		// create the renderpasses and frame buffers
 		renderpass.init(device);
-		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, format);
+		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat);
 		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
 		renderpass.prepareRenderPass();
 
-		// colour
-		image.createEmptyImage(format, width, height,
-			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
-
-		// depth - this will be blitted with the depth buffer from the previous pass
-		//depthImage.createEmptyImage(depthFormat,
-		//	width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
-
 		// frame buffer prep
 		std::vector<vk::ImageView> imageViews{ image.getImageView() , depthImage.getImageView() };
-		renderpass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), width, height, 1);
+		renderpass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), renderConfig.deferred.deferredWidth, renderConfig.deferred.deferredHeight, 1);
 	}
 
 	void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 

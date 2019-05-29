@@ -47,7 +47,8 @@ namespace OmegaEngine
 		void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue) override;
 
 		void createGbufferPass();
-		void createDeferredPass(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
+		void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
+		void createDeferredPass();
 
 		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager);
 
@@ -59,8 +60,10 @@ namespace OmegaEngine
 		// images - for the gbuffer pass
 		std::array<VulkanAPI::Texture, 6> gBufferImages;
 		VulkanAPI::Texture shadowImage;
-		VulkanAPI::Texture forwardOffscreenImage;
-		VulkanAPI::Texture forwardOffscreenDepthImage;
+
+		// deferred pass
+		VulkanAPI::Texture deferredImage;
+		VulkanAPI::RenderPass deferredRenderPass;
 	
 		// Command buffer handles for all passes
 		VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;

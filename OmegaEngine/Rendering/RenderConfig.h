@@ -12,7 +12,7 @@ namespace OmegaEngine
 
 	struct RenderConfig
 	{
-		// fills the config struct with data if available
+		// fills the config struct with data from file if available
 		void load();
 
 		struct General
@@ -32,8 +32,9 @@ namespace OmegaEngine
 		{
 			uint32_t gBufferWidth = 2048;
 			uint32_t gBufferHeight = 2048;
-			uint32_t offscreenWidth = 2048;
-			uint32_t offscreenHeight = 2048;
+			uint32_t deferredWidth = 2048;
+			uint32_t deferredHeight = 2048;
+			vk::Format deferredFormat = vk::Format::eR16G16B16A16Sfloat;
 		} deferred;
 
 		struct IBLInfo

@@ -46,24 +46,44 @@ namespace OmegaEngine
 		RenderableShadow::createShadowPass(shadowRenderpass, shadowImage, device, gpu, 
 			renderConfig.shadowFormat, renderConfig.shadowWidth, renderConfig.shadowHeight);
 
-		forwardOffscreenImage.init(device, gpu);
-		forwardOffscreenDepthImage.init(device, gpu);
-		RenderableSkybox::createSkyboxPass(forwardRenderpass, forwardOffscreenImage, gBufferImages[5], 
-			device, gpu, renderConfig.deferred.offscreenWidth, renderConfig.deferred.offscreenHeight);
-
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
-		createDeferredPass(bufferManager, swapchain);
+		createDeferredPass();
+		createDeferredPipeline(bufferManager, swapchain);
 
-		// 4. post processing 
-		vk::ImageView finalImage = postProcessInterface->createPipelines(forwardOffscreenImage.getImageView(), renderConfig);
+		// 4. render the skybox in a forward pass using the stencil buffer from the gbuffer pass to draw the skybox only
+		// where there is no geometry
+		RenderableSkybox::createSkyboxPass(forwardRenderpass, deferredImage, gBufferImages[5],
+			device, gpu, renderConfig);
 
-		// 5. final render pass - draws to the surface
-		presentPass->createPipeline(dev, finalImage, swapchain, bufferManager);
+		// 5. post processing 
+		vk::ImageView finalImage = postProcessInterface->createPipelines(deferredImage.getImageView(), renderConfig);
+
+		// 6. final render pass - draws to the surface
+		presentPass->createPipeline(dev, deferredImage.getImageView(), swapchain, bufferManager);
 	}
 
 
 	DeferredRenderer::~DeferredRenderer()
 	{
+	}
+
+	void DeferredRenderer::createDeferredPass()
+	{
+		deferredImage.init(device, gpu);
+		deferredRenderPass.init(device);
+
+		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
+		deferredRenderPass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat);
+		deferredRenderPass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
+		deferredRenderPass.prepareRenderPass();
+
+		// colour
+		deferredImage.createEmptyImage(renderConfig.deferred.deferredFormat, renderConfig.deferred.deferredWidth, renderConfig.deferred.deferredHeight,
+			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
+
+		// frame buffer prep
+		std::vector<vk::ImageView> imageViews{ deferredImage.getImageView(), gBufferImages[5].getImageView() };
+		deferredRenderPass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), renderConfig.deferred.deferredWidth, renderConfig.deferred.deferredHeight, 1);
 	}
 
 	void DeferredRenderer::createGbufferPass()
@@ -113,13 +133,12 @@ namespace OmegaEngine
 	}
 
 
-	void DeferredRenderer::createDeferredPass(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain)
+	void DeferredRenderer::createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain)
 	{
 		// load the shaders and carry out reflection to create the pipeline and descriptor layouts
 		if (!state.shader.add(device, "renderer/deferred/deferred-vert.spv", VulkanAPI::StageType::Vertex, "renderer/deferred/deferred-frag.spv", VulkanAPI::StageType::Fragment)) 
 		{
 			LOGGER_ERROR("Unable to load deferred renderer shaders.");
-			throw std::runtime_error("Error whilst trying to open deferred shader file.");
 		}
 
 		// create the descriptors and pipeline layout through shader reflection
@@ -161,8 +180,8 @@ namespace OmegaEngine
 		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		state.pipeline.addColourAttachment(VK_FALSE, forwardRenderpass);
-		state.pipeline.create(device, forwardRenderpass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.addColourAttachment(VK_FALSE, deferredRenderPass);
+		state.pipeline.create(device, deferredRenderPass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager)
@@ -219,8 +238,6 @@ namespace OmegaEngine
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (renderConfig.general.useSkybox) 
 			{
-				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
-				//forwardOffscreenDepthImage.getImage().blit(gBufferImages[5].getImage(), vkInterface->getGraphicsQueue());
 				Rendering::renderObjects(renderQueue, forwardRenderpass, forwardCmdBuffer, QueueType::Forward, renderConfig);
 				forwardCmdBuffer->end();
 			}

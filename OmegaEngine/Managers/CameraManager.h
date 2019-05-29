@@ -72,13 +72,14 @@ namespace OmegaEngine
 		{
 			// not everything in this buffer needs to be declarded in the shader but must be in this order
 			OEMaths::mat4f mvp;
-			OEMaths::vec3f cameraPosition;
-			float pad0;
-
+			
 			// in case we need individual matrices
 			OEMaths::mat4f projection;
 			OEMaths::mat4f view;
 			OEMaths::mat4f model;
+
+			OEMaths::vec3f cameraPosition;
+			float pad0;
 
 			// static stuff at the end
 			float zNear;

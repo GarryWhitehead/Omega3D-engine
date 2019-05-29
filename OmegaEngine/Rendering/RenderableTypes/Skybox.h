@@ -45,7 +45,7 @@ namespace OmegaEngine
 										std::unique_ptr<ProgramState>& state);
 		
 		static void createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage,
-			vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height);
+			vk::Device& device, vk::PhysicalDevice& gpu, RenderConfig& renderConfig);
 
 		// used to get the address of this instance
 		void* getHandle() override
