@@ -36,6 +36,8 @@ namespace VulkanAPI
 		void addColourAttachment(bool blend_factor, RenderPass& renderpass);
 		void addDynamicState(vk::DynamicState state);
 
+		void setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilOp failOp, vk::StencilOp depthFailOp, vk::StencilOp passOp, uint32_t compareMask, uint32_t writeMask, uint32_t ref);
+
 		void setDepthState(bool test_state, bool write_state, vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
 		void setRenderpass(RenderPass& pass);
 		void addShader(Shader& shader);

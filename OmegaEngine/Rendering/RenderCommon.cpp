@@ -35,8 +35,7 @@ namespace OmegaEngine
 			renderQueue->threadedDispatch(cmdBuffer, type);
 
 			// end the primary pass and buffer
-			cmdBuffer->endRenderpass();
-			cmdBuffer->end();
+			cmdBuffer->endRenderpass();	
 		}
 	}
 

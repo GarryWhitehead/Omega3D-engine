@@ -49,7 +49,7 @@ namespace OmegaEngine
 		void createGbufferPass();
 		void createDeferredPass(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
 
-		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain);
+		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager);
 
 	private:
 

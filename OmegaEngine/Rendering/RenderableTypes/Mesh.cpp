@@ -185,6 +185,9 @@ namespace OmegaEngine
 		// create the graphics pipeline
 		state->shader.pipelineReflection(state->pipeline);
 
+		// use stencil to fill in with ones where geometry is drawn
+		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eAlways, vk::StencilOp::eReplace, vk::StencilOp::eReplace, vk::StencilOp::eReplace, 0xff, 0xff, 1);
+
 		state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
 		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);

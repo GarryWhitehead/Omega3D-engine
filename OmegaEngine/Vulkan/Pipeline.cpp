@@ -165,6 +165,19 @@ namespace VulkanAPI
 		depthStencilState.depthCompareOp = compare;
 	}
 
+	void Pipeline::setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilOp failOp, vk::StencilOp depthFailOp, vk::StencilOp passOp, uint32_t compareMask, uint32_t writeMask, uint32_t ref)
+	{
+		depthStencilState.stencilTestEnable = VK_TRUE;
+		depthStencilState.front.failOp = failOp;
+		depthStencilState.front.depthFailOp = depthFailOp;
+		depthStencilState.front.passOp = passOp;
+		depthStencilState.front.compareMask = compareMask;
+		depthStencilState.front.writeMask = writeMask;
+		depthStencilState.front.reference = ref;
+		depthStencilState.front.compareOp = compareOp;
+		depthStencilState.back = depthStencilState.front;
+	}
+
 	void Pipeline::setRenderpass(RenderPass& pass)
 	{
 		renderpass = pass;

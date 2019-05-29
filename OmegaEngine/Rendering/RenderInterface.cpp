@@ -81,15 +81,15 @@ namespace OmegaEngine
 		// setup the renderer pipeline
 		switch (static_cast<RendererType>(renderConfig.general.renderer)) 
 		{
-		case RendererType::Deferred:
-		{
-			setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->getGpu(), vkInterface->getCmdBufferManager(), 
-				vkInterface->getBufferManager(), vkInterface->getSwapchain(), renderConfig);
-			break;
-		}
-		default:
-			LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
-			break;
+			case RendererType::Deferred:
+			{
+				setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->getGpu(), vkInterface->getCmdBufferManager(), 
+					vkInterface->getBufferManager(), vkInterface->getSwapchain(), renderConfig);
+				break;
+			}
+			default:
+				LOGGER_ERROR("Using a unsupported rendering pipeline. At the moment only deferred shader is supported.");
+				break;
 		}
 
 		// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
@@ -113,41 +113,41 @@ namespace OmegaEngine
 
 		switch (type) 
 		{
-		case OmegaEngine::RenderTypes::StaticMesh:
-		{
-			 RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
-				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Static, state);
-			 renderStates[(int)RenderTypes::StaticMesh] = std::move(state);
-			break;
-		}
-		case OmegaEngine::RenderTypes::SkinnedMesh: 
-		{
-			RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
-				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Skinned, state);
-			renderStates[(int)RenderTypes::SkinnedMesh] = std::move(state);
-			break;
-		}
-		case OmegaEngine::RenderTypes::ShadowStatic:
-		{
-			RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Static);
-			renderStates[(int)RenderTypes::ShadowStatic] = std::move(state);
-			break;
-		}
-		case OmegaEngine::RenderTypes::ShadowDynamic:
-		{
-			RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Skinned);
-			renderStates[(int)RenderTypes::ShadowDynamic] = std::move(state);
-			break;
-		}
-		case OmegaEngine::RenderTypes::Skybox: 
-		{
-			RenderableSkybox::createSkyboxPipeline(vkInterface->getDevice(),
-				renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), state);
-			renderStates[(int)RenderTypes::Skybox] = std::move(state);
-			break;
-		}
-		default:
-			LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
+			case OmegaEngine::RenderTypes::StaticMesh:
+			{
+				 RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
+					renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Static, state);
+				 renderStates[(int)RenderTypes::StaticMesh] = std::move(state);
+				break;
+			}
+			case OmegaEngine::RenderTypes::SkinnedMesh: 
+			{
+				RenderableMesh::createMeshPipeline(vkInterface->getDevice(),
+					renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), MeshManager::MeshType::Skinned, state);
+				renderStates[(int)RenderTypes::SkinnedMesh] = std::move(state);
+				break;
+			}
+			case OmegaEngine::RenderTypes::ShadowStatic:
+			{
+				RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Static);
+				renderStates[(int)RenderTypes::ShadowStatic] = std::move(state);
+				break;
+			}
+			case OmegaEngine::RenderTypes::ShadowDynamic:
+			{
+				RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Skinned);
+				renderStates[(int)RenderTypes::ShadowDynamic] = std::move(state);
+				break;
+			}
+			case OmegaEngine::RenderTypes::Skybox: 
+			{
+				RenderableSkybox::createSkyboxPipeline(vkInterface->getDevice(),
+					renderer, vkInterface->getBufferManager(), vkInterface->gettextureManager(), state);
+				renderStates[(int)RenderTypes::Skybox] = std::move(state);
+				break;
+			}
+			default:
+				LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
 		}
 	}
 

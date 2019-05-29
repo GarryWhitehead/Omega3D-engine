@@ -40,6 +40,7 @@ namespace OmegaEngine
 		shadowInstance->indexOffset = meshInstance->indexOffset;
 		shadowInstance->vertexBuffer = meshInstance->vertexBuffer;
 		shadowInstance->indexBuffer = meshInstance->indexBuffer;
+		shadowInstance->indexCount = meshInstance->indexPrimitiveCount;
 		shadowInstance->transformDynamicOffset = meshInstance->transformDynamicOffset;
 		shadowInstance->skinnedDynamicOffset = meshInstance->skinnedDynamicOffset;
 
@@ -47,7 +48,6 @@ namespace OmegaEngine
 		shadowInstance->biasConstant = component.biasConstant;
 		shadowInstance->biasSlope = component.biasSlope;
 	}
-
 
 	RenderableShadow::~RenderableShadow()
 	{
@@ -105,8 +105,8 @@ namespace OmegaEngine
 		// create the graphics pipeline
 		state->shader.pipelineReflection(state->pipeline);
 
-		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
-		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
+		state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.addDynamicState(vk::DynamicState::eDepthBias);
@@ -116,6 +116,10 @@ namespace OmegaEngine
 	void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, 
 		vk::Device& device, vk::PhysicalDevice& gpu, const vk::Format format, const uint32_t width, const uint32_t height)
 	{
+		// create empty image into which the depth will be drawn
+		image.createEmptyImage(format, width, height,
+			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
+
 		// renderpass
 		renderpass.init(device);
 		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, format);
@@ -124,9 +128,6 @@ namespace OmegaEngine
 		renderpass.prepareRenderPass();
 
 		// framebuffer
-		image.createEmptyImage(format, width, height,
-			1, vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
-
 		renderpass.prepareFramebuffer(image.getImageView(), width, height, 1);
 	}
 

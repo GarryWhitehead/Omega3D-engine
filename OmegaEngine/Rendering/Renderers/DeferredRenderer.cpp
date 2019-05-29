@@ -33,8 +33,8 @@ namespace OmegaEngine
 		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
 		presentPass = std::make_unique<PresentationPass>(renderConfig);
 
-		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		objectCmdBufferHandle = cmdBufferManager->createInstance();
+		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		forwardCmdBufferHandle = cmdBufferManager->createInstance();
 
 		// set up the deferred passes and shadow stuff
@@ -48,7 +48,7 @@ namespace OmegaEngine
 
 		forwardOffscreenImage.init(device, gpu);
 		forwardOffscreenDepthImage.init(device, gpu);
-		RenderableSkybox::createSkyboxPass(forwardRenderpass, forwardOffscreenImage, forwardOffscreenDepthImage, 
+		RenderableSkybox::createSkyboxPass(forwardRenderpass, forwardOffscreenImage, gBufferImages[5], 
 			device, gpu, renderConfig.deferred.offscreenWidth, renderConfig.deferred.offscreenHeight);
 
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
@@ -157,16 +157,15 @@ namespace OmegaEngine
 		// first finish of the pipeline layout....
 		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
 
-		state.pipeline.setDepthState(VK_TRUE, VK_TRUE);
+		state.pipeline.setDepthState(VK_TRUE, VK_FALSE);
 		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		
 		state.pipeline.addColourAttachment(VK_FALSE, forwardRenderpass);
 		state.pipeline.create(device, forwardRenderpass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, VulkanAPI::Swapchain& swapchain)
+	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager)
 	{
 		cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
 		auto& cmdBuffer = cmdBufferManager->getCmdBuffer(deferredCmdBufferHandle);
@@ -199,24 +198,31 @@ namespace OmegaEngine
 		if (sceneType == SceneType::Dynamic || (sceneType == SceneType::Static && !cmdBufferManager->isRecorded(deferredCmdBufferHandle))) 
 		{
 			cmdBufferManager->beginNewFame(objectCmdBufferHandle);
+			auto& objectCmdBuffer = cmdBufferManager->getCmdBuffer(objectCmdBufferHandle);
+			objectCmdBuffer->createPrimary();
 
 			// draw all objects into the shadow offscreen depth buffer 
-			Rendering::renderObjects(renderQueue, shadowRenderpass, cmdBufferManager->getCmdBuffer(objectCmdBufferHandle), QueueType::Shadow, renderConfig);
+			Rendering::renderObjects(renderQueue, shadowRenderpass, objectCmdBuffer, QueueType::Shadow, renderConfig);
 
 			// generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::renderObjects(renderQueue, firstRenderpass, cmdBufferManager->getCmdBuffer(objectCmdBufferHandle), QueueType::Opaque, renderConfig);
+			Rendering::renderObjects(renderQueue, firstRenderpass, objectCmdBuffer, QueueType::Opaque, renderConfig);
+			objectCmdBuffer->end();
 
 			// render the deffered pass - lights, shadow and IBL contribution
-			renderDeferredPass(cmdBufferManager, vkInterface->getSwapchain());
+			renderDeferredPass(cmdBufferManager);
+
+			// init cmd buffers for all forward passes
+			auto& forwardCmdBuffer = cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle);
+			cmdBufferManager->beginNewFame(forwardCmdBufferHandle);
+			forwardCmdBuffer->createPrimary();
 
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (renderConfig.general.useSkybox) 
 			{
-				cmdBufferManager->beginNewFame(forwardCmdBufferHandle);
-
 				// we will use the depth buffer from the first pass - this is used to only draw the skybox where there is no pixels
-				forwardOffscreenDepthImage.getImage().blit(gBufferImages[5].getImage(), vkInterface->getGraphicsQueue());
-				Rendering::renderObjects(renderQueue, forwardRenderpass, cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle), QueueType::Forward, renderConfig);
+				//forwardOffscreenDepthImage.getImage().blit(gBufferImages[5].getImage(), vkInterface->getGraphicsQueue());
+				Rendering::renderObjects(renderQueue, forwardRenderpass, forwardCmdBuffer, QueueType::Forward, renderConfig);
+				forwardCmdBuffer->end();
 			}
 
 			postProcessInterface->render(renderConfig);

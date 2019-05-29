@@ -117,6 +117,7 @@ namespace OmegaEngine
 		// data calculated using the currently selected camera
 		OEMaths::mat4f currentProjMatrix;
 		OEMaths::mat4f currentViewMatrix;
+		OEMaths::mat4f currentModelMatrix;
 		OEMaths::vec3f currentPosition;
 		OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
 

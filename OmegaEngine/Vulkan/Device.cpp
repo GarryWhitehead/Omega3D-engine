@@ -112,10 +112,12 @@ namespace VulkanAPI
 				if (tiling == vk::ImageTiling::eLinear && formatFeature == (properties.linearTilingFeatures & formatFeature)) 
 				{
 					outputFormat = format;
+					break;
 				}
 				else if (tiling == vk::ImageTiling::eOptimal && formatFeature == (properties.optimalTilingFeatures & formatFeature)) 
 				{
 					outputFormat = format;
+					break;
 				}
 				else 
 				{

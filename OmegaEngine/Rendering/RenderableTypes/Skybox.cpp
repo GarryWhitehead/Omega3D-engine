@@ -81,9 +81,12 @@ namespace OmegaEngine
 		// create the graphics pipeline
 		state->shader.pipelineReflection(state->pipeline);
 
-		state->pipeline.setDepthState(VK_TRUE, VK_FALSE);
-		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		// only draw the skybox where there is no geometry
+		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eReplace, vk::StencilOp::eReplace, vk::StencilOp::eKeep, 0xff, 0xff, 1);;
+
+		state->pipeline.setDepthState(VK_FALSE, VK_TRUE, vk::CompareOp::eLessOrEqual);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());
 		state->pipeline.create(device, renderer->getForwardPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
@@ -92,7 +95,7 @@ namespace OmegaEngine
 	void RenderableSkybox::createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage, 
 		vk::Device& device, vk::PhysicalDevice& gpu, const uint32_t width, const uint32_t height)
 	{
-		vk::Format format = vk::Format::eR16G16B16A16Sfloat;
+		vk::Format format = vk::Format::eR8G8B8A8Snorm;
 		vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
 		// now create the renderpasses and frame buffers
@@ -106,8 +109,8 @@ namespace OmegaEngine
 			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 
 		// depth - this will be blitted with the depth buffer from the previous pass
-		depthImage.createEmptyImage(depthFormat,
-			width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+		//depthImage.createEmptyImage(depthFormat,
+		//	width, height, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// frame buffer prep
 		std::vector<vk::ImageView> imageViews{ image.getImageView() , depthImage.getImageView() };

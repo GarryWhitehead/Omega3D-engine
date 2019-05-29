@@ -107,6 +107,7 @@ namespace OmegaEngine
 			cameraBuffer.mvp = currentProjMatrix * currentViewMatrix;	// * model
 			cameraBuffer.cameraPosition = currentPosition;
 			cameraBuffer.projection = currentProjMatrix;
+			cameraBuffer.model = currentModelMatrix;		// this is just identity for now
 			cameraBuffer.view = currentViewMatrix;
 			cameraBuffer.zNear = cameras[cameraIndex].zNear;
 			cameraBuffer.zFar = cameras[cameraIndex].zFar;
