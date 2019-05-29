@@ -75,7 +75,6 @@ namespace OmegaEngine
 
 	private:
 
-		Object nextObject;
 		uint32_t nextId = 0;
 
 		// this is an unordered map so we can quickly find objects based on their id. Saves having to iterate through a vector which

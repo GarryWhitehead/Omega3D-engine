@@ -9,6 +9,11 @@ namespace OmegaEngine
 	{
 	}
 
+	Object::Object(const uint32_t _id) :
+		id(_id)
+	{
+	}
+
 	Object::~Object()
 	{
 	}
@@ -18,11 +23,13 @@ namespace OmegaEngine
 		return this->id == obj.id;
 	}
 
-	void Object::addChild(Object& obj)
+	Object& Object::addChild(const uint32_t id)
 	{
-		obj.parentId = this->id;
+		Object childObject(id);
+		
+		children.push_back(childObject);
 
-		children.push_back(obj);
+		return children[children.size() - 1];
 	}
 
 	// helper functions

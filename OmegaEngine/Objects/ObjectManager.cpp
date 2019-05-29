@@ -14,7 +14,7 @@ namespace OmegaEngine
 	}
 
 	Object& ObjectManager::createObject()
-	{
+	{	
 		uint32_t id = 0;
 		if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS) 
 		{
@@ -25,11 +25,11 @@ namespace OmegaEngine
 		{
 			id = nextId++;
 		}
-		
-		nextObject.setId(id);
-		objects.emplace(id, nextObject);
-		
-		return nextObject;
+
+		Object& object = objects[id];
+
+		object.setId(id);
+		return object;
 	}
 
 	Object& ObjectManager::createChildObject(Object& parentObj)
@@ -45,10 +45,7 @@ namespace OmegaEngine
 			id = nextId++;
 		}
 
-		nextObject.setId(id);
-		parentObj.addChild(nextObject);
-
-		return nextObject;
+		return parentObj.addChild(id);
 	}
 
 	void ObjectManager::destroyObject(Object& obj)

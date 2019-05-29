@@ -16,12 +16,13 @@ namespace OmegaEngine
 	public:
 
 		Object();
+		Object(const uint32_t _id);
 		~Object();
 
 		// operator overloads
 		bool operator==(const Object& obj) const;
 
-		void addChild(Object& obj);
+		Object& addChild(const uint32_t _id);
 
 		// helper functions
 		uint64_t getId() const;
