@@ -30,12 +30,12 @@ namespace VulkanAPI
 		device = dev;
 	}
 
-	void RenderPass::addAttachment(const vk::ImageLayout finalLayout, const vk::Format format)
+	void RenderPass::addAttachment(const vk::ImageLayout finalLayout, const vk::Format format, bool clearAttachment)
 	{
 		vk::AttachmentDescription attachDescr({},
 			format,
 			vk::SampleCountFlagBits::e1,	
-			vk::AttachmentLoadOp::eClear,
+			clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 			vk::AttachmentStoreOp::eStore,
 			vk::AttachmentLoadOp::eDontCare,
 			vk::AttachmentStoreOp::eDontCare,
@@ -250,9 +250,9 @@ namespace VulkanAPI
 			width, height,
 			layerCount);
 
-		vk::Framebuffer framebuffer;
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
-		framebuffers.push_back(framebuffer);
+		vk::Framebuffer frameBuffer;
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer));
+		framebuffers.emplace_back(std::move(frameBuffer));
 	}
 
 	void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height, uint32_t layerCount)
@@ -270,12 +270,12 @@ namespace VulkanAPI
 			width, height,
 			layerCount);
 
-		vk::Framebuffer framebuffer;
-		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
-		framebuffers.push_back(framebuffer);
+		vk::Framebuffer frameBuffer;
+		VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer));
+		framebuffers.emplace_back(std::move(frameBuffer));
 	}
 
-	vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t fb_index)
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index)
 	{
 		// set up clear colour for each colour attachment
 		clearValues.resize(attachment.size());
@@ -292,7 +292,7 @@ namespace VulkanAPI
 		}
 		
 		vk::RenderPassBeginInfo beginInfo(
-			renderpass, framebuffers[fb_index],
+			renderpass, framebuffers[index],
 			{ { 0, 0 }, { imageWidth, imageHeight } },
 			static_cast<uint32_t>(clearValues.size()),
 			clearValues.data());
@@ -300,14 +300,26 @@ namespace VulkanAPI
 		return beginInfo;
 	}
 
-	vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue* colour, uint32_t fb_index)
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue* colour, uint32_t index)
 	{
 
 		vk::RenderPassBeginInfo beginInfo(
-			renderpass, framebuffers[fb_index],
+			renderpass, framebuffers[index],
 			{ { 0, 0 }, { imageWidth, imageHeight } },
 			size,
 			colour);
+
+		return beginInfo;
+	}
+
+	vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t index)
+	{
+		// Don't clear - retain the attachments from the last pass
+
+		vk::RenderPassBeginInfo beginInfo(
+			renderpass, framebuffers[index],
+			{ { 0, 0 }, { imageWidth, imageHeight } },
+			0, nullptr);
 
 		return beginInfo;
 	}

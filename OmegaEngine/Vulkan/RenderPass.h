@@ -63,7 +63,7 @@ namespace VulkanAPI
 
 		void init(vk::Device dev);
 
-		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format);
+		void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format, bool clearAttachment = true);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference *depthRef = nullptr);
 		void addSubPass(std::vector<vk::AttachmentReference>& colorRef, vk::AttachmentReference *depthRef = nullptr);												// override without input attachments
 		void addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass = 0, uint32_t dstSubpass = 0);											// templated version
@@ -76,6 +76,7 @@ namespace VulkanAPI
 		// for generating cmd buffer
 		vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index = 0);
 		vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* backgroundColour, uint32_t index = 0);
+		vk::RenderPassBeginInfo getBeginInfo(uint32_t index = 0);
 
 	private:
 

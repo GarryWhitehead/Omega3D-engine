@@ -221,10 +221,10 @@ namespace OmegaEngine
 			objectCmdBuffer->createPrimary();
 
 			// draw all objects into the shadow offscreen depth buffer 
-			Rendering::renderObjects(renderQueue, shadowRenderpass, objectCmdBuffer, QueueType::Shadow, renderConfig);
+			Rendering::renderObjects(renderQueue, shadowRenderpass, objectCmdBuffer, QueueType::Shadow, renderConfig, true);
 
 			// generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::renderObjects(renderQueue, firstRenderpass, objectCmdBuffer, QueueType::Opaque, renderConfig);
+			Rendering::renderObjects(renderQueue, firstRenderpass, objectCmdBuffer, QueueType::Opaque, renderConfig, true);
 			objectCmdBuffer->end();
 
 			// render the deffered pass - lights, shadow and IBL contribution
@@ -238,7 +238,7 @@ namespace OmegaEngine
 			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
 			if (renderConfig.general.useSkybox) 
 			{
-				Rendering::renderObjects(renderQueue, forwardRenderpass, forwardCmdBuffer, QueueType::Forward, renderConfig);
+				Rendering::renderObjects(renderQueue, forwardRenderpass, forwardCmdBuffer, QueueType::Forward, renderConfig, false);
 				forwardCmdBuffer->end();
 			}
 

@@ -46,7 +46,7 @@ namespace OmegaEngine
 		struct ToneMapSettings
 		{
 			float expBias = 1.0f;
-			float gamma = 0.5;
+			float gamma = 2.2;
 		} toneMapSettings;
 
 		struct PostProcess

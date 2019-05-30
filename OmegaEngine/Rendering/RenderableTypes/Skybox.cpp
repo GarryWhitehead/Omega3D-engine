@@ -85,7 +85,7 @@ namespace OmegaEngine
 		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep, vk::StencilOp::eKeep, vk::StencilOp::eReplace, 0xff, 0x00, 1);;
 
 		state->pipeline.setDepthState(VK_FALSE, VK_FALSE, vk::CompareOp::eLessOrEqual);
-		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());
@@ -99,8 +99,8 @@ namespace OmegaEngine
 
 		// create the renderpasses and frame buffers
 		renderpass.init(device);
-		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat);
-		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
+		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat, false);
+		renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat, false);
 		renderpass.prepareRenderPass();
 
 		// frame buffer prep

@@ -3,8 +3,11 @@
 layout (set = 0, binding = 0) uniform CameraUbo
 {
 	mat4 mvp;
+	mat4 projection;
+	mat4 view;
+	mat4 model;
 	vec3 cameraPos;
-	float pad0; 
+	float pad0;
 } ubo;
 
 layout (location = 0) out vec2 outUv;

@@ -17,7 +17,8 @@ namespace OmegaEngine
 			VulkanAPI::RenderPass& renderpass,
 			std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer,
 			QueueType type,
-			RenderConfig& renderConfig)
+			RenderConfig& renderConfig,
+			bool clearAttachment)
 		{
 
 			// sort by the set order - layer, shader, material and depth
@@ -28,7 +29,17 @@ namespace OmegaEngine
 
 			// now draw all renderables to the pass - start by begining the renderpass 
 			cmdBuffer->createPrimary();
-			vk::RenderPassBeginInfo beginInfo = renderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
+			
+			vk::RenderPassBeginInfo beginInfo;
+			if (clearAttachment)
+			{
+				beginInfo = renderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
+			}
+			else
+			{
+				beginInfo = renderpass.getBeginInfo();
+			}
+
 			cmdBuffer->beginRenderpass(beginInfo, true);
 
 			// now draw everything in the designated queue 
@@ -98,7 +109,7 @@ namespace OmegaEngine
 		state.shader.pipelineReflection(state.pipeline);
 
 		state.pipeline.setDepthState(VK_TRUE, VK_FALSE);
-		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eFront);
+		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state.pipeline.addColourAttachment(VK_FALSE, swapchain.getRenderpass());

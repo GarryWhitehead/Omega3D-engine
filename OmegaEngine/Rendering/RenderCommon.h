@@ -40,7 +40,8 @@ namespace OmegaEngine
 			VulkanAPI::RenderPass& renderpass,
 			std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer,
 			QueueType type,
-			RenderConfig& renderConfig);
+			RenderConfig& renderConfig,
+			bool clearAttachment);
 	}
 
 	class PresentationPass
