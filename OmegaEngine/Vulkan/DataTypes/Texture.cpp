@@ -151,9 +151,10 @@ namespace VulkanAPI
 	void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers)
 	{
 		uint32_t offset = 0;
-		for (uint32_t face = 0; face < faceCount; ++face) 
+
+		for (uint32_t face = 0; face < faceCount; ++face)
 		{
-			for (uint32_t level = 0; level < mipLevels; ++level) 
+			for (uint32_t level = 0; level < mipLevels; ++level)
 			{
 
 				vk::BufferImageCopy imageCopy(offset, 0, 0,
@@ -162,7 +163,7 @@ namespace VulkanAPI
 					{ width >> level, height >> level, 1 });
 				copyBuffers.emplace_back(imageCopy);
 
-				offset += (width >> level) * (height >> level);
+				offset += (width >> level) * (height >> level) * 4;
 			}
 		}
 	}

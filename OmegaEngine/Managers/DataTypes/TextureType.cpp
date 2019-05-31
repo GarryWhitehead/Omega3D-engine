@@ -64,7 +64,7 @@ namespace OmegaEngine
 		return *this;
 	}
 
-	bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays, uint32_t mips, uint32_t size)
+	bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays, uint32_t mips, uint32_t size, vk::Format format)
 	{
 		width = w;
 		height = h;
@@ -72,8 +72,11 @@ namespace OmegaEngine
 		faceCount = _faceCount;
 		arrayCount = arrays;
 		totalSize = size;
-		format = vk::Format::eR8G8B8A8Unorm;	// an assumption made here - should make this more flexible!
 
+		// TODO: add other compressed format support based on whether the particular format is supported by the gpu
+		// also need to add support for hdr 16bit float textures
+		this->format = format;	
+		
 		bin = new uint8_t[totalSize];
 		if (!bin)
 		{
@@ -85,7 +88,7 @@ namespace OmegaEngine
 		return true;
 	}
 
-	bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps)
+	bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, vk::Format format, bool createMipMaps)
 	{
 		if (comp == 3) 
 		{
@@ -96,7 +99,7 @@ namespace OmegaEngine
 		width = w;
 		height = h;
 		mipLevels = 1;
-		format = vk::Format::eR8G8B8A8Unorm;
+		this->format = format;
 
 		// if using jpg, png, etc. and mip-maps are required, then calculate the max number based on image size
 		if (createMipMaps) 
@@ -118,12 +121,12 @@ namespace OmegaEngine
 		return true;
 	}
 
-	bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, bool setToBlack)
+	bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, vk::Format format, bool setToBlack)
 	{
 		width = w;
 		height = h;
 		mipLevels = 1;
-		format = vk::Format::eR8G8B8A8Unorm;
+		this->format = format;
 
 		uint32_t imageSize = width * height * 4;
 		bin = new uint8_t[imageSize];

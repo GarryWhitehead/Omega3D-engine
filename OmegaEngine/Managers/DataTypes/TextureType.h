@@ -18,9 +18,9 @@ namespace OmegaEngine
 		MappedTexture(MappedTexture&& other);
 		MappedTexture& operator=(MappedTexture&& other);
 
-		bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size);
-		bool mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, bool createMipMaps = false);
-		bool createEmptyTexture(uint32_t w, uint32_t h, bool setToBlack);
+		bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, vk::Format format);
+		bool mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, vk::Format format, bool createMipMaps = false);
+		bool createEmptyTexture(uint32_t w, uint32_t h, vk::Format format, bool setToBlack);
 		
 		uint32_t getImageSize() const
 		{
@@ -65,11 +65,6 @@ namespace OmegaEngine
 		vk::Format& getFormat()
 		{
 			return format;
-		}
-
-		void setFormat(vk::Format format)
-		{
-			format = format;
 		}
 
 		const char* getName()

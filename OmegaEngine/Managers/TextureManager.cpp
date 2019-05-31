@@ -12,7 +12,7 @@ namespace OmegaEngine
 	TextureManager::TextureManager()
 	{
 		// this won't be used, just required to keep vulkan happy
-		dummyTexture.createEmptyTexture(1024, 1024, true);
+		dummyTexture.createEmptyTexture(1024, 1024, vk::Format::eR8G8B8A8Unorm, true);
 	}
 
 
@@ -108,12 +108,10 @@ namespace OmegaEngine
 		MappedTexture mappedTex;
 		mappedTex.setName(image.uri.c_str());
 
-		// probably should check for different types - though only 4 channels supported
-		mappedTex.setFormat(vk::Format::eR8G8B8A8Unorm); 
-
-		if (!mappedTex.mapTexture(image.width, image.height, image.component, image.image.data(), true)) 
+		// format assumed to be 4 channel RGB!
+		if (!mappedTex.mapTexture(image.width, image.height, image.component, image.image.data(), vk::Format::eR8G8B8A8Unorm, true))
 		{
-			// need to use a default texture here!
+			// TODO: need to use a default texture here!
 		}
 		textures[currentSet].emplace_back(std::move(mappedTex));	
 	}

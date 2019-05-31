@@ -36,7 +36,7 @@ namespace OmegaEngine
 			}
 
 			MappedTexture texture;
-			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize);
+			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize, vk::Format::eR8G8B8A8Unorm);		// TODO: add better format selection
 			images.insert(std::make_pair(id, std::move(texture)));
 			isDirty = true;
         }
