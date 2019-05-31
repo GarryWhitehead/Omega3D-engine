@@ -13,6 +13,11 @@
 namespace OmegaEngine
 {
 
+	struct LightPOV
+	{
+		OEMaths::mat4f lightMvp;
+	};
+
 	enum class LightType
 	{
 		Spot,
@@ -22,9 +27,12 @@ namespace OmegaEngine
 
 	struct LightInfo
 	{
-		OEMaths::vec4f postion;
-		OEMaths::vec3f colour;
+		OEMaths::vec3f position;
 		float pad0;
+		OEMaths::vec3f target;
+		float pad1;
+		OEMaths::vec3f colour;
+		float fov = 0.0f;
 		float radius = 0.0f;
 		float innerCone = 0.0f;		// for spot lights
 		float outerCone = 0.0f;		// for spot lights
@@ -51,15 +59,26 @@ namespace OmegaEngine
 			std::unique_ptr<ObjectManager>& objectManager,
 			ComponentInterface* componentInterface) override;
 
+		void updateDynamicBuffer(ComponentInterface* componentInterface);
+
 		void parseGltfLight(uint32_t spaceId, tinygltf::Model& model);
 
-		void add_light(LightInfo& light)
+		void addLight(LightInfo& light)
 		{
 			lights.push_back(light);
-			// make sure this light is updated on the GPU 
+			// make sure this light is updated on the GPU side
 			isDirty = true;		
 		}
 
+		uint32_t getLightCount() const
+		{
+			return lights.size();
+		}
+
+		uint32_t getAlignmentSize() const
+		{
+			return alignedPovDataSize;
+		}
 
 	private:
 	
@@ -67,6 +86,11 @@ namespace OmegaEngine
 
 		// buffer on the vulkan side which will hold all lighting info 
 		LightUboBuffer lightBuffer;
+
+		// dynamic buffer for light pov - used for shadow drawing
+		LightPOV* lightPovData = nullptr;
+		uint32_t alignedPovDataSize = 0;
+		uint32_t lightPovDataSize = 0;
 
 		bool isDirty = false;
 	};

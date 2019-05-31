@@ -20,20 +20,20 @@ namespace VulkanAPI
 		switch (format)
 		{
 			// depth/stencil image formats
-		case vk::Format::eD32SfloatS8Uint:
-			[[__fallthrough]]
-		case vk::Format::eD24UnormS8Uint:
-			aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
-			break;
-			// depth only formats
-		case vk::Format::eD32Sfloat:
-			[[__fallthrough]]
-		case vk::Format::eD16Unorm:
-			aspect = vk::ImageAspectFlagBits::eDepth;
-			break;
-			// otherwist must be a colour format
-		default:
-			aspect = vk::ImageAspectFlagBits::eColor;
+			case vk::Format::eD32SfloatS8Uint:
+				[[__fallthrough]]
+			case vk::Format::eD24UnormS8Uint:
+				aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+				break;
+				// depth only formats
+			case vk::Format::eD32Sfloat:
+				[[__fallthrough]]
+			case vk::Format::eD16Unorm:
+				aspect = vk::ImageAspectFlagBits::eDepth;
+				break;
+				// otherwist must be a colour format
+			default:
+				aspect = vk::ImageAspectFlagBits::eColor;
 		}
 		return aspect;
 	}

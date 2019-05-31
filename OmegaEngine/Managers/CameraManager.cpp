@@ -64,13 +64,13 @@ namespace OmegaEngine
 		{
 			OEMaths::vec3f cameraRight = frontVec.cross(camera.cameraUp);
 			cameraRight.normalise();
-			currentPosition -=  cameraRight * velocity;
+			currentPosition +=  cameraRight * velocity;
 		}
 		if (event.isMovingRight) 
 		{
 			OEMaths::vec3f cameraRight = frontVec.cross(camera.cameraUp);
 			cameraRight.normalise();
-			currentPosition += cameraRight * velocity;
+			currentPosition -= cameraRight * velocity;
 		}
 
 		isDirty = true;

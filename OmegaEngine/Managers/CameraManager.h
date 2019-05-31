@@ -107,6 +107,16 @@ namespace OmegaEngine
 			currentProjMatrix = camera.getPerspectiveMat();
 		}
 
+		float getZNear() const
+		{
+			return cameras[cameraIndex].zNear;
+		}
+
+		float getZFar() const
+		{
+			return cameras[cameraIndex].zFar;
+		}
+
 	private:
 
 		// all the cameras that had been added to the manager

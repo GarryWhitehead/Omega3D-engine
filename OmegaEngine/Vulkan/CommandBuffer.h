@@ -36,6 +36,7 @@ namespace VulkanAPI
 		void bindPipeline(Pipeline& pipeline);
 		void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type);
 		void bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type, std::vector<uint32_t>& dynamicOffsets);
+		void bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type, uint32_t& dynamicOffset);
 		void bindDynamicDescriptors(PipelineLayout& pipelineLayout, std::vector <vk::DescriptorSet>& descriptorSet, PipelineType type, std::vector<uint32_t>& dynamicOffsets);
 		void bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data);
 		void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);

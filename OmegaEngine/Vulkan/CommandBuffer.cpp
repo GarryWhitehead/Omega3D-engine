@@ -332,6 +332,14 @@ namespace VulkanAPI
 			static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
 	}
 
+	void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type, uint32_t& dynamicOffset)
+	{
+		vk::PipelineBindPoint bindPoint = createBindPoint(type);
+		std::vector<vk::DescriptorSet> sets = descriptorSet.get();
+		cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(),
+			1, &dynamicOffset);
+	}
+
 	void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, std::vector<vk::DescriptorSet>& descriptorSet, PipelineType type, std::vector<uint32_t>& dynamicOffsets)
 	{
 		vk::PipelineBindPoint bindPoint = createBindPoint(type);

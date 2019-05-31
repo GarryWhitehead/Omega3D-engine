@@ -65,13 +65,14 @@ namespace VulkanAPI
         return cmdBuffers[handle].cmdBuffer;
     }
 
-    void CommandBufferManager::beginNewFame(CmdBufferHandle handle)
+    std::unique_ptr<VulkanAPI::CommandBuffer>& CommandBufferManager::beginNewFame(CmdBufferHandle handle)
     {
         
         // if it's static then only create a new instance if it's null
         if (mode == NewFrameMode::Static) {
             if (cmdBuffers[handle].cmdBuffer == nullptr) {
                 cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
+				cmdBuffers[handle].cmdBuffer->createPrimary();
             }
 			else {
 				VK_CHECK_RESULT(device.waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
@@ -93,12 +94,15 @@ namespace VulkanAPI
 			else {
 				if (cmdBuffers[handle].cmdBuffer == nullptr) {
 					cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(device, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
+					cmdBuffers[handle].cmdBuffer->createPrimary();
 				}
 				else {
 					cmdBuffers[handle].cmdBuffer.reset({});
 				}
 			}
 		}
+
+		return cmdBuffers[handle].cmdBuffer;
     }
 
     void CommandBufferManager::submitOnce(CmdBufferHandle handle)

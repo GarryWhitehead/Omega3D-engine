@@ -37,7 +37,7 @@ namespace VulkanAPI
 			vk::SampleCountFlagBits::e1,	
 			clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 			vk::AttachmentStoreOp::eStore,
-			vk::AttachmentLoadOp::eDontCare,
+			clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 			vk::AttachmentStoreOp::eDontCare,
 			vk::ImageLayout::eUndefined, finalLayout);
 

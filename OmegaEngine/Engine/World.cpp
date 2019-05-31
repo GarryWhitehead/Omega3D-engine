@@ -100,7 +100,7 @@ namespace OmegaEngine
 		// add lights from scene file
 		for (uint32_t i = 0; i < parser.lightCount(); ++i) 
 		{
-			componentInterface->getManager<LightManager>().add_light(parser.getLights(i));
+			componentInterface->getManager<LightManager>().addLight(parser.getLights(i));
 		}
 
 		// environment - load skybox and IBL files into memory if they exsist

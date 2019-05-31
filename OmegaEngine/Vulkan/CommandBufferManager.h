@@ -49,7 +49,7 @@ namespace VulkanAPI
 
 		CmdBufferHandle createInstance();
 		std::unique_ptr<CommandBuffer>& getCmdBuffer(CmdBufferHandle handle);
-		void beginNewFame(CmdBufferHandle handle);
+		std::unique_ptr<VulkanAPI::CommandBuffer>&  beginNewFame(CmdBufferHandle handle);
 
 		void submitOnce(CmdBufferHandle handle);
 		void submitFrame(Swapchain& swapchain);

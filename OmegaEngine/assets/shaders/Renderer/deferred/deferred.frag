@@ -10,6 +10,9 @@ layout (set = 1, binding = 2) uniform sampler2D normalSampler;
 layout (set = 1, binding = 3) uniform sampler2D pbrSampler;
 layout (set = 1, binding = 4) uniform sampler2D emissiveSampler;
 
+// shadow depth sampler
+layout (set = 1, binding = 5) uniform sampler2D shadowSampler;
+
 #ifdef USE_IBL
 // environment texture samplers
 layout (set = 2, binding = 0) uniform sampler2D brdfLutSampler;
@@ -30,9 +33,12 @@ layout (location = 0) out vec4 outFrag;
 
 struct Light
 {
-		vec4 pos;
-		vec3 colour;
+		vec3 pos;
 		float pad0;
+		vec3 target;
+		float pad1; 
+		vec3 colour;
+		float fov;
 		float radius;
 		float innerCone;
 		float outerCone;
@@ -96,18 +102,20 @@ void main()
 	
 	// apply additional lighting contribution to specular 
 	vec3 colour = vec3(0.0);
-	for(int c = 0; c < light_ubo.activeLightCount; c++) {  
-		
+	for(int c = 0; c < light_ubo.activeLightCount; c++) 
+	{  
 		vec3 lightPos = light_ubo.lights[c].pos.xyz - inPos;
 		float dist = length(lightPos);
 		vec3 L = normalize(lightPos);
 
 		vec3 radiance;
-		if (light_ubo.lights[c].type == SPOTLIGHT) {
+		if (light_ubo.lights[c].type == SPOTLIGHT) 
+		{
 			float attenuation = light_ubo.lights[c].radius / (dist * dist);
 			radiance = light_ubo.lights[c].colour.rgb * attenuation;
 		}
-		if (light_ubo.lights[c].type == CONE) {
+		if (light_ubo.lights[c].type == CONE) 
+		{
 			float innerCosAngle = cos(light_ubo.lights[c].innerCone);
 			float outerCosAngle = cos(light_ubo.lights[c].outerCone);
 			float dir = dot(L, lightPos);
@@ -120,7 +128,8 @@ void main()
 	}
 	
 	// add IBL contribution if needed
-	if (push.useIBLContribution) {
+	if (push.useIBLContribution) 
+	{
 		float NdotV = max(dot(N, V), 0.0);
 		//colour += calculateIBL(N, NdotV, roughness, R, baseColour);
 	}

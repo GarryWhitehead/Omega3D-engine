@@ -33,7 +33,7 @@ namespace OmegaEngine
 		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
 		presentPass = std::make_unique<PresentationPass>(renderConfig);
 
-		objectCmdBufferHandle = cmdBufferManager->createInstance();
+		shadowCmdBufferHandle = cmdBufferManager->createInstance();
 		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		forwardCmdBufferHandle = cmdBufferManager->createInstance();
 
@@ -118,7 +118,7 @@ namespace OmegaEngine
 
 		// and the depth g-buffer
 		gBufferImages[attachmentCount - 1].createEmptyImage(depthFormat, 
-			renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment| vk::ImageUsageFlagBits::eTransferSrc);
+			renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> imageViews(attachmentCount);
@@ -156,7 +156,14 @@ namespace OmegaEngine
 
 		for (uint8_t i = 0; i < state.imageLayout.layouts.size(); ++i) 
 		{
-			state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, i).value(), gBufferImages[i].getImageView());
+			if (state.imageLayout.layouts[i].name == "shadowSampler")
+			{
+				state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, state.imageLayout.layouts[i].binding).value(), shadowImage.getImageView());
+			}
+			else
+			{
+				state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, i).value(), gBufferImages[i].getImageView());
+			}
 		}
 		
 		for (auto& layout : state.bufferLayout.layouts) 
@@ -184,12 +191,8 @@ namespace OmegaEngine
 		state.pipeline.create(device, deferredRenderPass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager)
+	void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer)
 	{
-		cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
-		auto& cmdBuffer = cmdBufferManager->getCmdBuffer(deferredCmdBufferHandle);
-
-		cmdBuffer->createPrimary();
 		vk::RenderPassBeginInfo beginInfo = forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
 		cmdBuffer->beginRenderpass(beginInfo);
 		
@@ -207,7 +210,6 @@ namespace OmegaEngine
 
 		// end this pass and cmd buffer
 		cmdBuffer->endRenderpass();
-		cmdBuffer->end();
 	}
 
 	void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue)
@@ -216,33 +218,32 @@ namespace OmegaEngine
 
 		if (sceneType == SceneType::Dynamic || (sceneType == SceneType::Static && !cmdBufferManager->isRecorded(deferredCmdBufferHandle))) 
 		{
-			cmdBufferManager->beginNewFame(objectCmdBufferHandle);
-			auto& objectCmdBuffer = cmdBufferManager->getCmdBuffer(objectCmdBufferHandle);
-			objectCmdBuffer->createPrimary();
+			auto& shadowCmdBuffer = cmdBufferManager->beginNewFame(shadowCmdBufferHandle);
 
 			// draw all objects into the shadow offscreen depth buffer 
-			Rendering::renderObjects(renderQueue, shadowRenderpass, objectCmdBuffer, QueueType::Shadow, renderConfig, true);
+			Rendering::renderObjects(renderQueue, shadowRenderpass, shadowCmdBuffer, QueueType::Shadow, renderConfig, true);
+			shadowCmdBuffer->end();
+
+			auto& deferredCmdBuffer = cmdBufferManager->beginNewFame(deferredCmdBufferHandle);
 
 			// generate the g-buffers by drawing the components into the offscreen frame-buffers
-			Rendering::renderObjects(renderQueue, firstRenderpass, objectCmdBuffer, QueueType::Opaque, renderConfig, true);
-			objectCmdBuffer->end();
+			Rendering::renderObjects(renderQueue, firstRenderpass, deferredCmdBuffer, QueueType::Opaque, renderConfig, true);
 
 			// render the deffered pass - lights, shadow and IBL contribution
-			renderDeferredPass(cmdBufferManager);
+			renderDeferredPass(deferredCmdBuffer);
+			deferredCmdBuffer->end();
 
 			// init cmd buffers for all forward passes
-			auto& forwardCmdBuffer = cmdBufferManager->getCmdBuffer(forwardCmdBufferHandle);
-			cmdBufferManager->beginNewFame(forwardCmdBufferHandle);
-			forwardCmdBuffer->createPrimary();
+			auto& forwardCmdBuffer = cmdBufferManager->beginNewFame(forwardCmdBufferHandle);
 
-			// skybox is done in a separate forward pass, with the depth buffer blitted from the deferred pass
-			if (renderConfig.general.useSkybox) 
+			// draw the skybox last using the stencil from the gbuffer pass to only draw where there is no geometry
+			if (renderConfig.general.useSkybox)
 			{
 				Rendering::renderObjects(renderQueue, forwardRenderpass, forwardCmdBuffer, QueueType::Forward, renderConfig, false);
-				forwardCmdBuffer->end();
 			}
 
 			postProcessInterface->render(renderConfig);
+			forwardCmdBuffer->end();
 		}
 
 		// and finally render to the presentation surface the final composition with final effects added - fog, etc.

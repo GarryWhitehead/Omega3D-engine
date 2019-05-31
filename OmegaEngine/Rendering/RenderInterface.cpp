@@ -13,6 +13,7 @@
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/MaterialManager.h"
+#include "Managers/LightManager.h"
 #include "Utility/logger.h"
 #include "Utility/FileUtil.h"
 #include "Threading/ThreadPool.h"
@@ -127,16 +128,10 @@ namespace OmegaEngine
 				renderStates[(int)RenderTypes::SkinnedMesh] = std::move(state);
 				break;
 			}
-			case OmegaEngine::RenderTypes::ShadowStatic:
+			case OmegaEngine::RenderTypes::ShadowMapped:
 			{
-				RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Static);
-				renderStates[(int)RenderTypes::ShadowStatic] = std::move(state);
-				break;
-			}
-			case OmegaEngine::RenderTypes::ShadowDynamic:
-			{
-				RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state, MeshManager::MeshType::Skinned);
-				renderStates[(int)RenderTypes::ShadowDynamic] = std::move(state);
+				RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer, vkInterface->getBufferManager(), state);
+				renderStates[(int)RenderTypes::ShadowMapped] = std::move(state);
 				break;
 			}
 			case OmegaEngine::RenderTypes::Skybox: 
@@ -154,6 +149,7 @@ namespace OmegaEngine
 	void RenderInterface::buildRenderableMeshTree(Object& obj, std::unique_ptr<ComponentInterface>& componentInterface, bool isShadow)
 	{
 		auto& meshManager = componentInterface->getManager<MeshManager>();
+		auto& lightManager = componentInterface->getManager<LightManager>();
 
 		MeshComponent component = obj.getComponent<MeshComponent>();
 		MeshManager::StaticMesh mesh = meshManager.getMesh(component);
@@ -165,10 +161,11 @@ namespace OmegaEngine
 				vkInterface->gettextureManager(), mesh, primitive, obj, this);
 			
 			// if using shadows, then draw the meshes into the offscreen depth buffer too
-			// TODO : this should be done elsewhere
+			// TODO : this should be done elsewhere and make this code better!
 			obj.addComponent<ShadowComponent>(renderConfig.biasClamp, renderConfig.biasConstant, renderConfig.biasSlope);
 
-			addRenderable<RenderableShadow>(this, obj.getComponent<ShadowComponent>(), getRenderable(meshIndex).renderable->getInstanceData<RenderableMesh::MeshInstance>());
+			addRenderable<RenderableShadow>(this, obj.getComponent<ShadowComponent>(), 
+				getRenderable(meshIndex).renderable->getInstanceData<RenderableMesh::MeshInstance>(), lightManager.getLightCount(), lightManager.getAlignmentSize());
 		}
 	
 		// and do the same for all children associated with this mesh
@@ -217,8 +214,7 @@ namespace OmegaEngine
 					queueInfo.renderFunction = getMemberRenderFunction<void, RenderableMesh, &RenderableMesh::render>;
 					break;
 				}
-				case RenderTypes::ShadowStatic: 
-				case RenderTypes::ShadowDynamic:
+				case RenderTypes::ShadowMapped: 
 				{
 					queueInfo.renderableHandle = info.renderable->getHandle();
 					queueInfo.renderFunction = getMemberRenderFunction<void, RenderableShadow, &RenderableShadow::render>;

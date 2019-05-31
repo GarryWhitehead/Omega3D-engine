@@ -29,28 +29,31 @@ namespace OmegaEngine
 			// vertex and index buffer memory info for the cube
 			VulkanAPI::Buffer vertexBuffer;
 			VulkanAPI::Buffer indexBuffer;
+			
 			uint32_t indexCount = 0;
-
 			uint32_t vertexOffset = 0;
 			uint32_t indexOffset = 0;
 
-			uint32_t transformDynamicOffset = 0;
-			uint32_t skinnedDynamicOffset = 0;
-			MeshManager::MeshType meshType;
+			uint32_t lightAlignmentSize = 0;
+			uint32_t lightCount = 0;
 
 			float biasConstant = 0.0f;
 			float biasClamp = 0.0f;
 			float biasSlope = 0.0f;
 		};
 
-		RenderableShadow(RenderInterface* renderInterface, ShadowComponent& component, RenderableMesh::MeshInstance* meshInstance);
+		RenderableShadow(RenderInterface* renderInterface, 
+							ShadowComponent& component, 
+							RenderableMesh::MeshInstance* meshInstance,
+							uint32_t lightCount,
+							uint32_t lightAlignmentSize);
+
 		~RenderableShadow();
 		
 		static void createShadowPipeline(vk::Device& device,
 										std::unique_ptr<RendererBase>& renderer, 
 										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-										std::unique_ptr<ProgramState>& state,
-										MeshManager::MeshType type);
+										std::unique_ptr<ProgramState>& state);
 		
 		static void createShadowPass(VulkanAPI::RenderPass& renderpass, 
 										VulkanAPI::Texture& image,

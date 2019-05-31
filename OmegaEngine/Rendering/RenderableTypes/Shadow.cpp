@@ -12,7 +12,11 @@
 namespace OmegaEngine
 {
 
-	RenderableShadow::RenderableShadow(RenderInterface* renderInterface, ShadowComponent& component, RenderableMesh::MeshInstance* meshInstance) :
+	RenderableShadow::RenderableShadow(RenderInterface* renderInterface, 
+										ShadowComponent& component, 
+										RenderableMesh::MeshInstance* meshInstance,
+										uint32_t lightCount,
+										uint32_t lightAlignmentSize) :
 		RenderableBase(RenderTypes::Skybox)
 	{
 		// fill out the data which will be used for rendering
@@ -20,29 +24,22 @@ namespace OmegaEngine
 		ShadowInstance* shadowInstance = reinterpret_cast<ShadowInstance*>(instanceData);
 		
 		// create the sorting key  TODO: actually implement this!
-		sortKey = RenderQueue::createSortKey(RenderStage::First, 0, RenderTypes::ShadowStatic);
+		sortKey = RenderQueue::createSortKey(RenderStage::First, 0, RenderTypes::ShadowMapped);
 
 		queueType = QueueType::Shadow;
 
 		// pointer to the mesh pipeline
-		if (meshInstance->type == MeshManager::MeshType::Static) 
-		{
-			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowStatic).get();
-		}
-		else 
-		{
-			shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowDynamic).get();
-		}
+		shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowMapped).get();
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
-		shadowInstance->meshType = meshInstance->type;
 		shadowInstance->vertexOffset = meshInstance->vertexOffset;
 		shadowInstance->indexOffset = meshInstance->indexOffset;
 		shadowInstance->vertexBuffer = meshInstance->vertexBuffer;
 		shadowInstance->indexBuffer = meshInstance->indexBuffer;
 		shadowInstance->indexCount = meshInstance->indexPrimitiveCount;
-		shadowInstance->transformDynamicOffset = meshInstance->transformDynamicOffset;
-		shadowInstance->skinnedDynamicOffset = meshInstance->skinnedDynamicOffset;
+		
+		shadowInstance->lightCount = lightCount;
+		shadowInstance->lightAlignmentSize = lightAlignmentSize;
 
 		shadowInstance->biasClamp = component.biasClamp;
 		shadowInstance->biasConstant = component.biasConstant;
@@ -56,25 +53,13 @@ namespace OmegaEngine
 	void RenderableShadow::createShadowPipeline(vk::Device& device,
 		std::unique_ptr<RendererBase>& renderer,
 		std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-		std::unique_ptr<ProgramState>& state,
-		MeshManager::MeshType type)
+		std::unique_ptr<ProgramState>& state)
 	{
-		// load shaders - using the same shaders as the mesh, as we want to draw the vertices data, but aren't interested in colour information just depth
-		if (type == MeshManager::MeshType::Static)
+		if (!state->shader.add(device, "shadow/mapped-vert.spv", VulkanAPI::StageType::Vertex))
 		{
-			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex))
-			{
 				LOGGER_ERROR("Unable to create static shadow shaders.");
-			}
 		}
-		else if (type == MeshManager::MeshType::Skinned) 
-		{
-			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex))
-			{
-				LOGGER_ERROR("Unable to create skinned shadow shaders.");
-			}
-		}
-
+		
 		// get pipeline layout and vertedx attributes by reflection of shader
 		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
 		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
@@ -85,17 +70,9 @@ namespace OmegaEngine
 		for (auto& layout : state->bufferLayout.layouts) 
 		{
 			// the shader must use these identifying names for uniform buffers -
-			if (layout.name == "CameraUbo")
+			if (layout.name == "Dynamic_Ubo")
 			{
-				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
-			}
-			else if (layout.name == "Dynamic_StaticMeshUbo")
-			{
-				bufferManager->enqueueDescrUpdate("Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
-			}
-			else if (layout.name == "Dynamic_SkinnedUbo")
-			{
-				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state->descriptorSet, layout.set, layout.binding, layout.type);
+				bufferManager->enqueueDescrUpdate("LightDynamic", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
@@ -138,21 +115,21 @@ namespace OmegaEngine
 
 		ProgramState* state = instanceData->state;
 
-		std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
-		if (instanceData->meshType == MeshManager::MeshType::Skinned) 
-		{
-			dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
-		}
-
 		cmdBuffer.setViewport();
 		cmdBuffer.setScissor();
 		cmdBuffer.setDepthBias(instanceData->biasConstant, instanceData->biasClamp, instanceData->biasSlope);
 		cmdBuffer.bindPipeline(state->pipeline);
-		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
-
+		
 		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
 		cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
-		cmdBuffer.drawIndexed(instanceData->indexCount);
+
+		// we need to render the object from each light sources point of view
+		for (uint32_t i = 0; i < instanceData->lightCount; ++i)
+		{
+			uint32_t dynamicBufferOffset = i * instanceData->lightAlignmentSize;
+			cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics, dynamicBufferOffset);
+			cmdBuffer.drawIndexed(instanceData->indexCount);
+		}
 	}
 }

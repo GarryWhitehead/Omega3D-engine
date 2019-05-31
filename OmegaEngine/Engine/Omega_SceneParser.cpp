@@ -126,11 +126,15 @@ namespace OmegaEngine
 			lights[i].type = static_cast<LightType>(arr["Type"].GetInt());
 
 			auto& pos = arr["Position"];
-			lights[i].postion = OEMaths::vec4f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat(), pos[3].GetFloat());
+			lights[i].position = OEMaths::vec3f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat());
+
+			auto& target = arr["Target"];
+			lights[i].target = OEMaths::vec3f(target[0].GetFloat(), target[1].GetFloat(), target[2].GetFloat());
 
 			auto& col = arr["Colour"];
 			lights[i].colour = OEMaths::vec3f(col[0].GetFloat(), col[1].GetFloat(), col[2].GetFloat());
 
+			lights[i].fov = arr["FOV"].GetFloat();
 			lights[i].radius = arr["Radius"].GetFloat();
 
 			if (lights[i].type == LightType::Cone) {

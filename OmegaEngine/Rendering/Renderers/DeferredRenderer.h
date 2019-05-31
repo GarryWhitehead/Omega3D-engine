@@ -50,7 +50,7 @@ namespace OmegaEngine
 		void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
 		void createDeferredPass();
 
-		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager);
+		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
 
 	private:
 
@@ -66,9 +66,9 @@ namespace OmegaEngine
 		VulkanAPI::RenderPass deferredRenderPass;
 	
 		// Command buffer handles for all passes
+		VulkanAPI::CmdBufferHandle shadowCmdBufferHandle;
 		VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;
 		VulkanAPI::CmdBufferHandle forwardCmdBufferHandle;
-		VulkanAPI::CmdBufferHandle objectCmdBufferHandle;
 
 		// for the deferred rendering pipeline
 		ProgramState state;
