@@ -29,6 +29,7 @@
     <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
+    <ClCompile Include="Rendering\IblInterface.cpp" />
     <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\AssetManager.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
@@ -57,7 +58,6 @@
     <ClCompile Include="Vulkan\SemaphoreManager.cpp" />
     <ClCompile Include="Vulkan\Queue.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Mesh.cpp" />
-    <ClCompile Include="Rendering\RenderUtil.cpp" />
     <ClCompile Include="utility\Timer.cpp" />
     <ClCompile Include="Vulkan\Pipeline.cpp" />
     <ClCompile Include="Vulkan\Shader.cpp" />
@@ -109,6 +109,7 @@
     <ClInclude Include="external\Spirv-Cross\spirv_msl.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
+    <ClInclude Include="Rendering\IblInterface.h" />
     <ClInclude Include="Image\KtxReader.h" />
     <ClInclude Include="Managers\AssetManager.h" />
     <ClInclude Include="Objects\ObjectTypes.h" />
@@ -132,7 +133,6 @@
     <ClInclude Include="PostProcess\PostProcessInterface.h" />
     <ClInclude Include="Rendering\RenderableTypes\RenderableBase.h" />
     <ClInclude Include="Rendering\RenderConfig.h" />
-    <ClInclude Include="Rendering\RenderUtil.h" />
     <ClInclude Include="utility\result.h" />
     <ClInclude Include="utility\StringUtil.h" />
     <ClInclude Include="utility\BVH.hpp" />

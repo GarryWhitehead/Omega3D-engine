@@ -4,6 +4,7 @@
 #include "Rendering/RenderCommon.h"
 #include "Rendering/RenderableTypes/Shadow.h"
 #include "Rendering/RenderableTypes/Skybox.h"
+#include "Rendering/IblInterface.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
@@ -20,8 +21,9 @@
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device& dev, 
-										vk::PhysicalDevice& physical, 
+	DeferredRenderer::DeferredRenderer(vk::Device& dev,
+										vk::PhysicalDevice& physical,
+										VulkanAPI::Queue& graphicsQueue,
 										std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, 
 										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, 
 										VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig) :
@@ -32,7 +34,12 @@ namespace OmegaEngine
 	{
 		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
 		presentPass = std::make_unique<PresentationPass>(renderConfig);
-
+		
+		// create the IBL interface - if no images are detected on disc then the interface will create the neseceray maps using the
+		// pipelines. These will be then saved to disk on program closure
+		iblInterface = std::make_unique<IblInterface>(dev, physical, graphicsQueue);
+		
+		// create instances of all the cmd buffers used by the deferred renderer
 		shadowCmdBufferHandle = cmdBufferManager->createInstance();
 		deferredCmdBufferHandle = cmdBufferManager->createInstance();
 		forwardCmdBufferHandle = cmdBufferManager->createInstance();

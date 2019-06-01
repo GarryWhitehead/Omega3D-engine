@@ -236,6 +236,44 @@ namespace VulkanAPI
 		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 	}
 
+	void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineType _type)
+	{
+		device = dev;
+		type = _type;
+		this->renderpass = renderpass;
+
+		// no pipeline layout specified so create empty default layout
+		vk::PipelineLayoutCreateInfo layoutCreateInfo;
+		VK_CHECK_RESULT(device.createPipelineLayout(&layoutCreateInfo, nullptr, &pipelineLayout));
+
+		// calculate the offset and stride size 
+		updateVertexInput();
+
+		// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
+		vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(), (float)renderpass.getImageHeight(), 0.0f, 1.0f);
+		vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
+		viewportState.pViewports = &viewPort;
+		viewportState.viewportCount = 1;
+		viewportState.pScissors = &scissor;
+		viewportState.scissorCount = 1;
+
+		vk::GraphicsPipelineCreateInfo createInfo({},
+			shader.size(), shader.getPipelineData(),
+			&vertexInputState,
+			&assemblyState,
+			nullptr,
+			&viewportState,
+			&rasterState,
+			&multiSampleState,
+			&depthStencilState,
+			&colorBlendState,
+			&dynamicCreateState,
+			pipelineLayout,				// default empty pipeline layout used
+			this->renderpass.get(),
+			0, nullptr, 0);
+
+		VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
+	}
 
 	void Pipeline::create(vk::Device dev, PipelineType _type)
 	{

@@ -45,6 +45,7 @@ namespace VulkanAPI
 		void addEmptyLayout();
 
 		void create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineLayout& layout, PipelineType _type);
+		void create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineType _type);
 		void create(vk::Device dev, PipelineType _type);
 	
 		PipelineType getPipelineType() const

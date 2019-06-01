@@ -1,6 +1,6 @@
 #pragma once
 #include "Rendering/Renderers/RendererBase.h"
-#include "RenderConfig.h"
+#include "Rendering/RenderConfig.h"
 #include "RenderableTypes/RenderableBase.h"
 #include "Rendering/StockModels.h"
 
@@ -94,7 +94,6 @@ namespace OmegaEngine
 		}
 
 		void initRenderer(std::unique_ptr<ComponentInterface>& componentInterface);
-		void initEnvironmentRender();
 
 		// shader init for each renderable type
 		void addShader(RenderTypes type, std::unique_ptr<ComponentInterface>& componentInterface);

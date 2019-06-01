@@ -84,7 +84,7 @@ namespace OmegaEngine
 		{
 			case RendererType::Deferred:
 			{
-				setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->getGpu(), vkInterface->getCmdBufferManager(), 
+				setRenderer<DeferredRenderer>(vkInterface->getDevice(), vkInterface->getGpu(), vkInterface->getGraphicsQueue(), vkInterface->getCmdBufferManager(), 
 					vkInterface->getBufferManager(), vkInterface->getSwapchain(), renderConfig);
 				break;
 			}
@@ -98,16 +98,8 @@ namespace OmegaEngine
 		{
 			this->addShader((RenderTypes)r_type, componentInterface);
 		}
-
-		// setup environment rendering if needded
-		initEnvironmentRender();
 	}
 	
-	void RenderInterface::initEnvironmentRender()
-	{
-
-	}
-
 	void RenderInterface::addShader(RenderTypes type, std::unique_ptr<ComponentInterface>& componentInterface)
 	{
 		auto& state = std::make_unique<ProgramState>();

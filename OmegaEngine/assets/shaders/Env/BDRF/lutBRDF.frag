@@ -55,8 +55,8 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 	vec3 V = vec3(sqrt(1.0 - NoV * NoV), 0.0, NoV);
 	
 	vec2 lut = vec2(0.0);
-	for(int c = 0; c < sampleCount; c++) {
-
+	for(int c = 0; c < sampleCount; c++) 
+	{
 		vec2 Xi = Hammersley(c, sampleCount);
 		vec3 H = GGX_ImportanceSample(Xi, N, roughness);
 		
@@ -67,7 +67,8 @@ vec2 IntegrateBRDF(float NdotV, float roughness)
 		float NdotV = max(dot(N, V), 0.0);
 		float HdotV = max(dot(H, V), 0.0);
 	
-		if(NdotL > 0.0) {
+		if(NdotL > 0.0) 
+		{
 		
 			// cook-torrance BDRF calculations
 			float G = GeometryShlickGGX(NdotV, NdotL, roughness);

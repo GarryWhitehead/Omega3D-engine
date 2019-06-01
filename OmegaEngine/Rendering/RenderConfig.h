@@ -25,7 +25,8 @@ namespace OmegaEngine
 			bool useSkybox = true;
 			bool sortRenderQueue = true;
 			bool useStockModels = true;
-			
+			bool hasIblImages = false;
+
 		} general;
 
 		struct Deferred

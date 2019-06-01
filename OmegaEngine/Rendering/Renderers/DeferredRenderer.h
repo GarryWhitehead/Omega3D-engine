@@ -22,6 +22,7 @@ namespace VulkanAPI
 	class RenderPass;
 	class Swapchain;
 	class BufferManager;
+	class Queue;
 }
 
 namespace OmegaEngine
@@ -29,7 +30,7 @@ namespace OmegaEngine
 	// forward declerations
 	class RenderInterface;
 	class PostProcessInterface;
-	
+	class IblInterface;
 
 	class DeferredRenderer : public RendererBase
 	{
@@ -38,6 +39,7 @@ namespace OmegaEngine
 
 		DeferredRenderer::DeferredRenderer(vk::Device& dev,
 			vk::PhysicalDevice& physical,
+			VulkanAPI::Queue& graphicsQueue,
 			std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager,
 			std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
 			VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig);
@@ -72,6 +74,9 @@ namespace OmegaEngine
 
 		// for the deferred rendering pipeline
 		ProgramState state;
+
+		// IBL environment mapping handler
+		std::unique_ptr<IblInterface> iblInterface;
 
 		// the post-processing manager
 		std::unique_ptr<PostProcessInterface> postProcessInterface;
