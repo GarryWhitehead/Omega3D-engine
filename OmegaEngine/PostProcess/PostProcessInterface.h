@@ -26,7 +26,7 @@ namespace OmegaEngine
 		PostProcessInterface(vk::Device dev);
 		~PostProcessInterface();
 
-		vk::ImageView& createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig);
+		vk::ImageView createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig);
 		void render(RenderConfig& renderConfig);
 
 	private:

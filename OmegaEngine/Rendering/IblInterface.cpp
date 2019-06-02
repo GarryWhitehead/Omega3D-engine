@@ -9,6 +9,7 @@
 #include "Vulkan/Sampler.h"
 #include "Rendering/StockModels.h"
 #include "OEMaths/OEMaths_transform.h"
+#include "Utility/logger.h"
 
 namespace OmegaEngine
 {
@@ -30,7 +31,7 @@ namespace OmegaEngine
 		vk::ClearColorValue clearValue;
 
 		brdfTexture.init(device, gpu, graphicsQueue);
-		brdfTexture.createEmptyImage(lutFormat, lutDimensions, lutDimensions, 1, vk::ImageUsageFlagBits::eColorAttachment);
+		brdfTexture.createEmptyImage(lutFormat, lutDimensions, lutDimensions, 1, vk::ImageUsageFlagBits::eColorAttachment| vk::ImageUsageFlagBits::eSampled);
 
 		// setup renderpass
 		VulkanAPI::RenderPass renderpass(device);
@@ -42,7 +43,10 @@ namespace OmegaEngine
 
 		// prepare the shader
 		VulkanAPI::Shader shader;
-		shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "Env/lutBRDF-frag.spv", VulkanAPI::StageType::Fragment);
+		if (!shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "Env/BRDF/lutBRDF-frag.spv", VulkanAPI::StageType::Fragment))
+		{
+			LOGGER_ERROR("Error. Unable to open brdf shader.\n");
+		}
 
 		// and the pipeline.....
 		VulkanAPI::Pipeline pipeline;

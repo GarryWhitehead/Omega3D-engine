@@ -13,12 +13,10 @@ layout (set = 1, binding = 4) uniform sampler2D emissiveSampler;
 // shadow depth sampler
 layout (set = 1, binding = 5) uniform sampler2D shadowSampler;
 
-#ifdef USE_IBL
 // environment texture samplers
 layout (set = 2, binding = 0) uniform sampler2D brdfLutSampler;
-layout (set = 2, binding = 1) uniform samplerCube irradianceSampler;
-layout (set = 2, binding = 2) uniform samplerCube prefilterSampler;
-#endif
+//layout (set = 2, binding = 1) uniform samplerCube irradianceSampler;
+//layout (set = 2, binding = 2) uniform samplerCube prefilterSampler;
 
 layout (location = 0) in vec2 inUv;
 layout (location = 1) in vec3 inCameraPos;

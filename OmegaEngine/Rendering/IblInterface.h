@@ -20,6 +20,12 @@ namespace OmegaEngine
 
 	public:
 
+		enum class iblSamplerLayout
+		{
+			Brdf,
+			IrradianceMap
+		};
+
 		std::vector<OEMaths::mat4f> cubeView = {
 			// POSITIVE_X
 			OEMaths::mat4f::rotate(180.0f, OEMaths::vec3f(1.0f, 0.0f, 0.0f)) * OEMaths::mat4f::rotate(90.0f, OEMaths::vec3f(0.0f, 1.0f, 0.0f)),
@@ -49,11 +55,18 @@ namespace OmegaEngine
 		void generateBrdf(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graphicsQueue);
 		void generateIrradianceMap(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graphicsQueue);
 
+		vk::ImageView& getBrdfImageView()
+		{
+			return brdfTexture.getImageView();
+		}
+
 	private:
 
 		VulkanAPI::Texture brdfTexture;
 		VulkanAPI::Texture irradianceMapTexture;
 
+		// if the images have been created from scratch, save to disc on destruction
+		bool saveOnDestroy = false;
 	};
 
 }

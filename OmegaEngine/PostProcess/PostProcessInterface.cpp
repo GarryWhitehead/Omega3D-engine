@@ -17,7 +17,7 @@ namespace OmegaEngine
 
 	
 
-	vk::ImageView& PostProcessInterface::createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig)
+	vk::ImageView PostProcessInterface::createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig)
 	{
 		vk::ImageView finalImage = forwardImage;
 

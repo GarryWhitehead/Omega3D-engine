@@ -37,6 +37,26 @@ namespace OmegaEngine
 
 	public:
 
+		enum class gBufferImageIndex
+		{
+			Position,
+			BaseColour,
+			Normal,
+			Pbr,
+			Emssive,
+			Depth
+		};
+
+		// a lookup table to link the sampler name with the gbuffer image 
+		std::vector<std::pair<std::string, gBufferImageIndex> > gbufferShaderLayout
+		{
+			{"positionSampler", gBufferImageIndex::Position},
+			{"baseColourSampler", gBufferImageIndex::BaseColour},
+			{"normalSampler", gBufferImageIndex::Normal},
+			{"pbrSampler", gBufferImageIndex::Pbr},
+			{"emissiveSampler", gBufferImageIndex::Emssive}
+		};
+
 		DeferredRenderer::DeferredRenderer(vk::Device& dev,
 			vk::PhysicalDevice& physical,
 			VulkanAPI::Queue& graphicsQueue,

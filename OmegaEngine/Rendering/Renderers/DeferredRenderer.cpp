@@ -89,7 +89,7 @@ namespace OmegaEngine
 			1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferSrc);
 
 		// frame buffer prep
-		std::vector<vk::ImageView> imageViews{ deferredImage.getImageView(), gBufferImages[5].getImageView() };
+		std::vector<vk::ImageView> imageViews{ deferredImage.getImageView(), gBufferImages[(int)gBufferImageIndex::Depth].getImageView() };
 		deferredRenderPass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(), renderConfig.deferred.deferredWidth, renderConfig.deferred.deferredHeight, 1);
 	}
 
@@ -116,16 +116,20 @@ namespace OmegaEngine
 		}
 
 		// create a empty texture for each state - these will be filled by the shader
-		for (uint8_t i = 0; i < attachmentCount - 1; ++i) 
+		for (uint8_t i = 0; i < attachmentCount; ++i) 
 		{
-			gBufferImages[i].createEmptyImage(firstRenderpass.get_attachment_format(i), 
-				renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 
-				1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			if (i == (int)gBufferImageIndex::Depth)
+			{
+				gBufferImages[i].createEmptyImage(depthFormat,
+					renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
+			}
+			else
+			{
+				gBufferImages[i].createEmptyImage(firstRenderpass.get_attachment_format(i),
+					renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight,
+					1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			}
 		}
-
-		// and the depth g-buffer
-		gBufferImages[attachmentCount - 1].createEmptyImage(depthFormat, 
-			renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight, 1, vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 		// tie the image-views to the frame buffer
 		std::vector<vk::ImageView> imageViews(attachmentCount);
@@ -159,17 +163,30 @@ namespace OmegaEngine
 
 		// not completely automated! We still need to manually adjust the set numbers for each type
 		const uint8_t deferredSet = 1;
-		const uint8_t environmentSet = 2;
+		const uint8_t iblSet = 2;
 
-		for (uint8_t i = 0; i < state.imageLayout.layouts.size(); ++i) 
+		for (auto& layout : state.imageLayout.layouts) 
 		{
-			if (state.imageLayout.layouts[i].name == "shadowSampler")
+			if (layout.name == "shadowSampler")
 			{
-				state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, state.imageLayout.layouts[i].binding).value(), shadowImage.getImageView());
+				state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, layout.binding).value(), shadowImage.getImageView());
 			}
-			else
+			else if (layout.set == deferredSet)
 			{
-				state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, i).value(), gBufferImages[i].getImageView());
+				for (auto& gbufferLayout : gbufferShaderLayout)
+				{
+					if (gbufferLayout.first == layout.name)
+					{
+						state.descriptorSet.writeSet(state.imageLayout.find(deferredSet, layout.binding).value(), gBufferImages[(int)gbufferLayout.second].getImageView());
+					}
+				}
+			}
+			else if (layout.set == iblSet)
+			{
+				if (layout.name == "brdfLutSampler")
+				{
+					state.descriptorSet.writeSet(state.imageLayout.find(iblSet, layout.binding).value(), iblInterface->getBrdfImageView());
+				}
 			}
 		}
 		
