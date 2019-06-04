@@ -5,8 +5,6 @@
 #include "Managers/ManagerBase.h"
 #include "Utility/logger.h"
 
-#include "tiny_gltf.h"
-
 #include <memory>
 #include <tuple>
 #include <unordered_map>
@@ -103,27 +101,10 @@ namespace OmegaEngine
 		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		void addGltfMesh(tinygltf::Model& model, tinygltf::Node& node, Object* obj);
-
 		StaticMesh& getMesh(MeshComponent comp)
 		{
 			assert(comp.index < meshBuffer.size());
 			return meshBuffer[comp.index];
-		}
-
-		template <typename T>
-		void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView, tinygltf::Buffer buffer, std::vector<uint32_t>& indiciesBuffer, uint32_t indexStart)
-		{
-			T* buf = new T[accessor.count];
-			memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(T));
-
-			// copy the data to our indices buffer at the correct offset
-			for (uint32_t j = 0; j < accessor.count; ++j) 
-			{
-				indiciesBuffer.push_back(buf[j] + indexStart);
-			}
-
-			delete buf;
 		}
 
 	private:

@@ -37,41 +37,7 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f worldTransform)
-	{
-		TransformData transform;
-
-		// we will save the matrix and the decomposed form
-		if (node.translation.size() == 3) 
-		{
-			transform.setTranslation(OEMaths::vec3f{ (float)node.translation[0], (float)node.translation[1], (float)node.translation[2] });
-		}
-		if (node.scale.size() == 3) 
-		{
-			transform.setScale(OEMaths::vec3f{ (float)node.scale[0], (float)node.scale[1], (float)node.scale[2] });
-		}
-		if (node.rotation.size() == 4) 
-		{
-			OEMaths::quatf quat(node.rotation.data());
-			transform.setRotation(quat);
-		}
-
-		// world transform is obtained from the omega scene file
-		transform.setWorldMatixrix(worldTransform);
-
-		if (node.matrix.size() == 16) 
-		{
-			transform.setLocalMatrix(OEMaths::mat4f(node.matrix.data()));
-		}
-		
-		// also add index to skinning information if applicable
-		transform.setSkinIndex(node.skin);
-
-		transforms[obj->getId()] = transform;
-
-		// add to the list of entites
-		obj->addComponent<TransformComponent>(static_cast<uint32_t>(transforms.size() - 1));
-	}
+	
 
 	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects)
 	{

@@ -29,6 +29,9 @@
     <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
+    <ClCompile Include="Models\ModelMesh.cpp" />
+    <ClCompile Include="Models\GltfModel.cpp" />
+    <ClCompile Include="Models\ModelTransform.cpp" />
     <ClCompile Include="Rendering\IblInterface.cpp" />
     <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\AssetManager.cpp" />
@@ -109,6 +112,9 @@
     <ClInclude Include="external\Spirv-Cross\spirv_msl.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
+    <ClInclude Include="Models\GltfModel.h" />
+    <ClInclude Include="Models\ModelMesh.h" />
+    <ClInclude Include="Models\ModelTransform.h" />
     <ClInclude Include="Rendering\IblInterface.h" />
     <ClInclude Include="Image\KtxReader.h" />
     <ClInclude Include="Managers\AssetManager.h" />

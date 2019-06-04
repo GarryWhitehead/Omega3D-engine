@@ -165,7 +165,6 @@ namespace OmegaEngine
 
 		// gltf loading - The skinning data is going in the transform manager for now as it's needed most here for calculating skinning transforms
 		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
-		void addGltfTransform(tinygltf::Node& node, Object* obj, OEMaths::mat4f worldTransform);
 
 		// local transform and skinning update
 		OEMaths::mat4f updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager);
