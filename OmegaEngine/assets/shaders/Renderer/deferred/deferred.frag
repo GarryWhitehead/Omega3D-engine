@@ -15,7 +15,7 @@ layout (set = 1, binding = 5) uniform sampler2D shadowSampler;
 
 // environment texture samplers
 layout (set = 2, binding = 0) uniform sampler2D brdfLutSampler;
-//layout (set = 2, binding = 1) uniform samplerCube irradianceSampler;
+layout (set = 2, binding = 1) uniform samplerCube irradianceSampler;
 //layout (set = 2, binding = 2) uniform samplerCube prefilterSampler;
 
 layout (location = 0) in vec2 inUv;

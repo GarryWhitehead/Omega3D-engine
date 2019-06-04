@@ -143,6 +143,8 @@ namespace VulkanAPI
 		assert(renderpass);
 		assert(framebuffer);
 
+		this->viewPort = viewPort;
+
 		// use custom defined viewport
 		vk::Rect2D scissor({ { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
 			{ static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } });
@@ -198,6 +200,16 @@ namespace VulkanAPI
 	void CommandBuffer::setDepthBias(float biasConstant, float biasClamp, float biasSlope)
 	{
 		cmdBuffer.setDepthBias(biasConstant, biasClamp, biasSlope);
+	}
+
+	void CommandBuffer::bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset)
+	{
+		cmdBuffer.bindVertexBuffers(0, 1, &buffer, &offset);
+	}
+
+	void CommandBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
+	{
+		cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 	}
 
 	void CommandBuffer::executeSecondaryCommands()

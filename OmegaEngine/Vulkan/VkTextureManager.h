@@ -95,6 +95,8 @@ namespace VulkanAPI
 
 		TextureLayoutInfo& getTextureDescriptorLayout(const char* id);
 
+		vk::ImageView& getTextureImageView(const char* name);
+
 	private:
 
 		vk::Device device;

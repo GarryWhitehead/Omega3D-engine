@@ -5,6 +5,7 @@
 #include "Rendering/RenderableTypes/Skybox.h"
 #include "Vulkan/Swapchain.h"
 #include "Vulkan/BufferManager.h"
+#include "Vulkan/Interface.h"
 #include "Managers/EventManager.h"
 #include "Engine/Omega_Global.h"
 
@@ -63,10 +64,10 @@ namespace OmegaEngine
 	{
 	}
 
-	void PresentationPass::createPipeline(vk::Device& device, vk::ImageView& postProcessImageView, VulkanAPI::Swapchain& swapchain, std::unique_ptr<VulkanAPI::BufferManager>& bufferManager)
+	void PresentationPass::createPipeline(vk::ImageView& postProcessImageView, VulkanAPI::Interface& vkInterface)
 	{
 		
-		if (!state.shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "PostProcess/final-composition-frag.spv", VulkanAPI::StageType::Fragment)) 
+		if (!state.shader.add(vkInterface.getDevice(), "quad-vert.spv", VulkanAPI::StageType::Vertex, "PostProcess/final-composition-frag.spv", VulkanAPI::StageType::Fragment)) 
 		{
 			LOGGER_ERROR("Unable to create shaders for final composition.");
 		}
@@ -74,15 +75,15 @@ namespace OmegaEngine
 		// get pipeline layout and vertedx attributes by reflection of shader
 		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
 		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
-		state.descriptorLayout.create(device);
-		state.descriptorSet.init(device, state.descriptorLayout);
+		state.descriptorLayout.create(vkInterface.getDevice());
+		state.descriptorSet.init(vkInterface.getDevice(), state.descriptorLayout);
 
 		// sort out the descriptor sets - buffers
 		for (auto& layout : state.bufferLayout.layouts)
 		{
 			if (layout.name == "UboBuffer")
 			{
-				bufferManager->enqueueDescrUpdate("Present", &state.descriptorSet, layout.set, layout.binding, layout.type);
+				vkInterface.getBufferManager()->enqueueDescrUpdate("Present", &state.descriptorSet, layout.set, layout.binding, layout.type);
 			}
 		}
 
@@ -103,7 +104,7 @@ namespace OmegaEngine
 		}
 
 		state.shader.pipelineLayoutReflect(state.pipelineLayout);
-		state.pipelineLayout.create(device, state.descriptorLayout.getLayout());
+		state.pipelineLayout.create(vkInterface.getDevice(), state.descriptorLayout.getLayout());
 
 		// create the graphics pipeline
 		state.shader.pipelineReflection(state.pipeline);
@@ -112,16 +113,16 @@ namespace OmegaEngine
 		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
-		state.pipeline.addColourAttachment(VK_FALSE, swapchain.getRenderpass());
-		state.pipeline.create(device, swapchain.getRenderpass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+		state.pipeline.addColourAttachment(VK_FALSE, vkInterface.getSwapchain().getRenderpass());
+		state.pipeline.create(vkInterface.getDevice(), vkInterface.getSwapchain().getRenderpass(), state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
-	void PresentationPass::render(std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, RenderConfig& renderConfig, VulkanAPI::Swapchain& swapchain)
+	void PresentationPass::render(VulkanAPI::Interface& vkInterface, RenderConfig& renderConfig)
 	{
-		uint32_t imageCount = cmdBufferManager->getPresentImageCount();
+		uint32_t imageCount = vkInterface.getCmdBufferManager()->getPresentImageCount();
 		for (uint32_t i = 0; i < imageCount; ++i)
 		{
-			auto& cmdBuffer = cmdBufferManager->beginPresentCmdBuffer(swapchain.getRenderpass(), renderConfig.general.backgroundColour, i);
+			auto& cmdBuffer = vkInterface.getCmdBufferManager()->beginPresentCmdBuffer(vkInterface.getSwapchain().getRenderpass(), renderConfig.general.backgroundColour, i);
 
 			cmdBuffer->setViewport();
 			cmdBuffer->setScissor();

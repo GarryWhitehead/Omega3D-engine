@@ -57,12 +57,7 @@ namespace OmegaEngine
 			{"emissiveSampler", gBufferImageIndex::Emssive}
 		};
 
-		DeferredRenderer::DeferredRenderer(vk::Device& dev,
-			vk::PhysicalDevice& physical,
-			VulkanAPI::Queue& graphicsQueue,
-			std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager,
-			std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-			VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig);
+		DeferredRenderer::DeferredRenderer(VulkanAPI::Interface& vkInterface, RenderConfig& _renderConfig);
 		~DeferredRenderer();
 
 		// abstract override

@@ -12,11 +12,11 @@ namespace OmegaEngine
 		{
 			// vertex data
 			VulkanAPI::BufferUpdateEvent vertexEvent{ "CubeModelVertices", vertices.data(), vertices.size() * sizeof(float), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(vertexEvent);
+			Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(vertexEvent);
 
 			// index data
 			VulkanAPI::BufferUpdateEvent indexEvent{ "CubeModelIndices", indices.data(), indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(indexEvent);
+			Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
 		}
 
 		CubeModel::~CubeModel()
@@ -46,11 +46,11 @@ namespace OmegaEngine
 
 			// vertex data
 			VulkanAPI::BufferUpdateEvent vertexEvent{ "PlaneModelVertices", vertices.data(), vertices.size() * sizeof(Vertex), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(vertexEvent);
+			Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(vertexEvent);
 
 			// index data
 			VulkanAPI::BufferUpdateEvent indexEvent{ "PlaneModelIndices", indices.data(), indices.size() * sizeof(uint32_t), VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(indexEvent);
+			Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
 		}
 	}
 }

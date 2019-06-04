@@ -21,28 +21,23 @@
 namespace OmegaEngine
 {
 	
-	DeferredRenderer::DeferredRenderer(vk::Device& dev,
-										vk::PhysicalDevice& physical,
-										VulkanAPI::Queue& graphicsQueue,
-										std::unique_ptr<VulkanAPI::CommandBufferManager>& cmdBufferManager, 
-										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, 
-										VulkanAPI::Swapchain& swapchain, RenderConfig& _renderConfig) :
-		device(dev),
-		gpu(physical),
+	DeferredRenderer::DeferredRenderer(VulkanAPI::Interface& vkInterface, RenderConfig& _renderConfig) :
+		device(vkInterface.getDevice()),
+		gpu(vkInterface.getGpu()),
 		renderConfig(_renderConfig),
 		RendererBase(RendererType::Deferred)
 	{
-		postProcessInterface = std::make_unique<PostProcessInterface>(dev);
+		postProcessInterface = std::make_unique<PostProcessInterface>(device);
 		presentPass = std::make_unique<PresentationPass>(renderConfig);
 		
 		// create the IBL interface - if no images are detected on disc then the interface will create the neseceray maps using the
 		// pipelines. These will be then saved to disk on program closure
-		iblInterface = std::make_unique<IblInterface>(dev, physical, graphicsQueue);
+		iblInterface = std::make_unique<IblInterface>(vkInterface);
 		
 		// create instances of all the cmd buffers used by the deferred renderer
-		shadowCmdBufferHandle = cmdBufferManager->createInstance();
-		deferredCmdBufferHandle = cmdBufferManager->createInstance();
-		forwardCmdBufferHandle = cmdBufferManager->createInstance();
+		shadowCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
+		deferredCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
+		forwardCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
 
 		// set up the deferred passes and shadow stuff
 		// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
@@ -55,18 +50,18 @@ namespace OmegaEngine
 
 		// 3. The image attachments are used in the deffered pass to calcuate pixel colour based on lighting calculations
 		createDeferredPass();
-		createDeferredPipeline(bufferManager, swapchain);
+		createDeferredPipeline(vkInterface.getBufferManager(), vkInterface.getSwapchain());
 
 		// 4. render the skybox in a forward pass using the stencil buffer from the gbuffer pass to draw the skybox only
 		// where there is no geometry
-		RenderableSkybox::createSkyboxPass(forwardRenderpass, deferredImage, gBufferImages[5],
+		RenderableSkybox::createSkyboxPass(forwardRenderpass, deferredImage, gBufferImages[(int)gBufferImageIndex::Depth],
 			device, gpu, renderConfig);
 
 		// 5. post processing 
 		vk::ImageView finalImage = postProcessInterface->createPipelines(deferredImage.getImageView(), renderConfig);
 
 		// 6. final render pass - draws to the surface
-		presentPass->createPipeline(dev, deferredImage.getImageView(), swapchain, bufferManager);
+		presentPass->createPipeline(deferredImage.getImageView(), vkInterface);
 	}
 
 
@@ -187,6 +182,10 @@ namespace OmegaEngine
 				{
 					state.descriptorSet.writeSet(state.imageLayout.find(iblSet, layout.binding).value(), iblInterface->getBrdfImageView());
 				}
+				else if (layout.name == "irradianceSampler")
+				{
+					state.descriptorSet.writeSet(state.imageLayout.find(iblSet, layout.binding).value(), iblInterface->getIrradianceMapImageView());
+				}
 			}
 		}
 		
@@ -244,6 +243,12 @@ namespace OmegaEngine
 		{
 			auto& shadowCmdBuffer = cmdBufferManager->beginNewFame(shadowCmdBufferHandle);
 
+			// if this is the first render call, then determine whether the ibl maps need generating
+			if (!iblInterface->isReady())
+			{
+				iblInterface->renderMaps(*vkInterface);
+			}
+
 			// draw all objects into the shadow offscreen depth buffer 
 			Rendering::renderObjects(renderQueue, shadowRenderpass, shadowCmdBuffer, QueueType::Shadow, renderConfig, true);
 			shadowCmdBuffer->end();
@@ -271,7 +276,7 @@ namespace OmegaEngine
 		}
 
 		// and finally render to the presentation surface the final composition with final effects added - fog, etc.
-		presentPass->render(cmdBufferManager, renderConfig, vkInterface->getSwapchain());
+		presentPass->render(*vkInterface, renderConfig);
 
 		// finally send to the swap-chain presentation
 		cmdBufferManager->submitFrame(vkInterface->getSwapchain());

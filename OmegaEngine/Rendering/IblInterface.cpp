@@ -7,16 +7,28 @@
 #include "Vulkan/Queue.h"
 #include "Vulkan/Image.h"
 #include "Vulkan/Sampler.h"
+#include "Vulkan/Interface.h"
+#include "Vulkan/VkTextureManager.h"
+#include "Vulkan/BufferManager.h"
 #include "Rendering/StockModels.h"
+#include "Rendering/RenderCommon.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "Utility/logger.h"
 
 namespace OmegaEngine
 {
 
-	IblInterface::IblInterface(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graphicsQueue)
+	IblInterface::IblInterface(VulkanAPI::Interface& vkInterface)
 	{
-		generateBrdf(device, gpu, graphicsQueue);
+		// we can generate the brdf image straight away - the irradiance and pre-filtered maps
+		// will be generated on the first render call as these are reliant on the skybox sampler
+		generateBrdf(vkInterface);
+
+		// we also need to init the textures, as the pipelines will require the texture image views upfront
+		// cube texture
+		irradianceMapTexture.init(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
+		irradianceMapTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradianceMapDim, irradianceMapDim, 
+			mipLevels, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst, 6);
 	}
 
 
@@ -24,17 +36,17 @@ namespace OmegaEngine
 	{
 	}
 
-	void IblInterface::generateBrdf(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graphicsQueue)
+	void IblInterface::generateBrdf(VulkanAPI::Interface& vkInterface)
 	{
 		const uint32_t lutDimensions = 512;
 		const vk::Format lutFormat = vk::Format::eR16G16Sfloat;
 		vk::ClearColorValue clearValue;
 
-		brdfTexture.init(device, gpu, graphicsQueue);
+		brdfTexture.init(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
 		brdfTexture.createEmptyImage(lutFormat, lutDimensions, lutDimensions, 1, vk::ImageUsageFlagBits::eColorAttachment| vk::ImageUsageFlagBits::eSampled);
 
 		// setup renderpass
-		VulkanAPI::RenderPass renderpass(device);
+		VulkanAPI::RenderPass renderpass(vkInterface.getDevice());
 		renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, lutFormat);
 		renderpass.prepareRenderPass();
 
@@ -43,7 +55,7 @@ namespace OmegaEngine
 
 		// prepare the shader
 		VulkanAPI::Shader shader;
-		if (!shader.add(device, "quad-vert.spv", VulkanAPI::StageType::Vertex, "Env/BRDF/lutBRDF-frag.spv", VulkanAPI::StageType::Fragment))
+		if (!shader.add(vkInterface.getDevice(), "quad-vert.spv", VulkanAPI::StageType::Vertex, "Env/BRDF/lutBRDF-frag.spv", VulkanAPI::StageType::Fragment))
 		{
 			LOGGER_ERROR("Error. Unable to open brdf shader.\n");
 		}
@@ -60,10 +72,10 @@ namespace OmegaEngine
 		pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		pipeline.addColourAttachment(VK_FALSE, renderpass);
-		pipeline.create(device, renderpass, shader, VulkanAPI::PipelineType::Graphics);
+		pipeline.create(vkInterface.getDevice(), renderpass, shader, VulkanAPI::PipelineType::Graphics);
 
 		// and finally the command buffers
-		VulkanAPI::CommandBuffer cmdBuffer(device, graphicsQueue.getIndex());
+		VulkanAPI::CommandBuffer cmdBuffer(vkInterface.getDevice(), vkInterface.getGraphicsQueue().getIndex());
 		cmdBuffer.createPrimary();
 
 		vk::RenderPassBeginInfo beginInfo = renderpass.getBeginInfo(clearValue);
@@ -78,104 +90,127 @@ namespace OmegaEngine
 		cmdBuffer.end();
 
 		// push straight to the graphics queue
-		graphicsQueue.flushCmdBuffer(cmdBuffer.get());
+		vkInterface.getGraphicsQueue().flushCmdBuffer(cmdBuffer.get());
 	}
 
-	void IblInterface::generateIrradianceMap(vk::Device device, vk::PhysicalDevice& gpu, VulkanAPI::Queue& graphicsQueue)
+	void IblInterface::createIrradianceMap(VulkanAPI::Interface& vkInterface)
 	{
-		const uint32_t irradiance_dim = 64;
-		const uint8_t mipLevels = 5;
-		vk::ClearColorValue clear_value;
+		vk::ClearColorValue clearValue;
+		ProgramState state;
 
-		// cube texture
-		VulkanAPI::Texture cube_tex(device, gpu, graphicsQueue);
-		cube_tex.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mipLevels, vk::ImageUsageFlagBits::eColorAttachment);
-
-		// offscreen texture
-		VulkanAPI::Texture offscreen_tex(device, gpu, graphicsQueue);
-		offscreen_tex.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradiance_dim, irradiance_dim, mipLevels, vk::ImageUsageFlagBits::eColorAttachment);
+		// offscreen texture - this will only be used for generating the map
+		VulkanAPI::Texture offscreenTexture(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
+		offscreenTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradianceMapDim, irradianceMapDim, 1, 
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled);
 
 		// renderpass and framebuffer
-		VulkanAPI::RenderPass renderpass(device);
-		renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR32G32B32A32Sfloat);
-		renderpass.prepareRenderPass();
-		renderpass.prepareFramebuffer(offscreen_tex.getImageView(), irradiance_dim, irradiance_dim);
+		VulkanAPI::RenderPass renderPass(vkInterface.getDevice());
+		renderPass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, vk::Format::eR32G32B32A32Sfloat);
+		renderPass.prepareRenderPass();
+		renderPass.prepareFramebuffer(offscreenTexture.getImageView(), irradianceMapDim, irradianceMapDim);
 
 		// prepare the shader
-		VulkanAPI::DescriptorLayout descriptorLayout;
-		VulkanAPI::Shader shader;
-		VulkanAPI::PipelineLayout pipelineLayout;
-		shader.add(device, "env/irradiance_map-vert.spv", VulkanAPI::StageType::Vertex, "env/irradiance-frag.spv", VulkanAPI::StageType::Fragment);
+		if (!state.shader.add(vkInterface.getDevice(), "env/irradiance/irradiance_map-vert.spv", VulkanAPI::StageType::Vertex, "env/irradiance/irradiance_map-frag.spv", VulkanAPI::StageType::Fragment))
+		{
+			LOGGER_ERROR("Error. Unable to open irradiance map shader.\n");
+		}
 
 		// use reflection to fill in the pipeline layout and descriptors
-		shader.pipelineLayoutReflect(pipelineLayout);
-		VulkanAPI::ImageReflection sampler_layout;
-		shader.imageReflection(descriptorLayout, sampler_layout);
+		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
+		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
+		state.descriptorLayout.create(vkInterface.getDevice());
+		state.descriptorSet.init(vkInterface.getDevice(), state.descriptorLayout);
 
-		// descriptor sets
-		VulkanAPI::DescriptorSet descriptorSet(device, descriptorLayout);
-		VulkanAPI::Sampler linear_sampler(device, VulkanAPI::SamplerType::LinearClamp);
-		//descriptorSet.writeSet(sampler_layout[0][0].set, sampler_layout[0][0].binding, vk::DescriptorType::eSampler, linear_sampler.getSampler(), cube_tex.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
-
-		// pipeline
-		VulkanAPI::Pipeline pipeline;
-		pipeline.addShader(shader);
-		pipeline.setRenderpass(renderpass);
-		pipeline.addColourAttachment(VK_FALSE, renderpass);
-		pipeline.addLayout(pipelineLayout.get());
-		pipeline.create(device, VulkanAPI::PipelineType::Graphics);
-
-		// use the stock cube mesh
-		RenderUtil::CubeModel cube_model;
-
-		// record command buffer
-		VulkanAPI::CommandBuffer cmdBuffer(device, graphicsQueue.getIndex());
-		vk::RenderPassBeginInfo beginInfo = renderpass.getBeginInfo(clear_value);
-
-		// transition cube texture for transfer
-		cube_tex.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
-
-		// record command buffer for each mip and their layers
-		for (uint8_t mip = 0; mip < mipLevels; ++mip) {
-			for (uint8_t layer = 0; layer < 6; ++layer) {
-
-				// get dimensions for this mip level
-				float mip_dim = static_cast<float>(irradiance_dim * std::pow(0.5, mip));
-				vk::Viewport viewPort(mip_dim, mip_dim, 0.0f, 1.0f);
-
-				cmdBuffer.beginRenderpass(beginInfo, viewPort);
-				cmdBuffer.bindPipeline(pipeline);
-				cmdBuffer.bindDescriptors(pipelineLayout, descriptorSet, VulkanAPI::PipelineType::Graphics);
-				//cmdBuffer.bindVertexBuffer(cube_model.get_vertexBuffer());
-				//cmdBuffer.bindIndexBuffer(cube_model.getIndexBuffer());
-
-				// calculate view for each cube side
-				FilterPushConstant push_block;
-				push_block.mvp = OEMaths::perspective(static_cast<float>(M_PI) / 2.0f, 1.0f, 0.1f, 512.0f) * cubeView[layer];
-				cmdBuffer.bindPushBlock(pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(FilterPushConstant), &push_block);
-
-				// draw cube into offscreen framebuffer
-				//cmdBuffer.drawIndexed(cube_model.getIndexCount());
-				cmdBuffer.endRenderpass();
-
-				// copy the offscreen buffer to the current layer
-				vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
-				vk::Offset3D srcOffset(0, 0, 0);
-				vk::ImageSubresourceLayers dst_resource(vk::ImageAspectFlagBits::eColor, mip, layer, 1);
-				vk::Offset3D dstOffset(0, 0, 0);
-				vk::Extent3D extent(static_cast<uint32_t>(mip_dim), static_cast<uint32_t>(mip_dim), 1);
-				vk::ImageCopy imageCopy(src_resource, srcOffset, dst_resource, dstOffset, extent);
-
-				offscreen_tex.getImage().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get());
-				cmdBuffer.get().copyImage(offscreen_tex.getImage().get(), vk::ImageLayout::eTransferSrcOptimal, cube_tex.getImage().get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
-
-				// transition the offscreen image back to colour attachment ready for the next image
-				offscreen_tex.getImage().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
+		for (auto& layout : state.imageLayout.layouts)
+		{
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "envSampler")
+			{
+				state.descriptorSet.writeSet(state.imageLayout.find(0, layout.binding).value(), vkInterface.gettextureManager()->getTextureImageView("Skybox"));
 			}
 		}
-		cube_tex.getImage().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eUndefined, cmdBuffer.get());
 
-		graphicsQueue.flushCmdBuffer(cmdBuffer.get());
+		// get the pipleine layout detail through shader reflection
+		state.shader.pipelineLayoutReflect(state.pipelineLayout);
+		state.pipelineLayout.create(vkInterface.getDevice(), state.descriptorLayout.getLayout());
+
+		// pipeline
+		state.shader.pipelineReflection(state.pipeline);
+
+		state.pipeline.setDepthState(VK_FALSE, VK_FALSE);
+		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
+		state.pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
+		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.addColourAttachment(VK_FALSE, renderPass);
+		state.pipeline.create(vkInterface.getDevice(), renderPass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+
+		// get the buffers for the cube model vertices/indices
+		auto& vertexBuffer = vkInterface.getBufferManager()->getBuffer("CubeModelVertices");
+		auto& indexBuffer = vkInterface.getBufferManager()->getBuffer("CubeModelIndices");
+
+		// record command buffer
+		VulkanAPI::CommandBuffer cmdBuffer(vkInterface.getDevice(), vkInterface.getGraphicsQueue().getIndex());
+		cmdBuffer.createPrimary();
+		vk::RenderPassBeginInfo beginInfo = renderPass.getBeginInfo(clearValue);
+
+		// transition cube texture for transfer
+		irradianceMapTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
+
+		offscreenTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
+
+		// record command buffer for each mip and their layers
+		for (uint8_t mip = 0; mip < mipLevels; ++mip) 
+		{
+			for (uint8_t face = 0; face < 6; ++face) 
+			{
+				// get dimensions for this mip level
+				float mipDimensions = static_cast<float>(irradianceMapDim * std::pow(0.5, mip));
+				vk::Viewport viewPort{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
+
+				cmdBuffer.beginRenderpass(beginInfo, viewPort);
+				cmdBuffer.setViewport();
+				cmdBuffer.setScissor();
+
+				cmdBuffer.bindPipeline(state.pipeline);
+				cmdBuffer.bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
+				cmdBuffer.bindVertexBuffer(vertexBuffer.buffer, vertexBuffer.offset);
+				cmdBuffer.bindIndexBuffer(indexBuffer.buffer, indexBuffer.offset);
+
+				// calculate view for each cube side
+				IrradianceMapPushBlock pushBlock;
+				OEMaths::mat4f mvp = OEMaths::perspective(static_cast<float>(M_PI) / 2.0f, 1.0f, 0.1f, 512.0f) * cubeView[face];
+				cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(OEMaths::mat4f), &mvp);
+
+				// draw cube into offscreen framebuffer
+				cmdBuffer.drawIndexed(RenderUtil::CubeModel::indicesSize);
+				cmdBuffer.endRenderpass();
+				
+				// copy the offscreen buffer to the current face
+				vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+				vk::ImageSubresourceLayers dst_resource(vk::ImageAspectFlagBits::eColor, mip, face, 1);
+				vk::ImageCopy imageCopy(src_resource, 
+										{ 0, 0, 0 }, 
+										dst_resource, 
+										{ 0, 0, 0 }, 
+										{ static_cast<uint32_t>(mipDimensions), static_cast<uint32_t>(mipDimensions), 1 });
+
+				offscreenTexture.getImage().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get());
+				cmdBuffer.get().copyImage(offscreenTexture.getImage().get(), vk::ImageLayout::eTransferSrcOptimal, irradianceMapTexture.getImage().get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
+
+				// transition the offscreen image back to colour attachment ready for the next image
+				offscreenTexture.getImage().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
+			}
+		}
+		irradianceMapTexture.getImage().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer.get());
+		cmdBuffer.end();
+
+		vkInterface.getGraphicsQueue().flushCmdBuffer(cmdBuffer.get());
 	}
 
+	void IblInterface::renderMaps(VulkanAPI::Interface& vkInterface)
+	{
+		createIrradianceMap(vkInterface); 
+
+		mapsRendered = true;
+	}
 }

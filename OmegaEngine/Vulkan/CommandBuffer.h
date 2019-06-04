@@ -112,6 +112,8 @@ namespace VulkanAPI
 		void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type);
 		void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, uint32_t offsetCount, uint32_t* offsets, PipelineType type);
 		void bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+		void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);
+		void bindIndexBuffer(vk::Buffer& buffer, uint32_t offset);
 
 		// dynamic bindings
 		void setDepthBias(float biasConstant, float biasClamp, float biasSlope);

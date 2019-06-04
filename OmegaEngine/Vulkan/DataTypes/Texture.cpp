@@ -41,7 +41,7 @@ namespace VulkanAPI
 		gpu = phys;
 	}
 
-	void Texture::createEmptyImage(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags)
+	void Texture::createEmptyImage(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags, uint32_t faces)
 	{
 		assert(device);
 
@@ -49,6 +49,7 @@ namespace VulkanAPI
 		this->width = width;
 		this->height = height;
 		this->mipLevels = mipLevels;
+		this->faceCount = faces;
 
 		// create an empty image
 		image.create(device, gpu, *this, usageFlags);

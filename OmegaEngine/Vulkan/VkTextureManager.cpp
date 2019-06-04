@@ -119,6 +119,26 @@ namespace VulkanAPI
 		textures[event.id.c_str()] = tex_info;
 	}
 
+	vk::ImageView& VkTextureManager::getTextureImageView(const char* name)
+	{
+		auto iter = textures.begin();
+		while (iter != textures.end())
+		{
+			if (std::strcmp(iter->first, name) == 0)
+			{
+				break;
+			}
+			iter++;
+		}
+
+		if (iter == textures.end())
+		{
+			LOGGER_ERROR("Unable to find texture with id: %s.\n", name);
+		}
+
+		return iter->second.texture.getImageView();
+	}
+
 	void VkTextureManager::enqueueDescrUpdate(const char* id, VulkanAPI::DescriptorSet* descriptorSet, VulkanAPI::Sampler* sampler, uint32_t set, uint32_t binding)
 	{
 		descriptorSetUpdateQueue.push_back({ id, descriptorSet, sampler, set, binding });
