@@ -126,9 +126,6 @@
     <ClCompile Include="Managers\CameraManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\DataTypes\TextureType.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Managers\ComponentInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -247,6 +244,15 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Models\ModelTransform.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\ModelMaterial.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\ModelSkin.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Models\MappedTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -386,9 +392,6 @@
     <ClInclude Include="OEMaths\OEMaths.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Managers\DataTypes\TextureType.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Managers\ComponentInterface.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -522,6 +525,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Models\ModelTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\ModelMaterial.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\ModelSkin.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Models\MappedTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -2,8 +2,16 @@
 
 #include "Vulkan/Common.h"
 
+#include <string>
+
 namespace OmegaEngine
 {
+	enum class TextureFormat
+	{
+		Image8UC4,
+		Image16UC4,
+		ImageBC3
+	};
 
 	class MappedTexture
 	{
@@ -11,6 +19,7 @@ namespace OmegaEngine
 	public:
 
 		MappedTexture();
+		MappedTexture(std::string name);
 		~MappedTexture();
 
 		MappedTexture(const MappedTexture&) = delete;
@@ -18,9 +27,9 @@ namespace OmegaEngine
 		MappedTexture(MappedTexture&& other);
 		MappedTexture& operator=(MappedTexture&& other);
 
-		bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, vk::Format format);
-		bool mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, vk::Format format, bool createMipMaps = false);
-		bool createEmptyTexture(uint32_t w, uint32_t h, vk::Format format, bool setToBlack);
+		bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, TextureFormat format);
+		bool mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, TextureFormat format, bool createMipMaps = false);
+		bool createEmptyTexture(uint32_t w, uint32_t h, TextureFormat format, bool setToBlack);
 		
 		uint32_t getImageSize() const
 		{
@@ -62,19 +71,14 @@ namespace OmegaEngine
 			return arrayCount;
 		}
 
-		vk::Format& getFormat()
+		TextureFormat& getFormat()
 		{
 			return format;
 		}
 
-		const char* getName()
+		std::string& getName()
 		{
 			return name;
-		}
-
-		void setName(const char* name)
-		{
-			this->name = name;
 		}
 
 	private:
@@ -88,13 +92,13 @@ namespace OmegaEngine
 		uint32_t faceCount = 1;
 		uint32_t totalSize = 0;
 
-		const char* name = nullptr;
+		std::string name;
 
 		// the texture binary
 		uint8_t* bin = nullptr;
 
 		// vulkan info that is associated with this texture
-		vk::Format format;
+		TextureFormat format;
 	};
 
 }

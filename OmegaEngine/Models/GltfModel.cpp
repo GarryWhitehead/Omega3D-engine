@@ -40,12 +40,6 @@ namespace OmegaEngine
 
 		if (ret)
 		{
-			// first get all materials and textures associated with this model
-			for (auto& tex : model.textures)
-			{
-				tinygltf::Image image = model.images[tex.source];
-				textureManager.addGltfImage(image);
-			}
 
 			for (auto& sampler : model.samplers)
 			{

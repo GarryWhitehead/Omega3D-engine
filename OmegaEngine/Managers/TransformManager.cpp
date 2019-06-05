@@ -37,46 +37,6 @@ namespace OmegaEngine
 		}
 	}
 
-	
-
-	void TransformManager::addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects)
-	{
-		for (tinygltf::Skin& skin : model.skins) 
-		{
-			SkinInfo skinInfo;
-			skinInfo.name = skin.name.c_str();
-
-			// Is this the skeleton root node?
-			if (skin.skeleton > -1) 
-			{
-				assert(skin.skeleton < linearisedObjects.size());
-				skinInfo.skeletonIndex = linearisedObjects[skin.skeleton];
-				skinInfo.skeletonIndex.addComponent<SkinnedComponent>(static_cast<uint32_t>(skinBuffer.size() - 1));
-			}
-
-			// Does this skin have joint nodes?
-			for (auto& jointIndex : skin.joints) 
-			{
-				// we will check later if this node actually exsists
-				assert(jointIndex < linearisedObjects.size() && jointIndex > -1);
-				skinInfo.joints.push_back(linearisedObjects[jointIndex]);
-			}
-
-			// get the inverse bind matricies, if there are any
-			if (skin.inverseBindMatrices > -1) 
-			{
-				tinygltf::Accessor accessor = model.accessors[skin.inverseBindMatrices];
-				tinygltf::BufferView bufferView = model.bufferViews[accessor.bufferView];
-				tinygltf::Buffer buffer = model.buffers[bufferView.buffer];
-
-				skinInfo.invBindMatrices.resize(accessor.count);
-				memcpy(skinInfo.invBindMatrices.data(), &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(OEMaths::mat4f));
-			}
-
-			skinBuffer.push_back(skinInfo);
-		}
-	}
-
 	OEMaths::mat4f TransformManager::updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager)
 	{
 		OEMaths::mat4f mat = transforms[obj.getId()].getLocalMatrix();

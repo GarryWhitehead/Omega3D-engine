@@ -1,4 +1,4 @@
-#include "TextureType.h"
+#include "MappedTexture.h"
 #include "Utility/logger.h"
 
 #include <string>
@@ -6,7 +6,12 @@
 
 namespace OmegaEngine
 {
-	MappedTexture::MappedTexture()
+	MappedTexture::MappedTexture() 
+	{
+	}
+
+	MappedTexture::MappedTexture(std::string _name) :
+		name(_name)
 	{
 	}
 
@@ -64,7 +69,7 @@ namespace OmegaEngine
 		return *this;
 	}
 
-	bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays, uint32_t mips, uint32_t size, vk::Format format)
+	bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays, uint32_t mips, uint32_t size, TextureFormat format)
 	{
 		width = w;
 		height = h;
@@ -88,7 +93,7 @@ namespace OmegaEngine
 		return true;
 	}
 
-	bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, vk::Format format, bool createMipMaps)
+	bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, TextureFormat format, bool createMipMaps)
 	{
 		if (comp == 3) 
 		{
@@ -121,7 +126,7 @@ namespace OmegaEngine
 		return true;
 	}
 
-	bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, vk::Format format, bool setToBlack)
+	bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, TextureFormat format, bool setToBlack)
 	{
 		width = w;
 		height = h;

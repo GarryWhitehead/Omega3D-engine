@@ -140,8 +140,7 @@ namespace OmegaEngine
 			OEMaths::mat4f jointMatrices[6];
 			float jointCount;
 		};
-
-		// skinning data derived from file 
+		
 		struct SkinInfo
 		{
 			const char* name;
@@ -162,9 +161,6 @@ namespace OmegaEngine
 
 		// update per frame 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
-
-		// gltf loading - The skinning data is going in the transform manager for now as it's needed most here for calculating skinning transforms
-		void addGltfSkin(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
 
 		// local transform and skinning update
 		OEMaths::mat4f updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager);
