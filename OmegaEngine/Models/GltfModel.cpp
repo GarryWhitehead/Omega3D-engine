@@ -16,6 +16,41 @@ namespace OmegaEngine
 	{
 	}
 
+	GltfModel::ModelNode* GltfModel::getNodeRecursive(std::unique_ptr<ModelNode>& node, uint32_t index)
+	{
+		ModelNode* foundNode;
+		if (node->nodeIndex == index)
+		{
+			return node.get();
+		}
+		if (!node->children.empty())
+		{
+			for (auto& child : node->children)
+			{
+				foundNode = getNodeRecursive(child, index);
+				if (foundNode)
+				{
+					break;
+				}
+			}
+		}
+		return foundNode;
+	}
+
+	GltfModel::ModelNode* GltfModel::getNode(uint32_t index)
+	{
+		ModelNode* foundNode = nullptr;
+		for (auto& node : nodes)
+		{
+			foundNode = getNodeRecursive(node, index);
+			if (foundNode)
+			{
+				break;
+			}
+		}
+		return foundNode;
+	}
+
 	void GltfModel::load(std::string filename)
 	{
 		// open the gltf file
@@ -26,41 +61,22 @@ namespace OmegaEngine
 		std::string ext;
 
 		FileUtil::GetFileExtension(filename, ext);
-		bool ret = false;
+		bool success = false;
 
 		// gltf files can either be in binary or a human-readable format
 		if (ext.compare("glb") == 0)
 		{
-			ret = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());
+			success = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());
 		}
 		else
 		{
-			ret = loader.LoadASCIIFromFile(&model, &err, &warn, filename.c_str());
+			success = loader.LoadASCIIFromFile(&model, &err, &warn, filename.c_str());
 		}
 
-		if (ret)
+		if (success)
 		{
+			parseNodes(model);
 
-			for (auto& sampler : model.samplers)
-			{
-				textureManager.addGltfSampler(set, sampler);
-			}
-
-			for (auto& mat : model.materials)
-			{
-				materialManager.addGltfMaterial(set, mat, textureManager);
-			}
-			textureManager.nextSet();
-
-			// we are going to parse the node recursively to get all the info required for the space - this will add a new object per node - which are treated as models.
-			// data will be passed to all the relevant managers for this object and components added automatically
-
-
-			// skinning info
-			componentInterface->getManager<TransformManager>().addGltfSkin(model, linearisedObjects);
-
-			// animation
-			animation_manager->addGltfAnimation(model, linearisedObjects);
 		}
 		else
 		{
@@ -69,20 +85,23 @@ namespace OmegaEngine
 	}
 	
 
-	void GltfModel::parse(tinygltf::Model& model)
+	void GltfModel::parseNodes(tinygltf::Model& model)
 	{
 		tinygltf::Scene &scene = model.scenes[model.defaultScene];;
-		
+
 		for (uint32_t i = 0; i < scene.nodes.size(); ++i)
 		{
 			auto& parentNode = std::make_unique<ModelNode>();
-			extractNodeData(parentNode, model, model.nodes[scene.nodes[i]]);
+			extractNodeData(parentNode, model, model.nodes[scene.nodes[i]], scene.nodes[i]);
 			nodes.emplace_back(std::move(parentNode));
 		}
 	}
 
-	void GltfModel::extractNodeData(std::unique_ptr<ModelNode>& node, tinygltf::Model& model, tinygltf::Node& gltfNode)
+	void GltfModel::extractNodeData(std::unique_ptr<ModelNode>& node, tinygltf::Model& model, tinygltf::Node& gltfNode, int32_t& index)
 	{
+		node->nodeIndex = index;
+		node->skinIndex = gltfNode.skin;
+
 		// add all local and world transforms to the transform manager - also combines skinning info
 		node->transform = std::make_unique<ModelTransform>();
 		node->transform->extractTransformData(gltfNode);
@@ -94,13 +113,14 @@ namespace OmegaEngine
 			{
 				auto& newNode = std::make_unique<ModelNode>();
 				node->children.emplace_back(std::move(newNode));
-				extractNodeData(node->children[node->children.size() - 1], model, model.nodes[gltfNode.children[i]]);
+				extractNodeData(node->children[node->children.size() - 1], model, model.nodes[gltfNode.children[i]], gltfNode.children[i]);
 			}
 		}
 
 		// if the node has mesh data...
 		if (gltfNode.mesh > -1)
 		{
+			// index is used to determine the correct nodes for applying joint transforms, etc.
 			node->mesh = std::make_unique<ModelMesh>();
 			node->mesh->extractMeshData(model, gltfNode);
 		}

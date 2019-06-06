@@ -6,13 +6,6 @@
 
 namespace OmegaEngine
 {
-	enum class TextureFormat
-	{
-		Image8UC4,
-		Image16UC4,
-		ImageBC3
-	};
-
 	class MappedTexture
 	{
 

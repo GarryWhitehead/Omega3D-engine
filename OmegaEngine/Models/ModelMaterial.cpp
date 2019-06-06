@@ -1,4 +1,5 @@
 #include "ModelMaterial.h"
+#include "Utility/Logger.h"
 
 #include <memory>
 
@@ -14,21 +15,79 @@ namespace OmegaEngine
 	{
 	}
 
+	vk::SamplerAddressMode ModelMaterial::getWrapMode(int32_t wrap)
+	{
+		vk::SamplerAddressMode ret;
+
+		switch (wrap)
+		{
+		case 10497:
+			ret = vk::SamplerAddressMode::eRepeat;
+			break;
+		case 33071:
+			ret = vk::SamplerAddressMode::eClampToEdge;
+			break;
+		case 33648:
+			ret = vk::SamplerAddressMode::eMirroredRepeat;
+			break;
+		default:
+			LOGGER_INFO("Unsupported wrap mode %i whilst parsing gltf sampler.", wrap);
+			ret = vk::SamplerAddressMode::eClampToBorder;
+		}
+		return ret;
+	}
+
+	vk::Filter ModelMaterial::getFilterMode(int32_t filter)
+	{
+		vk::Filter ret;
+
+		switch (filter)
+		{
+		case 9728:
+			ret = vk::Filter::eNearest;
+			break;
+		case 9729:
+			ret = vk::Filter::eLinear;
+			break;
+		case 9984:
+			ret = vk::Filter::eNearest;
+			break;
+		case 9986:
+			ret = vk::Filter::eLinear;
+			break;
+		case 9987:
+			ret = vk::Filter::eLinear;
+			break;
+		default:
+			LOGGER_INFO("Unsupported filter mode %i whilst parsing gltf sampler.", filter);
+			ret = vk::Filter::eNearest;
+		}
+		return ret;
+	}
+
 	void ModelMaterial::extractfImageData(tinygltf::Model& model)
 	{
 		for (auto& tex : model.textures)
 		{
 			tinygltf::Image image = model.images[tex.source];
-			
-			auto& mappedTexture = std::make_unique<MappedTexture>(image.name);
 
-			// format assumed to be 4 channel RGB!
-			if (!mappedTexture->mapTexture(image.width, image.height, image.component, image.image.data(), TextureFormat::Image8UC4, true))
+			auto& texture = std::make_unique<Texture>(image.name);
+
+			// map to temporary storage until transferred to the asset manager
+			texture->map(image.width, image.height, image.image.data());
+
+			// nor guarenteed to have a sampler
+			if (tex.sampler > -1)
 			{
-				// TODO: need to use a default texture here!
+				tinygltf::Sampler gltfSampler = model.samplers[tex.sampler];
+
+				vk::SamplerAddressMode mode = getWrapMode(gltfSampler.wrapS);
+				vk::Filter filter = getFilterMode(gltfSampler.minFilter);
+
+				texture->sampler = std::make_unique<Sampler>(mode, filter);
 			}
-			
-			textures.emplace_back(std::move(mappedTexture));
+
+			textures.emplace_back(std::move(texture));
 		}
 	}
 
@@ -39,14 +98,12 @@ namespace OmegaEngine
 		// go through each material type and see if they exsist - we are only saving the index
 		if (gltfMaterial.values.find("baseColorTexture") != gltfMaterial.values.end())
 		{
-			material.textures[(int)PbrMaterials::BaseColor].image = gltfMaterial.values["baseColorTexture"].TextureIndex();
-			material.textureState[(int)PbrMaterials::BaseColor] = true;
+			material.textures.baseColour = gltfMaterial.values["baseColorTexture"].TextureIndex();
 			material.uvSets.baseColour = gltfMaterial.values["baseColorTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.values.find("metallicRoughnessTexture") != gltfMaterial.values.end())
 		{
-			material.textures[(int)PbrMaterials::MetallicRoughness].image = gltfMaterial.values["metallicRoughnessTexture"].TextureIndex();
-			material.textureState[(int)PbrMaterials::MetallicRoughness] = true;
+			material.textures.metallicRoughness = gltfMaterial.values["metallicRoughnessTexture"].TextureIndex();
 			material.uvSets.metallicRoughness = gltfMaterial.values["metallicRoughnessTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.values.find("baseColorFactor") != gltfMaterial.values.end())
@@ -65,20 +122,17 @@ namespace OmegaEngine
 		// any additional textures?
 		if (gltfMaterial.additionalValues.find("normalTexture") != gltfMaterial.additionalValues.end())
 		{
-			material.textures[(int)PbrMaterials::Normal].image = gltfMaterial.additionalValues["normalTexture"].TextureIndex();
-			material.textureState[(int)PbrMaterials::Normal] = true;
+			material.textures.normal = gltfMaterial.additionalValues["normalTexture"].TextureIndex();
 			material.uvSets.normal = gltfMaterial.additionalValues["normalTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.additionalValues.find("emissiveTexture") != gltfMaterial.additionalValues.end())
 		{
-			material.textures[(int)PbrMaterials::Emissive].image = gltfMaterial.additionalValues["emissiveTexture"].TextureIndex();
-			material.textureState[(int)PbrMaterials::Emissive] = true;
+			material.textures.emissive = gltfMaterial.additionalValues["emissiveTexture"].TextureIndex();
 			material.uvSets.emissive = gltfMaterial.additionalValues["emissiveTexture"].TextureTexCoord();
 		}
 		if (gltfMaterial.additionalValues.find("occlusionTexture") != gltfMaterial.additionalValues.end())
 		{
-			material.textures[(int)PbrMaterials::Occlusion].image = gltfMaterial.additionalValues["occlusionTexture"].TextureIndex();
-			material.textureState[(int)PbrMaterials::Occlusion] = true;
+			material.textures.occlusion = gltfMaterial.additionalValues["occlusionTexture"].TextureIndex();
 			material.uvSets.occlusion = gltfMaterial.additionalValues["occlusionTexture"].TextureTexCoord();
 		}
 
@@ -88,11 +142,11 @@ namespace OmegaEngine
 			tinygltf::Parameter param = gltfMaterial.additionalValues["alphaMode"];
 			if (param.string_value == "BLEND")
 			{
-				material.factors.alphaMask = MaterialInfo::AlphaMode::Blend;
+				material.factors.alphaMask = Material::AlphaMode::Blend;
 			}
 			if (param.string_value == "MASK")
 			{
-				material.factors.alphaMask = MaterialInfo::AlphaMode::Mask;
+				material.factors.alphaMask = Material::AlphaMode::Mask;
 			}
 		}
 		if (gltfMaterial.additionalValues.find("alphaCutOff") != gltfMaterial.additionalValues.end())
@@ -111,7 +165,7 @@ namespace OmegaEngine
 			if (extension->second.Has("specularGlossinessTexture"))
 			{
 				auto index = extension->second.Get("specularGlossinessTexture").Get("index");
-				material.textures[(int)PbrMaterials::MetallicRoughness].image = index.Get<int>();
+				material.textures.metallicRoughness = index.Get<int>();
 				material.usingSpecularGlossiness = true;
 
 				auto uv_index = extension->second.Get("specularGlossinessTexture").Get("texCoord");
@@ -120,7 +174,7 @@ namespace OmegaEngine
 			if (extension->second.Has("diffuseTexture"))
 			{
 				auto index = extension->second.Get("diffuseTexture").Get("index");
-				material.textures[(int)PbrMaterials::BaseColor].image = index.Get<int>();
+				material.textures.baseColour = index.Get<int>();
 				material.usingSpecularGlossiness = true;
 
 				auto uvIndex = extension->second.Get("diffuseTexture").Get("texCoord");

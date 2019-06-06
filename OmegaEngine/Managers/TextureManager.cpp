@@ -27,75 +27,24 @@ namespace OmegaEngine
 
 	}
 
-	vk::SamplerAddressMode TextureManager::getWrapMode(int32_t wrap)
-	{
-		vk::SamplerAddressMode ret;
-
-		switch (wrap) 
-		{
-		case 10497:
-			ret = vk::SamplerAddressMode::eRepeat;
-			break;
-		case 33071:
-			ret = vk::SamplerAddressMode::eClampToEdge;
-			break;
-		case 33648:
-			ret = vk::SamplerAddressMode::eMirroredRepeat;
-			break;
-		default:
-			LOGGER_INFO("Unsupported wrap mode %i whilst parsing gltf sampler.", wrap);
-			ret = vk::SamplerAddressMode::eClampToBorder;
-		}
-		return ret;
-	}
-
-	vk::Filter TextureManager::getFilterMode(int32_t filter)
-	{
-		vk::Filter ret;
-
-		switch (filter) 
-		{
-		case 9728:
-			ret = vk::Filter::eNearest;
-			break;
-		case 9729:
-			ret = vk::Filter::eLinear;
-			break;
-		case 9984:
-			ret = vk::Filter::eNearest;
-			break;
-		case 9986:
-			ret = vk::Filter::eLinear;
-			break;
-		case 9987:
-			ret = vk::Filter::eLinear;
-			break;
-		default:
-			LOGGER_INFO("Unsupported filter mode %i whilst parsing gltf sampler.", filter);
-			ret = vk::Filter::eNearest;
-		}
-		return ret;
-	}
-
-	void TextureManager::addGltfSampler(uint32_t set, tinygltf::Sampler& gltf_sampler)
+	void ModelMaterial::addGltfSampler(tinygltf::Sampler& gltf_sampler)
 	{
 		VulkanAPI::SamplerType type;
-		vk::SamplerAddressMode mode = getWrapMode(gltf_sampler.wrapS);
-		vk::Filter filter = getFilterMode(gltf_sampler.minFilter);
-		
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) 
+
+
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
 		{
 			type = VulkanAPI::SamplerType::LinearWrap;
 		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear) 
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear)
 		{
 			type = VulkanAPI::SamplerType::LinearClamp;
 		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest) 
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest)
 		{
 			type = VulkanAPI::SamplerType::Clamp;
 		}
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear) 
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
 		{
 			type = VulkanAPI::SamplerType::Wrap;
 		}
@@ -103,18 +52,6 @@ namespace OmegaEngine
 		samplers[set].push_back(type);
 	}
 
-	void TextureManager::addGltfImage(tinygltf::Image& image)
-	{
-		MappedTexture mappedTex;
-		mappedTex.setName(image.uri.c_str());
-
-		// format assumed to be 4 channel RGB!
-		if (!mappedTex.mapTexture(image.width, image.height, image.component, image.image.data(), vk::Format::eR8G8B8A8Unorm, true))
-		{
-			// TODO: need to use a default texture here!
-		}
-		textures[currentSet].emplace_back(std::move(mappedTex));	
-	}
 
 	uint32_t TextureManager::getTextureIndex(uint32_t set, const char* name)
 	{
