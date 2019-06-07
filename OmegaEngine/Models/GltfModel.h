@@ -1,4 +1,5 @@
 #pragma once
+#include "Models/ModelNode.h"
 
 #include "tiny_gltf.h"
 
@@ -12,41 +13,32 @@ namespace OmegaEngine
 	class ModelImage;
 	class ModelAnimation;
 
-	class GltfModel
+	namespace GltfModel
 	{
-
-	public:
-
-		struct ModelNode
+		struct Model
 		{
-			int32_t nodeIndex = -1;
-			int32_t skinIndex = -1;
+			std::vector<std::unique_ptr<ModelNode> > nodes;
+			std::vector<std::unique_ptr<ModelMaterial> > materials;
+			std::vector<std::unique_ptr<ModelImage> > images;
+			std::vector<std::unique_ptr<ModelSkin> > skins;
+			std::vector<std::unique_ptr<ModelAnimation> > animations;
 
-			std::unique_ptr<ModelTransform> transform;
-			std::unique_ptr<ModelMesh> mesh;
-			std::unique_ptr<ModelSkin> skin;
-
-			std::vector<std::unique_ptr<ModelNode> > children;
+			ModelNode* getNode(uint32_t index)
+			{
+				ModelNode* foundNode = nullptr;
+				for (auto& node : nodes)
+				{
+					foundNode = node->getNodeRecursive(index);
+					if (foundNode)
+					{
+						break;
+					}
+				}
+				return foundNode;
+			}
 		};
 
-		GltfModel();
-		~GltfModel();
-
-		void load(std::string filename);
-		void parseNodes(tinygltf::Model& model);
-		void extractNodeData(std::unique_ptr<ModelNode>& node, tinygltf::Model& model, tinygltf::Node& gltfNode, int32_t& index);
-		
-		ModelNode* getNode(uint32_t index);
-		
-	private:
-
-		ModelNode* getNodeRecursive(std::unique_ptr<ModelNode>& node, uint32_t index);
-
-		std::vector<std::unique_ptr<ModelNode> > nodes;
-		std::vector<std::unique_ptr<ModelMaterial> > materials;
-		std::vector<std::unique_ptr<ModelImage> > images;
-		std::vector<std::unique_ptr<ModelSkin> > skins;
-		std::vector<std::unique_ptr<ModelAnimation> > animations;
-	};
+		std::unique_ptr<Model> load(std::string filename);
+	}
 
 }

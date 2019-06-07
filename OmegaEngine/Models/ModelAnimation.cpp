@@ -14,7 +14,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, GltfModel& model)
+	void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model)
 	{
 		name = anim.name.c_str();
 
@@ -42,7 +42,7 @@ namespace OmegaEngine
 			}
 
 			channel.samplerIndex = source.sampler;
-			channel.node = model.getNode(source.target_node);
+			channel.node = model->getNode(source.target_node);
 			channels.push_back(channel);
 		}
 

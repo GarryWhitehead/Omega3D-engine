@@ -1,9 +1,14 @@
 #pragma once
 
 #include "Engine/engine.h"
+#include "Models/GltfModel.h"
+#include "Engine/world.h"
+#include "Objects/Object.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
+
+using namespace OmegaEngine;
 
 int main(int argc, char *argv[])
 {
@@ -16,7 +21,7 @@ int main(int argc, char *argv[])
 	auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 	// create an object, using the model for vertices, materials, etc.
-	auto& object = world->createNewObject();
+	auto object = world->createObject();
 	object->addComponent<GltfComponent>(worldMatrix);
 
 	// we can also use only certain attributes from the gltf model, and use other materials etc.
@@ -29,8 +34,7 @@ int main(int argc, char *argv[])
 	world->addSkybox("");
 
 	// and a camera - multiple cameras can be added (TODO: switch via a designated key)
-	auto &object world->createNewObject();
-	object->addComponent<CameraComponent>();
+	world->addCamera();
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

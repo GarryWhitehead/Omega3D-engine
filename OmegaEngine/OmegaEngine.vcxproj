@@ -29,6 +29,7 @@
     <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
+    <ClCompile Include="Models\ModelNode.cpp" />
     <ClCompile Include="Models\ModelAnimation.cpp" />
     <ClCompile Include="Models\ModelImage.cpp" />
     <ClCompile Include="Models\ModelSkin.cpp" />
@@ -122,6 +123,7 @@
     <ClInclude Include="Models\ModelImage.h" />
     <ClInclude Include="Models\ModelMaterial.h" />
     <ClInclude Include="Models\ModelMesh.h" />
+    <ClInclude Include="Models\ModelNode.h" />
     <ClInclude Include="Models\ModelSkin.h" />
     <ClInclude Include="Models\ModelTransform.h" />
     <ClInclude Include="Rendering\IblInterface.h" />

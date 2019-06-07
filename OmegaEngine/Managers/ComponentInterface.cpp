@@ -16,7 +16,32 @@ namespace OmegaEngine
 	{
 	}
 
-	void ComponentInterface::update_managers(double time, double dt, std::unique_ptr<ObjectManager>& objectManager)
+	void ComponentInterface::addObjectToUpdateQueue(Object* object)
+	{
+		assert(object != nullptr);
+		objectUpdateQueue.emplace_back(object);
+	}
+
+	void ComponentInterface::updateManagersFromQueue()
+	{
+		if (objectUpdateQueue.empty())
+		{
+			return;
+		}
+
+		for (auto object : objectUpdateQueue)
+		{
+			auto& componentList = object->getComponentList();
+
+			for (auto& component : componentList)
+			{
+				auto& manager = getManager(component.managerId);
+				manager->
+			}
+		}
+	}
+
+	void ComponentInterface::update(double time, double dt, std::unique_ptr<ObjectManager>& objectManager)
 	{
 		for (auto& manager : managers) 
 		{

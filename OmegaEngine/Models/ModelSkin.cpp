@@ -15,7 +15,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, GltfModel& model)
+	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model)
 	{
 		
 		skin.name = skin.name.c_str();
@@ -23,14 +23,14 @@ namespace OmegaEngine
 		// Is this the skeleton root node?
 		if (skin.skeleton > -1)
 		{
-			skeletonNode = model.getNode(skin.skeleton);
+			skeletonNode = model->getNode(skin.skeleton);
 			assert(skeletonNode != nullptr);
 		}
 
 		// Does this skin have joint nodes?
 		for (auto& jointIndex : skin.joints)
 		{
-			auto node = model.getNode(jointIndex);
+			auto node = model->getNode(jointIndex);
 			assert(node != nullptr);
 			joints.emplace_back(node);
 		}

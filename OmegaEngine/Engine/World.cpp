@@ -136,6 +136,15 @@ namespace OmegaEngine
 		// an empty world, so not much to do for now!
 	}
 
+	Object* World::createObject()
+	{
+		 auto object = objectManager->createObject();
+
+		 // add object to queue for updating its components with the relevant managers
+		 componentInterface->addObjectToUpdateQueue(object);
+		 return object;
+	}
+
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis

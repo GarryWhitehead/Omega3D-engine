@@ -80,8 +80,12 @@ namespace OmegaEngine
 		World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
 		~World();
 
+		// user interface stuff - world creation
 		bool create(const char* filename, const char* name);
 		void create(const char* name);
+
+		// middle man between object manager and user side
+		Object* createObject();
 
 		void update(double time, double dt);
 		void render(double interpolation);

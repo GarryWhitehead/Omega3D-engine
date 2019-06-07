@@ -17,15 +17,15 @@ namespace OmegaEngine
 		ModelSkin();
 		~ModelSkin();
 
-		void extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, GltfModel& model);
+		void extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model);
 
 	private:
 
 		std::string name;
 
 		// these are both "got" from unique pointers. Naughty, probably better to chnage to indices at some point
-		GltfModel::ModelNode* skeletonNode;
-		std::vector<GltfModel::ModelNode*> joints;
+		ModelNode* skeletonNode;
+		std::vector<ModelNode*> joints;
 
 		std::vector<OEMaths::mat4f> invBindMatrices;
 		std::vector<OEMaths::mat4f> jointMatrices;
