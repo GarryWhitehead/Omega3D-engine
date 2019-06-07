@@ -8,6 +8,9 @@ namespace OmegaEngine
 	class ModelTransform;
 	class ModelMesh;
 	class ModelSkin;
+	class ModelMaterial;
+	class ModelImage;
+	class ModelAnimation;
 
 	class GltfModel
 	{
@@ -40,6 +43,10 @@ namespace OmegaEngine
 		ModelNode* getNodeRecursive(std::unique_ptr<ModelNode>& node, uint32_t index);
 
 		std::vector<std::unique_ptr<ModelNode> > nodes;
+		std::vector<std::unique_ptr<ModelMaterial> > materials;
+		std::vector<std::unique_ptr<ModelImage> > images;
+		std::vector<std::unique_ptr<ModelSkin> > skins;
+		std::vector<std::unique_ptr<ModelAnimation> > animations;
 	};
 
 }

@@ -84,19 +84,39 @@ namespace OmegaEngine
 		currentVkDevice = static_cast<uint32_t>(vkDevices.size() - 1);
 	}
 
-	void Engine::createWorld(std::string filename, std::string name)
+	World* Engine::createWorld(std::string filename, std::string name)
 	{
 		// create a world using a omega engine scene file
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
 		
 		// throw an error here as calling a function for specifically creating a world with a scene file.
-		if (!world->create(filename.c_str())) 
+		if (!world->create(filename.c_str(), name)) 
 		{
 			LOGGER_ERROR("Unable to create world as no omega-scene file found.");
 		}
 
+		auto outputWorld = world.get();
 		worlds.emplace_back(std::move(world));
-		currentWorldIndex = static_cast<uint32_t>(worlds.size() - 1);
+		this->currentWorld = name;
+
+		return outputWorld;
+	}
+
+	World* Engine::createWorld(std::string name)
+	{
+		// create an empty world
+		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
+.
+		if (!world->create())
+		{
+			LOGGER_ERROR("Unable to create world.");
+		}
+
+		auto outputWorld = world.get();
+		worlds.emplace_back(std::move(world));
+		this->currentWorld = name;
+
+		return outputWorld;
 	}
 
 	void Engine::loadConfigFile()

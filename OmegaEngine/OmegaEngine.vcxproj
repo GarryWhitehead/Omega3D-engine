@@ -29,6 +29,8 @@
     <ClCompile Include="external\Spirv-Cross\spirv_msl.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_parser.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_reflect.cpp" />
+    <ClCompile Include="Models\ModelAnimation.cpp" />
+    <ClCompile Include="Models\ModelImage.cpp" />
     <ClCompile Include="Models\ModelSkin.cpp" />
     <ClCompile Include="Models\ModelMaterial.cpp" />
     <ClCompile Include="Models\ModelMesh.cpp" />
@@ -57,6 +59,7 @@
     <ClCompile Include="OEMaths\OEMaths_transform.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Skybox.cpp" />
     <ClCompile Include="Rendering\RenderConfig.cpp" />
+    <ClCompile Include="SceneExample.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
     <ClCompile Include="utility\StringUtil.cpp" />
     <ClCompile Include="Vulkan\CommandBufferManager.cpp" />
@@ -92,7 +95,7 @@
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="SimpleExample.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />
@@ -115,6 +118,8 @@
     <ClInclude Include="external\Spirv-Cross\spirv_parser.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_reflect.hpp" />
     <ClInclude Include="Models\GltfModel.h" />
+    <ClInclude Include="Models\ModelAnimation.h" />
+    <ClInclude Include="Models\ModelImage.h" />
     <ClInclude Include="Models\ModelMaterial.h" />
     <ClInclude Include="Models\ModelMesh.h" />
     <ClInclude Include="Models\ModelSkin.h" />

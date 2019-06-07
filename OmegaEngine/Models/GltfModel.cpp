@@ -1,6 +1,10 @@
 #include "GltfModel.h"
 #include "Models/ModelMesh.h"
 #include "Models/ModelTransform.h"
+#include "Models/ModelMaterial.h"
+#include "Models/ModelImage.h"
+#include "Models/ModelSkin.h"
+#include "Models/ModelAnimation.h"
 #include "Utility/FileUtil.h"
 #include "Utility/logger.h"
 
@@ -77,6 +81,37 @@ namespace OmegaEngine
 		{
 			parseNodes(model);
 
+			// materials
+			for (auto& material : model.materials)
+			{
+				auto& newMaterial = std::make_unique<ModelMaterial>();
+				newMaterial->extractMaterialData(material);
+				materials.emplace_back(std::move(newMaterial));
+			}
+
+			// images and samplers
+			for (auto& texture : model.textures)
+			{
+				auto& newImage = std::make_unique<ModelImage>();
+				newImage->extractfImageData(model, texture);
+				images.emplace_back(std::move(newImage));
+			}
+
+			// skins
+			for (tinygltf::Skin& skin : model.skins)
+			{
+				auto& newSkin = std::make_unique<ModelSkin>();
+				newSkin->extractSkinData(model, skin, *this);
+				skins.emplace_back(std::move(newSkin));
+			}
+
+			// animation
+			for (tinygltf::Animation& anim : model.animations)
+			{
+				auto& newAnim = std::make_unique<ModelAnimation>();
+				newAnim->extractAnimationData(model, anim, *this);
+				animations.emplace_back(std::move(anim));
+			}
 		}
 		else
 		{

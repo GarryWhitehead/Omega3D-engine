@@ -80,19 +80,15 @@ namespace OmegaEngine
 		World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
 		~World();
 
-		bool create(const char* filename);
+		bool create(const char* filename, const char* name);
+		void create(const char* name);
+
 		void update(double time, double dt);
 		void render(double interpolation);
 
-		// gltf based stuff. Will probably be moved into its own sperate file at some point
-		void addGltfData(std::string filename, OEMaths::mat4f worldMatix);
-		void loadGltfNode(tinygltf::Model& model,
-							std::unordered_map<uint32_t, Object>& linearisedObjects,
-							OEMaths::mat4f worldTransform,
-							Object* obj,
-							uint32_t nodeIndex);
-
 	private:
+
+		char* name = nullptr;
 
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;

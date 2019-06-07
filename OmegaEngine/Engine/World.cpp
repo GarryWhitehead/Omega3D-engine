@@ -86,8 +86,11 @@ namespace OmegaEngine
 		
 	}
 
-	bool World::create(const char* filename)
+	bool World::create(const char* filename, const char* name)
 	{
+		// this worlds name, used as a reference
+		std::strcpy(this->name, name);
+
 		SceneParser parser;
 		if (!parser.parse(filename))
 		{
@@ -121,13 +124,16 @@ namespace OmegaEngine
 			assetManager->loadImageFile(parser.getEnvironment().irradianceMapFilename);
 		}
 
-		// load and distribute the gltf data between the appropiate systems.
-		for (uint32_t i = 0; i < parser.modelCount(); ++i) 
-		{
-			this->addGltfData(parser.getFilenames(i), parser.getWorldMatrix(i));
-		}
-
+		
 		return true;
+	}
+
+	void World::create(const char *name)
+	{
+		// this worlds name, used as a reference
+		std::strcpy(this->name, name);
+
+		// an empty world, so not much to do for now!
 	}
 
 	void World::update(double time, double dt)

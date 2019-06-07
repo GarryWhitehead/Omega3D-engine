@@ -56,7 +56,9 @@ namespace OmegaEngine
 		Engine(std::string win_title, uint32_t width, uint32_t height);
 		~Engine();
 
-		void createWorld(std::string filename, std::string name);
+		World* createWorld(std::string filename, std::string name);
+		World* createWorld(std::string name);
+
 		void createWindow(std::string win_title);
 		void loadConfigFile();
 
@@ -91,7 +93,7 @@ namespace OmegaEngine
 
 		// a collection of worlds registered with the engine
 		std::vector<std::unique_ptr<World> > worlds;
-		uint32_t currentWorldIndex = 0;		
+		std::string currentWorld;		
 
 		// a list of all grpahics devices that are available
 		std::vector<std::unique_ptr<VulkanAPI::Device>> vkDevices;

@@ -5,7 +5,7 @@
 
 namespace OmegaEngine
 {
-
+	
 	ModelSkin::ModelSkin()
 	{
 	}
@@ -15,40 +15,35 @@ namespace OmegaEngine
 	{
 	}
 
-	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, GltfModel& model)
+	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, GltfModel& model)
 	{
-		for (tinygltf::Skin& gltfSkin : gltfModel.skins)
+		
+		skin.name = skin.name.c_str();
+
+		// Is this the skeleton root node?
+		if (skin.skeleton > -1)
 		{
-			Skin skin;
-			skin.name = gltfSkin.name.c_str();
+			skeletonNode = model.getNode(skin.skeleton);
+			assert(skeletonNode != nullptr);
+		}
 
-			// Is this the skeleton root node?
-			if (gltfSkin.skeleton > -1)
-			{
-				skin.skeletonNode = model.getNode(gltfSkin.skeleton);
-				assert(skin.skeletonNode != nullptr);
-			}
+		// Does this skin have joint nodes?
+		for (auto& jointIndex : skin.joints)
+		{
+			auto node = model.getNode(jointIndex);
+			assert(node != nullptr);
+			joints.emplace_back(node);
+		}
 
-			// Does this skin have joint nodes?
-			for (auto& jointIndex : gltfSkin.joints)
-			{
-				auto node = model.getNode(jointIndex);
-				assert(node != nullptr);
-				skin.joints.emplace_back(node);
-			}
+		// get the inverse bind matricies, if there are any
+		if (skin.inverseBindMatrices > -1)
+		{
+			tinygltf::Accessor accessor = gltfModel.accessors[skin.inverseBindMatrices];
+			tinygltf::BufferView bufferView = gltfModel.bufferViews[accessor.bufferView];
+			tinygltf::Buffer buffer = gltfModel.buffers[bufferView.buffer];
 
-			// get the inverse bind matricies, if there are any
-			if (gltfSkin.inverseBindMatrices > -1)
-			{
-				tinygltf::Accessor accessor = gltfModel.accessors[gltfSkin.inverseBindMatrices];
-				tinygltf::BufferView bufferView = gltfModel.bufferViews[accessor.bufferView];
-				tinygltf::Buffer buffer = gltfModel.buffers[bufferView.buffer];
-
-				skin.invBindMatrices.resize(accessor.count);
-				memcpy(skin.invBindMatrices.data(), &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(OEMaths::mat4f));
-			}
-
-			skins.emplace_back(std::move(skin));
+			invBindMatrices.resize(accessor.count);
+			memcpy(invBindMatrices.data(), &buffer.data[accessor.byteOffset + bufferView.byteOffset], accessor.count * sizeof(OEMaths::mat4f));
 		}
 	}
 }
