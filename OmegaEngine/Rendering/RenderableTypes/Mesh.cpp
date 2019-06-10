@@ -14,7 +14,7 @@
 #include "Rendering/Renderers/DeferredRenderer.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/RenderCommon.h"
-#include "Managers/ComponentInterface.h"
+#include "ObjectInterface/ComponentInterface.h"
 #include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
@@ -56,8 +56,8 @@ namespace OmegaEngine
 			queueType = QueueType::Transparent;
 		}
 
-		auto& transformManagerager = componentInterface->getManager<TransformManager>();
-		meshInstance->transformDynamicOffset = transformManagerager.getTransformOffset(obj.getId());
+		auto& transformManager = componentInterface->getManager<TransformManager>();
+		meshInstance->transformDynamicOffset = transformManager.getTransformOffset(obj.getId());
 
 		// pointer to the mesh pipeline
 		if (mesh.type == MeshManager::MeshType::Static) 
@@ -71,7 +71,7 @@ namespace OmegaEngine
 			meshInstance->state = renderInterface->getRenderPipeline(RenderTypes::SkinnedMesh).get();
 			meshInstance->vertexBuffer = bufferManager->getBuffer("SkinnedVertices");
 			layoutInfo = textureManager->getTextureDescriptorLayout("SkinnedMesh");
-			meshInstance->skinnedDynamicOffset = transformManagerager.getSkinnedOffset(obj.getId());
+			meshInstance->skinnedDynamicOffset = transformManager.getSkinnedOffset(obj.getId());
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment

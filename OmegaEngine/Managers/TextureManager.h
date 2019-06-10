@@ -4,8 +4,6 @@
 #include "Vulkan/Common.h"
 #include "Managers/DataTypes/TextureType.h"
 
-#include "tiny_gltf.h"
-
 #include <vector>
 
 namespace VulkanAPI

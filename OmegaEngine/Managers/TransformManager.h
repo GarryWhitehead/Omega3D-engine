@@ -3,11 +3,7 @@
 #include "OEMaths/OEMaths_transform.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
-#include "Objects/Object.h"
 #include "Utility/logger.h"
-#include "Vulkan/MemoryAllocator.h"
-
-#include "tiny_gltf.h"
 
 #include <vector>
 #include <cstdint>
@@ -16,6 +12,8 @@ namespace OmegaEngine
 {
 	// forward decleartions
 	class ObjectManager;
+	class Object;
+	struct TransformComponent;
 
 	class TransformManager : public ManagerBase
 	{
@@ -27,14 +25,14 @@ namespace OmegaEngine
 			// static 
 			struct LocalTransform
 			{
-				OEMaths::vec3f trans;
+				OEMaths::vec3f translation;
 				OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
 				OEMaths::mat4f rotation;
 			};
 
 			void calculateLocalMatrix()
 			{
-				local = OEMaths::mat4f::translate(localTransform.trans) * localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
+				local = OEMaths::mat4f::translate(localTransform.translation) * localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
 			}
 
 			uint32_t getTransformOffset() const
@@ -59,7 +57,7 @@ namespace OmegaEngine
 
 			void setTranslation(OEMaths::vec3f& trans)
 			{
-				localTransform.trans = trans;
+				localTransform.translation = trans;
 				recalculateLocal = true;
 			}
 
@@ -158,6 +156,8 @@ namespace OmegaEngine
 
 		TransformManager();
 		~TransformManager();
+
+		void addComponentToManager(TransformComponent& component, Object& object);
 
 		// update per frame 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;

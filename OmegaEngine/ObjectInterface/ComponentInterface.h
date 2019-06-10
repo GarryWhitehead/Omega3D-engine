@@ -83,6 +83,7 @@ namespace OmegaEngine
 			return false;
 		}
 
+
 	protected:
 
 		std::vector<Object*> objectUpdateQueue;

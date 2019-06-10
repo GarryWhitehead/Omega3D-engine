@@ -15,6 +15,32 @@ namespace OmegaEngine
 	{
 	}
 
+	int32_t ModelMaterial::getTexture(const TextureId id)
+	{
+		int32_t textureOutput = -1;
+
+		switch (id)
+		{
+			case TextureId::BaseColour:
+				textureOutput = material.textures.baseColour;
+				break;
+			case TextureId::Emissive:
+				textureOutput = material.textures.emissive;
+				break;
+			case TextureId::MetallicRoughness:
+				textureOutput = material.textures.metallicRoughness; 
+				break;
+			case TextureId::Normal:
+				textureOutput = material.textures.normal;
+				break;
+			case TextureId::Occlusion:
+				textureOutput = material.textures.occlusion;
+				break;
+		}
+
+		return textureOutput;
+	}
+
 	void ModelMaterial::extractMaterialData(tinygltf::Material& gltfMaterial)
 	{
 		material.name = gltfMaterial.name;
@@ -64,14 +90,7 @@ namespace OmegaEngine
 		if (gltfMaterial.additionalValues.find("alphaMode") != gltfMaterial.additionalValues.end())
 		{
 			tinygltf::Parameter param = gltfMaterial.additionalValues["alphaMode"];
-			if (param.string_value == "BLEND")
-			{
-				material.factors.alphaMask = Material::AlphaMode::Blend;
-			}
-			if (param.string_value == "MASK")
-			{
-				material.factors.alphaMask = Material::AlphaMode::Mask;
-			}
+			material.factors.mask = param.string_value;
 		}
 		if (gltfMaterial.additionalValues.find("alphaCutOff") != gltfMaterial.additionalValues.end())
 		{

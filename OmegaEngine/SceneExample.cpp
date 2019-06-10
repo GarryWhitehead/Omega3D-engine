@@ -3,7 +3,8 @@
 #include "Engine/engine.h"
 #include "Models/GltfModel.h"
 #include "Engine/world.h"
-#include "Objects/Object.h"
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ComponentTypes.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
@@ -17,18 +18,20 @@ int main(int argc, char *argv[])
 	// create a new empty world
 	auto world = engine.createWorld("SceneOne");
 
-	// Use a gltf image as one of our scene objects
-	auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
+	{
+		// Use a gltf image as one of our scene objects
+		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
-	// create an object, using the model for vertices, materials, etc.
-	auto object = world->createObject();
-	object->addComponent<GltfComponent>(worldMatrix);
+		// create an object, using a gltf model for vertices, materials, etc.
+		auto object = world->createGltfModelObject(model);
+		object->addComponent<WorldTransformComponent>();
 
-	// we can also use only certain attributes from the gltf model, and use other materials etc.
-	auto material = OmegaEngine::MaterialManager::createMaterial();
+		// we can also use only certain attributes from the gltf model, and use other materials etc.
+		auto material = OmegaEngine::MaterialManager::createMaterial();
 
-	object->addComponent<MeshComponent>(model);
-	object->addComponent<MaterialComponent>(material);
+		object->addComponent<MeshComponent>(model);
+		object->addComponent<MaterialComponent>(material);
+	}
 
 	// add a skybox
 	world->addSkybox("");

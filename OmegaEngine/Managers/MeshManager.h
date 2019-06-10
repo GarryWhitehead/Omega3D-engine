@@ -1,5 +1,4 @@
 #pragma once
-
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "Managers/ManagerBase.h"
@@ -15,6 +14,7 @@ namespace OmegaEngine
 	// forard decleartions
 	class ObjectManager;
 	class Object;
+	struct MeshComponent;
 
 	class MeshManager : public ManagerBase
 	{
@@ -101,7 +101,9 @@ namespace OmegaEngine
 		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		StaticMesh& getMesh(MeshComponent comp)
+		void addComponentToManager(MeshComponent& component, Object& object);
+
+		StaticMesh& getMesh(MeshComponent& comp)
 		{
 			assert(comp.index < meshBuffer.size());
 			return meshBuffer[comp.index];

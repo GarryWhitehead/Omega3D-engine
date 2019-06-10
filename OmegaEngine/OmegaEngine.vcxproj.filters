@@ -198,9 +198,6 @@
     <ClCompile Include="Rendering\RenderableTypes\Skybox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Managers\AssetManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="utility\StringUtil.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -249,9 +246,6 @@
     <ClCompile Include="Models\ModelSkin.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Models\MappedTexture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Models\ModelImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -265,6 +259,21 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Models\ModelNode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectInterface\ComponentInterface.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectInterface\Object.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectInterface\ObjectManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetInterface\AssetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AssetInterface\MappedTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -470,12 +479,6 @@
     <ClInclude Include="Rendering\Renderers\RendererBase.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="OEMaths\Objects\Object.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OEMaths\Objects\ObjectManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Objects\Object.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -489,9 +492,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Rendering\RenderableTypes\Skybox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Managers\AssetManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="utility\StringUtil.h">
@@ -545,9 +545,6 @@
     <ClInclude Include="Models\ModelSkin.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Models\MappedTexture.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Models\ModelImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -555,6 +552,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Models\ModelNode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInterface\ComponentInterface.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInterface\Object.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInterface\ObjectManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectInterface\ComponentTypes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetInterface\AssetManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AssetInterface\MappedTexture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

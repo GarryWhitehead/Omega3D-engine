@@ -1,6 +1,7 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
+#include "Models/GltfModel.h"
 
 #include "tiny_gltf.h"
 
@@ -87,10 +88,15 @@ namespace OmegaEngine
 		// middle man between object manager and user side
 		Object* createObject();
 
+		// spacial function which creates the node tree and adds the appropiate components from a gltf model
+		Object* createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial);
+
 		void update(double time, double dt);
 		void render(double interpolation);
 
 	private:
+
+		Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject);
 
 		char* name = nullptr;
 

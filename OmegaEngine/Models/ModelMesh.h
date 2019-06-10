@@ -69,6 +69,26 @@ namespace OmegaEngine
 			delete buf;
 		}
 
+		std::vector<Vertex>& getVertices()
+		{
+			return vertices;
+		}
+
+		std::vector<uint32_t>& getIndices()
+		{
+			return indices;
+		}
+
+		bool hasSkin() const
+		{
+			return skinned;
+		}
+
+		std::vector<Primitive>& getPrimitives()
+		{
+			return primitives;
+		}
+
 	private:
 
 		Dimensions totalDimensions;
@@ -77,7 +97,7 @@ namespace OmegaEngine
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
-		bool hasSkin = false;
+		bool skinned = false;
 	};
 
 }

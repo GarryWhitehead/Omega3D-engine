@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="AssetInterface\AssetManager.cpp" />
+    <ClCompile Include="AssetInterface\MappedTexture.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_cfg.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_cpp.cpp" />
     <ClCompile Include="external\Spirv-Cross\spirv_cross.cpp" />
@@ -37,9 +39,11 @@
     <ClCompile Include="Models\ModelMesh.cpp" />
     <ClCompile Include="Models\GltfModel.cpp" />
     <ClCompile Include="Models\ModelTransform.cpp" />
+    <ClCompile Include="ObjectInterface\ComponentInterface.cpp" />
+    <ClCompile Include="ObjectInterface\Object.cpp" />
+    <ClCompile Include="ObjectInterface\ObjectManager.cpp" />
     <ClCompile Include="Rendering\IblInterface.cpp" />
     <ClCompile Include="Image\KtxReader.cpp" />
-    <ClCompile Include="Managers\AssetManager.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
     <ClCompile Include="Objects\Object.cpp" />
     <ClCompile Include="Objects\ObjectManager.cpp" />
@@ -87,7 +91,6 @@
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
     <ClCompile Include="Managers\TextureManager.cpp" />
-    <ClCompile Include="Models\MappedTexture.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
     <ClCompile Include="Threading\ThreadUtil.cpp" />
     <ClCompile Include="Threading\ThreadPool.cpp" />
@@ -105,6 +108,8 @@
     <ClCompile Include="Vulkan\VkTextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AssetInterface\AssetManager.h" />
+    <ClInclude Include="AssetInterface\MappedTexture.h" />
     <ClInclude Include="external\Spirv-Cross\GLSL.std.450.h" />
     <ClInclude Include="external\Spirv-Cross\spirv.hpp" />
     <ClInclude Include="external\Spirv-Cross\spirv_cfg.hpp" />
@@ -126,9 +131,12 @@
     <ClInclude Include="Models\ModelNode.h" />
     <ClInclude Include="Models\ModelSkin.h" />
     <ClInclude Include="Models\ModelTransform.h" />
+    <ClInclude Include="ObjectInterface\ComponentInterface.h" />
+    <ClInclude Include="ObjectInterface\Object.h" />
+    <ClInclude Include="ObjectInterface\ObjectManager.h" />
+    <ClInclude Include="ObjectInterface\ComponentTypes.h" />
     <ClInclude Include="Rendering\IblInterface.h" />
     <ClInclude Include="Image\KtxReader.h" />
-    <ClInclude Include="Managers\AssetManager.h" />
     <ClInclude Include="Objects\ObjectTypes.h" />
     <ClInclude Include="Objects\Object.h" />
     <ClInclude Include="Objects\ObjectManager.h" />
@@ -162,13 +170,10 @@
     <ClInclude Include="Vulkan\BufferManager.h" />
     <ClInclude Include="Managers\ComponentInterface.h" />
     <ClInclude Include="Managers\ManagerBase.h" />
-    <ClInclude Include="OEMaths\Objects\ObjectManager.h" />
-    <ClInclude Include="Models\MappedTexture.h" />
     <ClInclude Include="Vulkan\CommandBuffer.h" />
     <ClInclude Include="Vulkan\DataTypes\Texture.h" />
     <ClInclude Include="Vulkan\Device.h" />
     <ClInclude Include="Engine\engine.h" />
-    <ClInclude Include="OEMaths\Objects\Object.h" />
     <ClInclude Include="Engine\Omega_Config.h" />
     <ClInclude Include="Engine\Omega_Global.h" />
     <ClInclude Include="Engine\Omega_SceneParser.h" />

@@ -1,13 +1,16 @@
 #include "TransformManager.h"
-#include "Objects/Object.h"
-#include "Objects/ObjectManager.h"
-
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ObjectManager.h"
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ComponentTypes.h"
+#include "Models/ModelTransform.h"
 #include "Omega_Common.h"
 #include "Vulkan/BufferManager.h"
 #include "Managers/EventManager.h"
 #include "Managers/MeshManager.h"
 #include "Engine/Omega_Global.h"
 #include "Utility/GeneralUtil.h"
+
 #include <cstdint>
 #include <algorithm>
 
@@ -35,6 +38,24 @@ namespace OmegaEngine
 		{
 			_aligned_free(skinnedBufferData);
 		}
+	}
+
+	void TransformManager::addComponentToManager(TransformComponent& component, Object& object)
+	{
+		TransformData transform;
+
+		if (component.transform->hasTrsMatrix())
+		{
+			transform.setLocalMatrix(component.transform->getMatrix());
+		}
+		else
+		{
+			transform.setTranslation(component.transform->getTranslation());
+			transform.setScale(component.transform->getScale());
+			transform.setRotation(component.transform->getRotation());
+		}
+
+		transforms.emplace(object.getId(), transform);
 	}
 
 	OEMaths::mat4f TransformManager::updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager)
@@ -94,8 +115,8 @@ namespace OmegaEngine
 				skinBuffer[skinIndex].jointMatrices[i] = localMatrix;
 				skinnedBufferPtr->jointMatrices[i] = localMatrix;
 			}
+
 			++skinnedBufferSize;
-	
 		}
 		else if (obj.hasComponent<MeshComponent>())
 		{

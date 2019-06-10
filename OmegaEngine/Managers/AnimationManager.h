@@ -2,9 +2,6 @@
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
-#include "Objects/object.h"
-
-#include "tiny_gltf.h"
 
 #include <memory>
 
@@ -68,8 +65,6 @@ namespace OmegaEngine
 
 		AnimationManager();
 		~AnimationManager();
-
-		void addGltfAnimation(tinygltf::Model& model, std::unordered_map<uint32_t, Object>& linearisedObjects);
 
 		void updateAnimation(double time, double dt, TransformManager& transformManager);
 

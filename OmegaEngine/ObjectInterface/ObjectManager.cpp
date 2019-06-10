@@ -1,6 +1,6 @@
-#include "Objects/ObjectManager.h"
+#include "ObjectInterface/ObjectManager.h"
 
-#include "Objects/Object.h"
+#include "ObjectInterface/Object.h"
 
 namespace OmegaEngine
 {

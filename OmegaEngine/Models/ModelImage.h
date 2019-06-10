@@ -1,4 +1,5 @@
 #pragma once
+#include "Vulkan/Common.h"
 
 #include "tiny_gltf.h"
 
@@ -22,38 +23,48 @@ namespace OmegaEngine
 		vk::Filter filter;
 	};
 
-	struct Texture
-	{
-		Texture() :
-			name(_name)
-		{}
-
-		
-
-		
-	};
-
-
 	class ModelImage
 	{
 
 	public:
 
-		
-
-
-		ModelImage(std::string& _name);
+		ModelImage(std::string _name);
 		~ModelImage();
+
+		void extractfImageData(tinygltf::Model& model, tinygltf::Texture& texture);
+
+		static vk::SamplerAddressMode getWrapMode(int32_t wrap);
+		static vk::Filter getFilterMode(int32_t filter);
 
 		void map(uint32_t width, uint32_t height, void* data)
 		{
 			assert(data != nullptr);
 			uint32_t size = width * height * 4;
-			memcpy(imageData, data, size);
+			//memcpy(imageData, data, size);
 			assert(imageData != nullptr);
 
 			// images must be 4-channel RGBA
 			format = TextureFormat::Image8UC4;
+		}
+
+		uint32_t getWidth() const
+		{
+			return width;
+		}
+
+		uint32_t getHeight() const
+		{
+			return height;
+		}
+
+		uint8_t* getData() 
+		{
+			return imageData;
+		}
+
+		TextureFormat getFormat() const
+		{
+			return format;
 		}
 
 	private:

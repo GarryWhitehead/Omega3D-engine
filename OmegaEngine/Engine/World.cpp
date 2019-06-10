@@ -4,9 +4,10 @@
 #include "Engine/Omega_SceneParser.h"
 #include "Engine/Omega_Config.h"
 #include "Engine/Omega_Global.h"
-#include "Objects/Object.h"
-#include "Managers/ComponentInterface.h"
-#include "Objects/ObjectManager.h"
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ComponentInterface.h"
+#include "ObjectInterface/ObjectManager.h"
+#include "ObjectInterface/ComponentTypes.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TextureManager.h"
@@ -16,12 +17,11 @@
 #include "Managers/TextureManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/EventManager.h"
-#include "Managers/AssetManager.h"
+#include "AssetInterface/AssetManager.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/RenderableTypes/Mesh.h"
-#include "Threading/ThreadPool.h"
-#include "Utility/BVH.hpp"
-#include "Omega_Common.h"
+#include "Models/ModelMaterial.h"
+#include "Models/GltfModel.h"
+#include "Utility/Bvh.hpp"
 #include "Vulkan/Device.h"
 
 #define TINYGLTF_IMPLEMENTATION
@@ -145,6 +145,54 @@ namespace OmegaEngine
 		 return object;
 	}
 
+	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject)
+	{
+		if (node->hasChildren)
+		{
+			for (uint32_t i = 0; i < node->childCount(); ++i)
+			{
+				auto child = objectManager->createChildObject(*parentObject);
+				this->createGltfModelObjectRecursive(node->getChildNode(i), child);
+			}
+		}
+
+		if (node->hasMesh())
+		{
+			parentObject->addComponent<MeshComponent>(node->getMesh());
+		}
+		if (node->hasTransform())
+		{
+			parentObject->addComponent<TransformComponent>(node->getTransform());
+		}
+		if (node->hasSkin())
+		{
+			
+		}
+		
+	}
+
+	Object* World::createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial)
+	{
+		// materials and their textures
+		auto& materialManager = componentInterface->getManager<MaterialManager>();
+		uint32_t materialOffset = materialManager.getOffset();
+
+		for (auto& material : model->materials)
+		{
+			materialManager.addMaterial(material, model->images, assetManager);
+		}
+
+		// Now to create the object and add the relevant components
+		auto object = objectManager->createObject();
+
+		for (auto& node : model->nodes)
+		{
+			this->createGltfModelObjectRecursive(node, object);
+		}
+
+		return object;
+	}
+
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis
@@ -155,7 +203,7 @@ namespace OmegaEngine
 		assetManager->update();
 
 		// all other managers
-		componentInterface->update_managers(time, dt, objectManager);
+		componentInterface->updateManagers(time, dt, objectManager);
 
 		// check whether there are any queued events to deal with
 		Global::eventManager()->notifyQueued();

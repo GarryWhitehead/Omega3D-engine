@@ -13,23 +13,18 @@ namespace OmegaEngine
 
 	public:
 
+		enum class TextureId
+		{
+			BaseColour,
+			Emissive,
+			MetallicRoughness,
+			Normal,
+			Occlusion
+		};
+
 		struct Material
 		{
 			std::string name;
-
-			enum class AlphaMode
-			{
-				Opaque,
-				Blend,
-				Mask
-			};
-
-			struct Texture
-			{
-				uint32_t set;
-				uint32_t sampler = 0;
-				uint32_t image = 0;			// set number and the index within this set
-			};
 
 			struct Factors
 			{
@@ -42,7 +37,7 @@ namespace OmegaEngine
 				float roughness = 1.0f;
 				float metallic = 1.0f;
 
-				AlphaMode alphaMask = AlphaMode::Opaque;
+				std::string mask;
 				float alphaMaskCutOff = 1.0f;
 			} factors;
 
@@ -75,8 +70,17 @@ namespace OmegaEngine
 
 		void extractMaterialData(tinygltf::Material& gltfMaterial);
 		void addGltfSampler(tinygltf::Sampler& gltf_sampler);
+		int32_t getTexture(const TextureId id);
 
-		
+		Material::TexCoordSets getUvSets() const
+		{
+			return material.uvSets;
+		}
+
+		Material::Factors getFactors() const
+		{
+			return material.factors;
+		}
 
 	private:
 

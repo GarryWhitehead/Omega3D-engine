@@ -1,11 +1,7 @@
 #pragma once
-
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
-
-#include "Managers/DataTypes/TextureType.h"
-
-#include "tiny_gltf.h"
+#include "AssetInterface/MappedTexture.h"
 
 #include <memory>
 #include <unordered_map>
@@ -14,33 +10,17 @@ namespace OmegaEngine
 {
 	// forward declerations
 	class TextureManager;
-
-	enum class PbrMaterials 
-	{
-		BaseColor,
-		Normal,
-		MetallicRoughness,
-		Emissive,
-		Occlusion,
-		Count
-	};
+	class ModelMaterial;
+	class ModelImage;
+	class AssetManager;
 
 	struct MaterialInfo
 	{
-		const char *name;
-
 		enum class AlphaMode
 		{
 			Opaque,
 			Blend,
 			Mask
-		};
-
-		struct Texture
-		{
-			uint32_t set;
-			uint32_t sampler = 0;
-			uint32_t image = 0;			// set number and the index within this set
 		};
 
 		struct Factors
@@ -53,9 +33,6 @@ namespace OmegaEngine
 			float specularGlossiness = 1.0f;
 			float roughness = 1.0f;
 			float metallic = 1.0f;
-
-			AlphaMode alphaMask = AlphaMode::Opaque;
-			float alphaMaskCutOff = 1.0f;
 		} factors;
 
 		struct TexCoordSets
@@ -69,9 +46,11 @@ namespace OmegaEngine
 			uint32_t diffuse = 0;
 		} uvSets;
 
-		// material image indicies
-		std::array<Texture, static_cast<int>(PbrMaterials::Count)> textures;
-		std::array<bool, static_cast<int>(PbrMaterials::Count)> textureState = { false };
+		// This must not be empty as used for identifying textues when passed to the vulkan api
+		std::string name;
+
+		AlphaMode alphaMask = AlphaMode::Opaque;
+		float alphaMaskCutOff = 1.0f;
 
 		// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 		bool usingSpecularGlossiness = false;
@@ -82,14 +61,36 @@ namespace OmegaEngine
 
 	public:
 
+		// this must be in the same order as the model material texture enum
+		std::array<std::string, 5> textureExtensions
+		{
+			"BaseColour",
+			"Emissive",
+			"MetallicRoughness",
+			"Normal",
+			"Occlusion"
+		};
+
 		MaterialManager();
 		~MaterialManager();
 
 		// a per-frame update if the material data becomes dirty
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		void addGltfMaterial(uint32_t set, tinygltf::Material& gltf_mat, TextureManager& textureManager);
+		void addMaterial(std::unique_ptr<ModelMaterial>& material, std::vector<std::unique_ptr<ModelImage> >& images, std::unique_ptr<AssetManager>& assetManager);
 		MaterialInfo& get(uint32_t index);
+
+		uint32_t getOffset() const
+		{
+			if (!materials.empty())
+			{
+				return materials.size - 1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
 
 	private:
 		
