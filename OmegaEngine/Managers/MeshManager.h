@@ -101,7 +101,7 @@ namespace OmegaEngine
 		// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...) 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
-		void addComponentToManager(MeshComponent& component, Object& object);
+		void addComponentToManager(MeshComponent* component);
 
 		StaticMesh& getMesh(MeshComponent& comp)
 		{

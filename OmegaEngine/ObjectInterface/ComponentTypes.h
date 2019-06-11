@@ -53,12 +53,14 @@ namespace OmegaEngine
 		MeshComponent() {}
 		~MeshComponent() {}
 
-		MeshComponent(uint32_t _index) : 
-            index(_index),
+		MeshComponent(ModelMesh* _mesh, uint32_t offset) : 
+            mesh(_mesh),
+			materialBufferOffset(offset),
             ComponentBase(ComponentType::Mesh) 
         {}
 
         uint32_t index = 0;
+		uint32_t materialBufferOffset = 0;
 		ModelMesh* mesh;
     };
 
@@ -75,22 +77,27 @@ namespace OmegaEngine
 
     struct SkinnedComponent : public ComponentBase
     {
-        SkinnedComponent(uint32_t _index) : 
+        SkinnedComponent(uint32_t _index, bool skeleton, bool joint) : 
             index(_index),
+			isSkeleton(skeleton),
+			isJoint(joint),
             ComponentBase(ComponentType::Skin)
         {}
         
         uint32_t index = 0;
+		uint32_t bufferOffset = 0;
+		bool isSkeleton = false;
+		bool isJoint = false;
     };
 
     struct MaterialComponent : public ComponentBase
     {
-        MaterialComponent(uint32_t _index) : 
-        index(_index),
+        MaterialComponent(uint32_t _offset) : 
+        offset(_offset),
         ComponentBase(ComponentType::Material) 
         {}
 
-        uint32_t index = 0;
+        uint32_t offset = 0;
     };
 
     struct SkyboxComponent : public ComponentBase

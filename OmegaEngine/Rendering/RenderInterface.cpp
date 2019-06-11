@@ -5,10 +5,11 @@
 #include "RenderableTypes/Shadow.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
-#include "Managers/ComponentInterface.h"
+#include "ObjectInterface/ComponentInterface.h"
+#include "ObjectInterface/ComponentTypes.h"
 #include "PostProcess/PostProcessInterface.h"
-#include "Objects/Object.h"
-#include "Objects/ObjectManager.h"
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ObjectManager.h"
 #include "Managers/TransformManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
@@ -141,9 +142,8 @@ namespace OmegaEngine
 	{
 		auto& meshManager = componentInterface->getManager<MeshManager>();
 		auto& lightManager = componentInterface->getManager<LightManager>();
-
-		MeshComponent component = obj.getComponent<MeshComponent>();
-		MeshManager::StaticMesh mesh = meshManager.getMesh(component);
+	
+		auto& mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
 
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives) 

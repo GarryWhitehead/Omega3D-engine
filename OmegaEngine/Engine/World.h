@@ -96,7 +96,8 @@ namespace OmegaEngine
 
 	private:
 
-		Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject);
+		Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
+			const uint32_t materialOffset, const uint32_t skinOffset);
 
 		char* name = nullptr;
 

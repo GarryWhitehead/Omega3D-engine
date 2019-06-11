@@ -14,6 +14,8 @@ namespace OmegaEngine
 	class ObjectManager;
 	class Object;
 	struct TransformComponent;
+	struct SkinnedComponent;
+	class ModelSkin;
 
 	class TransformManager : public ManagerBase
 	{
@@ -142,8 +144,7 @@ namespace OmegaEngine
 		struct SkinInfo
 		{
 			const char* name;
-			Object skeletonIndex;
-
+			Object skeleton;
 			std::vector<Object> joints;
 			std::vector<OEMaths::mat4f> invBindMatrices;
 			std::vector<OEMaths::mat4f> jointMatrices;
@@ -157,7 +158,9 @@ namespace OmegaEngine
 		TransformManager();
 		~TransformManager();
 
-		void addComponentToManager(TransformComponent& component, Object& object);
+		void addComponentToManager(TransformComponent* component);
+		bool addComponentToManager(SkinnedComponent* component, Object& object);
+		void addSkin(std::unique_ptr<ModelSkin>& skin);
 
 		// update per frame 
 		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
@@ -196,8 +199,8 @@ namespace OmegaEngine
 
 	private:
 
-		// transform data for static meshes - stored with object id for faster look up
-		std::unordered_map<uint32_t, TransformData> transforms;
+		// transform data for static meshes
+		std::vector<TransformData> transforms;
 
 		// skinned transform data
 		std::vector<SkinInfo> skinBuffer;

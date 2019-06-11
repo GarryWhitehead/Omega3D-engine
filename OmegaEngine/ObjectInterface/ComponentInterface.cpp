@@ -36,14 +36,21 @@ namespace OmegaEngine
 			if (object->hasComponent<MeshComponent>())
 			{
 				auto& manager = getManager<MeshManager>();
-				manager.addComponentToManager(object->getComponent<MeshComponent>(), *object);
-				break;
+				manager.addComponentToManager(&object->getComponent<MeshComponent>());
 			}
-			else if (object->hasComponent<TransformComponent>())
+			if (object->hasComponent<TransformComponent>())
 			{
 				auto& manager = getManager<TransformManager>();
-				manager.addComponentToManager(object->getComponent<TransformComponent>(), *object);
-				break;
+				manager.addComponentToManager(&object->getComponent<TransformComponent>());
+			}
+			if (object->hasComponent<MaterialComponent>())
+			{
+
+			}
+			if (object->hasComponent<SkinnedComponent>())
+			{
+				auto& manager = getManager<TransformManager>();
+				manager.addComponentToManager(&object->getComponent<SkinnedComponent>());
 			}
 		}
 	}

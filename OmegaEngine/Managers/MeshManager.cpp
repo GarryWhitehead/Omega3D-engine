@@ -22,13 +22,13 @@ namespace OmegaEngine
 	{
 	}
 
-	void MeshManager::addComponentToManager(MeshComponent& component, Object& object)
+	void MeshManager::addComponentToManager(MeshComponent* component)
 	{
 		StaticMesh mesh;
-		auto vertexData = component.mesh->getVertices();
+		auto vertexData = component->mesh->getVertices();
 
 		// copy data from model into the manager
-		if (!component.mesh->hasSkin())
+		if (!component->mesh->hasSkin())
 		{
 			mesh.vertexBufferOffset = staticVertices.size();
 
@@ -62,7 +62,7 @@ namespace OmegaEngine
 		}
 
 		// and now the indices
-		auto& modelIndices = component.mesh->getIndices();
+		auto& modelIndices = component->mesh->getIndices();
 
 		uint32_t indexOffset = indices.size();
 		mesh.indexBufferOffset = indexOffset;
@@ -72,7 +72,7 @@ namespace OmegaEngine
 		std::copy(modelIndices.begin(), modelIndices.end(), indices.begin() + indexOffset);
 
 		// and the primitive data
-		auto& modelPrimitives = component.mesh->getPrimitives();
+		auto& modelPrimitives = component->mesh->getPrimitives();
 
 		for (auto& modelPrimitive : modelPrimitives)
 		{
@@ -81,6 +81,11 @@ namespace OmegaEngine
 			primitive.indexCount = modelPrimitive.indexCount;
 			mesh.primitives.emplace_back(primitive);
 		}
+
+		meshBuffer.emplace_back(mesh);
+		
+		// store the buffer index in the mesh component
+		component->index = meshBuffer.size() - 1;
 	}
 
 	void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)

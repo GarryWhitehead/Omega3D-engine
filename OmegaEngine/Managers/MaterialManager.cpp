@@ -80,31 +80,10 @@ namespace OmegaEngine
 
 	void MaterialManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)
 	{
-		if (isDirty) 
+		if (isDirty)
 		{
-			auto& textureManager = componentInterface->getManager<TextureManager>();
-
-			for (auto& mat : materials) 
-			{
-				// all textures are going to be copied over to the the grpahics side
-				for (uint8_t i = 0; i < (uint8_t)PbrMaterials::Count; ++i) {
-
-					// do we actually have an image for this particular pbr material
-					if (mat.textureState[i]) 
-					{
-						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureManager.getTexture(mat.textures[i].set, mat.textures[i].image),
-							textureManager.getSampler(mat.textures[i].set, mat.textures[i].sampler) };
-						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
-					}
-					else 
-					{
-						VulkanAPI::MaterialTextureUpdateEvent event{ mat.name, i, &textureManager.getDummyTexture(), textureManager.getDummySampler() };
-						Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
-					}
-				}
-			}
+			// not much to do yet....
+			isDirty = false;
 		}
-
-		isDirty = false;
 	}
 }

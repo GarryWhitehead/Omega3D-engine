@@ -145,20 +145,21 @@ namespace OmegaEngine
 		 return object;
 	}
 
-	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject)
+	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
+		const uint32_t materialOffset, const uint32_t skinOffset)
 	{
 		if (node->hasChildren)
 		{
 			for (uint32_t i = 0; i < node->childCount(); ++i)
 			{
 				auto child = objectManager->createChildObject(*parentObject);
-				this->createGltfModelObjectRecursive(node->getChildNode(i), child);
+				this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset);
 			}
 		}
 
 		if (node->hasMesh())
 		{
-			parentObject->addComponent<MeshComponent>(node->getMesh());
+			parentObject->addComponent<MeshComponent>(node->getMesh(), materialOffset);
 		}
 		if (node->hasTransform())
 		{
@@ -166,7 +167,7 @@ namespace OmegaEngine
 		}
 		if (node->hasSkin())
 		{
-			
+			parentObject->addComponent<SkinnedComponent>(node->getSkinIndex(), skinOffset, node->isSkeletonRoot(), node->isJoint());
 		}
 		
 	}
@@ -182,12 +183,21 @@ namespace OmegaEngine
 			materialManager.addMaterial(material, model->images, assetManager);
 		}
 
+		// skins
+		auto& transformManager = componentInterface->getManager<TransformManager>();
+		uint32_t skinOffset = transformManager->getSkinBufferOffset();
+
+		for (auto& skin : model->skins)
+		{
+			transformManager.addSkin(skin);
+		}
+
 		// Now to create the object and add the relevant components
 		auto object = objectManager->createObject();
 
 		for (auto& node : model->nodes)
 		{
-			this->createGltfModelObjectRecursive(node, object);
+			this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset);
 		}
 
 		return object;

@@ -19,14 +19,29 @@ namespace OmegaEngine
 
 		void extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model);
 
+		OEMaths::mat4f* getInvBindData()
+		{
+			return invBindMatrices.data();
+		}
+
+		OEMaths::mat4f* getJointData()
+		{
+			return jointMatrices.data();
+		}
+
+		uint32_t getInvBindCount() const
+		{
+			return invBindMatrices.size();
+		}
+
+		uint32_t getJointCount() const
+		{
+			return jointMatrices.size();
+		}
+
 	private:
 
 		std::string name;
-
-		// these are both "got" from unique pointers. Naughty, probably better to chnage to indices at some point
-		ModelNode* skeletonNode;
-		std::vector<ModelNode*> joints;
-
 		std::vector<OEMaths::mat4f> invBindMatrices;
 		std::vector<OEMaths::mat4f> jointMatrices;
 	};

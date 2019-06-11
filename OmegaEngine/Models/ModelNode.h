@@ -67,6 +67,26 @@ namespace OmegaEngine
 			return transform.get();
 		}
 
+		void setSkeletonRootFlag()
+		{
+			skeletonRoot = true;
+		}
+
+		void setJointFlag()
+		{
+			joint = true;
+		}
+
+		bool isSkeletonRoot() const
+		{
+			return skeletonRoot;
+		}
+
+		bool isJoint() const
+		{
+			return joint;
+		}
+
 	private:
 
 		int32_t nodeIndex = -1;
@@ -76,6 +96,10 @@ namespace OmegaEngine
 		std::unique_ptr<ModelMesh> mesh;
 
 		std::vector<std::unique_ptr<ModelNode> > children;
+
+		// couple of flags regards skinning 
+		bool skeletonRoot = false;
+		bool joint = false;
 	};
 
 }

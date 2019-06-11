@@ -4,6 +4,7 @@
 #include "ObjectInterface/Object.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "Models/ModelTransform.h"
+#include "Models/ModelSkin.h"
 #include "Omega_Common.h"
 #include "Vulkan/BufferManager.h"
 #include "Managers/EventManager.h"
@@ -40,22 +41,62 @@ namespace OmegaEngine
 		}
 	}
 
-	void TransformManager::addComponentToManager(TransformComponent& component, Object& object)
+	void TransformManager::addComponentToManager(TransformComponent* component)
 	{
 		TransformData transform;
 
-		if (component.transform->hasTrsMatrix())
+		if (component->transform->hasTrsMatrix())
 		{
-			transform.setLocalMatrix(component.transform->getMatrix());
+			transform.setLocalMatrix(component->transform->getMatrix());
 		}
 		else
 		{
-			transform.setTranslation(component.transform->getTranslation());
-			transform.setScale(component.transform->getScale());
-			transform.setRotation(component.transform->getRotation());
+			transform.setTranslation(component->transform->getTranslation());
+			transform.setScale(component->transform->getScale());
+			transform.setRotation(component->transform->getRotation());
 		}
 
-		transforms.emplace(object.getId(), transform);
+		transforms.emplace_back(transform);
+
+		component->index = transforms.size() - 1;
+	}
+
+	bool TransformManager::addComponentToManager(SkinnedComponent* component, Object& object)
+	{
+		if (skinBuffer.empty())
+		{
+			return false;
+		}
+
+		uint32_t bufferIndex = component->index + component->bufferOffset;
+		assert(bufferIndex < skinBuffer.size());
+
+		// link skinning info with objects
+		if (component->isSkeleton)
+		{
+			skinBuffer[bufferIndex].skeleton = object;
+		}
+		else if (component->isJoint)
+		{
+			skinBuffer[bufferIndex].joints.emplace_back(object);
+		}
+
+		return true;
+	}
+
+	void TransformManager::addSkin(std::unique_ptr<ModelSkin>& skin)
+	{
+		SkinInfo skinInfo;
+
+		// joint and inv bind matrices are just a straight copy
+		skinInfo.jointMatrices.resize(skin->getJointCount());
+		memcpy(skinInfo.jointMatrices.data(), skin->getJointData(), skinInfo.jointMatrices.size() * sizeof(OEMaths::mat4f));
+
+		skinInfo.invBindMatrices.resize(skin->getInvBindCount());
+		memcpy(skinInfo.invBindMatrices.data(), skin->getInvBindData(), skinInfo.invBindMatrices.size() * sizeof(OEMaths::mat4f));
+
+		// rest of the skin info will be added later
+		skinBuffer.emplace_back(skinInfo);
 	}
 
 	OEMaths::mat4f TransformManager::updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager)
