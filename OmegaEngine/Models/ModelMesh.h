@@ -35,14 +35,16 @@ namespace OmegaEngine
 
 		struct Primitive
 		{
-			Primitive(uint32_t offset, uint32_t size, OEMaths::vec3f min, OEMaths::vec3f max) :
+			Primitive(uint32_t offset, uint32_t size, OEMaths::vec3f min, OEMaths::vec3f max, uint32_t matId) :
 				indexBase(offset),
-				indexCount(size)
+				indexCount(size),
+				materialId(matId)
 			{
 				// add to bvh here?
 			}
 
 			Dimensions dimensions;
+			int32_t materialId = -1;
 
 			// index offsets
 			uint32_t indexBase = 0;

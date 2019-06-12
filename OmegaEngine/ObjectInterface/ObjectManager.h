@@ -2,7 +2,7 @@
 
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
-#include "Objects/Object.h"
+#include "ObjectInterface/Object.h"
 
 #include <vector>
 #include <deque>

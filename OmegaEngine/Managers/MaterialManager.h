@@ -64,11 +64,11 @@ namespace OmegaEngine
 		// this must be in the same order as the model material texture enum
 		std::array<std::string, 5> textureExtensions
 		{
-			"BaseColour",
-			"Emissive",
-			"MetallicRoughness",
-			"Normal",
-			"Occlusion"
+			"_BaseColour",
+			"_Emissive",
+			"_MetallicRoughness",
+			"_Normal",
+			"_Occlusion"
 		};
 
 		MaterialManager();
@@ -80,16 +80,9 @@ namespace OmegaEngine
 		void addMaterial(std::unique_ptr<ModelMaterial>& material, std::vector<std::unique_ptr<ModelImage> >& images, std::unique_ptr<AssetManager>& assetManager);
 		MaterialInfo& get(uint32_t index);
 
-		uint32_t getOffset() const
+		uint32_t getBufferOffset() const
 		{
-			if (!materials.empty())
-			{
-				return materials.size - 1;
-			}
-			else
-			{
-				return 0;
-			}
+			return materials.size();
 		}
 
 	private:

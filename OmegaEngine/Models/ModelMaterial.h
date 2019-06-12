@@ -19,7 +19,8 @@ namespace OmegaEngine
 			Emissive,
 			MetallicRoughness,
 			Normal,
-			Occlusion
+			Occlusion,
+			Count
 		};
 
 		struct Material
@@ -80,6 +81,21 @@ namespace OmegaEngine
 		Material::Factors getFactors() const
 		{
 			return material.factors;
+		}
+
+		std::string& getAlphaMask()
+		{
+			return material.factors.mask;
+		}
+
+		float getAlphaCutOff() const
+		{
+			return material.factors.alphaMaskCutOff;
+		}
+
+		std::string& getName()
+		{
+			return material.name;
 		}
 
 	private:

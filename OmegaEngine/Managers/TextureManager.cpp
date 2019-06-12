@@ -27,31 +27,7 @@ namespace OmegaEngine
 
 	}
 
-	void ModelMaterial::addGltfSampler(tinygltf::Sampler& gltf_sampler)
-	{
-		VulkanAPI::SamplerType type;
-
-
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
-		{
-			type = VulkanAPI::SamplerType::LinearWrap;
-		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear)
-		{
-			type = VulkanAPI::SamplerType::LinearClamp;
-		}
-		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest)
-		{
-			type = VulkanAPI::SamplerType::Clamp;
-		}
-		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
-		{
-			type = VulkanAPI::SamplerType::Wrap;
-		}
-
-		samplers[set].push_back(type);
-	}
-
+	
 
 	uint32_t TextureManager::getTextureIndex(uint32_t set, const char* name)
 	{

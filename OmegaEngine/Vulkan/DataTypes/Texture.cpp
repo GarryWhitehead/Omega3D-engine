@@ -2,7 +2,7 @@
 
 #include "Vulkan/Interface.h"
 #include "Vulkan/DataTypes/Texture.h"
-#include "Managers/DataTypes/TextureType.h"
+#include "AssetInterface/MappedTexture.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/Image.h"

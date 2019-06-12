@@ -74,7 +74,7 @@ namespace OmegaEngine
 
 		void setJointFlag()
 		{
-			joint = true;
+			jointFlag = true;
 		}
 
 		bool isSkeletonRoot() const
@@ -84,7 +84,28 @@ namespace OmegaEngine
 
 		bool isJoint() const
 		{
-			return joint;
+			return jointFlag;
+		}
+
+		bool hasAnimation() const
+		{
+			return animChannelIndex > 0 && animIndex > 0;
+		}
+
+		void setAnimationIndex(const uint32_t index, const uint32_t channelIndex)
+		{
+			animChannelIndex = channelIndex;
+			animIndex = index;
+		}
+
+		uint32_t getAnimIndex() const
+		{
+			return animIndex;
+		}
+
+		uint32_t getChannelIndex() const
+		{
+			return animChannelIndex;
 		}
 
 	private:
@@ -99,7 +120,11 @@ namespace OmegaEngine
 
 		// couple of flags regards skinning 
 		bool skeletonRoot = false;
-		bool joint = false;
+		bool jointFlag = false;
+
+		// animation flag - indices required to link object with animation channel
+		int32_t animChannelIndex = -1;
+		int32_t animIndex = -1;
 	};
 
 }

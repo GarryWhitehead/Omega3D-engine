@@ -157,7 +157,7 @@ namespace OmegaEngine
 				throw std::runtime_error("Unable to parse indices data. Unsupported accessor component type.");
 			}
 
-			primitives.push_back({ localIndexOffset, indexCount, primMin, primMax });
+			primitives.push_back({ localIndexOffset, indexCount, primMin, primMax, static_cast<uint32_t>(primitive.material) });
 			localIndexOffset += indexCount;
 		}
 

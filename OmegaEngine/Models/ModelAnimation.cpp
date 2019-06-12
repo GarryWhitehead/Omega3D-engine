@@ -1,5 +1,4 @@
 #include "ModelAnimation.h"
-#include "Models/GltfModel.h"
 #include "Utility/Logger.h"
 
 namespace OmegaEngine
@@ -14,35 +13,23 @@ namespace OmegaEngine
 	{
 	}
 
-	void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model)
+	void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model, const uint32_t index)
 	{
 		name = anim.name.c_str();
 
 		// get channel data
+		uint32_t channelIndex = 0;
 		for (auto& source : anim.channels)
 		{
 			Channel channel;
 
-			if (source.target_path == "rotation")
-			{
-				channel.pathType = Channel::PathType::Rotation;
-			}
-			if (source.target_path == "scale")
-			{
-				channel.pathType = Channel::PathType::Scale;
-			}
-			if (source.target_path == "translation")
-			{
-				channel.pathType = Channel::PathType::Translation;
-			}
-			if (source.target_path == "weights")
-			{
-				LOGGER_INFO("Channel path type weights not yet supported.");
-				continue;
-			}
-
+			channel.pathType = source.target_path;
 			channel.samplerIndex = source.sampler;
-			channel.node = model->getNode(source.target_node);
+			
+			// set animation flag on relevant node
+			auto node = model->getNode(source.target_node);
+			node->setAnimationIndex(index, channelIndex++);
+
 			channels.push_back(channel);
 		}
 
@@ -50,19 +37,7 @@ namespace OmegaEngine
 		for (auto& sampler : anim.samplers)
 		{
 			Sampler samplerInfo;
-
-			if (sampler.interpolation == "LINEAR")
-			{
-				samplerInfo.interpolationType = Sampler::InerpolationType::Linear;
-			}
-			if (sampler.interpolation == "STEP")
-			{
-				samplerInfo.interpolationType = Sampler::InerpolationType::Step;
-			}
-			if (sampler.interpolation == "CUBICSPLINE")
-			{
-				samplerInfo.interpolationType = Sampler::InerpolationType::CubicSpline;
-			}
+			samplerInfo.interpolation = sampler.interpolation;
 
 			tinygltf::Accessor timeAccessor = gltfModel.accessors[sampler.input];
 			tinygltf::BufferView timeBufferView = gltfModel.bufferViews[timeAccessor.bufferView];

@@ -4,7 +4,7 @@
 #include "Managers/ManagerBase.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
-
+#include "Managers/AnimationManager.h"
 
 namespace OmegaEngine
 {
@@ -50,7 +50,12 @@ namespace OmegaEngine
 			if (object->hasComponent<SkinnedComponent>())
 			{
 				auto& manager = getManager<TransformManager>();
-				manager.addComponentToManager(&object->getComponent<SkinnedComponent>());
+				manager.addComponentToManager(&object->getComponent<SkinnedComponent>(), *object);
+			}
+			if (object->hasComponent<AnimationComponent>())
+			{
+				auto& manager = getManager<AnimationManager>();
+				manager.addComponentToManager(&object->getComponent<AnimationComponent>(), *object);
 			}
 		}
 	}

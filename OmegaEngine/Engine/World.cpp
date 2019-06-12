@@ -20,6 +20,7 @@
 #include "AssetInterface/AssetManager.h"
 #include "Rendering/RenderInterface.h"
 #include "Models/ModelMaterial.h"
+#include "Models/ModelAnimation.h"
 #include "Models/GltfModel.h"
 #include "Utility/Bvh.hpp"
 #include "Vulkan/Device.h"
@@ -146,7 +147,7 @@ namespace OmegaEngine
 	}
 
 	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
-		const uint32_t materialOffset, const uint32_t skinOffset)
+		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
 		if (node->hasChildren)
 		{
@@ -169,14 +170,17 @@ namespace OmegaEngine
 		{
 			parentObject->addComponent<SkinnedComponent>(node->getSkinIndex(), skinOffset, node->isSkeletonRoot(), node->isJoint());
 		}
-		
+		if (node->hasAnimation())
+		{
+			parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndex(), animationOffset);
+		}
 	}
 
 	Object* World::createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial)
 	{
 		// materials and their textures
 		auto& materialManager = componentInterface->getManager<MaterialManager>();
-		uint32_t materialOffset = materialManager.getOffset();
+		uint32_t materialOffset = materialManager.getBufferOffset();
 
 		for (auto& material : model->materials)
 		{
@@ -185,11 +189,20 @@ namespace OmegaEngine
 
 		// skins
 		auto& transformManager = componentInterface->getManager<TransformManager>();
-		uint32_t skinOffset = transformManager->getSkinBufferOffset();
+		uint32_t skinOffset = transformManager.getSkinnedBufferOffset();
 
 		for (auto& skin : model->skins)
 		{
 			transformManager.addSkin(skin);
+		}
+
+		// animations
+		auto& animationManager = componentInterface->getManager<AnimationManager>();
+		uint32_t animationOffset = animationManager.getBufferOffset();
+
+		for (auto& animation : model->animations)
+		{
+			animationManager.addAnimation(animation);
 		}
 
 		// Now to create the object and add the relevant components
@@ -197,7 +210,7 @@ namespace OmegaEngine
 
 		for (auto& node : model->nodes)
 		{
-			this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset);
+			this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset, animationOffset);
 		}
 
 		return object;

@@ -64,7 +64,7 @@
     <ClCompile Include="OEMaths\OEMaths_transform.cpp" />
     <ClCompile Include="Rendering\RenderableTypes\Skybox.cpp" />
     <ClCompile Include="Rendering\RenderConfig.cpp" />
-    <ClCompile Include="SceneExample.cpp" />
+    <ClCompile Include="Examples\Scene\main.cpp" />
     <ClCompile Include="utility\BVH.cpp" />
     <ClCompile Include="utility\StringUtil.cpp" />
     <ClCompile Include="Vulkan\CommandBufferManager.cpp" />
@@ -99,7 +99,7 @@
     <ClCompile Include="utility\FileUtil.cpp" />
     <ClCompile Include="utility\RandomNumber.cpp" />
     <ClCompile Include="Managers\InputManager.cpp" />
-    <ClCompile Include="SimpleExample.cpp" />
+    <ClCompile Include="Examples\Simple\main.cpp" />
     <ClCompile Include="Vulkan\Device.cpp" />
     <ClCompile Include="Vulkan\Interface.cpp" />
     <ClCompile Include="Vulkan\MemoryAllocator.cpp" />

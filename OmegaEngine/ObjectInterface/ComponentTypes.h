@@ -100,6 +100,20 @@ namespace OmegaEngine
         uint32_t offset = 0;
     };
 
+	struct AnimationComponent : public ComponentBase
+	{
+		AnimationComponent(uint32_t anim, uint32_t channel, uint32_t offset) :
+			animIndex(anim),
+			channelIndex(channel),
+			bufferOffset(offset),
+			ComponentBase(ComponentType::Transform)
+		{}
+
+		uint32_t animIndex = 0;
+		uint32_t channelIndex = 0;
+		uint32_t bufferOffset = 0;
+	};
+
     struct SkyboxComponent : public ComponentBase
     {
         SkyboxComponent(float factor) : 

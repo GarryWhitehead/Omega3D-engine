@@ -1,5 +1,4 @@
 #include "ModelSkin.h"
-#include "Models/GltfModel.h"
 
 #include <assert.h>
 

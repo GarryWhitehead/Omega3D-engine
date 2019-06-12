@@ -75,10 +75,11 @@ namespace OmegaEngine
 				}
 
 				// animation
+				uint32_t animIndex = 0;
 				for (tinygltf::Animation& anim : model.animations)
 				{
 					auto& newAnim = std::make_unique<ModelAnimation>();
-					newAnim->extractAnimationData(model, anim, outputModel);
+					newAnim->extractAnimationData(model, anim, outputModel, animIndex++);
 					outputModel->animations.emplace_back(std::move(anim));
 				}
 			}

@@ -62,15 +62,6 @@ namespace OmegaEngine
 
 		struct PrimitiveMesh
 		{
-			PrimitiveMesh(MeshType _type, uint32_t offset, uint32_t size, uint32_t matid, OEMaths::vec3f min, OEMaths::vec3f max) :
-				type(_type),
-				indexBase(offset),
-				indexCount(size),
-				materialId(matid)
-			{
-				// add to bvh here?
-			}
-
 			MeshType type;
 			Dimensions dimensions;
 

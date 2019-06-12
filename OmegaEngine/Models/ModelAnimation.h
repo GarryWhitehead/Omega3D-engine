@@ -1,6 +1,6 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
-
+#include "Models/GltfModel.h"
 #include "tiny_gltf.h"
 
 namespace OmegaEngine
@@ -10,36 +10,19 @@ namespace OmegaEngine
 
 	struct Sampler
 	{
-		enum class InerpolationType
-		{
-			Linear,
-			Step,
-			CubicSpline
-		} interpolationType;
-
+		std::string interpolation;
 
 		std::vector<float> timeStamps;
 		std::vector<OEMaths::vec4f> outputs;
-
-		uint32_t indexFromTime(double time);
-		float getPhase(double time);
 	};
 
 	struct Channel
 	{
-		enum class PathType
-		{
-			Translation,
-			Rotation,
-			Scale,
-			CublicTranslation,
-			CubicScale
-		} pathType;
+		std::string  pathType;
 
 		// pointer "got" from a unique ptr - should change
 		ModelNode* node;
 		uint32_t samplerIndex;
-
 	};
 
 	class ModelAnimation
@@ -50,7 +33,27 @@ namespace OmegaEngine
 		ModelAnimation();
 		~ModelAnimation();
 
-		void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model);
+		void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model, const uint32_t index);
+
+		std::vector<Sampler>& getSamplers()
+		{
+			return samplers;
+		}
+
+		std::vector<Channel>& getChannels()
+		{
+			return channels;
+		}
+
+		uint32_t getStartTime() const
+		{
+			return start;
+		}
+
+		uint32_t getEndTime() const
+		{
+			return end;
+		}
 
 	private:
 

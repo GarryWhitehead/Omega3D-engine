@@ -79,6 +79,7 @@ namespace OmegaEngine
 			PrimitiveMesh primitive;
 			primitive.indexBase = modelPrimitive.indexBase + indexOffset;
 			primitive.indexCount = modelPrimitive.indexCount;
+			primitive.materialId = modelPrimitive.materialId + component->materialBufferOffset;
 			mesh.primitives.emplace_back(primitive);
 		}
 

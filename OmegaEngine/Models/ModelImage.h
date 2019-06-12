@@ -67,6 +67,11 @@ namespace OmegaEngine
 			return format;
 		}
 
+		std::unique_ptr<Sampler>& getSampler()
+		{
+			return sampler;
+		}
+
 	private:
 
 		std::string name;

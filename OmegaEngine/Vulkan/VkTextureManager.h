@@ -1,7 +1,8 @@
 #pragma once
 #include "Vulkan/Common.h"
 #include "Managers/EventManager.h"
-#include "Managers/DataTypes/TextureType.h"
+#include "AssetInterface/MappedTexture.h"
+#include "AssetInterface/AssetManager.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include <unordered_map>
@@ -34,14 +35,14 @@ namespace VulkanAPI
 
 	struct TextureUpdateEvent : public OmegaEngine::Event
 	{
-		TextureUpdateEvent(std::string _id, OmegaEngine::MappedTexture* _mapped) :
+		TextureUpdateEvent(std::string _id, OmegaEngine::AssetManager::TextureAssetInfo* info) :
 			id(_id),
-			mappedTexture(_mapped)
+			textureInfo(info)
 		{
 		}
 
 		std::string id;
-		OmegaEngine::MappedTexture* mappedTexture = nullptr;
+		OmegaEngine::AssetManager::TextureAssetInfo* textureInfo = nullptr;
 	};
 
 	class VkTextureManager

@@ -33,7 +33,10 @@ namespace OmegaEngine
 	{
 		MaterialInfo newMaterial;
 
-		newMaterial.name = material.name;
+		newMaterial.name = material->getName();
+
+		// important that the name is valid as this is used to trace textures in the vulkan backend
+		assert(!newMaterial.name.empty() || newMaterial.name != "");
 
 		// like for like copy for the factors
 		auto& factors = material->getFactors();

@@ -23,21 +23,21 @@ int main(int argc, char *argv[])
 		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
-		auto object = world->createGltfModelObject(model);
+		auto object = world->createGltfModelObject(model, true);
 		object->addComponent<WorldTransformComponent>();
 
 		// we can also use only certain attributes from the gltf model, and use other materials etc.
-		auto material = OmegaEngine::MaterialManager::createMaterial();
+		//auto material = OmegaEngine::MaterialManager::createMaterial();
 
-		object->addComponent<MeshComponent>(model);
-		object->addComponent<MaterialComponent>(material);
+		//object->addComponent<MeshComponent>(model);
+		//object->addComponent<MaterialComponent>(material);
 	}
 
 	// add a skybox
-	world->addSkybox("");
+	//world->addSkybox("");
 
 	// and a camera - multiple cameras can be added (TODO: switch via a designated key)
-	world->addCamera();
+	//world->addCamera();
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

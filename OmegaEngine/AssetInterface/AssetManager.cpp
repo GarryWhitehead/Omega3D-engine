@@ -23,6 +23,11 @@ namespace OmegaEngine
 	{
 		TextureAssetInfo assetInfo;
 		assetInfo.texture.mapTexture(image->getWidth(), image->getHeight(), 4, image->getData(), image->getFormat(), true);
+		
+		// samplers
+		auto& sampler = image->getSampler();
+		assetInfo.samplerType = VulkanAPI::Sampler::getSamplerType(sampler->mode, sampler->filter);
+
 		images.emplace(id, std::move(assetInfo));
 		isDirty = true;
 	}

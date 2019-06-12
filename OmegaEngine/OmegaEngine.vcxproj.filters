@@ -252,12 +252,6 @@
     <ClCompile Include="Models\ModelAnimation.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SimpleExample.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneExample.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Models\ModelNode.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -274,6 +268,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="AssetInterface\MappedTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Examples\Scene\main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Examples\Simple\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

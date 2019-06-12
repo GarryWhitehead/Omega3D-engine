@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Vulkan/Common.h"
-
+#include "Models/ModelImage.h"
 #include <string>
 
 namespace OmegaEngine

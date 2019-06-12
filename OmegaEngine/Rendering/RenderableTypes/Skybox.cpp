@@ -6,7 +6,7 @@
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/StockModels.h"
-#include "Objects/ObjectTypes.h"
+#include "ObjectInterface/ComponentTypes.h"
 #include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
 

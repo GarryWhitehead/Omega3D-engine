@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Utility/GeneralUtil.h"
-#include "Objects/ObjectTypes.h"
+#include "ObjectInterface/ComponentTypes.h"
 
 #include <stdint.h>
 #include <unordered_map>

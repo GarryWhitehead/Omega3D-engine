@@ -1,9 +1,10 @@
 #include "AnimationManager.h"
-
+#include "Models/ModelAnimation.h"
 #include "Managers/TransformManager.h"
-#include "Objects/ObjectManager.h"
+#include "ObjectInterface/ObjectManager.h"
+#include "ObjectInterface/Object.h"
+#include "ObjectInterface/ComponentTypes.h"
 #include "Utility/logger.h"
-#include "Objects/Object.h"
 
 namespace OmegaEngine
 {
@@ -69,12 +70,89 @@ namespace OmegaEngine
 		return static_cast<float>(phase);
 	}
 
+	void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation>& animation)
+	{
+		AnimationInfo animInfo;
+
+		// copy the samplers
+		for (auto& sampler : animation->getSamplers())
+		{
+			Sampler newSampler;
+
+			if (sampler.interpolation == "LINEAR")
+			{
+				newSampler.interpolationType == Sampler::InterpolationType::Linear;
+			}
+			else if (sampler.interpolation == "STEP")
+			{
+				newSampler.interpolationType == Sampler::InterpolationType::Step;
+			}
+			else if (sampler.interpolation == "CUBICSPLINE")
+			{
+				newSampler.interpolationType == Sampler::InterpolationType::CubicSpline;
+			}
+			else
+			{
+				LOGGER_INFO("Note: Unsupported sampler interpolation type requested.");
+			}
+
+			// straight copy
+			newSampler.timeStamps.resize(sampler.timeStamps.size());
+			memcpy(newSampler.timeStamps.data(), sampler.timeStamps.data(), newSampler.timeStamps.size * sizeof(float));
+
+			newSampler.outputs.resize(sampler.outputs.size());
+			memcpy(newSampler.outputs.data(), sampler.outputs.data(), newSampler.outputs.size() * sizeof(OEMaths::vec4f));
+
+			animInfo.samplers.emplace_back(newSampler);
+		}
+
+		for (auto& channel : animation->getChannels())
+		{
+			Channel newChannel;
+
+			if (channel.pathType == "rotation")
+			{
+				newChannel.pathType = Channel::PathType::Rotation;
+			}
+			if (channel.pathType == "scale")
+			{
+				newChannel.pathType = Channel::PathType::Scale;
+			}
+			if (channel.pathType == "translation")
+			{
+				newChannel.pathType = Channel::PathType::Translation;
+			}
+			if (channel.pathType == "weights")
+			{
+				LOGGER_INFO("Channel path type weights not yet supported.");
+				continue;
+			}
+
+			// the rest of the channel will be set later
+			animInfo.channels.emplace_back(newChannel);
+		}
+
+		// start and end times for this animation
+		animInfo.start = animation->getStartTime();
+		animInfo.end = animation->getEndTime();
+
+		animations.emplace_back(animInfo);
+	}
+
+	void AnimationManager::addComponentToManager(AnimationComponent* component, Object& object)
+	{
+		uint32_t animBufferIndex = component->animIndex + component->bufferOffset;
+		Channel& channel = animations[animBufferIndex].channels[component->channelIndex];
+		
+		// link object with animation channel
+		channel.object = object;
+	}
 
 	void AnimationManager::updateAnimation(double time, double dt, TransformManager& transformManager)
 	{
 		double timeSecs = time / 1000000000;
 
-		for (auto& anim : animationBuffer) 
+		for (auto& anim : animations) 
 		{
 			float animTime = std::fmod(timeSecs - anim.start, anim.end);
 

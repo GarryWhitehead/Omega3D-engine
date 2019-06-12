@@ -101,16 +101,6 @@ namespace OmegaEngine
 				this->world = world;
 			}
 
-			void setSkinIndex(const int32_t index)
-			{
-				skinIndex = index;
-			}
-
-			int32_t getSkinIndex() const
-			{
-				return skinIndex;
-			}
-
 		private:
 
 			bool recalculateLocal = false;
@@ -120,9 +110,6 @@ namespace OmegaEngine
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;
-
-			// an index to skinning data for this particular node - negative number indicates no skin info
-			int32_t skinIndex = -1;
 
 			// buffer offsets for tranform and skinned data
 			uint32_t transformBufferOffset = 0;
@@ -195,6 +182,11 @@ namespace OmegaEngine
 				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
 			}
 			return transforms[id].getSkinnedOffset();
+		}
+
+		uint32_t getSkinnedBufferOffset() const
+		{
+			return skinBuffer.size();
 		}
 
 	private:

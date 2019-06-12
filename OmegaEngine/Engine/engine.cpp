@@ -106,8 +106,8 @@ namespace OmegaEngine
 	{
 		// create an empty world
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
-.
-		if (!world->create())
+
+		if (!world->create(name.c_str()))
 		{
 			LOGGER_ERROR("Unable to create world.");
 		}
@@ -173,7 +173,7 @@ namespace OmegaEngine
 			auto elapsedTime = timer.getTimeElapsed(true);
 			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime);
 
-			auto& world = worlds[currentWorldIndex];
+			auto& world = worlds[];
 			while (accumulator >= timeStep) 
 			{
 				// poll for any input

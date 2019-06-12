@@ -15,6 +15,7 @@
 #include "Rendering/RenderQueue.h"
 #include "Rendering/RenderCommon.h"
 #include "ObjectInterface/ComponentInterface.h"
+#include "ObjectInterface/Object.h"
 #include "Threading/ThreadPool.h"
 
 namespace OmegaEngine
@@ -24,8 +25,8 @@ namespace OmegaEngine
 		std::unique_ptr<ComponentInterface>& componentInterface,
 		std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
 		std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
-		MeshManager::StaticMesh mesh,
-		MeshManager::PrimitiveMesh primitive,
+		MeshManager::StaticMesh& mesh,
+		MeshManager::PrimitiveMesh& primitive,
 		Object& obj,
 		RenderInterface* renderInterface) :
 		RenderableBase(RenderTypes::StaticMesh)
@@ -47,11 +48,11 @@ namespace OmegaEngine
 		meshInstance->type = mesh.type;
 
 		// queue type - opaque or transparent texture
-		if (mat.factors.alphaMask == MaterialInfo::AlphaMode::Opaque)
+		if (mat.alphaMask == MaterialInfo::AlphaMode::Opaque)
 		{
 			queueType = QueueType::Opaque;
 		}
-		else if (mat.factors.alphaMask == MaterialInfo::AlphaMode::Blend)
+		else if (mat.alphaMask == MaterialInfo::AlphaMode::Blend)
 		{
 			queueType = QueueType::Transparent;
 		}
@@ -93,8 +94,8 @@ namespace OmegaEngine
 		meshInstance->materialPushBlock.emissiveFactor = mat.factors.emissive;
 		meshInstance->materialPushBlock.specularFactor = mat.factors.specular;
 		meshInstance->materialPushBlock.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.getX(), mat.factors.diffuse.getY(), mat.factors.diffuse.getZ() };
-		meshInstance->materialPushBlock.alphaMask = (float)mat.factors.alphaMask;
-		meshInstance->materialPushBlock.alphaMaskCutoff = mat.factors.alphaMaskCutOff;
+		meshInstance->materialPushBlock.alphaMask = (float)mat.alphaMask;
+		meshInstance->materialPushBlock.alphaMaskCutoff = mat.alphaMaskCutOff;
 		meshInstance->materialPushBlock.haveBaseColourMap = mat.textureState[(int)PbrMaterials::BaseColor] ? 1 : 0;
 		meshInstance->materialPushBlock.haveMrMap = mat.textureState[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;
 		meshInstance->materialPushBlock.haveNormalMap = mat.textureState[(int)PbrMaterials::Normal] ? 1 : 0;

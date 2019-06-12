@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Image/KtxReader.h"
+#include "Vulkan/Sampler.h"
 
 #include <unordered_map>
 #include <string>
@@ -18,7 +19,7 @@ namespace OmegaEngine
 
 		struct TextureAssetInfo
 		{
-			Sampler sampler;
+			VulkanAPI::SamplerType samplerType;
 			MappedTexture texture;
 		};
 

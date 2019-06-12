@@ -104,8 +104,8 @@ namespace OmegaEngine
 										std::unique_ptr<ComponentInterface>& componentInterface,
 										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
 										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
-										MeshManager::StaticMesh mesh, 
-										MeshManager::PrimitiveMesh primitive,
+										MeshManager::StaticMesh& mesh, 
+										MeshManager::PrimitiveMesh& primitive,
 										Object& obj,
 										RenderInterface* renderInterface);
 

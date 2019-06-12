@@ -1,5 +1,6 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
+#include "Models/GltfModel.h"
 
 #include "tiny_gltf.h"
 

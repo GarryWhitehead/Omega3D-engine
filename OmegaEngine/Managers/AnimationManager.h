@@ -4,6 +4,7 @@
 #include "OEMaths/OEMaths_Quat.h"
 
 #include <memory>
+#include <vector>
 
 #define MAX_NUM_JOINTS 128
 
@@ -13,6 +14,8 @@ namespace OmegaEngine
 	class Object;
 	class TransformManager;
 	class ObjectManager;
+	class ModelAnimation;
+	struct AnimationComponent;
 
 	class AnimationManager
 	{
@@ -22,13 +25,12 @@ namespace OmegaEngine
 		// animation
 		struct Sampler
 		{
-			enum class InerpolationType
+			enum class InterpolationType
 			{
 				Linear,
 				Step,
 				CubicSpline
 			} interpolationType;
-
 
 			std::vector<float> timeStamps;
 			std::vector<OEMaths::vec4f> outputs;
@@ -50,7 +52,6 @@ namespace OmegaEngine
 
 			Object object;
 			uint32_t samplerIndex;
-
 		};
 
 		struct AnimationInfo
@@ -66,11 +67,18 @@ namespace OmegaEngine
 		AnimationManager();
 		~AnimationManager();
 
+		void addComponentToManager(AnimationComponent* component, Object& object);
+		void addAnimation(std::unique_ptr<ModelAnimation>& animation);
 		void updateAnimation(double time, double dt, TransformManager& transformManager);
+
+		uint32_t getBufferOffset() const
+		{
+			return animations.size();
+		}
 
 	private:
 
-		std::vector<AnimationInfo> animationBuffer;
+		std::vector<AnimationInfo> animations;
 	};
 
 }

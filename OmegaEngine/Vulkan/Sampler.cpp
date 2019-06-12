@@ -1,4 +1,5 @@
 #include "Sampler.h"
+#include "Utility/Logger.h"
 
 namespace VulkanAPI
 {
@@ -15,6 +16,33 @@ namespace VulkanAPI
 
 	Sampler::~Sampler()
 	{
+	}
+
+	SamplerType Sampler::getSamplerType(const vk::SamplerAddressMode mode, const vk::Filter filter)
+	{
+		SamplerType type;
+
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
+		{
+			type = VulkanAPI::SamplerType::LinearWrap;
+		}
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eLinear)
+		{
+			type = VulkanAPI::SamplerType::LinearClamp;
+		}
+		if (mode == vk::SamplerAddressMode::eClampToEdge && filter == vk::Filter::eNearest)
+		{
+			type = VulkanAPI::SamplerType::Clamp;
+		}
+		if (mode == vk::SamplerAddressMode::eRepeat && filter == vk::Filter::eLinear)
+		{
+			type = VulkanAPI::SamplerType::Wrap;
+		}
+		else
+		{
+			LOGGER_INFO("Note: Unsupported sampler type requested.");
+		}
+		return type;
 	}
 
 	void Sampler::create(vk::Device dev, SamplerType type)
