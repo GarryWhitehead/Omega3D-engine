@@ -7,7 +7,7 @@
 #include "Rendering/RenderCommon.h"
 #include "Vulkan/DataTypes/Texture.h"
 #include "Utility/logger.h"
-#include "Objects/ObjectTypes.h"
+#include "ObjectInterface/ComponentTypes.h"
 
 namespace OmegaEngine
 {

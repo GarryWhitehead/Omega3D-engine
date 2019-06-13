@@ -72,7 +72,7 @@ namespace OmegaEngine
 			const uint16_t *jointBuffer = nullptr;
 			if (primitive.attributes.find("JOINTS_0") != primitive.attributes.end())
 			{
-				hasSkin = true;
+				skinned = true;
 				const tinygltf::Accessor& jointAccessor = model.accessors[primitive.attributes.find("JOINTS_0")->second];
 				const tinygltf::BufferView& jointBufferView = model.bufferViews[jointAccessor.bufferView];
 				jointBuffer = reinterpret_cast<const uint16_t*>(&(model.buffers[jointBufferView.buffer].data[jointAccessor.byteOffset + jointBufferView.byteOffset]));
@@ -160,12 +160,5 @@ namespace OmegaEngine
 			primitives.push_back({ localIndexOffset, indexCount, primMin, primMax, static_cast<uint32_t>(primitive.material) });
 			localIndexOffset += indexCount;
 		}
-
-		staticMesh.vertexBufferOffset = globalVertexOffset;
-		this->globalVertexOffset += localVertexOffset;
-
-		staticMesh.indexBufferOffset = globalIndexOffset * sizeof(uint32_t);
-		this->globalIndexOffset += localIndexOffset;
-
 	}
 }

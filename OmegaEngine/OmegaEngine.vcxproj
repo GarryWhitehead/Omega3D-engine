@@ -45,8 +45,6 @@
     <ClCompile Include="Rendering\IblInterface.cpp" />
     <ClCompile Include="Image\KtxReader.cpp" />
     <ClCompile Include="Managers\CameraManager.cpp" />
-    <ClCompile Include="Objects\Object.cpp" />
-    <ClCompile Include="Objects\ObjectManager.cpp" />
     <ClCompile Include="OEMaths\OEMaths_Mat2.cpp" />
     <ClCompile Include="OEMaths\OEMaths_Mat3.cpp" />
     <ClCompile Include="OEMaths\OEMaths_Mat4.cpp" />
@@ -78,7 +76,6 @@
     <ClCompile Include="Vulkan\Image.cpp" />
     <ClCompile Include="Vulkan\CommandBuffer.cpp" />
     <ClCompile Include="Vulkan\BufferManager.cpp" />
-    <ClCompile Include="Managers\ComponentInterface.cpp" />
     <ClCompile Include="Managers\TransformManager.cpp" />
     <ClCompile Include="Rendering\RenderInterface.cpp" />
     <ClCompile Include="Vulkan\DataTypes\Texture.cpp" />
@@ -90,7 +87,6 @@
     <ClCompile Include="Managers\LightManager.cpp" />
     <ClCompile Include="Managers\EventManager.cpp" />
     <ClCompile Include="Managers\MeshManager.cpp" />
-    <ClCompile Include="Managers\TextureManager.cpp" />
     <ClCompile Include="Managers\MaterialManager.cpp" />
     <ClCompile Include="Threading\ThreadUtil.cpp" />
     <ClCompile Include="Threading\ThreadPool.cpp" />
@@ -184,7 +180,6 @@
     <ClInclude Include="Managers\LightManager.h" />
     <ClInclude Include="Managers\MaterialManager.h" />
     <ClInclude Include="Managers\MeshManager.h" />
-    <ClInclude Include="Managers\TextureManager.h" />
     <ClInclude Include="OEMaths\OEMaths_Quat.h" />
     <ClInclude Include="Rendering\Renderers\DeferredRenderer.h" />
     <ClInclude Include="Rendering\RenderInterface.h" />

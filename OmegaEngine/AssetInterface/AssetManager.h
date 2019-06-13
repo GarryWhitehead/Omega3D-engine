@@ -1,5 +1,6 @@
 #pragma once
 
+#include "AssetInterface/MappedTexture.h"
 #include "Image/KtxReader.h"
 #include "Vulkan/Sampler.h"
 
@@ -9,7 +10,6 @@
 namespace OmegaEngine
 {
     // forward declerations
-	class MappedTexture;
 	class ModelImage;
 
     class AssetManager

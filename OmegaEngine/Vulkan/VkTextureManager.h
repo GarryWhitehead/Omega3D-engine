@@ -43,6 +43,7 @@ namespace VulkanAPI
 
 		std::string id;
 		OmegaEngine::AssetManager::TextureAssetInfo* textureInfo = nullptr;
+		Sampler sampler;
 	};
 
 	class VkTextureManager
@@ -60,6 +61,7 @@ namespace VulkanAPI
 		struct TextureInfo
 		{
 			Texture texture;
+			Sampler sampler;
 		};
 
 		struct TextureLayoutInfo

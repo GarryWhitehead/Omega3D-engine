@@ -1,10 +1,8 @@
 #include "MaterialManager.h"
-#include "Managers/TextureManager.h"
 #include "ObjectInterface/ComponentInterface.h"
 #include "AssetInterface/AssetManager.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "Vulkan/VkTextureManager.h"
-#include "Models/ModelMaterial.h"
 #include "Models/ModelImage.h"
 #include "Managers/EventManager.h"
 #include "Engine/Omega_Global.h"
@@ -75,7 +73,15 @@ namespace OmegaEngine
 		for (uint32_t i = 0; i < (int)ModelMaterial::TextureId::Count; ++i)
 		{
 			auto id = material->getTexture(static_cast<ModelMaterial::TextureId>(i));
-			assetManager->addImage(images[id], newMaterial.name + textureExtensions[i]);
+			if (id > 0)
+			{
+				assetManager->addImage(images[id], newMaterial.name + textureExtensions[i]);
+				newMaterial.hasTexture[i] = true;
+			}
+			else
+			{
+				// load dummy texture?
+			}
 		}
 
 		materials.emplace_back(newMaterial);

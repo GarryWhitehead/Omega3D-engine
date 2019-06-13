@@ -161,32 +161,10 @@ namespace OmegaEngine
 		void updateObjectTranslation(Object& obj, OEMaths::vec4f trans);
 		void updateObjectScale(Object& obj, OEMaths::vec4f scale);
 		void updateObjectRotation(Object& obj, OEMaths::quatf rot);
-
-		uint32_t getTransformOffset(uint32_t id)
-		{
-			// the transform buffer stores both parents and children so unfortunately we need to iterate through
-			// to find the id.
-			if (transforms.find(id) == transforms.end()) 
-			{
-				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
-			}
-			return transforms[id].getTransformOffset();
-		}
-
-		uint32_t getSkinnedOffset(uint32_t id)
-		{
-			// the transform buffer stores both parents and children so unfortunately we need to iterate through
-			// to find the id.
-			if (transforms.find(id) == transforms.end()) 
-			{
-				LOGGER_ERROR("Unable to find object data with an id of %i within transform manager.", id);
-			}
-			return transforms[id].getSkinnedOffset();
-		}
-
+		
 		uint32_t getSkinnedBufferOffset() const
 		{
-			return skinBuffer.size();
+			return static_cast<uint32_t>(skinBuffer.size());
 		}
 
 	private:

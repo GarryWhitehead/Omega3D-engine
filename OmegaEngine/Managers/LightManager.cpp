@@ -1,6 +1,6 @@
 #include "LightManager.h"
-#include "Objects/ObjectManager.h"
-#include "Managers/ComponentInterface.h"
+#include "ObjectInterface/ObjectManager.h"
+#include "ObjectInterface/ComponentInterface.h"
 #include "Managers/CameraManager.h"
 #include "Vulkan/BufferManager.h"
 #include "Managers/EventManager.h"

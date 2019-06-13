@@ -58,7 +58,7 @@ namespace OmegaEngine
 
 		transforms.emplace_back(transform);
 
-		component->index = transforms.size() - 1;
+		component->index = static_cast<uint32_t>(transforms.size() - 1);
 	}
 
 	bool TransformManager::addComponentToManager(SkinnedComponent* component, Object& object)
@@ -136,6 +136,8 @@ namespace OmegaEngine
 
 			if (obj.hasComponent<SkinnedComponent>())
 			{
+				SkinnedBufferInfo* skinnedBufferPtr = (SkinnedBufferInfo*)((uint64_t)skinnedBufferData + (skinnedAlignment * skinnedBufferSize));
+
 				// skinned transform
 				transforms[objIndex].setSkinnedOffset(skinnedBufferSize * skinnedAlignment);
 

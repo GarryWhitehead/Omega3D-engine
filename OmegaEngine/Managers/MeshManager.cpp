@@ -45,7 +45,7 @@ namespace OmegaEngine
 		}
 		else
 		{
-			mesh.vertexBufferOffset = skinnedVertices.size();
+			mesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
 
 			for (auto& vertex : vertexData)
 			{

@@ -3,37 +3,35 @@
 #include "Models/GltfModel.h"
 #include "tiny_gltf.h"
 
+#include <memory>
+
 namespace OmegaEngine
 {
 	// forward declerations
 	class ModelNode;
-
-	struct Sampler
-	{
-		std::string interpolation;
-
-		std::vector<float> timeStamps;
-		std::vector<OEMaths::vec4f> outputs;
-	};
-
-	struct Channel
-	{
-		std::string  pathType;
-
-		// pointer "got" from a unique ptr - should change
-		ModelNode* node;
-		uint32_t samplerIndex;
-	};
 
 	class ModelAnimation
 	{
 
 	public:
 
+		struct Sampler
+		{
+			std::string interpolation;
+			std::vector<float> timeStamps;
+			std::vector<OEMaths::vec4f> outputs;
+		};
+
+		struct Channel
+		{
+			std::string pathType;
+			uint32_t samplerIndex;
+		};
+
 		ModelAnimation();
 		~ModelAnimation();
 
-		void ModelAnimation::extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model, const uint32_t index);
+		void extractAnimationData(tinygltf::Model& gltfModel, tinygltf::Animation& anim, std::unique_ptr<GltfModel::Model>& model, const uint32_t index);
 
 		std::vector<Sampler>& getSamplers()
 		{
@@ -45,12 +43,12 @@ namespace OmegaEngine
 			return channels;
 		}
 
-		uint32_t getStartTime() const
+		float getStartTime() const
 		{
 			return start;
 		}
 
-		uint32_t getEndTime() const
+		float getEndTime() const
 		{
 			return end;
 		}

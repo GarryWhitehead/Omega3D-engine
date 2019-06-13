@@ -1,7 +1,6 @@
 #include "AssetManager.h"
 #include "utility/GeneralUtil.h"
 #include "utility/logger.h"
-#include "AssetInterface/MappedTexture.h"
 #include "Vulkan/VkTextureManager.h"
 #include "Engine/Omega_global.h"
 #include "Managers/EventManager.h"
@@ -50,7 +49,7 @@ namespace OmegaEngine
 			}
 
 			MappedTexture texture;
-			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize, vk::Format::eR8G8B8A8Unorm);		// TODO: add better format selection
+			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize, TextureFormat::Image8UC4);		// TODO: add better format selection
 			images.emplace(id, std::move(texture));
 			isDirty = true;
         }

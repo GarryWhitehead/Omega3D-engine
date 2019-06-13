@@ -4,9 +4,9 @@
 #include "Vulkan/Sampler.h"
 #include "Vulkan/CommandBuffer.h"
 #include "Vulkan/VkTextureManager.h"
+#include "Models/ModelMaterial.h"
 #include "Managers/CameraManager.h"
 #include "Managers/MeshManager.h"
-#include "Managers/TextureManager.h"
 #include "Managers/MaterialManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
@@ -57,8 +57,7 @@ namespace OmegaEngine
 			queueType = QueueType::Transparent;
 		}
 
-		auto& transformManager = componentInterface->getManager<TransformManager>();
-		meshInstance->transformDynamicOffset = transformManager.getTransformOffset(obj.getId());
+		meshInstance->transformDynamicOffset = obj.getComponent<TransformComponent>().index;
 
 		// pointer to the mesh pipeline
 		if (mesh.type == MeshManager::MeshType::Static) 
@@ -72,7 +71,7 @@ namespace OmegaEngine
 			meshInstance->state = renderInterface->getRenderPipeline(RenderTypes::SkinnedMesh).get();
 			meshInstance->vertexBuffer = bufferManager->getBuffer("SkinnedVertices");
 			layoutInfo = textureManager->getTextureDescriptorLayout("SkinnedMesh");
-			meshInstance->skinnedDynamicOffset = transformManager.getSkinnedOffset(obj.getId());
+			meshInstance->skinnedDynamicOffset = obj.getComponent<SkinnedComponent>().index;
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
@@ -85,7 +84,7 @@ namespace OmegaEngine
 		meshInstance->indexPrimitiveCount = primitive.indexCount;
 			
 		meshInstance->descriptorSet.init(device, *layoutInfo.layout, layoutInfo.setValue); 
-		textureManager->updateMaterialDescriptorSet(meshInstance->descriptorSet, mat.name, layoutInfo.setValue);
+		textureManager->updateMaterialDescriptorSet(meshInstance->descriptorSet, mat.name.c_str(), layoutInfo.setValue);
 
 		// material push block
 		meshInstance->materialPushBlock.baseColorFactor = mat.factors.baseColour;
@@ -96,11 +95,11 @@ namespace OmegaEngine
 		meshInstance->materialPushBlock.diffuseFactor = OEMaths::vec3f{ mat.factors.diffuse.getX(), mat.factors.diffuse.getY(), mat.factors.diffuse.getZ() };
 		meshInstance->materialPushBlock.alphaMask = (float)mat.alphaMask;
 		meshInstance->materialPushBlock.alphaMaskCutoff = mat.alphaMaskCutOff;
-		meshInstance->materialPushBlock.haveBaseColourMap = mat.textureState[(int)PbrMaterials::BaseColor] ? 1 : 0;
-		meshInstance->materialPushBlock.haveMrMap = mat.textureState[(int)PbrMaterials::MetallicRoughness] ? 1 : 0;
-		meshInstance->materialPushBlock.haveNormalMap = mat.textureState[(int)PbrMaterials::Normal] ? 1 : 0;
-		meshInstance->materialPushBlock.haveAoMap = mat.textureState[(int)PbrMaterials::Occlusion] ? 1 : 0;
-		meshInstance->materialPushBlock.haveEmissiveMap = mat.textureState[(int)PbrMaterials::Emissive] ? 1 : 0;
+		meshInstance->materialPushBlock.haveBaseColourMap = mat.hasTexture[(int)ModelMaterial::TextureId::BaseColour] ? 1 : 0;
+		meshInstance->materialPushBlock.haveMrMap = mat.hasTexture[(int)ModelMaterial::TextureId::MetallicRoughness] ? 1 : 0;
+		meshInstance->materialPushBlock.haveNormalMap = mat.hasTexture[(int)ModelMaterial::TextureId::Normal] ? 1 : 0;
+		meshInstance->materialPushBlock.haveAoMap = mat.hasTexture[(int)ModelMaterial::TextureId::Occlusion] ? 1 : 0;
+		meshInstance->materialPushBlock.haveEmissiveMap = mat.hasTexture[(int)ModelMaterial::TextureId::Emissive] ? 1 : 0;
 		meshInstance->materialPushBlock.usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
 		meshInstance->materialPushBlock.baseColourUvSet = mat.uvSets.baseColour;
 		meshInstance->materialPushBlock.metallicRoughnessUvSet = mat.uvSets.metallicRoughness;

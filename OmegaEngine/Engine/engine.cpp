@@ -17,11 +17,12 @@ using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
-	Engine::Engine(std::string windowTitle, uint32_t width, uint32_t height) :
-		windowTitle(windowTitle),
+	Engine::Engine(const char* title, uint32_t width, uint32_t height) :
 		windowWidth(width),
 		windowHeight(height)
 	{
+		std::strcpy(windowTitle, title);
+
 		// Create a new instance of glfw
 		createWindow(windowTitle);
 
@@ -40,7 +41,7 @@ namespace OmegaEngine
 
 	}
 
-	void Engine::createWindow(std::string winTitle)
+	void Engine::createWindow(const char* winTitle)
 	{
 		//glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit()) 
@@ -54,7 +55,7 @@ namespace OmegaEngine
 		monitor = glfwGetPrimaryMonitor();
 		vmode = glfwGetVideoMode(monitor);
 
-		window = glfwCreateWindow(windowWidth, windowHeight, winTitle.c_str(), nullptr, nullptr);
+		window = glfwCreateWindow(windowWidth, windowHeight, winTitle, nullptr, nullptr);
 		if (!window) 
 		{
 			LOGGER_ERROR("Critical error! Unable to open window!");
@@ -84,36 +85,33 @@ namespace OmegaEngine
 		currentVkDevice = static_cast<uint32_t>(vkDevices.size() - 1);
 	}
 
-	World* Engine::createWorld(std::string filename, std::string name)
+	World* Engine::createWorld(const char* filename, const char* name)
 	{
 		// create a world using a omega engine scene file
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
 		
 		// throw an error here as calling a function for specifically creating a world with a scene file.
-		if (!world->create(filename.c_str(), name)) 
+		if (!world->create(filename, name)) 
 		{
 			LOGGER_ERROR("Unable to create world as no omega-scene file found.");
 		}
 
 		auto outputWorld = world.get();
-		worlds.emplace_back(std::move(world));
+		worlds.emplace(name, std::move(world));
 		this->currentWorld = name;
 
 		return outputWorld;
 	}
 
-	World* Engine::createWorld(std::string name)
+	World* Engine::createWorld(const char* name)
 	{
 		// create an empty world
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
 
-		if (!world->create(name.c_str()))
-		{
-			LOGGER_ERROR("Unable to create world.");
-		}
-
+		world->create(name);
+		
 		auto outputWorld = world.get();
-		worlds.emplace_back(std::move(world));
+		worlds.emplace(name, std::move(world));
 		this->currentWorld = name;
 
 		return outputWorld;
@@ -173,7 +171,7 @@ namespace OmegaEngine
 			auto elapsedTime = timer.getTimeElapsed(true);
 			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime);
 
-			auto& world = worlds[];
+			auto& world = worlds[currentWorld];
 			while (accumulator >= timeStep) 
 			{
 				// poll for any input

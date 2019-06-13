@@ -34,7 +34,7 @@ namespace OmegaEngine
 
 		uint32_t childCount() const
 		{
-			return children.size();
+			return static_cast<uint32_t>(children.size());
 		}
 
 		bool hasMesh() const

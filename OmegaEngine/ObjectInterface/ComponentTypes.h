@@ -66,8 +66,8 @@ namespace OmegaEngine
 
     struct TransformComponent : public ComponentBase
     {
-        TransformComponent(uint32_t _index) : 
-            index(_index),
+        TransformComponent(ModelTransform* _transform) : 
+            transform(_transform),
             ComponentBase(ComponentType::Transform)
         {}
 
@@ -77,8 +77,9 @@ namespace OmegaEngine
 
     struct SkinnedComponent : public ComponentBase
     {
-        SkinnedComponent(uint32_t _index, bool skeleton, bool joint) : 
+        SkinnedComponent(uint32_t _index, uint32_t offset, bool skeleton, bool joint) : 
             index(_index),
+			bufferOffset(offset),
 			isSkeleton(skeleton),
 			isJoint(joint),
             ComponentBase(ComponentType::Skin)

@@ -2,9 +2,11 @@
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 #include "AssetInterface/MappedTexture.h"
+#include "Models/ModelMaterial.h"
 
 #include <memory>
 #include <unordered_map>
+#include <array>
 
 namespace OmegaEngine
 {
@@ -52,6 +54,8 @@ namespace OmegaEngine
 		AlphaMode alphaMask = AlphaMode::Opaque;
 		float alphaMaskCutOff = 1.0f;
 
+		std::array<bool, (int)ModelMaterial::TextureId::Count> hasTexture = { false };
+
 		// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 		bool usingSpecularGlossiness = false;
 	};
@@ -82,7 +86,7 @@ namespace OmegaEngine
 
 		uint32_t getBufferOffset() const
 		{
-			return materials.size();
+			return static_cast<uint32_t>(materials.size());
 		}
 
 	private:

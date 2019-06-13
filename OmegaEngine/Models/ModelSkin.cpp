@@ -1,6 +1,7 @@
 #include "ModelSkin.h"
 
 #include <assert.h>
+#include <memory>
 
 namespace OmegaEngine
 {
@@ -24,7 +25,6 @@ namespace OmegaEngine
 			auto node = model->getNode(skin.skeleton);
 			assert(node != nullptr);
 			node->setSkeletonRootFlag();
-			
 		}
 
 		// Does this skin have joint nodes?

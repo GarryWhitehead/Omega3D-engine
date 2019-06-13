@@ -16,7 +16,7 @@ namespace OmegaEngine
 		
 		std::unique_ptr<Model> load(std::string filename)
 		{
-			std::unique_ptr<Model> outputModel;
+			auto& outputModel = std::make_unique<Model>();
 
 			// open the gltf file
 			tinygltf::Model model;

@@ -110,11 +110,12 @@ namespace VulkanAPI
 
 	void VkTextureManager::updateTexture(TextureUpdateEvent& event)
 	{
-		assert(event.mappedTexture != nullptr);
+		assert(event.textureInfo != nullptr);
 
 		TextureInfo tex_info;
 		tex_info.texture.init(device, gpu, graphicsQueue);
-		tex_info.texture.map(*event.mappedTexture);
+		tex_info.texture.map(event.textureInfo->texture);
+		tex_info.sampler.create(device, event.textureInfo->samplerType);
 
 		textures[event.id.c_str()] = tex_info;
 	}

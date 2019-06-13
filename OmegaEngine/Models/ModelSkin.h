@@ -4,10 +4,11 @@
 
 #include "tiny_gltf.h"
 
+#include <memory>
+
 namespace OmegaEngine
 {
 	// forward declerations
-	class GltfModel;
 	class ModelNode;
 
 	class ModelSkin
@@ -32,12 +33,12 @@ namespace OmegaEngine
 
 		uint32_t getInvBindCount() const
 		{
-			return invBindMatrices.size();
+			return static_cast<uint32_t>(invBindMatrices.size());
 		}
 
 		uint32_t getJointCount() const
 		{
-			return jointMatrices.size();
+			return static_cast<uint32_t>(jointMatrices.size());
 		}
 
 	private:

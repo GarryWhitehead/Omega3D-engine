@@ -3,6 +3,9 @@
 
 #include "tiny_gltf.h"
 
+#include <memory>
+#include <vector>
+
 namespace OmegaEngine
 {
 	// forward declerations

@@ -36,8 +36,7 @@ namespace OmegaEngine
 		OE_MANAGERS_PHYSICS		 = 1 << 4,
 		OE_MANAGERS_COLLISION	 = 1 << 5,
 		OE_MANAGERS_MATERIAL	 = 1 << 6,
-		OE_MANAGERS_TEXTURE		 = 1 << 7,
-		OE_MANAGERS_ALL			 = 1 << 8
+		OE_MANAGERS_ALL			 = 1 << 7
 	};
 
 	// bitwise overload so casts aren't needed

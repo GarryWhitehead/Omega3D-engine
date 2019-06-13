@@ -2,6 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
+#include "ObjectInterface/Object.h"
 
 #include <memory>
 #include <vector>
@@ -73,7 +74,7 @@ namespace OmegaEngine
 
 		uint32_t getBufferOffset() const
 		{
-			return animations.size();
+			return static_cast<uint32_t>(animations.size());
 		}
 
 	private:

@@ -10,11 +10,9 @@
 #include "ObjectInterface/ComponentTypes.h"
 #include "Managers/LightManager.h"
 #include "Managers/MeshManager.h"
-#include "Managers/TextureManager.h"
 #include "Managers/AnimationManager.h"
 #include "Managers/TransformManager.h"
 #include "Managers/MaterialManager.h"
-#include "Managers/TextureManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/EventManager.h"
 #include "AssetInterface/AssetManager.h"
@@ -61,10 +59,6 @@ namespace OmegaEngine
 		{
 			componentInterface->registerManager<MaterialManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_TEXTURE || managers & Managers::OE_MANAGERS_ALL) 
-		{
-			componentInterface->registerManager<TextureManager>();
-		}
 		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) 
 		{
 			componentInterface->registerManager<LightManager>();
@@ -98,6 +92,8 @@ namespace OmegaEngine
 			return false;
 		}
 
+		// TODO: NEEDS UPDATING!
+		/*
 		// update camera manager 
 		componentInterface->getManager<CameraManager>().addCamera(parser.getCamera());
 
@@ -123,7 +119,7 @@ namespace OmegaEngine
 		if (parser.getEnvironment().irradianceMapFilename)
 		{
 			assetManager->loadImageFile(parser.getEnvironment().irradianceMapFilename);
-		}
+		}*/
 
 		
 		return true;
@@ -149,12 +145,12 @@ namespace OmegaEngine
 	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
 		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
-		if (node->hasChildren)
+		if (node->hasChildren())
 		{
 			for (uint32_t i = 0; i < node->childCount(); ++i)
 			{
 				auto child = objectManager->createChildObject(*parentObject);
-				this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset);
+				this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset, animationOffset);
 			}
 		}
 
@@ -226,7 +222,7 @@ namespace OmegaEngine
 		assetManager->update();
 
 		// all other managers
-		componentInterface->updateManagers(time, dt, objectManager);
+		componentInterface->update(time, dt, objectManager);
 
 		// check whether there are any queued events to deal with
 		Global::eventManager()->notifyQueued();

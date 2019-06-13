@@ -8,7 +8,7 @@
 #include "Engine/Omega_Global.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
-#include "Managers/ComponentInterface.h"
+#include "ObjectInterface/ComponentInterface.h"
 #include "Vulkan/BufferManager.h"
 #include "Vulkan/Sampler.h"
 #include "Vulkan/Descriptors.h"

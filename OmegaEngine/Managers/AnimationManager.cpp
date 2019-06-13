@@ -2,7 +2,6 @@
 #include "Models/ModelAnimation.h"
 #include "Managers/TransformManager.h"
 #include "ObjectInterface/ObjectManager.h"
-#include "ObjectInterface/Object.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "Utility/logger.h"
 
@@ -81,15 +80,15 @@ namespace OmegaEngine
 
 			if (sampler.interpolation == "LINEAR")
 			{
-				newSampler.interpolationType == Sampler::InterpolationType::Linear;
+				newSampler.interpolationType = Sampler::InterpolationType::Linear;
 			}
 			else if (sampler.interpolation == "STEP")
 			{
-				newSampler.interpolationType == Sampler::InterpolationType::Step;
+				newSampler.interpolationType = Sampler::InterpolationType::Step;
 			}
 			else if (sampler.interpolation == "CUBICSPLINE")
 			{
-				newSampler.interpolationType == Sampler::InterpolationType::CubicSpline;
+				newSampler.interpolationType = Sampler::InterpolationType::CubicSpline;
 			}
 			else
 			{
@@ -98,7 +97,7 @@ namespace OmegaEngine
 
 			// straight copy
 			newSampler.timeStamps.resize(sampler.timeStamps.size());
-			memcpy(newSampler.timeStamps.data(), sampler.timeStamps.data(), newSampler.timeStamps.size * sizeof(float));
+			memcpy(newSampler.timeStamps.data(), sampler.timeStamps.data(), newSampler.timeStamps.size() * sizeof(float));
 
 			newSampler.outputs.resize(sampler.outputs.size());
 			memcpy(newSampler.outputs.data(), sampler.outputs.data(), newSampler.outputs.size() * sizeof(OEMaths::vec4f));
