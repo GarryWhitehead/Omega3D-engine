@@ -1,5 +1,5 @@
-CMAKE_MINIMUM_REQUIRED(VERSION 3.7)
-CMAKE_POLICY(VERSION 3.7)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+CMAKE_POLICY(VERSION 2.8)
 
 PROJECT(OMEGA_ENGINE VERSION 1 LANGUAGES CXX C)
 SET(CMAKE_CXX_STANDARD 17)
@@ -13,6 +13,8 @@ ENDIF()
 
 ADD_DEFINITIONS(-std=c++17)
 
+OPTION(BUILD_SCENE_EXAMPLE "Build scene example executable" ON)
+OPTION(BUILD_SIMPLE_EXAMPLE "Build simple example executable" OFF)
 OPTION(OMEGA_DEBUG_VERBOSE "Enable verbose debug output" OFF)
 OPTION(OMEGA_ENABLE_LAYERS "Enable Vulkan validation layers" OFF)
 OPTION(OMEGA_ENABLE_THREADING "Enable threaded engine mode" ON)
@@ -30,10 +32,30 @@ SET(SPIRV_CROSS_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/spirv-cross/" CACHE 
 SET(TINY_GLTF_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/tiny-gltf/" CACHE STRING "tiny-gltf path")
 SET(VULKAN_HPP_EXTERNAL_PATH "${CMAKE_SOURCE_DIR}/external/vulkan-hpp/" CACHE STRING "vulkan-hpp path")
 
-# find vulkan using cmake module
+# find vulkan using cmake module if the correct cmake version
 IF(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 	message(STATUS "Using cmake version which supports FindVulkan. Using this module to find Vulkan")
 	find_package(Vulkan)
+ELSE()
+	IF(WIN32)
+		FIND_LIBRARY(VULKAN_LIB NAMES vulkan-1 vulkan PATHS ${CMAKE_SOURCE_DIR}/libs/vulkan)
+		IF(VULKAN_LIB)
+			SET(FOUND_VULKAN ON)
+			MESSAGE("Found Vulkan library.")
+		ENDIF()
+	ELSE()
+		FIND_LIBRARY(VULKAN_LIB NAMES vulkan HINTS "$ENV{VULKAN_SDK}/lib" "${CMAKE_SOURCE_DIR}/libs/vulkan" REQUIRED)
+		IF(VULKAN_LIB)
+			SET(FOUND_VULKAN ON)
+			MESSAGE("Found Vulkan library.")
+		ENDIF()
+	ENDIF()
+ENDIF()
+
+IF(NOT FOUND_VULKAN)
+	MESSAGE(FATAL_ERROR "Unable to find Vulkan library.")
+ELSE()
+	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
 	
 # libraries required for Omega Engine
@@ -93,15 +115,7 @@ TARGET_SOURCES(OMEGA_ENGINE PUBLIC
 	AssetInterface/MappedTexture.hpp AssetInterface/MappedTexture.cpp
 )
 
-# build tools if required
-IF(OMEGA_BUILD_TOOLS)
-	#ADD_EXECUTABLE(OMEGA-ENGINE )
-ENDIF()
-
-# example executables 
-ADD_EXECUTABLE(OMEGA_ENGINE omega_engine.hpp)
-TARGET_LINK_LIBRARIES(OMEGA_ENGINE ${OMEGA_LIBS})
-
+ADD_SUBDIRECTORY(Examples)
 
 # run some tests to make sure I haven't broke anything!
 # to add later.....
