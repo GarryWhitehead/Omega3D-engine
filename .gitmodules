@@ -10,3 +10,6 @@
 [submodule "OmegaEngine/external/glfw"]
 	path = OmegaEngine/external/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "OmegaEngine/external/rapidjson"]
+	path = OmegaEngine/external/rapidjson
+	url = https://github.com/Tencent/rapidjson.git
