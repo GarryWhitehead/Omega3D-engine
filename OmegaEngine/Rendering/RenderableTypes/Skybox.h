@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderableBase.h"
 #include "Rendering/RenderInterface.h"
-#include "Vulkan/BufferManager.h"
+#include "VulkanAPI/BufferManager.h"
 
 //forward declerations
 namespace VulkanAPI

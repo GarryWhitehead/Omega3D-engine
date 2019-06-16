@@ -1,8 +1,8 @@
 #include "AnimationManager.h"
-#include "Models/ModelAnimation.h"
 #include "Managers/TransformManager.h"
 #include "ObjectInterface/ObjectManager.h"
 #include "ObjectInterface/ComponentTypes.h"
+#include "Models/ModelAnimation.h"
 #include "Utility/logger.h"
 
 namespace OmegaEngine

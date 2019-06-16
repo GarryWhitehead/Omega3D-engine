@@ -1,4 +1,5 @@
 #include "ModelAnimation.h"
+#include "Models/GltfModel.h"
 #include "Utility/Logger.h"
 
 namespace OmegaEngine
@@ -53,7 +54,7 @@ namespace OmegaEngine
 
 				for (uint32_t i = 0; i < timeAccessor.count; ++i)
 				{
-					samplerInfo.timeStamps.push_back(buffer[i]);
+					samplerInfo.timeStamps.emplace_back(buffer[i]);
 				}
 				delete buffer;
 				break;
@@ -109,7 +110,7 @@ namespace OmegaEngine
 			}
 			}
 
-			samplers.push_back(samplerInfo);
+			samplers.emplace_back(samplerInfo);
 		}
 	}
 }

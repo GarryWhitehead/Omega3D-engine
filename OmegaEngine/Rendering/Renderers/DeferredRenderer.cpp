@@ -9,14 +9,14 @@
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
 #include "ObjectInterface/ComponentInterface.h"
-#include "Vulkan/BufferManager.h"
-#include "Vulkan/Sampler.h"
-#include "Vulkan/Descriptors.h"
-#include "Vulkan/Queue.h"
-#include "Vulkan/SemaphoreManager.h"
-#include "Vulkan/Swapchain.h"
+#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Sampler.h"
+#include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/Queue.h"
+#include "VulkanAPI/SemaphoreManager.h"
+#include "VulkanAPI/Swapchain.h"
 #include "PostProcess/PostProcessInterface.h"
-#include "Vulkan/Device.h"
+#include "VulkanAPI/Device.h"
 
 namespace OmegaEngine
 {

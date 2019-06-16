@@ -1,8 +1,8 @@
 #pragma once
 #include "RenderableBase.h"
 #include "Managers/MeshManager.h"
-#include "Vulkan/BufferManager.h"
-#include "Vulkan/Descriptors.h"
+#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Descriptors.h"
 #include "Rendering/RenderInterface.h"
 #include "OEMaths/OEMaths.h"
 

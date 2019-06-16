@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2018 ARM Limited
+ * Copyright 2015-2019 Arm Limited
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@
 #include "spirv_common.hpp"
 
 using namespace spv;
-using namespace spirv_cross;
+using namespace SPIRV_CROSS_NAMESPACE;
 
 namespace spirv_cross_util
 {
-void rename_interface_variable(spirv_cross::Compiler &compiler, const std::vector<spirv_cross::Resource> &resources,
-                               uint32_t location, const std::string &name)
+void rename_interface_variable(Compiler &compiler, const SmallVector<Resource> &resources, uint32_t location,
+                               const std::string &name)
 {
 	for (auto &v : resources)
 	{
@@ -40,16 +40,16 @@ void rename_interface_variable(spirv_cross::Compiler &compiler, const std::vecto
 		// structs as well and make sure all the names match up.
 		if (type.basetype == SPIRType::Struct)
 		{
-			compiler.setName(v.base_type_id, join("SPIRV_Cross_Interface_Location", location));
+			compiler.set_name(v.base_type_id, join("SPIRV_Cross_Interface_Location", location));
 			for (uint32_t i = 0; i < uint32_t(type.member_types.size()); i++)
 				compiler.set_member_name(v.base_type_id, i, join("InterfaceMember", i));
 		}
 
-		compiler.setName(v.id, name);
+		compiler.set_name(v.id, name);
 	}
 }
 
-void inherit_combined_sampler_bindings(spirv_cross::Compiler &compiler)
+void inherit_combined_sampler_bindings(Compiler &compiler)
 {
 	auto &samplers = compiler.get_combined_image_samplers();
 	for (auto &s : samplers)

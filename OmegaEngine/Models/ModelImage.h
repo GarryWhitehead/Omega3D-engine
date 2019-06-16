@@ -1,5 +1,5 @@
 #pragma once
-#include "Vulkan/Common.h"
+#include "VulkanAPI/Common.h"
 
 #include "tiny_gltf.h"
 
@@ -28,6 +28,7 @@ namespace OmegaEngine
 
 	public:
 
+		ModelImage();
 		ModelImage(std::string _name);
 		~ModelImage();
 

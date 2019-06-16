@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vulkan/Common.h"
-#include "Vulkan/DataTypes/Texture.h"
+#include "VulkanAPI/Common.h"
+#include "VulkanAPI/DataTypes/Texture.h"
 #include "OEMaths/OEMaths.h"
 
 #include <vector>
@@ -14,7 +14,7 @@ namespace VulkanAPI
 
 namespace OmegaEngine
 {
-	class RenderConfig;
+	struct RenderConfig;
 
 	class IblInterface
 	{

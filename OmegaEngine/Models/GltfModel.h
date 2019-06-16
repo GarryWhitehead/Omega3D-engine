@@ -1,6 +1,11 @@
 #pragma once
+#include "Models/ModelMesh.h"
+#include "Models/ModelTransform.h"
+#include "Models/ModelMaterial.h"
+#include "Models/ModelImage.h"
+#include "Models/ModelSkin.h"
+#include "Models/ModelAnimation.h"
 #include "Models/ModelNode.h"
-
 #include "tiny_gltf.h"
 
 #include <memory>
@@ -14,7 +19,6 @@ namespace OmegaEngine
 	class ModelSkin;
 	class ModelMaterial;
 	class ModelImage;
-	class ModelAnimation;
 
 	namespace GltfModel
 	{
@@ -23,7 +27,7 @@ namespace OmegaEngine
 			std::vector<std::unique_ptr<ModelNode> > nodes;
 			std::vector<std::unique_ptr<ModelMaterial> > materials;
 			std::vector<std::unique_ptr<ModelImage> > images;
-			std::vector<std::unique_ptr<ModelSkin> > skins;
+			std::vector<std::unique_ptr<OmegaEngine::ModelSkin> > skins;
 			std::vector<std::unique_ptr<ModelAnimation> > animations;
 
 			ModelNode* getNode(uint32_t index)

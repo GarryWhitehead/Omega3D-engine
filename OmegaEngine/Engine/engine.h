@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Omega_Config.h"
-#include "Vulkan/Device.h"
+#include "VulkanAPI/Device.h"
 
 #include <vector>
 #include <memory>

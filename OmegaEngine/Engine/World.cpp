@@ -21,15 +21,12 @@
 #include "Models/ModelAnimation.h"
 #include "Models/GltfModel.h"
 #include "Utility/Bvh.hpp"
-#include "Vulkan/Device.h"
+#include "VulkanAPI/Device.h"
 
 #define TINYGLTF_IMPLEMENTATION
 #define STB_IMAGE_IMPLEMENTATION
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #define STBI_MSC_SECURE_CRT
-
-// tiny gltf uses window.h - this stops the macros messing with std::min
-#define NOMINMAX
 
 #include "tiny_gltf.h"
 
@@ -142,7 +139,7 @@ namespace OmegaEngine
 		 return object;
 	}
 
-	Object *World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
+	void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
 		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
 		if (node->hasChildren())

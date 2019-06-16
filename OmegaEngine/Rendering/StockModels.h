@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Vulkan/Common.h"
-#include "Vulkan/MemoryAllocator.h"
+#include "VulkanAPI/Common.h"
+#include "VulkanAPI/MemoryAllocator.h"
 #include "OEMaths/OEMaths.h"
 
 #include <cstdint>

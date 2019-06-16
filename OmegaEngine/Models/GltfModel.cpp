@@ -80,7 +80,7 @@ namespace OmegaEngine
 				{
 					auto& newAnim = std::make_unique<ModelAnimation>();
 					newAnim->extractAnimationData(model, anim, outputModel, animIndex++);
-					outputModel->animations.emplace_back(std::move(anim));
+					outputModel->animations.emplace_back(std::move(newAnim));
 				}
 			}
 			else

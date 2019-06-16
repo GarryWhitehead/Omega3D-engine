@@ -6,7 +6,7 @@
 #include "Models/ModelTransform.h"
 #include "Models/ModelSkin.h"
 #include "Omega_Common.h"
-#include "Vulkan/BufferManager.h"
+#include "VulkanAPI/BufferManager.h"
 #include "Managers/EventManager.h"
 #include "Managers/MeshManager.h"
 #include "Engine/Omega_Global.h"

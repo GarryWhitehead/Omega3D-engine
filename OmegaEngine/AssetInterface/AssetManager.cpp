@@ -1,7 +1,7 @@
 #include "AssetManager.h"
 #include "utility/GeneralUtil.h"
 #include "utility/logger.h"
-#include "Vulkan/VkTextureManager.h"
+#include "VulkanAPI/VkTextureManager.h"
 #include "Engine/Omega_global.h"
 #include "Managers/EventManager.h"
 #include "Models/ModelImage.h"
@@ -48,9 +48,9 @@ namespace OmegaEngine
 				LOGGER_ERROR("Incorrect file format whilst creating texture for asset manager. Filename must be of the format: identifier_name.ktx\n");
 			}
 
-			MappedTexture texture;
-			texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize, TextureFormat::Image8UC4);		// TODO: add better format selection
-			images.emplace(id, std::move(texture));
+			TextureAssetInfo assetInfo;
+			assetInfo.texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount, image.mipLevels, image.totalSize, TextureFormat::Image8UC4);		// TODO: add better format selection
+			images.emplace(id, std::move(assetInfo));
 			isDirty = true;
         }
     }

@@ -2,7 +2,7 @@
 #include "ObjectInterface/ObjectManager.h"
 #include "ObjectInterface/ComponentInterface.h"
 #include "Managers/CameraManager.h"
-#include "Vulkan/BufferManager.h"
+#include "VulkanAPI/BufferManager.h"
 #include "Managers/EventManager.h"
 #include "Engine/Omega_Global.h"
 #include "OEMaths/OEMaths_transform.h"

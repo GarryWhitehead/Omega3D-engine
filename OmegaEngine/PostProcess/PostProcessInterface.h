@@ -1,6 +1,6 @@
 #pragma once
-#include "Vulkan/Common.h"
-#include "Vulkan/CommandBuffer.h"
+#include "VulkanAPI/Common.h"
+#include "VulkanAPI/CommandBuffer.h"
 
 // forward declerations
 

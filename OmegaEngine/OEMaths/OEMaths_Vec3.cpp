@@ -146,5 +146,7 @@ namespace OEMaths
         result.x = this->x * (1.0f - u) + v1.getX() * u;
 		result.y = this->y * (1.0f - u) + v1.getY() * u;
 		result.z = this->z * (1.0f - u) + v1.getZ() * u;
+
+		return result;
 	}
 }

@@ -4,6 +4,10 @@
 namespace OmegaEngine
 {
 
+	ModelImage::ModelImage() 
+	{
+	}
+
 	ModelImage::ModelImage(std::string _name) :
 		name(_name)
 	{

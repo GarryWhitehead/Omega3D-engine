@@ -9,9 +9,11 @@ namespace OEMaths
 		return data[col * 1 + row];
 	}
 
-	vec2f& mat2f::operator()(vec2f& vec, const uint8_t& col)
+	mat2f& mat2f::operator()(vec2f& vec, const uint8_t& col)
 	{
-		data[col * 2] = vec.getX();
-		data[col * 2 + 1] = vec.getY();
+		mat2f result;
+		result.data[col * 2] = vec.getX();
+		result.data[col * 2 + 1] = vec.getY();
+		return result;
 	}
 }

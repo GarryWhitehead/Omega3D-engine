@@ -2,7 +2,7 @@
 
 #include "AssetInterface/MappedTexture.h"
 #include "Image/KtxReader.h"
-#include "Vulkan/Sampler.h"
+#include "VulkanAPI/Sampler.h"
 
 #include <unordered_map>
 #include <string>

@@ -2,7 +2,7 @@
 #include "Utility/logger.h"
 #include "Utility/GeneralUtil.h"
 #include "Engine/Omega_Global.h"
-#include "Vulkan/BufferManager.h"
+#include "VulkanAPI/BufferManager.h"
 #include "Managers/EventManager.h"
 #include "ObjectInterface/ObjectManager.h"
 #include "ObjectInterface/Object.h"
@@ -30,7 +30,7 @@ namespace OmegaEngine
 		// copy data from model into the manager
 		if (!component->mesh->hasSkin())
 		{
-			mesh.vertexBufferOffset = staticVertices.size();
+			mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
 
 			for (auto& vertex : vertexData)
 			{
@@ -64,7 +64,7 @@ namespace OmegaEngine
 		// and now the indices
 		auto& modelIndices = component->mesh->getIndices();
 
-		uint32_t indexOffset = indices.size();
+		uint32_t indexOffset = static_cast<uint32_t>(indices.size());
 		mesh.indexBufferOffset = indexOffset;
 
 		// simple copy from the model data to the manager
@@ -86,7 +86,7 @@ namespace OmegaEngine
 		meshBuffer.emplace_back(mesh);
 		
 		// store the buffer index in the mesh component
-		component->index = meshBuffer.size() - 1;
+		component->index = static_cast<uint32_t>(meshBuffer.size() - 1);
 	}
 
 	void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)

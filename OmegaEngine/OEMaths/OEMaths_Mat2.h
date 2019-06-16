@@ -17,7 +17,7 @@ namespace OEMaths
         }
 
         float& operator()(const uint8_t& col, const uint8_t& row);
-        vec2f& operator()(vec2f& vec, const uint8_t& col);
+        mat2f& operator()(vec2f& vec, const uint8_t& col);
 
     private:
 

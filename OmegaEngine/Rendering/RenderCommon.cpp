@@ -3,9 +3,9 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderableTypes/Mesh.h"
 #include "Rendering/RenderableTypes/Skybox.h"
-#include "Vulkan/Swapchain.h"
-#include "Vulkan/BufferManager.h"
-#include "Vulkan/Interface.h"
+#include "VulkanAPI/Swapchain.h"
+#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Interface.h"
 #include "Managers/EventManager.h"
 #include "Engine/Omega_Global.h"
 

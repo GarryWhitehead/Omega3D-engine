@@ -10,8 +10,10 @@ namespace OEMaths
 
 	mat3f& mat3f::operator()(const vec3f& vec, const uint8_t& col)
 	{
-		data[col * 3] = vec.getX();
-		data[col * 3 + 1] = vec.getY();
-		data[col * 3 + 2] = vec.getZ();
+		mat3f result;
+		result.data[col * 3] = vec.getX();
+		result.data[col * 3 + 1] = vec.getY();
+		result.data[col * 3 + 2] = vec.getZ();
+		return result;
 	}
 }

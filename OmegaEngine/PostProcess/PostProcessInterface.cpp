@@ -1,6 +1,6 @@
 #include "PostProcessInterface.h"
 #include "Rendering/RenderConfig.h"
-#include "Vulkan/Image.h"
+#include "VulkanAPI/Image.h"
 
 namespace OmegaEngine
 {

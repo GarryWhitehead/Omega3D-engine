@@ -1,13 +1,13 @@
 #pragma once
 
-#include "Vulkan/Device.h"
-#include "Vulkan/Datatypes/Texture.h"
-#include "Vulkan/Interface.h"
-#include "Vulkan/Descriptors.h"
-#include "Vulkan/Shader.h"
-#include "Vulkan/Pipeline.h"
-#include "Vulkan/CommandBuffer.h"
-#include "Vulkan/CommandBufferManager.h"
+#include "VulkanAPI/Device.h"
+#include "VulkanAPI/Datatypes/Texture.h"
+#include "VulkanAPI/Interface.h"
+#include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/Shader.h"
+#include "VulkanAPI/Pipeline.h"
+#include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 namespace VulkanAPI
 {

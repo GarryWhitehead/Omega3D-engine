@@ -20,9 +20,9 @@
 #include "Threading/ThreadPool.h"
 #include "Engine/Omega_Global.h"
 #include "Engine/World.h"
-#include "Vulkan/VkTextureManager.h"
-#include "Vulkan/Device.h"
-#include "Vulkan/Interface.h"
+#include "VulkanAPI/VkTextureManager.h"
+#include "VulkanAPI/Device.h"
+#include "VulkanAPI/Interface.h"
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"

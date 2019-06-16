@@ -2,7 +2,7 @@
 #include "ObjectInterface/ComponentInterface.h"
 #include "AssetInterface/AssetManager.h"
 #include "OEMaths/OEMaths_transform.h"
-#include "Vulkan/VkTextureManager.h"
+#include "VulkanAPI/VkTextureManager.h"
 #include "Models/ModelImage.h"
 #include "Managers/EventManager.h"
 #include "Engine/Omega_Global.h"

@@ -1,6 +1,5 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
-#include "Models/GltfModel.h"
 
 #include "tiny_gltf.h"
 
@@ -10,6 +9,10 @@ namespace OmegaEngine
 {
 	// forward declerations
 	class ModelNode;
+	namespace GltfModel
+	{
+		struct Model;
+	}
 
 	class ModelSkin
 	{

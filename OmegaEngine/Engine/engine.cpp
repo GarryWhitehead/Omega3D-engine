@@ -5,8 +5,8 @@
 #include "Engine/World.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/InputManager.h"
-#include "Vulkan/Device.h"
-#include "Vulkan/Common.h"
+#include "VulkanAPI/Device.h"
+#include "VulkanAPI/Common.h"
 
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/document.h"
