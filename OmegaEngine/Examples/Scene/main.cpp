@@ -3,6 +3,7 @@
 #include "Engine/engine.h"
 #include "Models/GltfModel.h"
 #include "Engine/world.h"
+#include "Managers/CameraManager.h"
 #include "ObjectInterface/Object.h"
 #include "ObjectInterface/ComponentTypes.h"
 
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
 
 	// and a camera - multiple cameras can be added (TODO: switch via a designated key)
-	//world->addCamera();
+	world->addCamera(CameraManager::createCamera());
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

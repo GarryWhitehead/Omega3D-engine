@@ -215,6 +215,12 @@ namespace OmegaEngine
 		object->addComponent<SkyboxComponent>(blurFactor);
 	}
 
+	void World::addCamera(std::unique_ptr<Camera> camera)
+	{
+		auto& manager = componentInterface->getManager<CameraManager>();
+		manager.addCamera(std::move(camera));
+	}
+
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis

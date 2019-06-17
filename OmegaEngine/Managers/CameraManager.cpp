@@ -21,6 +21,34 @@ namespace OmegaEngine
 	{
 	}
 
+	std::unique_ptr<Camera> CameraManager::createCamera(float fov, float zNear, float zFar, float aspect, float velocity, Camera::CameraType type, OEMaths::vec3f& startPosition)
+	{
+		auto& camera = std::make_unique<Camera>(fov, zNear, zFar, aspect, velocity, type, startPosition);
+		return(std::move(camera));
+	}
+
+	std::unique_ptr<Camera> CameraManager::createCamera(float fov, float zNear, float zFar, OEMaths::vec3f& startPosition)
+	{
+		auto& camera = std::make_unique<Camera>(fov, zNear, zFar, startPosition);
+		return(std::move(camera));
+	}
+
+	std::unique_ptr<Camera> CameraManager::createCamera()
+	{
+		auto& camera = std::make_unique<Camera>();
+		return(std::move(camera));
+	}
+
+
+	void CameraManager::addCamera(std::unique_ptr<Camera> camera)
+	{
+		currentPosition = camera->getPosition();
+		currentProjMatrix = camera->getPerspectiveMat();
+
+		cameras.emplace_back(std::move(camera));
+		cameraIndex = static_cast<uint32_t>(cameras.size() - 1);
+	}
+
 	void CameraManager::mouseMoveEvent(MouseMoveEvent& event)
 	{
 		if (firstTime) 
@@ -48,8 +76,8 @@ namespace OmegaEngine
 	void CameraManager::keyboardPressEvent(KeyboardPressEvent& event)
 	{
 		
-		Camera& camera = cameras[cameraIndex];
-		float velocity = camera.velocity;
+		auto& camera = cameras[cameraIndex];
+		float velocity = camera->getVelocity();
 
 		// check for forwards and strafe movement
 		if (event.isMovingForward) 
@@ -62,13 +90,13 @@ namespace OmegaEngine
 		}
 		if (event.isMovingLeft) 
 		{
-			OEMaths::vec3f cameraRight = frontVec.cross(camera.cameraUp);
+			OEMaths::vec3f cameraRight = frontVec.cross(camera->getCameraUp());
 			cameraRight.normalise();
 			currentPosition +=  cameraRight * velocity;
 		}
 		if (event.isMovingRight) 
 		{
-			OEMaths::vec3f cameraRight = frontVec.cross(camera.cameraUp);
+			OEMaths::vec3f cameraRight = frontVec.cross(camera->getCameraUp());
 			cameraRight.normalise();
 			currentPosition -= cameraRight * velocity;
 		}
@@ -78,23 +106,23 @@ namespace OmegaEngine
 
 	void CameraManager::updateCameraRotation()
 	{
-		Camera& camera = cameras[cameraIndex];
+		auto& camera = cameras[cameraIndex];
 
 		//calculate the pitch and yaw vectors
 		frontVec = OEMaths::vec3f{ std::cos(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)),
 									std::sin(OEMaths::radians(pitch)),
 									std::sin(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)) };
 		frontVec.normalise();
-
+	
 		isDirty = true;
 	}
 
 	void CameraManager::updateViewMatrix()
 	{
 		assert(!cameras.empty());
-		Camera& camera = cameras[cameraIndex];
+		auto& camera = cameras[cameraIndex];
 		OEMaths::vec3f target = currentPosition + frontVec;
-		currentViewMatrix = OEMaths::lookAt(currentPosition, target, camera.cameraUp);
+		currentViewMatrix = OEMaths::lookAt(currentPosition, target, camera->getCameraUp());
 	}
 
 	void CameraManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)
@@ -109,8 +137,8 @@ namespace OmegaEngine
 			cameraBuffer.projection = currentProjMatrix;
 			cameraBuffer.model = currentModelMatrix;		// this is just identity for now
 			cameraBuffer.view = currentViewMatrix;
-			cameraBuffer.zNear = cameras[cameraIndex].zNear;
-			cameraBuffer.zFar = cameras[cameraIndex].zFar;
+			cameraBuffer.zNear = cameras[cameraIndex]->getZNear();
+			cameraBuffer.zFar = cameras[cameraIndex]->getZFar();
 			
 			VulkanAPI::BufferUpdateEvent event{ "Camera", (void*)&cameraBuffer, sizeof(CameraBufferInfo), VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 

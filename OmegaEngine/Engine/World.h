@@ -26,6 +26,7 @@ namespace OmegaEngine
 	class Object;
 	class BVH;
 	struct EngineConfig;
+	struct Camera;
 
 	enum class Managers
 	{
@@ -70,7 +71,8 @@ namespace OmegaEngine
 
 		// other user friendly middle-man functions that avoid exposing the managers to the user
 		void addSkybox(const std::string& filename, float blurFactor);
-		
+		void addCamera(std::unique_ptr<Camera> camera);
+
 		void update(double time, double dt);
 		void render(double interpolation);
 
