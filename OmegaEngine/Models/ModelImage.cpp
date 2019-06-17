@@ -16,6 +16,11 @@ namespace OmegaEngine
 
 	ModelImage::~ModelImage()
 	{
+		if (imageData)
+		{
+			delete[] imageData;
+			imageData = nullptr;
+		}
 	}
 
 	vk::SamplerAddressMode ModelImage::getWrapMode(int32_t wrap)

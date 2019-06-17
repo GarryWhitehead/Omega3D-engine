@@ -59,7 +59,7 @@ namespace OmegaEngine
 		{
 			LOGGER_ERROR("Error. Unable to open brdf shader.\n");
 		}
-
+		
 		// and the pipeline.....
 		VulkanAPI::Pipeline pipeline;
 

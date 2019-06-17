@@ -25,7 +25,15 @@ namespace OmegaEngine
 		
 		// samplers
 		auto& sampler = image->getSampler();
-		assetInfo.samplerType = VulkanAPI::Sampler::getSamplerType(sampler->mode, sampler->filter);
+		if (sampler)
+		{
+			assetInfo.samplerType = VulkanAPI::Sampler::getSamplerType(sampler->mode, sampler->filter);
+		}
+		else
+		{
+			// use default sampler if none exsists
+			assetInfo.samplerType = VulkanAPI::Sampler::getDefaultSampler();
+		}
 
 		images.emplace(id, std::move(assetInfo));
 		isDirty = true;

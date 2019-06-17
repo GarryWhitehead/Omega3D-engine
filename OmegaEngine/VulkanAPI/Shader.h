@@ -114,8 +114,8 @@ namespace VulkanAPI
 
 		static vk::ShaderStageFlagBits getStageFlags(StageType type);
 
-		bool add(vk::Device device, const char* filename, StageType type);
-		bool add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2);
+		bool add(vk::Device device, const std::string& filename, StageType type);
+		bool add(vk::Device device, const std::string& filename1, StageType type1, const std::string& filename2, StageType type2);
 		void bufferReflection(DescriptorLayout& descriptorLayout, BufferReflection& bufferReflection);
 		void imageReflection(DescriptorLayout& descriptorLayout, ImageReflection& imageReflect);
 		void pipelineLayoutReflect(PipelineLayout& layout);

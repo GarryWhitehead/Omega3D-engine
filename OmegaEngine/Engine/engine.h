@@ -7,6 +7,7 @@
 #include <memory>
 #include <chrono>
 #include <unordered_map>
+#include <string>
 
 // forward declerations
 struct GLFWwindow;
@@ -53,13 +54,13 @@ namespace OmegaEngine
 	{
 	public:
 
-		Engine(const char* win_title, uint32_t width, uint32_t height);
+		Engine(std::string win_title, uint32_t width, uint32_t height);
 		~Engine();
 
-		World* createWorld(const char* filename, const char* name);
-		World* createWorld(const char* name);
+		World* createWorld(const std::string& filename, const std::string& name);
+		World* createWorld(const std::string& name);
 
-		void createWindow(const char* win_title);
+		void createWindow(const std::string& win_title);
 		void loadConfigFile();
 
 		void startLoop();
@@ -89,11 +90,11 @@ namespace OmegaEngine
 		// windw details set on init
 		uint32_t windowWidth = 0;
 		uint32_t windowHeight = 0;
-		char* windowTitle;
+		std::string windowTitle;
 
 		// a collection of worlds registered with the engine
-		std::unordered_map<const char*, std::unique_ptr<World> > worlds;
-		const char* currentWorld;		
+		std::unordered_map<std::string, std::unique_ptr<World> > worlds;
+		std::string currentWorld;		
 
 		// a list of all grpahics devices that are available
 		std::vector<std::unique_ptr<VulkanAPI::Device>> vkDevices;

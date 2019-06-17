@@ -22,6 +22,9 @@ OPTION(OMEGA_THREAD_SANITIZE "Run thread sanitizer" OFF)
 OPTION(OMEGA_ADDRESS_SANITIZE "Run address sanitizer" OFF)
 OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
+# optional path for assets directory
+SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for default location.")
+
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 # find vulkan using cmake module if the correct cmake version
@@ -203,7 +206,14 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	Omega_Common.h
 )
-	
+
+IF(ASSETS_DIR)
+	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${ASSETS_DIR}/\")
+	INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
+ELSE()
+	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
+ENDIF()
+
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
 	${Vulkan_LIBRARY} 
 	${TINY_GLTF} 

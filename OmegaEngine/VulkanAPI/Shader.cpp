@@ -38,11 +38,11 @@ namespace VulkanAPI
 		return ret;
 	}
 
-	bool Shader::add(vk::Device device, const char* filename, StageType type)
+	bool Shader::add(vk::Device device, const std::string& filename, StageType type)
 	{
 		this->device = device;
 
-		if (!loadShaderBinary(filename, type)) 
+		if (!loadShaderBinary(filename.c_str(), type)) 
 		{
 			return false;
 		}
@@ -56,15 +56,15 @@ namespace VulkanAPI
 		return true;
 	}
 
-	bool Shader::add(vk::Device device, const char* filename1, StageType type1, const char* filename2, StageType type2)
+	bool Shader::add(vk::Device device, const std::string& filename1, StageType type1, const std::string& filename2, StageType type2)
 	{
 		this->device = device;
 
-		if (!add(device, filename1, type1)) 
+		if (!add(device, filename1.c_str(), type1)) 
 		{
 			return false;
 		}
-		if (!add(device, filename2, type2)) 
+		if (!add(device, filename2.c_str(), type2)) 
 		{
 			return false;
 		}
@@ -77,7 +77,7 @@ namespace VulkanAPI
 
 	bool Shader::loadShaderBinary(const char* filename, StageType type)
 	{
-		std::string shaderDir("assets/shaders/");
+		std::string shaderDir(OMEGA_ASSETS_DIR "shaders/");
 		std::ifstream file(shaderDir + filename, std::ios_base::ate | std::ios_base::binary);
 		if (!file.is_open()) 
 		{

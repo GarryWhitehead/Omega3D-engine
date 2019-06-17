@@ -45,6 +45,11 @@ namespace VulkanAPI
 		return type;
 	}
 
+	SamplerType Sampler::getDefaultSampler()
+	{
+		return SamplerType::LinearClamp;
+	}
+
 	void Sampler::create(vk::Device dev, SamplerType type)
 	{
 		device = dev;

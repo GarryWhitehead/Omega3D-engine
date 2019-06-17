@@ -73,7 +73,7 @@ namespace OmegaEngine
 		for (uint32_t i = 0; i < (int)ModelMaterial::TextureId::Count; ++i)
 		{
 			auto id = material->getTexture(static_cast<ModelMaterial::TextureId>(i));
-			if (id > 0)
+			if (id > -1)
 			{
 				assetManager->addImage(images[id], newMaterial.name + textureExtensions[i]);
 				newMaterial.hasTexture[i] = true;

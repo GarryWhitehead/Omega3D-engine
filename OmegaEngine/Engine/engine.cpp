@@ -17,12 +17,10 @@ using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
-	Engine::Engine(const char* title, uint32_t width, uint32_t height) :
+	Engine::Engine(std::string title, uint32_t width, uint32_t height) :
 		windowWidth(width),
 		windowHeight(height)
 	{
-		std::strcpy(windowTitle, title);
-
 		// Create a new instance of glfw
 		createWindow(windowTitle);
 
@@ -41,7 +39,7 @@ namespace OmegaEngine
 
 	}
 
-	void Engine::createWindow(const char* winTitle)
+	void Engine::createWindow(const std::string& winTitle)
 	{
 		//glfwSetErrorCallback(glfw_error_callback);
 		if (!glfwInit()) 
@@ -55,7 +53,7 @@ namespace OmegaEngine
 		monitor = glfwGetPrimaryMonitor();
 		vmode = glfwGetVideoMode(monitor);
 
-		window = glfwCreateWindow(windowWidth, windowHeight, winTitle, nullptr, nullptr);
+		window = glfwCreateWindow(windowWidth, windowHeight, winTitle.c_str(), nullptr, nullptr);
 		if (!window) 
 		{
 			LOGGER_ERROR("Critical error! Unable to open window!");
@@ -85,7 +83,7 @@ namespace OmegaEngine
 		currentVkDevice = static_cast<uint32_t>(vkDevices.size() - 1);
 	}
 
-	World* Engine::createWorld(const char* filename, const char* name)
+	World* Engine::createWorld(const std::string& filename, const std::string& name)
 	{
 		// create a world using a omega engine scene file
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
@@ -103,7 +101,7 @@ namespace OmegaEngine
 		return outputWorld;
 	}
 
-	World* Engine::createWorld(const char* name)
+	World* Engine::createWorld(const std::string& name)
 	{
 		// create an empty world
 		std::unique_ptr<World> world = std::make_unique<World>(Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);

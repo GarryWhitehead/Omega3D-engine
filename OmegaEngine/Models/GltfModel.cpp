@@ -28,14 +28,16 @@ namespace OmegaEngine
 			FileUtil::GetFileExtension(filename, ext);
 			bool success = false;
 
+			std::string filePath = OMEGA_ASSETS_DIR "textures/" + filename;
+
 			// gltf files can either be in binary or a human-readable format
 			if (ext.compare("glb") == 0)
 			{
-				success = loader.LoadBinaryFromFile(&model, &err, &warn, filename.c_str());
+				success = loader.LoadBinaryFromFile(&model, &err, &warn, filePath.c_str());
 			}
 			else
 			{
-				success = loader.LoadASCIIFromFile(&model, &err, &warn, filename.c_str());
+				success = loader.LoadASCIIFromFile(&model, &err, &warn, filePath.c_str());
 			}
 
 			if (success)

@@ -2,13 +2,12 @@
 
 #include "VulkanAPI/Common.h"
 #include "rapidjson/document.h"
+#include "Rendering/Renderers/RendererBase.h"
 
 #include <array>
 
 namespace OmegaEngine
 {
-	// forward declerations
-	enum class RendererType;
 
 	struct RenderConfig
 	{
@@ -18,7 +17,7 @@ namespace OmegaEngine
 		struct General
 		{
 			// type of renderer to use - at the moment only deferred is supported
-			RendererType renderer;
+			RendererType renderer = RendererType::Deferred;
 
 			std::array<float, 4> backgroundColour = {0.0f, 0.0f, 0.0f, 1.0f};
 			bool usePostProcess = false;

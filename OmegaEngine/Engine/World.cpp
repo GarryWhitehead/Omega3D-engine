@@ -43,7 +43,7 @@ namespace OmegaEngine
 		objectManager = std::make_unique<ObjectManager>();
 		componentInterface = std::make_unique<ComponentInterface>();
 		renderInterface = std::make_unique<RenderInterface>(device, engineConfig.screenWidth, engineConfig.screenHeight, static_cast<SceneType>(engineConfig.sceneType));
-		animation_manager = std::make_unique<AnimationManager>();
+		animationManager = std::make_unique<AnimationManager>();
 		assetManager = std::make_unique<AssetManager>();
 		bvh = std::make_unique<BVH>();
 
@@ -78,10 +78,10 @@ namespace OmegaEngine
 		
 	}
 
-	bool World::create(const char* filename, const char* name)
+	bool World::create(const std::string& filename, const std::string& name)
 	{
 		// this worlds name, used as a reference
-		std::strcpy(this->name, name);
+		this->name = name;
 
 		SceneParser parser;
 		if (!parser.parse(filename))
@@ -122,10 +122,10 @@ namespace OmegaEngine
 		return true;
 	}
 
-	void World::create(const char *name)
+	void World::create(const std::string& name)
 	{
 		// this worlds name, used as a reference
-		std::strcpy(this->name, name);
+		this->name = name;
 
 		// an empty world, so not much to do for now!
 	}
@@ -190,12 +190,11 @@ namespace OmegaEngine
 		}
 
 		// animations
-		auto& animationManager = componentInterface->getManager<AnimationManager>();
-		uint32_t animationOffset = animationManager.getBufferOffset();
+		uint32_t animationOffset = animationManager->getBufferOffset();
 
 		for (auto& animation : model->animations)
 		{
-			animationManager.addAnimation(animation);
+			animationManager->addAnimation(animation);
 		}
 
 		// Now to create the object and add the relevant components
@@ -213,7 +212,7 @@ namespace OmegaEngine
 	{
 		// update on a per-frame basis
 		// animation
-		animation_manager->updateAnimation(time, dt, componentInterface->getManager<TransformManager>());
+		animationManager->updateAnimation(time, dt, componentInterface->getManager<TransformManager>());
 
 		// newly added assets need to be hosted on the gpu
 		assetManager->update();

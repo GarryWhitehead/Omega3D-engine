@@ -41,7 +41,8 @@ namespace OmegaEngine
 		{
 			assert(data != nullptr);
 			uint32_t size = width * height * 4;
-			//memcpy(imageData, data, size);
+			imageData = new uint8_t[size];
+			memcpy(imageData, data, size);
 			assert(imageData != nullptr);
 
 			// images must be 4-channel RGBA
@@ -77,9 +78,9 @@ namespace OmegaEngine
 
 		std::string name;
 
-		uint8_t* imageData;
-		uint32_t width;
-		uint32_t height;
+		uint8_t* imageData = nullptr;
+		uint32_t width = 0;
+		uint32_t height = 0;
 
 		// usually 4 channel RGBA
 		TextureFormat format;

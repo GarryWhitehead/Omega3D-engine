@@ -24,6 +24,7 @@ namespace VulkanAPI
 		~Sampler();
 		
 		static SamplerType getSamplerType(const vk::SamplerAddressMode mode, const vk::Filter filter);
+		static SamplerType getDefaultSampler();
 
 		void create(vk::Device dev, SamplerType type);
 
