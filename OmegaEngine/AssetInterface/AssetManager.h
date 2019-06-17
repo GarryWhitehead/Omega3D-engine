@@ -29,7 +29,7 @@ namespace OmegaEngine
 		void addImage(std::unique_ptr<ModelImage>& image, std::string id);
 
         // loads compressed images stored in the ktx file format
-        void loadImageFile(std::string filename);
+        void loadImageFile(const std::string& filename, const std::string& imageId);
 
 		void update();
 

@@ -68,6 +68,9 @@ namespace OmegaEngine
 		// spacial function which creates the node tree and adds the appropiate components from a gltf model
 		Object* createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial);
 
+		// other user friendly middle-man functions that avoid exposing the managers to the user
+		void addSkybox(const std::string& filename, float blurFactor);
+		
 		void update(double time, double dt);
 		void render(double interpolation);
 

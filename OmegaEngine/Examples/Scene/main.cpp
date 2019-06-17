@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 	}
 
 	// add a skybox
-	//world->addSkybox("");
+	world->addSkybox("skybox/cubemap.ktx", 0.5f);
 
 	// and a camera - multiple cameras can be added (TODO: switch via a designated key)
 	//world->addCamera();

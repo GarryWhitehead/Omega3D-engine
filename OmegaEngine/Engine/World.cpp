@@ -52,11 +52,11 @@ namespace OmegaEngine
 		{
 			componentInterface->registerManager<MeshManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL) 
+		if (managers & Managers::OE_MANAGERS_MATERIAL || managers & Managers::OE_MANAGERS_ALL)
 		{
 			componentInterface->registerManager<MaterialManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL) 
+		if (managers & Managers::OE_MANAGERS_LIGHT || managers & Managers::OE_MANAGERS_ALL)
 		{
 			componentInterface->registerManager<LightManager>();
 		}
@@ -64,18 +64,18 @@ namespace OmegaEngine
 		{
 			componentInterface->registerManager<TransformManager>();
 		}
-		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL) 
+		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL)
 		{
 			componentInterface->registerManager<CameraManager>(engineConfig.mouseSensitivity);
 		}
-		
+
 		// setup the preferred renderer and associated elements
 		renderInterface->initRenderer(componentInterface);
 	}
 
 	World::~World()
 	{
-		
+
 	}
 
 	bool World::create(const std::string& filename, const std::string& name)
@@ -91,11 +91,11 @@ namespace OmegaEngine
 
 		// TODO: NEEDS UPDATING!
 		/*
-		// update camera manager 
+		// update camera manager
 		componentInterface->getManager<CameraManager>().addCamera(parser.getCamera());
 
 		// add lights from scene file
-		for (uint32_t i = 0; i < parser.lightCount(); ++i) 
+		for (uint32_t i = 0; i < parser.lightCount(); ++i)
 		{
 			componentInterface->getManager<LightManager>().addLight(parser.getLights(i));
 		}
@@ -105,7 +105,7 @@ namespace OmegaEngine
 		{
 			assetManager->loadImageFile(parser.getEnvironment().skyboxFilename);
 
-			// add skybox as a object - TODO: blur factor should be obtained from the config settings 
+			// add skybox as a object - TODO: blur factor should be obtained from the config settings
 			auto obj = &objectManager->createObject();
 			obj->addComponent<SkyboxComponent>(1.0f);
 		}
@@ -118,7 +118,7 @@ namespace OmegaEngine
 			assetManager->loadImageFile(parser.getEnvironment().irradianceMapFilename);
 		}*/
 
-		
+
 		return true;
 	}
 
@@ -132,14 +132,14 @@ namespace OmegaEngine
 
 	Object* World::createObject()
 	{
-		 auto object = objectManager->createObject();
+		auto object = objectManager->createObject();
 
-		 // add object to queue for updating its components with the relevant managers
-		 componentInterface->addObjectToUpdateQueue(object);
-		 return object;
+		// add object to queue for updating its components with the relevant managers
+		componentInterface->addObjectToUpdateQueue(object);
+		return object;
 	}
 
-	void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject, 
+	void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject,
 		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
 		if (node->hasChildren())
@@ -206,6 +206,13 @@ namespace OmegaEngine
 		}
 
 		return object;
+	}
+
+	void World::addSkybox(const std::string& filename, float blurFactor)
+	{
+		assetManager->loadImageFile(filename, "Skybox");
+		auto object = objectManager->createObject();
+		object->addComponent<SkyboxComponent>(blurFactor);
 	}
 
 	void World::update(double time, double dt)

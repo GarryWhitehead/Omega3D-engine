@@ -39,21 +39,33 @@ namespace OmegaEngine
 		isDirty = true;
 	}
 
-    void AssetManager::loadImageFile(std::string filename)
+    void AssetManager::loadImageFile(const std::string& filename, const std::string& imageId)
     {
         ImageUtility::KtxReader reader;
 
-        if (reader.loadFile(filename.c_str())) 
+		// absolute path to texture directory
+		std::string filePath = OMEGA_ASSETS_DIR "Textures/" + filename;
+
+        if (reader.loadFile(filePath.c_str())) 
         {
             // ownership of the data is moved from the reader
             ImageUtility::KtxReader::ImageOutput image = reader.getImage_data();
 
-			// ids are stored in the format: filename must be identfier_...
-			std::string name = StringUtil::lastPart(filename, '/');
-			std::string id = StringUtil::splitString(name, '_', 0);
-			if (id == "")
+			// if no id is specified, then take the image identifier from the filename
+			std::string id;
+			if (imageId.empty())
 			{
-				LOGGER_ERROR("Incorrect file format whilst creating texture for asset manager. Filename must be of the format: identifier_name.ktx\n");
+				// ids are stored in the format: filename must be identfier_...
+				std::string name = StringUtil::lastPart(filename, '/');
+				id = StringUtil::splitString(name, '_', 0);
+				if (id == "")
+				{
+					LOGGER_ERROR("Incorrect file format whilst creating texture for asset manager. Filename must be of the format: identifier_name.ktx\n");
+				}
+			}
+			else
+			{
+				id = imageId;
 			}
 
 			TextureAssetInfo assetInfo;
