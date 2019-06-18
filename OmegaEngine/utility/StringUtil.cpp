@@ -23,12 +23,12 @@ namespace StringUtil
 		return output;
 	}
 	
-	std::string splitString(std::string str, char identifier, uint32_t part)
+	std::vector<std::string> splitString(std::string str, char identifier)
 	{
 		if (str.empty()) 
 		{
 			fprintf(stderr, "Error! Empty string given as parameter.\n");
-			return "";
+			return {};
 		}
 
 		std::vector<std::string> splitStrings;
@@ -45,9 +45,9 @@ namespace StringUtil
 
 		if (splitStrings.empty() || splitStrings.size() < part)
 		{
-			return "";
+			return {};
 		}
 
-		return splitStrings[part];
+		return splitStrings;
 	}
 }

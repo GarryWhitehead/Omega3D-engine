@@ -2,6 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 #include "Models/GltfModel.h"
+#include "Managers/CameraManager.h"
 
 #include "tiny_gltf.h"
 
@@ -26,7 +27,6 @@ namespace OmegaEngine
 	class Object;
 	class BVH;
 	struct EngineConfig;
-	struct Camera;
 
 	enum class Managers
 	{
@@ -71,7 +71,13 @@ namespace OmegaEngine
 
 		// other user friendly middle-man functions that avoid exposing the managers to the user
 		void addSkybox(const std::string& filename, float blurFactor);
-		void addCamera(std::unique_ptr<Camera> camera);
+		void addCameraToWorld(OEMaths::vec3f& startPosition = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f }, 
+								float fov = 40.0f, 
+								float zNear = 1.0f, 
+								float zFar = 1000.0f, 
+								float aspect = 0.8f, 
+								float velocity = 0.5f, 
+								Camera::CameraType type = Camera::CameraType::FirstPerson);
 
 		void update(double time, double dt);
 		void render(double interpolation);

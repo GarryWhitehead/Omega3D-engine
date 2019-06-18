@@ -81,8 +81,24 @@ namespace OmegaEngine
 		{
 			for (auto& image : images)
 			{
-				VulkanAPI::TextureUpdateEvent event{ image.first, &image.second };
-				Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+				// check for identifier - at the moment they are only MAT_ which sigifies a material texture
+				if (image.first.find("MAT_") != std::string::npos)
+				{
+					auto splitStr = StringUtil::splitString(image.first, '_');
+					assert(!splitStr.empty());
+
+					// in the format mat_id_pbrType - get the type so we can derive the binding number
+					std::string pbrType = splitStr[2];
+					// find in list - order equates to binding order in shader
+
+					VulkanAPI::MaterialTextureUpdateEvent event{ image.first, image.second.texture, image.second.samplerType };
+					Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+				}
+				else
+				{
+					VulkanAPI::TextureUpdateEvent event{ image.first, &image.second };
+					Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+				}
 			}
 
 			isDirty = false;

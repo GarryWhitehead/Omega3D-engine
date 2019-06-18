@@ -9,83 +9,18 @@ namespace OmegaEngine
 	// forward declerations
 	class ObjectManager;
 
-	class Camera
+	struct Camera
 	{
-	public:
-
 		enum class CameraType
 		{
 			FirstPerson,
 			ThirdPerson
 		};
 
-		Camera(float _fov, float _zNear, float _zFar, float _aspect, float _velocity, CameraType _type, OEMaths::vec3f& _startPosition) :
-			startPosition(_startPosition),
-			fov(_fov),
-			zNear(_zNear),
-			zFar(_zFar),
-			velocity(_velocity),
-			type(_type),
-			aspect(_aspect)
-		{}
-
-		Camera(float _fov, float _zNear, float _zFar, OEMaths::vec3f& _startPosition) :
-			startPosition(_startPosition),
-			fov(_fov),
-			zNear(_zNear),
-			zFar(_zFar)
-		{}
-
-		// default constructor - use explicit values
-		Camera() {}
-
 		OEMaths::mat4f getPerspectiveMat()
 		{
 			return OEMaths::perspective(fov, aspect, zNear, zFar);
 		}
-
-		// the getters
-		float getFov() const
-		{
-			return fov;
-		}
-
-		float getZNear() const
-		{
-			return zNear;
-		}
-
-		float getZFar() const
-		{
-			return zFar;
-		}
-
-		float getAspect() const
-		{
-			return aspect;
-		}
-
-		float getVelocity() const
-		{
-			return velocity;
-		}
-
-		CameraType getCameraType() const
-		{
-			return type;
-		}
-
-		OEMaths::vec3f& getPosition()
-		{
-			return startPosition;
-		}
-
-		OEMaths::vec3f& getCameraUp()
-		{
-			return cameraUp;
-		}
-
-	private:
 
 		// default values
 		float fov = 40.0f;
@@ -163,27 +98,22 @@ namespace OmegaEngine
 		void keyboardPressEvent(KeyboardPressEvent& event);
 		void mouseMoveEvent(MouseMoveEvent& event);
 
-		// user functions to create a new camera instance for using when calling **addCamera** 
-		static std::unique_ptr<Camera> createCamera(float _fov, float _zNear, float _zFar, float _aspect, float _velocity, Camera::CameraType _type, OEMaths::vec3f& _startPosition);
-		static std::unique_ptr<Camera> createCamera(float _fov, float _zNear, float _zFar, OEMaths::vec3f& _startPosition);
-		static std::unique_ptr<Camera> createCamera();
-
-		void addCamera(std::unique_ptr<Camera> camera);
+		void addCamera(OEMaths::vec3f& startPosition, float fov, float zNear, float zFar, float aspect, float velocity, Camera::CameraType _type);
 
 		float getZNear() const
 		{
-			return cameras[cameraIndex]->getZNear();
+			return cameras[cameraIndex].zNear;
 		}
 
 		float getZFar() const
 		{
-			return cameras[cameraIndex]->getZFar();
+			return cameras[cameraIndex].zFar;
 		}
 
 	private:
 
 		// all the cameras that had been added to the manager
-		std::vector<std::unique_ptr<Camera> > cameras;
+		std::vector<Camera> cameras;
 
 		// current camera
 		uint32_t cameraIndex;

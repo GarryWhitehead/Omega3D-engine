@@ -14,7 +14,7 @@ using namespace OmegaEngine;
 
 int main(int argc, char *argv[])
 {
-	OmegaEngine::Engine engine("Scene Example", 1280, 700);
+	Engine engine("Scene Example", 1280, 700);
 
 	// create a new empty world
 	auto world = engine.createWorld("SceneOne");
@@ -37,8 +37,8 @@ int main(int argc, char *argv[])
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
 
-	// and a camera - multiple cameras can be added (TODO: switch via a designated key)
-	world->addCamera(CameraManager::createCamera());
+	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
+	world->addCameraToWorld();
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

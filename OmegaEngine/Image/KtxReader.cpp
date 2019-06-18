@@ -22,18 +22,26 @@ namespace ImageUtility
 		vk::Format format;
 		switch (internalFormat) 
 		{
-		case 15:    // RGB8_ETC2
-			format = vk::Format::eEtc2R8G8B8A8UnormBlock;
-			break;
-		case 16:
-			format = vk::Format::eEtc2R8G8B8SrgbBlock;
-			break;
-		case 19:
-			format = vk::Format::eEtc2R8G8B8A8UnormBlock;
-			break;
-		case 20:
-			format = vk::Format::eEtc2R8G8B8A8SrgbBlock;
-			break;
+			case 15:    // RGB8_ETC2
+				format = vk::Format::eEtc2R8G8B8A8UnormBlock;
+				break;
+			case 16:
+				format = vk::Format::eEtc2R8G8B8SrgbBlock;
+				break;
+			case 19:
+				format = vk::Format::eEtc2R8G8B8A8UnormBlock;
+				break;
+			case 20:
+				format = vk::Format::eEtc2R8G8B8A8SrgbBlock;
+				break;
+			case 32849:
+				format = vk::Format::eR8G8B8Unorm;
+				break;
+			case 32856:
+				format = vk::Format::eR8G8B8A8Unorm;
+				break;
+			default:
+				fprintf(stderr, "Undefined glFormat specified.");
 		}
 
 		return format;

@@ -13,7 +13,6 @@
 #include "Managers/AnimationManager.h"
 #include "Managers/TransformManager.h"
 #include "Managers/MaterialManager.h"
-#include "Managers/CameraManager.h"
 #include "Managers/EventManager.h"
 #include "AssetInterface/AssetManager.h"
 #include "Rendering/RenderInterface.h"
@@ -198,7 +197,7 @@ namespace OmegaEngine
 		}
 
 		// Now to create the object and add the relevant components
-		auto object = objectManager->createObject();
+		auto object = this->createObject();
 
 		for (auto& node : model->nodes)
 		{
@@ -215,10 +214,10 @@ namespace OmegaEngine
 		object->addComponent<SkyboxComponent>(blurFactor);
 	}
 
-	void World::addCamera(std::unique_ptr<Camera> camera)
+	void World::addCameraToWorld(OEMaths::vec3f& startPosition, float fov, float zNear, float zFar, float aspect, float velocity, Camera::CameraType type)
 	{
-		auto& manager = componentInterface->getManager<CameraManager>();
-		manager.addCamera(std::move(camera));
+		auto& cameraManager = componentInterface->getManager<CameraManager>();
+		cameraManager.addCamera(startPosition, fov, zNear, zFar, aspect, velocity, type);
 	}
 
 	void World::update(double time, double dt)

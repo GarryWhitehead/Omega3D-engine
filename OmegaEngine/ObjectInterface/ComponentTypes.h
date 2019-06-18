@@ -4,6 +4,7 @@
 #include "OEMaths/OEMaths.h"
 
 #include <cstdint>
+#include <memory>
 
 namespace OmegaEngine
 {
@@ -53,26 +54,26 @@ namespace OmegaEngine
 		MeshComponent() {}
 		~MeshComponent() {}
 
-		MeshComponent(ModelMesh* _mesh, uint32_t offset) : 
-            mesh(_mesh),
+		MeshComponent(std::unique_ptr<ModelMesh>& _mesh, uint32_t offset) : 
+            mesh(std::move(_mesh)),
 			materialBufferOffset(offset),
             ComponentBase(ComponentType::Mesh) 
         {}
 
         uint32_t index = 0;
 		uint32_t materialBufferOffset = 0;
-		ModelMesh* mesh;
+		std::unique_ptr<ModelMesh> mesh;
     };
 
     struct TransformComponent : public ComponentBase
     {
-        TransformComponent(ModelTransform* _transform) : 
-            transform(_transform),
+        TransformComponent(std::unique_ptr<ModelTransform>& _transform) : 
+            transform(std::move(_transform)),
             ComponentBase(ComponentType::Transform)
         {}
 
         uint32_t index = 0;
-		ModelTransform* transform;
+		std::unique_ptr<ModelTransform> transform;
     };
 
     struct SkinnedComponent : public ComponentBase

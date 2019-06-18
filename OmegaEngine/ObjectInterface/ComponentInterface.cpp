@@ -62,6 +62,9 @@ namespace OmegaEngine
 
 	void ComponentInterface::update(double time, double dt, std::unique_ptr<ObjectManager>& objectManager)
 	{
+		// first, check whether any new components have been added. If so, add them to the managers
+		this->updateManagersFromQueue();
+
 		for (auto& manager : managers) 
 		{
 			manager.second->updateFrame(time, dt, objectManager, this);

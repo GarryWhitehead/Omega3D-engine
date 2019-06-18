@@ -84,7 +84,7 @@ namespace OmegaEngine
 		meshInstance->indexPrimitiveCount = primitive.indexCount;
 			
 		meshInstance->descriptorSet.init(device, *layoutInfo.layout, layoutInfo.setValue); 
-		textureManager->updateMaterialDescriptorSet(meshInstance->descriptorSet, mat.name.c_str(), layoutInfo.setValue);
+		textureManager->updateDescriptorSet(meshInstance->descriptorSet, layoutInfo.setValue, mat.name);
 
 		// material push block
 		meshInstance->materialPushBlock.baseColorFactor = mat.factors.baseColour;

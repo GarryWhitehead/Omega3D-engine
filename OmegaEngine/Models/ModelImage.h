@@ -45,6 +45,9 @@ namespace OmegaEngine
 			memcpy(imageData, data, size);
 			assert(imageData != nullptr);
 
+			this->width = width;
+			this->height = height;
+
 			// images must be 4-channel RGBA
 			format = TextureFormat::Image8UC4;
 		}

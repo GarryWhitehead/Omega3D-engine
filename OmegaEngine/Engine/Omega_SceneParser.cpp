@@ -50,7 +50,7 @@ namespace OmegaEngine
 		const Value& cam = document["Camera"];
 
 		// read the camera values from the array
-		camera.getZNear = cam["Znear"].GetFloat();
+		camera.zNear = cam["Znear"].GetFloat();
 		camera.zFar = cam["ZFar"].GetFloat();
 		camera.velocity = cam["Velocity"].GetFloat();
 		camera.fov = cam["fov"].GetFloat();

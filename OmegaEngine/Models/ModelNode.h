@@ -52,9 +52,10 @@ namespace OmegaEngine
 			return transform != nullptr;
 		}
 
-		ModelMesh* getMesh()
+		std::unique_ptr<ModelMesh> getMesh()
 		{
-			return mesh.get();
+			// Important: the caller takes ownership of the mesh data
+			return std::move(mesh);
 		}
 
 		uint32_t getSkinIndex()
@@ -62,9 +63,10 @@ namespace OmegaEngine
 			return skinIndex;
 		}
 
-		ModelTransform* getTransform()
+		std::unique_ptr<ModelTransform> getTransform()
 		{
-			return transform.get();
+			// Important: the caller takes ownership of the transform data
+			return std::move(transform);
 		}
 
 		void setSkeletonRootFlag()

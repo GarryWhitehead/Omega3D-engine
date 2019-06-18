@@ -5,6 +5,6 @@
 namespace StringUtil
 {
 	std::string lastPart(std::string str, char identifier);
-	std::string splitString(std::string str, char identifier, uint32_t part);
+	std::vector<std::string> splitString(std::string str, char identifier);
 }
 

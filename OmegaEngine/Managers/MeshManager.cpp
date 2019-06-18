@@ -25,11 +25,14 @@ namespace OmegaEngine
 	void MeshManager::addComponentToManager(MeshComponent* component)
 	{
 		StaticMesh mesh;
+		
+		
 		auto vertexData = component->mesh->getVertices();
 
 		// copy data from model into the manager
 		if (!component->mesh->hasSkin())
 		{
+			mesh.type = MeshType::Static;
 			mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
 
 			for (auto& vertex : vertexData)
@@ -45,6 +48,7 @@ namespace OmegaEngine
 		}
 		else
 		{
+			mesh.type = MeshType::Skinned;
 			mesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
 
 			for (auto& vertex : vertexData)
