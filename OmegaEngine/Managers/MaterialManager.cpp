@@ -71,13 +71,17 @@ namespace OmegaEngine
 		// now sort the images associaed with this material -
 		// add to the asset manager - they will be retrieved later through the material name + texture type
 		// the "GROUPED" identifier is used to group these texture together in the Vulkan texture manager
+		assert(textureExtensions.size() == (int)ModelMaterial::TextureId::Count);
+		auto iter = textureExtensions.begin();
+
 		for (uint32_t i = 0; i < (int)ModelMaterial::TextureId::Count; ++i)
 		{
 			auto id = material->getTexture(static_cast<ModelMaterial::TextureId>(i));
 			if (id > -1)
 			{
-				assetManager->addImage(images[id], "GROUPED_" + newMaterial.name + textureExtensions[i]);
+				assetManager->addImage(images[id], AssetManager::materialIdentifier + newMaterial.name + '_' + iter->first);
 				newMaterial.hasTexture[i] = true;
+				iter++;
 			}
 			else
 			{

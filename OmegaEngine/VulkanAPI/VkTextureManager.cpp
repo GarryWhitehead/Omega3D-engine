@@ -13,7 +13,7 @@ namespace VulkanAPI
 		graphicsQueue(queue)
 	{
 		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, TextureUpdateEvent, &VkTextureManager::updateTexture>(this);
-		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, MaterialTextureUpdateEvent, &VkTextureManager::updateMaterialTexture>(this);
+		OmegaEngine::Global::eventManager()->registerListener<VkTextureManager, MaterialTextureUpdateEvent, &VkTextureManager::updateGroupedTexture>(this);
 	}
 
 
@@ -21,7 +21,7 @@ namespace VulkanAPI
 	{
 	}
 
-	void VkTextureManager::updateMaterialTexture(MaterialTextureUpdateEvent& event)
+	void VkTextureManager::updateGroupedTexture(MaterialTextureUpdateEvent& event)
 	{
 		assert(event.mappedTexture != nullptr);
 
@@ -31,16 +31,16 @@ namespace VulkanAPI
 		tex_info.sampler.create(device, event.sampler);
 		tex_info.binding = event.binding;
 
-		materialTextures[event.id].push_back(tex_info);
+		groupedTextures[event.id].push_back(tex_info);
 	}
 
-	void VkTextureManager::updateMaterialDescriptors()
+	void VkTextureManager::updateGroupedDescriptors()
 	{
 
 		for (auto& descr : descriptorSetUpdateQueue) 
 		{
 			assert(descr.set != nullptr);
-			MaterialTextureInfo texture = materialTextures[descr.id][descr.binding];
+			MaterialTextureInfo texture = groupedTextures[descr.id][descr.binding];
 			descr.set->writeSet(descr.setValue, descr.binding, vk::DescriptorType::eCombinedImageSampler, texture.sampler.getSampler(), texture.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
@@ -85,10 +85,10 @@ namespace VulkanAPI
 		return iter->second;
 	}
 
-	void VkTextureManager::updateMaterialDescriptorSet(DescriptorSet& set, const char* id, uint32_t setValue)
+	void VkTextureManager::updateGroupedDescriptorSet(DescriptorSet& set, const char* id, uint32_t setValue)
 	{
-		auto iter = materialTextures.begin();
-		while (iter != materialTextures.end()) 
+		auto iter = groupedTextures.begin();
+		while (iter != groupedTextures.end()) 
 		{
 			if (iter->first == id)
 			{
@@ -97,7 +97,7 @@ namespace VulkanAPI
 			iter++;
 		}
 
-		if (iter == materialTextures.end()) 
+		if (iter == groupedTextures.end()) 
 		{
 			LOGGER_ERROR("An id of %s has not been registered with the vulkan texture manager.\n", id);
 		}

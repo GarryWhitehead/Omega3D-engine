@@ -6,11 +6,13 @@
 
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 namespace OmegaEngine
 {
     // forward declerations
 	class ModelImage;
+	class ComponentInterface;
 
     class AssetManager
     {
@@ -23,6 +25,9 @@ namespace OmegaEngine
 			MappedTexture texture;
 		};
 
+		// texture identifiers
+		static constexpr char materialIdentifier[] = "MAT_";
+
         AssetManager();
         ~AssetManager();
 
@@ -31,7 +36,7 @@ namespace OmegaEngine
         // loads compressed images stored in the ktx file format
         void loadImageFile(const std::string& filename, const std::string& imageId);
 
-		void update();
+		void update(std::unique_ptr<ComponentInterface>& componentInterface);
 
     private:
 

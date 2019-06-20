@@ -4,6 +4,8 @@
 #include "VulkanAPI/VkTextureManager.h"
 #include "Engine/Omega_global.h"
 #include "Managers/EventManager.h"
+#include "Managers/MaterialManager.h"
+#include "ObjectInterface/ComponentInterface.h"
 #include "Models/ModelImage.h"
 #include "Utility/StringUtil.h"
 
@@ -57,8 +59,8 @@ namespace OmegaEngine
 			{
 				// ids are stored in the format: filename must be identfier_...
 				std::string name = StringUtil::lastPart(filename, '/');
-				id = StringUtil::splitString(name, '_', 0);
-				if (id == "")
+				auto splitStr = StringUtil::splitString(name, '_');
+				if (splitStr[0] == "")
 				{
 					LOGGER_ERROR("Incorrect file format whilst creating texture for asset manager. Filename must be of the format: identifier_name.ktx\n");
 				}
@@ -75,24 +77,38 @@ namespace OmegaEngine
         }
     }
 
-	void AssetManager::update()
+	void AssetManager::update(std::unique_ptr<ComponentInterface>& componentInterface)
 	{
 		if (isDirty)
 		{
 			for (auto& image : images)
 			{
 				// check for identifier - at the moment they are only MAT_ which sigifies a material texture
-				if (image.first.find("MAT_") != std::string::npos)
+				if (image.first.find(materialIdentifier) != std::string::npos)
 				{
 					auto splitStr = StringUtil::splitString(image.first, '_');
 					assert(!splitStr.empty());
 
 					// in the format mat_id_pbrType - get the type so we can derive the binding number
-					std::string pbrType = splitStr[2];
-					// find in list - order equates to binding order in shader
+					std::string pbrType = splitStr[splitStr.size() - 1];
 
-					VulkanAPI::MaterialTextureUpdateEvent event{ image.first, image.second.texture, image.second.samplerType };
-					Global::eventManager()->addQueueEvent<VulkanAPI::TextureUpdateEvent>(event);
+					// find in list - order equates to binding order in shader
+					auto& materialManager = componentInterface->getManager<MaterialManager>();
+					auto iter = materialManager.textureExtensions.find(pbrType);
+					if (iter == materialManager.textureExtensions.end())
+					{
+						LOGGER_ERROR("Unspecified pbr texture type.");
+					}
+
+					// the grouped id is the material name, though the name could contain a _ character
+					// So remove the MAT_ and pbr type identifiers - bit ugly, TODO: come up with something better!
+					std::string id = image.first;
+					id = id.substr(std::strlen(materialIdentifier), id.size());
+					size_t pos = id.find(pbrType);
+					id = id.substr(0, pos - 1);
+
+					VulkanAPI::MaterialTextureUpdateEvent event{ id, iter->second, &image.second.texture, image.second.samplerType };
+					Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 				}
 				else
 				{

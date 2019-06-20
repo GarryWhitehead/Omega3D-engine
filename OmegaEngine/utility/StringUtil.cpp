@@ -42,11 +42,9 @@ namespace StringUtil
 			
 			pos = str.find_first_of(identifier);
 		}
-
-		if (splitStrings.empty() || splitStrings.size() < part)
-		{
-			return {};
-		}
+	
+		// also include what's left after removing all identifiers
+		splitStrings.emplace_back(str);
 
 		return splitStrings;
 	}

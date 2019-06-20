@@ -65,14 +65,15 @@ namespace OmegaEngine
 
 	public:
 
-		// this must be in the same order as the model material texture enum
-		std::array<std::string, 5> textureExtensions
+		// this must be in the same order as the model material texture enum -
+		// includes the binding number as per the model shader
+		const std::unordered_map<std::string, uint32_t> textureExtensions =
 		{
-			"_BaseColour",
-			"_Emissive",
-			"_MetallicRoughness",
-			"_Normal",
-			"_Occlusion"
+			{"BaseColour", 0},
+			{"Emissive", 3},
+			{"MetallicRoughness", 2},
+			{"Normal", 1},
+			{"Occlusion", 4}
 		};
 
 		MaterialManager();
