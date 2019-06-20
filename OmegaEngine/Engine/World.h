@@ -72,7 +72,7 @@ namespace OmegaEngine
 
 		// other user friendly middle-man functions that avoid exposing the managers to the user
 		void addSkybox(const std::string& filename, float blurFactor);
-		void addCameraToWorld(OEMaths::vec3f& startPosition = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f }, 
+		void addCameraToWorld(OEMaths::vec3f& startPosition = OEMaths::vec3f{ 0.0f, 0.0f, 6.0f }, 
 								float fov = 40.0f, 
 								float zNear = 1.0f, 
 								float zFar = 1000.0f, 
