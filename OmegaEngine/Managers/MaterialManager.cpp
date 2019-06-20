@@ -68,6 +68,8 @@ namespace OmegaEngine
 		}
 		newMaterial.alphaMaskCutOff = material->getAlphaCutOff();
 
+		newMaterial.usingSpecularGlossiness = material->isUsingSpecularGlossiness();
+
 		// now sort the images associaed with this material -
 		// add to the asset manager - they will be retrieved later through the material name + texture type
 		// the "GROUPED" identifier is used to group these texture together in the Vulkan texture manager

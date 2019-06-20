@@ -63,12 +63,13 @@ namespace OmegaEngine
 
 		void parseGltfLight(uint32_t spaceId, tinygltf::Model& model);
 
-		void addLight(LightInfo& light)
-		{
-			lights.push_back(light);
-			// make sure this light is updated on the GPU side
-			isDirty = true;		
-		}
+		void addLight(const LightType type, 
+						OEMaths::vec3f& position, OEMaths::vec3f& target, 
+						OEMaths::vec3f& colour, 
+						float radius, float fov, 
+						float innerCone, float outerCone);
+
+		void addLight(LightInfo& light);
 
 		uint32_t getLightCount() const
 		{

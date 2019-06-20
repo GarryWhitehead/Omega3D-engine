@@ -27,6 +27,7 @@ namespace OmegaEngine
 	class Object;
 	class BVH;
 	struct EngineConfig;
+	enum class LightType;
 
 	enum class Managers
 	{
@@ -78,6 +79,12 @@ namespace OmegaEngine
 								float aspect = 0.8f, 
 								float velocity = 0.5f, 
 								Camera::CameraType type = Camera::CameraType::FirstPerson);
+
+		void addLightToWorld(const LightType type, 
+								OEMaths::vec3f position, OEMaths::vec3f target, 
+								OEMaths::vec3f colour, 
+								float radius, float fov, 
+								float innerCone = 0.0f, float outerCone = 0.0f);
 
 		void update(double time, double dt);
 		void render(double interpolation);

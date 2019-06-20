@@ -4,6 +4,7 @@
 #include "Models/GltfModel.h"
 #include "Engine/world.h"
 #include "Managers/CameraManager.h"
+#include "Managers/LightManager.h"
 #include "ObjectInterface/Object.h"
 #include "ObjectInterface/ComponentTypes.h"
 
@@ -39,6 +40,11 @@ int main(int argc, char *argv[])
 
 	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
 	world->addCameraToWorld();
+
+	// add different lights
+	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 50.0f, 100.0f);
+	world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 50.0f, 80.0f);
+	world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

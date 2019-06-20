@@ -220,6 +220,12 @@ namespace OmegaEngine
 		cameraManager.addCamera(startPosition, fov, zNear, zFar, aspect, velocity, type);
 	}
 
+	void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour, float radius, float fov, float innerCone, float outerCone)
+	{
+		auto& lightManager = componentInterface->getManager<LightManager>();
+		lightManager.addLight(type, position, target, colour, radius, fov, innerCone, outerCone);
+	}
+
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis

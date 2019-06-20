@@ -37,6 +37,8 @@ namespace OmegaEngine
 
 		cameras.emplace_back(std::move(camera));
 		cameraIndex = static_cast<uint32_t>(cameras.size() - 1);
+
+		isDirty = true;
 	}
 
 	void CameraManager::mouseMoveEvent(MouseMoveEvent& event)

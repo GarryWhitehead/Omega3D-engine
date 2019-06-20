@@ -70,7 +70,6 @@ namespace OmegaEngine
 		~ModelMaterial();
 
 		void extractMaterialData(tinygltf::Material& gltfMaterial);
-		void addGltfSampler(tinygltf::Sampler& gltf_sampler);
 		int32_t getTexture(const TextureId id);
 
 		Material::TexCoordSets getUvSets() const
@@ -96,6 +95,11 @@ namespace OmegaEngine
 		std::string& getName()
 		{
 			return material.name;
+		}
+
+		bool isUsingSpecularGlossiness() const
+		{
+			return material.usingSpecularGlossiness;
 		}
 
 	private:

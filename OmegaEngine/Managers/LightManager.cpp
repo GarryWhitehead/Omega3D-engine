@@ -23,6 +23,32 @@ namespace OmegaEngine
 		_aligned_free(lightPovData);
 	}
 
+	void LightManager::addLight(const LightType type,
+								OEMaths::vec3f& position, OEMaths::vec3f& target,
+								OEMaths::vec3f& colour,
+								float radius, float fov,
+								float innerCone, float outerCone)
+	{
+		LightInfo light;
+		light.position = position;
+		light.target = target;
+		light.type = type;
+		light.radius = radius;
+		light.fov = fov;
+		light.innerCone = innerCone;
+		light.outerCone = outerCone;
+		lights.emplace_back(light);
+		
+		isDirty = true;
+	}
+
+	void LightManager::addLight(LightInfo& light)
+	{
+		lights.emplace_back(light);
+		// make sure this light is updated on the GPU side
+		isDirty = true;
+	}
+
 	void LightManager::parseGltfLight(uint32_t spaceId, tinygltf::Model& model)
 	{
 
