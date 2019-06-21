@@ -109,8 +109,8 @@ namespace OmegaEngine
 		{
 			Object* parentObject = objectManager->getObject(parentId);
 
-			uint32_t id = parentObject->getId();
-			mat = transforms[id].getLocalMatrix() * mat;
+			uint32_t parentIndex = parentObject->getComponent<TransformComponent>().index;
+			mat = transforms[parentIndex].getLocalMatrix() * mat;
 			parentId = parentObject->getParent();
 		}
 
