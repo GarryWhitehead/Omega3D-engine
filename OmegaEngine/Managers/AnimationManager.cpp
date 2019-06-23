@@ -2,6 +2,7 @@
 #include "Managers/TransformManager.h"
 #include "ObjectInterface/ObjectManager.h"
 #include "ObjectInterface/ComponentTypes.h"
+#include "ObjectInterface/ComponentInterface.h"
 #include "Models/ModelAnimation.h"
 #include "Utility/logger.h"
 
@@ -144,11 +145,14 @@ namespace OmegaEngine
 		Channel& channel = animations[animBufferIndex].channels[component->channelIndex];
 		
 		// link object with animation channel
-		channel.object = object;
+		channel.samplerIndex = component->channelIndex;
+		channel.object = &object;
 	}
 
-	void AnimationManager::updateAnimation(double time, double dt, TransformManager& transformManager)
+	void AnimationManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)
 	{
+		auto& transformManager = componentInterface->getManager<TransformManager>();
+		
 		double timeSecs = time / 1000000000;
 
 		for (auto& anim : animations) 
@@ -158,7 +162,7 @@ namespace OmegaEngine
 			// go through each target an, caluclate the animation transform and update on the transform manager side
 			for (auto& channel : anim.channels) 
 			{
-				Object obj = channel.object;
+				Object* obj = channel.object;
 				Sampler& sampler = anim.samplers[channel.samplerIndex];
 
 				uint32_t timeIndex = sampler.indexFromTime(animTime);

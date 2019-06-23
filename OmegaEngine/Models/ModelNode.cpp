@@ -17,7 +17,7 @@ namespace OmegaEngine
 
 	ModelNode* ModelNode::getNodeRecursive(uint32_t index)
 	{
-		ModelNode* foundNode;
+		ModelNode* foundNode = nullptr;
 		if (nodeIndex == index)
 		{
 			return this;

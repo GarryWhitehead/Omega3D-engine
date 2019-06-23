@@ -65,6 +65,11 @@ namespace OmegaEngine
 			return true;
 		}
 
+		bool hasChildren() const
+		{
+			return !children.empty();
+		}
+
 		std::vector<Object>& getChildren();
 
 	private:

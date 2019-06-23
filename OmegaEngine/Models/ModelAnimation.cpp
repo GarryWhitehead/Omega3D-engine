@@ -29,6 +29,7 @@ namespace OmegaEngine
 			
 			// set animation flag on relevant node
 			auto node = model->getNode(source.target_node);
+			assert(node != nullptr);
 			node->setAnimationIndex(index, channelIndex++);
 
 			channels.push_back(channel);

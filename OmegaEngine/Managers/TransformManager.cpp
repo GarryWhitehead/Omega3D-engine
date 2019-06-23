@@ -216,25 +216,25 @@ namespace OmegaEngine
 		}
 	}
 	
-	void TransformManager::updateObjectTranslation(Object& obj, OEMaths::vec4f trans)
+	void TransformManager::updateObjectTranslation(Object* obj, OEMaths::vec4f trans)
 	{
-		uint32_t index = obj.getComponent<TransformComponent>().index;
+		uint32_t index = obj->getComponent<TransformComponent>().index;
 		transforms[index].setTranslation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
 
 		// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 		isDirty = true;		
 	}
 
-	void TransformManager::updateObjectScale(Object& obj, OEMaths::vec4f scale)
+	void TransformManager::updateObjectScale(Object* obj, OEMaths::vec4f scale)
 	{
-		uint32_t index = obj.getComponent<TransformComponent>().index;
+		uint32_t index = obj->getComponent<TransformComponent>().index;
 		transforms[index].setScale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
 		isDirty = true;
 	}
 
-	void TransformManager::updateObjectRotation(Object& obj, OEMaths::quatf rot)
+	void TransformManager::updateObjectRotation(Object* obj, OEMaths::quatf rot)
 	{
-		uint32_t index = obj.getComponent<TransformComponent>().index;
+		uint32_t index = obj->getComponent<TransformComponent>().index;
 		transforms[index].setRotation(rot);
 		isDirty = true;
 	}

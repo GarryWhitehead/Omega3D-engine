@@ -3,6 +3,7 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "ObjectInterface/Object.h"
+#include "Managers/ManagerBase.h"
 
 #include <memory>
 #include <vector>
@@ -17,8 +18,9 @@ namespace OmegaEngine
 	class ObjectManager;
 	class ModelAnimation;
 	struct AnimationComponent;
+	class ComponentInterface;
 
-	class AnimationManager
+	class AnimationManager : public ManagerBase
 	{
 
 	public:
@@ -51,7 +53,7 @@ namespace OmegaEngine
 				CubicScale
 			} pathType;
 
-			Object object;
+			Object* object;
 			uint32_t samplerIndex;
 		};
 
@@ -70,7 +72,8 @@ namespace OmegaEngine
 
 		void addComponentToManager(AnimationComponent* component, Object& object);
 		void addAnimation(std::unique_ptr<ModelAnimation>& animation);
-		void updateAnimation(double time, double dt, TransformManager& transformManager);
+
+		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
 
 		uint32_t getBufferOffset() const
 		{

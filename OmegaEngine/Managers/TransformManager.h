@@ -158,9 +158,9 @@ namespace OmegaEngine
 		void updateTransformRecursive(std::unique_ptr<ObjectManager>& objectManager, Object& obj, uint32_t alignment, uint32_t skinnedAlignment);
 
 		// object update functions
-		void updateObjectTranslation(Object& obj, OEMaths::vec4f trans);
-		void updateObjectScale(Object& obj, OEMaths::vec4f scale);
-		void updateObjectRotation(Object& obj, OEMaths::quatf rot);
+		void updateObjectTranslation(Object* obj, OEMaths::vec4f trans);
+		void updateObjectScale(Object* obj, OEMaths::vec4f scale);
+		void updateObjectRotation(Object* obj, OEMaths::quatf rot);
 		
 		uint32_t getSkinnedBufferOffset() const
 		{

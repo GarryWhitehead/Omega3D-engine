@@ -42,7 +42,6 @@ namespace OmegaEngine
 		objectManager = std::make_unique<ObjectManager>();
 		componentInterface = std::make_unique<ComponentInterface>();
 		renderInterface = std::make_unique<RenderInterface>(device, engineConfig.screenWidth, engineConfig.screenHeight, static_cast<SceneType>(engineConfig.sceneType));
-		animationManager = std::make_unique<AnimationManager>();
 		assetManager = std::make_unique<AssetManager>();
 		bvh = std::make_unique<BVH>();
 
@@ -62,6 +61,10 @@ namespace OmegaEngine
 		if (managers & Managers::OE_MANAGERS_TRANSFORM || managers & Managers::OE_MANAGERS_ALL)
 		{
 			componentInterface->registerManager<TransformManager>();
+		}
+		if (managers & Managers::OE_MANAGERS_ANIMATION || managers & Managers::OE_MANAGERS_ALL)
+		{
+			componentInterface->registerManager<AnimationManager>();
 		}
 		if (managers & Managers::OE_MANAGERS_CAMERA || managers & Managers::OE_MANAGERS_ALL)
 		{
@@ -131,25 +134,17 @@ namespace OmegaEngine
 
 	Object* World::createObject()
 	{
-		auto object = objectManager->createObject();
+		auto object =  objectManager->createObject();
 
 		// add object to queue for updating its components with the relevant managers
 		componentInterface->addObjectToUpdateQueue(object);
+
 		return object;
 	}
 
 	void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject,
 		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
-		if (node->hasChildren())
-		{
-			for (uint32_t i = 0; i < node->childCount(); ++i)
-			{
-				auto child = objectManager->createChildObject(*parentObject);
-				this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset, animationOffset);
-			}
-		}
-
 		if (node->hasMesh())
 		{
 			parentObject->addComponent<MeshComponent>(node->getMesh(), materialOffset);
@@ -165,6 +160,15 @@ namespace OmegaEngine
 		if (node->hasAnimation())
 		{
 			parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndex(), animationOffset);
+		}
+
+		if (node->hasChildren())
+		{
+			for (uint32_t i = 0; i < node->childCount(); ++i)
+			{
+				auto child = objectManager->createChildObject(*parentObject);
+				this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset, animationOffset);
+			}
 		}
 	}
 
@@ -189,11 +193,12 @@ namespace OmegaEngine
 		}
 
 		// animations
-		uint32_t animationOffset = animationManager->getBufferOffset();
+		auto& animationManager = componentInterface->getManager<AnimationManager>();
+		uint32_t animationOffset = animationManager.getBufferOffset();
 
 		for (auto& animation : model->animations)
 		{
-			animationManager->addAnimation(animation);
+			animationManager.addAnimation(animation);
 		}
 
 		// Now to create the object and add the relevant components
@@ -229,9 +234,6 @@ namespace OmegaEngine
 	void World::update(double time, double dt)
 	{
 		// update on a per-frame basis
-		// animation
-		animationManager->updateAnimation(time, dt, componentInterface->getManager<TransformManager>());
-
 		// newly added assets need to be hosted on the gpu
 		assetManager->update(componentInterface);
 

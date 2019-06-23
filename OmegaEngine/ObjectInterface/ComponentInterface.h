@@ -24,6 +24,7 @@ namespace OmegaEngine
 		~ComponentInterface();
 
 		void addObjectToUpdateQueue(Object* object);
+		void updateManagersRecursively(Object* object);
 		void updateManagersFromQueue();
 
 		void update(double time, double dt, std::unique_ptr<ObjectManager>& objectManager);

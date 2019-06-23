@@ -24,6 +24,42 @@ namespace OmegaEngine
 		objectUpdateQueue.emplace_back(object);
 	}
 
+	void ComponentInterface::updateManagersRecursively(Object* object)
+	{
+		if (object->hasComponent<MeshComponent>())
+		{
+			auto& manager = getManager<MeshManager>();
+			manager.addComponentToManager(&object->getComponent<MeshComponent>());
+		}
+		if (object->hasComponent<TransformComponent>())
+		{
+			auto& manager = getManager<TransformManager>();
+			manager.addComponentToManager(&object->getComponent<TransformComponent>());
+		}
+		if (object->hasComponent<MaterialComponent>())
+		{
+
+		}
+		if (object->hasComponent<SkinnedComponent>())
+		{
+			auto& manager = getManager<TransformManager>();
+			manager.addComponentToManager(&object->getComponent<SkinnedComponent>(), *object);
+		}
+		if (object->hasComponent<AnimationComponent>())
+		{
+			auto& manager = getManager<AnimationManager>();
+			manager.addComponentToManager(&object->getComponent<AnimationComponent>(), *object);
+		}
+		
+		if (object->hasChildren())
+		{
+			for (auto& child : object->getChildren())
+			{
+				updateManagersRecursively(&child);
+			}
+		}
+	}
+
 	void ComponentInterface::updateManagersFromQueue()
 	{
 		if (objectUpdateQueue.empty())
@@ -33,30 +69,7 @@ namespace OmegaEngine
 
 		for (auto object : objectUpdateQueue)
 		{
-			if (object->hasComponent<MeshComponent>())
-			{
-				auto& manager = getManager<MeshManager>();
-				manager.addComponentToManager(&object->getComponent<MeshComponent>());
-			}
-			if (object->hasComponent<TransformComponent>())
-			{
-				auto& manager = getManager<TransformManager>();
-				manager.addComponentToManager(&object->getComponent<TransformComponent>());
-			}
-			if (object->hasComponent<MaterialComponent>())
-			{
-
-			}
-			if (object->hasComponent<SkinnedComponent>())
-			{
-				auto& manager = getManager<TransformManager>();
-				manager.addComponentToManager(&object->getComponent<SkinnedComponent>(), *object);
-			}
-			if (object->hasComponent<AnimationComponent>())
-			{
-				auto& manager = getManager<AnimationManager>();
-				manager.addComponentToManager(&object->getComponent<AnimationComponent>(), *object);
-			}
+			updateManagersRecursively(object);
 		}
 	}
 

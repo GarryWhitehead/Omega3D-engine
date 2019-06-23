@@ -38,7 +38,8 @@ namespace OmegaEngine
 		OE_MANAGERS_PHYSICS		 = 1 << 4,
 		OE_MANAGERS_COLLISION	 = 1 << 5,
 		OE_MANAGERS_MATERIAL	 = 1 << 6,
-		OE_MANAGERS_ALL			 = 1 << 7
+		OE_MANAGERS_ANIMATION	 = 1 << 7,
+		OE_MANAGERS_ALL			 = 1 << 8
 	};
 
 	// bitwise overload so casts aren't needed
@@ -99,7 +100,6 @@ namespace OmegaEngine
 		// managers that deal with entity / object component system
 		std::unique_ptr<ObjectManager> objectManager;
 		std::unique_ptr<ComponentInterface> componentInterface;
-		std::unique_ptr<AnimationManager> animationManager;
 
 		// all assets that are not associated with a manager are dealt with here
 		std::unique_ptr<AssetManager> assetManager;

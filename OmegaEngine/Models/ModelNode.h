@@ -23,7 +23,7 @@ namespace OmegaEngine
 
 		std::unique_ptr<ModelNode>& getChildNode(const uint32_t index)
 		{
-			assert(index > children.size());
+			assert(index < children.size());
 			return children[index];
 		}
 			
@@ -91,7 +91,7 @@ namespace OmegaEngine
 
 		bool hasAnimation() const
 		{
-			return animChannelIndex > 0 && animIndex > 0;
+			return animChannelIndex > -1 && animIndex > -1;
 		}
 
 		void setAnimationIndex(const uint32_t index, const uint32_t channelIndex)

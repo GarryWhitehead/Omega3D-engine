@@ -20,9 +20,9 @@ int main(int argc, char *argv[])
 	// create a new empty world
 	auto world = engine.createWorld("SceneOne");
 
-	
+	{
 		// Use a gltf image as one of our scene objects
-		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
+		auto model = GltfModel::load("BoxAnimated/BoxAnimated.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
 		auto object = world->createGltfModelObject(model, true);
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 
 		//object->addComponent<MeshComponent>(model);
 		//object->addComponent<MaterialComponent>(material);
-	
+	}
 
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
