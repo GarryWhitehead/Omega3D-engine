@@ -7,6 +7,7 @@
 #include <memory>
 #include <unordered_map>
 #include <array>
+#include <tuple>
 
 namespace OmegaEngine
 {
@@ -67,7 +68,7 @@ namespace OmegaEngine
 
 		// this must be in the same order as the model material texture enum -
 		// includes the binding number as per the model shader
-		const std::unordered_map<std::string, uint32_t> textureExtensions =
+		const std::vector<std::tuple<std::string, uint32_t> > textureExtensions =
 		{
 			{"BaseColour", 0},
 			{"Emissive", 3},

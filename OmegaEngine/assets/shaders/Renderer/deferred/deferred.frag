@@ -112,7 +112,7 @@ void main()
 			float attenuation = light_ubo.lights[c].radius / (dist * dist);
 			radiance = light_ubo.lights[c].colour.rgb * attenuation;
 		}
-		if (light_ubo.lights[c].type == CONE) 
+		else if (light_ubo.lights[c].type == CONE) 
 		{
 			float innerCosAngle = cos(light_ubo.lights[c].innerCone);
 			float outerCosAngle = cos(light_ubo.lights[c].outerCone);
@@ -126,11 +126,11 @@ void main()
 	}
 	
 	// add IBL contribution if needed
-	if (push.useIBLContribution) 
+	/*if (push.useIBLContribution) 
 	{
 		float NdotV = max(dot(N, V), 0.0);
 		//colour += calculateIBL(N, NdotV, roughness, R, baseColour);
-	}
+	}*/
 	
 	// occlusion
 	colour = mix(colour, colour * occlusion, 1.0);

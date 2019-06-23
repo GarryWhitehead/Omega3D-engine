@@ -31,12 +31,12 @@ namespace OmegaEngine
 		float pad0;
 		OEMaths::vec3f target;
 		float pad1;
-		OEMaths::vec3f colour;
-		float fov = 0.0f;
-		float radius = 0.0f;
+		OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+		float fov = 90.0f;
+		float radius = 25.0f;
 		float innerCone = 0.0f;		// for spot lights
 		float outerCone = 0.0f;		// for spot lights
-		LightType type;
+		LightType type = LightType::Spot;
 	};
 
 	class LightManager : public ManagerBase

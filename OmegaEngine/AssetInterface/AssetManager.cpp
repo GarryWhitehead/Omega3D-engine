@@ -94,8 +94,16 @@ namespace OmegaEngine
 
 					// find in list - order equates to binding order in shader
 					auto& materialManager = componentInterface->getManager<MaterialManager>();
-					auto iter = materialManager.textureExtensions.find(pbrType);
-					if (iter == materialManager.textureExtensions.end())
+
+					uint32_t binding = UINT32_MAX;
+					for (auto& extension : materialManager.textureExtensions)
+					{
+						if (std::get<0>(extension) == pbrType)
+						{
+							binding = std::get<1>(extension);
+						}
+					}
+					if (binding == UINT32_MAX)
 					{
 						LOGGER_ERROR("Unspecified pbr texture type.");
 					}
@@ -107,7 +115,7 @@ namespace OmegaEngine
 					size_t pos = id.find(pbrType);
 					id = id.substr(0, pos - 1);
 
-					VulkanAPI::MaterialTextureUpdateEvent event{ id, iter->second, &image.second.texture, image.second.samplerType };
+					VulkanAPI::MaterialTextureUpdateEvent event{ id, binding, &image.second.texture, image.second.samplerType };
 					Global::eventManager()->addQueueEvent<VulkanAPI::MaterialTextureUpdateEvent>(event);
 				}
 				else

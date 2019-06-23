@@ -76,7 +76,7 @@ namespace OmegaEngine
 								float fov = 40.0f, 
 								float zNear = 1.0f, 
 								float zFar = 1000.0f, 
-								float aspect = 0.8f, 
+								float aspect = 1.7f, 
 								float velocity = 0.5f, 
 								Camera::CameraType type = Camera::CameraType::FirstPerson);
 

@@ -32,6 +32,7 @@ namespace OmegaEngine
 		LightInfo light;
 		light.position = position;
 		light.target = target;
+		light.colour = colour;
 		light.type = type;
 		light.radius = radius;
 		light.fov = fov;
