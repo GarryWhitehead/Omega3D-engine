@@ -15,18 +15,31 @@ namespace OmegaEngine
 {
 	// forward declerations
 
+	using GroupedHandle = uint64_t;
+
 	class ObjectManager
 	{
 	public:
 
+		struct GroupedObject
+		{
+			// this need some work - what if objects are destroyed but remain here?
+			std::vector<Object*> objects;
+		};
+
 		ObjectManager();
 		~ObjectManager();
 
+		// single objects
 		Object* createObject();
 		Object* createChildObject(Object& parentObj);
-
 		void destroyObject(Object& obj);
 
+		// grouped objects
+		GroupedHandle createGroupedObject();
+		void addObjectToGroup(const GroupedHandle handle, Object* object);
+
+		// templated functions
 		Object* getObjectRecursive(uint64_t id, Object& parent)
 		{
 			Object* obj = nullptr;
@@ -81,6 +94,9 @@ namespace OmegaEngine
 		// could be costly time-wise
 		std::unordered_map<uint64_t, Object> objects;
 
+		std::vector<GroupedObject> groupedObjects;
+
+		// ids of objects which has been destroyed and can be re-used
 		std::deque<uint32_t> freeIds;
 	};
 
