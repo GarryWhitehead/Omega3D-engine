@@ -142,6 +142,36 @@ namespace OmegaEngine
 		return object;
 	}
 
+	void World::extractGltfModelAssets(std::unique_ptr<GltfModel::Model>& model, uint32_t& materialOffset, uint32_t& skinOffset, uint32_t& animationOffset)
+	{
+		// materials and their textures
+		auto& materialManager = componentInterface->getManager<MaterialManager>();
+		materialOffset = materialManager.getBufferOffset();
+
+		for (auto& material : model->materials)
+		{
+			materialManager.addMaterial(material, model->images, assetManager);
+		}
+
+		// skins
+		auto& transformManager = componentInterface->getManager<TransformManager>();
+		skinOffset = transformManager.getSkinnedBufferOffset();
+
+		for (auto& skin : model->skins)
+		{
+			transformManager.addSkin(skin);
+		}
+
+		// animations
+		auto& animationManager = componentInterface->getManager<AnimationManager>();
+		animationOffset = animationManager.getBufferOffset();
+
+		for (auto& animation : model->animations)
+		{
+			animationManager.addAnimation(animation);
+		}
+	}
+
 	void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode>& node, Object* parentObject,
 		const uint32_t materialOffset, const uint32_t skinOffset, const uint32_t animationOffset)
 	{
@@ -174,32 +204,14 @@ namespace OmegaEngine
 
 	Object* World::createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial)
 	{
-		// materials and their textures
-		auto& materialManager = componentInterface->getManager<MaterialManager>();
-		uint32_t materialOffset = materialManager.getBufferOffset();
-
-		for (auto& material : model->materials)
+		if (model->nodes.size() > 1)
 		{
-			materialManager.addMaterial(material, model->images, assetManager);
+			LOGGER_INFO("This model contains multiple nodes. You should call *createGroupedGltfModelObject* instead\n");
 		}
 
-		// skins
-		auto& transformManager = componentInterface->getManager<TransformManager>();
-		uint32_t skinOffset = transformManager.getSkinnedBufferOffset();
+		uint32_t materialOffset, skinOffset, animationOffset;
 
-		for (auto& skin : model->skins)
-		{
-			transformManager.addSkin(skin);
-		}
-
-		// animations
-		auto& animationManager = componentInterface->getManager<AnimationManager>();
-		uint32_t animationOffset = animationManager.getBufferOffset();
-
-		for (auto& animation : model->animations)
-		{
-			animationManager.addAnimation(animation);
-		}
+		extractGltfModelAssets(model, materialOffset, skinOffset, animationOffset);
 
 		// Now to create the object and add the relevant components
 		auto object = this->createObject();
@@ -210,6 +222,27 @@ namespace OmegaEngine
 		}
 
 		return object;
+	}
+
+	GroupedHandle World::createGroupedGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial, OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rotation)
+	{
+		uint32_t materialOffset, skinOffset, animationOffset;
+
+		extractGltfModelAssets(model, materialOffset, skinOffset, animationOffset);
+
+		// Now to create the object and add the relevant components
+		GroupedHandle handle = objectManager->createGroupedObject(translation, scale, rotation);
+
+		for (auto& node : model->nodes)
+		{
+			auto object = this->createObject();
+
+			this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset, animationOffset);
+
+			objectManager->addObjectToGroup(handle, object);
+		}
+
+		return handle;
 	}
 
 	void World::addSkybox(const std::string& filename, float blurFactor)

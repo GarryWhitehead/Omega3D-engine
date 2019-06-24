@@ -68,8 +68,15 @@ namespace OmegaEngine
 		// middle man between object manager and user side
 		Object* createObject();
 
+		void extractGltfModelAssets(std::unique_ptr<GltfModel::Model>& model, uint32_t& materialOffset, uint32_t& skinOffset, uint32_t& animationOffset);
+
 		// spacial function which creates the node tree and adds the appropiate components from a gltf model
 		Object* createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, bool useMaterial);
+		GroupedHandle createGroupedGltfModelObject(std::unique_ptr<GltfModel::Model>& model, 
+													bool useMaterial, 
+													OEMaths::vec3f& translation = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f },
+													OEMaths::vec3f& scale = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f },
+													OEMaths::quatf& rotation = OEMaths::quatf{ 0.0f, 0.0f, 0.0f, 0.0f });
 
 		// other user friendly middle-man functions that avoid exposing the managers to the user
 		void addSkybox(const std::string& filename, float blurFactor);

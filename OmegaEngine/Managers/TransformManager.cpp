@@ -121,7 +121,7 @@ namespace OmegaEngine
 	{
 		OEMaths::mat4f mat;
 
-		if (obj.hasComponent<MeshComponent>())
+		if (obj.hasComponent<MeshComponent>() && obj.hasComponent<TransformComponent>())
 		{
 			uint32_t objIndex = obj.getComponent<TransformComponent>().index;
 
@@ -172,11 +172,7 @@ namespace OmegaEngine
 
 		for (auto& child : children) 
 		{
-			// it is possible that the object has no transform, so check this first
-			if (child.hasComponent<TransformManager>()) 
-			{
-				updateTransformRecursive(objectManager, child, transformAlignment, skinnedAlignment);
-			}
+			updateTransformRecursive(objectManager, child, transformAlignment, skinnedAlignment);
 		}
 	}
 

@@ -3,6 +3,7 @@
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
 #include "ObjectInterface/Object.h"
+#include "OEMaths/OEMaths.h"
 
 #include <vector>
 #include <deque>
@@ -25,6 +26,11 @@ namespace OmegaEngine
 		{
 			// this need some work - what if objects are destroyed but remain here?
 			std::vector<Object*> objects;
+
+			// world transform for all grouped objects
+			OEMaths::vec3f translation;
+			OEMaths::vec3f scale;
+			OEMaths::quatf rotation;
 		};
 
 		ObjectManager();
@@ -36,7 +42,7 @@ namespace OmegaEngine
 		void destroyObject(Object& obj);
 
 		// grouped objects
-		GroupedHandle createGroupedObject();
+		GroupedHandle createGroupedObject(OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rotation);
 		void addObjectToGroup(const GroupedHandle handle, Object* object);
 
 		// templated functions
@@ -94,7 +100,7 @@ namespace OmegaEngine
 		// could be costly time-wise
 		std::unordered_map<uint64_t, Object> objects;
 
-		std::vector<GroupedObject> groupedObjects;
+		std::vector<std::unique_ptr<GroupedObject> > groupedObjects;
 
 		// ids of objects which has been destroyed and can be re-used
 		std::deque<uint32_t> freeIds;

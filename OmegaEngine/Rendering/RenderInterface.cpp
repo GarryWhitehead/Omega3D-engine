@@ -142,24 +142,27 @@ namespace OmegaEngine
 	{
 		auto& meshManager = componentInterface->getManager<MeshManager>();
 		auto& lightManager = componentInterface->getManager<LightManager>();
-	
-		auto& mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
-
-		// we need to add all the primitve sub meshes as renderables
-		for (auto& primitive : mesh.primitives) 
+		
+		if (obj.hasComponent<MeshComponent>())
 		{
-			uint32_t meshIndex = addRenderable<RenderableMesh>(vkInterface->getDevice(), componentInterface, vkInterface->getBufferManager(),
-				vkInterface->gettextureManager(), mesh, primitive, obj, this);
-			
-			// if using shadows, then draw the meshes into the offscreen depth buffer too
-			// TODO : this should be done elsewhere and make this code better!
-			obj.addComponent<ShadowComponent>(renderConfig.biasClamp, renderConfig.biasConstant, renderConfig.biasSlope);
+			auto& mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
 
-			addRenderable<RenderableShadow>(this, obj.getComponent<ShadowComponent>(), 
-				getRenderable(meshIndex).renderable->getInstanceData<RenderableMesh::MeshInstance>(), lightManager.getLightCount(), lightManager.getAlignmentSize());
+			// we need to add all the primitve sub meshes as renderables
+			for (auto& primitive : mesh.primitives)
+			{
+				uint32_t meshIndex = addRenderable<RenderableMesh>(vkInterface->getDevice(), componentInterface, vkInterface->getBufferManager(),
+					vkInterface->gettextureManager(), mesh, primitive, obj, this);
+
+				// if using shadows, then draw the meshes into the offscreen depth buffer too
+				// TODO : this should be done elsewhere and make this code better!
+				obj.addComponent<ShadowComponent>(renderConfig.biasClamp, renderConfig.biasConstant, renderConfig.biasSlope);
+
+				addRenderable<RenderableShadow>(this, obj.getComponent<ShadowComponent>(),
+					getRenderable(meshIndex).renderable->getInstanceData<RenderableMesh::MeshInstance>(), lightManager.getLightCount(), lightManager.getAlignmentSize());
+			}
 		}
-	
-		// and do the same for all children associated with this mesh
+
+		// check whether the child objects contain mesh data
 		auto children = obj.getChildren();
 		for (auto child : children) 
 		{
@@ -176,13 +179,15 @@ namespace OmegaEngine
 
 			for (auto& object : objects) 
 			{
-				if (object.second.hasComponent<MeshComponent>())
-				{
-					buildRenderableMeshTree(object.second, componentInterface, false);
-				}
+				// objects which have skybox, landscape or ocean components won't have other components checked
 				if (object.second.hasComponent<SkyboxComponent>())
 				{
 					addRenderable<RenderableSkybox>(this, object.second.getComponent<SkyboxComponent>(), vkInterface->getBufferManager());
+				}
+				else
+				{
+					// check whether object or children have mesh data
+					buildRenderableMeshTree(object.second, componentInterface, false);
 				}
 			}
 

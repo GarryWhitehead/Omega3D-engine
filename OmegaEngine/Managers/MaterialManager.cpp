@@ -90,7 +90,9 @@ namespace OmegaEngine
 			}
 			else
 			{
-				// load dummy texture?
+				MappedTexture dummyTexture;
+				dummyTexture.createEmptyTexture(1024, 1024, TextureFormat::Image8UC4, true);
+				assetManager->addImage(dummyTexture, AssetManager::materialIdentifier + newMaterial.name + '_' + std::get<0>(textureExtensions[i]));
 			}
 		}
 

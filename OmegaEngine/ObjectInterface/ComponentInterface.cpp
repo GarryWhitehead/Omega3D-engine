@@ -71,6 +71,9 @@ namespace OmegaEngine
 		{
 			updateManagersRecursively(object);
 		}
+
+		// make sure you clear here!!
+		objectUpdateQueue.clear();
 	}
 
 	void ComponentInterface::update(double time, double dt, std::unique_ptr<ObjectManager>& objectManager)

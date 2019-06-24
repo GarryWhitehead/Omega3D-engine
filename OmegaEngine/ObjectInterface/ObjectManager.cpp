@@ -55,6 +55,18 @@ namespace OmegaEngine
 		freeIds.push_front(id);
 	}
 
-	
+	// grouped object functions
+	GroupedHandle ObjectManager::createGroupedObject(OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rotation)
+	{
+		groupedObjects.emplace_back(std::make_unique<GroupedObject>());
+		return groupedObjects.size() - 1;
+	}
+
+	void ObjectManager::addObjectToGroup(const GroupedHandle handle, Object* object)
+	{
+		assert(handle < groupedObjects.size());
+		assert(object != nullptr);
+		groupedObjects[handle]->objects.emplace_back(object);
+	}
 
 }

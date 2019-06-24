@@ -32,6 +32,7 @@ namespace OmegaEngine
         ~AssetManager();
 
 		void addImage(std::unique_ptr<ModelImage>& image, std::string id);
+		void addImage(MappedTexture& texture, std::string id);
 
         // loads compressed images stored in the ktx file format
         void loadImageFile(const std::string& filename, const std::string& imageId);

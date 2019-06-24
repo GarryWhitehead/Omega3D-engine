@@ -41,6 +41,16 @@ namespace OmegaEngine
 		isDirty = true;
 	}
 
+	void AssetManager::addImage(MappedTexture& texture, std::string id)
+	{
+		TextureAssetInfo assetInfo;
+		assetInfo.texture = std::move(texture);
+		assetInfo.samplerType = VulkanAPI::Sampler::getDefaultSampler();
+
+		images.emplace(id, std::move(assetInfo));
+		isDirty = true;
+	}
+
     void AssetManager::loadImageFile(const std::string& filename, const std::string& imageId)
     {
         ImageUtility::KtxReader reader;
