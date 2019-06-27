@@ -123,11 +123,15 @@ namespace OmegaEngine
 
 		if (obj.hasComponent<MeshComponent>() && obj.hasComponent<TransformComponent>())
 		{
-			uint32_t objIndex = obj.getComponent<TransformComponent>().index;
+			auto& transformComponent = obj.getComponent<TransformComponent>();
+			uint32_t objIndex = transformComponent.index;
 
 			TransformBufferInfo* transformBuffer = (TransformBufferInfo*)((uint64_t)transformBufferData + (transformAlignment * transformBufferSize));
 			
-			transforms[objIndex].setTransformOffset(transformBufferSize * transformAlignment);
+			transformComponent.dynamicUboOffset = transformBufferSize * transformAlignment;
+
+			// TODO: this can potentially be removed
+			//transforms[objIndex].setTransformOffset(transformBufferSize * transformAlignment);
 
 			mat = updateMatrixFromTree(obj, objectManager);
 			transformBuffer->modelMatrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });

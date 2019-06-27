@@ -29,7 +29,7 @@ namespace OmegaEngine
 		}
 		else if (time >= timeStamps.back()) 
 		{
-			index = timestampCount - 1;
+			index = timestampCount - 2;
 		}
 		else 
 		{
@@ -128,6 +128,8 @@ namespace OmegaEngine
 				continue;
 			}
 
+			newChannel.samplerIndex = channel.samplerIndex;
+
 			// the rest of the channel will be set later
 			animInfo.channels.emplace_back(newChannel);
 		}
@@ -145,7 +147,6 @@ namespace OmegaEngine
 		Channel& channel = animations[animBufferIndex].channels[component->channelIndex];
 		
 		// link object with animation channel
-		channel.samplerIndex = component->channelIndex;
 		channel.object = &object;
 	}
 
@@ -159,7 +160,7 @@ namespace OmegaEngine
 		{
 			float animTime = std::fmod(timeSecs - anim.start, anim.end);
 
-			// go through each target an, caluclate the animation transform and update on the transform manager side
+			// go through each target and caluclate the animation transform and update on the transform manager side
 			for (auto& channel : anim.channels) 
 			{
 				Object* obj = channel.object;

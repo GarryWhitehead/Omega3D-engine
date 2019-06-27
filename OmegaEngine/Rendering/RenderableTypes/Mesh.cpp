@@ -57,7 +57,7 @@ namespace OmegaEngine
 			queueType = QueueType::Transparent;
 		}
 
-		meshInstance->transformDynamicOffset = obj.getComponent<TransformComponent>().index;
+		meshInstance->transformDynamicOffset = obj.getComponent<TransformComponent>().dynamicUboOffset;
 
 		// pointer to the mesh pipeline
 		if (mesh.type == MeshManager::MeshType::Static) 
@@ -71,7 +71,7 @@ namespace OmegaEngine
 			meshInstance->state = renderInterface->getRenderPipeline(RenderTypes::SkinnedMesh).get();
 			meshInstance->vertexBuffer = bufferManager->getBuffer("SkinnedVertices");
 			layoutInfo = textureManager->getTextureDescriptorLayout("SkinnedMesh");
-			meshInstance->skinnedDynamicOffset = obj.getComponent<SkinnedComponent>().index;
+			meshInstance->skinnedDynamicOffset = obj.getComponent<SkinnedComponent>().dynamicUboOffset;
 		}
 
 		// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
@@ -221,8 +221,8 @@ namespace OmegaEngine
 
 		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 		cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-		cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset + instanceData->indexOffset + instanceData->indexPrimitiveOffset);
-		cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount);
+		cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
+		cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 	}
 
 }

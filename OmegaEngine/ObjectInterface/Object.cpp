@@ -26,6 +26,7 @@ namespace OmegaEngine
 	Object& Object::addChild(const uint32_t id)
 	{
 		Object childObject(id);
+		childObject.parentId = this->id;
 		
 		children.push_back(childObject);
 

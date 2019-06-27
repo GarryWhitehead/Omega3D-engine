@@ -25,8 +25,6 @@ namespace OmegaEngine
 	void MeshManager::addComponentToManager(MeshComponent* component)
 	{
 		StaticMesh mesh;
-		
-		
 		auto vertexData = component->mesh->getVertices();
 
 		// copy data from model into the manager
@@ -72,16 +70,18 @@ namespace OmegaEngine
 		mesh.indexBufferOffset = indexOffset;
 
 		// simple copy from the model data to the manager
-		indices.resize(indexOffset + modelIndices.size());
-		std::copy(modelIndices.begin(), modelIndices.end(), indices.begin() + indexOffset);
-
+		for (uint32_t i = 0; i < modelIndices.size(); ++i)
+		{
+			indices.emplace_back(modelIndices[i] + mesh.vertexBufferOffset);
+		}
+		
 		// and the primitive data
 		auto& modelPrimitives = component->mesh->getPrimitives();
 
 		for (auto& modelPrimitive : modelPrimitives)
 		{
 			PrimitiveMesh primitive;
-			primitive.indexBase = modelPrimitive.indexBase + indexOffset;
+			primitive.indexBase = modelPrimitive.indexBase;
 			primitive.indexCount = modelPrimitive.indexCount;
 			primitive.materialId = modelPrimitive.materialId + component->materialBufferOffset;
 			mesh.primitives.emplace_back(primitive);

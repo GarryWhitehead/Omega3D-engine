@@ -394,6 +394,11 @@ namespace VulkanAPI
 		cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 	}
 
+	void SecondaryCommandBuffer::drawIndexed(const uint32_t indexCount, const uint32_t indexOffset)
+	{
+		cmdBuffer.drawIndexed(indexCount, 1, indexOffset, 0, 0);
+	}
+
 	// command pool functions =====================================================================
 
 	void CommandBuffer::createCmdPool()

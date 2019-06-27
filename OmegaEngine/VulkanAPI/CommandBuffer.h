@@ -47,6 +47,7 @@ namespace VulkanAPI
 		void setDepthBias(float biasConstant, float biasClamp, float biasSlope);
 
 		void drawIndexed(uint32_t indexCount);
+		void drawIndexed(const uint32_t indexCount, const uint32_t indexOffset);
 
 		// helper funcs
 		vk::CommandBuffer& get()

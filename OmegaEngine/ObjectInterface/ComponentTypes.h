@@ -73,6 +73,7 @@ namespace OmegaEngine
         {}
 
         uint32_t index = 0;
+		uint32_t dynamicUboOffset = 0;	// used by the renderable mesh
 		std::unique_ptr<ModelTransform> transform;
     };
 
@@ -88,6 +89,7 @@ namespace OmegaEngine
         
         uint32_t index = 0;
 		uint32_t bufferOffset = 0;
+		uint32_t dynamicUboOffset = 0;
 		bool isSkeleton = false;
 		bool isJoint = false;
     };
