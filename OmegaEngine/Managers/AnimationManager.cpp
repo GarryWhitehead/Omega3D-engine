@@ -144,10 +144,13 @@ namespace OmegaEngine
 	void AnimationManager::addComponentToManager(AnimationComponent* component, Object& object)
 	{
 		uint32_t animBufferIndex = component->animIndex + component->bufferOffset;
-		Channel& channel = animations[animBufferIndex].channels[component->channelIndex];
+		for (auto& index : component->channelIndex)
+		{
+			Channel& channel = animations[animBufferIndex].channels[index];
+			// link object with animation channel
+			channel.object = &object;
+		}
 		
-		// link object with animation channel
-		channel.object = &object;
 	}
 
 	void AnimationManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface)

@@ -61,7 +61,7 @@ namespace OmegaEngine
 		component->index = static_cast<uint32_t>(transforms.size() - 1);
 	}
 
-	bool TransformManager::addComponentToManager(SkinnedComponent* component, Object& object)
+	bool TransformManager::addComponentToManager(SkeletonComponent* component, Object* object)
 	{
 		if (skinBuffer.empty())
 		{
@@ -71,15 +71,14 @@ namespace OmegaEngine
 		uint32_t bufferIndex = component->index + component->bufferOffset;
 		assert(bufferIndex < skinBuffer.size());
 
-		// link skinning info with objects
-		if (component->isSkeleton)
+		// check whether the skeleton root
+		if (component->isRoot)
 		{
 			skinBuffer[bufferIndex].skeleton = object;
 		}
-		else if (component->isJoint)
-		{
-			skinBuffer[bufferIndex].joints.emplace_back(object);
-		}
+
+		// link skinning info with objects
+		skinBuffer[bufferIndex].joints.emplace_back(object);
 
 		return true;
 	}
@@ -88,7 +87,7 @@ namespace OmegaEngine
 	{
 		SkinInfo skinInfo;
 
-		// joint and inv bind matrices are just a straight copy
+		// inv bind matrices are just a straight copy
 		skinInfo.jointMatrices.resize(skin->getJointCount());
 		memcpy(skinInfo.jointMatrices.data(), skin->getJointData(), skinInfo.jointMatrices.size() * sizeof(OEMaths::mat4f));
 
@@ -130,9 +129,6 @@ namespace OmegaEngine
 			
 			transformComponent.dynamicUboOffset = transformBufferSize * transformAlignment;
 
-			// TODO: this can potentially be removed
-			//transforms[objIndex].setTransformOffset(transformBufferSize * transformAlignment);
-
 			mat = updateMatrixFromTree(obj, objectManager);
 			transformBuffer->modelMatrix = mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
 			
@@ -140,12 +136,13 @@ namespace OmegaEngine
 
 			if (obj.hasComponent<SkinnedComponent>())
 			{
+				auto& skinnedComponent = obj.getComponent<SkinnedComponent>();
 				SkinnedBufferInfo* skinnedBufferPtr = (SkinnedBufferInfo*)((uint64_t)skinnedBufferData + (skinnedAlignment * skinnedBufferSize));
 
 				// skinned transform
-				transforms[objIndex].setSkinnedOffset(skinnedBufferSize * skinnedAlignment);
+				skinnedComponent.dynamicUboOffset = skinnedBufferSize * skinnedAlignment;
 
-				uint32_t skinIndex = obj.getComponent<SkinnedComponent>().index;
+				uint32_t skinIndex = skinnedComponent.index;
 
 				// prepare fianl output matrices buffer
 				uint64_t jointSize = static_cast<uint32_t>(skinBuffer[skinIndex].joints.size()) > 256 ? 256 : skinBuffer[skinIndex].joints.size();
@@ -158,8 +155,8 @@ namespace OmegaEngine
 
 				for (uint32_t i = 0; i < jointSize; ++i)
 				{
-					Object joint_obj = skinBuffer[skinIndex].joints[i];
-					OEMaths::mat4f jointMatrix = updateMatrixFromTree(joint_obj, objectManager) * skinBuffer[skinIndex].invBindMatrices[i];
+					Object* joint_obj = skinBuffer[skinIndex].joints[i];
+					OEMaths::mat4f jointMatrix = updateMatrixFromTree(*joint_obj, objectManager) * skinBuffer[skinIndex].invBindMatrices[i];
 
 					// transform joint to local (joint) space
 					OEMaths::mat4f localMatrix = inverseMat * jointMatrix;

@@ -22,7 +22,7 @@ namespace OmegaEngine
 		ModelSkin();
 		~ModelSkin();
 
-		void extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model);
+		void extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model, uint32_t skinIndex);
 
 		OEMaths::mat4f* getInvBindData()
 		{

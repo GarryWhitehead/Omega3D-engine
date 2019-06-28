@@ -74,9 +74,14 @@ namespace OmegaEngine
 			skeletonRoot = true;
 		}
 
-		void setJointFlag()
+		void setJoint(int32_t index)
 		{
-			jointFlag = true;
+			joint = index;
+		}
+
+		int32_t getJoint() const
+		{
+			return joint;
 		}
 
 		bool isSkeletonRoot() const
@@ -86,17 +91,17 @@ namespace OmegaEngine
 
 		bool isJoint() const
 		{
-			return jointFlag;
+			return joint > -1;
 		}
 
 		bool hasAnimation() const
 		{
-			return animChannelIndex > -1 && animIndex > -1;
+			return !animChannelIndices.empty();
 		}
 
 		void setAnimationIndex(const uint32_t index, const uint32_t channelIndex)
 		{
-			animChannelIndex = channelIndex;
+			animChannelIndices.emplace_back(channelIndex);
 			animIndex = index;
 		}
 
@@ -105,9 +110,9 @@ namespace OmegaEngine
 			return animIndex;
 		}
 
-		uint32_t getChannelIndex() const
+		std::vector<uint32_t> getChannelIndices() 
 		{
-			return animChannelIndex;
+			return animChannelIndices;
 		}
 
 	private:
@@ -120,12 +125,14 @@ namespace OmegaEngine
 
 		std::vector<std::unique_ptr<ModelNode> > children;
 
-		// couple of flags regards skinning 
+		// couple of flags regards skinning - points to the associated skin index
 		bool skeletonRoot = false;
-		bool jointFlag = false;
+		int32_t joint = -1;
+
 
 		// animation flag - indices required to link object with animation channel
-		int32_t animChannelIndex = -1;
+		// this one node could have multiple channels assocaited with it.
+		std::vector<uint32_t> animChannelIndices;
 		int32_t animIndex = -1;
 	};
 

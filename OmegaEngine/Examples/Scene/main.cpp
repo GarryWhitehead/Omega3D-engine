@@ -21,18 +21,17 @@ int main(int argc, char *argv[])
 	auto world = engine.createWorld("SceneOne");
 
 	{
-		/* single model in file...
 		// Use a gltf image as one of our scene objects
-		auto model = GltfModel::load("BoxAnimated/BoxAnimated.gltf");
+		auto model = GltfModel::load("RiggedSimple/RiggedSimple.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
 		auto object = world->createGltfModelObject(model, true);
-		object->addComponent<WorldTransformComponent>();*/
+		object->addComponent<WorldTransformComponent>();
 
 		// Use a gltf image as one of our scene objects - this has multiple nodes so create grouped object
-		auto model = GltfModel::load("BoxAnimated/BoxAnimated.gltf");
+		//auto model = GltfModel::load("BoxAnimated/BoxAnimated.gltf");
 
-		auto groupedHandle = world->createGroupedGltfModelObject(model, true);
+		//auto groupedHandle = world->createGroupedGltfModelObject(model, true);
 
 		// we can also use only certain attributes from the gltf model, and use other materials etc.
 		//auto material = OmegaEngine::MaterialManager::createMaterial();

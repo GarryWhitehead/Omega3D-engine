@@ -37,26 +37,6 @@ namespace OmegaEngine
 				local = OEMaths::mat4f::translate(localTransform.translation) * localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
 			}
 
-			uint32_t getTransformOffset() const
-			{
-				return transformBufferOffset;
-			}
-
-			uint32_t getSkinnedOffset() const
-			{
-				return skinnedBufferOffset;
-			}
-
-			void setTransformOffset(const uint32_t offset)
-			{
-				transformBufferOffset = offset;
-			}
-
-			void setSkinnedOffset(const uint32_t offset)
-			{
-				skinnedBufferOffset = offset;
-			}
-
 			void setTranslation(OEMaths::vec3f& trans)
 			{
 				localTransform.translation = trans;
@@ -110,10 +90,6 @@ namespace OmegaEngine
 
 			OEMaths::mat4f local;
 			OEMaths::mat4f world;
-
-			// buffer offsets for tranform and skinned data
-			uint32_t transformBufferOffset = 0;
-			uint32_t skinnedBufferOffset = 0;
 		};
 
 		// data that will be hosted on the gpu side
@@ -131,8 +107,8 @@ namespace OmegaEngine
 		struct SkinInfo
 		{
 			const char* name;
-			Object skeleton;
-			std::vector<Object> joints;
+			Object* skeleton;
+			std::vector<Object*> joints;
 			std::vector<OEMaths::mat4f> invBindMatrices;
 			std::vector<OEMaths::mat4f> jointMatrices;
 		};
@@ -146,7 +122,7 @@ namespace OmegaEngine
 		~TransformManager();
 
 		void addComponentToManager(TransformComponent* component);
-		bool addComponentToManager(SkinnedComponent* component, Object& object);
+		bool addComponentToManager(SkeletonComponent* component, Object* object);
 		void addSkin(std::unique_ptr<ModelSkin>& skin);
 
 		// update per frame 

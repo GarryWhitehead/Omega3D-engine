@@ -42,13 +42,17 @@ namespace OmegaEngine
 		}
 		if (object->hasComponent<SkinnedComponent>())
 		{
-			auto& manager = getManager<TransformManager>();
-			manager.addComponentToManager(&object->getComponent<SkinnedComponent>(), *object);
+			
 		}
 		if (object->hasComponent<AnimationComponent>())
 		{
 			auto& manager = getManager<AnimationManager>();
 			manager.addComponentToManager(&object->getComponent<AnimationComponent>(), *object);
+		}
+		if (object->hasComponent<SkeletonComponent>())
+		{
+			auto& manager = getManager<TransformManager>();
+			manager.addComponentToManager(&object->getComponent<SkeletonComponent>(), object);
 		}
 		
 		if (object->hasChildren())

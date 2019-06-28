@@ -16,7 +16,7 @@ namespace OmegaEngine
 	{
 	}
 
-	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model)
+	void ModelSkin::extractSkinData(tinygltf::Model& gltfModel, tinygltf::Skin& skin, std::unique_ptr<GltfModel::Model>& model, uint32_t skinIndex)
 	{
 		skin.name = skin.name.c_str();
 
@@ -33,7 +33,7 @@ namespace OmegaEngine
 		{
 			auto node = model->getNode(jointIndex);
 			assert(node != nullptr);
-			node->setJointFlag();
+			node->setJoint(skinIndex);
 		}
 
 		// get the inverse bind matricies, if there are any

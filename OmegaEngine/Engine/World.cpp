@@ -185,11 +185,15 @@ namespace OmegaEngine
 		}
 		if (node->hasSkin())
 		{
-			parentObject->addComponent<SkinnedComponent>(node->getSkinIndex(), skinOffset, node->isSkeletonRoot(), node->isJoint());
+			parentObject->addComponent<SkinnedComponent>(node->getSkinIndex(), skinOffset);
+		}
+		if (node->isJoint())
+		{
+			parentObject->addComponent<SkeletonComponent>(node->getJoint(), skinOffset, node->isSkeletonRoot());
 		}
 		if (node->hasAnimation())
 		{
-			parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndex(), animationOffset);
+			parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndices(), animationOffset);
 		}
 
 		if (node->hasChildren())

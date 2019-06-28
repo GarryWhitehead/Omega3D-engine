@@ -16,7 +16,9 @@ namespace OmegaEngine
 		Texture,
 		Skin,
 		Skybox,
-		ShadowMap
+		ShadowMap,
+		Skeleton,
+		Joint
 	};
 
 
@@ -79,20 +81,30 @@ namespace OmegaEngine
 
     struct SkinnedComponent : public ComponentBase
     {
-        SkinnedComponent(uint32_t _index, uint32_t offset, bool skeleton, bool joint) : 
+        SkinnedComponent(uint32_t _index, uint32_t offset) : 
             index(_index),
 			bufferOffset(offset),
-			isSkeleton(skeleton),
-			isJoint(joint),
             ComponentBase(ComponentType::Skin)
         {}
         
-        uint32_t index = 0;
+		uint32_t index = 0;
 		uint32_t bufferOffset = 0;
 		uint32_t dynamicUboOffset = 0;
-		bool isSkeleton = false;
-		bool isJoint = false;
     };
+
+	struct SkeletonComponent : public ComponentBase
+	{
+		SkeletonComponent(uint32_t _index, uint32_t offset, bool _isRoot) :
+			index(_index),
+			bufferOffset(offset),
+			isRoot(_isRoot),
+			ComponentBase(ComponentType::Skeleton)
+		{}
+
+		uint32_t index = 0;
+		uint32_t bufferOffset = 0;
+		bool isRoot = false;
+	};
 
     struct MaterialComponent : public ComponentBase
     {
@@ -106,15 +118,16 @@ namespace OmegaEngine
 
 	struct AnimationComponent : public ComponentBase
 	{
-		AnimationComponent(uint32_t anim, uint32_t channel, uint32_t offset) :
+		AnimationComponent(uint32_t anim, std::vector<uint32_t>& channels, uint32_t offset) :
 			animIndex(anim),
-			channelIndex(channel),
 			bufferOffset(offset),
 			ComponentBase(ComponentType::Transform)
-		{}
+		{
+			channelIndex = channels;
+		}
 
 		uint32_t animIndex = 0;
-		uint32_t channelIndex = 0;
+		std::vector<uint32_t> channelIndex;
 		uint32_t bufferOffset = 0;
 	};
 

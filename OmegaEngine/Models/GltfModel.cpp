@@ -69,10 +69,11 @@ namespace OmegaEngine
 				}
 
 				// skins
+				uint32_t skinIndex = 0;
 				for (tinygltf::Skin& skin : model.skins)
 				{
 					auto& newSkin = std::make_unique<ModelSkin>();
-					newSkin->extractSkinData(model, skin, outputModel);
+					newSkin->extractSkinData(model, skin, outputModel, skinIndex++);
 					outputModel->skins.emplace_back(std::move(newSkin));
 				}
 
