@@ -41,7 +41,7 @@ namespace OEMaths
 
         static mat4f translate(vec3f& trans);
         static mat4f scale(vec3f& scale);
-        static mat4f rotate(float theta, vec3f& axis);
+		static mat4f rotate(float theta, vec3f& axis);
         mat4f inverse();
 
 		float getValue(const uint32_t index) const 

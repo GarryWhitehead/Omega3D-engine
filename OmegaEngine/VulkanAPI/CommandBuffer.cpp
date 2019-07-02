@@ -146,8 +146,8 @@ namespace VulkanAPI
 		this->viewPort = viewPort;
 
 		// use custom defined viewport
-		vk::Rect2D scissor({ { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
-			{ static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } });
+		scissor = vk::Rect2D{ { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
+			{ static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
 
 		cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
 	}

@@ -16,15 +16,19 @@ namespace VulkanAPI
 	{	
 		// create push constants
 		std::vector<vk::PushConstantRange> pushConstants;
+		vk::ShaderStageFlags flags;
+		uint32_t totalSize = 0;
 
 		for (uint16_t stage = 0; stage < (uint16_t)VulkanAPI::StageType::Count; ++stage) 
 		{
 			if (pushConstantSizes[stage]) 
 			{
-				vk::PushConstantRange push(Shader::getStageFlags((StageType)stage), 0, pushConstantSizes[stage]);
-				pushConstants.push_back(push);
+				flags |= Shader::getStageFlags((StageType)stage);
+				totalSize = pushConstantSizes[stage];
 			}
 		}
+		vk::PushConstantRange push(flags, 0, totalSize);
+		pushConstants.push_back(push);
 		
 		// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. The set number number will depict the order which is important
 		// as Vulkan will complain otherwise.

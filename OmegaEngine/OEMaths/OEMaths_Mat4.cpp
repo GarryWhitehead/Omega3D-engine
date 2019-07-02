@@ -2,6 +2,7 @@
 #include "OEMaths/OEMaths_Vec4.h"
 #include "OEMaths/OEMaths_Vec3.h"
 #include "OEMaths/OEMaths_Quat.h"
+#include "OEMaths/OEMaths.h"
 
 #include <assert.h>
 #include <algorithm>
@@ -189,25 +190,29 @@ namespace OEMaths
 	mat4f mat4f::rotate(float theta, vec3f& axis)
 	{
 		mat4f result;
-		vec3f axis_norm = axis / (theta == 0.0f ? 1.0f : theta);	//avoid divide by zero
-		float xy = axis_norm.getX() * axis_norm.getY();
-		float yz = axis_norm.getY() * axis_norm.getZ();
-		float zx = axis_norm.getZ() * axis_norm.getX();
 
-		float cosTheta = std::cos(theta);
-		float sinTheta = std::sin(theta);
+		const float angleRad = radians(theta);
 
-		result[0] = cosTheta + axis_norm.getX() * axis_norm.getX() * (1.0f - cosTheta);
-		result[1] = xy * (1.0f - cosTheta) - axis_norm.getZ() * sinTheta;
-		result[2] = zx * (1.0f - cosTheta) + axis_norm.getY() * sinTheta;
+		vec3f axis_norm = axis / (angleRad == 0.0f ? 1.0f : angleRad);	//avoid divide by zero
+		const float xy = axis_norm.getX() * axis_norm.getY();
+		const float yz = axis_norm.getY() * axis_norm.getZ();
+		const float zx = axis_norm.getZ() * axis_norm.getX();
 
-		result[4] = xy * (1.0f - cosTheta) + axis_norm.getZ() * sinTheta;
-		result[5] = cosTheta + axis_norm.getY() * axis_norm.getY() * (1.0f - cosTheta);
-		result[6] = yz * (1.0f - cosTheta) - axis_norm.getX() * sinTheta;
+		const float cosTheta = std::cos(angleRad);
+		const float sinTheta = std::sin(angleRad);
 
-		result[8] = zx * (1.0f - cosTheta) - axis_norm.getY() * sinTheta;
-		result[9] = yz * (1.0f - cosTheta) + axis_norm.getX() * sinTheta;
-		result[10] = cosTheta + axis_norm.getZ() * axis_norm.getZ() * (1.0f - cosTheta);
+		result(0, 0) = cosTheta + axis_norm.getX() * axis_norm.getX() * (1.0f - cosTheta);
+		result(0, 1) = xy * (1.0f - cosTheta) - axis_norm.getZ() * sinTheta;
+		result(0, 2) = zx * (1.0f - cosTheta) + axis_norm.getY() * sinTheta;
+
+		result(1, 0) = xy * (1.0f - cosTheta) + axis_norm.getZ() * sinTheta;
+		result(1, 1) = cosTheta + axis_norm.getY() * axis_norm.getY() * (1.0f - cosTheta);
+		result(1, 2) = yz * (1.0f - cosTheta) - axis_norm.getX() * sinTheta;
+
+		result(2, 0) = zx * (1.0f - cosTheta) - axis_norm.getY() * sinTheta;
+		result(2, 1) = yz * (1.0f - cosTheta) + axis_norm.getX() * sinTheta;
+		result(2, 2) = cosTheta + axis_norm.getZ() * axis_norm.getZ() * (1.0f - cosTheta);
+		
 		return result;
 	}
 

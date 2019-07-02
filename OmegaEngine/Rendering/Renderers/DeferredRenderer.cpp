@@ -186,6 +186,10 @@ namespace OmegaEngine
 				{
 					state.descriptorSet.writeSet(state.imageLayout.find(iblSet, layout.binding).value(), iblInterface->getIrradianceMapImageView());
 				}
+				else if (layout.name == "prefilterSampler")
+				{
+					state.descriptorSet.writeSet(state.imageLayout.find(iblSet, layout.binding).value(), iblInterface->getSpecularMapImageView());
+				}
 			}
 		}
 		

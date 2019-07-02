@@ -1,5 +1,4 @@
 
-C:/VulkanSDK/1.0.65.0/Bin32/glslc.exe model.vert -o model-vert.spv 
-C:/VulkanSDK/1.0.65.0/Bin32/glslc.exe model.frag -o model-frag.spv
-C:/VulkanSDK/1.0.65.0/Bin32/glslc.exe model-skinned.vert -o model_skinned-vert.spv
+C:/VulkanSDK/1.0.65.0/Bin32/glslc.exe specularmap.vert -o specularmap-vert.spv 
+C:/VulkanSDK/1.0.65.0/Bin32/glslc.exe specularmap.frag -o specularmap-frag.spv
 pause

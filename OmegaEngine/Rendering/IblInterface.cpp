@@ -13,6 +13,7 @@
 #include "Rendering/StockModels.h"
 #include "Rendering/RenderCommon.h"
 #include "OEMaths/OEMaths_transform.h"
+#include "OEMaths/OEMaths.h"
 #include "Utility/logger.h"
 
 namespace OmegaEngine
@@ -29,11 +30,41 @@ namespace OmegaEngine
 		irradianceMapTexture.init(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
 		irradianceMapTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradianceMapDim, irradianceMapDim, 
 			mipLevels, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst, 6);
+
+		specularMapTexture.init(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
+		specularMapTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, specularMapDim, specularMapDim,
+			mipLevels, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst, 6);
 	}
 
 
 	IblInterface::~IblInterface()
 	{
+	}
+
+	void IblInterface::calculateCubeTransform(const uint32_t face, const float zNear, const float zFar, OEMaths::mat4f& outputProj, OEMaths::mat4f& outputView)
+	{
+		OEMaths::vec3f target[6] =
+		{
+			OEMaths::vec3f(1.0f, 0.0f, 0.0f),
+			OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
+			OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+			OEMaths::vec3f(0.0f, -1.0f, 0.0f),
+			OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+			OEMaths::vec3f(0.0f, 0.0f, -1.0f)
+		};
+
+		OEMaths::vec3f cameraUp[6] =
+		{
+			OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+			OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+			OEMaths::vec3f(0.0f, 0.0f, -1.0f),
+			OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+			OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+			OEMaths::vec3f(0.0f, 1.0f, 0.0f)
+		};
+
+		outputProj = outputProj.scale(OEMaths::vec3f{ -1.0f, 1.0f, 1.0f }) * OEMaths::perspective(90.0f, 1.0f, zNear, zFar);
+		outputView = OEMaths::lookAt(OEMaths::vec3f{ 0.0f, 0.0f, 0.0f }, target[face], cameraUp[face]);
 	}
 
 	void IblInterface::generateBrdf(VulkanAPI::Interface& vkInterface)
@@ -93,6 +124,128 @@ namespace OmegaEngine
 		vkInterface.getGraphicsQueue().flushCmdBuffer(cmdBuffer.get());
 	}
 
+	void IblInterface::createSpecularMap(VulkanAPI::Interface& vkInterface)
+	{
+		vk::ClearColorValue clearValue;
+		ProgramState state;
+
+		// offscreen texture - this will only be used for generating the map
+		VulkanAPI::Texture offscreenTexture(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
+		offscreenTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, specularMapDim, specularMapDim, 1,
+			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled);
+
+		// renderpass and framebuffer
+		VulkanAPI::RenderPass renderPass(vkInterface.getDevice());
+		renderPass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, vk::Format::eR32G32B32A32Sfloat);
+		renderPass.prepareRenderPass();
+		renderPass.prepareFramebuffer(offscreenTexture.getImageView(), specularMapDim, specularMapDim);
+
+		// prepare the shader
+		if (!state.shader.add(vkInterface.getDevice(), "env/PreFilter/specularmap-vert.spv", VulkanAPI::StageType::Vertex, "env/PreFilter/specularmap-frag.spv", VulkanAPI::StageType::Fragment))
+		{
+			LOGGER_ERROR("Error. Unable to open specular map shader.\n");
+		}
+
+		// use reflection to fill in the pipeline layout and descriptors
+		state.shader.imageReflection(state.descriptorLayout, state.imageLayout);
+		state.shader.bufferReflection(state.descriptorLayout, state.bufferLayout);
+		state.descriptorLayout.create(vkInterface.getDevice());
+		state.descriptorSet.init(vkInterface.getDevice(), state.descriptorLayout);
+
+		for (auto& layout : state.imageLayout.layouts)
+		{
+			// the shader must use these identifying names for uniform buffers -
+			if (layout.name == "envSampler")
+			{
+				state.descriptorSet.writeSet(state.imageLayout.find(0, layout.binding).value(), vkInterface.gettextureManager()->getTextureImageView("Skybox"));
+			}
+		}
+
+		// get the pipleine layout detail through shader reflection
+		state.shader.pipelineLayoutReflect(state.pipelineLayout);
+		state.pipelineLayout.create(vkInterface.getDevice(), state.descriptorLayout.getLayout());
+
+		// pipeline
+		state.shader.pipelineReflection(state.pipeline);
+
+		state.pipeline.setDepthState(VK_FALSE, VK_FALSE);
+		state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
+		state.pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
+		state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state.pipeline.addColourAttachment(VK_FALSE, renderPass);
+		state.pipeline.create(vkInterface.getDevice(), renderPass, state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+
+		// get the buffers for the cube model vertices/indices
+		auto& vertexBuffer = vkInterface.getBufferManager()->getBuffer("CubeModelVertices");
+		auto& indexBuffer = vkInterface.getBufferManager()->getBuffer("CubeModelIndices");
+
+		// record command buffer
+		VulkanAPI::CommandBuffer cmdBuffer(vkInterface.getDevice(), vkInterface.getGraphicsQueue().getIndex());
+		cmdBuffer.createPrimary();
+		vk::RenderPassBeginInfo beginInfo = renderPass.getBeginInfo(clearValue);
+
+		// transition cube texture for transfer
+		specularMapTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
+
+		offscreenTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
+
+		SpecularMapPushBlock pushBlock;
+		pushBlock.sampleCount = 32;		// TODO: add this to configs
+
+		// record command buffer for each mip and their layers
+		for (uint8_t mip = 0; mip < mipLevels; ++mip) 
+		{
+			pushBlock.roughness = static_cast<float>(mip / mipLevels - 1);
+
+			for (uint8_t face = 0; face < 6; ++face) 
+			{
+				// get dimensions for this mip level
+				float mipDimensions = static_cast<float>(irradianceMapDim * std::pow(0.5, mip));
+				vk::Viewport viewPort{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
+
+				cmdBuffer.beginRenderpass(beginInfo, viewPort);
+				cmdBuffer.setViewport();
+				cmdBuffer.setScissor();
+
+				cmdBuffer.bindPipeline(state.pipeline);
+				cmdBuffer.bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
+				cmdBuffer.bindVertexBuffer(vertexBuffer.buffer, vertexBuffer.offset);
+				cmdBuffer.bindIndexBuffer(indexBuffer.buffer, indexBuffer.offset);
+
+				// calculate view for each cube side
+				OEMaths::mat4f proj, view;
+				calculateCubeTransform(face, 0.1f, 100.0f, proj, view);
+				pushBlock.mvp = proj * view;
+				//mvp = mvp.inverse();
+				//OEMaths::mat4f mvp = OEMaths::perspective(90.0f, 1.0f, 0.1f, 512.0f) * cubeView[face];
+				cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(SpecularMapPushBlock), &pushBlock);
+
+				// draw cube into offscreen framebuffer
+				cmdBuffer.drawIndexed(RenderUtil::CubeModel::indicesSize);
+				cmdBuffer.endRenderpass();
+				
+				// copy the offscreen buffer to the current face
+				vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
+				vk::ImageSubresourceLayers dst_resource(vk::ImageAspectFlagBits::eColor, mip, face, 1);
+				vk::ImageCopy imageCopy(src_resource, 
+										{ 0, 0, 0 }, 
+										dst_resource, 
+										{ 0, 0, 0 }, 
+										{ static_cast<uint32_t>(mipDimensions), static_cast<uint32_t>(mipDimensions), 1 });
+
+				offscreenTexture.getImage().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get());
+				cmdBuffer.get().copyImage(offscreenTexture.getImage().get(), vk::ImageLayout::eTransferSrcOptimal, specularMapTexture.getImage().get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
+
+				// transition the offscreen image back to colour attachment ready for the next image
+				offscreenTexture.getImage().transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
+			}
+		}
+		specularMapTexture.getImage().transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer.get());
+		cmdBuffer.end();
+
+		vkInterface.getGraphicsQueue().flushCmdBuffer(cmdBuffer.get());
+	}
+
 	void IblInterface::createIrradianceMap(VulkanAPI::Interface& vkInterface)
 	{
 		vk::ClearColorValue clearValue;
@@ -100,7 +253,7 @@ namespace OmegaEngine
 
 		// offscreen texture - this will only be used for generating the map
 		VulkanAPI::Texture offscreenTexture(vkInterface.getDevice(), vkInterface.getGpu(), vkInterface.getGraphicsQueue());
-		offscreenTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradianceMapDim, irradianceMapDim, 1, 
+		offscreenTexture.createEmptyImage(vk::Format::eR32G32B32A32Sfloat, irradianceMapDim, irradianceMapDim, 1,
 			vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eSampled);
 
 		// renderpass and framebuffer
@@ -159,9 +312,9 @@ namespace OmegaEngine
 		offscreenTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
 
 		// record command buffer for each mip and their layers
-		for (uint8_t mip = 0; mip < mipLevels; ++mip) 
+		for (uint8_t mip = 0; mip < mipLevels; ++mip)
 		{
-			for (uint8_t face = 0; face < 6; ++face) 
+			for (uint8_t face = 0; face < 6; ++face)
 			{
 				// get dimensions for this mip level
 				float mipDimensions = static_cast<float>(irradianceMapDim * std::pow(0.5, mip));
@@ -177,22 +330,25 @@ namespace OmegaEngine
 				cmdBuffer.bindIndexBuffer(indexBuffer.buffer, indexBuffer.offset);
 
 				// calculate view for each cube side
-				IrradianceMapPushBlock pushBlock;
-				OEMaths::mat4f mvp = OEMaths::perspective(static_cast<float>(M_PI) / 2.0f, 1.0f, 0.1f, 512.0f) * cubeView[face];
+				OEMaths::mat4f proj, view;
+				calculateCubeTransform(face, 0.1f, 100.0f, proj, view);
+				OEMaths::mat4f mvp = proj * view;
+				//mvp = mvp.inverse();
+				//OEMaths::mat4f mvp = OEMaths::perspective(90.0f, 1.0f, 0.1f, 512.0f) * cubeView[face];
 				cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eVertex, sizeof(OEMaths::mat4f), &mvp);
 
 				// draw cube into offscreen framebuffer
 				cmdBuffer.drawIndexed(RenderUtil::CubeModel::indicesSize);
 				cmdBuffer.endRenderpass();
-				
+
 				// copy the offscreen buffer to the current face
 				vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
 				vk::ImageSubresourceLayers dst_resource(vk::ImageAspectFlagBits::eColor, mip, face, 1);
-				vk::ImageCopy imageCopy(src_resource, 
-										{ 0, 0, 0 }, 
-										dst_resource, 
-										{ 0, 0, 0 }, 
-										{ static_cast<uint32_t>(mipDimensions), static_cast<uint32_t>(mipDimensions), 1 });
+				vk::ImageCopy imageCopy(src_resource,
+					{ 0, 0, 0 },
+					dst_resource,
+					{ 0, 0, 0 },
+					{ static_cast<uint32_t>(mipDimensions), static_cast<uint32_t>(mipDimensions), 1 });
 
 				offscreenTexture.getImage().transition(vk::ImageLayout::eColorAttachmentOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get());
 				cmdBuffer.get().copyImage(offscreenTexture.getImage().get(), vk::ImageLayout::eTransferSrcOptimal, irradianceMapTexture.getImage().get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageCopy);
@@ -210,6 +366,7 @@ namespace OmegaEngine
 	void IblInterface::renderMaps(VulkanAPI::Interface& vkInterface)
 	{
 		createIrradianceMap(vkInterface); 
+		createSpecularMap(vkInterface);
 
 		mapsRendered = true;
 	}
