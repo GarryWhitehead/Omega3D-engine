@@ -169,12 +169,12 @@ namespace OmegaEngine
 			auto elapsedTime = timer.getTimeElapsed(true);
 			accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime);
 
+			// poll for any input
+			inputManager->update();
+
 			auto& world = worlds[currentWorld];
 			while (accumulator >= timeStep) 
 			{
-				// poll for any input
-				inputManager->update();
-
 				// update everything else
 				world->update(totalTime, static_cast<double>(elapsedTime.count()));
 

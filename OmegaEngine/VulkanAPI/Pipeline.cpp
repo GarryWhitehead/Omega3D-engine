@@ -14,7 +14,9 @@ namespace VulkanAPI
 	void PipelineLayout::create(vk::Device& device, 
 								std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout> >& descriptorLayout)
 	{	
-		// create push constants
+		// create push constants 
+		// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
+		// - maybe this is OK, but if so, no need for a vector anymore
 		std::vector<vk::PushConstantRange> pushConstants;
 		vk::ShaderStageFlags flags;
 		uint32_t totalSize = 0;
@@ -24,12 +26,15 @@ namespace VulkanAPI
 			if (pushConstantSizes[stage]) 
 			{
 				flags |= Shader::getStageFlags((StageType)stage);
-				totalSize = pushConstantSizes[stage];
+				totalSize += pushConstantSizes[stage];
 			}
 		}
-		vk::PushConstantRange push(flags, 0, totalSize);
-		pushConstants.push_back(push);
-		
+		if (totalSize > 0)
+		{
+			vk::PushConstantRange push(flags, 0, totalSize);
+			pushConstants.push_back(push);
+		}
+
 		// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. The set number number will depict the order which is important
 		// as Vulkan will complain otherwise.
 		std::vector<vk::DescriptorSetLayout> layouts(descriptorLayout.size());

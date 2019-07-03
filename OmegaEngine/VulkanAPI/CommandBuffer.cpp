@@ -172,6 +172,13 @@ namespace VulkanAPI
 		cmdBuffer.setScissor(0, 1, &scissor);
 	}
 
+	void CommandBuffer::setViewport(const vk::Viewport& viewPort)
+	{
+		this->viewPort = viewPort;
+		scissor = vk::Rect2D{ { 0, 0 }, { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
+		cmdBuffer.setViewport(0, 1, &viewPort);
+	}
+
 	void CommandBuffer::bindPipeline(Pipeline& pipeline)
 	{
 		vk::PipelineBindPoint bindPoint = createBindPoint(pipeline.getPipelineType());

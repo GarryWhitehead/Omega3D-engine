@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
 	{
 		// Use a gltf image as one of our scene objects
-		auto model = GltfModel::load("RiggedSimple/RiggedSimple.gltf");
+		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
 		auto object = world->createGltfModelObject(model, true);
@@ -48,8 +48,8 @@ int main(int argc, char *argv[])
 
 	// add different lights
 	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 50.0f, 100.0f);
-	world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 150.0f, 100.0f);
-	world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
+	//world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 150.0f, 100.0f);
+	//world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

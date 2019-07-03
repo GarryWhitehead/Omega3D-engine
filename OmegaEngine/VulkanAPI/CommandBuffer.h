@@ -107,6 +107,8 @@ namespace VulkanAPI
 		// viewport, scissors, etc.
 		void setViewport();
 		void setScissor();
+		void setViewport(const vk::Viewport& viewPort);
+		void setScissor(const vk::Rect2D& scissor);
 
 		// primary binding functions
 		void bindPipeline(Pipeline& pipeline);

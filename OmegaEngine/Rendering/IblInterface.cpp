@@ -184,6 +184,10 @@ namespace OmegaEngine
 		cmdBuffer.createPrimary();
 		vk::RenderPassBeginInfo beginInfo = renderPass.getBeginInfo(clearValue);
 
+		vk::Viewport viewPort = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(specularMapDim), static_cast<float>(specularMapDim), 0.0f, 1.0f };
+		cmdBuffer.setViewport(viewPort);
+		cmdBuffer.setScissor();
+
 		// transition cube texture for transfer
 		specularMapTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
 
@@ -193,19 +197,18 @@ namespace OmegaEngine
 		pushBlock.sampleCount = 32;		// TODO: add this to configs
 
 		// record command buffer for each mip and their layers
-		for (uint8_t mip = 0; mip < mipLevels; ++mip) 
+		for (uint32_t mip = 0; mip < mipLevels; mip++) 
 		{
-			pushBlock.roughness = static_cast<float>(mip / mipLevels - 1);
+			pushBlock.roughness = static_cast<float>(mip) / static_cast<float>(mipLevels - 1);
 
-			for (uint8_t face = 0; face < 6; ++face) 
+			for (uint32_t face = 0; face < 6; face++) 
 			{
-				// get dimensions for this mip level
-				float mipDimensions = static_cast<float>(irradianceMapDim * std::pow(0.5, mip));
-				vk::Viewport viewPort{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
+				// get dimensions for the next mip level
+				float mipDimensions = static_cast<float>(specularMapDim * std::pow(0.5, mip));
+				viewPort = vk::Viewport{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
 
 				cmdBuffer.beginRenderpass(beginInfo, viewPort);
 				cmdBuffer.setViewport();
-				cmdBuffer.setScissor();
 
 				cmdBuffer.bindPipeline(state.pipeline);
 				cmdBuffer.bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
@@ -216,8 +219,7 @@ namespace OmegaEngine
 				OEMaths::mat4f proj, view;
 				calculateCubeTransform(face, 0.1f, 100.0f, proj, view);
 				pushBlock.mvp = proj * view;
-				//mvp = mvp.inverse();
-				//OEMaths::mat4f mvp = OEMaths::perspective(90.0f, 1.0f, 0.1f, 512.0f) * cubeView[face];
+		
 				cmdBuffer.bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment, sizeof(SpecularMapPushBlock), &pushBlock);
 
 				// draw cube into offscreen framebuffer
@@ -306,23 +308,26 @@ namespace OmegaEngine
 		cmdBuffer.createPrimary();
 		vk::RenderPassBeginInfo beginInfo = renderPass.getBeginInfo(clearValue);
 
+		vk::Viewport viewPort = vk::Viewport{ 0.0f, 0.0f, static_cast<float>(irradianceMapDim), static_cast<float>(irradianceMapDim), 0.0f, 1.0f };
+		cmdBuffer.setViewport(viewPort);
+		cmdBuffer.setScissor();
+
 		// transition cube texture for transfer
 		irradianceMapTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
 
 		offscreenTexture.getImage().transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eColorAttachmentOptimal, cmdBuffer.get());
 
 		// record command buffer for each mip and their layers
-		for (uint8_t mip = 0; mip < mipLevels; ++mip)
+		for (uint8_t mip = 0; mip < mipLevels; mip++)
 		{
-			for (uint8_t face = 0; face < 6; ++face)
+			for (uint8_t face = 0; face < 6; face++)
 			{
-				// get dimensions for this mip level
+				// get dimensions for the next mip level
 				float mipDimensions = static_cast<float>(irradianceMapDim * std::pow(0.5, mip));
-				vk::Viewport viewPort{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
+				viewPort = vk::Viewport{ 0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f };
 
 				cmdBuffer.beginRenderpass(beginInfo, viewPort);
 				cmdBuffer.setViewport();
-				cmdBuffer.setScissor();
 
 				cmdBuffer.bindPipeline(state.pipeline);
 				cmdBuffer.bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);

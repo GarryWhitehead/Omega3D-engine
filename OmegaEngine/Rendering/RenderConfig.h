@@ -40,7 +40,7 @@ namespace OmegaEngine
 		struct IBLInfo
 		{
 			float ambientScale = 1.0f;
-			bool isContributing = false;
+			bool isContributing = true;
 		} ibl;
 
 		struct ToneMapSettings

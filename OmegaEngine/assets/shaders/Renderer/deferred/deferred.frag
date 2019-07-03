@@ -55,7 +55,6 @@ layout (push_constant) uniform pushConstants
 	bool useIBLContribution;
 } push;
 
-#ifdef USE_IBL
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour)
 {
 	const float MAX_REFLECTION_LOD = 4.0;
@@ -75,7 +74,6 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	
 	return diffuse + specular;
 }
-#endif
 
 void main()
 {	
@@ -126,11 +124,11 @@ void main()
 	}
 	
 	// add IBL contribution if needed
-	/*if (push.useIBLContribution) 
+	if (push.useIBLContribution) 
 	{
 		float NdotV = max(dot(N, V), 0.0);
-		//colour += calculateIBL(N, NdotV, roughness, R, baseColour);
-	}*/
+		colour += calculateIBL(N, NdotV, roughness, R, baseColour);
+	}
 	
 	// occlusion
 	colour = mix(colour, colour * occlusion, 1.0);
