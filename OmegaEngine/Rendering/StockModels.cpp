@@ -27,38 +27,104 @@ CubeModel::~CubeModel()
 {
 }
 
-PlaneModel::PlaneModel()
+PlaneModel::PlaneModel(const uint32_t patchSize, const float uvFactor)
 {
-	// vertices
-	std::vector<Vertex> vertices = {
-		{ { 1.0f, 1.0f }, { 1.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
-		{ { 0.0f, 1.0f }, { 0.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
-		{ { 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } },
-		{ { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } }
-	};
+	const float widthX = 3.0f;
+	const float widthY = 3.0f;
 
-	// prepare indices
-	std::vector<uint32_t> indices;
-	for (uint32_t i = 0; i < 3; ++i)
+	const uint32_t vertCount = patchSize * patchSize;
+	mesh.vertices.reserve(vertCount);
+
+	for (uint32_t x = 0; x < patchSize; ++x)
 	{
-		uint32_t values[6] = { 0, 1, 2, 2, 3, 0 };
-		for (auto index : values)
+		for (uint32_t y = 0; y < patchSize; ++y)
 		{
-			indices.push_back(i * 4 + index);
+			PlaneMesh::Vertex vertex;
+
+			uint32_t index = x + y * patchSize;
+			vertex.pos = OEMaths::vec3f{ x * widthX + widthX / 2.0f - (float)patchSize * widthX / 2.0f,
+				0.0f, y * widthY + widthY / 2.0f - (float)patchSize * widthY / 2.0f };
+			vertex.uv = OEMaths::vec2f{ x / (float)patchSize, y / (float)patchSize } * uvFactor;
+
+			mesh.vertices.emplace_back(vertex);
 		}
 	}
 
-	// vertex data
-	VulkanAPI::BufferUpdateEvent vertexEvent{ "PlaneModelVertices", vertices.data(),
-		                                      vertices.size() * sizeof(Vertex),
-		                                      VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-	Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(vertexEvent);
+	// generate the indices for the patch quads
+	uint32_t width = patchSize - 1;
+	uint32_t size = width * width * 4;
 
-	// index data
-	VulkanAPI::BufferUpdateEvent indexEvent{ "PlaneModelIndices", indices.data(),
-		                                     indices.size() * sizeof(uint32_t),
-		                                     VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-	Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
+	mesh.indices.resize(size);
+
+	for (uint32_t x = 0; x < width; ++x)
+	{
+		for (uint32_t y = 0; y < width; ++y)
+		{
+			uint32_t index = (x + y * width) * 4;
+			mesh.indices[index] = (x + y * patchSize); // top-left
+			mesh.indices[index + 1] = mesh.indices[index] + patchSize; // bottom-left
+			mesh.indices[index + 2] = mesh.indices[index + 1] + 1; //	bottom-right
+			mesh.indices[index + 3] = mesh.indices[index] + 1; // top-right
+		}
+	}
 }
+
+SphereModel::SphereModel(const uint32_t density)
+{
+	mesh.positions.reserve(6 * density * density);
+	mesh.uvs.reserve(6 * density * density);
+	mesh.indices.reserve(2 * density * density * 6);
+
+	static const OEMaths::vec3f basePosition[6] = {
+		OEMaths::vec3f(1.0f, 1.0f, 1.0f), OEMaths::vec3f(-1.0f, 1.0f, -1.0f),
+		OEMaths::vec3f(-1.0f, 1.0f, -1.0f), OEMaths::vec3f(-1.0f, -1.0f, +1.0f),
+		OEMaths::vec3f(-1.0f, 1.0f, +1.0f), OEMaths::vec3f(+1.0f, 1.0f, -1.0f),
+	};
+
+	static const OEMaths::vec3f dx[6] = {
+		OEMaths::vec3f(0.0f, 0.0f, -2.0f),
+		OEMaths::vec3f(0.0f, 0.0f, +2.0f),
+		OEMaths::vec3f(2.0f, 0.0f, 0.0f),
+		OEMaths::vec3f(2.0f, 0.0f, 0.0f),
+		OEMaths::vec3f(2.0f, 0.0f, 0.0f),  OEMaths::vec3f(-2.0f, 0.0f, 0.0f),
+	};
+
+	static const OEMaths::vec3f dy[6] = {
+		OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f),
+		OEMaths::vec3f(0.0f, 0.0f, +2.0f), OEMaths::vec3f(0.0f, 0.0f, -2.0f),
+		OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f),
+	};
+
+	const float densityMod = 1.0f / static_cast<float>(density - 1);
+
+	for (uint32_t face = 0; face < 6; face++)
+	{
+		uint32_t indexOffset = face * density * density;
+
+		for (uint32_t y = 0; y < density; y++)
+		{
+			for (uint32_t x = 0; x < density; x++)
+			{
+				OEMaths::vec2f uv = OEMaths::vec2f{densityMod * x, densityMod * y};
+				OEMaths::vec3f pos = basePosition[face] + dx[face] * uv.getX() + dy[face] * uv.getY();
+				pos.normalise();
+				mesh.positions.emplace_back(pos);
+				mesh.uvs.emplace_back(uv);
+			}
+		}
+
+		uint32_t strips = density - 1;
+		for (uint32_t y = 0; y < strips; y++)
+		{
+			uint32_t baseIndex = indexOffset + y * density;
+			for (unsigned x = 0; x < density; x++)
+			{
+				mesh.indices.emplace_back(baseIndex + x);
+				mesh.indices.emplace_back(baseIndex + x + density);
+			}
+		}
+	}
+}
+
 } // namespace RenderUtil
 } // namespace OmegaEngine

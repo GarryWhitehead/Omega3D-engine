@@ -11,6 +11,7 @@ namespace OmegaEngine
 {
 namespace RenderUtil
 {
+
 class CubeModel
 {
 public:
@@ -47,16 +48,40 @@ public:
 class PlaneModel
 {
 public:
-	struct Vertex
+	struct PlaneMesh
 	{
-		OEMaths::vec2f uv;
-		OEMaths::vec3f pos;
-		OEMaths::vec3f normal;
+		struct Vertex
+		{
+			OEMaths::vec2f uv;
+			OEMaths::vec3f pos;
+			OEMaths::vec3f normal;
+		};
+
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
 	};
 
-	PlaneModel();
+	PlaneModel(const uint32_t patchSize, const float uvFactor);
 
 	// TODO: destructor should remove buffers from buffer manager
+
+	PlaneMesh mesh;
+};
+
+class SphereModel
+{
+public:
+	struct SphereMesh
+	{
+		std::vector<OEMaths::vec3f> positions;
+		std::vector<OEMaths::vec2f> uvs;
+		std::vector<uint32_t> indices;
+	};
+
+	SphereModel(const uint32_t density);
+
+private:
+	SphereMesh mesh;
 };
 } // namespace RenderUtil
 } // namespace OmegaEngine

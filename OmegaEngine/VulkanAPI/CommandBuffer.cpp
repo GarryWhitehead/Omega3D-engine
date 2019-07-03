@@ -261,8 +261,8 @@ void CommandBuffer::executeSecondaryCommands(uint32_t count)
 
 SecondaryCommandBuffer &CommandBuffer::createSecondary()
 {
-	SecondaryCommandBuffer buffer{ device,      queueFamilyIndex, renderpass,
-		                           framebuffer, viewPort,         scissor };
+	SecondaryCommandBuffer buffer{ device, queueFamilyIndex, renderpass,
+		                           framebuffer, viewPort, scissor };
 	buffer.create();
 	secondaryCmdBuffers.push_back(buffer);
 	return secondaryCmdBuffers.back();
@@ -273,8 +273,8 @@ void CommandBuffer::createSecondary(uint32_t count)
 	secondaryCmdBuffers.resize(count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		secondaryCmdBuffers[i] = { device,      queueFamilyIndex, renderpass,
-			                       framebuffer, viewPort,         scissor };
+		secondaryCmdBuffers[i] = { device, queueFamilyIndex, renderpass,
+			                       framebuffer, viewPort, scissor };
 		secondaryCmdBuffers[i].create();
 	}
 }
@@ -446,4 +446,5 @@ void CommandBuffer::createCmdPool()
 
 	device.createCommandPool(&createInfo, nullptr, &cmdPool);
 }
+
 } // namespace VulkanAPI
