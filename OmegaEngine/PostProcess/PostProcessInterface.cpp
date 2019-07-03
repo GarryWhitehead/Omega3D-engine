@@ -5,37 +5,33 @@
 namespace OmegaEngine
 {
 
-	PostProcessInterface::PostProcessInterface(vk::Device dev) :
-		device(dev)
+PostProcessInterface::PostProcessInterface(vk::Device dev)
+    : device(dev)
+{
+}
+
+PostProcessInterface::~PostProcessInterface()
+{
+}
+
+vk::ImageView PostProcessInterface::createPipelines(vk::ImageView &forwardImage,
+                                                    RenderConfig &renderConfig)
+{
+	vk::ImageView finalImage = forwardImage;
+
+	if (renderConfig.postProcess.useHdr)
 	{
 	}
 
+	return finalImage;
+}
 
-	PostProcessInterface::~PostProcessInterface()
+void PostProcessInterface::render(RenderConfig &renderConfig)
+{
+	// run through all post processing passes required
+	for (auto &pass : postProcessPasses)
 	{
-	}
-
-	
-
-	vk::ImageView PostProcessInterface::createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig)
-	{
-		vk::ImageView finalImage = forwardImage;
-
-		if (renderConfig.postProcess.useHdr)
-		{
-			
-		}
-
-		return finalImage;
-	}
-
-	void PostProcessInterface::render(RenderConfig& renderConfig)
-	{
-		// run through all post processing passes required
-		for (auto& pass : postProcessPasses)
-		{
-			pass.renderFunction(pass.postProcessHandle, pass.postProcessData);
-		}
-		
+		pass.renderFunction(pass.postProcessHandle, pass.postProcessData);
 	}
 }
+} // namespace OmegaEngine

@@ -1,7 +1,7 @@
 #include "RandomNumber.h"
 
-RandomNumber::RandomNumber() : 
-	m_mt(m_rand())
+RandomNumber::RandomNumber()
+    : m_mt(m_rand())
 {
 }
 
@@ -16,7 +16,8 @@ int RandomNumber::GenerateNegInt(const int min, const int max, bool nonZero)
 	int posmin = 0;
 	int minmax = 0;
 
-	if (min < 0) {
+	if (min < 0)
+	{
 
 		posmin = std::abs(min);
 		minmax = max + posmin;
@@ -26,9 +27,11 @@ int RandomNumber::GenerateNegInt(const int min, const int max, bool nonZero)
 	std::uniform_int_distribution<int> num(0, minmax);
 	gen = num(m_mt) - posmin;
 
-	if (nonZero) {
+	if (nonZero)
+	{
 
-		while (gen == 0) {
+		while (gen == 0)
+		{
 
 			std::uniform_int_distribution<int> num(0, minmax);
 			gen = num(m_mt) - posmin;
@@ -55,7 +58,8 @@ float RandomNumber::GaussRandomNumber(const float max)
 	gen1 /= RAND_MAX;
 	gen2 /= RAND_MAX;
 
-	if (gen1 < 0.000001f) {
+	if (gen1 < 0.000001f)
+	{
 		gen1 = 0.000001f;
 	}
 

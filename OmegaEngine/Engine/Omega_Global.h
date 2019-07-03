@@ -1,7 +1,7 @@
 
-/// Contains all of the global variables that will be used for the Omega Engine 
+/// Contains all of the global variables that will be used for the Omega Engine
 ///
-/// 
+///
 
 #pragma once
 
@@ -9,22 +9,17 @@
 
 namespace OmegaEngine
 {
-	class EventManager;
+class EventManager;
 
-	namespace Global
-	{
+namespace Global
+{
 
-		EventManager* eventManager();
+EventManager *eventManager();
 
-		// all global initilisation functions for global managers
-		void initEventManager();
+// all global initilisation functions for global managers
+void initEventManager();
 
-		void init();
+void init();
 
-		
-	}
-}
-
-
-
-
+} // namespace Global
+} // namespace OmegaEngine

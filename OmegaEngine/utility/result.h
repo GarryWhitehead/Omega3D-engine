@@ -1,154 +1,147 @@
-// Based on the std::expected 
+// Based on the std::expected
 
 #include <exception>
 
 namespace Util
 {
 
-    template <typename T>
-    class Result
-    {
-    public:
+template <typename T>
+class Result
+{
+public:
+	Result() = delete;
+	Result(const T &result)
+	    : value(result)
+	    , validResult(true)
+	{
+	}
 
-        Result() = delete;
-        Result(const T& result) :
-            value(result),
-            validResult(true)
-        {}
+	Result(T &&result)
+	    : value(std::move(result))
+	    , validResult(true)
+	{
+	}
 
-        Result(T&& result) :
-            value(std::move(result)),
-            validResult(true)
-        {}
+	Result(const Result &other)
+	    : validResult(other.validResult)
+	{
+	}
 
-        Result(const Result& other) :
-            validResult(other.validResult)
-        {
+	Result(Result &&other)
+	    : validResult(other.validResult)
+	{
+	}
 
+	Result &operator=(const Result &other)
+	{
+		if (this != &other)
+		{
+			result = other.result;
+			validResult = other.validResult;
+		}
+		return *this;
+	}
 
-        }
+	Result &operator=(Result &&other)
+	{
+		if (this != &other)
+		{
+			std::swap(result, other.result);
+			std::swap(validResult, other.validResult);
+		}
+		return *this;
+	}
 
-        Result(Result&& other) :
-            validResult(other.validResult)
-        {
+	template <typename E>
+	static Result<T> fromException(const E &exception)
+	{
+	}
 
+	static Result<T> fromException(std::exception_ptr exceptPtr)
+	{
+	}
 
-        }
-        
-        Result& operator=(const Result& other)
-        {
-            if (this != &other)
-            {
-                result = other.result;
-                validResult = other.validResult;
-            }
-            return *this;
-        }
+	static Result<T> fromException()
+	{
+	}
 
-        Result& operator=(Result&& other)
-        {
-            if (this != &other)
-            {
-                std::swap(result, other.result);
-                std::swap(validResult, other.validResult);
-            }
-            return *this;
-        }
+	// getters
+	bool isValid()
+	{
+		return validResult;
+	}
 
-        template <typename E>
-        static Result<T> fromException(const E& exception)
-        {
+	T &get()
+	{
+		if (!validResult)
+		{
+			std::rethrow_exception(error);
+		}
+		return result;
+	}
 
-        }
+	const T &get() const
+	{
+		if (!validResult)
+		{
+			std::rethrow_exception(error);
+		}
+		return result;
+	}
 
-        static Result<T> fromException(std::exception_ptr exceptPtr)
-        {
+private:
+	union {
+		T value;
+		std::excpetion_ptr error;
+	};
 
-        }
+	bool validResult;
+};
 
-        static Result<T> fromException()
-        {
+template <>
+class Result<void>
+{
+public:
+	template <typename E>
+	Result(const E &except)
+	    : error(std::make_exception_ptr(except))
+	{
+	}
 
-        }
+	Result(Result &&other)
+	    : error(std::move(other.error))
+	{
+	}
 
-        // getters
-        bool isValid()
-        {
-            return validResult;
-        }
+	Result()
+	    : error()
+	{
+	}
 
-        T& get()
-        {
-            if (!validResult)
-            {
-                std::rethrow_exception(error);
-            }
-            return result;
-        }
+	Result &operator=(Result &other)
+	{
+		if (this != &other)
+		{
+			error = other.error;
+		}
+		return *this;
+	}
 
-        const T& get() const
-        {
-             if (!validResult)
-            {
-                std::rethrow_exception(error);
-            }
-            return result;
-        }
+	// getters
+	bool isValid() const
+	{
+		return !error;
+	}
 
-    private:
+	void get() const
+	{
+		if (!isValid())
+		{
+			std::rethrow_exception(error);
+		}
+	}
 
-        union 
-        {
-            T value;
-            std::excpetion_ptr error;
-        };
-        
-        bool validResult;
-    };
-
-    template <>
-    class Result<void>
-    {
-    public:
-
-        template <typename E>
-        Result(const E& except) :
-            error(std::make_exception_ptr(except))
-        {}
-
-        Result(Result&& other) :
-            error(std::move(other.error))
-        {}
-
-        Result() :
-            error()
-        {}
-
-        Result& operator=(Result& other)
-        {
-            if (this != &other)
-            {
-                error = other.error;
-            }
-            return *this;
-        }
-
-        // getters
-        bool isValid() const
-        {
-            return !error;
-        }
-
-        void get() const
-        {
-            if (!isValid())
-            {
-                std::rethrow_exception(error);
-            }
-        }
-
-    private:
-
-        std::exception_ptr error;
-    };
-}
+private:
+	std::exception_ptr error;
+};
+} // namespace Util

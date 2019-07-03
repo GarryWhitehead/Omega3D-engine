@@ -1,145 +1,146 @@
 #pragma once
-#include "Managers/ManagerBase.h"
 #include "Managers/EventManager.h"
+#include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
 
-namespace OmegaEngine 
+namespace OmegaEngine
 {
-	// forward declerations
-	class ObjectManager;
+// forward declerations
+class ObjectManager;
 
-	struct Camera
+struct Camera
+{
+	enum class CameraType
 	{
-		enum class CameraType
-		{
-			FirstPerson,
-			ThirdPerson
-		};
-
-		OEMaths::mat4f getPerspectiveMat()
-		{
-			return OEMaths::perspective(fov, aspect, zNear, zFar);
-		}
-
-		// default values
-		float fov = 40.0f;
-		float zNear = 0.5f;
-		float zFar = 1000.0f;
-		float aspect = 16.0f / 9.0f;
-		float velocity = 0.1f;
-
-		CameraType type = CameraType::FirstPerson;
-
-		OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
-		OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
-		
+		FirstPerson,
+		ThirdPerson
 	};
 
-	// classes for event types
-	struct MouseButtonEvent : public Event
+	OEMaths::mat4f getPerspectiveMat()
 	{
-	
+		return OEMaths::perspective(fov, aspect, zNear, zFar);
+	}
+
+	// default values
+	float fov = 40.0f;
+	float zNear = 0.5f;
+	float zFar = 1000.0f;
+	float aspect = 16.0f / 9.0f;
+	float velocity = 0.1f;
+
+	CameraType type = CameraType::FirstPerson;
+
+	OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
+	OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
+};
+
+// classes for event types
+struct MouseButtonEvent : public Event
+{
+};
+
+struct KeyboardPressEvent : public Event
+{
+	bool isMovingLeft = false;
+	bool isMovingRight = false;
+	bool isMovingForward = false;
+	bool isMovingBackward = false;
+};
+
+struct MouseMoveEvent : public Event
+{
+	MouseMoveEvent()
+	{
+	}
+
+	MouseMoveEvent(double x, double y)
+	    : xpos(x)
+	    , ypos(y)
+	{
+	}
+
+	double xpos = 0.0;
+	double ypos = 0.0;
+};
+
+class CameraManager : public ManagerBase
+{
+
+public:
+	// data that will be used by shaders
+	struct CameraBufferInfo
+	{
+		// not everything in this buffer needs to be declarded in the shader but must be in this order
+		OEMaths::mat4f mvp;
+
+		// in case we need individual matrices
+		OEMaths::mat4f projection;
+		OEMaths::mat4f view;
+		OEMaths::mat4f model;
+
+		OEMaths::vec3f cameraPosition;
+		float pad0;
+
+		// static stuff at the end
+		float zNear;
+		float zFar;
 	};
 
-	struct KeyboardPressEvent : public Event
+	CameraManager(float sensitivity);
+	~CameraManager();
+
+	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
+	                 ComponentInterface *componentInterface) override;
+
+	void updateCameraRotation();
+	void updateViewMatrix();
+
+	// event functions
+	void keyboardPressEvent(KeyboardPressEvent &event);
+	void mouseMoveEvent(MouseMoveEvent &event);
+
+	void addCamera(OEMaths::vec3f &startPosition, float fov, float zNear, float zFar, float aspect,
+	               float velocity, Camera::CameraType _type);
+
+	float getZNear() const
 	{
-		bool isMovingLeft = false;
-		bool isMovingRight = false;
-		bool isMovingForward = false;
-		bool isMovingBackward = false;
-	};
+		return cameras[cameraIndex].zNear;
+	}
 
-	struct MouseMoveEvent : public Event
+	float getZFar() const
 	{
-		MouseMoveEvent() {}
-		
-		MouseMoveEvent(double x, double y) :
-			xpos(x), ypos(y)
-		{}
+		return cameras[cameraIndex].zFar;
+	}
 
-		double xpos = 0.0;
-		double ypos = 0.0;
-	};
+private:
+	// all the cameras that had been added to the manager
+	std::vector<Camera> cameras;
 
-	class CameraManager : public ManagerBase
-	{
+	// current camera
+	uint32_t cameraIndex;
 
-	public:
+	// data calculated using the currently selected camera
+	OEMaths::mat4f currentProjMatrix;
+	OEMaths::mat4f currentViewMatrix;
+	OEMaths::mat4f currentModelMatrix;
+	OEMaths::vec3f currentPosition;
+	OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
 
-		// data that will be used by shaders
-		struct CameraBufferInfo
-		{
-			// not everything in this buffer needs to be declarded in the shader but must be in this order
-			OEMaths::mat4f mvp;
-			
-			// in case we need individual matrices
-			OEMaths::mat4f projection;
-			OEMaths::mat4f view;
-			OEMaths::mat4f model;
+	double yaw = -45.0;
+	double pitch = 0.0;
+	double currentX = 0.0;
+	double currentY = 0.0;
 
-			OEMaths::vec3f cameraPosition;
-			float pad0;
+	float mouseSensitivity;
 
-			// static stuff at the end
-			float zNear;
-			float zFar;
-		};
+	// current camera data which will be uploaded to the gpu
+	CameraBufferInfo cameraBuffer;
 
-		CameraManager(float sensitivity);
-		~CameraManager();
+	// signfies whether the camera buffer needs updating both here and on the GPU side
+	bool isDirty = true;
 
-		void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager, ComponentInterface* componentInterface) override;
+	bool firstTime = true;
+};
 
-		void updateCameraRotation();
-		void updateViewMatrix();
-
-		// event functions
-		void keyboardPressEvent(KeyboardPressEvent& event);
-		void mouseMoveEvent(MouseMoveEvent& event);
-
-		void addCamera(OEMaths::vec3f& startPosition, float fov, float zNear, float zFar, float aspect, float velocity, Camera::CameraType _type);
-
-		float getZNear() const
-		{
-			return cameras[cameraIndex].zNear;
-		}
-
-		float getZFar() const
-		{
-			return cameras[cameraIndex].zFar;
-		}
-
-	private:
-
-		// all the cameras that had been added to the manager
-		std::vector<Camera> cameras;
-
-		// current camera
-		uint32_t cameraIndex;
-
-		// data calculated using the currently selected camera
-		OEMaths::mat4f currentProjMatrix;
-		OEMaths::mat4f currentViewMatrix;
-		OEMaths::mat4f currentModelMatrix;
-		OEMaths::vec3f currentPosition;
-		OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
-
-		double yaw = -45.0;
-		double pitch = 0.0;
-		double currentX = 0.0;
-		double currentY = 0.0;
-
-		float mouseSensitivity;
-
-		// current camera data which will be uploaded to the gpu
-		CameraBufferInfo cameraBuffer;
-
-		// signfies whether the camera buffer needs updating both here and on the GPU side
-		bool isDirty = true;
-
-		bool firstTime = true;
-	};
-
-}
-
+} // namespace OmegaEngine

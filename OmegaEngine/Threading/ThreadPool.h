@@ -1,42 +1,39 @@
 #pragma once
-#include <vector>
-#include <queue>
 #include <atomic>
-#include <thread>
-#include <mutex>
-#include <shared_mutex>
 #include <functional>
+#include <mutex>
+#include <queue>
+#include <shared_mutex>
+#include <thread>
+#include <vector>
 
 namespace OmegaEngine
 {
 
-	class ThreadPool
-	{
+class ThreadPool
+{
 
-	public:
+public:
+	ThreadPool(uint8_t numThreads);
+	~ThreadPool();
 
-		ThreadPool(uint8_t numThreads);
-		~ThreadPool();
+	void submitTask(std::function<void()> func);
+	bool isFinished();
+	void waitForAll();
+	void stopThread();
 
-		void submitTask(std::function<void()> func);
-		bool isFinished();
-		void waitForAll();
-		void stopThread();
+private:
+	void worker(uint32_t thread_id);
 
-	private:
+	std::vector<std::thread> threads;
+	std::queue<std::function<void()>> tasks;
 
-		void worker(uint32_t thread_id);
+	// threading stuff
+	std::mutex mut;
+	std::atomic<bool> isComplete{ false };
+	std::atomic<int> taskCount{ 0 };
+	std::condition_variable_any cv_task;
+	std::condition_variable cv_finished;
+};
 
-		std::vector<std::thread> threads;
-		std::queue<std::function<void()> > tasks;
-
-		// threading stuff
-		std::mutex mut;
-		std::atomic<bool> isComplete{ false };
-		std::atomic<int> taskCount{ 0 };
-		std::condition_variable_any cv_task;
-		std::condition_variable cv_finished;
-
-	};
-
-}
+} // namespace OmegaEngine

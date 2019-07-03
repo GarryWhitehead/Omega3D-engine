@@ -7,31 +7,31 @@
 
 namespace OmegaEngine
 {
-	namespace Global
-	{
-		
-		struct Managers
-		{
-			EventManager* eventManager = nullptr;
-		};
+namespace Global
+{
 
-		static Managers managers;
+struct Managers
+{
+	EventManager *eventManager = nullptr;
+};
 
-		EventManager* eventManager()
-		{
-			assert(managers.eventManager != nullptr);
-			return managers.eventManager;
-		}
+static Managers managers;
 
-		void initEventManager()
-		{
-			managers.eventManager = new EventManager();
-			assert(managers.eventManager != nullptr);
-		}
-
-		void init()
-		{
-			initEventManager();
-		}
-	}
+EventManager *eventManager()
+{
+	assert(managers.eventManager != nullptr);
+	return managers.eventManager;
 }
+
+void initEventManager()
+{
+	managers.eventManager = new EventManager();
+	assert(managers.eventManager != nullptr);
+}
+
+void init()
+{
+	initEventManager();
+}
+} // namespace Global
+} // namespace OmegaEngine

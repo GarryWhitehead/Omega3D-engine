@@ -2,51 +2,51 @@
 
 namespace OEMaths
 {
-	// forward declerations
-	class vec2f;
-	class vec3f;
-	class vec4f;
-	class mat2f;
-	class mat3f;
-	class mat4f;
+// forward declerations
+class vec2f;
+class vec3f;
+class vec4f;
+class mat2f;
+class mat3f;
+class mat4f;
 
-	class vec2f
+class vec2f
+{
+public:
+	vec2f()
 	{
-	public:
+		x = 0.0f;
+		y = 0.0f;
+	}
 
-		vec2f()
-		{
-			x = 0.0f;
-			y = 0.0f;
-		}
+	vec2f(float n)
+	    : x(n)
+	    , y(n)
+	{
+	}
 
-		vec2f(float n) :
-			x(n),
-			y(n)
-		{}
+	vec2f(float in_x, float in_y)
+	    : x(in_x)
+	    , y(in_y)
+	{
+	}
 
-		vec2f(float in_x, float in_y) :
-			x(in_x),
-			y(in_y)
-		{}
+	vec2f(const float *data);
+	vec2f(const double *data);
 
-		vec2f(const float* data);
-		vec2f(const double* data);
+	float getX() const
+	{
+		return x;
+	}
 
-        float getX() const
-        {
-            return x;
-        }
+	float getY() const
+	{
+		return y;
+	}
 
-        float getY() const
-        {
-            return y;
-        }
+private:
+	float x;
+	float y;
+};
 
-    private:
-
-		float x;
-		float y;
-	};
-
-}
+} // namespace OEMaths

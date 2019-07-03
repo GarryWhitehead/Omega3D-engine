@@ -4,27 +4,24 @@
 namespace VulkanAPI
 {
 
-	class SemaphoreManager
+class SemaphoreManager
+{
+
+public:
+	SemaphoreManager(vk::Device dev);
+	~SemaphoreManager();
+
+	vk::Semaphore getSemaphore();
+	void recycle(vk::Semaphore semaphore);
+
+	void init(vk::Device dev)
 	{
+		device = dev;
+	}
 
-	public:
+private:
+	vk::Device device;
+	std::vector<vk::Semaphore> semaphores;
+};
 
-		SemaphoreManager(vk::Device dev);
-		~SemaphoreManager();
-
-		vk::Semaphore getSemaphore();
-		void recycle(vk::Semaphore semaphore);
-		
-		void init(vk::Device dev)
-		{
-			device = dev;
-		}
-
-	private:
-
-		vk::Device device;
-		std::vector<vk::Semaphore> semaphores;
-	};
-
-}
-
+} // namespace VulkanAPI

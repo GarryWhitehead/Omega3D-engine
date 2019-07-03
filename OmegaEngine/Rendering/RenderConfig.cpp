@@ -4,30 +4,29 @@
 
 namespace OmegaEngine
 {
-	
-	void RenderConfig::load()
+
+void RenderConfig::load()
+{
+	std::string json;
+	const char filename[] = "renderConfig.ini"; // probably need to check the current dir here
+	if (!FileUtil::readFileIntoBuffer(filename, json))
 	{
-		std::string json;
-		const char filename[] = "renderConfig.ini";		// probably need to check the current dir here
-		if (!FileUtil::readFileIntoBuffer(filename, json))
-		{
-			return;
-		}
+		return;
+	}
 
-		// if we cant parse the config, then go with the default values
-		rapidjson::Document doc;
-		if (doc.Parse(json.c_str()).HasParseError())
-		{
-			LOGGER_INFO("Unable to find renderConfig file. Using default settings...");
-			return;
-		}
+	// if we cant parse the config, then go with the default values
+	rapidjson::Document doc;
+	if (doc.Parse(json.c_str()).HasParseError())
+	{
+		LOGGER_INFO("Unable to find renderConfig file. Using default settings...");
+		return;
+	}
 
-		// general render settings
-		if (doc.HasMember("Renderer"))
-		{
-			int renderer = doc["Renderer"].GetInt();
-			general.renderer = static_cast<RendererType>(renderer);
-		}
-
+	// general render settings
+	if (doc.HasMember("Renderer"))
+	{
+		int renderer = doc["Renderer"].GetInt();
+		general.renderer = static_cast<RendererType>(renderer);
 	}
 }
+} // namespace OmegaEngine

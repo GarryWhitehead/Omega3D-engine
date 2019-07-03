@@ -5,7 +5,6 @@
 
 namespace StringUtil
 {
-	std::string lastPart(std::string str, char identifier);
-	std::vector<std::string> splitString(std::string str, char identifier);
-}
-
+std::string lastPart(std::string str, char identifier);
+std::vector<std::string> splitString(std::string str, char identifier);
+} // namespace StringUtil

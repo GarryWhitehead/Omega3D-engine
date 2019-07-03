@@ -4,137 +4,133 @@
 
 namespace OmegaEngine
 {
-	// forward declerations
-	class ModelTransform;
-	class ModelMesh;
-	class ModelSkin;
+// forward declerations
+class ModelTransform;
+class ModelMesh;
+class ModelSkin;
 
-	class ModelNode
+class ModelNode
+{
+
+public:
+	ModelNode();
+	~ModelNode();
+
+	void extractNodeData(tinygltf::Model &model, tinygltf::Node &gltfNode, int32_t &index);
+
+	ModelNode *getNodeRecursive(uint32_t index);
+
+	std::unique_ptr<ModelNode> &getChildNode(const uint32_t index)
 	{
+		assert(index < children.size());
+		return children[index];
+	}
 
-	public:
+	bool hasChildren() const
+	{
+		return !children.empty();
+	}
 
-		ModelNode();
-		~ModelNode();
+	uint32_t childCount() const
+	{
+		return static_cast<uint32_t>(children.size());
+	}
 
-		void extractNodeData(tinygltf::Model& model, tinygltf::Node& gltfNode, int32_t& index);
+	bool hasMesh() const
+	{
+		return mesh != nullptr;
+	}
 
-		ModelNode* getNodeRecursive(uint32_t index);
+	bool hasSkin() const
+	{
+		return skinIndex != -1;
+	}
 
-		std::unique_ptr<ModelNode>& getChildNode(const uint32_t index)
-		{
-			assert(index < children.size());
-			return children[index];
-		}
-			
-		bool hasChildren() const
-		{
-			return !children.empty();
-		}
+	bool hasTransform() const
+	{
+		return transform != nullptr;
+	}
 
-		uint32_t childCount() const
-		{
-			return static_cast<uint32_t>(children.size());
-		}
+	std::unique_ptr<ModelMesh> getMesh()
+	{
+		// Important: the caller takes ownership of the mesh data
+		return std::move(mesh);
+	}
 
-		bool hasMesh() const
-		{
-			return mesh != nullptr;
-		}
+	uint32_t getSkinIndex()
+	{
+		return skinIndex;
+	}
 
-		bool hasSkin() const
-		{
-			return skinIndex != -1;
-		}
+	std::unique_ptr<ModelTransform> getTransform()
+	{
+		// Important: the caller takes ownership of the transform data
+		return std::move(transform);
+	}
 
-		bool hasTransform() const
-		{
-			return transform != nullptr;
-		}
+	void setSkeletonRootFlag()
+	{
+		skeletonRoot = true;
+	}
 
-		std::unique_ptr<ModelMesh> getMesh()
-		{
-			// Important: the caller takes ownership of the mesh data
-			return std::move(mesh);
-		}
+	void setJoint(int32_t index)
+	{
+		joint = index;
+	}
 
-		uint32_t getSkinIndex()
-		{
-			return skinIndex;
-		}
+	int32_t getJoint() const
+	{
+		return joint;
+	}
 
-		std::unique_ptr<ModelTransform> getTransform()
-		{
-			// Important: the caller takes ownership of the transform data
-			return std::move(transform);
-		}
+	bool isSkeletonRoot() const
+	{
+		return skeletonRoot;
+	}
 
-		void setSkeletonRootFlag()
-		{
-			skeletonRoot = true;
-		}
+	bool isJoint() const
+	{
+		return joint > -1;
+	}
 
-		void setJoint(int32_t index)
-		{
-			joint = index;
-		}
+	bool hasAnimation() const
+	{
+		return !animChannelIndices.empty();
+	}
 
-		int32_t getJoint() const
-		{
-			return joint;
-		}
+	void setAnimationIndex(const uint32_t index, const uint32_t channelIndex)
+	{
+		animChannelIndices.emplace_back(channelIndex);
+		animIndex = index;
+	}
 
-		bool isSkeletonRoot() const
-		{
-			return skeletonRoot;
-		}
+	uint32_t getAnimIndex() const
+	{
+		return animIndex;
+	}
 
-		bool isJoint() const
-		{
-			return joint > -1;
-		}
+	std::vector<uint32_t> getChannelIndices()
+	{
+		return animChannelIndices;
+	}
 
-		bool hasAnimation() const
-		{
-			return !animChannelIndices.empty();
-		}
+private:
+	int32_t nodeIndex = -1;
+	int32_t skinIndex = -1;
 
-		void setAnimationIndex(const uint32_t index, const uint32_t channelIndex)
-		{
-			animChannelIndices.emplace_back(channelIndex);
-			animIndex = index;
-		}
+	std::unique_ptr<ModelTransform> transform;
+	std::unique_ptr<ModelMesh> mesh;
 
-		uint32_t getAnimIndex() const
-		{
-			return animIndex;
-		}
+	std::vector<std::unique_ptr<ModelNode>> children;
 
-		std::vector<uint32_t> getChannelIndices() 
-		{
-			return animChannelIndices;
-		}
+	// couple of flags regards skinning - points to the associated skin index
+	bool skeletonRoot = false;
+	int32_t joint = -1;
 
-	private:
+	// animation flag - indices required to link object with animation channel
+	// this one node could have multiple channels assocaited with it.
+	std::vector<uint32_t> animChannelIndices;
+	int32_t animIndex = -1;
+};
 
-		int32_t nodeIndex = -1;
-		int32_t skinIndex = -1;
-
-		std::unique_ptr<ModelTransform> transform;
-		std::unique_ptr<ModelMesh> mesh;
-
-		std::vector<std::unique_ptr<ModelNode> > children;
-
-		// couple of flags regards skinning - points to the associated skin index
-		bool skeletonRoot = false;
-		int32_t joint = -1;
-
-
-		// animation flag - indices required to link object with animation channel
-		// this one node could have multiple channels assocaited with it.
-		std::vector<uint32_t> animChannelIndices;
-		int32_t animIndex = -1;
-	};
-
-}
-
+} // namespace OmegaEngine

@@ -1,87 +1,85 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Swapchain.h"
 #include "VulkanAPI/Queue.h"
+#include "VulkanAPI/Swapchain.h"
 
-#include <string>
 #include <memory>
+#include <string>
 
 namespace VulkanAPI
 {
-	// forward declerations
-	class BufferManager;
-	class VkTextureManager;
-	class CommandBufferManager;
-	class Device;
-	enum class NewFrameMode;
+// forward declerations
+class BufferManager;
+class VkTextureManager;
+class CommandBufferManager;
+class Device;
+enum class NewFrameMode;
 
-	class Interface
+class Interface
+{
+
+public:
+	Interface(VulkanAPI::Device &device, const uint32_t windowWidth, const uint32_t winHeight,
+	          NewFrameMode mode);
+	~Interface();
+
+	vk::Device &getDevice()
 	{
+		return device;
+	}
 
-	public:
+	vk::PhysicalDevice &getGpu()
+	{
+		return gpu;
+	}
 
-		Interface(VulkanAPI::Device& device, const uint32_t windowWidth, const uint32_t winHeight, NewFrameMode mode);
-		~Interface();
+	Queue &getGraphicsQueue()
+	{
+		return graphicsQueue;
+	}
 
-		vk::Device& getDevice()
-		{
-			return device;
-		}
+	Queue &getPresentionQueue()
+	{
+		return presentionQueue;
+	}
 
-		vk::PhysicalDevice& getGpu()
-		{
-			return gpu;
-		}
+	Swapchain &getSwapchain()
+	{
+		return swapchainKhr;
+	}
 
-		Queue& getGraphicsQueue()
-		{
-			return graphicsQueue;
-		}
+	std::unique_ptr<BufferManager> &getBufferManager()
+	{
+		return bufferManager;
+	}
 
-		Queue& getPresentionQueue()
-		{
-			return presentionQueue;
-		}
+	std::unique_ptr<VkTextureManager> &gettextureManager()
+	{
+		return textureManager;
+	}
 
-		Swapchain& getSwapchain()
-		{
-			return swapchainKhr;
-		}
+	std::unique_ptr<CommandBufferManager> &getCmdBufferManager()
+	{
+		return cmdBufferManager;
+	}
 
-		std::unique_ptr<BufferManager>& getBufferManager()
-		{
-			return bufferManager;
-		}
+private:
+	vk::Device device;
+	vk::PhysicalDevice gpu;
 
-		std::unique_ptr<VkTextureManager>& gettextureManager()
-		{
-			return textureManager;
-		}
+	// queues associated with this device
+	Queue graphicsQueue;
+	Queue presentionQueue;
+	Queue computeQueue;
 
-		std::unique_ptr<CommandBufferManager>& getCmdBufferManager()
-		{
-			return cmdBufferManager;
-		}
+	// the swap-chain
+	VulkanAPI::Swapchain swapchainKhr;
 
-	private:
+	// managers
+	std::unique_ptr<BufferManager> bufferManager;
+	std::unique_ptr<VkTextureManager> textureManager;
+	std::unique_ptr<CommandBufferManager> cmdBufferManager;
+};
 
-		vk::Device device;
-		vk::PhysicalDevice gpu;
-
-		// queues associated with this device
-		Queue graphicsQueue;
-		Queue presentionQueue;
-		Queue computeQueue;
-
-		// the swap-chain
-		VulkanAPI::Swapchain swapchainKhr;
-
-		// managers
-		std::unique_ptr<BufferManager> bufferManager;
-		std::unique_ptr<VkTextureManager> textureManager;
-		std::unique_ptr<CommandBufferManager> cmdBufferManager;
-	};
-
-}
-
+} // namespace VulkanAPI

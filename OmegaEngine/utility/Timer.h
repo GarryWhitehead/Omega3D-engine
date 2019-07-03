@@ -5,7 +5,6 @@ class Timer
 {
 
 public:
-
 	using Time = std::chrono::high_resolution_clock::time_point;
 	using TimeMs = std::chrono::nanoseconds;
 
@@ -18,9 +17,7 @@ public:
 	TimeMs getTimeElapsed(bool reset);
 
 private:
-
 	Time current;
 
 	bool isRunning = false;
 };
-

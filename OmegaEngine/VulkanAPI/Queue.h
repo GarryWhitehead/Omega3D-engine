@@ -4,51 +4,52 @@
 namespace VulkanAPI
 {
 
-	class Queue
+class Queue
+{
+
+public:
+	Queue();
+	Queue(vk::Queue q, vk::Device dev);
+	~Queue();
+
+	void submitCmdBuffer(std::vector<vk::CommandBuffer> &cmdBuffer,
+	                     std::vector<vk::Semaphore> &waitSemaphores,
+	                     std::vector<vk::Semaphore> &signalSemaphores,
+	                     vk::PipelineStageFlags *stageFlags = nullptr);
+	void submitCmdBuffer(vk::CommandBuffer &cmdBuffer, vk::Semaphore &waitSemaphore,
+	                     vk::Semaphore &signalSemaphore, vk::Fence &fence);
+	void flushCmdBuffer(vk::CommandBuffer cmdBuffer);
+
+	void create(vk::Queue &q, vk::Device &dev, const uint32_t queueIndex)
 	{
+		assert(q);
+		queue = q;
+		device = dev;
+		queueFamilyIndex = queueIndex;
+	}
 
-	public:
+	void setSwapchain(vk::SwapchainKHR &sc)
+	{
+		assert(sc);
+		swapchain = sc;
+	}
 
-		Queue();
-		Queue(vk::Queue q, vk::Device dev);
-		~Queue();
+	vk::Queue &get()
+	{
+		return queue;
+	}
 
-		void submitCmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffer, std::vector<vk::Semaphore>& waitSemaphores, std::vector<vk::Semaphore>& signalSemaphores, vk::PipelineStageFlags* stageFlags = nullptr);
-		void submitCmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence);
-		void flushCmdBuffer(vk::CommandBuffer cmdBuffer);
+	uint32_t getIndex() const
+	{
+		return queueFamilyIndex;
+	}
 
-		void create(vk::Queue& q, vk::Device& dev, const uint32_t queueIndex)
-		{
-			assert(q);
-			queue = q;
-			device = dev;
-			queueFamilyIndex = queueIndex;
-		}
+private:
+	vk::Device device;
+	vk::Queue queue;
+	vk::SwapchainKHR swapchain;
 
-		void setSwapchain(vk::SwapchainKHR& sc)
-		{
-			assert(sc);
-			swapchain = sc;
-		}
+	uint32_t queueFamilyIndex = 0;
+};
 
-		vk::Queue& get()
-		{
-			return queue;
-		}
-
-		uint32_t getIndex() const
-		{
-			return queueFamilyIndex;
-		}
-
-	private:
-
-		vk::Device device;
-		vk::Queue queue;
-		vk::SwapchainKHR swapchain;
-
-		uint32_t queueFamilyIndex = 0;
-	};
-
-}
-
+} // namespace VulkanAPI
