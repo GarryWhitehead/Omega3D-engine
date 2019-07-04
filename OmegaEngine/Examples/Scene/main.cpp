@@ -40,6 +40,10 @@ int main(int argc, char *argv[])
 		//object->addComponent<MaterialComponent>(material);
 	}
 
+	// adding stock models to the scene
+	auto object = world->createObject();
+	object->addComponent<ModelComponent>(Model::Sphere);
+
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
 

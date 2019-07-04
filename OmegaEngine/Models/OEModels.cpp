@@ -1,14 +1,14 @@
-#include "StockModels.h"
+#include "OEModels.h"
 #include "Engine/Omega_Global.h"
 #include "Managers/EventManager.h"
 #include "VulkanAPI/BufferManager.h"
 
 namespace OmegaEngine
 {
-namespace RenderUtil
+namespace Models
 {
 
-CubeModel::CubeModel()
+Cube::Cube()
 {
 	// vertex data
 	VulkanAPI::BufferUpdateEvent vertexEvent{ "CubeModelVertices", vertices.data(),
@@ -23,11 +23,11 @@ CubeModel::CubeModel()
 	Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
 }
 
-CubeModel::~CubeModel()
+Cube::~Cube()
 {
 }
 
-PlaneModel::PlaneModel(const uint32_t patchSize, const float uvFactor)
+Plane::Plane(const uint32_t patchSize, const float uvFactor)
 {
 	const float widthX = 3.0f;
 	const float widthY = 3.0f;
@@ -69,7 +69,7 @@ PlaneModel::PlaneModel(const uint32_t patchSize, const float uvFactor)
 	}
 }
 
-SphereModel::SphereModel(const uint32_t density)
+Sphere::Sphere(const uint32_t density)
 {
 	mesh.positions.reserve(6 * density * density);
 	mesh.uvs.reserve(6 * density * density);
@@ -126,5 +126,5 @@ SphereModel::SphereModel(const uint32_t density)
 	}
 }
 
-} // namespace RenderUtil
+} // namespace Models
 } // namespace OmegaEngine

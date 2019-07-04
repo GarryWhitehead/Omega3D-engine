@@ -2,17 +2,23 @@
 
 #include "OEMaths/OEMaths.h"
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/MemoryAllocator.h"
 
 #include <array>
 #include <cstdint>
 
 namespace OmegaEngine
 {
-namespace RenderUtil
+namespace Models
 {
 
-class CubeModel
+	enum class OEModels
+	{
+		Cube,
+	Plane,
+	Sphere
+	};
+
+class Cube
 {
 public:
 	static constexpr uint32_t indicesSize = 36;
@@ -41,11 +47,11 @@ public:
 		                                       3, 2, 6, 6, 7, 3
 	};
 
-	CubeModel();
-	~CubeModel();
+	Cube();
+	~Cube();
 };
 
-class PlaneModel
+class Plane
 {
 public:
 	struct PlaneMesh
@@ -61,14 +67,14 @@ public:
 		std::vector<uint32_t> indices;
 	};
 
-	PlaneModel(const uint32_t patchSize, const float uvFactor);
+	Plane(const uint32_t patchSize, const float uvFactor);
 
 	// TODO: destructor should remove buffers from buffer manager
 
 	PlaneMesh mesh;
 };
 
-class SphereModel
+class Sphere
 {
 public:
 	struct SphereMesh
@@ -78,10 +84,11 @@ public:
 		std::vector<uint32_t> indices;
 	};
 
-	SphereModel(const uint32_t density);
+	Sphere(const uint32_t density);
 
 private:
 	SphereMesh mesh;
 };
-} // namespace RenderUtil
+
+} // namespace Models
 } // namespace OmegaEngine

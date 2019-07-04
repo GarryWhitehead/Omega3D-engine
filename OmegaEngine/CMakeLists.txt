@@ -122,6 +122,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Engine/Omega_Global.h Engine/Omega_Global.cpp
 	Engine/Omega_SceneParser.cpp Engine/Omega_SceneParser.h
 	Engine/World.cpp Engine/World.h
+	Engine/Omega_Common.h
 	
 	Image/KtxReader.cpp Image/KtxReader.h
 
@@ -142,6 +143,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/ModelNode.cpp Models/ModelNode.h
 	Models/ModelSkin.cpp Models/ModelSkin.h
 	Models/ModelTransform.cpp Models/ModelTransform.h
+	Models/OEModels.cpp Models/OEModels.h
 	
 	ObjectInterface/ComponentInterface.cpp ObjectInterface/ComponentInterface.h
 	ObjectInterface/Object.cpp ObjectInterface/Object.h
@@ -165,7 +167,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderInterface.cpp Rendering/RenderInterface.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
-	Rendering/StockModels.cpp Rendering/StockModels.h
 	Rendering/RenderableTypes/Mesh.cpp Rendering/RenderableTypes/Mesh.h
 	Rendering/RenderableTypes/Shadow.cpp Rendering/RenderableTypes/Shadow.h
 	Rendering/RenderableTypes/Skybox.cpp Rendering/RenderableTypes/Skybox.h
@@ -203,8 +204,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
 	VulkanAPI/VkTextureManager.cpp VulkanAPI/VkTextureManager.h
-	
-	Omega_Common.h
 )
 
 IF(ASSETS_DIR)
