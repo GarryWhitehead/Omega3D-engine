@@ -116,7 +116,16 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 		parentId = parentObject->getParent();
 	}
 
-	return mat;
+	// the root object should contain the world transform
+	OEMaths::mat4f world;
+	if (obj.hasComponent<WorldTransformComponent>())
+	{
+		auto component = obj.getComponent<WorldTransformComponent>();
+		OEMaths::mat4f rot = OEMaths::mat4f(component.rotation);
+		world = OEMaths::mat4f::translate(component.translation) * rot *
+		        OEMaths::mat4f::scale(component.scale);
+	}
+	return mat * world;
 }
 
 void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &objectManager,
@@ -137,8 +146,7 @@ void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &
 		transformComponent.dynamicUboOffset = transformBufferSize * transformAlignment;
 
 		mat = updateMatrixFromTree(obj, objectManager);
-		transformBuffer->modelMatrix =
-		    mat * OEMaths::mat4f::scale(OEMaths::vec3f{ 3.0f, 3.0f, 3.0f });
+		transformBuffer->modelMatrix = mat;
 
 		++transformBufferSize;
 

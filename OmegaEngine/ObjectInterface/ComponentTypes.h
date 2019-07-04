@@ -11,6 +11,7 @@ namespace OmegaEngine
 {
 enum class ComponentType
 {
+	WorldTransform,
 	Transform,
 	Mesh,
 	Material,
@@ -47,13 +48,14 @@ struct WorldTransformComponent : public ComponentBase
 	{
 	}
 
-	WorldTransformComponent(uint32_t _index)
-	    : index(_index)
-	    , ComponentBase(ComponentType::Mesh)
+	WorldTransformComponent(const OEMaths::vec3f& t, const OEMaths::vec3f& s,
+	                        const OEMaths::quatf& r)
+	    : translation(t)
+	    , scale(s), 
+		rotation(r)
+	    , ComponentBase(ComponentType::WorldTransform)
 	{
 	}
-
-	uint32_t index = 0;
 
 	OEMaths::vec3f translation;
 	OEMaths::vec3f scale;

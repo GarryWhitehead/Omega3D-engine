@@ -132,9 +132,13 @@ void World::create(const std::string &name)
 	// an empty world, so not much to do for now!
 }
 
-Object *World::createObject()
+Object *World::createObject(const OEMaths::vec3f &position, const OEMaths::vec3f &scale,
+                            const OEMaths::quatf &rotation)
 {
 	auto object = objectManager->createObject();
+
+	// all root objects have the world transform
+	object->addComponent<WorldTransformComponent>(position, scale, rotation);
 
 	// add object to queue for updating its components with the relevant managers
 	componentInterface->addObjectToUpdateQueue(object);
@@ -212,52 +216,27 @@ void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode> &node, Obj
 	}
 }
 
-Object *World::createGltfModelObject(std::unique_ptr<GltfModel::Model> &model, bool useMaterial)
-{
-	if (model->nodes.size() > 1)
-	{
-		LOGGER_INFO("This model contains multiple nodes. You should call "
-		            "*createGroupedGltfModelObject* instead\n");
-	}
-
-	uint32_t materialOffset, skinOffset, animationOffset;
-
-	extractGltfModelAssets(model, materialOffset, skinOffset, animationOffset);
-
-	// Now to create the object and add the relevant components
-	auto object = this->createObject();
-
-	for (auto &node : model->nodes)
-	{
-		this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset,
-		                                     animationOffset);
-	}
-
-	return object;
-}
-
-GroupedHandle World::createGroupedGltfModelObject(std::unique_ptr<GltfModel::Model> &model,
-                                                  bool useMaterial, OEMaths::vec3f &translation,
-                                                  OEMaths::vec3f &scale, OEMaths::quatf &rotation)
+Object *World::createGltfModelObject(std::unique_ptr<GltfModel::Model> &model, const OEMaths::vec3f& position, const OEMaths::vec3f& scale, const OEMaths::quatf& rotation, bool useMaterial)
 {
 	uint32_t materialOffset, skinOffset, animationOffset;
 
 	extractGltfModelAssets(model, materialOffset, skinOffset, animationOffset);
 
 	// Now to create the object and add the relevant components
-	GroupedHandle handle = objectManager->createGroupedObject(translation, scale, rotation);
+	// The layout of objects for gltf models is that the root contains the world transform and
+	// subsequent child objects contain the nodes. Allows models to have multiple nodes but
+	// be transformed by the root world matrix
+	auto rootObject = this->createObject(position, scale, rotation);
 
 	for (auto &node : model->nodes)
 	{
-		auto object = this->createObject();
+		auto child = objectManager->createChildObject(*rootObject);
 
-		this->createGltfModelObjectRecursive(node, object, materialOffset, skinOffset,
+		this->createGltfModelObjectRecursive(node, child, materialOffset, skinOffset,
 		                                     animationOffset);
-
-		objectManager->addObjectToGroup(handle, object);
 	}
 
-	return handle;
+	return rootObject;
 }
 
 void World::addSkybox(const std::string &filename, float blurFactor)

@@ -21,16 +21,6 @@ using GroupedHandle = uint64_t;
 class ObjectManager
 {
 public:
-	struct GroupedObject
-	{
-		// this need some work - what if objects are destroyed but remain here?
-		std::vector<Object *> objects;
-
-		// world transform for all grouped objects
-		OEMaths::vec3f translation;
-		OEMaths::vec3f scale;
-		OEMaths::quatf rotation;
-	};
 
 	ObjectManager();
 	~ObjectManager();
@@ -39,11 +29,6 @@ public:
 	Object *createObject();
 	Object *createChildObject(Object &parentObj);
 	void destroyObject(Object &obj);
-
-	// grouped objects
-	GroupedHandle createGroupedObject(OEMaths::vec3f &translation, OEMaths::vec3f &scale,
-	                                  OEMaths::quatf &rotation);
-	void addObjectToGroup(const GroupedHandle handle, Object *object);
 
 	// templated functions
 	Object *getObjectRecursive(uint64_t id, Object &parent)
@@ -98,8 +83,6 @@ private:
 	// this is an unordered map so we can quickly find objects based on their id. Saves having to iterate through a vector which
 	// could be costly time-wise
 	std::unordered_map<uint64_t, Object> objects;
-
-	std::vector<std::unique_ptr<GroupedObject>> groupedObjects;
 
 	// ids of objects which has been destroyed and can be re-used
 	std::deque<uint32_t> freeIds;
