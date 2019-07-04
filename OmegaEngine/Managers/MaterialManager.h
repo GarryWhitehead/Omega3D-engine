@@ -82,6 +82,9 @@ public:
 	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
 	                 ComponentInterface *componentInterface) override;
 
+	void addComponentToManager(MaterialComponent *component,
+	                           std::unique_ptr<AssetManager> &assetManager);
+
 	void addMaterial(std::unique_ptr<ModelMaterial> &material,
 	                 std::vector<std::unique_ptr<ModelImage>> &images,
 	                 std::unique_ptr<AssetManager> &assetManager);

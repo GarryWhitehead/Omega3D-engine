@@ -3,6 +3,7 @@
 #include "Managers/ManagerBase.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
+#include "Managers/MaterialManager.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "ObjectInterface/Object.h"
 
@@ -37,6 +38,8 @@ void ComponentInterface::updateManagersRecursively(Object *object)
 	}
 	if (object->hasComponent<MaterialComponent>())
 	{
+		auto &manager = getManager<MaterialManager>();
+		manager.addComponentToManager(&object->getComponent<MaterialComponent>());
 	}
 	if (object->hasComponent<SkinnedComponent>())
 	{

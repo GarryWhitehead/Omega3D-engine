@@ -144,6 +144,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/ModelSkin.cpp Models/ModelSkin.h
 	Models/ModelTransform.cpp Models/ModelTransform.h
 	Models/OEModels.cpp Models/OEModels.h
+	Models/OEMaterials.h
 	
 	ObjectInterface/ComponentInterface.cpp ObjectInterface/ComponentInterface.h
 	ObjectInterface/Object.cpp ObjectInterface/Object.h

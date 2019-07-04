@@ -103,6 +103,6 @@ public:
 
 private:
 	Material material;
-};
+}; // namespace OEMaterials
 
 } // namespace OmegaEngine

@@ -2,6 +2,7 @@
 #include "Models/GltfModel.h"
 #include "Models/ModelMesh.h"
 #include "OEMaths/OEMaths.h"
+#include "models/OEModels.h"
 
 #include <cstdint>
 #include <memory>
@@ -18,7 +19,8 @@ enum class ComponentType
 	Skybox,
 	ShadowMap,
 	Skeleton,
-	Joint
+	Joint,
+	OEModel
 };
 
 struct ComponentBase
@@ -123,12 +125,27 @@ struct SkeletonComponent : public ComponentBase
 
 struct MaterialComponent : public ComponentBase
 {
-	MaterialComponent(uint32_t _offset)
-	    : offset(_offset)
+	MaterialComponent(const std::string _name, const OEMaths::vec3f &_specular,
+	                  const OEMaths::vec3f &_diffuse, OEMaths::vec4f &_baseColour,
+	                  const float _roughness, const float _metallic)
+	    : name(_name)
+	    , specular(_specular)
+	    , diffuse(_diffuse)
+	    , baseColour(_baseColour)
+	    , roughness(_roughness)
+	    , metallic(_metallic)
 	    , ComponentBase(ComponentType::Material)
 	{
 	}
 
+	std::string name;
+	OEMaths::vec3f specular;
+	OEMaths::vec3f diffuse;
+	OEMaths::vec4f baseColour;
+	OEMaths::vec3f emissive;
+	float roughness = 0.0f;
+	float metallic = 0.0f;
+	
 	uint32_t offset = 0;
 };
 
@@ -174,4 +191,16 @@ struct ShadowComponent : public ComponentBase
 	float biasConstant = 0.0f;
 	float biasSlope = 0.0f;
 };
+
+struct OEModelComponent : public ComponentBase
+{
+	OEModelComponent(Models::OEModels modelType)
+	    : type(modelType)
+	    , ComponentBase(ComponentType::OEModel)
+	{
+	}
+
+	Models::OEModels type;
+};
+
 } // namespace OmegaEngine

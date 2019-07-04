@@ -11,12 +11,12 @@ namespace OmegaEngine
 namespace Models
 {
 
-	enum class OEModels
-	{
-		Cube,
+enum class OEModels
+{
+	Cube,
 	Plane,
 	Sphere
-	};
+};
 
 class Cube
 {

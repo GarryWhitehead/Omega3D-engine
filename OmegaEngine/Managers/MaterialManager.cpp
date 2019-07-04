@@ -24,6 +24,41 @@ MaterialInfo &MaterialManager::get(uint32_t index)
 	return materials[index];
 }
 
+void MaterialManager::addComponentToManager(MaterialComponent *component,
+                                            std::unique_ptr<AssetManager> &assetManager)
+{
+	MaterialInfo newMaterial;
+	newMaterial.name = component->name;
+
+	// important that the name is valid as this is used to trace textures in the vulkan backend
+	assert(!newMaterial.name.empty() || newMaterial.name != "");
+
+	newMaterial.factors.baseColour = component->baseColour;
+	newMaterial.factors.diffuse = OEMaths::vec4f(component->diffuse, 1.0f);
+	newMaterial.factors.emissive = component->emissive;
+	newMaterial.factors.metallic = component->metallic;
+	newMaterial.factors.roughness = component->roughness;
+	newMaterial.factors.specular = component->specular;
+
+	// only opaque supported for user-defined materials at the moment
+	newMaterial.alphaMask = MaterialInfo::AlphaMode::Opaque;
+
+	// TODO : this needs looking at, possiblr decoupling from materials. Textures should be a separate component and linked via name
+	// or offset. For now, just use dummy textures
+	for (uint32_t i = 0; i < (int)ModelMaterial::TextureId::Count; ++i)
+	{
+		
+			MappedTexture dummyTexture;
+			dummyTexture.createEmptyTexture(1024, 1024, TextureFormat::Image8UC4, true);
+			assetManager->addImage(dummyTexture, AssetManager::materialIdentifier +
+			                                         newMaterial.name + '_' +
+			                                         std::get<0>(textureExtensions[i]));
+	}
+
+	materials.emplace_back(newMaterial);
+	component->offset = materials.size() - 1;
+}
+
 void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
                                   std::vector<std::unique_ptr<ModelImage>> &images,
                                   std::unique_ptr<AssetManager> &assetManager)
