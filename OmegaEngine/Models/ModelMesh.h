@@ -9,8 +9,8 @@ namespace OmegaEngine
 
 class ModelMesh
 {
-
 public:
+
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -34,8 +34,7 @@ public:
 
 	struct Primitive
 	{
-		Primitive(uint32_t offset, uint32_t size, OEMaths::vec3f min, OEMaths::vec3f max,
-		          uint32_t matId)
+		Primitive(uint32_t offset, uint32_t size, uint32_t matId)
 		    : indexBase(offset)
 		    , indexCount(size)
 		    , materialId(matId)
@@ -54,7 +53,11 @@ public:
 	ModelMesh();
 	~ModelMesh();
 
-	void ModelMesh::extractMeshData(tinygltf::Model &model, tinygltf::Node &node);
+	void generatePlaneMesh(const uint32_t size, const uint32_t uvFactor);
+	void generateSphereMesh(const uint32_t density);
+	void generateCubeMesh(const OEMaths::vec3f &size);
+
+	void extractGltfMeshData(tinygltf::Model &model, tinygltf::Node &node);
 
 	template <typename T>
 	void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView,

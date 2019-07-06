@@ -74,12 +74,12 @@ public:
 		// does the event type exsist?
 		if (iter != eventQueue.end())
 		{
-			iter->second.events.emplace_back(new EventType(std::forward<Args>(args)...));
+			iter->second.events.push_back(new EventType(std::forward<Args>(args)...));
 		}
 	}
 
 	template <typename EventType>
-	void instantNotification(EventType event)
+	void instantNotification(EventType& event)
 	{
 		// find all listeners that are registered with this event type
 		uint64_t type = Util::TypeId<EventType>::id();

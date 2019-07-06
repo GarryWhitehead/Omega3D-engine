@@ -156,7 +156,7 @@ void World::extractGltfModelAssets(std::unique_ptr<GltfModel::Model> &model,
 
 	for (auto &material : model->materials)
 	{
-		materialManager.addMaterial(material, model->images, assetManager);
+		materialManager.addMaterial(material, model->images);
 	}
 
 	// skins

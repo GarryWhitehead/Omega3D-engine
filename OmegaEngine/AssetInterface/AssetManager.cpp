@@ -14,10 +14,24 @@ namespace OmegaEngine
 
 AssetManager::AssetManager()
 {
+	OmegaEngine::Global::eventManager()
+	    ->registerListener<AssetManager, AssetImageUpdateEvent, &AssetManager::updateImage>(this);
+	OmegaEngine::Global::eventManager()
+	    ->registerListener<AssetManager, AssetGltfImageUpdateEvent, &AssetManager::updateGltfImage>(this);
 }
 
 AssetManager::~AssetManager()
 {
+}
+
+void AssetManager::updateImage(AssetImageUpdateEvent &event)
+{
+	addImage(event.texture, event.samplerType, event.id);
+}
+
+void AssetManager::updateGltfImage(AssetGltfImageUpdateEvent &event)
+{
+	addImage(event.image, event.id);
 }
 
 void AssetManager::addImage(std::unique_ptr<ModelImage> &image, std::string id)
@@ -47,6 +61,16 @@ void AssetManager::addImage(MappedTexture &texture, std::string id)
 	TextureAssetInfo assetInfo;
 	assetInfo.texture = std::move(texture);
 	assetInfo.samplerType = VulkanAPI::Sampler::getDefaultSampler();
+
+	images.emplace(id, std::move(assetInfo));
+	isDirty = true;
+}
+
+void AssetManager::addImage(MappedTexture &texture, VulkanAPI::SamplerType& samplerType, std::string id)
+{
+	TextureAssetInfo assetInfo;
+	assetInfo.texture = std::move(texture);
+	assetInfo.samplerType = samplerType;
 
 	images.emplace(id, std::move(assetInfo));
 	isDirty = true;

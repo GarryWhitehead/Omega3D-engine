@@ -2,7 +2,7 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "Rendering/RenderCommon.h"
-#include "Rendering/StockModels.h"
+#include "Models/OEModels.h"
 #include "Utility/logger.h"
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/CommandBuffer.h"
@@ -247,7 +247,7 @@ void IblInterface::createSpecularMap(VulkanAPI::Interface &vkInterface)
 			                        sizeof(SpecularMapPushBlock), &pushBlock);
 
 			// draw cube into offscreen framebuffer
-			cmdBuffer.drawIndexed(RenderUtil::CubeModel::indicesSize);
+			cmdBuffer.drawIndexed(Models::Cube::indicesSize);
 			cmdBuffer.endRenderpass();
 
 			// copy the offscreen buffer to the current face
@@ -392,7 +392,7 @@ void IblInterface::createIrradianceMap(VulkanAPI::Interface &vkInterface)
 			                        sizeof(OEMaths::mat4f), &mvp);
 
 			// draw cube into offscreen framebuffer
-			cmdBuffer.drawIndexed(RenderUtil::CubeModel::indicesSize);
+			cmdBuffer.drawIndexed(Models::Cube::indicesSize);
 			cmdBuffer.endRenderpass();
 
 			// copy the offscreen buffer to the current face

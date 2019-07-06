@@ -2,7 +2,7 @@
 #include "RenderableTypes/RenderableBase.h"
 #include "Rendering/RenderConfig.h"
 #include "Rendering/Renderers/RendererBase.h"
-#include "Rendering/StockModels.h"
+#include "Models/OEModels.h"
 
 #include <functional>
 #include <memory>
@@ -137,8 +137,8 @@ private:
 	std::array<std::unique_ptr<ProgramState>, (int)OmegaEngine::RenderTypes::Count> renderStates;
 
 	// stock models
-	std::unique_ptr<RenderUtil::CubeModel> cubeModel;
-	std::unique_ptr<RenderUtil::PlaneModel> planeModel;
+	std::unique_ptr<Models::Cube> cubeModel;
+	std::unique_ptr<Models::Plane> planeModel;
 };
 
 } // namespace OmegaEngine

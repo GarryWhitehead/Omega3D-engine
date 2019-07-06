@@ -15,7 +15,6 @@ namespace OmegaEngine
 class TextureManager;
 class ModelMaterial;
 class ModelImage;
-class AssetManager;
 
 struct MaterialInfo
 {
@@ -82,12 +81,10 @@ public:
 	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
 	                 ComponentInterface *componentInterface) override;
 
-	void addComponentToManager(MaterialComponent *component,
-	                           std::unique_ptr<AssetManager> &assetManager);
+	void addComponentToManager(MaterialComponent *component);
 
 	void addMaterial(std::unique_ptr<ModelMaterial> &material,
-	                 std::vector<std::unique_ptr<ModelImage>> &images,
-	                 std::unique_ptr<AssetManager> &assetManager);
+	                 std::vector<std::unique_ptr<ModelImage>> &images);
 	MaterialInfo &get(uint32_t index);
 
 	uint32_t getBufferOffset() const

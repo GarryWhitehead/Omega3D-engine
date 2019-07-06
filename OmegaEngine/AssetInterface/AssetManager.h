@@ -2,7 +2,9 @@
 
 #include "AssetInterface/MappedTexture.h"
 #include "Image/KtxReader.h"
+#include "Managers/EventManager.h"
 #include "VulkanAPI/Sampler.h"
+#include "models/ModelImage.h"
 
 #include <memory>
 #include <string>
@@ -13,6 +15,45 @@ namespace OmegaEngine
 // forward declerations
 class ModelImage;
 class ComponentInterface;
+
+struct AssetImageUpdateEvent : public OmegaEngine::Event
+{
+	AssetImageUpdateEvent(std::string _id, VulkanAPI::SamplerType type, MappedTexture tex)
+	    : id(_id)
+	    , samplerType(type)
+	    , texture(tex)
+	{
+	}
+	AssetImageUpdateEvent(std::string _id, MappedTexture tex)
+	    : id(_id)
+	    , texture(tex)
+	{
+	}
+	AssetImageUpdateEvent()
+	{
+	}
+
+	std::string id;
+	VulkanAPI::SamplerType samplerType = VulkanAPI::SamplerType::LinearClamp;
+	MappedTexture texture;
+};
+
+struct AssetGltfImageUpdateEvent : public OmegaEngine::Event
+{
+	AssetGltfImageUpdateEvent(std::string _id, std::unique_ptr<ModelImage> &_image)
+	    : id(_id)
+	    , image(std::move(_image))
+
+	{
+	}
+
+	AssetGltfImageUpdateEvent()
+	{
+	}
+
+	std::string id;
+	std::unique_ptr<ModelImage> image;
+};
 
 class AssetManager
 {
@@ -30,6 +71,10 @@ public:
 	AssetManager();
 	~AssetManager();
 
+	void updateImage(AssetImageUpdateEvent& event);
+	void updateGltfImage(AssetGltfImageUpdateEvent &event);
+
+	void addImage(MappedTexture &texture, VulkanAPI::SamplerType &samplerType, std::string id);
 	void addImage(std::unique_ptr<ModelImage> &image, std::string id);
 	void addImage(MappedTexture &texture, std::string id);
 

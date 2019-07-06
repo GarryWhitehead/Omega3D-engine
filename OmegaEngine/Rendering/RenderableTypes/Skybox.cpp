@@ -5,7 +5,7 @@
 #include "VulkanAPI/DataTypes/Texture.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/StockModels.h"
+#include "Models/OEModels.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
@@ -30,7 +30,7 @@ namespace OmegaEngine
 		
 		skyboxInstance->vertexBuffer = bufferManager->getBuffer("CubeModelVertices");
 		skyboxInstance->indexBuffer = bufferManager->getBuffer("CubeModelIndices");
-		skyboxInstance->indexCount = RenderUtil::CubeModel::indicesSize;
+		skyboxInstance->indexCount = Models::Cube::indicesSize;
 	}
 
 	RenderableSkybox::~RenderableSkybox()

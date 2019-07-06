@@ -24,8 +24,7 @@ MaterialInfo &MaterialManager::get(uint32_t index)
 	return materials[index];
 }
 
-void MaterialManager::addComponentToManager(MaterialComponent *component,
-                                            std::unique_ptr<AssetManager> &assetManager)
+void MaterialManager::addComponentToManager(MaterialComponent *component)
 {
 	MaterialInfo newMaterial;
 	newMaterial.name = component->name;
@@ -50,9 +49,11 @@ void MaterialManager::addComponentToManager(MaterialComponent *component,
 		
 			MappedTexture dummyTexture;
 			dummyTexture.createEmptyTexture(1024, 1024, TextureFormat::Image8UC4, true);
-			assetManager->addImage(dummyTexture, AssetManager::materialIdentifier +
-			                                         newMaterial.name + '_' +
-			                                         std::get<0>(textureExtensions[i]));
+		    std::string matId = AssetManager::materialIdentifier + newMaterial.name + '_' +
+		                        std::get<0>(textureExtensions[i]);
+
+		    AssetImageUpdateEvent event{ matId, dummyTexture };
+		    Global::eventManager()->instantNotification(std::move(event));
 	}
 
 	materials.emplace_back(newMaterial);
@@ -60,8 +61,7 @@ void MaterialManager::addComponentToManager(MaterialComponent *component,
 }
 
 void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
-                                  std::vector<std::unique_ptr<ModelImage>> &images,
-                                  std::unique_ptr<AssetManager> &assetManager)
+                                  std::vector<std::unique_ptr<ModelImage>> &images)
 {
 	MaterialInfo newMaterial;
 
@@ -119,17 +119,24 @@ void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
 		auto id = material->getTexture(static_cast<ModelMaterial::TextureId>(i));
 		if (id > -1)
 		{
-			assetManager->addImage(images[id], AssetManager::materialIdentifier + newMaterial.name +
-			                                       '_' + std::get<0>(textureExtensions[i]));
+			std::string matId = AssetManager::materialIdentifier + newMaterial.name +
+			                                       '_' + std::get<0>(textureExtensions[i]);
+			
+			AssetGltfImageUpdateEvent event{ matId, std::move(images[id]) };
+			Global::eventManager()->instantNotification(event);
+
 			newMaterial.hasTexture[i] = true;
 		}
 		else
 		{
 			MappedTexture dummyTexture;
 			dummyTexture.createEmptyTexture(1024, 1024, TextureFormat::Image8UC4, true);
-			assetManager->addImage(dummyTexture, AssetManager::materialIdentifier +
+			std::string matId = AssetManager::materialIdentifier +
 			                                         newMaterial.name + '_' +
-			                                         std::get<0>(textureExtensions[i]));
+			                                         std::get<0>(textureExtensions[i]);
+
+			AssetImageUpdateEvent event{ matId, dummyTexture };
+			Global::eventManager()->instantNotification(std::move(event));
 		}
 	}
 

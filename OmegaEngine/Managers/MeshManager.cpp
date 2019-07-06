@@ -92,6 +92,11 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	component->index = static_cast<uint32_t>(meshBuffer.size() - 1);
 }
 
+void MeshManager::addComponentToManager(OEModelComponent *component)
+{
+
+}
+
 void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
                               ComponentInterface *componentInterface)
 {

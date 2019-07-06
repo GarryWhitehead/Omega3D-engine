@@ -34,6 +34,10 @@ public:
 	vec2f(const float *data);
 	vec2f(const double *data);
 
+	// operator overloads
+	vec2f vec2f::operator*(const vec2f &other) const;
+	vec2f vec2f::operator*(const float &other) const;
+
 	float getX() const
 	{
 		return x;

@@ -73,8 +73,8 @@ void RenderInterface::init(std::unique_ptr<VulkanAPI::Device> &device, const uin
 	// also add stock model vertices/indices if required
 	if (renderConfig.general.useStockModels)
 	{
-		cubeModel = std::make_unique<RenderUtil::CubeModel>();
-		planeModel = std::make_unique<RenderUtil::PlaneModel>();
+		cubeModel = std::make_unique<Models::Cube>();
+		planeModel = std::make_unique<Models::Plane>();
 	}
 }
 

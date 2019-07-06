@@ -27,25 +27,14 @@ int main(int argc, char *argv[])
 		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
-		auto object = world->createGltfModelObject(model, true);
-		object->addComponent<WorldTransformComponent>();
-
-		// Use a gltf image as one of our scene objects - this has multiple nodes so create grouped object
-		//auto model = GltfModel::load("BoxAnimated/BoxAnimated.gltf");
-
-		//auto groupedHandle = world->createGroupedGltfModelObject(model, true);
-
-		// we can also use only certain attributes from the gltf model, and use other materials etc.
-		//auto material = OmegaEngine::MaterialManager::createMaterial();
-
-		//object->addComponent<MeshComponent>(model);
-		//object->addComponent<MaterialComponent>(material);
+		auto object = world->createGltfModelObject(model, OEMaths::vec3f{0.0f, 0.5f, 0.1f}, OEMaths::vec3f{1.0f}, OEMaths::quatf{0.0f}, true);
 	}
 
 	// adding stock models to the scene
-	auto object = world->createObject();
-	object->addComponent<OEModelComponent>(Models::OEModels::Sphere);
-	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{0.3f, 0.3f, 0.3f}, OEMaths::vec4f{0.5f, 0.2f, 0.0f, 1.0f}, 0.2f, 1.0f);
+	auto object = world->createObject(OEMaths::vec3f{ 0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f },
+	                                  OEMaths::quatf{ 0.0f });
+	object->addComponent<OEModelComponent>(Models::OEModels::generateSphere(30));
+	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{0.3f}, OEMaths::vec4f{0.5f, 0.2f, 0.0f, 1.0f}, 0.2f, 1.0f);
 
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
@@ -55,7 +44,7 @@ int main(int argc, char *argv[])
 
 	// add different lights
 	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f },
-	                       { 1.0f, 1.0f, 1.0f }, 50.0f, 100.0f);
+	                       { 1.0f}, 50.0f, 100.0f);
 	//world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 150.0f, 100.0f);
 	//world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
 

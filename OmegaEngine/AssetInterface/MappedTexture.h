@@ -14,8 +14,8 @@ public:
 	MappedTexture(std::string name);
 	~MappedTexture();
 
-	MappedTexture(const MappedTexture &) = delete;
-	MappedTexture &operator=(const MappedTexture &) = delete;
+	MappedTexture(const MappedTexture &other);
+	MappedTexture &operator=(const MappedTexture &other);
 	MappedTexture(MappedTexture &&other);
 	MappedTexture &operator=(MappedTexture &&other);
 

@@ -92,6 +92,7 @@ public:
 	                 ComponentInterface *componentInterface) override;
 
 	void addComponentToManager(MeshComponent *component);
+	void addComponentToManager(OEModelComponent *component);
 
 	StaticMesh &getMesh(MeshComponent &comp)
 	{

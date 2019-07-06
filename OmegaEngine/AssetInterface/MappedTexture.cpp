@@ -23,6 +23,49 @@ MappedTexture::~MappedTexture()
 	}
 }
 
+MappedTexture::MappedTexture(const MappedTexture &other)
+{
+	width = other.width;
+	height = other.height;
+	mipLevels = other.mipLevels;
+	faceCount = other.faceCount;
+	arrayCount = other.arrayCount;
+	totalSize = other.totalSize;
+	format = other.format;
+	
+	if (other.bin)
+	{
+		uint32_t copySize = width * height * 4;
+		bin = new uint8_t[copySize];
+		memcpy(bin, other.bin, copySize);
+	}
+
+}
+
+MappedTexture &MappedTexture::operator=(const MappedTexture &other)
+{
+	if (this != &other)
+	{
+		delete[] bin;
+		bin = other.bin;
+		width = other.width;
+		height = other.height;
+		mipLevels = other.mipLevels;
+		faceCount = other.faceCount;
+		arrayCount = other.arrayCount;
+		totalSize = other.totalSize;
+		format = other.format;
+
+		if (other.bin)
+		{
+			uint32_t copySize = width * height * 4;
+			bin = new uint8_t[copySize];
+			memcpy(bin, other.bin, copySize);
+		}
+	}
+	return *this;
+}
+
 MappedTexture::MappedTexture(MappedTexture &&other)
     : bin(nullptr)
 {

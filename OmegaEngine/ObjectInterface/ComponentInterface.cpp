@@ -36,6 +36,11 @@ void ComponentInterface::updateManagersRecursively(Object *object)
 		auto &manager = getManager<TransformManager>();
 		manager.addComponentToManager(&object->getComponent<TransformComponent>());
 	}
+	if (object->hasComponent<OEModelComponent>())
+	{
+		auto &manager = getManager<MeshManager>();
+		manager.addComponentToManager(&object->getComponent<OEModelComponent>());
+	}
 	if (object->hasComponent<MaterialComponent>())
 	{
 		auto &manager = getManager<MaterialManager>();
