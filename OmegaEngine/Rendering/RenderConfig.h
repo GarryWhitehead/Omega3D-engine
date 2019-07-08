@@ -23,7 +23,6 @@ struct RenderConfig
 		bool usePostProcess = false;
 		bool useSkybox = true;
 		bool sortRenderQueue = true;
-		bool useStockModels = true;
 		bool hasIblImages = false;
 
 	} general;

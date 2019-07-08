@@ -5,7 +5,9 @@
 #include "VulkanAPI/DataTypes/Texture.h"
 #include "Rendering/Renderers/RendererBase.h"
 #include "Rendering/RenderInterface.h"
-#include "Models/OEModels.h"
+#include "Engine/Omega_Global.h"
+#include "Managers/EventManager.h"
+#include "VulkanAPI/BufferManager.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "Rendering/RenderCommon.h"
 #include "Utility/logger.h"
@@ -16,6 +18,9 @@ namespace OmegaEngine
 	RenderableSkybox::RenderableSkybox(RenderInterface* renderInterface, SkyboxComponent& component, std::unique_ptr<VulkanAPI::BufferManager>& bufferManager) :
 		RenderableBase(RenderTypes::Skybox)
 	{
+	    // upload the indices and verices to the gpu. This will happen per skybox
+	    generateBuffers();
+
 		// fill out the data which will be used for rendering
 		instanceData = new SkyboxInstance;
 		SkyboxInstance* skyboxInstance = reinterpret_cast<SkyboxInstance*>(instanceData);
@@ -35,6 +40,53 @@ namespace OmegaEngine
 
 	RenderableSkybox::~RenderableSkybox()
 	{
+	}
+
+	void RenderableSkybox::generateBuffers()
+	{
+	    static constexpr uint32_t indicesSize = 36;
+	    static constexpr uint32_t verticesSize = 24;
+
+	    // cube vertices
+	    static std::array<OEMaths::vec3f, verticesSize> vertices{
+		    
+		    OEMaths::vec3f{ -1.0f, -1.0f, 1.0f },
+		    OEMaths::vec3f{ 1.0f, -1.0f, 1.0f },
+		    OEMaths::vec3f{ 1.0f, 1.0f, 1.0f },
+		    OEMaths::vec3f{ -1.0f, 1.0f, 1.0f },
+		    OEMaths::vec3f{ -1.0f, -1.0f, -1.0f },
+		    OEMaths::vec3f{ 1.0f, -1.0f, -1.0f },
+		    OEMaths::vec3f{ 1.0f, 1.0f, -1.0f },   
+			OEMaths::vec3f{ -1.0f, 1.0f, -1.0f }
+	    };
+
+	    // cube indices
+	    static std::array<uint32_t, indicesSize> indices{ 
+												   // front
+		                                           0, 1, 2, 2, 3, 0,
+		                                           // right side
+		                                           1, 5, 6, 6, 2, 1,
+		                                           // back
+		                                           7, 6, 5, 5, 4, 7,
+		                                           // left side
+		                                           4, 0, 3, 3, 7, 4,
+		                                           // bottom
+		                                           4, 5, 1, 1, 0, 4,
+		                                           // top
+		                                           3, 2, 6, 6, 7, 3
+	    };
+
+		// vertex data
+	    VulkanAPI::BufferUpdateEvent vertexEvent{ "CubeModelVertices", vertices.data(),
+		                                          vertices.size() * sizeof(OEMaths::vec3f),
+		                                          VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+	    Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(vertexEvent);
+
+	    // index data
+	    VulkanAPI::BufferUpdateEvent indexEvent{ "CubeModelIndices", indices.data(),
+		                                         indices.size() * sizeof(uint32_t),
+		                                         VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
+	    Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
 	}
 
 	void RenderableSkybox::createSkyboxPipeline(vk::Device& device,

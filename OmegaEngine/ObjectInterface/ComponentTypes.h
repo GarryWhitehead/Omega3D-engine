@@ -78,8 +78,14 @@ struct MeshComponent : public ComponentBase
 	{
 	}
 
+	MeshComponent(std::unique_ptr<ModelMesh> &_mesh)
+	    : mesh(std::move(_mesh))
+		, ComponentBase(ComponentType::Mesh)
+	{
+	}
+
 	uint32_t index = 0;
-	uint32_t materialBufferOffset = 0;
+	int32_t materialBufferOffset = -1;
 	std::unique_ptr<ModelMesh> mesh;
 };
 

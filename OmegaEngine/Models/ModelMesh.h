@@ -34,7 +34,7 @@ public:
 
 	struct Primitive
 	{
-		Primitive(uint32_t offset, uint32_t size, uint32_t matId)
+		Primitive(uint32_t offset, uint32_t size, int32_t matId)
 		    : indexBase(offset)
 		    , indexCount(size)
 		    , materialId(matId)

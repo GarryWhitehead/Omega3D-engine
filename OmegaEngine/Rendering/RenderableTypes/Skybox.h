@@ -15,7 +15,7 @@ namespace VulkanAPI
 namespace OmegaEngine
 {
 	struct SkyboxComponent;
-	
+
 	class RenderableSkybox : public RenderableBase
 	{
 
@@ -46,6 +46,8 @@ namespace OmegaEngine
 		
 		static void createSkyboxPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image, VulkanAPI::Texture& depthImage,
 			vk::Device& device, vk::PhysicalDevice& gpu, RenderConfig& renderConfig);
+
+		void generateBuffers();
 
 		// used to get the address of this instance
 		void* getHandle() override

@@ -36,15 +36,15 @@ void ComponentInterface::updateManagersRecursively(Object *object)
 		auto &manager = getManager<TransformManager>();
 		manager.addComponentToManager(&object->getComponent<TransformComponent>());
 	}
-	if (object->hasComponent<OEModelComponent>())
-	{
-		auto &manager = getManager<MeshManager>();
-		manager.addComponentToManager(&object->getComponent<OEModelComponent>());
-	}
 	if (object->hasComponent<MaterialComponent>())
 	{
-		auto &manager = getManager<MaterialManager>();
-		manager.addComponentToManager(&object->getComponent<MaterialComponent>());
+		auto &materialManager = getManager<MaterialManager>();
+		materialManager.addComponentToManager(&object->getComponent<MaterialComponent>());
+
+		// link material with mesh
+		auto &meshManager = getManager<MeshManager>();
+		meshManager.linkMaterialWithMesh(&object->getComponent<MeshComponent>(),
+										 &object->getComponent<MaterialComponent>());
 	}
 	if (object->hasComponent<SkinnedComponent>())
 	{

@@ -182,8 +182,7 @@ void ModelMesh::extractGltfMeshData(tinygltf::Model &model, tinygltf::Node &node
 			    "Unable to parse indices data. Unsupported accessor component type.");
 		}
 
-		primitives.push_back({ localIndexOffset, indexCount, primMin, primMax,
-		                       static_cast<uint32_t>(primitive.material) });
+		primitives.push_back({ localIndexOffset, indexCount, static_cast<int32_t>(primitive.material) });
 		localIndexOffset += indexCount;
 	}
 }
@@ -215,9 +214,9 @@ void ModelMesh::generatePlaneMesh(const uint32_t size, const uint32_t uvFactor)
 
 	// generate the indices for the patch quads
 	uint32_t width = size - 1;
-	uint32_t size = width * width * 4;
+	uint32_t indicesSize = width * width * 4;
 
-	indices.resize(size);
+	indices.resize(indicesSize);
 
 	for (uint32_t x = 0; x < width; ++x)
 	{
@@ -231,7 +230,7 @@ void ModelMesh::generatePlaneMesh(const uint32_t size, const uint32_t uvFactor)
 		}
 	}
 
-	primitives.push_back({ 0, indices.size(), -1 });
+	primitives.push_back({ 0, static_cast<uint32_t>(indices.size()), -1 });
 }
 
 void ModelMesh::generateSphereMesh(const uint32_t density)
@@ -288,7 +287,7 @@ void ModelMesh::generateSphereMesh(const uint32_t density)
 		}
 	}
 
-	primitives.push_back({ 0, indices.size(), -1 });
+	primitives.push_back({ 0, static_cast<uint32_t>(indices.size()), -1 });
 }
 
 void ModelMesh::generateCubeMesh(const OEMaths::vec3f& size)
@@ -299,27 +298,27 @@ void ModelMesh::generateCubeMesh(const OEMaths::vec3f& size)
 
 	// cube vertices
 	static const std::array<OEMaths::vec3f, 8> vertexData{
-		{ +x, +y, +z },
-		{ -x, +y, +z },
-		{ -x, -y, +z },
-		{ +x, -y, +z },
-		{ +x, +y, -z },
-		{ -x, +y, -z },
-		{ -x, -y, -z },
-		{ +x, -y, -z }
+		OEMaths::vec3f{ +x, +y, +z },
+		OEMaths::vec3f{ -x, +y, +z },
+		OEMaths::vec3f{ -x, -y, +z },
+		OEMaths::vec3f{ +x, -y, +z },
+		OEMaths::vec3f{ +x, +y, -z },
+		OEMaths::vec3f{ -x, +y, -z },
+		OEMaths::vec3f{ -x, -y, -z },
+		OEMaths::vec3f{ +x, -y, -z }
 	};
 
 	// cube uv
 	static const std::array<OEMaths::vec2f, 8> uvData
-	{
-			{ 1.0f, 1.0f },
-			{ 0.0f, 1.0f }, 
-			{ 0.0f, 0.0f }, 
-			{ 1.0f, 0.0f },
-			{ 0.0f, 1.0f },
-			{ 1.0f, 1.0f },
-			{ 0.0f, 0.0f },
-			{ 1.0f, 0.0f }
+	{ 
+		OEMaths::vec2f{ 1.0f, 1.0f },                                              
+		OEMaths::vec2f{ 0.0f, 1.0f }, 
+		OEMaths::vec2f{ 0.0f, 0.0f }, 
+		OEMaths::vec2f{ 1.0f, 0.0f },                                   
+		OEMaths::vec2f{ 0.0f, 1.0f },                                    
+		OEMaths::vec2f{ 1.0f, 1.0f },
+		OEMaths::vec2f{ 0.0f, 0.0f }, 
+		OEMaths::vec2f{ 1.0f, 0.0f }
 	};
 
 	// cube indices
@@ -338,7 +337,7 @@ void ModelMesh::generateCubeMesh(const OEMaths::vec3f& size)
 	};
 
 	// generate normals
-	for (int i = 0; i < 36; i += 3)
+	/*for (int i = 0; i < 36; i += 3)
 	{
 		glm::vec3 normal =
 		    glm::normalize(glm::cross(glm::vec3(verts[i + 1]) - glm::vec3(verts[i]),
@@ -347,7 +346,7 @@ void ModelMesh::generateCubeMesh(const OEMaths::vec3f& size)
 		norm[i] = normal;
 		norm[i + 1] = normal;
 		norm[i + 2] = normal;
-	}
+	}*/
 
 	for (uint32_t i = 0; i < vertexData.size(); ++i)
 	{
@@ -357,7 +356,7 @@ void ModelMesh::generateCubeMesh(const OEMaths::vec3f& size)
 		vertices.emplace_back(vertex);
 	}
 
-	primitives.push_back({ 0, indices.size(), -1 });
+	primitives.push_back({ 0, static_cast<uint32_t>(indices.size()), -1 });
 }
 
 } // namespace OmegaEngine

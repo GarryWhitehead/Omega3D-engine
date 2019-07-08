@@ -10,17 +10,7 @@ namespace Models
 
 Cube::Cube()
 {
-	// vertex data
-	VulkanAPI::BufferUpdateEvent vertexEvent{ "CubeModelVertices", vertices.data(),
-		                                      vertices.size() * sizeof(float),
-		                                      VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-	Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(vertexEvent);
-
-	// index data
-	VulkanAPI::BufferUpdateEvent indexEvent{ "CubeModelIndices", indices.data(),
-		                                     indices.size() * sizeof(uint32_t),
-		                                     VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-	Global::eventManager()->instantNotification<VulkanAPI::BufferUpdateEvent>(indexEvent);
+	
 }
 
 Cube::~Cube()

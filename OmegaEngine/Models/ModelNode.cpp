@@ -62,7 +62,7 @@ void ModelNode::extractNodeData(tinygltf::Model &model, tinygltf::Node &gltfNode
 	{
 		// index is used to determine the correct nodes for applying joint transforms, etc.
 		mesh = std::make_unique<ModelMesh>();
-		mesh->extractMeshData(model, gltfNode);
+		mesh->extractGltfMeshData(model, gltfNode);
 	}
 }
 } // namespace OmegaEngine

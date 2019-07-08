@@ -111,8 +111,11 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 	{
 		Object *parentObject = objectManager->getObject(parentId);
 
-		uint32_t parentIndex = parentObject->getComponent<TransformComponent>().index;
-		mat = transforms[parentIndex].getLocalMatrix() * mat;
+		if (parentObject->hasComponent<TransformComponent>())
+		{
+			uint32_t parentIndex = parentObject->getComponent<TransformComponent>().index;
+			mat = transforms[parentIndex].getLocalMatrix() * mat;
+		}
 		parentId = parentObject->getParent();
 	}
 

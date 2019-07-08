@@ -21,6 +21,17 @@ MeshManager::~MeshManager()
 {
 }
 
+void MeshManager::linkMaterialWithMesh(MeshComponent *meshComponent, MaterialComponent *materialComponent)
+{
+	uint32_t meshIndex = meshComponent->index;
+	
+	// for now, assume all primitives have the same material
+	for (auto& primitive : meshBuffer[meshIndex].primitives)
+	{
+		primitive.materialId = materialComponent->offset;
+	}
+}
+
 void MeshManager::addComponentToManager(MeshComponent *component)
 {
 	StaticMesh mesh;
@@ -92,10 +103,6 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	component->index = static_cast<uint32_t>(meshBuffer.size() - 1);
 }
 
-void MeshManager::addComponentToManager(OEModelComponent *component)
-{
-
-}
 
 void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
                               ComponentInterface *componentInterface)

@@ -69,13 +69,6 @@ void RenderInterface::init(std::unique_ptr<VulkanAPI::Device> &device, const uin
 
 	// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
 	vkInterface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
-
-	// also add stock model vertices/indices if required
-	if (renderConfig.general.useStockModels)
-	{
-		cubeModel = std::make_unique<Models::Cube>();
-		planeModel = std::make_unique<Models::Plane>();
-	}
 }
 
 void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface> &componentInterface)

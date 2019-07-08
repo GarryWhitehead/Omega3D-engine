@@ -33,7 +33,10 @@ int main(int argc, char *argv[])
 	// adding stock models to the scene
 	auto object = world->createObject(OEMaths::vec3f{ 0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f },
 	                                  OEMaths::quatf{ 0.0f });
-	object->addComponent<OEModelComponent>(Models::OEModels::generateSphere(30));
+	
+	auto sphere = std::make_unique<ModelMesh>();
+	sphere->generateSphereMesh(30);
+	object->addComponent<MeshComponent>(sphere);
 	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{0.3f}, OEMaths::vec4f{0.5f, 0.2f, 0.0f, 1.0f}, 0.2f, 1.0f);
 
 	// add a skybox
