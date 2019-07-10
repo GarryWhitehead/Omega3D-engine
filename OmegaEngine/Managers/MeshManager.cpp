@@ -35,10 +35,10 @@ void MeshManager::linkMaterialWithMesh(MeshComponent *meshComponent, MaterialCom
 void MeshManager::addComponentToManager(MeshComponent *component)
 {
 	StaticMesh mesh;
-	auto vertexData = component->mesh->getVertices();
+	auto vertexData = component->mesh->vertices;
 
 	// copy data from model into the manager
-	if (!component->mesh->hasSkin())
+	if (!component->mesh->skinned)
 	{
 		mesh.type = MeshType::Static;
 		mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
@@ -74,7 +74,7 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	}
 
 	// and now the indices
-	auto &modelIndices = component->mesh->getIndices();
+	auto &modelIndices = component->mesh->indices;
 
 	uint32_t indexOffset = static_cast<uint32_t>(indices.size());
 	mesh.indexBufferOffset = indexOffset;
@@ -86,7 +86,7 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	}
 
 	// and the primitive data
-	auto &modelPrimitives = component->mesh->getPrimitives();
+	auto &modelPrimitives = component->mesh->primitives;
 
 	for (auto &modelPrimitive : modelPrimitives)
 	{

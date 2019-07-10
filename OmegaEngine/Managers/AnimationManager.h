@@ -16,7 +16,7 @@ namespace OmegaEngine
 class Object;
 class TransformManager;
 class ObjectManager;
-class ModelAnimation;
+struct ModelAnimation;
 struct AnimationComponent;
 class ComponentInterface;
 

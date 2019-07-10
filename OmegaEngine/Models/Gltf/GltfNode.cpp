@@ -1,9 +1,10 @@
-#include "ModelNode.h"
-#include "Models/ModelMesh.h"
-#include "Models/ModelSkin.h"
-#include "Models/ModelTransform.h"
+#include "GltfNode.h"
+#include "Models/Gltf//GltfModel.h"
 
 namespace OmegaEngine
+{
+
+namespace GltfModel
 {
 
 ModelNode::ModelNode()
@@ -41,8 +42,7 @@ void ModelNode::extractNodeData(tinygltf::Model &model, tinygltf::Node &gltfNode
 	skinIndex = gltfNode.skin;
 
 	// add all local and world transforms to the transform manager - also combines skinning info
-	transform = std::make_unique<ModelTransform>();
-	transform->extractTransformData(gltfNode);
+	transform = std::move(Extract::transform(gltfNode));
 
 	// if this node has children, recursively extract their info
 	if (!gltfNode.children.empty())
@@ -61,8 +61,10 @@ void ModelNode::extractNodeData(tinygltf::Model &model, tinygltf::Node &gltfNode
 	if (gltfNode.mesh > -1)
 	{
 		// index is used to determine the correct nodes for applying joint transforms, etc.
-		mesh = std::make_unique<ModelMesh>();
-		mesh->extractGltfMeshData(model, gltfNode);
+		mesh = std::move(Extract::mesh(model, gltfNode));
+
 	}
 }
+
+} // namespace GltfModel
 } // namespace OmegaEngine

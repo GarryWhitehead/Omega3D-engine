@@ -1,10 +1,8 @@
 #pragma once
 
 #include "Managers/CameraManager.h"
-#include "Models/GltfModel.h"
+#include "Models/Gltf/GltfModel.h"
 #include "OEMaths/OEMaths.h"
-
-#include "tiny_gltf.h"
 
 #include <memory>
 #include <string>
@@ -92,7 +90,7 @@ public:
 	void render(double interpolation);
 
 private:
-	void createGltfModelObjectRecursive(std::unique_ptr<ModelNode> &node, Object *parentObject,
+	void createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode> &node, Object *parentObject,
 	                                    const uint32_t materialOffset, const uint32_t skinOffset,
 	                                    const uint32_t animationOffset);
 

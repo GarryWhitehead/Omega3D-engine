@@ -45,15 +45,15 @@ void TransformManager::addComponentToManager(TransformComponent *component)
 {
 	TransformData transform;
 
-	if (component->transform->hasTrsMatrix())
+	if (component->transform->hasMatrix)
 	{
-		transform.setLocalMatrix(component->transform->getMatrix());
+		transform.setLocalMatrix(component->transform->trsMatrix);
 	}
 	else
 	{
-		transform.setTranslation(component->transform->getTranslation());
-		transform.setScale(component->transform->getScale());
-		transform.setRotation(component->transform->getRotation());
+		transform.setTranslation(component->transform->translation);
+		transform.setScale(component->transform->scale);
+		transform.setRotation(component->transform->rotation);
 	}
 
 	transforms.emplace_back(transform);
@@ -88,12 +88,12 @@ void TransformManager::addSkin(std::unique_ptr<ModelSkin> &skin)
 	SkinInfo skinInfo;
 
 	// inv bind matrices are just a straight copy
-	skinInfo.jointMatrices.resize(skin->getJointCount());
-	memcpy(skinInfo.jointMatrices.data(), skin->getJointData(),
+	skinInfo.jointMatrices.resize(skin->jointMatrices.size());
+	memcpy(skinInfo.jointMatrices.data(), skin->jointMatrices.data(),
 	       skinInfo.jointMatrices.size() * sizeof(OEMaths::mat4f));
 
-	skinInfo.invBindMatrices.resize(skin->getInvBindCount());
-	memcpy(skinInfo.invBindMatrices.data(), skin->getInvBindData(),
+	skinInfo.invBindMatrices.resize(skin->invBindMatrices.size());
+	memcpy(skinInfo.invBindMatrices.data(), skin->invBindMatrices.data(),
 	       skinInfo.invBindMatrices.size() * sizeof(OEMaths::mat4f));
 
 	// rest of the skin info will be added later

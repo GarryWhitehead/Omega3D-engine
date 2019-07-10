@@ -15,7 +15,7 @@ class ObjectManager;
 class Object;
 struct TransformComponent;
 struct SkinnedComponent;
-class ModelSkin;
+struct ModelSkin;
 
 class TransformManager : public ManagerBase
 {

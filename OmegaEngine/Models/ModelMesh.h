@@ -1,16 +1,13 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
-
-#include "tiny_gltf.h"
+#include <vector>
 
 namespace OmegaEngine
 {
 
-class ModelMesh
+struct ModelMesh
 {
-public:
-
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -50,54 +47,6 @@ public:
 		uint32_t indexCount = 0;
 	};
 
-	ModelMesh();
-	~ModelMesh();
-
-	void generatePlaneMesh(const uint32_t size, const uint32_t uvFactor);
-	void generateSphereMesh(const uint32_t density);
-	void generateCubeMesh(const OEMaths::vec3f &size);
-
-	void extractGltfMeshData(tinygltf::Model &model, tinygltf::Node &node);
-
-	template <typename T>
-	void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView,
-	                  tinygltf::Buffer buffer, std::vector<uint32_t> &indiciesBuffer,
-	                  uint32_t indexStart)
-	{
-		T *buf = new T[accessor.count];
-		memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset],
-		       accessor.count * sizeof(T));
-
-		// copy the data to our indices buffer at the correct offset
-		for (uint32_t j = 0; j < accessor.count; ++j)
-		{
-			indiciesBuffer.push_back(buf[j] + indexStart);
-		}
-
-		delete buf;
-	}
-
-	std::vector<Vertex> &getVertices()
-	{
-		return vertices;
-	}
-
-	std::vector<uint32_t> &getIndices()
-	{
-		return indices;
-	}
-
-	bool hasSkin() const
-	{
-		return skinned;
-	}
-
-	std::vector<Primitive> &getPrimitives()
-	{
-		return primitives;
-	}
-
-private:
 	Dimensions totalDimensions;
 
 	std::vector<Primitive> primitives;

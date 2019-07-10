@@ -4,7 +4,7 @@
 #include "Engine/world.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
-#include "Models/GltfModel.h"
+#include "Models/Gltf/GltfModel.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "ObjectInterface/Object.h"
 #include "Models/OEModels.h"
@@ -34,9 +34,7 @@ int main(int argc, char *argv[])
 	auto object = world->createObject(OEMaths::vec3f{ 0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f },
 	                                  OEMaths::quatf{ 0.0f });
 	
-	auto sphere = std::make_unique<ModelMesh>();
-	sphere->generateSphereMesh(30);
-	object->addComponent<MeshComponent>(sphere);
+	object->addComponent<MeshComponent>(OEModels::generateSphereMesh(30));
 	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{0.3f}, OEMaths::vec4f{0.5f, 0.2f, 0.0f, 1.0f}, 0.2f, 1.0f);
 
 	// add a skybox

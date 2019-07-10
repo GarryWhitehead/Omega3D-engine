@@ -9,7 +9,7 @@
 #include "Managers/MaterialManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
-#include "Models/GltfModel.h"
+#include "Models/Gltf/GltfModel.h"
 #include "Models/ModelAnimation.h"
 #include "Models/ModelMaterial.h"
 #include "ObjectInterface/ComponentInterface.h"
@@ -178,7 +178,7 @@ void World::extractGltfModelAssets(std::unique_ptr<GltfModel::Model> &model,
 	}
 }
 
-void World::createGltfModelObjectRecursive(std::unique_ptr<ModelNode> &node, Object *parentObject,
+void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode> &node, Object *parentObject,
                                            const uint32_t materialOffset, const uint32_t skinOffset,
                                            const uint32_t animationOffset)
 {

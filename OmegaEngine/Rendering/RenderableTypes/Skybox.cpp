@@ -44,9 +44,6 @@ namespace OmegaEngine
 
 	void RenderableSkybox::generateBuffers()
 	{
-	    static constexpr uint32_t indicesSize = 36;
-	    static constexpr uint32_t verticesSize = 24;
-
 	    // cube vertices
 	    static std::array<OEMaths::vec3f, verticesSize> vertices{
 		    

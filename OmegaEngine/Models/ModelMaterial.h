@@ -8,10 +8,8 @@
 namespace OmegaEngine
 {
 
-class ModelMaterial
+struct ModelMaterial
 {
-
-public:
 	enum class TextureId
 	{
 		BaseColour,
@@ -65,44 +63,10 @@ public:
 		bool usingSpecularGlossiness = false;
 	};
 
-	ModelMaterial();
-	~ModelMaterial();
+	static int32_t getTexture(const TextureId id);
 
-	void extractMaterialData(tinygltf::Material &gltfMaterial);
-	int32_t getTexture(const TextureId id);
-
-	Material::TexCoordSets getUvSets() const
-	{
-		return material.uvSets;
-	}
-
-	Material::Factors getFactors() const
-	{
-		return material.factors;
-	}
-
-	std::string &getAlphaMask()
-	{
-		return material.factors.mask;
-	}
-
-	float getAlphaCutOff() const
-	{
-		return material.factors.alphaMaskCutOff;
-	}
-
-	std::string &getName()
-	{
-		return material.name;
-	}
-
-	bool isUsingSpecularGlossiness() const
-	{
-		return material.usingSpecularGlossiness;
-	}
-
-private:
 	Material material;
-}; // namespace OEMaterials
+
+};
 
 } // namespace OmegaEngine

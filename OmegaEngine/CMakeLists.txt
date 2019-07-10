@@ -100,13 +100,17 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Image
 	${CMAKE_CURRENT_SOURCE_DIR}/Managers
 	${CMAKE_CURRENT_SOURCE_DIR}/Models
+	${CMAKE_CURRENT_SOURCE_DIR}/Models/Gltf
 	${CMAKE_CURRENT_SOURCE_DIR}/ObjectInterface
 	${CMAKE_CURRENT_SOURCE_DIR}/OEMaths
 	${CMAKE_CURRENT_SOURCE_DIR}/PostProcess
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering
+	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/RenderableTypes
+	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Renderers
 	${CMAKE_CURRENT_SOURCE_DIR}/Threading
 	${CMAKE_CURRENT_SOURCE_DIR}/utility
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/DataTypes
 	${CMAKE_CURRENT_SOURCE_DIR}/external/Khronos
 	${CMAKE_CURRENT_SOURCE_DIR}/external/tiny-gltf
 	${CMAKE_CURRENT_SOURCE_DIR}/external/glfw/include/
@@ -135,14 +139,15 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Managers/MeshManager.cpp Managers/MeshManager.h
 	Managers/TransformManager.cpp Managers/TransformManager.h
 	
-	Models/GltfModel.cpp Models/GltfModel.h
-	Models/ModelAnimation.cpp Models/ModelAnimation.h
+	Models/Gltf/GltfModel.cpp Models/Gltf/GltfModel.h
+	Models/Gltf/GltfNode.cpp Models/Gltf/GltfNode.h
+	Models/ModelAnimation.h
 	Models/ModelImage.cpp Models/ModelImage.h
-	Models/ModelMaterial.cpp Models/ModelMaterial.h
-	Models/ModelMesh.cpp Models/ModelMesh.h
-	Models/ModelNode.cpp Models/ModelNode.h
-	Models/ModelSkin.cpp Models/ModelSkin.h
-	Models/ModelTransform.cpp Models/ModelTransform.h
+	Models/ModelMaterial.h
+	Models/ModelMesh.h
+	Models/ModelSkin.h
+	Models/ModelTransform.h
+	Models/OEModels.cpp Models/OEModels.h
 	Models/OEMaterials.h
 	
 	ObjectInterface/ComponentInterface.cpp ObjectInterface/ComponentInterface.h

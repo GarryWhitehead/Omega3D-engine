@@ -74,7 +74,7 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 	AnimationInfo animInfo;
 
 	// copy the samplers
-	for (auto &sampler : animation->getSamplers())
+	for (auto &sampler : animation->samplers)
 	{
 		Sampler newSampler;
 
@@ -107,7 +107,7 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 		animInfo.samplers.emplace_back(newSampler);
 	}
 
-	for (auto &channel : animation->getChannels())
+	for (auto &channel : animation->channels)
 	{
 		Channel newChannel;
 
@@ -136,8 +136,8 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 	}
 
 	// start and end times for this animation
-	animInfo.start = animation->getStartTime();
-	animInfo.end = animation->getEndTime();
+	animInfo.start = animation->start;
+	animInfo.end = animation->end;
 
 	animations.emplace_back(animInfo);
 }

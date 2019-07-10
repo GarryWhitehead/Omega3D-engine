@@ -1,13 +1,12 @@
 #pragma once
-
-#include "tiny_gltf.h"
+#include "Models/ModelMesh.h"
+#include "Models/ModelSkin.h"
+#include "Models/ModelTransform.h"
 
 namespace OmegaEngine
 {
-// forward declerations
-class ModelTransform;
-class ModelMesh;
-class ModelSkin;
+namespace GltfModel
+{
 
 class ModelNode
 {
@@ -62,7 +61,7 @@ public:
 		return skinIndex;
 	}
 
-	std::unique_ptr<ModelTransform> getTransform()
+	std::unique_ptr<OmegaEngine::ModelTransform> getTransform()
 	{
 		// Important: the caller takes ownership of the transform data
 		return std::move(transform);
@@ -118,8 +117,8 @@ private:
 	int32_t nodeIndex = -1;
 	int32_t skinIndex = -1;
 
-	std::unique_ptr<ModelTransform> transform;
-	std::unique_ptr<ModelMesh> mesh;
+	std::unique_ptr<OmegaEngine::ModelTransform> transform;
+	std::unique_ptr<OmegaEngine::ModelMesh> mesh;
 
 	std::vector<std::unique_ptr<ModelNode>> children;
 
@@ -133,4 +132,5 @@ private:
 	int32_t animIndex = -1;
 };
 
+}
 } // namespace OmegaEngine

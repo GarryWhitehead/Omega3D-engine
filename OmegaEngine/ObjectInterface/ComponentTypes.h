@@ -1,8 +1,8 @@
 #pragma once
-#include "Models/GltfModel.h"
+#include "Models/Gltf/GltfModel.h"
 #include "Models/ModelMesh.h"
 #include "OEMaths/OEMaths.h"
-#include "models/OEModels.h"
+#include "Models/OEModels.h"
 
 #include <cstdint>
 #include <memory>
@@ -198,17 +198,6 @@ struct ShadowComponent : public ComponentBase
 	float biasClamp = 0.0f;
 	float biasConstant = 0.0f;
 	float biasSlope = 0.0f;
-};
-
-struct OEModelComponent : public ComponentBase
-{
-	OEModelComponent(Models::OEModels modelType)
-	    : type(modelType)
-	    , ComponentBase(ComponentType::OEModel)
-	{
-	}
-
-	Models::OEModels type;
 };
 
 } // namespace OmegaEngine

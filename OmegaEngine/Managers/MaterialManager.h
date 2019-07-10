@@ -13,7 +13,6 @@ namespace OmegaEngine
 {
 // forward declerations
 class TextureManager;
-class ModelMaterial;
 class ModelImage;
 
 struct MaterialInfo

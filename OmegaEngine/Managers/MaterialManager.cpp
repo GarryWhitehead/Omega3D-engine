@@ -65,13 +65,13 @@ void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
 {
 	MaterialInfo newMaterial;
 
-	newMaterial.name = material->getName();
+	newMaterial.name = material->material.name;
 
 	// important that the name is valid as this is used to trace textures in the vulkan backend
 	assert(!newMaterial.name.empty() || newMaterial.name != "");
 
 	// like for like copy for the factors
-	auto &factors = material->getFactors();
+	auto &factors = material->material.factors;
 	newMaterial.factors.baseColour = factors.baseColour;
 	newMaterial.factors.diffuse = factors.diffuse;
 	newMaterial.factors.emissive = factors.emissive;
@@ -81,7 +81,7 @@ void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
 	newMaterial.factors.specularGlossiness = factors.specularGlossiness;
 
 	// uv sets - straight copy
-	auto &uvSets = material->getUvSets();
+	auto &uvSets = material->material.uvSets;
 	newMaterial.uvSets.baseColour = uvSets.baseColour;
 	newMaterial.uvSets.diffuse = uvSets.diffuse;
 	newMaterial.uvSets.emissive = uvSets.emissive;
@@ -91,7 +91,7 @@ void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
 	newMaterial.uvSets.specularGlossiness = uvSets.specularGlossiness;
 
 	// blending
-	std::string alphaMaskStr = material->getAlphaMask();
+	std::string alphaMaskStr = material->material.factors.mask;
 	if (alphaMaskStr == "BLEND")
 	{
 		newMaterial.alphaMask = MaterialInfo::AlphaMode::Blend;
@@ -105,9 +105,9 @@ void MaterialManager::addMaterial(std::unique_ptr<ModelMaterial> &material,
 		newMaterial.alphaMask = MaterialInfo::AlphaMode::Opaque;
 	}
 
-	newMaterial.alphaMaskCutOff = material->getAlphaCutOff();
+	newMaterial.alphaMaskCutOff = material->material.factors.alphaMaskCutOff;
 
-	newMaterial.usingSpecularGlossiness = material->isUsingSpecularGlossiness();
+	newMaterial.usingSpecularGlossiness = material->material.usingSpecularGlossiness;
 
 	// now sort the images associaed with this material -
 	// add to the asset manager - they will be retrieved later through the material name + texture type

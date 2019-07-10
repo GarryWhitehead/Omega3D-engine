@@ -21,6 +21,9 @@ namespace OmegaEngine
 
 	public:
 
+		static constexpr uint32_t indicesSize = 36;
+	    static constexpr uint32_t verticesSize = 24;
+
 		struct SkyboxInstance
 		{
 			// pipeline
