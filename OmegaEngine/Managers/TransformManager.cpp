@@ -41,6 +41,14 @@ TransformManager::~TransformManager()
 	}
 }
 
+std::unique_ptr<ModelTransform> TransformManager::transform(const OEMaths::vec3f &trans,
+                                                             const OEMaths::vec3f &sca,
+                                                             const OEMaths::quatf &rot)
+{
+	auto& t = std::make_unique<ModelTransform>(trans, sca, rot);
+	return std::move(t);
+}
+
 void TransformManager::addComponentToManager(TransformComponent *component)
 {
 	TransformData transform;

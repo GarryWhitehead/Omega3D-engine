@@ -48,14 +48,14 @@ std::unique_ptr<Model> load(std::string filename)
 		// materials
 		for (auto &material : model.materials)
 		{
-			auto &newMaterial = Extract::material(material);
+			auto newMaterial = Extract::material(material);
 			outputModel->materials.emplace_back(std::move(newMaterial));
 		}
 
 		// images and samplers
 		for (auto &texture : model.textures)
 		{
-			auto &newImage = Extract::image(model, texture);
+			auto newImage = Extract::image(model, texture);
 			outputModel->images.emplace_back(std::move(newImage));
 		}
 
@@ -63,7 +63,7 @@ std::unique_ptr<Model> load(std::string filename)
 		uint32_t skinIndex = 0;
 		for (tinygltf::Skin &skin : model.skins)
 		{
-			auto &newSkin = Extract::skin(model, skin, outputModel, skinIndex++);
+			auto newSkin = Extract::skin(model, skin, outputModel, skinIndex++);
 			outputModel->skins.emplace_back(std::move(newSkin));
 		}
 
@@ -71,7 +71,7 @@ std::unique_ptr<Model> load(std::string filename)
 		uint32_t animIndex = 0;
 		for (tinygltf::Animation &anim : model.animations)
 		{
-			auto &newAnim = Extract::animation(model, anim, outputModel, animIndex++);
+			auto newAnim = Extract::animation(model, anim, outputModel, animIndex++);
 			outputModel->animations.emplace_back(std::move(newAnim));
 		}
 	}
@@ -86,7 +86,7 @@ std::unique_ptr<Model> load(std::string filename)
 namespace Extract
 {
 
-std::unique_ptr<OmegaEngine::ModelImage> &image(tinygltf::Model &model, tinygltf::Texture &texture)
+std::unique_ptr<OmegaEngine::ModelImage> image(tinygltf::Model &model, tinygltf::Texture &texture)
 {
 	auto modelImage = std::make_unique<OmegaEngine::ModelImage>();
 
@@ -94,7 +94,7 @@ std::unique_ptr<OmegaEngine::ModelImage> &image(tinygltf::Model &model, tinygltf
 	tinygltf::Image image = model.images[texture.source];
 	modelImage->map(image.width, image.height, image.image.data());
 
-	// nor guarenteed to have a sampler
+	// not guarenteed to have a sampler
 	if (texture.sampler > -1)
 	{
 		tinygltf::Sampler gltfSampler = model.samplers[texture.sampler];
@@ -105,7 +105,7 @@ std::unique_ptr<OmegaEngine::ModelImage> &image(tinygltf::Model &model, tinygltf
 	return std::move(modelImage);
 }
 
-std::unique_ptr<OmegaEngine::ModelMesh> &mesh(tinygltf::Model &model, tinygltf::Node &node)
+std::unique_ptr<OmegaEngine::ModelMesh> mesh(tinygltf::Model &model, tinygltf::Node &node)
 {
 	auto modelMesh = std::make_unique<OmegaEngine::ModelMesh>();
 	
@@ -288,65 +288,65 @@ std::unique_ptr<OmegaEngine::ModelMesh> &mesh(tinygltf::Model &model, tinygltf::
 	return std::move(modelMesh);
 }
 
-std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMaterial)
+std::unique_ptr<OmegaEngine::ModelMaterial> material(tinygltf::Material &gltfMaterial)
 {
 	auto modelMat = std::make_unique<OmegaEngine::ModelMaterial>();
 	
-	modelMat->material.name = gltfMaterial.name;
+	modelMat->name = gltfMaterial.name;
 
 	// go through each material type and see if they exsist - we are only saving the index
 	if (gltfMaterial.values.find("baseColorTexture") != gltfMaterial.values.end())
 	{
-		modelMat->material.textures.baseColour =
+		modelMat->textures.baseColour =
 		    gltfMaterial.values["baseColorTexture"].TextureIndex();
-		modelMat->material.uvSets.baseColour =
+		modelMat->uvSets.baseColour =
 		    gltfMaterial.values["baseColorTexture"].TextureTexCoord();
 	}
 	if (gltfMaterial.values.find("metallicRoughnessTexture") != gltfMaterial.values.end())
 	{
-		modelMat->material.textures.metallicRoughness =
+		modelMat->textures.metallicRoughness =
 		    gltfMaterial.values["metallicRoughnessTexture"].TextureIndex();
-		modelMat->material.uvSets.metallicRoughness =
+		modelMat->uvSets.metallicRoughness =
 		    gltfMaterial.values["metallicRoughnessTexture"].TextureTexCoord();
 	}
 	if (gltfMaterial.values.find("baseColorFactor") != gltfMaterial.values.end())
 	{
-		modelMat->material.factors.baseColour =
+		modelMat->factors.baseColour =
 		    OEMaths::vec4f(gltfMaterial.values["baseColorFactor"].ColorFactor().data());
 	}
 	if (gltfMaterial.values.find("metallicFactor") != gltfMaterial.values.end())
 	{
-		modelMat->material.factors.metallic =
+		modelMat->factors.metallic =
 		    static_cast<float>(gltfMaterial.values["metallicFactor"].Factor());
 	}
 	if (gltfMaterial.values.find("roughnessFactor") != gltfMaterial.values.end())
 	{
-		modelMat->material.factors.roughness =
+		modelMat->factors.roughness =
 		    static_cast<float>(gltfMaterial.values["roughnessFactor"].Factor());
 	}
 
 	// any additional textures?
 	if (gltfMaterial.additionalValues.find("normalTexture") != gltfMaterial.additionalValues.end())
 	{
-		modelMat->material.textures.normal =
+		modelMat->textures.normal =
 		    gltfMaterial.additionalValues["normalTexture"].TextureIndex();
-		modelMat->material.uvSets.normal =
+		modelMat->uvSets.normal =
 		    gltfMaterial.additionalValues["normalTexture"].TextureTexCoord();
 	}
 	if (gltfMaterial.additionalValues.find("emissiveTexture") !=
 	    gltfMaterial.additionalValues.end())
 	{
-		modelMat->material.textures.emissive =
+		modelMat->textures.emissive =
 		    gltfMaterial.additionalValues["emissiveTexture"].TextureIndex();
-		modelMat->material.uvSets.emissive =
+		modelMat->uvSets.emissive =
 		    gltfMaterial.additionalValues["emissiveTexture"].TextureTexCoord();
 	}
 	if (gltfMaterial.additionalValues.find("occlusionTexture") !=
 	    gltfMaterial.additionalValues.end())
 	{
-		modelMat->material.textures.occlusion =
+		modelMat->textures.occlusion =
 		    gltfMaterial.additionalValues["occlusionTexture"].TextureIndex();
-		modelMat->material.uvSets.occlusion =
+		modelMat->uvSets.occlusion =
 		    gltfMaterial.additionalValues["occlusionTexture"].TextureTexCoord();
 	}
 
@@ -354,16 +354,16 @@ std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMa
 	if (gltfMaterial.additionalValues.find("alphaMode") != gltfMaterial.additionalValues.end())
 	{
 		tinygltf::Parameter param = gltfMaterial.additionalValues["alphaMode"];
-		modelMat->material.factors.mask = param.string_value;
+		modelMat->factors.mask = param.string_value;
 	}
 	if (gltfMaterial.additionalValues.find("alphaCutOff") != gltfMaterial.additionalValues.end())
 	{
-		modelMat->material.factors.alphaMaskCutOff =
+		modelMat->factors.alphaMaskCutOff =
 		    static_cast<float>(gltfMaterial.additionalValues["alphaCutOff"].Factor());
 	}
 	if (gltfMaterial.additionalValues.find("emissiveFactor") != gltfMaterial.additionalValues.end())
 	{
-		modelMat->material.factors.emissive =
+		modelMat->factors.emissive =
 		    OEMaths::vec3f(gltfMaterial.additionalValues["emissiveFactor"].ColorFactor().data());
 	}
 
@@ -374,20 +374,20 @@ std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMa
 		if (extension->second.Has("specularGlossinessTexture"))
 		{
 			auto index = extension->second.Get("specularGlossinessTexture").Get("index");
-			modelMat->material.textures.metallicRoughness = index.Get<int>();
-			modelMat->material.usingSpecularGlossiness = true;
+			modelMat->textures.metallicRoughness = index.Get<int>();
+			modelMat->usingSpecularGlossiness = true;
 
 			auto uv_index = extension->second.Get("specularGlossinessTexture").Get("texCoord");
-			modelMat->material.uvSets.specularGlossiness = uv_index.Get<int>();
+			modelMat->uvSets.specularGlossiness = uv_index.Get<int>();
 		}
 		if (extension->second.Has("diffuseTexture"))
 		{
 			auto index = extension->second.Get("diffuseTexture").Get("index");
-			modelMat->material.textures.baseColour = index.Get<int>();
-			modelMat->material.usingSpecularGlossiness = true;
+			modelMat->textures.baseColour = index.Get<int>();
+			modelMat->usingSpecularGlossiness = true;
 
 			auto uvIndex = extension->second.Get("diffuseTexture").Get("texCoord");
-			modelMat->material.uvSets.diffuse = uvIndex.Get<int>();
+			modelMat->uvSets.diffuse = uvIndex.Get<int>();
 		}
 		if (extension->second.Has("diffuseFactor"))
 		{
@@ -401,8 +401,8 @@ std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMa
 			value = factor.Get(3);
 			float w = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 
-			modelMat->material.factors.diffuse = OEMaths::vec4f(x, y, z, w);
-			modelMat->material.usingSpecularGlossiness = true;
+			modelMat->factors.diffuse = OEMaths::vec4f(x, y, z, w);
+			modelMat->usingSpecularGlossiness = true;
 		}
 		if (extension->second.Has("specularFactor"))
 		{
@@ -414,15 +414,15 @@ std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMa
 			value = factor.Get(2);
 			float z = value.IsNumber() ? (float)value.Get<double>() : (float)value.Get<int>();
 
-			modelMat->material.factors.specular = OEMaths::vec3f(x, y, z);
-			modelMat->material.usingSpecularGlossiness = true;
+			modelMat->factors.specular = OEMaths::vec3f(x, y, z);
+			modelMat->usingSpecularGlossiness = true;
 		}
 	}
 
 	return std::move(modelMat);
 }
 
-std::unique_ptr<OmegaEngine::ModelAnimation> &animation(tinygltf::Model &gltfModel,
+std::unique_ptr<OmegaEngine::ModelAnimation> animation(tinygltf::Model &gltfModel,
                                                         tinygltf::Animation &anim,
                                           std::unique_ptr<GltfModel::Model> &model,
                                           const uint32_t index)
@@ -534,7 +534,7 @@ std::unique_ptr<OmegaEngine::ModelAnimation> &animation(tinygltf::Model &gltfMod
 	return std::move(modelAnim);
 }
 
-std::unique_ptr<OmegaEngine::ModelTransform> &transform(tinygltf::Node &node)
+std::unique_ptr<OmegaEngine::ModelTransform> transform(tinygltf::Node &node)
 {
 	auto transform = std::make_unique<OmegaEngine::ModelTransform>();
 	
@@ -563,7 +563,7 @@ std::unique_ptr<OmegaEngine::ModelTransform> &transform(tinygltf::Node &node)
 	return std::move(transform);
 }
 
-std::unique_ptr<OmegaEngine::ModelSkin> &skin(tinygltf::Model &gltfModel, tinygltf::Skin &skin,
+std::unique_ptr<OmegaEngine::ModelSkin> skin(tinygltf::Model &gltfModel, tinygltf::Skin &skin,
                                 std::unique_ptr<GltfModel::Model> &model, uint32_t skinIndex)
 {
 	auto modelSkin = std::make_unique<OmegaEngine::ModelSkin>();

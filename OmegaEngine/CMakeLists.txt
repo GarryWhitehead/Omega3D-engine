@@ -143,7 +143,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/Gltf/GltfNode.cpp Models/Gltf/GltfNode.h
 	Models/ModelAnimation.h
 	Models/ModelImage.cpp Models/ModelImage.h
-	Models/ModelMaterial.h
+	Models/ModelMaterial.cpp Models/ModelMaterial.h 
 	Models/ModelMesh.h
 	Models/ModelSkin.h
 	Models/ModelTransform.h

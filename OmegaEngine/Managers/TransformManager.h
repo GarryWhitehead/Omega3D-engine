@@ -120,6 +120,9 @@ public:
 	TransformManager();
 	~TransformManager();
 
+	static std::unique_ptr<ModelTransform> transform(const OEMaths::vec3f &trans,
+	                                          const OEMaths::vec3f &sca, const OEMaths::quatf &rot);
+	
 	void addComponentToManager(TransformComponent *component);
 	bool addComponentToManager(SkeletonComponent *component, Object *object);
 	void addSkin(std::unique_ptr<ModelSkin> &skin);

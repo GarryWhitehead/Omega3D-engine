@@ -3,6 +3,8 @@
 #include "Models/ModelSkin.h"
 #include "Models/ModelTransform.h"
 
+#include "tiny_gltf.h"
+
 namespace OmegaEngine
 {
 namespace GltfModel

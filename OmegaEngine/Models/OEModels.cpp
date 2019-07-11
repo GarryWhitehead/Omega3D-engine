@@ -7,7 +7,7 @@ namespace OmegaEngine
 namespace OEModels
 {
 
-std::unique_ptr<OmegaEngine::ModelMesh>& generatePlaneMesh(const uint32_t size, const uint32_t uvFactor)
+std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, const uint32_t uvFactor)
 {
 	const float widthX = 3.0f;
 	const float widthY = 3.0f;
@@ -59,7 +59,7 @@ std::unique_ptr<OmegaEngine::ModelMesh>& generatePlaneMesh(const uint32_t size, 
 	return std::move(mesh);
 }
 
-std::unique_ptr<OmegaEngine::ModelMesh> &generateSphereMesh(const uint32_t density)
+std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t density)
 {
 	auto mesh = std::make_unique<OmegaEngine::ModelMesh>();
 
@@ -122,7 +122,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> &generateSphereMesh(const uint32_t densi
 	return std::move(mesh);
 }
 
-std::unique_ptr<OmegaEngine::ModelMesh> &generateCubeMesh(const OEMaths::vec3f &size)
+std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &size)
 {
 	auto mesh = std::make_unique<OmegaEngine::ModelMesh>();
 

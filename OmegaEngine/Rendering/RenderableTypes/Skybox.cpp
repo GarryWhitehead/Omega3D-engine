@@ -35,7 +35,7 @@ namespace OmegaEngine
 		
 		skyboxInstance->vertexBuffer = bufferManager->getBuffer("CubeModelVertices");
 		skyboxInstance->indexBuffer = bufferManager->getBuffer("CubeModelIndices");
-		skyboxInstance->indexCount = Models::Cube::indicesSize;
+		skyboxInstance->indexCount = RenderableSkybox::indicesSize;
 	}
 
 	RenderableSkybox::~RenderableSkybox()

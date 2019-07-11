@@ -44,19 +44,19 @@ std::unique_ptr<Model> load(std::string filename);
 
 namespace Extract
 {
-std::unique_ptr<OmegaEngine::ModelImage> &image(tinygltf::Model &model, tinygltf::Texture &texture);
+std::unique_ptr<OmegaEngine::ModelImage> image(tinygltf::Model &model, tinygltf::Texture &texture);
 
-std::unique_ptr<OmegaEngine::ModelMesh> &mesh(tinygltf::Model &model, tinygltf::Node &node);
+std::unique_ptr<OmegaEngine::ModelMesh> mesh(tinygltf::Model &model, tinygltf::Node &node);
 
-std::unique_ptr<OmegaEngine::ModelMaterial> &material(tinygltf::Material &gltfMaterial);
+std::unique_ptr<OmegaEngine::ModelMaterial> material(tinygltf::Material &gltfMaterial);
 
-std::unique_ptr<OmegaEngine::ModelAnimation> &animation(tinygltf::Model &gltfModel,
+std::unique_ptr<OmegaEngine::ModelAnimation> animation(tinygltf::Model &gltfModel,
                                                         tinygltf::Animation &anim,
                           std::unique_ptr<GltfModel::Model> &model, const uint32_t index);
 
-std::unique_ptr<OmegaEngine::ModelTransform> &transform(tinygltf::Node &node);
+std::unique_ptr<OmegaEngine::ModelTransform> transform(tinygltf::Node &node);
 
-std::unique_ptr<OmegaEngine::ModelSkin> &skin(tinygltf::Model &gltfModel, tinygltf::Skin &skin,
+std::unique_ptr<OmegaEngine::ModelSkin> skin(tinygltf::Model &gltfModel, tinygltf::Skin &skin,
                      std::unique_ptr<GltfModel::Model> &model, uint32_t skinIndex);
 
 template <typename T>

@@ -4,6 +4,7 @@
 #include "Engine/world.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
+#include "Managers/TransformManager.h"
 #include "Models/Gltf/GltfModel.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "ObjectInterface/Object.h"
@@ -27,7 +28,9 @@ int main(int argc, char *argv[])
 		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
-		auto object = world->createGltfModelObject(model, OEMaths::vec3f{0.0f, 0.5f, 0.1f}, OEMaths::vec3f{1.0f}, OEMaths::quatf{0.0f}, true);
+		auto object =
+		    world->createGltfModelObject(model, OEMaths::vec3f{ 0.0f, 0.5f, 0.1f },
+		                                 OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f }, true);
 	}
 
 	// adding stock models to the scene
@@ -35,7 +38,11 @@ int main(int argc, char *argv[])
 	                                  OEMaths::quatf{ 0.0f });
 	
 	object->addComponent<MeshComponent>(OEModels::generateSphereMesh(30));
-	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{0.3f}, OEMaths::vec4f{0.5f, 0.2f, 0.0f, 1.0f}, 0.2f, 1.0f);
+	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold,
+	                                        OEMaths::vec3f{ 0.3f },
+	                                        OEMaths::vec4f{ 0.5f, 0.2f, 0.0f, 1.0f }, 0.2f, 1.0f);
+	object->addComponent<TransformComponent>(TransformManager::transform(
+	    OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f }));
 
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);

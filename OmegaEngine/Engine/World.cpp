@@ -264,11 +264,12 @@ void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMat
 void World::update(double time, double dt)
 {
 	// update on a per-frame basis
-	// newly added assets need to be hosted on the gpu
-	assetManager->update(componentInterface);
-
+	
 	// all other managers
 	componentInterface->update(time, dt, objectManager);
+
+	// newly added assets need to be hosted on the gpu
+	assetManager->update(componentInterface);
 
 	// check whether there are any queued events to deal with
 	Global::eventManager()->notifyQueued();

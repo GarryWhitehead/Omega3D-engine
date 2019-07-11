@@ -1,7 +1,4 @@
 #include "ModelMaterial.h"
-#include "Utility/Logger.h"
-
-#include <memory>
 
 namespace OmegaEngine
 {
@@ -21,19 +18,19 @@ int32_t ModelMaterial::getTexture(const TextureId id)
 	switch (id)
 	{
 	case TextureId::BaseColour:
-		textureOutput = material.textures.baseColour;
+		textureOutput = textures.baseColour;
 		break;
 	case TextureId::Emissive:
-		textureOutput = material.textures.emissive;
+		textureOutput = textures.emissive;
 		break;
 	case TextureId::MetallicRoughness:
-		textureOutput = material.textures.metallicRoughness;
+		textureOutput = textures.metallicRoughness;
 		break;
 	case TextureId::Normal:
-		textureOutput = material.textures.normal;
+		textureOutput = textures.normal;
 		break;
 	case TextureId::Occlusion:
-		textureOutput = material.textures.occlusion;
+		textureOutput = textures.occlusion;
 		break;
 	}
 

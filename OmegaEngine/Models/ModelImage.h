@@ -66,8 +66,7 @@ public:
 	
 	void addSampler(const int wrapS, const int mode)
 	{
-		sampler = std::make_unique<ModelSampler>();
-
+		sampler = std::make_unique<ModelSampler>(wrapS, mode);
 	}
 
 	std::unique_ptr<ModelSampler> &getSampler()
