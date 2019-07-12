@@ -134,7 +134,7 @@ namespace OmegaEngine
 		state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep, vk::StencilOp::eKeep, vk::StencilOp::eReplace, 0xff, 0x00, 1);;
 
 		state->pipeline.setDepthState(VK_FALSE, VK_FALSE, vk::CompareOp::eLessOrEqual);
-		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
+		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.addColourAttachment(VK_FALSE, renderer->getForwardPass());

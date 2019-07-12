@@ -96,11 +96,11 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 			{
 				OmegaEngine::ModelMesh::Vertex vertex;
 				vertex.uv0 = OEMaths::vec2f{ densityMod * x, densityMod * y };
-				vertex.position =
-				    OEMaths::vec4f{ basePosition[face] + dx[face] * vertex.uv0.getX() +
-					                    dy[face] * vertex.uv0.getY(),
-					                1.0f };
-				vertex.position.normalise();
+				OEMaths::vec3f pos =
+				    OEMaths::vec3f{ basePosition[face] + dx[face] * vertex.uv0.getX() +
+					                    dy[face] * vertex.uv0.getY() };
+				pos.normalise();
+				vertex.position = OEMaths::vec4f{ pos, 1.0f };
 				mesh->vertices.emplace_back(vertex);
 			}
 		}
@@ -114,6 +114,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 				mesh->indices.emplace_back(baseIndex + x);
 				mesh->indices.emplace_back(baseIndex + x + density);
 			}
+			mesh->indices.emplace_back(0xffff);
 		}
 	}
 
@@ -131,45 +132,67 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &s
 	const float z = size.getZ() / 2.0f;
 
 	// cube vertices
-	static const std::array<OEMaths::vec3f, 8> vertexData{
-		OEMaths::vec3f{ +x, +y, +z }, OEMaths::vec3f{ -x, +y, +z }, OEMaths::vec3f{ -x, -y, +z },
-		OEMaths::vec3f{ +x, -y, +z }, OEMaths::vec3f{ +x, +y, -z }, OEMaths::vec3f{ -x, +y, -z },
-		OEMaths::vec3f{ -x, -y, -z }, OEMaths::vec3f{ +x, -y, -z }
+	const OEMaths::vec3f v0{ +x, +y, +z };
+	const OEMaths::vec3f v1{ -x, +y, +z };
+	const OEMaths::vec3f v2{ -x, -y, +z };
+	const OEMaths::vec3f v3{ +x, -y, +z };
+	const OEMaths::vec3f v4{ +x, +y, -z };
+	const OEMaths::vec3f v5{ -x, +y, -z };
+	const OEMaths::vec3f v6{ -x, -y, -z };
+	const OEMaths::vec3f v7{ +x, -y, -z };
+
+	// cube uvs
+	const OEMaths::vec2f uv0{ 1.0f, 1.0f };
+	const OEMaths::vec2f uv1{ 0.0f, 1.0f };
+	const OEMaths::vec2f uv2{ 0.0f, 0.0f };
+	const OEMaths::vec2f uv3{ 1.0f, 0.0f };
+	const OEMaths::vec2f uv4{ 0.0f, 1.0f };
+	const OEMaths::vec2f uv5{ 1.0f, 1.0f };
+	const OEMaths::vec2f uv6{ 0.0f, 0.0f };
+	const OEMaths::vec2f uv7{ 1.0f, 0.0f };
+
+
+	static const std::array<OEMaths::vec3f, 36> vertexData = {
+		v1, v2, v3, v3, v0, v1, 
+		v2, v6, v7, v7, v3, v2,
+		v6, v5, v4, v4, v7, v6,
+		v5, v1, v0, v0, v4, v5,
+		v0, v3, v7, v7, v4, v0,
+		v5, v6, v2, v2, v1, v5
 	};
 
-	// cube uv
-	static const std::array<OEMaths::vec2f, 8> uvData{
-		OEMaths::vec2f{ 1.0f, 1.0f }, OEMaths::vec2f{ 0.0f, 1.0f }, OEMaths::vec2f{ 0.0f, 0.0f },
-		OEMaths::vec2f{ 1.0f, 0.0f }, OEMaths::vec2f{ 0.0f, 1.0f }, OEMaths::vec2f{ 1.0f, 1.0f },
-		OEMaths::vec2f{ 0.0f, 0.0f }, OEMaths::vec2f{ 1.0f, 0.0f }
+	static const std::array<OEMaths::vec2f, 36> uvData = { 
+		uv1, uv2, uv3, uv3, uv0, uv1, 
+		uv2, uv6, uv7, uv7, uv3, uv2, 
+		uv6, uv5, uv4, uv4, uv7, uv6,
+		uv5, uv1, uv0, uv0, uv4, uv5, 
+		uv0, uv3, uv7, uv7, uv4, uv0, 
+		uv5, uv6, uv2, uv2, uv1, uv5 
+	};
+
+	static const std::array<OEMaths::vec3f, 6> normalData = {
+		OEMaths::vec3f{ 0.0f, 0.0f, +1.0f },
+		OEMaths::vec3f{ -1.0f, 0.0f, 0.0f },
+		OEMaths::vec3f{ 0.0f, 0.0f, -1.0f },
+		OEMaths::vec3f{ +1.0f, 0.0f, 0.0f },
+		OEMaths::vec3f{ 0.0f, -1.0f, 0.0f },
+		OEMaths::vec3f{ 0.0f, +1.0f, 0.0f }
 	};
 
 	// cube indices
 	static const std::array<uint32_t, 36> indexData{ // front
-		                                             1, 2, 3, 3, 0, 1,
+		                                             0, 1, 2, 3, 4, 5,
 		                                             // right side
-		                                             2, 6, 7, 7, 3, 2,
+		                                             6, 7, 8, 9, 10, 11,
 		                                             // back
-		                                             6, 5, 4, 4, 7, 6,
+		                                             12, 13, 14, 15, 16, 17,
 		                                             // left side
-		                                             5, 1, 0, 0, 4, 5,
+		                                             18, 19, 20, 21, 22, 23,
 		                                             // bottom
-		                                             0, 3, 7, 7, 4, 0,
+		                                             24, 25, 26, 27, 28, 29,
 		                                             // top
-		                                             5, 6, 2, 2, 1, 5
+		                                             30, 31, 32, 33, 34, 35
 	};
-
-	// generate normals
-	/*for (int i = 0; i < 36; i += 3)
-	{
-		glm::vec3 normal =
-		    glm::normalize(glm::cross(glm::vec3(verts[i + 1]) - glm::vec3(verts[i]),
-		                              glm::vec3(verts[i + 2]) - glm::vec3(verts[i])));
-
-		norm[i] = normal;
-		norm[i + 1] = normal;
-		norm[i + 2] = normal;
-	}*/
 
 	for (uint32_t i = 0; i < vertexData.size(); ++i)
 	{
@@ -179,6 +202,19 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &s
 		mesh->vertices.emplace_back(vertex);
 	}
 
+	// sort the normal - per face
+	uint32_t vertexBase = 0;
+	for (uint32_t i = 0; i < 6; ++i)
+	{
+		for (uint32_t j = 0; j < 6; ++j)
+		{
+			mesh->vertices[vertexBase + j].normal = normalData[i];
+		}
+		vertexBase += 6;
+	}
+
+	mesh->indices.resize(indexData.size());
+	memcpy(mesh->indices.data(), indexData.data(), indexData.size() * sizeof(uint32_t));
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
 
 	return std::move(mesh);

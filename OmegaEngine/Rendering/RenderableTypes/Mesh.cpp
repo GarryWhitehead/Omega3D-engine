@@ -190,7 +190,7 @@ namespace OmegaEngine
 
 		state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
 		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
-		state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
+		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
 		state->pipeline.addColourAttachment(VK_FALSE, renderer->getFirstPass());
 		state->pipeline.create(device, renderer->getFirstPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);

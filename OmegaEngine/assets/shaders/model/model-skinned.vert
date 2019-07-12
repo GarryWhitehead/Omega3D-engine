@@ -51,7 +51,6 @@ void main()
     // inverse-transpose for non-uniform scaling - expensive computations here - maybe remove this?
 	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);    // 
 
-	pos = -pos;
 	outPos = pos.xyz / pos.w;	// perspective divide
 	
 	gl_Position = camera_ubo.mvp * vec4(outPos, 1.0);

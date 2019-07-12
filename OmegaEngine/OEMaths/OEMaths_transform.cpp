@@ -62,6 +62,13 @@ mat4f perspective(float fov, float aspect, float zNear, float zFar)
 	result(3, 2) = -(zFar * zNear) / (zFar - zNear);
 	result(3, 3) = 0.0f;
 
+#ifdef USE_VULKAN_COORDS
+	result(1, 0) *= -1.0f;
+	result(1, 1) *= -1.0f;
+	result(1, 2) *= -1.0f;
+	result(1, 3) *= -1.0f;
+#endif
+
 	return result;
 }
 

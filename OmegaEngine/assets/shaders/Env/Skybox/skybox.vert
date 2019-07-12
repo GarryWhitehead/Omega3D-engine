@@ -23,7 +23,6 @@ void main()
 	
 	// ensure skybox is renderered on the far plane
 	gl_Position.z = gl_Position.w;		
-	gl_Position.y *= -1.0;
 
 	outUv = inPos;
 }

@@ -31,7 +31,7 @@ void main()
 	mat4 normalTransform = mesh_ubo.modelMatrix;
 	vec4 pos = normalTransform * inPos;
 	outNormal = (normalTransform * vec4(inNormal, 1.0)).xyz;
-
+	
 	pos.y = -pos.y;
 	outPos = pos.xyz / pos.w;	// perspective divide correction
 	

@@ -54,7 +54,7 @@ void CameraManager::mouseMoveEvent(MouseMoveEvent &event)
 	}
 
 	double deltaX = event.xpos - currentX;
-	double deltaY = event.ypos - currentY;
+	double deltaY = currentY - event.ypos;
 
 	currentX = event.xpos;
 	currentY = event.ypos;
@@ -105,9 +105,9 @@ void CameraManager::updateCameraRotation()
 
 	//calculate the pitch and yaw vectors
 	frontVec =
-	    OEMaths::vec3f{ std::cos(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)),
+	    OEMaths::vec3f{ std::cos(OEMaths::radians(pitch)) * std::cos(OEMaths::radians(yaw)),
 		                std::sin(OEMaths::radians(pitch)),
-		                std::sin(OEMaths::radians(yaw)) * std::cos(OEMaths::radians(pitch)) };
+		                std::cos(OEMaths::radians(pitch)) * std::sin(OEMaths::radians(yaw)) };
 	frontVec.normalise();
 
 	isDirty = true;

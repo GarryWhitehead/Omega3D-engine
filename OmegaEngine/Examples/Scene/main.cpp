@@ -34,10 +34,10 @@ int main(int argc, char *argv[])
 	}
 
 	// adding stock models to the scene
-	auto object = world->createObject(OEMaths::vec3f{ 0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f },
+	auto object = world->createObject(OEMaths::vec3f{ 2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.5f },
 	                                  OEMaths::quatf{ 0.0f });
 	
-	object->addComponent<MeshComponent>(OEModels::generateSphereMesh(30));
+	object->addComponent<MeshComponent>(OEModels::generateCubeMesh(OEMaths::vec3f{1.0f}));
 	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold,
 	                                        OEMaths::vec3f{ 0.3f },
 	                                        OEMaths::vec4f{ 0.5f, 0.2f, 0.0f, 1.0f }, 0.2f, 1.0f);

@@ -80,8 +80,7 @@ void main()
 	vec3 inPos = texture(positionSampler, inUv).rgb;
 	vec3 V = normalize(inCameraPos.xyz - inPos);
 	vec3 N = texture(normalSampler, inUv).rgb;
-	vec3 R = -reflect(V, N);
-	R.y *= -1.0;
+	vec3 R = -normalize(reflect(V, N));
 	
 	// get colour information from G-buffer
 	vec3 baseColour = texture(baseColourSampler, inUv).rgb;

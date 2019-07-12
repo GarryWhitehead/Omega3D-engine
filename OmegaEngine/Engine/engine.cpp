@@ -157,7 +157,7 @@ void Engine::startLoop()
 	programState.setRunning();
 
 	// convert delta time to ms
-	const std::chrono::nanoseconds timeStep(16ms);
+	const std::chrono::nanoseconds timeStep(33ms);
 
 	// fixed-step loop
 	std::chrono::nanoseconds accumulator(0ns);

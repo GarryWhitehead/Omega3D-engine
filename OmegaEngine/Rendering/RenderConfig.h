@@ -44,8 +44,8 @@ struct RenderConfig
 
 	struct ToneMapSettings
 	{
-		float expBias = 1.0f;
-		float gamma = 2.2f;
+		float expBias = 2.0f;
+		float gamma = 1.0f;
 	} toneMapSettings;
 
 	struct PostProcess
