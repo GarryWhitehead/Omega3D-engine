@@ -1,7 +1,7 @@
 #pragma once
 #include "RenderableTypes/RenderableBase.h"
 #include "Rendering/RenderConfig.h"
-#include "Rendering/Renderers/RendererBase.h"
+#include "Rendering/Renderers/RendererBase.h"675
 
 #include <functional>
 #include <memory>
@@ -101,9 +101,6 @@ public:
 	}
 
 	void initRenderer(std::unique_ptr<ComponentInterface> &componentInterface);
-
-	// shader init for each renderable type
-	void addShader(RenderTypes type, std::unique_ptr<ComponentInterface> &componentInterface);
 
 	// adds all renderables to render queue - TODO: add visisbility check
 	void prepareObjectQueue();

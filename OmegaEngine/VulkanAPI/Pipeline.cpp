@@ -1,4 +1,5 @@
 #include "Pipeline.h"
+#include "Rendering/ProgramStateManager.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
@@ -130,9 +131,17 @@ void Pipeline::setRasterDepthClamp(bool state)
 	rasterState.depthBiasClamp = state;
 }
 
-void Pipeline::setTopology(vk::PrimitiveTopology topology)
+void Pipeline::setTopology(const OmegaEngine::StateTopology &topology)
 {
-	assemblyState.topology = topology;
+	switch (topology)
+	{
+	case OmegaEngine::StateTopology::List:
+		assemblyState.topology = vk::PrimitiveTopology::eTriangleList;
+		break;
+	case OmegaEngine::StateTopology::Strip:
+		assemblyState.topology = vk::PrimitiveTopology::eTriangleStrip;
+		break;
+	}
 }
 
 void Pipeline::addColourAttachment(bool blendFactor, RenderPass &renderpass)

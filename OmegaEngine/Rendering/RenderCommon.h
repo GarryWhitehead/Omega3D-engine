@@ -22,19 +22,6 @@ namespace OmegaEngine
 class RenderQueue;
 struct RenderConfig;
 
-struct ProgramState
-{
-	VulkanAPI::Shader shader;
-	VulkanAPI::PipelineLayout pipelineLayout;
-	VulkanAPI::Pipeline pipeline;
-	VulkanAPI::DescriptorLayout descriptorLayout;
-	VulkanAPI::DescriptorSet descriptorSet;
-
-	// information extracted from shader reflection
-	VulkanAPI::BufferReflection bufferLayout;
-	VulkanAPI::ImageReflection imageLayout;
-};
-
 namespace Rendering
 {
 void renderObjects(std::unique_ptr<RenderQueue> &renderQueue, VulkanAPI::RenderPass &renderpass,

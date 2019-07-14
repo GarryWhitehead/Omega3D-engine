@@ -167,6 +167,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
+	Rendering/ProgramStateManager.cpp Rendering/ProgramStateManager.h
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
 	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h

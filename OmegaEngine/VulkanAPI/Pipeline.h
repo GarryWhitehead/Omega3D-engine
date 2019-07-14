@@ -4,6 +4,11 @@
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/Shader.h"
 
+namespace OmegaEngine
+{
+enum class StateTopology;
+}
+
 namespace VulkanAPI
 {
 // forward declearions
@@ -30,7 +35,7 @@ public:
 	void setRasterFrontFace(vk::FrontFace front_face);
 	void setRasterDepthClamp(bool state);
 
-	void setTopology(vk::PrimitiveTopology topology);
+	void setTopology(const OmegaEngine::StateTopology &topology);
 
 	void addColourAttachment(bool blend_factor, RenderPass &renderpass);
 	void addDynamicState(vk::DynamicState state);

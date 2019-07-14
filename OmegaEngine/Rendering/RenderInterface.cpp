@@ -94,49 +94,6 @@ void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface> &componen
 	}
 }
 
-void RenderInterface::addShader(RenderTypes type,
-                                std::unique_ptr<ComponentInterface> &componentInterface)
-{
-	auto &state = std::make_unique<ProgramState>();
-
-	switch (type)
-	{
-	case OmegaEngine::RenderTypes::StaticMesh:
-	{
-		RenderableMesh::createMeshPipeline(
-		    vkInterface->getDevice(), renderer, vkInterface->getBufferManager(),
-		    vkInterface->gettextureManager(), MeshManager::MeshType::Static, state);
-		renderStates[(int)RenderTypes::StaticMesh] = std::move(state);
-		break;
-	}
-	case OmegaEngine::RenderTypes::SkinnedMesh:
-	{
-		RenderableMesh::createMeshPipeline(
-		    vkInterface->getDevice(), renderer, vkInterface->getBufferManager(),
-		    vkInterface->gettextureManager(), MeshManager::MeshType::Skinned, state);
-		renderStates[(int)RenderTypes::SkinnedMesh] = std::move(state);
-		break;
-	}
-	case OmegaEngine::RenderTypes::ShadowMapped:
-	{
-		RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer,
-		                                       vkInterface->getBufferManager(), state);
-		renderStates[(int)RenderTypes::ShadowMapped] = std::move(state);
-		break;
-	}
-	case OmegaEngine::RenderTypes::Skybox:
-	{
-		RenderableSkybox::createSkyboxPipeline(vkInterface->getDevice(), renderer,
-		                                       vkInterface->getBufferManager(),
-		                                       vkInterface->gettextureManager(), state);
-		renderStates[(int)RenderTypes::Skybox] = std::move(state);
-		break;
-	}
-	default:
-		LOGGER_INFO("Unsupported render type found whilst initilaising shaders.");
-	}
-}
-
 void RenderInterface::buildRenderableMeshTree(
     Object &obj, std::unique_ptr<ComponentInterface> &componentInterface, bool isShadow)
 {

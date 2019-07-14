@@ -5,6 +5,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "Rendering/RenderInterface.h"
 #include "OEMaths/OEMaths.h"
+#include "Rendering/ProgramStateManager.h"
 
 // Number of combined image sampler sets allowed for materials. This allows for materials to be added - this value will need monitoring
 #define MAX_MATERIAL_SETS 50
@@ -112,12 +113,10 @@ namespace OmegaEngine
 		void render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
 					void* instanceData) override;
 
-		static void createMeshPipeline(vk::Device& device,
-										std::unique_ptr<RendererBase>& renderer, 
-										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
-										MeshManager::MeshType type,
-										std::unique_ptr<ProgramState>& state);
+		static void RenderableMesh::createMeshPipeline(
+	        std::unique_ptr<VulkanAPI::Interface> &vkInterface,
+	        std::unique_ptr<RendererBase> &renderer, MeshManager::MeshType type,
+	        std::unique_ptr<ProgramState> &state, StateId::StateFlags &flags);
 
 	private:
 

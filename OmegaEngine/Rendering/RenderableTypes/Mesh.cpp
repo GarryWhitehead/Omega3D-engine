@@ -13,7 +13,6 @@
 #include "Rendering/RenderInterface.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
 #include "Rendering/RenderQueue.h"
-#include "Rendering/RenderCommon.h"
 #include "ObjectInterface/ComponentInterface.h"
 #include "ObjectInterface/Object.h"
 #include "Threading/ThreadPool.h"
@@ -114,24 +113,25 @@ namespace OmegaEngine
 		}
 	}
 	
-	void RenderableMesh::createMeshPipeline(vk::Device& device, 
+	void RenderableMesh::createMeshPipeline(std::unique_ptr<VulkanAPI::Interface> &vkInterface, 
 										std::unique_ptr<RendererBase>& renderer, 
-										std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-										std::unique_ptr<VulkanAPI::VkTextureManager>& textureManager,
 										MeshManager::MeshType type,
-										std::unique_ptr<ProgramState>& state)
+										std::unique_ptr<ProgramState>& state,
+                                        StateId::StateFlags &flags)
 	{
 		// load shaders
 		if (type == MeshManager::MeshType::Static) 
 		{
-			if (!state->shader.add(device, "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) 
+			if (!state->shader.add(vkInterface->getDevice(), "model/model-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) 
 			{
 				LOGGER_ERROR("Unable to create static model shaders.");
 			}
 		}
 		else if (type == MeshManager::MeshType::Skinned) 
 		{
-			if (!state->shader.add(device, "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex, "model/model-frag.spv", VulkanAPI::StageType::Fragment)) 
+		    if (!state->shader.add(vkInterface->getDevice(), "model/model_skinned-vert.spv",
+		                           VulkanAPI::StageType::Vertex, "model/model-frag.spv",
+		                           VulkanAPI::StageType::Fragment)) 
 			{
 				LOGGER_ERROR("Unable to create skinned model shaders.");
 			}
@@ -140,12 +140,14 @@ namespace OmegaEngine
 		// get pipeline layout and vertedx attributes by reflection of shader
 		state->shader.imageReflection(state->descriptorLayout, state->imageLayout);
 		state->shader.bufferReflection(state->descriptorLayout, state->bufferLayout);
-		state->descriptorLayout.create(device, MAX_MATERIAL_SETS);
+	    state->descriptorLayout.create(vkInterface->getDevice(), MAX_MATERIAL_SETS);
 
 		// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
 		for (auto& buffer : state->bufferLayout.layouts) 
 		{
-			state->descriptorSet.init(device, state->descriptorLayout.getLayout(buffer.set), state->descriptorLayout.getDescriptorPool(), buffer.set);
+		    state->descriptorSet.init(vkInterface->getDevice(),
+		                              state->descriptorLayout.getLayout(buffer.set),
+		                              state->descriptorLayout.getDescriptorPool(), buffer.set);
 		}
 
 		// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
@@ -155,15 +157,18 @@ namespace OmegaEngine
 			// the shader must use these identifying names for uniform buffers -
 			if (layout.name == "CameraUbo") 
 			{
-				bufferManager->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
+				vkInterface->getBufferManager()->enqueueDescrUpdate("Camera", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_StaticMeshUbo") 
 			{
-				bufferManager->enqueueDescrUpdate("Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
+			    vkInterface->getBufferManager()->enqueueDescrUpdate(
+			        "Transform", &state->descriptorSet, layout.set, layout.binding, layout.type);
 			}
 			else if (layout.name == "Dynamic_SkinnedUbo") 
 			{
-				bufferManager->enqueueDescrUpdate("SkinnedTransform", &state->descriptorSet, layout.set, layout.binding, layout.type);
+			    vkInterface->getBufferManager()->enqueueDescrUpdate(
+			        "SkinnedTransform", &state->descriptorSet, layout.set, layout.binding,
+			        layout.type);
 			}
 		}
 
@@ -172,15 +177,16 @@ namespace OmegaEngine
 		const uint8_t materialSet = 2;
 		if (type == MeshManager::MeshType::Static) 
 		{
-			textureManager->bindTexturesToDescriptorLayout("Mesh", &state->descriptorLayout, materialSet);
+			vkInterface->gettextureManager()->bindTexturesToDescriptorLayout("Mesh", &state->descriptorLayout, materialSet);
 		}
 		else if (type == MeshManager::MeshType::Skinned) 
 		{
-			textureManager->bindTexturesToDescriptorLayout("SkinnedMesh", &state->descriptorLayout, materialSet);
+		    vkInterface->gettextureManager()->bindTexturesToDescriptorLayout(
+		        "SkinnedMesh", &state->descriptorLayout, materialSet);
 		}
 
 		state->shader.pipelineLayoutReflect(state->pipelineLayout);
-		state->pipelineLayout.create(device, state->descriptorLayout.getLayout());
+	    state->pipelineLayout.create(vkInterface->getDevice(), state->descriptorLayout.getLayout());
 
 		// create the graphics pipeline
 		state->shader.pipelineReflection(state->pipeline);
@@ -191,9 +197,10 @@ namespace OmegaEngine
 		state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
 		state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 		state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
-		state->pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+		state->pipeline.setTopology(flags.topology);
 		state->pipeline.addColourAttachment(VK_FALSE, renderer->getFirstPass());
-		state->pipeline.create(device, renderer->getFirstPass(), state->shader, state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
+	    state->pipeline.create(vkInterface->getDevice(), renderer->getFirstPass(), state->shader,
+	                           state->pipelineLayout, VulkanAPI::PipelineType::Graphics);
 	}
 
 	void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, 
