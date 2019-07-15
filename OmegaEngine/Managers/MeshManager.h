@@ -14,6 +14,40 @@ namespace OmegaEngine
 class ObjectManager;
 class Object;
 struct MeshComponent;
+enum class StateTopolgy;
+
+enum class MeshType
+{
+	Static,
+	Skinned
+};
+
+struct PrimitiveMesh
+{
+	MeshType type;
+
+	// index offsets
+	uint32_t indexBase = 0;
+	uint32_t indexCount = 0;
+
+	// material id
+	uint32_t materialId;
+};
+
+struct StaticMesh
+{
+	MeshType type;
+
+	// primitives assoicated with this mesh
+	std::vector<PrimitiveMesh> primitives;
+
+	// states
+	StateTopology topology;
+
+	// offset into mega buffer
+	uint32_t vertexBufferOffset;
+	uint32_t indexBufferOffset;
+};
 
 class MeshManager : public ManagerBase
 {
@@ -22,12 +56,6 @@ public:
 	// a user-defined size for the vertex and index gpu mem blocks - this should maybe made more dynamic? Also needs checking for overspill....
 	static constexpr float VertexBlockSize = 1e+5;
 	static constexpr float IndexBlockSize = 1e+5;
-
-	enum class MeshType
-	{
-		Static,
-		Skinned
-	};
 
 	struct Dimensions
 	{
@@ -56,32 +84,6 @@ public:
 		OEMaths::vec3f normal;
 		OEMaths::vec4f weight;
 		OEMaths::vec4f joint;
-	};
-
-	struct PrimitiveMesh
-	{
-		MeshType type;
-		Dimensions dimensions;
-
-		// index offsets
-		uint32_t indexBase = 0;
-		uint32_t indexCount = 0;
-
-		// material id
-		uint32_t materialId;
-	};
-
-	struct StaticMesh
-	{
-		MeshType type;
-		Dimensions dimensions;
-
-		// primitives assoicated with this mesh
-		std::vector<PrimitiveMesh> primitives;
-
-		// offset into mega buffer
-		uint32_t vertexBufferOffset;
-		uint32_t indexBufferOffset;
 	};
 
 	MeshManager();

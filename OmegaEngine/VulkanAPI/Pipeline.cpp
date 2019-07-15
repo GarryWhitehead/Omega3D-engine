@@ -12,8 +12,8 @@ PipelineLayout::PipelineLayout()
 }
 
 void PipelineLayout::create(
-    vk::Device &device,
-    std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>> &descriptorLayout)
+    vk::Device& device,
+    std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& descriptorLayout)
 {
 	// create push constants
 	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
@@ -40,7 +40,7 @@ void PipelineLayout::create(
 	// as Vulkan will complain otherwise.
 	std::vector<vk::DescriptorSetLayout> layouts(descriptorLayout.size());
 
-	for (auto &layout : descriptorLayout)
+	for (auto& layout : descriptorLayout)
 	{
 		layouts[std::get<0>(layout)] = std::get<1>(layout);
 	}
@@ -107,7 +107,7 @@ void Pipeline::updateVertexInput()
 
 	// assuming just one binding at the moment
 	vk::VertexInputBindingDescription bind_descr(
-	    0, totalSize, vk::VertexInputRate::eVertex); // should also support instancing
+	    0, totalSize, vk::VertexInputRate::eVertex);    // should also support instancing
 	vertexBindDescr.push_back(bind_descr);
 
 	vertexInputState.vertexAttributeDescriptionCount = attributeCount;
@@ -131,7 +131,7 @@ void Pipeline::setRasterDepthClamp(bool state)
 	rasterState.depthBiasClamp = state;
 }
 
-void Pipeline::setTopology(const OmegaEngine::StateTopology &topology)
+void Pipeline::setTopology(const OmegaEngine::StateTopology& topology)
 {
 	switch (topology)
 	{
@@ -144,7 +144,7 @@ void Pipeline::setTopology(const OmegaEngine::StateTopology &topology)
 	}
 }
 
-void Pipeline::addColourAttachment(bool blendFactor, RenderPass &renderpass)
+void Pipeline::addColourAttachment(bool blendFactor, RenderPass& renderpass)
 {
 	for (uint32_t i = 0; i < renderpass.get_attach_count(); ++i)
 	{
@@ -200,17 +200,17 @@ void Pipeline::setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilO
 	depthStencilState.back = depthStencilState.front;
 }
 
-void Pipeline::setRenderpass(RenderPass &pass)
+void Pipeline::setRenderpass(RenderPass& pass)
 {
 	renderpass = pass;
 }
 
-void Pipeline::addShader(Shader &shader)
+void Pipeline::addShader(Shader& shader)
 {
 	this->shader = shader;
 }
 
-void Pipeline::addLayout(vk::PipelineLayout &layout)
+void Pipeline::addLayout(vk::PipelineLayout& layout)
 {
 	assert(layout);
 	pipelineLayout = layout;
@@ -222,8 +222,8 @@ void Pipeline::addEmptyLayout()
 	VK_CHECK_RESULT(device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
 }
 
-void Pipeline::create(vk::Device dev, RenderPass &renderpass, Shader &shader,
-                      PipelineLayout &layout, PipelineType _type)
+void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader,
+                      PipelineLayout& layout, PipelineType _type)
 {
 	device = dev;
 	type = _type;
@@ -251,7 +251,7 @@ void Pipeline::create(vk::Device dev, RenderPass &renderpass, Shader &shader,
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
 
-void Pipeline::create(vk::Device dev, RenderPass &renderpass, Shader &shader, PipelineType _type)
+void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineType _type)
 {
 	device = dev;
 	type = _type;
@@ -278,7 +278,7 @@ void Pipeline::create(vk::Device dev, RenderPass &renderpass, Shader &shader, Pi
 	    {}, shader.size(), shader.getPipelineData(), &vertexInputState, &assemblyState, nullptr,
 	    &viewportState, &rasterState, &multiSampleState, &depthStencilState, &colorBlendState,
 	    &dynamicCreateState,
-	    pipelineLayout, // default empty pipeline layout used
+	    pipelineLayout,    // default empty pipeline layout used
 	    this->renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
@@ -310,4 +310,4 @@ void Pipeline::create(vk::Device dev, PipelineType _type)
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

@@ -1,4 +1,5 @@
 #include "OEModels.h"
+#include "Rendering/ProgramStateManager.h"
 
 #include <array>
 
@@ -55,6 +56,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, c
 	}
 
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
+	mesh->topology = StateTopology::List;
 
 	return std::move(mesh);
 }
@@ -119,6 +121,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 	}
 
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
+	mesh->topology = StateTopology::Strip;
 
 	return std::move(mesh);
 }
@@ -216,6 +219,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &s
 	mesh->indices.resize(indexData.size());
 	memcpy(mesh->indices.data(), indexData.data(), indexData.size() * sizeof(uint32_t));
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
+	mesh->topology = StateTopology::List;
 
 	return std::move(mesh);
 }

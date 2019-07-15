@@ -47,8 +47,7 @@ struct ProgramState
 
 enum class StateType
 {
-	MeshStatic,
-	MeshSkinned,
+	Mesh,
 	Skybox,
 	ShadowMapped,
 };
@@ -72,6 +71,12 @@ enum class StateFill
 	WireFrame
 };
 
+enum class StateMesh
+{
+	Static,
+	Skinned
+};
+
 struct StateId
 {
 	StateId() = default;
@@ -81,9 +86,9 @@ struct StateId
 	}
 
 	StateId(const StateType _type, const StateTopology topo, const StateAlpha _alpha,
-	        const StateFill _fill)
+	        const StateFill _fill, const StateMesh _mesh)
 	    : type(_type)
-	    , flags(topo, _alpha, _fill)
+	    , flags(topo, _alpha, _fill, _mesh)
 	{
 	}
 
@@ -91,16 +96,19 @@ struct StateId
 	struct StateFlags
 	{
 		StateFlags() = default;
-		StateFlags(const StateTopology topo, const StateAlpha _alpha, const StateFill _fill)
+		StateFlags(const StateTopology topo, const StateAlpha _alpha, const StateFill _fill,
+		           const StateMesh _mesh)
 		    : topology(topo)
 		    , alpha(_alpha)
 		    , fill(_fill)
+		    , mesh(_mesh)
 		{
 		}
 
 		StateTopology topology;
 		StateAlpha alpha;
 		StateFill fill;
+		StateMesh mesh;
 
 	} flags;
 
@@ -117,8 +125,10 @@ public:
 	ProgramStateManager();
 	~ProgramStateManager();
 
-	void createStates(std::unique_ptr<VulkanAPI::Interface> &vkInterface,
-	                  std::unique_ptr<RendererBase> &renderer);
+	ProgramState *createState(
+	    std::unique_ptr<VulkanAPI::Interface> &vkInterface, std::unique_ptr<RendererBase> &renderer,
+	    const StateType type, const StateTopology topology, const StateMesh meshType,
+	    const StateAlpha alpha);
 
 	void queueState(StateId &id)
 	{

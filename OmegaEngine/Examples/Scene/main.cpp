@@ -6,17 +6,17 @@
 #include "Managers/LightManager.h"
 #include "Managers/TransformManager.h"
 #include "Models/Gltf/GltfModel.h"
+#include "Models/OEMaterials.h"
+#include "Models/OEModels.h"
 #include "ObjectInterface/ComponentTypes.h"
 #include "ObjectInterface/Object.h"
-#include "Models/OEModels.h"
-#include "Models/OEMaterials.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
 
 using namespace OmegaEngine;
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
 	Engine engine("Scene Example", 1280, 700);
 
@@ -36,8 +36,8 @@ int main(int argc, char *argv[])
 	// adding stock models to the scene
 	auto object = world->createObject(OEMaths::vec3f{ 2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.5f },
 	                                  OEMaths::quatf{ 0.0f });
-	
-	object->addComponent<MeshComponent>(OEModels::generateCubeMesh(OEMaths::vec3f{1.0f}));
+
+	object->addComponent<MeshComponent>(OEModels::generateCubeMesh(OEMaths::vec3f{ 1.0f }));
 	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold,
 	                                        OEMaths::vec3f{ 0.3f },
 	                                        OEMaths::vec4f{ 0.5f, 0.2f, 0.0f, 1.0f }, 0.2f, 1.0f);
@@ -51,8 +51,8 @@ int main(int argc, char *argv[])
 	world->addCameraToWorld();
 
 	// add different lights
-	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f },
-	                       { 1.0f}, 50.0f, 100.0f);
+	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f },
+	                       50.0f, 100.0f);
 	//world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 150.0f, 100.0f);
 	//world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
 

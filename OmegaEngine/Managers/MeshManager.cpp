@@ -97,6 +97,8 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 		mesh.primitives.emplace_back(primitive);
 	}
 
+	mesh.topology = component->mesh->topology;
+
 	meshBuffer.emplace_back(mesh);
 
 	// store the buffer index in the mesh component

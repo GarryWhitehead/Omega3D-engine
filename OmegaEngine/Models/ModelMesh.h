@@ -1,10 +1,14 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
+
 #include <vector>
 
 namespace OmegaEngine
 {
+
+// forward declerations
+enum class StateTopology;
 
 struct ModelMesh
 {
@@ -46,6 +50,9 @@ struct ModelMesh
 		uint32_t indexBase = 0;
 		uint32_t indexCount = 0;
 	};
+
+	// defines the topology to use in the program state
+	StateTopology topology;
 
 	Dimensions totalDimensions;
 

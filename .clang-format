@@ -8,7 +8,7 @@ AccessModifierOffset: -4
 AlignEscapedNewlinesLeft: true
 
 # If true, aligns trailing comments.
-AlignTrailingComments: false
+AlignTrailingComments: true
 
 # Allow putting all parameters of a function declaration onto the next line even if BinPackParameters is false.
 AllowAllParametersOfDeclarationOnNextLine: false
@@ -98,7 +98,7 @@ KeepEmptyLinesAtTheStartOfBlocks: true
 Language: Cpp
 
 # The maximum number of consecutive empty lines to keep.
-MaxEmptyLinesToKeep: 1
+MaxEmptyLinesToKeep: 2
 
 # The indentation used for namespaces. Possible values: None, Inner, All.
 NamespaceIndentation: None
@@ -122,7 +122,7 @@ PenaltyExcessCharacter: 1000000
 PenaltyReturnTypeOnItsOwnLine: 1000000000
 
 # Pointer and reference alignment style. Possible values: Left, Right, Middle.
-PointerAlignment: Right
+PointerAlignment: Left
 
 # If true, a space may be inserted after C style casts.
 SpaceAfterCStyleCast: false
@@ -137,7 +137,7 @@ SpaceBeforeParens: ControlStatements
 SpaceInEmptyParentheses: false
 
 # The number of spaces before trailing line comments (// - comments).
-SpacesBeforeTrailingComments: 1
+SpacesBeforeTrailingComments: 4
 
 # If true, spaces will be inserted after '<' and before '>' in template argument lists.
 SpacesInAngles: false
