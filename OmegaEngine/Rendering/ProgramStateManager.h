@@ -13,20 +13,6 @@ namespace VulkanAPI
 class Interface;
 }
 
-// hasher for state id
-namespace std
-{
-template <>
-struct hash<OmegaEngine::ProgramStateManager::StateId>
-{
-	size_t operator()(OmegaEngine::ProgramStateManager::StateId const &id) const
-	{
-		    return ((hash<OmegaEngine::ProgramStateManager::StateType>()(id.type) ^ (hash<OmegaEngine::ProgramStateManager::StateFlags>()(id.flags) << 1) >> 1);
-	}
-};
-
-} // namespace std
-
 namespace OmegaEngine
 {
 
@@ -112,10 +98,23 @@ struct StateId
 
 	} flags;
 
-	bool operator==(const StateId &other) const
+	bool operator==(const StateId& other) const
 	{
 		return type == other.type && flags.topology == other.flags.topology &&
 		       flags.alpha == other.flags.alpha && flags.fill == other.flags.fill;
+	}
+};
+
+struct StateHash
+{
+	size_t operator()(StateId const& id) const noexcept
+	{
+		size_t h1 = std::hash<StateType>{}(id.type);
+		size_t h2 = std::hash<StateTopology>{}(id.flags.topology);
+		size_t h3 = std::hash<StateAlpha>{}(id.flags.alpha);
+		size_t h4 = std::hash<StateFill>{}(id.flags.fill);
+		size_t h5 = std::hash<StateMesh>{}(id.flags.mesh);
+		return h1 ^ (h2 << 1) ^ (h3 << 1) ^ (h4 << 1) ^ (h5 << 1);
 	}
 };
 
@@ -125,12 +124,12 @@ public:
 	ProgramStateManager();
 	~ProgramStateManager();
 
-	ProgramState *createState(
-	    std::unique_ptr<VulkanAPI::Interface> &vkInterface, std::unique_ptr<RendererBase> &renderer,
-	    const StateType type, const StateTopology topology, const StateMesh meshType,
-	    const StateAlpha alpha);
+	ProgramState* createState(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
+	                          std::unique_ptr<RendererBase>& renderer, const StateType type,
+	                          const StateTopology topology, const StateMesh meshType,
+	                          const StateAlpha alpha);
 
-	void queueState(StateId &id)
+	void queueState(StateId& id)
 	{
 		stateQueue.insert(id);
 	}
@@ -138,7 +137,7 @@ public:
 private:
 	std::set<StateId> stateQueue;
 
-	std::unordered_map<StateId, std::unique_ptr<ProgramState>> states;
+	std::unordered_map<StateId, std::unique_ptr<ProgramState>, StateHash> states;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

@@ -57,7 +57,7 @@ BreakBeforeTernaryOperators: false
 BreakConstructorInitializersBeforeComma: true
 
 # The column limit. A column limit of 0 means that there is no column limit.
-ColumnLimit: 100
+ColumnLimit: 120
 
 # A regular expression that describes comments with special meaning, which should not be split into lines or otherwise changed.
 CommentPragmas: '^ *'

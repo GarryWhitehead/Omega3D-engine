@@ -21,10 +21,10 @@ MeshManager::~MeshManager()
 {
 }
 
-void MeshManager::linkMaterialWithMesh(MeshComponent *meshComponent, MaterialComponent *materialComponent)
+void MeshManager::linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent)
 {
 	uint32_t meshIndex = meshComponent->index;
-	
+
 	// for now, assume all primitives have the same material
 	for (auto& primitive : meshBuffer[meshIndex].primitives)
 	{
@@ -32,7 +32,7 @@ void MeshManager::linkMaterialWithMesh(MeshComponent *meshComponent, MaterialCom
 	}
 }
 
-void MeshManager::addComponentToManager(MeshComponent *component)
+void MeshManager::addComponentToManager(MeshComponent* component)
 {
 	StaticMesh mesh;
 	auto vertexData = component->mesh->vertices;
@@ -43,7 +43,7 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 		mesh.type = MeshType::Static;
 		mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
 
-		for (auto &vertex : vertexData)
+		for (auto& vertex : vertexData)
 		{
 			Vertex vert;
 			vert.normal = vertex.normal;
@@ -59,7 +59,7 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 		mesh.type = MeshType::Skinned;
 		mesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
 
-		for (auto &vertex : vertexData)
+		for (auto& vertex : vertexData)
 		{
 			SkinnedVertex vert;
 			vert.normal = vertex.normal;
@@ -74,7 +74,7 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	}
 
 	// and now the indices
-	auto &modelIndices = component->mesh->indices;
+	auto& modelIndices = component->mesh->indices;
 
 	uint32_t indexOffset = static_cast<uint32_t>(indices.size());
 	mesh.indexBufferOffset = indexOffset;
@@ -86,9 +86,9 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 	}
 
 	// and the primitive data
-	auto &modelPrimitives = component->mesh->primitives;
+	auto& modelPrimitives = component->mesh->primitives;
 
-	for (auto &modelPrimitive : modelPrimitives)
+	for (auto& modelPrimitive : modelPrimitives)
 	{
 		PrimitiveMesh primitive;
 		primitive.indexBase = modelPrimitive.indexBase;
@@ -106,8 +106,8 @@ void MeshManager::addComponentToManager(MeshComponent *component)
 }
 
 
-void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-                              ComponentInterface *componentInterface)
+void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
+                              ComponentInterface* componentInterface)
 {
 	if (isDirty)
 	{
@@ -128,12 +128,11 @@ void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMana
 		}
 
 		// and the indices....
-		VulkanAPI::BufferUpdateEvent event{ "Indices", indices.data(),
-			                                indices.size() * sizeof(uint32_t),
+		VulkanAPI::BufferUpdateEvent event{ "Indices", indices.data(), indices.size() * sizeof(uint32_t),
 			                                VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 		Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 
 		isDirty = false;
 	}
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

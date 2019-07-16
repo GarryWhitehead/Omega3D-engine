@@ -1,7 +1,7 @@
 #include "ProgramStateManager.h"
 #include "Rendering/RenderableTypes/Mesh.h"
-#include "Rendering/RenderableTypes/Skybox.h"
 #include "Rendering/RenderableTypes/Shadow.h"
+#include "Rendering/RenderableTypes/Skybox.h"
 #include "VulkanAPI/Interface.h"
 
 namespace OmegaEngine
@@ -14,8 +14,11 @@ ProgramStateManager::ProgramStateManager()
 ProgramStateManager::~ProgramStateManager()
 {
 }
-ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interface> &vkInterface,
-                                       std::unique_ptr<RendererBase>& renderer, const StateType type, const StateTopology topology, const StateMesh meshType, const StateAlpha alpha)
+
+ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
+                                               std::unique_ptr<RendererBase>& renderer, const StateType type,
+                                               const StateTopology topology, const StateMesh meshType,
+                                               const StateAlpha alpha)
 {
 	// define the state
 	StateId id{ type, topology, alpha, StateFill::Fill, meshType };
@@ -25,34 +28,24 @@ ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interf
 	{
 		return states[id].get();
 	}
-	
-	auto &newState = std::make_unique<ProgramState>();
+
+	auto& newState = std::make_unique<ProgramState>();
 
 	switch (type)
 	{
-	case StateType::MeshStatic:
+	case StateType::Mesh:
 	{
-		RenderableMesh::createMeshPipeline(
-			vkInterface, renderer, MeshType::Static, newState, id.flags);
-		break;
-	}
-	case StateType::MeshSkinned:
-	{
-		RenderableMesh::createMeshPipeline(
-			vkInterface, renderer, MeshType::Skinned, newState, id.flags);
+		RenderableMesh::createMeshPipeline(vkInterface, renderer, meshType, newState, id.flags);
 		break;
 	}
 	case StateType::ShadowMapped:
 	{
-		RenderableShadow::createShadowPipeline(vkInterface->getDevice(), renderer,
-			                                    vkInterface->getBufferManager(), id.flags);
+		RenderableShadow::createShadowPipeline(vkInterface, renderer, newState, id.flags);
 		break;
 	}
 	case StateType::Skybox:
 	{
-		RenderableSkybox::createSkyboxPipeline(vkInterface->getDevice(), renderer,
-			                                    vkInterface->getBufferManager(),
-			                                    vkInterface->gettextureManager(), id.flags);
+		RenderableSkybox::createSkyboxPipeline(vkInterface, renderer, newState, id.flags);
 		break;
 	}
 	default:
@@ -64,4 +57,4 @@ ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interf
 	return states[id].get();
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

@@ -90,14 +90,14 @@ public:
 	~MeshManager();
 
 	// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...)
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface) override;
+	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
+	                 ComponentInterface* componentInterface) override;
 
-	void addComponentToManager(MeshComponent *component);
+	void addComponentToManager(MeshComponent* component);
 
-	void linkMaterialWithMesh(MeshComponent *meshComponent, MaterialComponent *materialComponent);
+	void linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent);
 
-	StaticMesh &getMesh(MeshComponent &comp)
+	StaticMesh& getMesh(MeshComponent& comp)
 	{
 		assert(comp.index < meshBuffer.size());
 		return meshBuffer[comp.index];
@@ -118,4 +118,4 @@ private:
 	bool isDirty = true;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

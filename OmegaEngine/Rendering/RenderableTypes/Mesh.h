@@ -1,7 +1,6 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
 #include "RenderableBase.h"
-#include "Rendering/ProgramStateManager.h"
 #include "Rendering/RenderInterface.h"
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/Descriptors.h"
@@ -17,17 +16,19 @@ class Sampler;
 class CommandBuffer;
 class BufferManager;
 class VkTextureManager;
-} // namespace VulkanAPI
+}    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
 // forward declerations
 class DeferredRenderer;
 class ComponentInterface;
+class ProgramStateManager;
 class ThreadPool;
 class Object;
 struct StaticMesh;
 struct PrimitiveMesh;
+enum class StateMesh;
 
 // renderable object types
 class RenderableMesh : public RenderableBase
@@ -37,17 +38,17 @@ public:
 	// render info that will be used to draw this mesh
 	struct MeshInstance
 	{
-		MeshType type;
+		StateMesh type;
 
 		// pipeline
-		ProgramState *state = nullptr;
+		ProgramState* state = nullptr;
 
 		// per primitive index data
-		uint32_t indexPrimitiveOffset; // this equates to buffer_offset + sub-offset
+		uint32_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
 		uint32_t indexPrimitiveCount;
 
 		// the starting offsets within the main vertices/indices buffer
-		uint32_t indexOffset; // index into large buffer
+		uint32_t indexOffset;    // index into large buffer
 		uint32_t vertexOffset;
 
 		// vertex and index buffer memory info
@@ -97,22 +98,22 @@ public:
 		uint32_t skinnedDynamicOffset = 0;
 	};
 
-	void *getHandle() override
+	void* getHandle() override
 	{
 		return this;
 	}
 
-	RenderableMesh(std::unique_ptr<ComponentInterface> &componentInterface,
-	               std::unique_ptr<VulkanAPI::Interface> &vkInterface, StaticMesh &mesh,
-	               PrimitiveMesh &primitive, Object &obj,
-	               std::unique_ptr<ProgramStateManager> &renderInterface);
+	RenderableMesh(std::unique_ptr<ComponentInterface>& componentInterface,
+	               std::unique_ptr<VulkanAPI::Interface>& vkInterface, StaticMesh& mesh, PrimitiveMesh& primitive,
+	               Object& obj, std::unique_ptr<ProgramStateManager>& renderInterface,
+	               std::unique_ptr<RendererBase>& renderer);
 
-	void render(VulkanAPI::SecondaryCommandBuffer &cmdBuffer, void *instanceData) override;
+	void render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* instanceData) override;
 
-	static void RenderableMesh::createMeshPipeline(
-	    std::unique_ptr<VulkanAPI::Interface> &vkInterface, std::unique_ptr<RendererBase> &renderer,
-	    MeshType type, std::unique_ptr<ProgramState> &state, StateId::StateFlags &flags);
+	static void RenderableMesh::createMeshPipeline(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
+	                                               std::unique_ptr<RendererBase>& renderer, 
+	                                               std::unique_ptr<ProgramState>& state, StateId::StateFlags& flags);
 
 private:
 };
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

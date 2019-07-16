@@ -63,4 +63,4 @@ struct ModelMesh
 	bool skinned = false;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

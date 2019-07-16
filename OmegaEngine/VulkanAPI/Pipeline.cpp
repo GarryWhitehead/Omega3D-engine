@@ -11,9 +11,8 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::create(
-    vk::Device& device,
-    std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& descriptorLayout)
+void PipelineLayout::create(vk::Device& device,
+                            std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& descriptorLayout)
 {
 	// create push constants
 	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
@@ -45,9 +44,8 @@ void PipelineLayout::create(
 		layouts[std::get<0>(layout)] = std::get<1>(layout);
 	}
 
-	vk::PipelineLayoutCreateInfo pipelineInfo(
-	    {}, static_cast<uint32_t>(layouts.size()), layouts.data(),
-	    static_cast<uint32_t>(pushConstants.size()), pushConstants.data());
+	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(layouts.size()), layouts.data(),
+	                                          static_cast<uint32_t>(pushConstants.size()), pushConstants.data());
 
 	VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
 }
@@ -86,10 +84,10 @@ void Pipeline::updateVertexInput()
 	}
 
 	// first sort the attributes so they are in order of location as when we reflect, we can get the inputs in any order
-	std::sort(
-	    vertexAttrDescr.begin(), vertexAttrDescr.end(),
-	    [](const vk::VertexInputAttributeDescription lhs,
-	       const vk::VertexInputAttributeDescription rhs) { return lhs.location < rhs.location; });
+	std::sort(vertexAttrDescr.begin(), vertexAttrDescr.end(),
+	          [](const vk::VertexInputAttributeDescription lhs, const vk::VertexInputAttributeDescription rhs) {
+		          return lhs.location < rhs.location;
+	          });
 
 	// calculate the offset for each location - the size of each location is stored temporarily in the offset elemnt of the struct
 	uint32_t nextOffset = 0;
@@ -106,8 +104,8 @@ void Pipeline::updateVertexInput()
 	}
 
 	// assuming just one binding at the moment
-	vk::VertexInputBindingDescription bind_descr(
-	    0, totalSize, vk::VertexInputRate::eVertex);    // should also support instancing
+	vk::VertexInputBindingDescription bind_descr(0, totalSize,
+	                                             vk::VertexInputRate::eVertex);    // should also support instancing
 	vertexBindDescr.push_back(bind_descr);
 
 	vertexInputState.vertexAttributeDescriptionCount = attributeCount;
@@ -185,9 +183,8 @@ void Pipeline::setDepthState(bool testState, bool writeState, vk::CompareOp comp
 	depthStencilState.depthCompareOp = compare;
 }
 
-void Pipeline::setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilOp failOp,
-                                           vk::StencilOp depthFailOp, vk::StencilOp passOp,
-                                           uint32_t compareMask, uint32_t writeMask, uint32_t ref)
+void Pipeline::setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilOp failOp, vk::StencilOp depthFailOp,
+                                           vk::StencilOp passOp, uint32_t compareMask, uint32_t writeMask, uint32_t ref)
 {
 	depthStencilState.stencilTestEnable = VK_TRUE;
 	depthStencilState.front.failOp = failOp;
@@ -222,8 +219,8 @@ void Pipeline::addEmptyLayout()
 	VK_CHECK_RESULT(device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
 }
 
-void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader,
-                      PipelineLayout& layout, PipelineType _type)
+void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader, PipelineLayout& layout,
+                      PipelineType _type)
 {
 	device = dev;
 	type = _type;
@@ -234,19 +231,18 @@ void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader,
 	updateVertexInput();
 
 	// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
-	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(),
-	                      (float)renderpass.getImageHeight(), 0.0f, 1.0f);
-	vk::Rect2D scissor(vk::Offset2D(0, 0),
-	                   vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
+	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(), (float)renderpass.getImageHeight(), 0.0f,
+	                      1.0f);
+	vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
 	viewportState.pViewports = &viewPort;
 	viewportState.viewportCount = 1;
 	viewportState.pScissors = &scissor;
 	viewportState.scissorCount = 1;
 
-	vk::GraphicsPipelineCreateInfo createInfo(
-	    {}, shader.size(), shader.getPipelineData(), &vertexInputState, &assemblyState, nullptr,
-	    &viewportState, &rasterState, &multiSampleState, &depthStencilState, &colorBlendState,
-	    &dynamicCreateState, pipelineLayout, this->renderpass.get(), 0, nullptr, 0);
+	vk::GraphicsPipelineCreateInfo createInfo({}, shader.size(), shader.getPipelineData(), &vertexInputState,
+	                                          &assemblyState, nullptr, &viewportState, &rasterState, &multiSampleState,
+	                                          &depthStencilState, &colorBlendState, &dynamicCreateState, pipelineLayout,
+	                                          this->renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
@@ -265,21 +261,19 @@ void Pipeline::create(vk::Device dev, RenderPass& renderpass, Shader& shader, Pi
 	updateVertexInput();
 
 	// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
-	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(),
-	                      (float)renderpass.getImageHeight(), 0.0f, 1.0f);
-	vk::Rect2D scissor(vk::Offset2D(0, 0),
-	                   vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
+	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(), (float)renderpass.getImageHeight(), 0.0f,
+	                      1.0f);
+	vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
 	viewportState.pViewports = &viewPort;
 	viewportState.viewportCount = 1;
 	viewportState.pScissors = &scissor;
 	viewportState.scissorCount = 1;
 
-	vk::GraphicsPipelineCreateInfo createInfo(
-	    {}, shader.size(), shader.getPipelineData(), &vertexInputState, &assemblyState, nullptr,
-	    &viewportState, &rasterState, &multiSampleState, &depthStencilState, &colorBlendState,
-	    &dynamicCreateState,
-	    pipelineLayout,    // default empty pipeline layout used
-	    this->renderpass.get(), 0, nullptr, 0);
+	vk::GraphicsPipelineCreateInfo createInfo({}, shader.size(), shader.getPipelineData(), &vertexInputState,
+	                                          &assemblyState, nullptr, &viewportState, &rasterState, &multiSampleState,
+	                                          &depthStencilState, &colorBlendState, &dynamicCreateState,
+	                                          pipelineLayout,    // default empty pipeline layout used
+	                                          this->renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
@@ -293,19 +287,18 @@ void Pipeline::create(vk::Device dev, PipelineType _type)
 	updateVertexInput();
 
 	// use the image size form the renderpass to construct the viewport. Will probably want to offer more methods in the future?
-	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(),
-	                      (float)renderpass.getImageHeight(), 0.0f, 1.0f);
-	vk::Rect2D scissor(vk::Offset2D(0, 0),
-	                   vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
+	vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(), (float)renderpass.getImageHeight(), 0.0f,
+	                      1.0f);
+	vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
 	viewportState.pViewports = &viewPort;
 	viewportState.viewportCount = 1;
 	viewportState.pScissors = &scissor;
 	viewportState.scissorCount = 1;
 
-	vk::GraphicsPipelineCreateInfo createInfo(
-	    {}, shader.size(), shader.getPipelineData(), &vertexInputState, &assemblyState, nullptr,
-	    &viewportState, &rasterState, &multiSampleState, &depthStencilState, &colorBlendState,
-	    &dynamicCreateState, pipelineLayout, this->renderpass.get(), 0, nullptr, 0);
+	vk::GraphicsPipelineCreateInfo createInfo({}, shader.size(), shader.getPipelineData(), &vertexInputState,
+	                                          &assemblyState, nullptr, &viewportState, &rasterState, &multiSampleState,
+	                                          &depthStencilState, &colorBlendState, &dynamicCreateState, pipelineLayout,
+	                                          this->renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }

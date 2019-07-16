@@ -25,6 +25,7 @@ class RenderableBase;
 class PostProcessInterface;
 class RenderQueue;
 class ObjectManager;
+class ProgramStateManager;
 
 template <typename FuncReturn, typename T,
           FuncReturn (T::*callback)(VulkanAPI::SecondaryCommandBuffer &cmdBuffer,
@@ -111,11 +112,13 @@ public:
 private:
 	RenderConfig renderConfig;
 
-	// states whether the scene is static, i.e. no additional will be drawn, or dynamic
+	// states whether the scene is static, i.e. no additional geometry will be drawn, or dynamic
 	SceneType sceneType;
 
 	// pointers to each possible renderer. TODO: find a better way so we only have one pointer
 	std::unique_ptr<RendererBase> renderer;
+
+	std::unique_ptr<ProgramStateManager> stateManager;
 
 	std::unique_ptr<VulkanAPI::Interface> vkInterface;
 	std::unique_ptr<PostProcessInterface> postProcessInterface;

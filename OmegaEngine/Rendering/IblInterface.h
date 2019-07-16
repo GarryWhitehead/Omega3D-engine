@@ -10,7 +10,7 @@ namespace VulkanAPI
 {
 class Queue;
 class Interface;
-} // namespace VulkanAPI
+}    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
@@ -49,27 +49,27 @@ public:
 		uint32_t sampleCount;
 	};
 
-	IblInterface(VulkanAPI::Interface &vkInterface);
+	IblInterface(VulkanAPI::Interface& vkInterface);
 	~IblInterface();
 
-	void calculateCubeTransform(const uint32_t face, const float zNear, const float zFar,
-	                            OEMaths::mat4f &outputProj, OEMaths::mat4f &outputView);
-	void generateBrdf(VulkanAPI::Interface &vkInterface);
-	void createIrradianceMap(VulkanAPI::Interface &vkInterface);
-	void createSpecularMap(VulkanAPI::Interface &vkInterface);
-	void renderMaps(VulkanAPI::Interface &vkInterface);
+	void calculateCubeTransform(const uint32_t face, const float zNear, const float zFar, OEMaths::mat4f& outputProj,
+	                            OEMaths::mat4f& outputView);
+	void generateBrdf(VulkanAPI::Interface& vkInterface);
+	void createIrradianceMap(VulkanAPI::Interface& vkInterface);
+	void createSpecularMap(VulkanAPI::Interface& vkInterface);
+	void renderMaps(VulkanAPI::Interface& vkInterface);
 
-	vk::ImageView &getBrdfImageView()
+	vk::ImageView& getBrdfImageView()
 	{
 		return brdfTexture.getImageView();
 	}
 
-	vk::ImageView &getIrradianceMapImageView()
+	vk::ImageView& getIrradianceMapImageView()
 	{
 		return irradianceMapTexture.getImageView();
 	}
 
-	vk::ImageView &getSpecularMapImageView()
+	vk::ImageView& getSpecularMapImageView()
 	{
 		return specularMapTexture.getImageView();
 	}
@@ -91,4 +91,4 @@ private:
 	bool mapsRendered = false;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

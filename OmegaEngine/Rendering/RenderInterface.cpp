@@ -15,6 +15,7 @@
 #include "RenderableTypes/RenderableBase.h"
 #include "RenderableTypes/Shadow.h"
 #include "RenderableTypes/Skybox.h"
+#include "Rendering/ProgramStateManager.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
 #include "Threading/ThreadPool.h"
@@ -33,7 +34,7 @@ RenderInterface::RenderInterface()
 {
 }
 
-RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device> &device, const uint32_t width,
+RenderInterface::RenderInterface(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width,
                                  const uint32_t height, SceneType type)
     : sceneType(type)
 {
@@ -44,8 +45,7 @@ RenderInterface::~RenderInterface()
 {
 }
 
-void RenderInterface::init(std::unique_ptr<VulkanAPI::Device> &device, const uint32_t width,
-                           const uint32_t height)
+void RenderInterface::init(std::unique_ptr<VulkanAPI::Device>& device, const uint32_t width, const uint32_t height)
 {
 	// load the render config file if it exsists
 	// renderConfig.load();
@@ -69,9 +69,12 @@ void RenderInterface::init(std::unique_ptr<VulkanAPI::Device> &device, const uin
 
 	// create the vulkan API interface - this is the middle man between the renderer and the vulkan backend
 	vkInterface = std::make_unique<VulkanAPI::Interface>(*device, width, height, mode);
+
+	// and the state manager which will deal with shader modules and pipelines
+	stateManager = std::make_unique<ProgramStateManager>();
 }
 
-void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface> &componentInterface)
+void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface>& componentInterface)
 {
 	// setup the renderer pipeline
 	switch (static_cast<RendererType>(renderConfig.general.renderer))
@@ -86,41 +89,30 @@ void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface> &componen
 		             "is supported.");
 		break;
 	}
-
-	// initlaise all shaders and pipelines that will be used which is dependent on the number of renderable types
-	for (uint16_t r_type = 0; r_type < (uint16_t)RenderTypes::Count; ++r_type)
-	{
-		this->addShader((RenderTypes)r_type, componentInterface);
-	}
 }
 
-void RenderInterface::buildRenderableMeshTree(
-    Object &obj, std::unique_ptr<ComponentInterface> &componentInterface, bool isShadow)
+void RenderInterface::buildRenderableMeshTree(Object& obj, std::unique_ptr<ComponentInterface>& componentInterface,
+                                              bool isShadow)
 {
-	auto &meshManager = componentInterface->getManager<MeshManager>();
-	auto &lightManager = componentInterface->getManager<LightManager>();
+	auto& meshManager = componentInterface->getManager<MeshManager>();
+	auto& lightManager = componentInterface->getManager<LightManager>();
 
 	if (obj.hasComponent<MeshComponent>())
 	{
-		auto &mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
+		auto& mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
 
 		// we need to add all the primitve sub meshes as renderables
-		for (auto &primitive : mesh.primitives)
+		for (auto& primitive : mesh.primitives)
 		{
-			uint32_t meshIndex = addRenderable<RenderableMesh>(
-			    vkInterface->getDevice(), componentInterface, vkInterface->getBufferManager(),
-			    vkInterface->gettextureManager(), mesh, primitive, obj, this);
+			uint32_t meshIndex =
+			    addRenderable<RenderableMesh>(vkInterface, componentInterface, mesh, primitive, obj, stateManager);
 
 			// if using shadows, then draw the meshes into the offscreen depth buffer too
-			// TODO : this should be done elsewhere and make this code better!
-			obj.addComponent<ShadowComponent>(renderConfig.biasClamp, renderConfig.biasConstant,
-			                                  renderConfig.biasSlope);
-
-			addRenderable<RenderableShadow>(
-			    this, obj.getComponent<ShadowComponent>(),
-			    getRenderable(meshIndex)
-			        .renderable->getInstanceData<RenderableMesh::MeshInstance>(),
-			    lightManager.getLightCount(), lightManager.getAlignmentSize());
+			if (obj.hasComponent<ShadowComponent>())
+			{
+				addRenderable<RenderableShadow>(mesh, primitive, obj, lightManager.getLightCount(),
+				                                lightManager.getAlignmentSize(), stateManager);
+			}
 		}
 	}
 
@@ -132,15 +124,15 @@ void RenderInterface::buildRenderableMeshTree(
 	}
 }
 
-void RenderInterface::updateRenderables(std::unique_ptr<ObjectManager> &objectManager,
-                                        std::unique_ptr<ComponentInterface> &componentInterface)
+void RenderInterface::updateRenderables(std::unique_ptr<ObjectManager>& objectManager,
+                                        std::unique_ptr<ComponentInterface>& componentInterface)
 {
 	if (isDirty)
 	{
 		// get all objects that are available this frame
-		auto &objects = objectManager->getObjectsList();
+		auto& objects = objectManager->getObjectsList();
 
-		for (auto &object : objects)
+		for (auto& object : objects)
 		{
 			// objects which have skybox, landscape or ocean components won't have other components checked
 			if (object.second.hasComponent<SkyboxComponent>())
@@ -163,7 +155,7 @@ void RenderInterface::prepareObjectQueue()
 {
 	RenderQueueInfo queueInfo;
 
-	for (auto &info : renderables)
+	for (auto& info : renderables)
 	{
 
 		switch (info.renderable->getRenderType())
@@ -172,22 +164,19 @@ void RenderInterface::prepareObjectQueue()
 		case RenderTypes::StaticMesh:
 		{
 			queueInfo.renderableHandle = info.renderable->getHandle();
-			queueInfo.renderFunction =
-			    getMemberRenderFunction<void, RenderableMesh, &RenderableMesh::render>;
+			queueInfo.renderFunction = getMemberRenderFunction<void, RenderableMesh, &RenderableMesh::render>;
 			break;
 		}
 		case RenderTypes::ShadowMapped:
 		{
 			queueInfo.renderableHandle = info.renderable->getHandle();
-			queueInfo.renderFunction =
-			    getMemberRenderFunction<void, RenderableShadow, &RenderableShadow::render>;
+			queueInfo.renderFunction = getMemberRenderFunction<void, RenderableShadow, &RenderableShadow::render>;
 			break;
 		}
 		case RenderTypes::Skybox:
 		{
 			queueInfo.renderableHandle = info.renderable->getHandle();
-			queueInfo.renderFunction =
-			    getMemberRenderFunction<void, RenderableSkybox, &RenderableSkybox::render>;
+			queueInfo.renderFunction = getMemberRenderFunction<void, RenderableSkybox, &RenderableSkybox::render>;
 			break;
 		}
 		}
@@ -212,4 +201,4 @@ void RenderInterface::render(double interpolation)
 
 	renderer->render(vkInterface, sceneType, renderQueue);
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

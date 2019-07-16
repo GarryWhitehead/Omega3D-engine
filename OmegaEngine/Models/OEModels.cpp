@@ -25,13 +25,10 @@ std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, c
 			OmegaEngine::ModelMesh::Vertex vertex;
 
 			uint32_t index = x + y * size;
-			vertex.position = OEMaths::vec4f{
-				x * widthX + widthX / 2.0f - static_cast<float>(size) * widthX / 2.0f, 0.0f,
-				y * widthY + widthY / 2.0f - static_cast<float>(size) * widthY / 2.0f, 1.0f
-			};
-			vertex.uv0 =
-			    OEMaths::vec2f{ x / static_cast<float>(size), y / static_cast<float>(size) } *
-			    uvFactor;
+			vertex.position =
+			    OEMaths::vec4f{ x * widthX + widthX / 2.0f - static_cast<float>(size) * widthX / 2.0f, 0.0f,
+				                y * widthY + widthY / 2.0f - static_cast<float>(size) * widthY / 2.0f, 1.0f };
+			vertex.uv0 = OEMaths::vec2f{ x / static_cast<float>(size), y / static_cast<float>(size) } * uvFactor;
 
 			mesh->vertices.emplace_back(vertex);
 		}
@@ -48,10 +45,10 @@ std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, c
 		for (uint32_t y = 0; y < width; ++y)
 		{
 			uint32_t index = (x + y * width) * 4;
-			mesh->indices[index] = (x + y * size); // top-left
-			mesh->indices[index + 1] = mesh->indices[index] + size; // bottom-left
-			mesh->indices[index + 2] = mesh->indices[index + 1] + 1; //	bottom-right
-			mesh->indices[index + 3] = mesh->indices[index] + 1; // top-right
+			mesh->indices[index] = (x + y * size);                      // top-left
+			mesh->indices[index + 1] = mesh->indices[index] + size;     // bottom-left
+			mesh->indices[index + 2] = mesh->indices[index + 1] + 1;    //	bottom-right
+			mesh->indices[index + 3] = mesh->indices[index] + 1;        // top-right
 		}
 	}
 
@@ -69,21 +66,18 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 	mesh->indices.reserve(2 * density * density * 6);
 
 	static const OEMaths::vec3f basePosition[6] = {
-		OEMaths::vec3f(1.0f, 1.0f, 1.0f),   OEMaths::vec3f(-1.0f, 1.0f, -1.0f),
-		OEMaths::vec3f(-1.0f, 1.0f, -1.0f), OEMaths::vec3f(-1.0f, -1.0f, +1.0f),
-		OEMaths::vec3f(-1.0f, 1.0f, +1.0f), OEMaths::vec3f(+1.0f, 1.0f, -1.0f),
+		OEMaths::vec3f(1.0f, 1.0f, 1.0f),    OEMaths::vec3f(-1.0f, 1.0f, -1.0f), OEMaths::vec3f(-1.0f, 1.0f, -1.0f),
+		OEMaths::vec3f(-1.0f, -1.0f, +1.0f), OEMaths::vec3f(-1.0f, 1.0f, +1.0f), OEMaths::vec3f(+1.0f, 1.0f, -1.0f),
 	};
 
 	static const OEMaths::vec3f dx[6] = {
-		OEMaths::vec3f(0.0f, 0.0f, -2.0f), OEMaths::vec3f(0.0f, 0.0f, +2.0f),
-		OEMaths::vec3f(2.0f, 0.0f, 0.0f),  OEMaths::vec3f(2.0f, 0.0f, 0.0f),
-		OEMaths::vec3f(2.0f, 0.0f, 0.0f),  OEMaths::vec3f(-2.0f, 0.0f, 0.0f),
+		OEMaths::vec3f(0.0f, 0.0f, -2.0f), OEMaths::vec3f(0.0f, 0.0f, +2.0f), OEMaths::vec3f(2.0f, 0.0f, 0.0f),
+		OEMaths::vec3f(2.0f, 0.0f, 0.0f),  OEMaths::vec3f(2.0f, 0.0f, 0.0f),  OEMaths::vec3f(-2.0f, 0.0f, 0.0f),
 	};
 
 	static const OEMaths::vec3f dy[6] = {
-		OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f),
-		OEMaths::vec3f(0.0f, 0.0f, +2.0f), OEMaths::vec3f(0.0f, 0.0f, -2.0f),
-		OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f),
+		OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, 0.0f, +2.0f),
+		OEMaths::vec3f(0.0f, 0.0f, -2.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f), OEMaths::vec3f(0.0f, -2.0f, 0.0f),
 	};
 
 	const float densityMod = 1.0f / static_cast<float>(density - 1);
@@ -99,8 +93,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 				OmegaEngine::ModelMesh::Vertex vertex;
 				vertex.uv0 = OEMaths::vec2f{ densityMod * x, densityMod * y };
 				OEMaths::vec3f pos =
-				    OEMaths::vec3f{ basePosition[face] + dx[face] * vertex.uv0.getX() +
-					                    dy[face] * vertex.uv0.getY() };
+				    OEMaths::vec3f{ basePosition[face] + dx[face] * vertex.uv0.getX() + dy[face] * vertex.uv0.getY() };
 				pos.normalise();
 				vertex.position = OEMaths::vec4f{ pos, 1.0f };
 				mesh->vertices.emplace_back(vertex);
@@ -126,7 +119,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 	return std::move(mesh);
 }
 
-std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &size)
+std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f& size)
 {
 	auto mesh = std::make_unique<OmegaEngine::ModelMesh>();
 
@@ -155,31 +148,17 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &s
 	const OEMaths::vec2f uv7{ 1.0f, 0.0f };
 
 
-	static const std::array<OEMaths::vec3f, 36> vertexData = {
-		v1, v2, v3, v3, v0, v1, 
-		v2, v6, v7, v7, v3, v2,
-		v6, v5, v4, v4, v7, v6,
-		v5, v1, v0, v0, v4, v5,
-		v0, v3, v7, v7, v4, v0,
-		v5, v6, v2, v2, v1, v5
-	};
+	static const std::array<OEMaths::vec3f, 36> vertexData = { v1, v2, v3, v3, v0, v1, v2, v6, v7, v7, v3, v2,
+		                                                       v6, v5, v4, v4, v7, v6, v5, v1, v0, v0, v4, v5,
+		                                                       v0, v3, v7, v7, v4, v0, v5, v6, v2, v2, v1, v5 };
 
-	static const std::array<OEMaths::vec2f, 36> uvData = { 
-		uv1, uv2, uv3, uv3, uv0, uv1, 
-		uv2, uv6, uv7, uv7, uv3, uv2, 
-		uv6, uv5, uv4, uv4, uv7, uv6,
-		uv5, uv1, uv0, uv0, uv4, uv5, 
-		uv0, uv3, uv7, uv7, uv4, uv0, 
-		uv5, uv6, uv2, uv2, uv1, uv5 
-	};
+	static const std::array<OEMaths::vec2f, 36> uvData = { uv1, uv2, uv3, uv3, uv0, uv1, uv2, uv6, uv7, uv7, uv3, uv2,
+		                                                   uv6, uv5, uv4, uv4, uv7, uv6, uv5, uv1, uv0, uv0, uv4, uv5,
+		                                                   uv0, uv3, uv7, uv7, uv4, uv0, uv5, uv6, uv2, uv2, uv1, uv5 };
 
 	static const std::array<OEMaths::vec3f, 6> normalData = {
-		OEMaths::vec3f{ 0.0f, 0.0f, +1.0f },
-		OEMaths::vec3f{ -1.0f, 0.0f, 0.0f },
-		OEMaths::vec3f{ 0.0f, 0.0f, -1.0f },
-		OEMaths::vec3f{ +1.0f, 0.0f, 0.0f },
-		OEMaths::vec3f{ 0.0f, -1.0f, 0.0f },
-		OEMaths::vec3f{ 0.0f, +1.0f, 0.0f }
+		OEMaths::vec3f{ 0.0f, 0.0f, +1.0f }, OEMaths::vec3f{ -1.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 0.0f, 0.0f, -1.0f },
+		OEMaths::vec3f{ +1.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 0.0f, -1.0f, 0.0f }, OEMaths::vec3f{ 0.0f, +1.0f, 0.0f }
 	};
 
 	// cube indices
@@ -224,5 +203,5 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f &s
 	return std::move(mesh);
 }
 
-} // namespace Models
-} // namespace OmegaEngine
+}    // namespace OEModels
+}    // namespace OmegaEngine
