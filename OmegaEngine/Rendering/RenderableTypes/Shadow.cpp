@@ -6,15 +6,18 @@
 #include "Utility/logger.h"
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/VkTextureManager.h"
 #include "VulkanAPI/DataTypes/Texture.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/Interface.h"
 
 namespace OmegaEngine
 {
 
-RenderableShadow::RenderableShadow(RenderInterface* renderInterface, ShadowComponent& component,
-                                   RenderableMesh::MeshInstance* meshInstance, uint32_t lightCount,
-                                   uint32_t lightAlignmentSize)
+RenderableShadow::RenderableShadow(std::unique_ptr<ProgramStateManager>& stateManager,
+                                   std::unique_ptr<VulkanAPI::Interface>& vkInterface, ShadowComponent& component,
+                                   StaticMesh& mesh, PrimitiveMesh& primitive, uint32_t lightCount,
+                                   uint32_t lightAlignmentSize, std::unique_ptr<RendererBase>& renderer)
     : RenderableBase(RenderTypes::Skybox)
 {
 	// fill out the data which will be used for rendering
@@ -27,14 +30,24 @@ RenderableShadow::RenderableShadow(RenderInterface* renderInterface, ShadowCompo
 	queueType = QueueType::Shadow;
 
 	// pointer to the mesh pipeline
-	shadowInstance->state = renderInterface->getRenderPipeline(RenderTypes::ShadowMapped).get();
+	shadowInstance->state =
+	    stateManager->createState(vkInterface, renderer, StateType::ShadowMapped, mesh.topology, mesh.type, StateAlpha::Opaque);
+
+	// pointer to the mesh pipeline
+	if (mesh.type == StateMesh::Static)
+	{
+		shadowInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("StaticVertices");
+	}
+	else
+	{
+		shadowInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("SkinnedVertices");
+	}
 
 	// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
-	shadowInstance->vertexOffset = meshInstance->vertexOffset;
-	shadowInstance->indexOffset = meshInstance->indexOffset;
-	shadowInstance->vertexBuffer = meshInstance->vertexBuffer;
-	shadowInstance->indexBuffer = meshInstance->indexBuffer;
-	shadowInstance->indexCount = meshInstance->indexPrimitiveCount;
+	shadowInstance->vertexOffset = mesh.vertexBufferOffset;
+	shadowInstance->indexOffset = mesh.indexBufferOffset;
+	shadowInstance->indexBuffer = vkInterface->getBufferManager()->getBuffer("Indices");
+	shadowInstance->indexCount = primitive.indexCount;
 
 	shadowInstance->lightCount = lightCount;
 	shadowInstance->lightAlignmentSize = lightAlignmentSize;
@@ -50,8 +63,7 @@ RenderableShadow::~RenderableShadow()
 
 void RenderableShadow::createShadowPipeline(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
                                             std::unique_ptr<RendererBase>& renderer,
-                                            std::unique_ptr<ProgramState>& state,
-                                            StateId::StateFlags& flags)
+                                            std::unique_ptr<ProgramState>& state, StateId::StateFlags& flags)
 {
 	if (!state->shader.add(vkInterface->getDevice(), "shadow/mapped-vert.spv", VulkanAPI::StageType::Vertex))
 	{
@@ -71,7 +83,7 @@ void RenderableShadow::createShadowPipeline(std::unique_ptr<VulkanAPI::Interface
 		if (layout.name == "Dynamic_Ubo")
 		{
 			vkInterface->getBufferManager()->enqueueDescrUpdate("LightDynamic", &state->descriptorSet, layout.set,
-			                                  layout.binding, layout.type);
+			                                                    layout.binding, layout.type);
 		}
 	}
 
@@ -86,20 +98,17 @@ void RenderableShadow::createShadowPipeline(std::unique_ptr<VulkanAPI::Interface
 	state->pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 	state->pipeline.setTopology(flags.topology);
 	state->pipeline.addDynamicState(vk::DynamicState::eDepthBias);
-	state->pipeline.create(vkInterface->getDevice(), renderer->getShadowPass(), state->shader,
-	                       state->pipelineLayout,
+	state->pipeline.create(vkInterface->getDevice(), renderer->getShadowPass(), state->shader, state->pipelineLayout,
 	                       VulkanAPI::PipelineType::Graphics);
 }
 
-void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass,
-                                        VulkanAPI::Texture& image, vk::Device& device,
-                                        vk::PhysicalDevice& gpu, const vk::Format format,
+void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass, VulkanAPI::Texture& image,
+                                        vk::Device& device, vk::PhysicalDevice& gpu, const vk::Format format,
                                         const uint32_t width, const uint32_t height)
 {
 	// create empty image into which the depth will be drawn
 	image.createEmptyImage(format, width, height, 1,
-	                       vk::ImageUsageFlagBits::eDepthStencilAttachment |
-	                           vk::ImageUsageFlagBits::eSampled);
+	                       vk::ImageUsageFlagBits::eDepthStencilAttachment | vk::ImageUsageFlagBits::eSampled);
 
 	// renderpass
 	renderpass.init(device);
@@ -120,8 +129,7 @@ void RenderableShadow::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void
 
 	cmdBuffer.setViewport();
 	cmdBuffer.setScissor();
-	cmdBuffer.setDepthBias(instanceData->biasConstant, instanceData->biasClamp,
-	                       instanceData->biasSlope);
+	cmdBuffer.setDepthBias(instanceData->biasConstant, instanceData->biasClamp, instanceData->biasSlope);
 	cmdBuffer.bindPipeline(state->pipeline);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
@@ -132,8 +140,8 @@ void RenderableShadow::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void
 	for (uint32_t i = 0; i < instanceData->lightCount; ++i)
 	{
 		uint32_t dynamicBufferOffset = i * instanceData->lightAlignmentSize;
-		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet,
-		                                 VulkanAPI::PipelineType::Graphics, dynamicBufferOffset);
+		cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics,
+		                                 dynamicBufferOffset);
 		cmdBuffer.drawIndexed(instanceData->indexCount);
 	}
 }

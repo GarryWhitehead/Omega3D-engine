@@ -5,6 +5,7 @@
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Interface.h"
+#include "Rendering/ProgramStateManager.h"
 
 // Number of combined image sampler sets allowed for materials. This allows for materials to be added - this value will need monitoring
 #define MAX_MATERIAL_SETS 50
@@ -105,7 +106,7 @@ public:
 
 	RenderableMesh(std::unique_ptr<ComponentInterface>& componentInterface,
 	               std::unique_ptr<VulkanAPI::Interface>& vkInterface, StaticMesh& mesh, PrimitiveMesh& primitive,
-	               Object& obj, std::unique_ptr<ProgramStateManager>& renderInterface,
+	               Object& obj, std::unique_ptr<ProgramStateManager>& stateManager,
 	               std::unique_ptr<RendererBase>& renderer);
 
 	void render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* instanceData) override;

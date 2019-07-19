@@ -15,16 +15,11 @@ class ObjectManager;
 class Object;
 struct MeshComponent;
 enum class StateTopolgy;
+enum class StateMesh;
 
-enum class MeshType
+    struct PrimitiveMesh
 {
-	Static,
-	Skinned
-};
-
-struct PrimitiveMesh
-{
-	MeshType type;
+	StateMesh type;
 
 	// index offsets
 	uint32_t indexBase = 0;
@@ -36,7 +31,7 @@ struct PrimitiveMesh
 
 struct StaticMesh
 {
-	MeshType type;
+	StateMesh type;
 
 	// primitives assoicated with this mesh
 	std::vector<PrimitiveMesh> primitives;

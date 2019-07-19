@@ -8,6 +8,8 @@
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/Interface.h"
 #include "VulkanAPI/Swapchain.h"
+#include "VulkanAPI/Shader.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
@@ -116,7 +118,7 @@ void PresentationPass::createPipeline(vk::ImageView &postProcessImageView,
 	state.pipeline.setDepthState(VK_TRUE, VK_FALSE);
 	state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 	state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
-	state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+	state.pipeline.setTopology(StateTopology::List);
 	state.pipeline.addColourAttachment(VK_FALSE, vkInterface.getSwapchain().getRenderpass());
 	state.pipeline.create(vkInterface.getDevice(), vkInterface.getSwapchain().getRenderpass(),
 	                      state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);

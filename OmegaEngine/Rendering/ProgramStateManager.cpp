@@ -35,7 +35,7 @@ ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interf
 	{
 	case StateType::Mesh:
 	{
-		RenderableMesh::createMeshPipeline(vkInterface, renderer, meshType, newState, id.flags);
+		RenderableMesh::createMeshPipeline(vkInterface, renderer, newState, id.flags);
 		break;
 	}
 	case StateType::ShadowMapped:

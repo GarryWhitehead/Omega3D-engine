@@ -185,7 +185,8 @@ void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>
 	if (node->hasMesh())
 	{
 		parentObject->addComponent<MeshComponent>(node->getMesh(), materialOffset);
-		parentObject->addComponent<ShadowComponent>();
+		// TODO: obtain these parameters from the config once it has been refactored
+		parentObject->addComponent<ShadowComponent>(0.0f, 1.25f, 1.75f);
 	}
 	if (node->hasTransform())
 	{

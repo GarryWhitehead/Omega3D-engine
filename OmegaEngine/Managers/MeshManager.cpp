@@ -9,6 +9,7 @@
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
 #include "VulkanAPI/BufferManager.h"
+#include "Rendering/ProgramStateManager.h"
 
 namespace OmegaEngine
 {
@@ -40,7 +41,7 @@ void MeshManager::addComponentToManager(MeshComponent* component)
 	// copy data from model into the manager
 	if (!component->mesh->skinned)
 	{
-		mesh.type = MeshType::Static;
+		mesh.type = StateMesh::Static;
 		mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
 
 		for (auto& vertex : vertexData)
@@ -56,7 +57,7 @@ void MeshManager::addComponentToManager(MeshComponent* component)
 	}
 	else
 	{
-		mesh.type = MeshType::Skinned;
+		mesh.type = StateMesh::Skinned;
 		mesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
 
 		for (auto& vertex : vertexData)

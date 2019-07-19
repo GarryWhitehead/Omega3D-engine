@@ -48,7 +48,8 @@ enum class StateAlpha
 enum class StateTopology
 {
 	List,
-	Strip
+	Strip,
+	StripRestart
 };
 
 enum class StateFill
@@ -97,12 +98,6 @@ struct StateId
 		StateMesh mesh;
 
 	} flags;
-
-	bool operator==(const StateId& other) const
-	{
-		return type == other.type && flags.topology == other.flags.topology &&
-		       flags.alpha == other.flags.alpha && flags.fill == other.flags.fill;
-	}
 };
 
 struct StateHash
@@ -118,6 +113,15 @@ struct StateHash
 	}
 };
 
+struct StateEqual
+{
+	bool operator()(const StateId& lhs, const StateId& rhs) const
+	{
+		return lhs.type == rhs.type && lhs.flags.topology == rhs.flags.topology && lhs.flags.alpha == rhs.flags.alpha &&
+		       lhs.flags.fill == rhs.flags.fill;
+	}
+};
+
 class ProgramStateManager
 {
 public:
@@ -129,15 +133,10 @@ public:
 	                          const StateTopology topology, const StateMesh meshType,
 	                          const StateAlpha alpha);
 
-	void queueState(StateId& id)
-	{
-		stateQueue.insert(id);
-	}
 
 private:
-	std::set<StateId> stateQueue;
 
-	std::unordered_map<StateId, std::unique_ptr<ProgramState>, StateHash> states;
+	std::unordered_map<StateId, std::unique_ptr<ProgramState>, StateHash, StateEqual> states;
 };
 
 }    // namespace OmegaEngine

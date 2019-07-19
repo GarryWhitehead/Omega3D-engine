@@ -6,7 +6,6 @@
 #include "Models/ModelMaterial.h"
 #include "ObjectInterface/ComponentInterface.h"
 #include "ObjectInterface/Object.h"
-#include "Rendering/ProgramStateManager.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
 #include "Threading/ThreadPool.h"
@@ -65,7 +64,7 @@ RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& componentInt
 	    stateManager->createState(vkInterface, renderer, StateType::Mesh, mesh.topology, mesh.type, stateAlpha);
 
 	// pointer to the mesh pipeline
-	if (mesh.type == MeshType::Static)
+	if (mesh.type == StateMesh::Static)
 	{
 		meshInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("StaticVertices");
 		layoutInfo = vkInterface->gettextureManager()->getTextureDescriptorLayout("Mesh");
@@ -214,7 +213,7 @@ void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* 
 	MeshInstance* instanceData = (MeshInstance*)instance;
 
 	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
-	if (instanceData->type == MeshType::Skinned)
+	if (instanceData->type == StateMesh::Skinned)
 	{
 		dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
 	}

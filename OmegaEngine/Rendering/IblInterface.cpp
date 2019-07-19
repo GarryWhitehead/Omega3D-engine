@@ -105,7 +105,7 @@ void IblInterface::generateBrdf(VulkanAPI::Interface &vkInterface)
 	pipeline.setDepthState(VK_FALSE, VK_FALSE);
 	pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
 	pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
-	pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+	pipeline.setTopology(StateTopology::List);
 	pipeline.addColourAttachment(VK_FALSE, renderpass);
 	pipeline.create(vkInterface.getDevice(), renderpass, shader, VulkanAPI::PipelineType::Graphics);
 
@@ -184,7 +184,7 @@ void IblInterface::createSpecularMap(VulkanAPI::Interface &vkInterface)
 	state.pipeline.setDepthState(VK_FALSE, VK_FALSE);
 	state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
 	state.pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
-	state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+	state.pipeline.setTopology(StateTopology::List);
 	state.pipeline.addColourAttachment(VK_FALSE, renderPass);
 	state.pipeline.create(vkInterface.getDevice(), renderPass, state.shader, state.pipelineLayout,
 	                      VulkanAPI::PipelineType::Graphics);
@@ -335,7 +335,7 @@ void IblInterface::createIrradianceMap(VulkanAPI::Interface &vkInterface)
 	state.pipeline.setDepthState(VK_FALSE, VK_FALSE);
 	state.pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);
 	state.pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
-	state.pipeline.setTopology(vk::PrimitiveTopology::eTriangleList);
+	state.pipeline.setTopology(StateTopology::List);
 	state.pipeline.addColourAttachment(VK_FALSE, renderPass);
 	state.pipeline.create(vkInterface.getDevice(), renderPass, state.shader, state.pipelineLayout,
 	                      VulkanAPI::PipelineType::Graphics);

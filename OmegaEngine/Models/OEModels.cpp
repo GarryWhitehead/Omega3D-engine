@@ -8,7 +8,7 @@ namespace OmegaEngine
 namespace OEModels
 {
 
-std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, const uint32_t uvFactor)
+std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, const float uvFactor)
 {
 	const float widthX = 3.0f;
 	const float widthY = 3.0f;
@@ -109,12 +109,112 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t densit
 				mesh->indices.emplace_back(baseIndex + x);
 				mesh->indices.emplace_back(baseIndex + x + density);
 			}
-			mesh->indices.emplace_back(0xffff);
+			mesh->indices.emplace_back(UINT32_MAX);
 		}
 	}
 
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
-	mesh->topology = StateTopology::Strip;
+	// using primitive rerstart here so when the 0xFFFF value is read, the most recent indices values
+	// will be discarded
+	mesh->topology = StateTopology::StripRestart;
+
+	return std::move(mesh);
+}
+
+std::unique_ptr<OmegaEngine::ModelMesh> generateCapsuleMesh(const uint32_t density, const float height,
+                                                            const float radius)
+{
+	auto mesh = std::make_unique<OmegaEngine::ModelMesh>();
+
+	const uint32_t innerSize = density / 2;
+	const float halfHeight = 0.5f * height - 0.5f * radius;
+	float invDensity = 1.0f / static_cast<float>(density);
+
+	mesh->vertices.resize(2 * innerSize * density + 2);
+
+	// Top center
+	mesh->vertices[0].position = OEMaths::vec4f{ 0.0f, halfHeight + radius, 0.0f, 1.0f };
+	mesh->vertices[0].normal = OEMaths::vec3f{ 0.0f, 1.0f, 0.0f };
+
+	// Bottom center
+	mesh->vertices[1].position = OEMaths::vec4f{ 0.0f, -halfHeight + radius, 0.0f, 1.0f };
+	mesh->vertices[1].normal = OEMaths::vec3f{ 0.0f, -1.0f, 0.0f };
+
+	// Top rings
+	for (uint32_t i = 0; i < innerSize; ++i)
+	{
+		float w = float(i + 1) / static_cast<float>(innerSize);
+		float extraHeight = radius * std::sqrtf(1.0f - w * w);
+		uint32_t offset = i * density + 2;
+
+		for (uint32_t j = 0; j < density; ++j)
+		{
+			float rad = 2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
+			mesh->vertices[offset + j].position =
+			    OEMaths::vec4f(w * radius * std::cos(rad), halfHeight + extraHeight, -w * radius * std::sin(rad), 1.0f);
+
+			OEMaths::vec3f norm{ mesh->vertices[offset + j].position.getX(), extraHeight,
+				                 mesh->vertices[offset + j].position.getZ() };
+			norm.normalise();
+			mesh->vertices[offset + j].normal = norm;
+		}
+	}
+
+	// Bottom rings
+	for (uint32_t i = 0; i < innerSize; ++i)
+	{
+		float w = static_cast<float>(innerSize - i) / static_cast<float>(innerSize);
+		float extraHeight = radius * std::sqrt(1.0f - w * w);
+		uint32_t offset = (i + innerSize) * density + 2;
+
+		for (uint32_t j = 0; j < density; ++j)
+		{
+			float rad = 2.0f * static_cast<float>(M_PI) * (j + 0.5f) * invDensity;
+			mesh->vertices[offset + j].position = OEMaths::vec4f(w * radius * std::cos(rad), -halfHeight - extraHeight,
+			                                                     -w * radius * std::sin(rad), 1.0f);
+
+			OEMaths::vec3f norm{ mesh->vertices[offset + j].position.getX(), -extraHeight,
+				                 mesh->vertices[offset + j].position.getZ() };
+			norm.normalise();
+			mesh->vertices[offset + j].normal = norm;
+		}
+	}
+
+	// Link up top vertices.
+	for (uint32_t i = 0; i < density; ++i)
+	{
+		mesh->indices.emplace_back(0);
+		mesh->indices.emplace_back(i + 2);
+		mesh->indices.emplace_back(((i + 1) % density) + 2);
+	}
+
+	// Link up bottom vertices.
+	for (uint32_t i = 0; i < density; i++)
+	{
+		mesh->indices.emplace_back(1);
+		mesh->indices.emplace_back((2 * innerSize - 1) * density + ((i + 1) % density) + 2);
+		mesh->indices.emplace_back((2 * innerSize - 1) * density + i + 2);
+	}
+
+	// Link up rings.
+	for (uint32_t i = 0; i < 2 * innerSize - 1; ++i)
+	{
+		uint32_t offset0 = i * density + 2;
+		uint32_t offset1 = offset0 + density;
+
+		for (uint32_t j = 0; j < density; ++j)
+		{
+			mesh->indices.emplace_back(offset0 + j);
+			mesh->indices.emplace_back(offset1 + j);
+			mesh->indices.emplace_back(offset0 + ((j + 1) % density));
+			mesh->indices.emplace_back(offset1 + ((j + 1) % density));
+			mesh->indices.emplace_back(offset0 + ((j + 1) % density));
+			mesh->indices.emplace_back(offset1 + j);
+		}
+	}
+
+	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
+	mesh->topology = StateTopology::List;
 
 	return std::move(mesh);
 }

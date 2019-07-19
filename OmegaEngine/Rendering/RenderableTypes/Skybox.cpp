@@ -15,8 +15,8 @@
 namespace OmegaEngine
 {
 
-RenderableSkybox::RenderableSkybox(RenderInterface* renderInterface, SkyboxComponent& component,
-                                   std::unique_ptr<VulkanAPI::BufferManager>& bufferManager)
+RenderableSkybox::RenderableSkybox(std::unique_ptr<ProgramStateManager>& stateManager, SkyboxComponent& component,
+                                   std::unique_ptr<VulkanAPI::Interface>& vkInterface, std::unique_ptr<RendererBase>& renderer)
     : RenderableBase(RenderTypes::Skybox)
 {
 	// upload the indices and verices to the gpu. This will happen per skybox
@@ -31,11 +31,12 @@ RenderableSkybox::RenderableSkybox(RenderInterface* renderInterface, SkyboxCompo
 
 	queueType = QueueType::Forward;
 
-	skyboxInstance->state = renderInterface->getRenderPipeline(RenderTypes::Skybox).get();
+	skyboxInstance->state = stateManager->createState(vkInterface, renderer, StateType::Skybox, StateTopology::List,
+	                                                  StateMesh::Static, StateAlpha::Opaque);
 	skyboxInstance->blurFactor = component.blurFactor;
 
-	skyboxInstance->vertexBuffer = bufferManager->getBuffer("CubeModelVertices");
-	skyboxInstance->indexBuffer = bufferManager->getBuffer("CubeModelIndices");
+	skyboxInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("CubeModelVertices");
+	skyboxInstance->indexBuffer = vkInterface->getBufferManager()->getBuffer("CubeModelIndices");
 	skyboxInstance->indexCount = RenderableSkybox::indicesSize;
 }
 
@@ -129,7 +130,6 @@ void RenderableSkybox::createSkyboxPipeline(std::unique_ptr<VulkanAPI::Interface
 	// only draw the skybox where there is no geometry
 	state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep, vk::StencilOp::eKeep,
 	                                            vk::StencilOp::eReplace, 0xff, 0x00, 1);
-	;
 
 	state->pipeline.setDepthState(VK_FALSE, VK_FALSE, vk::CompareOp::eLessOrEqual);
 	state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);

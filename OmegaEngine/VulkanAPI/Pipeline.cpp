@@ -55,7 +55,6 @@ Pipeline::Pipeline()
 	// setup defualt pipeline states
 	addDynamicState(vk::DynamicState::eScissor);
 	addDynamicState(vk::DynamicState::eViewport);
-	setTopology(vk::PrimitiveTopology::eTriangleList);
 
 	rasterState.lineWidth = 1.0f;
 }
@@ -138,6 +137,10 @@ void Pipeline::setTopology(const OmegaEngine::StateTopology& topology)
 		break;
 	case OmegaEngine::StateTopology::Strip:
 		assemblyState.topology = vk::PrimitiveTopology::eTriangleStrip;
+		break;
+	case OmegaEngine::StateTopology::StripRestart:
+		assemblyState.topology = vk::PrimitiveTopology::eTriangleStrip;
+		assemblyState.primitiveRestartEnable = VK_TRUE;
 		break;
 	}
 }

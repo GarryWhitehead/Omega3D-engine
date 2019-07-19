@@ -104,14 +104,15 @@ void RenderInterface::buildRenderableMeshTree(Object& obj, std::unique_ptr<Compo
 		// we need to add all the primitve sub meshes as renderables
 		for (auto& primitive : mesh.primitives)
 		{
-			uint32_t meshIndex =
-			    addRenderable<RenderableMesh>(vkInterface, componentInterface, mesh, primitive, obj, stateManager);
+			uint32_t meshIndex = addRenderable<RenderableMesh>(componentInterface, vkInterface, mesh, primitive, obj,
+			                                                   stateManager, renderer);
 
 			// if using shadows, then draw the meshes into the offscreen depth buffer too
 			if (obj.hasComponent<ShadowComponent>())
 			{
-				addRenderable<RenderableShadow>(mesh, primitive, obj, lightManager.getLightCount(),
-				                                lightManager.getAlignmentSize(), stateManager);
+				addRenderable<RenderableShadow>(stateManager, vkInterface, obj.getComponent<ShadowComponent>(), mesh,
+				                                primitive, lightManager.getLightCount(),
+				                                lightManager.getAlignmentSize(), renderer);
 			}
 		}
 	}
@@ -137,8 +138,8 @@ void RenderInterface::updateRenderables(std::unique_ptr<ObjectManager>& objectMa
 			// objects which have skybox, landscape or ocean components won't have other components checked
 			if (object.second.hasComponent<SkyboxComponent>())
 			{
-				addRenderable<RenderableSkybox>(this, object.second.getComponent<SkyboxComponent>(),
-				                                vkInterface->getBufferManager());
+				addRenderable<RenderableSkybox>(stateManager, object.second.getComponent<SkyboxComponent>(),
+				                                vkInterface, renderer);
 			}
 			else
 			{

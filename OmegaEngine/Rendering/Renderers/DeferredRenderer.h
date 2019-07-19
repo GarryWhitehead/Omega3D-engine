@@ -11,6 +11,7 @@
 #include "Rendering/RenderConfig.h"
 #include "Rendering/RenderInterface.h"
 #include "Rendering/RenderCommon.h"
+#include "Rendering/ProgramStateManager.h"
 
 #include <vector>
 #include <functional>

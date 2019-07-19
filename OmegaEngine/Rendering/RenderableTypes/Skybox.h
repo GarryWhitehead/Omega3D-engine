@@ -38,8 +38,8 @@ public:
 		float blurFactor = 0.0f;
 	};
 
-	RenderableSkybox(RenderInterface* renderInterface, SkyboxComponent& component,
-	                 std::unique_ptr<VulkanAPI::BufferManager>& bufferManager);
+	RenderableSkybox(std::unique_ptr<ProgramStateManager>& stateManager, SkyboxComponent& component,
+	                 std::unique_ptr<VulkanAPI::Interface>& vkInterface, std::unique_ptr<RendererBase>& rendderer);
 	~RenderableSkybox();
 
 	static void createSkyboxPipeline(std::unique_ptr<VulkanAPI::Interface>& vkInterface,

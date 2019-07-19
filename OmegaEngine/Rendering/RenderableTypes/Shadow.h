@@ -43,8 +43,10 @@ public:
 		float biasSlope = 0.0f;
 	};
 
-	RenderableShadow(RenderInterface* renderInterface, ShadowComponent& component,
-	                 RenderableMesh::MeshInstance* meshInstance, uint32_t lightCount, uint32_t lightAlignmentSize);
+	RenderableShadow(std::unique_ptr<ProgramStateManager>& stateManager,
+	                 std::unique_ptr<VulkanAPI::Interface>& vkInterface, ShadowComponent& component, StaticMesh& mesh,
+	                 PrimitiveMesh& primitive, uint32_t lightCount, uint32_t lightAlignmentSize,
+	                 std::unique_ptr<RendererBase>& renderer);
 
 	~RenderableShadow();
 
