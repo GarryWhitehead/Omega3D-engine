@@ -55,15 +55,15 @@ layout (push_constant) uniform pushConstants
 	bool useIBLContribution;
 } push;
 
-vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour)
+vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {
-	const float MAX_REFLECTION_LOD = 4.0;
-	vec2 brdf = texture(brdfLutSampler, vec2(NdotV, 1.0 - roughness)).rg;
+	// this should be a pbr input!
+	const float MAX_REFLECTION_LOD = 5.0;
+	vec3 brdf = texture(brdfLutSampler, vec2(NdotV, 1.0 - roughness)).rgb;
 	
 	// specular contribution
-	vec3 F = FresnelRoughness(NdotV, vec3(0.04), roughness);
 	vec3 specularLight = textureLod(prefilterSampler, reflection, roughness * MAX_REFLECTION_LOD).rgb;
-	vec3 specular = specularLight * (F * brdf.x + brdf.y);
+	vec3 specular = specularLight * (specularColour * brdf.x + brdf.y);
 	
 	// diffuse contribution
 	vec3 diffuseLight = texture(irradianceSampler, N).rgb;
@@ -79,7 +79,7 @@ void main()
 {	
 	vec3 inPos = texture(positionSampler, inUv).rgb;
 	vec3 V = normalize(inCameraPos.xyz - inPos);
-	vec3 N = texture(normalSampler, inUv).rgb;
+	vec3 N = normalize(texture(normalSampler, inUv)).rgb;
 	vec3 R = -normalize(reflect(V, N));
 	
 	// get colour information from G-buffer
@@ -93,7 +93,11 @@ void main()
 	vec3 specularColour = mix(F0, baseColour, metallic);
 	
 	float reflectance = max(max(specularColour.r, specularColour.g), specularColour.b);
-	float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);
+	float reflectance90 = clamp(reflectance * 25.0, 0.0, 1.0);  // 25.0-50.0 is used
+	vec3 specReflectance = specularColour.rgb;
+	vec3 specReflectance90 = vec3(1.0, 1.0, 1.0) * reflectance90;
+	
+	float alphaRoughness = roughness * roughness;
 	
 	// apply additional lighting contribution to specular 
 	vec3 colour = vec3(0.0);
@@ -119,14 +123,14 @@ void main()
 			radiance = light_ubo.lights[c].colour.rgb * spot * attenuation;
 		}
 		
-		colour += specularContribution(L, V, N, F0, metallic, roughness, baseColour, radiance);
+		colour += specularContribution(L, V, N, metallic, alphaRoughness, baseColour, radiance, specReflectance, specReflectance90);
 	}
 	
 	// add IBL contribution if needed
 	if (push.useIBLContribution) 
 	{
 		float NdotV = max(dot(N, V), 0.0);
-		colour += calculateIBL(N, NdotV, roughness, R, baseColour);
+		colour += calculateIBL(N, NdotV, roughness, R, baseColour, specularColour);
 	}
 	
 	// occlusion

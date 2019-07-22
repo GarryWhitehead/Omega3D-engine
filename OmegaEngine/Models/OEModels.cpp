@@ -8,55 +8,39 @@ namespace OmegaEngine
 namespace OEModels
 {
 
-std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size, const float uvFactor)
+std::unique_ptr<OmegaEngine::ModelMesh> generateQuadMesh(const float size)
 {
-	const float widthX = 3.0f;
-	const float widthY = 3.0f;
-
 	auto mesh = std::make_unique<OmegaEngine::ModelMesh>();
 
-	const uint32_t vertCount = size * size;
-	mesh->vertices.reserve(vertCount);
+	mesh->vertices.resize(4);
+	mesh->vertices[0].position = OEMaths::vec4f{ size, size, 0.0f, 1.0f };
+	mesh->vertices[1].position = OEMaths::vec4f{ -size, size, 0.0f, 1.0f };
+	mesh->vertices[2].position = OEMaths::vec4f{ -size, -size, 0.0f, 1.0f };
+	mesh->vertices[3].position = OEMaths::vec4f{ size, -size, 0.0f, 1.0f };
 
-	for (uint32_t x = 0; x < size; ++x)
-	{
-		for (uint32_t y = 0; y < size; ++y)
-		{
-			OmegaEngine::ModelMesh::Vertex vertex;
+	mesh->vertices[0].uv0 = OEMaths::vec2f{ 1.0f, 1.0f };
+	mesh->vertices[1].uv0 = OEMaths::vec2f{ 0.0f, 1.0f };
+	mesh->vertices[2].uv0 = OEMaths::vec2f{ 0.0f, 0.0f };
+	mesh->vertices[3].uv0 = OEMaths::vec2f{ 1.0f, 0.0f };
 
-			uint32_t index = x + y * size;
-			vertex.position =
-			    OEMaths::vec4f{ x * widthX + widthX / 2.0f - static_cast<float>(size) * widthX / 2.0f, 0.0f,
-				                y * widthY + widthY / 2.0f - static_cast<float>(size) * widthY / 2.0f, 1.0f };
-			vertex.uv0 = OEMaths::vec2f{ x / static_cast<float>(size), y / static_cast<float>(size) } * uvFactor;
+	mesh->vertices[0].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
+	mesh->vertices[1].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
+	mesh->vertices[2].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
+	mesh->vertices[3].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
 
-			mesh->vertices.emplace_back(vertex);
-		}
-	}
-
-	// generate the indices for the patch quads
-	uint32_t width = size - 1;
-	uint32_t indicesSize = width * width * 4;
-
-	mesh->indices.resize(indicesSize);
-
-	for (uint32_t x = 0; x < width; ++x)
-	{
-		for (uint32_t y = 0; y < width; ++y)
-		{
-			uint32_t index = (x + y * width) * 4;
-			mesh->indices[index] = (x + y * size);                      // top-left
-			mesh->indices[index + 1] = mesh->indices[index] + size;     // bottom-left
-			mesh->indices[index + 2] = mesh->indices[index + 1] + 1;    //	bottom-right
-			mesh->indices[index + 3] = mesh->indices[index] + 1;        // top-right
-		}
+	// quad made up of two triangles
+	mesh->indices.resize(6);
+	std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
+	for (uint32_t i = 0; i < 6; ++i)
+	{ 
+		mesh->indices[i] = indices[i];
 	}
 
 	mesh->primitives.push_back({ 0, static_cast<uint32_t>(mesh->indices.size()), -1 });
 	mesh->topology = StateTopology::List;
 
 	return std::move(mesh);
-}
+}   
 
 std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t density)
 {
@@ -303,5 +287,5 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f& s
 	return std::move(mesh);
 }
 
-}    // namespace OEModels
+}    // namespace OmegaEngine
 }    // namespace OmegaEngine

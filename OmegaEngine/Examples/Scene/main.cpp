@@ -42,6 +42,15 @@ int main(int argc, char* argv[])
 	object->addComponent<TransformComponent>(
 	    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f }));
 
+	auto object2 =
+	    world->createObject(OEMaths::vec3f{ 0.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
+
+	object2->addComponent<MeshComponent>(OEModels::generateQuadMesh(0.5f));
+	object2->addComponent<MaterialComponent>("DemoRough", OEMaterials::Specular::Titanium, OEMaths::vec3f{ 0.3f },
+	                                        OEMaths::vec4f{ 0.0f, 0.6f, 0.8f, 1.0f }, 0.8f, 0.2f);
+	object2->addComponent<TransformComponent>(
+	    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 5.0f }, OEMaths::quatf{ 0.0f, 0.0f, 0.0f, 1.0f }));
+
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
 

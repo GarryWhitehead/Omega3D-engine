@@ -127,7 +127,7 @@ void main()
 
 		if (material.haveMrMap > 0) {
 			vec4 mrSample = texture(mrMap, mr_uv);
-			roughness = mrSample.g * roughness;
+			roughness = clamp(mrSample.g * roughness, 0.0, 1.0);
 			metallic = mrSample.b * metallic;
 		} 
 		else {
@@ -162,9 +162,10 @@ void main()
 
 		// Convert metallic value from specular glossiness inputs
 		metallic = convertMetallic(diffuse.rgb, specular, maxSpecular);
-
-		vec3 baseColourDiffusePart = diffuse.rgb * ((1.0 - maxSpecular) / (1 - 0.04) / max(1 - metallic, EPSILON)) * material.diffuseFactor.rgb;
-		vec3 baseColourSpecularPart = specular - (vec3(0.04) * (1 - metallic) * (1 / max(metallic, EPSILON))) * material.specularFactor.rgb;
+		
+		const float minRoughness = 0.04;	// this could be user defined?
+		vec3 baseColourDiffusePart = diffuse.rgb * ((1.0 - maxSpecular) / (1 - minRoughness) / max(1 - metallic, EPSILON)) * material.diffuseFactor.rgb;
+		vec3 baseColourSpecularPart = specular - (vec3(minRoughness) * (1 - metallic) * (1 / max(metallic, EPSILON))) * material.specularFactor.rgb;
 		baseColour = vec4(mix(baseColourDiffusePart, baseColourSpecularPart, metallic * metallic), diffuse.a);
 
 	}

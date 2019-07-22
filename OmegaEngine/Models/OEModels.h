@@ -18,8 +18,7 @@ enum class Type
 	Sphere
 };
 
-std::unique_ptr<OmegaEngine::ModelMesh> generatePlaneMesh(const uint32_t size,
-                                                           const float uvFactor);
+std::unique_ptr<OmegaEngine::ModelMesh> generateQuadMesh(const float size);
 std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t density);
 std::unique_ptr<OmegaEngine::ModelMesh> generateCapsuleMesh(const uint32_t density, const float height,
                                                             const float width);
