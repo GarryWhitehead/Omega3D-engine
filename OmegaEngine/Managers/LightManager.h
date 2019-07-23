@@ -27,6 +27,7 @@ enum class LightType
 
 struct LightInfo
 {
+	OEMaths::mat4f lightMvp;
 	OEMaths::vec3f position;
 	float pad0;
 	OEMaths::vec3f target;
@@ -58,8 +59,6 @@ public:
 	                 ComponentInterface *componentInterface) override;
 
 	void updateDynamicBuffer(ComponentInterface *componentInterface);
-
-	void parseGltfLight(uint32_t spaceId, tinygltf::Model &model);
 
 	void addLight(const LightType type, OEMaths::vec3f &position, OEMaths::vec3f &target,
 	              OEMaths::vec3f &colour, float radius, float fov, float innerCone,

@@ -15,8 +15,7 @@ LightManager::LightManager()
 {
 	// allocate the memory required for the light POV data
 	alignedPovDataSize = VulkanAPI::Util::alignmentSize(sizeof(LightPOV));
-	lightPovData =
-	    (LightPOV *)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * MAX_LIGHTS);
+	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * MAX_LIGHTS);
 }
 
 LightManager::~LightManager()
@@ -24,9 +23,8 @@ LightManager::~LightManager()
 	_aligned_free(lightPovData);
 }
 
-void LightManager::addLight(const LightType type, OEMaths::vec3f &position, OEMaths::vec3f &target,
-                            OEMaths::vec3f &colour, float radius, float fov, float innerCone,
-                            float outerCone)
+void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
+                            OEMaths::vec3f& colour, float radius, float fov, float innerCone, float outerCone)
 {
 	LightInfo light;
 	light.position = position;
@@ -42,47 +40,41 @@ void LightManager::addLight(const LightType type, OEMaths::vec3f &position, OEMa
 	isDirty = true;
 }
 
-void LightManager::addLight(LightInfo &light)
+void LightManager::addLight(LightInfo& light)
 {
 	lights.emplace_back(light);
 	// make sure this light is updated on the GPU side
 	isDirty = true;
 }
 
-void LightManager::parseGltfLight(uint32_t spaceId, tinygltf::Model &model)
-{
-}
-
-void LightManager::updateDynamicBuffer(ComponentInterface *componentInterface)
+void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
 {
 	lightPovDataSize = 0;
 
-	auto &cameraManager = componentInterface->getManager<CameraManager>();
+	auto& cameraManager = componentInterface->getManager<CameraManager>();
 
-	for (auto &light : lights)
+	for (auto& light : lights)
 	{
-		LightPOV *lightPovPtr =
-		    (LightPOV *)((uint64_t)lightPovData + (alignedPovDataSize * lightPovDataSize));
+		LightPOV* lightPovPtr = (LightPOV*)((uint64_t)lightPovData + (alignedPovDataSize * lightPovDataSize));
 
-		OEMaths::mat4f projection = OEMaths::perspective(light.fov, 1.0f, cameraManager.getZNear(),
-		                                                 cameraManager.getZFar());
-		OEMaths::mat4f view =
-		    OEMaths::lookAt(light.position, light.target, OEMaths::vec3f(0.0f, 1.0f, 0.0f));
+		OEMaths::mat4f projection =
+		    OEMaths::perspective(light.fov, 1.0f, cameraManager.getZNear(), cameraManager.getZFar());
+		OEMaths::mat4f view = OEMaths::lookAt(light.position, light.target, OEMaths::vec3f(0.0f, 1.0f, 0.0f));
 		lightPovPtr->lightMvp = projection * view;
+
+		light.lightMvp = lightPovPtr->lightMvp;
 
 		++lightPovDataSize;
 	}
 
 	// now queue ready for uploading to the gpu
-	VulkanAPI::BufferUpdateEvent event{ "LightDynamic", (void *)lightPovData,
-		                                alignedPovDataSize * lightPovDataSize,
+	VulkanAPI::BufferUpdateEvent event{ "LightDynamic", (void*)lightPovData, alignedPovDataSize * lightPovDataSize,
 		                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 	Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 }
 
-void LightManager::updateFrame(double time, double dt,
-                               std::unique_ptr<ObjectManager> &objectManager,
-                               ComponentInterface *componentInterface)
+void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
+                               ComponentInterface* componentInterface)
 {
 	if (isDirty)
 	{
@@ -99,7 +91,7 @@ void LightManager::updateFrame(double time, double dt,
 			lightBuffer.lights[i] = lights[i];
 		}
 
-		VulkanAPI::BufferUpdateEvent event{ "Light", (void *)&lightBuffer, sizeof(LightUboBuffer),
+		VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer),
 			                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 
 		// let the buffer manager know that the buffers needs creating/updating via the event process
@@ -108,4 +100,4 @@ void LightManager::updateFrame(double time, double dt,
 		isDirty = false;
 	}
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

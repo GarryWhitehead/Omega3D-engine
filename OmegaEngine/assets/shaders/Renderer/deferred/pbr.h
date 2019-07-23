@@ -41,7 +41,7 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, float metallic, float roughnes
 
 	vec3 colour = vec3(0.0);
 
-	if (NdotL > 0.0) {
+	//if (NdotL > 0.0) {
 		
 		float D = GGX_Distribution(NdotH, roughness); 
 		float G = GeometryShlickGGX(NdotV, NdotL, roughness);
@@ -50,7 +50,7 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, float metallic, float roughnes
 		vec3 specularContribution = F * G * D / (4.0 * NdotL * NdotV);		
 		vec3 diffuseContribution = (vec3(1.0) - F) * (albedo / PI);
 		colour = (diffuseContribution + specularContribution) * radiance * NdotL; 
-	}
+	//}
 
 	return colour;
 }

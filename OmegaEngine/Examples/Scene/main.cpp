@@ -28,13 +28,13 @@ int main(int argc, char* argv[])
 		auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
-		auto object = world->createGltfModelObject(model, OEMaths::vec3f{ 0.0f, 0.5f, 0.1f }, OEMaths::vec3f{ 1.0f },
+		auto object = world->createGltfModelObject(model, OEMaths::vec3f{ 3.0f, 2.0f, 3.3f }, OEMaths::vec3f{ 1.0f },
 		                                           OEMaths::quatf{ 0.0f }, true);
 	}
 
 	// adding stock models to the scene
 	auto object =
-	    world->createObject(OEMaths::vec3f{ 2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
+	    world->createObject(OEMaths::vec3f{ -2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
 
 	object->addComponent<MeshComponent>(OEModels::generateCapsuleMesh(30, 5.0f, 0.5f));
 	object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{ 0.3f },
@@ -42,14 +42,15 @@ int main(int argc, char* argv[])
 	object->addComponent<TransformComponent>(
 	    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f }));
 
+	// create a flat plane
 	auto object2 =
-	    world->createObject(OEMaths::vec3f{ 0.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
+	    world->createObject(OEMaths::vec3f{ -0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
 
 	object2->addComponent<MeshComponent>(OEModels::generateQuadMesh(0.5f));
 	object2->addComponent<MaterialComponent>("DemoRough", OEMaterials::Specular::Titanium, OEMaths::vec3f{ 0.3f },
 	                                        OEMaths::vec4f{ 0.0f, 0.6f, 0.8f, 1.0f }, 0.8f, 0.2f);
 	object2->addComponent<TransformComponent>(
-	    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 5.0f }, OEMaths::quatf{ 0.0f, 0.0f, 0.0f, 1.0f }));
+	    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 25.0f }, OEMaths::quatf{ 0.5f, -0.5f, 0.5f, -0.5f }));
 
 	// add a skybox
 	world->addSkybox("skybox/cubemap.ktx", 0.5f);
@@ -59,8 +60,8 @@ int main(int argc, char* argv[])
 
 	// add different lights
 	world->addLightToWorld(LightType::Spot, { 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 50.0f, 100.0f);
-	//world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f }, 150.0f, 100.0f);
-	//world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 0.0f }, 50.0f, 80.0f, 15.0f, 25.0f);
+	world->addLightToWorld(LightType::Spot, { 0.0f, -1.0f, 0.0f }, { -2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 50.0f, 100.0f);
+	world->addLightToWorld(LightType::Cone, { 0.0f, -1.0f, -5.0f }, { 2.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f }, 80.0f, 80.0f, 15.0f, 25.0f);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running
