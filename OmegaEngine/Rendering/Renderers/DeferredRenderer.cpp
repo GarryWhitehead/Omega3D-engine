@@ -74,8 +74,8 @@ void DeferredRenderer::createDeferredPass()
 	deferredRenderPass.init(device);
 
 	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
-	deferredRenderPass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat);
-	deferredRenderPass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
+	deferredRenderPass.addAttachment(renderConfig.deferred.deferredFormat, VulkanAPI::FinalLayoutType::Auto);
+	deferredRenderPass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);
 	deferredRenderPass.prepareRenderPass();
 
 	// colour
@@ -97,15 +97,12 @@ void DeferredRenderer::createGbufferPass()
 	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
 	firstRenderpass.init(device);
-	firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal,
-	                              vk::Format::eR16G16B16A16Sfloat);                                        // position
-	firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR8G8B8A8Unorm);    // colour
-	firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal,
-	                              vk::Format::eR16G16B16A16Sfloat);                                       // normal
-	firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, vk::Format::eR16G16Sfloat);    // pbr
-	firstRenderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal,
-	                              vk::Format::eR16G16B16A16Sfloat);                                 // emissive
-	firstRenderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);    // depth
+	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // position
+	firstRenderpass.addAttachment(vk::Format::eR8G8B8A8Unorm, VulkanAPI::FinalLayoutType::Auto);         // colour
+	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // normal
+	firstRenderpass.addAttachment(vk::Format::eR16G16Sfloat, VulkanAPI::FinalLayoutType::Auto);          // pbr
+	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // emissive
+	firstRenderpass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);                 // depth
 	firstRenderpass.prepareRenderPass();
 
 	const uint8_t attachmentCount = 6;

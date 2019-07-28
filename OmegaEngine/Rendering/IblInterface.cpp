@@ -81,7 +81,7 @@ void IblInterface::generateBrdf(VulkanAPI::Interface &vkInterface)
 
 	// setup renderpass
 	VulkanAPI::RenderPass renderpass(vkInterface.getDevice());
-	renderpass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal, lutFormat);
+	renderpass.addAttachment(lutFormat, VulkanAPI::FinalLayoutType::ColourAttach);
 	renderpass.prepareRenderPass();
 
 	// and the frame buffer
@@ -144,8 +144,7 @@ void IblInterface::createSpecularMap(VulkanAPI::Interface &vkInterface)
 
 	// renderpass and framebuffer
 	VulkanAPI::RenderPass renderPass(vkInterface.getDevice());
-	renderPass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal,
-	                         vk::Format::eR32G32B32A32Sfloat);
+	renderPass.addAttachment(vk::Format::eR32G32B32A32Sfloat, VulkanAPI::FinalLayoutType::ColourAttach);
 	renderPass.prepareRenderPass();
 	renderPass.prepareFramebuffer(offscreenTexture.getImageView(), specularMapDim, specularMapDim);
 
@@ -294,8 +293,7 @@ void IblInterface::createIrradianceMap(VulkanAPI::Interface &vkInterface)
 
 	// renderpass and framebuffer
 	VulkanAPI::RenderPass renderPass(vkInterface.getDevice());
-	renderPass.addAttachment(vk::ImageLayout::eColorAttachmentOptimal,
-	                         vk::Format::eR32G32B32A32Sfloat);
+	renderPass.addAttachment(vk::Format::eR32G32B32A32Sfloat, VulkanAPI::FinalLayoutType::ColourAttach);
 	renderPass.prepareRenderPass();
 	renderPass.prepareFramebuffer(offscreenTexture.getImageView(), irradianceMapDim,
 	                              irradianceMapDim);

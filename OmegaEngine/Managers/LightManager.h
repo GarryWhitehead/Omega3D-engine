@@ -6,6 +6,7 @@
 #include "tiny_gltf.h"
 
 #include <cstdint>
+#include <tuple>
 #include <vector>
 
 #define MAX_LIGHTS 100
@@ -25,6 +26,31 @@ enum class LightType
 	Directional
 };
 
+enum class LightAnimateType
+{
+	Static,
+	RotateX,
+	RotateY,
+	RotateZ
+};
+
+struct LightAnimateInfo
+{
+	LightAnimateInfo() = default;
+
+	LightAnimateInfo(const LightAnimateType type, const float vel, const float ofs)
+	    : animationType(type)
+	    , velocity(vel)
+	    , offset(ofs)
+	{
+	}
+
+	// default to static
+	LightAnimateType animationType = LightAnimateType::Static;
+	float velocity = 5.0f;
+	float offset = 0.0f;
+};
+
 struct LightInfo
 {
 	OEMaths::mat4f lightMvp;
@@ -35,8 +61,8 @@ struct LightInfo
 	OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
 	float fov = 90.0f;
 	float radius = 25.0f;
-	float innerCone = 0.0f; // for spot lights
-	float outerCone = 0.0f; // for spot lights
+	float innerCone = 0.0f;    // for spot lights
+	float outerCone = 0.0f;    // for spot lights
 	LightType type = LightType::Spot;
 };
 
@@ -55,16 +81,23 @@ public:
 	~LightManager();
 
 	// not used at present - just here to keep the inheritance demons happy
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface) override;
+	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
+	                 ComponentInterface* componentInterface) override;
 
-	void updateDynamicBuffer(ComponentInterface *componentInterface);
+	void updateLightPositions(double time, double dt);
 
-	void addLight(const LightType type, OEMaths::vec3f &position, OEMaths::vec3f &target,
-	              OEMaths::vec3f &colour, float radius, float fov, float innerCone,
-	              float outerCone);
+	void updateDynamicBuffer(ComponentInterface* componentInterface);
 
-	void addLight(LightInfo &light);
+	void addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target, OEMaths::vec3f& colour,
+	              float radius, float fov, float innerCone, float outerCone,
+	              const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f,
+	              const float animOffset = 0.0f);
+
+	void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
+	                            OEMaths::vec3f& colour, float radius, float fov, const LightAnimateType animType,
+	                            const float animVel, const float animOffset);
+
+	void addLight(const LightInfo& light, const LightAnimateInfo& anim);
 
 	uint32_t getLightCount() const
 	{
@@ -77,17 +110,20 @@ public:
 	}
 
 private:
-	std::vector<LightInfo> lights;
+	std::vector<std::tuple<LightInfo, LightAnimateInfo>> lights;
 
 	// buffer on the vulkan side which will hold all lighting info
 	LightUboBuffer lightBuffer;
 
 	// dynamic buffer for light pov - used for shadow drawing
-	LightPOV *lightPovData = nullptr;
+	LightPOV* lightPovData = nullptr;
 	uint32_t alignedPovDataSize = 0;
 	uint32_t lightPovDataSize = 0;
+
+	// dirty timer for light animations
+	float timer = 0.0f;
 
 	bool isDirty = false;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

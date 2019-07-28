@@ -11,7 +11,7 @@ layout (set = 1, binding = 3) uniform sampler2D pbrSampler;
 layout (set = 1, binding = 4) uniform sampler2D emissiveSampler;
 
 // shadow depth sampler
-layout (set = 1, binding = 5) uniform sampler2D shadowSampler;
+layout (set = 1, binding = 5) uniform sampler2D Depth_shadowSampler;
 
 // environment texture samplers
 layout (set = 2, binding = 0) uniform sampler2D brdfLutSampler;
@@ -67,7 +67,7 @@ float textureProj(vec4 P, vec2 offset)
 	
 	if (shadowCoord.z > -1.0 && shadowCoord.z < 1.0) 
 	{
-		float dist = texture(shadowSampler, vec2(shadowCoord.st + offset)).r;
+		float dist = texture(Depth_shadowSampler, vec2(shadowCoord.st + offset)).r;
 		if (shadowCoord.w > 0.0 && dist < shadowCoord.z) 
 		{
 			shadow = SHADOW_FACTOR;
@@ -79,7 +79,7 @@ float textureProj(vec4 P, vec2 offset)
 // shadow filter PCF
 float shadowPCF(vec4 shadowCoord)
 {
-	ivec2 dim = textureSize(shadowSampler, 0).xy;
+	ivec2 dim = textureSize(Depth_shadowSampler, 0).xy;
 	float scale = 1.5;
 	float dx = scale * 1.0 / float(dim.x);
 	float dy = scale * 1.0 / float(dim.y);

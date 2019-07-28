@@ -148,8 +148,8 @@ void RenderableSkybox::createSkyboxPass(VulkanAPI::RenderPass& renderpass, Vulka
 
 	// create the renderpasses and frame buffers
 	renderpass.init(device);
-	renderpass.addAttachment(vk::ImageLayout::eShaderReadOnlyOptimal, renderConfig.deferred.deferredFormat, false);
-	renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat, false);
+	renderpass.addAttachment(renderConfig.deferred.deferredFormat, VulkanAPI::FinalLayoutType::Auto, false);
+	renderpass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto, false);
 	renderpass.prepareRenderPass();
 
 	// frame buffer prep

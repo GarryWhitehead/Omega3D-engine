@@ -300,20 +300,26 @@ Sampler Shader::getSamplerType(std::string name)
 	return sampler;
 }
 
-vk::ImageLayout Shader::getImageLayout(std::string name)
+vk::ImageLayout Shader::getImageLayout(std::string& name)
 {
 	vk::ImageLayout layout;
 	if (name.find("Depth_") != std::string::npos)
 	{
-		layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+		// we can strip the depth identifier from the name
+		size_t pos = name.find("Depth_");
+		name = name.substr(pos + 6, name.size());
 	}
-	if (name.find("Colour_") != std::string::npos)
+	else if (name.find("Colour_") != std::string::npos)
 	{
 		layout = vk::ImageLayout::eColorAttachmentOptimal;
+		// we can strip the colour identifier from the name
+		size_t pos = name.find("Colour_");
+		name = name.substr(pos, name.size());
 	}
 	else
 	{
-		// default if none found
+		// default if no identifier found
 		layout = vk::ImageLayout::eShaderReadOnlyOptimal;
 	}
 	return layout;

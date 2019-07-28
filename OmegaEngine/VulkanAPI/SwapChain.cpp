@@ -158,8 +158,8 @@ void Swapchain::prepareSwapchainPass()
 	                               vk::ImageUsageFlagBits::eDepthStencilAttachment);
 
 	renderpass = std::make_unique<RenderPass>(device);
-	renderpass->addAttachment(vk::ImageLayout::ePresentSrcKHR, surfaceFormat.format);
-	renderpass->addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, depthFormat);
+	renderpass->addAttachment(surfaceFormat.format, VulkanAPI::FinalLayoutType::PresentKHR, true);
+	renderpass->addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);
 	renderpass->prepareRenderPass();
 
 	// create presentation renderpass/framebuffer for each swap chain image

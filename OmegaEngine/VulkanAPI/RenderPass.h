@@ -17,6 +17,14 @@ enum class DependencyTemplate
 	DepthStencilSubpassBottom,
 };
 
+enum class FinalLayoutType
+{
+	Auto,
+	ColourAttach,
+	DepthAttach,
+	PresentKHR
+};
+
 class RenderPass
 {
 
@@ -32,6 +40,10 @@ public:
 	RenderPass(vk::Device dev, vk::RenderPass pass);
 
 	~RenderPass();
+
+	static vk::ImageLayout getFinalTransitionLayout(const vk::Format format);
+	static bool isDepth(const vk::Format format);
+	static bool isStencil(const vk::Format format);
 
 	vk::RenderPass get()
 	{
@@ -53,7 +65,7 @@ public:
 		return imageHeight;
 	}
 
-	vk::Format &get_attachment_format(uint32_t index)
+	vk::Format& get_attachment_format(uint32_t index)
 	{
 		assert(!attachment.empty() && index < attachment.size());
 		return attachment[index].format;
@@ -61,28 +73,23 @@ public:
 
 	void init(vk::Device dev);
 
-	void addAttachment(const vk::ImageLayout finalLayout, const vk::Format format,
-	                   bool clearAttachment = true);
-	void addSubPass(std::vector<vk::AttachmentReference> &colorRef,
-	                std::vector<vk::AttachmentReference> &inputRef,
-	                vk::AttachmentReference *depthRef = nullptr);
-	void addSubPass(
-	    std::vector<vk::AttachmentReference> &colorRef,
-	    vk::AttachmentReference *depthRef = nullptr); // override without input attachments
+	void addAttachment(const vk::Format format, const FinalLayoutType layoutType, bool clearAttachment = true);
+	void addSubPass(std::vector<vk::AttachmentReference>& colorRef, std::vector<vk::AttachmentReference>& inputRef,
+	                vk::AttachmentReference* depthRef = nullptr);
+	void addSubPass(std::vector<vk::AttachmentReference>& colorRef,
+	                vk::AttachmentReference* depthRef = nullptr);    // override without input attachments
 	void addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass = 0,
-	                          uint32_t dstSubpass = 0); // templated version
+	                          uint32_t dstSubpass = 0);    // templated version
 	void prepareRenderPass();
 
 	// frame buffer functions
-	void prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height,
+	void prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount = 1);
+	void prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height,
 	                        uint32_t layerCount = 1);
-	void prepareFramebuffer(uint32_t size, vk::ImageView *imageView, uint32_t width,
-	                        uint32_t height, uint32_t layerCount = 1);
 
 	// for generating cmd buffer
-	vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue &backgroundColour, uint32_t index = 0);
-	vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue *backgroundColour,
-	                                     uint32_t index = 0);
+	vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index = 0);
+	vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* backgroundColour, uint32_t index = 0);
 	vk::RenderPassBeginInfo getBeginInfo(uint32_t index = 0);
 
 private:
@@ -104,4 +111,4 @@ private:
 	std::vector<vk::ClearValue> clearValues;
 };
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

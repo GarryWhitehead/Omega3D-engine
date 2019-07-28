@@ -5,7 +5,6 @@
 #include "Engine/Omega_SceneParser.h"
 #include "Managers/AnimationManager.h"
 #include "Managers/EventManager.h"
-#include "Managers/LightManager.h"
 #include "Managers/MaterialManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
@@ -257,10 +256,19 @@ void World::addCameraToWorld(OEMaths::vec3f &startPosition, float fov, float zNe
 
 void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target,
                             OEMaths::vec3f colour, float radius, float fov, float innerCone,
-                            float outerCone)
+                            float outerCone, const LightAnimateType animType, const float animVel,
+							const float animOffset)
 {
 	auto &lightManager = componentInterface->getManager<LightManager>();
-	lightManager.addLight(type, position, target, colour, radius, fov, innerCone, outerCone);
+	lightManager.addLight(type, position, target, colour, radius, fov, innerCone, outerCone, animType, animVel, animOffset);
+}
+
+void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
+                            float radius, float fov, const LightAnimateType animType, const float animVel,
+                            const float animOffset)
+{
+	auto& lightManager = componentInterface->getManager<LightManager>();
+	lightManager.addLight(type, position, target, colour, radius, fov, animType, animVel, animOffset);
 }
 
 void World::update(double time, double dt)

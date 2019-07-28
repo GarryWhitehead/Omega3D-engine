@@ -1,96 +1,94 @@
 #pragma once
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Queue.h"
 #include "VulkanAPI/Image.h"
+#include "VulkanAPI/Queue.h"
 
 namespace OmegaEngine
 {
-	enum class TextureFormat;
-	class MappedTexture;
-}
+enum class TextureFormat;
+class MappedTexture;
+}    // namespace OmegaEngine
 
 namespace VulkanAPI
 {
-	// forward declerations
-	class MemoryAllocator;
-	class Image;
-	class ImageView;
-	
+// forward declerations
+class MemoryAllocator;
+class Image;
+class ImageView;
 
-	class Texture 
+
+class Texture
+{
+
+public:
+	Texture();
+	Texture(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
+	Texture(vk::Device dev, vk::PhysicalDevice phys);
+	~Texture();
+
+	void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
+	void init(vk::Device dev, vk::PhysicalDevice phys);
+
+	static vk::Format convertTextureFormatToVulkan(OmegaEngine::TextureFormat format);
+
+	void createEmptyImage(vk::Format, uint32_t width, uint32_t height, uint8_t mipLevels,
+	                      vk::ImageUsageFlags usageFlags, uint32_t faces = 1);
+	void map(OmegaEngine::MappedTexture& tex);
+	void createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
+	void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
+
+	vk::ImageView& getImageView();
+
+	vk::Format& getFormat()
 	{
+		return format;
+	}
 
-	public:
+	Image& getImage()
+	{
+		return image;
+	}
 
-		Texture();
-		Texture(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
-		Texture(vk::Device dev, vk::PhysicalDevice phys);
-		~Texture();
+	uint32_t getWidth() const
+	{
+		return width;
+	}
 
-		void init(vk::Device dev, vk::PhysicalDevice phys, Queue& queue);
-		void init(vk::Device dev, vk::PhysicalDevice phys);
+	uint32_t getHeight() const
+	{
+		return height;
+	}
 
-		static vk::Format Texture::convertTextureFormatToVulkan(OmegaEngine::TextureFormat format);
+	uint32_t getFaceCount() const
+	{
+		return faceCount;
+	}
 
-		void createEmptyImage(vk::Format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags, uint32_t faces = 1);
-		void map(OmegaEngine::MappedTexture& tex);
-		void createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
-		void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
+	uint32_t getArrayCount() const
+	{
+		return arrays;
+	}
 
-		vk::ImageView& getImageView();
+	uint32_t getMipLevels() const
+	{
+		return mipLevels;
+	}
 
-		vk::Format& getFormat()
-		{
-			return format;
-		}
+private:
+	vk::Device device;
+	vk::PhysicalDevice gpu;
+	Queue graphicsQueue;
 
-		Image& getImage()
-		{
-			return image;
-		}
+	// texture info
+	vk::Format format;
+	uint32_t width = 0;
+	uint32_t height = 0;
+	uint32_t faceCount = 1;
+	uint32_t arrays = 1;
+	uint32_t mipLevels = 1;
 
-		uint32_t getWidth() const
-		{
-			return width;
-		}
+	Image image;
+	ImageView imageView;
+};
 
-		uint32_t getHeight() const
-		{
-			return height;
-		}
-
-		uint32_t getFaceCount() const
-		{
-			return faceCount;
-		}
-
-		uint32_t getArrayCount() const
-		{
-			return arrays;
-		}
-
-		uint32_t getMipLevels() const
-		{
-			return mipLevels;
-		}
-
-	private:
-
-		vk::Device device;
-		vk::PhysicalDevice gpu;
-		Queue graphicsQueue;
-
-		// texture info
-		vk::Format format;
-		uint32_t width = 0;
-		uint32_t height = 0;
-		uint32_t faceCount = 1;
-		uint32_t arrays = 1;
-		uint32_t mipLevels = 1;
-
-		Image image;
-		ImageView imageView;
-	};
-
-}
-
+}    // namespace VulkanAPI

@@ -24,7 +24,8 @@ LightManager::~LightManager()
 }
 
 void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
-                            OEMaths::vec3f& colour, float radius, float fov, float innerCone, float outerCone)
+                            OEMaths::vec3f& colour, float radius, float fov, float innerCone, float outerCone,
+                            const LightAnimateType animType, const float animVel, const float animOffset)
 {
 	LightInfo light;
 	light.position = position;
@@ -35,16 +36,93 @@ void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMa
 	light.fov = fov;
 	light.innerCone = innerCone;
 	light.outerCone = outerCone;
-	lights.emplace_back(light);
+
+	// animation part
+	LightAnimateInfo anim;
+	anim.animationType = animType;
+	anim.velocity = animVel;
+	anim.offset = animOffset;
+
+	lights.emplace_back(std::make_tuple(light, anim));
 
 	isDirty = true;
 }
 
-void LightManager::addLight(LightInfo& light)
+void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
+                            OEMaths::vec3f& colour, float radius, float fov, const LightAnimateType animType,
+                            const float animVel, const float animOffset)
 {
-	lights.emplace_back(light);
+	LightInfo light;
+	light.position = position;
+	light.target = target;
+	light.colour = colour;
+	light.type = type;
+	light.radius = radius;
+	light.fov = fov;
+
+	// animation part - defualt
+	LightAnimateInfo anim;
+	anim.animationType = animType;
+	anim.velocity = animVel;
+	anim.offset = animOffset;
+
+	lights.emplace_back(std::make_tuple(light, anim));
+
+	isDirty = true;
+}
+
+void LightManager::addLight(const LightInfo& light, const LightAnimateInfo& anim)
+{
+	lights.emplace_back(std::make_tuple(light, anim));
 	// make sure this light is updated on the GPU side
 	isDirty = true;
+}
+
+void LightManager::updateLightPositions(double time, double dt)
+{
+	// update the timer first - a pretty simple fudged timer but adequate for lighting
+	// TODO: make this a config option
+	constexpr float timerSpeed = 0.25f;
+
+	timer += timerSpeed * (time / 1000000000);
+
+	// clamp to 0.0f - 1.0f
+	if (timer > 1.0)
+	{
+		timer -= 1.0f;
+	}
+
+	for (auto& info : lights)
+	{
+		auto light = std::get<0>(info);
+		auto anim = std::get<1>(info);
+
+		switch (anim.animationType)
+		{
+		case LightAnimateType::Static:
+			break;
+		case LightAnimateType::RotateX:
+		{
+			light.position.setY(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setZ(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			break;
+		}
+		case LightAnimateType::RotateY:
+		{
+			light.position.setX(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setZ(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			break;
+		}
+		case LightAnimateType::RotateZ:
+		{
+			light.position.setX(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setY(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			break;
+		}
+		}
+		printf("position = x: %f, y: %f, z:%f \n", light.position.getX(), light.position.getY(), light.position.getZ());
+		isDirty = true;
+	}
 }
 
 void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
@@ -53,8 +131,9 @@ void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
 
 	auto& cameraManager = componentInterface->getManager<CameraManager>();
 
-	for (auto& light : lights)
+	for (auto& info : lights)
 	{
+		auto light = std::get<0>(info);
 		LightPOV* lightPovPtr = (LightPOV*)((uint64_t)lightPovData + (alignedPovDataSize * lightPovDataSize));
 
 		OEMaths::mat4f projection =
@@ -76,10 +155,10 @@ void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
 void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
                                ComponentInterface* componentInterface)
 {
+	updateLightPositions(time, dt);
+
 	if (isDirty)
 	{
-		// TODO: update light positions, etc.
-
 		// update dynamic buffers used by shadow pipeline
 		updateDynamicBuffer(componentInterface);
 
@@ -88,7 +167,7 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 
 		for (uint32_t i = 0; i < lightBuffer.lightCount; ++i)
 		{
-			lightBuffer.lights[i] = lights[i];
+			lightBuffer.lights[i] = std::get<0>(lights[i]);
 		}
 
 		VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer),

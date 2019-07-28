@@ -121,7 +121,7 @@ public:
 	}
 
 	Sampler getSamplerType(std::string name);
-	vk::ImageLayout getImageLayout(std::string name);
+	vk::ImageLayout getImageLayout(std::string& name);
 	std::tuple<vk::Format, uint32_t> getTypeFormat(uint32_t width, uint32_t vecSize,
 	                                               spirv_cross::SPIRType::BaseType type);
 

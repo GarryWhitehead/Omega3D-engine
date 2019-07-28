@@ -112,7 +112,7 @@ void RenderableShadow::createShadowPass(VulkanAPI::RenderPass& renderpass, Vulka
 
 	// renderpass
 	renderpass.init(device);
-	renderpass.addAttachment(vk::ImageLayout::eDepthStencilAttachmentOptimal, format);
+	renderpass.addAttachment(format, VulkanAPI::FinalLayoutType::Auto);
 	renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencilSubpassTop);
 	renderpass.addSubpassDependency(VulkanAPI::DependencyTemplate::DepthStencilSubpassBottom);
 	renderpass.prepareRenderPass();

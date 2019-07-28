@@ -29,22 +29,65 @@ void RenderPass::init(vk::Device dev)
 	device = dev;
 }
 
-void RenderPass::addAttachment(const vk::ImageLayout finalLayout, const vk::Format format,
-                               bool clearAttachment)
+bool RenderPass::isDepth(const vk::Format format)
 {
+	std::vector<vk::Format> depthFormats = { vk::Format::eD16Unorm,       vk::Format::eX8D24UnormPack32,
+		                                     vk::Format::eD32Sfloat,      vk::Format::eD16UnormS8Uint,
+		                                     vk::Format::eD24UnormS8Uint, vk::Format::eD32SfloatS8Uint };
+	return std::find(depthFormats.begin(), depthFormats.end(), format) != std::end(depthFormats);
+}
+
+bool RenderPass::isStencil(const vk::Format format)
+{
+	std::vector<vk::Format> stencilFormats = { vk::Format::eS8Uint, vk::Format::eD16UnormS8Uint,
+		                                       vk::Format::eD24UnormS8Uint, vk::Format::eD32SfloatS8Uint };
+	return std::find(stencilFormats.begin(), stencilFormats.end(), format) != std::end(stencilFormats);
+}
+
+vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
+{
+	vk::ImageLayout result;
+	if (RenderPass::isStencil(format) || RenderPass::isDepth(format))
+	{
+		result = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+	}
+	else
+	{
+		result = vk::ImageLayout::eShaderReadOnlyOptimal;
+	}
+	return result;
+}
+
+void RenderPass::addAttachment(const vk::Format format, const FinalLayoutType layoutType, bool clearAttachment)
+{
+	vk::ImageLayout finalLayout;
+	switch(layoutType)
+	{
+	case FinalLayoutType::Auto:
+		finalLayout = getFinalTransitionLayout(format);
+		break; 
+	case FinalLayoutType::PresentKHR:
+		finalLayout = vk::ImageLayout::ePresentSrcKHR;
+		break;
+	case FinalLayoutType::ColourAttach:
+		finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
+		break;
+	case FinalLayoutType::DepthAttach:
+		finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+		break;
+	}
+
 	vk::AttachmentDescription attachDescr(
 	    {}, format, vk::SampleCountFlagBits::e1,
-	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
-	    vk::AttachmentStoreOp::eStore,
+	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
 	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, finalLayout);
 
 	attachment.push_back(attachDescr);
 }
 
-void RenderPass::addSubPass(std::vector<vk::AttachmentReference> &colorRef,
-                            std::vector<vk::AttachmentReference> &inputRef,
-                            vk::AttachmentReference *depthRef)
+void RenderPass::addSubPass(std::vector<vk::AttachmentReference>& colorRef,
+                            std::vector<vk::AttachmentReference>& inputRef, vk::AttachmentReference* depthRef)
 {
 	assert(!colorRef.empty());
 	assert(!inputRef.empty());
@@ -70,8 +113,7 @@ void RenderPass::addSubPass(std::vector<vk::AttachmentReference> &colorRef,
 	subpass.push_back(subpassDescr);
 }
 
-void RenderPass::addSubPass(std::vector<vk::AttachmentReference> &colorRef,
-                            vk::AttachmentReference *depthRef)
+void RenderPass::addSubPass(std::vector<vk::AttachmentReference>& colorRef, vk::AttachmentReference* depthRef)
 {
 	assert(!colorRef.empty());
 
@@ -92,8 +134,7 @@ void RenderPass::addSubPass(std::vector<vk::AttachmentReference> &colorRef,
 	subpass.push_back(subpassDescr);
 }
 
-void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass,
-                                      uint32_t dstSubpass)
+void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass, uint32_t dstSubpass)
 {
 	vk::SubpassDependency depend;
 
@@ -104,8 +145,7 @@ void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uin
 		depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
 		depend.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		depend.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
-		depend.dstAccessMask =
-		    vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+		depend.dstAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 		depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 	}
 	else if (dependencyTemplate == DependencyTemplate::Bottom_Of_Pipe)
@@ -114,8 +154,7 @@ void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uin
 		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
 		depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		depend.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-		depend.srcAccessMask =
-		    vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
+		depend.srcAccessMask = vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
 		depend.dstAccessMask = vk::AccessFlagBits::eMemoryRead;
 		depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 	}
@@ -136,8 +175,8 @@ void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uin
 		depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
 		depend.dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
 		depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
-		depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
-		                       vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+		depend.dstAccessMask =
+		    vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 		depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 	}
 	else if (dependencyTemplate == DependencyTemplate::Stencil_Subpass_Fragment)
@@ -146,8 +185,8 @@ void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uin
 		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
 		depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
 		depend.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
-		depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentRead |
-		                       vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+		depend.srcAccessMask =
+		    vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 		depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 		depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 	}
@@ -181,12 +220,11 @@ void RenderPass::prepareRenderPass()
 
 	// create the colour .depth refs
 	uint32_t attach_id = 0;
-	for (auto &attach : attachment)
+	for (auto& attach : attachment)
 	{
-		if (attach.finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+		if (isDepth(attach.format) || isStencil(attach.format))
 		{
-			depthReference.push_back(
-			    { attach_id, vk::ImageLayout::eDepthStencilAttachmentOptimal });
+			depthReference.push_back({ attach_id, vk::ImageLayout::eDepthStencilAttachmentOptimal });
 		}
 		else
 		{
@@ -231,16 +269,14 @@ void RenderPass::prepareRenderPass()
 		subpass.push_back(sPassDescr);
 	}
 
-	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachment.size()),
-	                                    attachment.data(), static_cast<uint32_t>(subpass.size()),
-	                                    subpass.data(), static_cast<uint32_t>(dependency.size()),
-	                                    dependency.data());
+	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachment.size()), attachment.data(),
+	                                    static_cast<uint32_t>(subpass.size()), subpass.data(),
+	                                    static_cast<uint32_t>(dependency.size()), dependency.data());
 
 	VK_CHECK_RESULT(device.createRenderPass(&createInfo, nullptr, &renderpass));
 }
 
-void RenderPass::prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height,
-                                    uint32_t layerCount)
+void RenderPass::prepareFramebuffer(const vk::ImageView imageView, uint32_t width, uint32_t height, uint32_t layerCount)
 {
 	assert(imageView);
 	assert(renderpass);
@@ -256,8 +292,8 @@ void RenderPass::prepareFramebuffer(const vk::ImageView imageView, uint32_t widt
 	framebuffers.emplace_back(std::move(frameBuffer));
 }
 
-void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView *imageView, uint32_t width,
-                                    uint32_t height, uint32_t layerCount)
+void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height,
+                                    uint32_t layerCount)
 {
 	assert(imageView);
 	assert(renderpass);
@@ -273,14 +309,14 @@ void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView *imageView, uin
 	framebuffers.emplace_back(std::move(frameBuffer));
 }
 
-vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue &backgroundColour,
-                                                 uint32_t index)
+vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index)
 {
 	// set up clear colour for each colour attachment
 	clearValues.resize(attachment.size());
 	for (uint32_t i = 0; i < attachment.size(); ++i)
 	{
-		if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal)
+		if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal ||
+		    attachment[i].finalLayout == vk::ImageLayout::eDepthStencilReadOnlyOptimal)
 		{
 			clearValues[i].depthStencil = { 1.0f, 0 };
 		}
@@ -290,19 +326,17 @@ vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue &background
 		}
 	}
 
-	vk::RenderPassBeginInfo beginInfo(
-	    renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } },
-	    static_cast<uint32_t>(clearValues.size()), clearValues.data());
+	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } },
+	                                  static_cast<uint32_t>(clearValues.size()), clearValues.data());
 
 	return beginInfo;
 }
 
-vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue *colour,
-                                                 uint32_t index)
+vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue* colour, uint32_t index)
 {
 
-	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index],
-	                                  { { 0, 0 }, { imageWidth, imageHeight } }, size, colour);
+	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } }, size,
+	                                  colour);
 
 	return beginInfo;
 }
@@ -311,10 +345,10 @@ vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t index)
 {
 	// Don't clear - retain the attachments from the last pass
 
-	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index],
-	                                  { { 0, 0 }, { imageWidth, imageHeight } }, 0, nullptr);
+	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } }, 0,
+	                                  nullptr);
 
 	return beginInfo;
 }
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

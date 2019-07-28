@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Managers/LightManager.h"
 #include "Managers/CameraManager.h"
 #include "Models/Gltf/GltfModel.h"
 #include "OEMaths/OEMaths.h"
@@ -25,7 +26,6 @@ class ObjectManager;
 class Object;
 class BVH;
 struct EngineConfig;
-enum class LightType;
 
 enum class Managers
 {
@@ -55,42 +55,43 @@ class World
 {
 public:
 	World();
-	World(Managers managers, std::unique_ptr<VulkanAPI::Device> &device,
-	      EngineConfig &engineConfig);
+	World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
 	~World();
 
 	// user interface stuff - world creation
-	bool create(const std::string &filename, const std::string &name);
-	void create(const std::string &name);
+	bool create(const std::string& filename, const std::string& name);
+	void create(const std::string& name);
 
 	// middle man between object manager and user side - adds world transform component
-	Object *createObject(const OEMaths::vec3f &position, const OEMaths::vec3f &scale,
-	                     const OEMaths::quatf &rotation);
+	Object* createObject(const OEMaths::vec3f& position, const OEMaths::vec3f& scale, const OEMaths::quatf& rotation);
 
-	void extractGltfModelAssets(std::unique_ptr<GltfModel::Model> &model, uint32_t &materialOffset,
-	                            uint32_t &skinOffset, uint32_t &animationOffset);
+	void extractGltfModelAssets(std::unique_ptr<GltfModel::Model>& model, uint32_t& materialOffset,
+	                            uint32_t& skinOffset, uint32_t& animationOffset);
 
 	// spacial function which creates the node tree and adds the appropiate components from a gltf model
-	Object *createGltfModelObject(std::unique_ptr<GltfModel::Model> &model,
-	                              const OEMaths::vec3f &position, const OEMaths::vec3f &scale,
-	                              const OEMaths::quatf &rotation, bool useMaterial);
+	Object* createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, const OEMaths::vec3f& position,
+	                              const OEMaths::vec3f& scale, const OEMaths::quatf& rotation, bool useMaterial);
 
 	// other user friendly middle-man functions that avoid exposing the managers to the user
-	void addSkybox(const std::string &filename, float blurFactor);
-	void addCameraToWorld(OEMaths::vec3f &startPosition = OEMaths::vec3f{ 0.0f, 0.0f, 6.0f },
-	                      float fov = 40.0f, float zNear = 1.0f, float zFar = 1000.0f,
-	                      float aspect = 1.7f, float velocity = 0.5f,
+	void addSkybox(const std::string& filename, float blurFactor);
+	void addCameraToWorld(OEMaths::vec3f& startPosition = OEMaths::vec3f{ 0.0f, 0.0f, 6.0f }, float fov = 40.0f,
+	                      float zNear = 1.0f, float zFar = 1000.0f, float aspect = 1.7f, float velocity = 0.5f,
 	                      Camera::CameraType type = Camera::CameraType::FirstPerson);
 
-	void addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target,
-	                     OEMaths::vec3f colour, float radius, float fov, float innerCone = 0.0f,
-	                     float outerCone = 0.0f);
+	void addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
+	                     float radius, float fov, float innerCone = 0.0f, float outerCone = 0.0f,
+	                     const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f,
+	                     const float animOffset = 0.0f);
+
+	void addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
+	                     float radius, float fov, const LightAnimateType animType, const float animVel,
+	                     const float animOffset);
 
 	void update(double time, double dt);
 	void render(double interpolation);
 
 private:
-	void createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode> &node, Object *parentObject,
+	void createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObject,
 	                                    const uint32_t materialOffset, const uint32_t skinOffset,
 	                                    const uint32_t animationOffset);
 
@@ -112,4 +113,4 @@ private:
 	bool hasUpdatedOnce = false;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine
