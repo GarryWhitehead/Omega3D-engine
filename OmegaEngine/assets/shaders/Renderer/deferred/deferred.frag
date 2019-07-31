@@ -133,7 +133,7 @@ void main()
 	vec3 inPos = texture(positionSampler, inUv).rgb;
 	vec3 V = normalize(inCameraPos.xyz - inPos);
 	vec3 N = texture(normalSampler, inUv).rgb;
-	vec3 R = -normalize(reflect(V, N));
+	vec3 R = normalize(reflect(-V, N));
 	
 	// get colour information from G-buffer
 	vec3 baseColour = texture(baseColourSampler, inUv).rgb;
@@ -164,7 +164,7 @@ void main()
 		if (light_ubo.lights[c].type == SPOTLIGHT) 
 		{
 			float attenuation = light_ubo.lights[c].radius / (dist * dist);
-			radiance = light_ubo.lights[c].colour.rgb * attenuation;
+			radiance = light_ubo.lights[c].colour.rgb;// * attenuation;
 		}
 		else if (light_ubo.lights[c].type == CONE) 
 		{

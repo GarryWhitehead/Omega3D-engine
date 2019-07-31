@@ -114,10 +114,11 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 	uint32_t objIndex = obj.getComponent<TransformComponent>().index;
 	OEMaths::mat4f mat = transforms[objIndex].getLocalMatrix();
 
-	uint64_t parentId = obj.getParent();
+	Object* parentObject = &obj;
+	uint64_t parentId = parentObject->getParent();
 	while (parentId != UINT64_MAX)
 	{
-		Object *parentObject = objectManager->getObject(parentId);
+		parentObject = objectManager->getObject(parentId);
 
 		if (parentObject->hasComponent<TransformComponent>())
 		{
@@ -127,15 +128,16 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 		parentId = parentObject->getParent();
 	}
 
-	// the root object should contain the world transform
+	// the root object should contain the world transform - though make sure
 	OEMaths::mat4f world;
-	if (obj.hasComponent<WorldTransformComponent>())
+	if (parentObject->hasComponent<WorldTransformComponent>())
 	{
-		auto component = obj.getComponent<WorldTransformComponent>();
+		auto component = parentObject->getComponent<WorldTransformComponent>();
 		OEMaths::mat4f rot = OEMaths::mat4f(component.rotation);
 		world = OEMaths::mat4f::translate(component.translation) * rot *
 		        OEMaths::mat4f::scale(component.scale);
 	}
+
 	return mat * world;
 }
 

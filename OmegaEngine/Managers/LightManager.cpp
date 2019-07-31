@@ -82,20 +82,20 @@ void LightManager::updateLightPositions(double time, double dt)
 {
 	// update the timer first - a pretty simple fudged timer but adequate for lighting
 	// TODO: make this a config option
-	constexpr float timerSpeed = 0.25f;
+	constexpr float timerSpeed = 0.1f;
 
-	timer += timerSpeed * (time / 1000000000);
+	timer += timerSpeed * (dt / 10000000);
 
 	// clamp to 0.0f - 1.0f
 	if (timer > 1.0)
 	{
 		timer -= 1.0f;
 	}
-
+	printf("timer = %f   dt = %f\n", timer, dt / 10000000);
 	for (auto& info : lights)
 	{
-		auto light = std::get<0>(info);
-		auto anim = std::get<1>(info);
+		auto& light = std::get<0>(info);
+		auto& anim = std::get<1>(info);
 
 		switch (anim.animationType)
 		{
@@ -103,24 +103,24 @@ void LightManager::updateLightPositions(double time, double dt)
 			break;
 		case LightAnimateType::RotateX:
 		{
-			light.position.setY(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setZ(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light.position.setY(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		case LightAnimateType::RotateY:
 		{
-			light.position.setX(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setZ(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light.position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		case LightAnimateType::RotateZ:
 		{
-			light.position.setX(anim.offset + std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setY(anim.offset + std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light.position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light.position.setY(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		}
-		printf("position = x: %f, y: %f, z:%f \n", light.position.getX(), light.position.getY(), light.position.getZ());
+	
 		isDirty = true;
 	}
 }
