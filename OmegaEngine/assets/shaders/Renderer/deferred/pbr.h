@@ -31,7 +31,7 @@ vec3 FresnelRoughness(float VdotH, vec3 F0, float roughness)
 	return F0 + (max(vec3(1.0 - roughness), F0) - F0) * pow(1.0 - VdotH, 5.0);
 }
 
-vec3 specularContribution(vec3 L, vec3 V, vec3 N, float metallic, float roughness, vec3 albedo, vec3 radiance, vec3 specReflectance, vec3 specReflectance90)
+vec3 specularContribution(vec3 L, vec3 V, vec3 N, vec3 albedo, float metallic, float roughness, float attenuation, float intensity, vec3 radiance, vec3 specReflectance, vec3 specReflectance90)
 {
 	vec3 H = normalize(V + L);
 	float NdotH = clamp(dot(N, H), 0.0, 1.0);
@@ -41,18 +41,15 @@ vec3 specularContribution(vec3 L, vec3 V, vec3 N, float metallic, float roughnes
 
 	vec3 colour = vec3(0.0);
 
-	//if (NdotL > 0.0) {
+	float D = GGX_Distribution(NdotH, roughness); 
+	float G = GeometryShlickGGX(NdotV, NdotL, roughness);
+	vec3 F = FresnelSchlick(VdotH, specReflectance, specReflectance90);		
 		
-		float D = GGX_Distribution(NdotH, roughness); 
-		float G = GeometryShlickGGX(NdotV, NdotL, roughness);
-		vec3 F = FresnelSchlick(VdotH, specReflectance, specReflectance90);		
-		
-		vec3 specularContribution = F * G * D / (4.0 * NdotL * NdotV);		
-		vec3 diffuseContribution = (vec3(1.0) - F) * (albedo / PI);
-		colour = (diffuseContribution + specularContribution) * radiance * NdotL; 
-	//}
+	vec3 specularContribution = F * G * D / (4.0 * NdotL * NdotV);		
+	vec3 diffuseContribution = (vec3(1.0) - F) * (albedo / PI);
+	colour = diffuseContribution + specularContribution; 
 
-	return colour;
+	return (colour * radiance.xyz) * (intensity * attenuation * NdotL);
 }
 
 #endif // PBR_H

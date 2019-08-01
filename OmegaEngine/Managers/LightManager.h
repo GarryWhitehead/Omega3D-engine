@@ -22,7 +22,7 @@ struct LightPOV
 enum class LightType
 {
 	Spot,
-	Cone,
+	Point,
 	Directional
 };
 
@@ -38,43 +38,75 @@ struct LightAnimateInfo
 {
 	LightAnimateInfo() = default;
 
-	LightAnimateInfo(const LightAnimateType type, const float vel, const float ofs)
+	LightAnimateInfo(const LightAnimateType type, const float vel)
 	    : animationType(type)
 	    , velocity(vel)
-	    , offset(ofs)
 	{
 	}
 
 	// default to static
 	LightAnimateType animationType = LightAnimateType::Static;
 	float velocity = 5.0f;
-	float offset = 0.0f;
 };
 
-struct LightInfo
+struct LightBase
 {
+	LightBase() = default;
+	virtual ~LightBase()
+	{
+	}
+
 	OEMaths::mat4f lightMvp;
 	OEMaths::vec3f position;
-	float pad0;
 	OEMaths::vec3f target;
-	float pad1;
 	OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
 	float fov = 90.0f;
+	LightType type;
+};
+
+struct PointLight : public LightBase
+{
 	float radius = 25.0f;
-	float innerCone = 0.0f;    // for spot lights
-	float outerCone = 0.0f;    // for spot lights
-	LightType type = LightType::Spot;
+};
+
+struct SpotLight : public LightBase
+{
+	OEMaths::vec3f direction;
+	float radius = 25.0f;
+	float scale = 1.0f;
+	float offset = 0.0f;
 };
 
 class LightManager : public ManagerBase
 {
 
 public:
-	// a mirror of the shader buffer
+	// a mirror of the shader structs
+	struct PointLightUbo
+	{
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+		float radius;
+	};
+
+	struct SpotLightUbo
+	{	
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::vec4f direction;
+		OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+		float radius;
+		float scale;
+		float offset;
+	};
+
 	struct LightUboBuffer
 	{
-		LightInfo lights[MAX_LIGHTS];
-		uint32_t lightCount;
+		SpotLightUbo spotLights[MAX_LIGHTS];
+		PointLightUbo pointLights[MAX_LIGHTS];
+		uint32_t spotLightCount;
+		uint32_t pointLightCount;
 	};
 
 	LightManager();
@@ -88,16 +120,13 @@ public:
 
 	void updateDynamicBuffer(ComponentInterface* componentInterface);
 
-	void addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target, OEMaths::vec3f& colour,
-	              float radius, float fov, float innerCone, float outerCone,
-	              const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f,
-	              const float animOffset = 0.0f);
+	void addSpotLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
+	                  const float fov, const OEMaths::vec3f dir, float radius, float scale, float offset,
+	                  const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f);
 
-	void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
-	                            OEMaths::vec3f& colour, float radius, float fov, const LightAnimateType animType,
-	                            const float animVel, const float animOffset);
-
-	void addLight(const LightInfo& light, const LightAnimateInfo& anim);
+	void addPointLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
+	                   float fov, float radius, const LightAnimateType animType = LightAnimateType::Static,
+	                   const float animVel = 0.0f);
 
 	uint32_t getLightCount() const
 	{
@@ -110,7 +139,7 @@ public:
 	}
 
 private:
-	std::vector<std::tuple<LightInfo, LightAnimateInfo>> lights;
+	std::vector<std::tuple<std::unique_ptr<LightBase>, LightAnimateInfo>> lights;
 
 	// buffer on the vulkan side which will hold all lighting info
 	LightUboBuffer lightBuffer;

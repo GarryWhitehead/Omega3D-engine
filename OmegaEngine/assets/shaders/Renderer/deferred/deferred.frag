@@ -1,7 +1,8 @@
 #version 450
 
 #include "pbr.h"
-
+#include "lights.h"
+#include "shadow.h"
 
 // G buffers
 layout (set = 1, binding = 0) uniform sampler2D positionSampler;
@@ -23,33 +24,14 @@ layout (location = 1) in vec3 inCameraPos;
 
 layout (location = 0) out vec4 outFrag;
 
-#define MAX_LIGHT_COUNT 100	// make sure this matches the manager - could use a specilization constant
-
-// light types - must reflect main code enums
-#define SPOTLIGHT 0
-#define CONE 1
-
-#define SHADOW_FACTOR 0.1
-
-struct Light
-{
-		mat4 viewMatrix;
-		vec3 pos;
-		float pad0;
-		vec3 target;
-		float pad1; 
-		vec3 colour;
-		float fov;
-		float radius;
-		float innerCone;
-		float outerCone;
-		uint type;
-};
+#define MAX_LIGHT_COUNT 50	// make sure this matches the manager - could use a specilization constant
 
 layout (set = 0, binding = 2) uniform LightUbo
 {
-	Light lights[MAX_LIGHT_COUNT];
-	uint activeLightCount;
+	SpotLight spotLights[MAX_LIGHT_COUNT];
+	PointLight pointLights[MAX_LIGHT_COUNT];
+	uint spotLightCount;
+	uint pointLightCount;
 } light_ubo;
 
 layout (push_constant) uniform pushConstants
@@ -57,48 +39,6 @@ layout (push_constant) uniform pushConstants
 	float IBLAmbient;
 	bool useIBLContribution;
 } push;
-
-// shadow projection
-float textureProj(vec4 P, vec2 offset)
-{
-	float shadow = 1.0;
-	vec4 shadowCoord = P / P.w;
-	shadowCoord.st = shadowCoord.st * 0.5 + 0.5;
-	
-	if (shadowCoord.z > -1.0 && shadowCoord.z < 1.0) 
-	{
-		float dist = texture(Depth_shadowSampler, vec2(shadowCoord.st + offset)).r;
-		if (shadowCoord.w > 0.0 && dist < shadowCoord.z) 
-		{
-			shadow = SHADOW_FACTOR;
-		}
-	}
-	return shadow;
-}
-
-// shadow filter PCF
-float shadowPCF(vec4 shadowCoord)
-{
-	ivec2 dim = textureSize(Depth_shadowSampler, 0).xy;
-	float scale = 1.5;
-	float dx = scale * 1.0 / float(dim.x);
-	float dy = scale * 1.0 / float(dim.y);
-
-	float shadowFactor = 0.0;
-	int count = 0;
-	int range = 1;
-
-	for (int x = -range; x <= range; x++)
-	{
-		for (int y = -range; y <= range; y++)
-		{
-			shadowFactor += textureProj(shadowCoord, vec2(dx * x, dy * y));
-			count++;
-		}
-	}
-
-	return shadowFactor / count;
-}
 
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {	
@@ -133,7 +73,7 @@ void main()
 	vec3 inPos = texture(positionSampler, inUv).rgb;
 	vec3 V = normalize(inCameraPos.xyz - inPos);
 	vec3 N = texture(normalSampler, inUv).rgb;
-	vec3 R = normalize(reflect(-V, N));
+	vec3 R = normalize(-reflect(V, N));
 	
 	// get colour information from G-buffer
 	vec3 baseColour = texture(baseColourSampler, inUv).rgb;
@@ -154,29 +94,31 @@ void main()
 	
 	// apply additional lighting contribution to specular 
 	vec3 colour = vec3(0.0);
-	for(int c = 0; c < light_ubo.activeLightCount; c++) 
-	{  
-		vec3 lightPos = light_ubo.lights[c].pos.xyz - inPos;
-		float dist = length(lightPos);
-		vec3 L = normalize(lightPos);
-
-		vec3 radiance;
-		if (light_ubo.lights[c].type == SPOTLIGHT) 
-		{
-			float attenuation = light_ubo.lights[c].radius / (dist * dist);
-			radiance = light_ubo.lights[c].colour.rgb;// * attenuation;
-		}
-		else if (light_ubo.lights[c].type == CONE) 
-		{
-			float innerCosAngle = cos(light_ubo.lights[c].innerCone);
-			float outerCosAngle = cos(light_ubo.lights[c].outerCone);
-			float dir = dot(L, lightPos);
-			float spot = smoothstep(innerCosAngle, outerCosAngle, dir);
-			float attenuation = smoothstep(light_ubo.lights[c].radius, 0.0f, dist);
-			radiance = light_ubo.lights[c].colour.rgb * spot * attenuation;
-		}
 		
-		colour += specularContribution(L, V, N, metallic, alphaRoughness, baseColour, radiance, specReflectance, specReflectance90);
+	// spot lights
+	for(int i = 0; i < light_ubo.spotLightCount; ++i) 
+	{  
+		SpotLight light = light_ubo.spotLights[i];
+		
+		vec3 lightPos = light.pos.xyz - inPos;
+		vec3 L = normalize(lightPos);
+	
+		float attenuation = calculateDistance(lightPos, light.radius);
+		attenuation *= calculateAngle(light.direction.xyz, L, light.scale, light.offset); 	
+		
+		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, light.radius, light.colour.xyz, specReflectance, specReflectance90);
+	}
+	
+	// point lights
+	for(int i = 0; i < light_ubo.pointLightCount; ++i) 
+	{  
+		PointLight light = light_ubo.pointLights[i];
+		
+		vec3 lightPos = light.pos.xyz - inPos;
+		vec3 L = normalize(lightPos);
+		
+		float attenuation = calculateDistance(lightPos, light.radius);
+		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, light.radius, light.colour.xyz, specReflectance, specReflectance90);
 	}
 	
 	// add IBL contribution if needed
@@ -195,10 +137,22 @@ void main()
 	outFrag = vec4(colour, 1.0);
 	
 	// finally adjust the colour if in shadow for each light source
-	for(int i = 0; i < light_ubo.activeLightCount; i++) 
+	for(int i = 0; i < light_ubo.spotLightCount; i++) 
 	{
-		vec4 shadowClip	= light_ubo.lights[i].viewMatrix * vec4(inPos, 1.0);
-		float shadowFactor = shadowPCF(shadowClip);
+		SpotLight light = light_ubo.spotLights[i];
+		
+		vec4 shadowClip	= light.viewMatrix * vec4(inPos, 1.0);
+		float shadowFactor = shadowPCF(shadowClip, Depth_shadowSampler);
+			
+		outFrag *= shadowFactor;
+	}
+	
+	for(int i = 0; i < light_ubo.pointLightCount; i++) 
+	{
+		PointLight light = light_ubo.pointLights[i];
+		
+		vec4 shadowClip	= light.viewMatrix * vec4(inPos, 1.0);
+		float shadowFactor = shadowPCF(shadowClip, Depth_shadowSampler);
 			
 		outFrag *= shadowFactor;
 	}

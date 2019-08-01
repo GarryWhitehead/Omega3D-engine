@@ -23,58 +23,50 @@ LightManager::~LightManager()
 	_aligned_free(lightPovData);
 }
 
-void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
-                            OEMaths::vec3f& colour, float radius, float fov, float innerCone, float outerCone,
-                            const LightAnimateType animType, const float animVel, const float animOffset)
+void LightManager::addSpotLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                const OEMaths::vec3f& colour, const float fov, const OEMaths::vec3f dir, float radius,
+                                float scale, float offset, const LightAnimateType animType, const float animVel)
 {
-	LightInfo light;
-	light.position = position;
-	light.target = target;
-	light.colour = colour;
-	light.type = type;
-	light.radius = radius;
-	light.fov = fov;
-	light.innerCone = innerCone;
-	light.outerCone = outerCone;
+	auto light = std::make_unique<SpotLight>();
+	light->position = position;
+	light->target = target;
+	light->colour = colour;
+	light->radius = radius;
+	light->fov = fov;
+	light->direction = dir;
+	light->scale = scale;
+	light->offset = offset;
+	light->type = LightType::Spot;
 
 	// animation part
 	LightAnimateInfo anim;
 	anim.animationType = animType;
 	anim.velocity = animVel;
-	anim.offset = animOffset;
 
 	lights.emplace_back(std::make_tuple(light, anim));
 
 	isDirty = true;
 }
 
-void LightManager::addLight(const LightType type, OEMaths::vec3f& position, OEMaths::vec3f& target,
-                            OEMaths::vec3f& colour, float radius, float fov, const LightAnimateType animType,
-                            const float animVel, const float animOffset)
+void LightManager::addPointLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                 const OEMaths::vec3f& colour, float fov, float radius, const LightAnimateType animType,
+                                 const float animVel)
 {
-	LightInfo light;
-	light.position = position;
-	light.target = target;
-	light.colour = colour;
-	light.type = type;
-	light.radius = radius;
-	light.fov = fov;
+	auto light = std::make_unique<PointLight>();
+	light->position = position;
+	light->target = target;
+	light->colour = colour;
+	light->radius = radius;
+	light->fov = fov;
+	light->type = LightType::Point;
 
 	// animation part - defualt
 	LightAnimateInfo anim;
 	anim.animationType = animType;
 	anim.velocity = animVel;
-	anim.offset = animOffset;
 
 	lights.emplace_back(std::make_tuple(light, anim));
 
-	isDirty = true;
-}
-
-void LightManager::addLight(const LightInfo& light, const LightAnimateInfo& anim)
-{
-	lights.emplace_back(std::make_tuple(light, anim));
-	// make sure this light is updated on the GPU side
 	isDirty = true;
 }
 
@@ -103,24 +95,24 @@ void LightManager::updateLightPositions(double time, double dt)
 			break;
 		case LightAnimateType::RotateX:
 		{
-			light.position.setY(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.setY(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light->position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		case LightAnimateType::RotateY:
 		{
-			light.position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light->position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		case LightAnimateType::RotateZ:
 		{
-			light.position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light.position.setY(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
+			light->position.setY(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
 			break;
 		}
 		}
-	
+
 		isDirty = true;
 	}
 }
@@ -133,15 +125,15 @@ void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
 
 	for (auto& info : lights)
 	{
-		auto light = std::get<0>(info);
+		auto& light = std::get<0>(info);
 		LightPOV* lightPovPtr = (LightPOV*)((uint64_t)lightPovData + (alignedPovDataSize * lightPovDataSize));
 
 		OEMaths::mat4f projection =
-		    OEMaths::perspective(light.fov, 1.0f, cameraManager.getZNear(), cameraManager.getZFar());
-		OEMaths::mat4f view = OEMaths::lookAt(light.position, light.target, OEMaths::vec3f(0.0f, 1.0f, 0.0f));
+		    OEMaths::perspective(light->fov, 1.0f, cameraManager.getZNear(), cameraManager.getZFar());
+		OEMaths::mat4f view = OEMaths::lookAt(light->position, light->target, OEMaths::vec3f(0.0f, 1.0f, 0.0f));
 		lightPovPtr->lightMvp = projection * view;
 
-		light.lightMvp = lightPovPtr->lightMvp;
+		light->lightMvp = lightPovPtr->lightMvp;
 
 		++lightPovDataSize;
 	}
@@ -163,11 +155,31 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 		updateDynamicBuffer(componentInterface);
 
 		// now update ready for uploading on the gpu side
-		lightBuffer.lightCount = static_cast<uint32_t>(lights.size());
+		uint32_t spotlightCount = 0;
+		uint32_t pointlightCount = 0;
 
-		for (uint32_t i = 0; i < lightBuffer.lightCount; ++i)
+		for (auto& info : lights)
 		{
-			lightBuffer.lights[i] = std::get<0>(lights[i]);
+			auto& light = std::get<0>(info);
+			if (light->type == LightType::Spot)
+			{
+				const auto& spotLight = static_cast<SpotLight*>(light.get());
+
+				// fill in the data to be sent to the gpu
+				SpotLightUbo ubo();
+				lightBuffer.spotLights[spotlightCount++] = ubo;
+			}
+			else if (light->type == LightType::Point)
+			{
+				const auto& pointLight = static_cast<PointLight*>(light.get());
+
+				// fill in the data to be sent to the gpu
+				PointLightUbo ubo();
+				lightBuffer.pointLights[pointlightCount++] = ubo;
+			}
+
+			lightBuffer.spotLightCount = spotlightCount;
+			lightBuffer.pointLightCount = pointlightCount;
 		}
 
 		VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer),
