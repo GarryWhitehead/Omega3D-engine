@@ -74,7 +74,6 @@ void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cm
 
 	for (uint32_t i = 0, thread = 0; i < queue.size(); i += threadGroupSize, ++thread)
 	{
-
 		VulkanAPI::SecondaryCommandBuffer secondaryCmdBuffer = cmdBuffer->getSecondary(thread);
 
 		// if we have no more threads left, then draw every thing that is remaining
@@ -95,7 +94,7 @@ void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cm
 	}
 
 	// check that all threads are finshed before executing the cmd buffers
-	threadPool.waitForAll();
+	//threadPool.waitForAll();
 
 	// execute the recorded secondary command buffers - only for those threads we have actually used
 	cmdBuffer->executeSecondaryCommands(threadsUsed);
