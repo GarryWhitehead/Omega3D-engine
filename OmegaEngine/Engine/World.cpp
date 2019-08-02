@@ -240,6 +240,7 @@ Object *World::createGltfModelObject(std::unique_ptr<GltfModel::Model> &model, c
 	return rootObject;
 }
 
+// TODO : The world really shouldn't have this boiler plate. These should be dealt with as components
 void World::addSkybox(const std::string &filename, float blurFactor)
 {
 	assetManager->loadImageFile(filename, "Skybox");
@@ -254,21 +255,19 @@ void World::addCameraToWorld(OEMaths::vec3f &startPosition, float fov, float zNe
 	cameraManager.addCamera(startPosition, fov, zNear, zFar, aspect, velocity, type);
 }
 
-void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target,
-                            OEMaths::vec3f colour, float radius, float fov, float innerCone,
-                            float outerCone, const LightAnimateType animType, const float animVel,
-							const float animOffset)
+void World::addSpotLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour, float fov,
+                                const OEMaths::vec3f& dir, float radius, float scale,
+                            float offset, const LightAnimateType animType, float animVel)
 {
 	auto &lightManager = componentInterface->getManager<LightManager>();
-	lightManager.addLight(type, position, target, colour, radius, fov, innerCone, outerCone, animType, animVel, animOffset);
+	lightManager.addSpotLight(position, target, colour, fov, dir, radius, scale, offset, animType, animVel);
 }
 
-void World::addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
-                            float radius, float fov, const LightAnimateType animType, const float animVel,
-                            const float animOffset)
+void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
+                            float fov, float radius, const LightAnimateType animType, float animVel)
 {
 	auto& lightManager = componentInterface->getManager<LightManager>();
-	lightManager.addLight(type, position, target, colour, radius, fov, animType, animVel, animOffset);
+	lightManager.addPointLight(position, target, colour, fov, radius, animType, animVel);
 }
 
 void World::update(double time, double dt)

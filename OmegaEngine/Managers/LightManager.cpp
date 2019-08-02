@@ -6,7 +6,7 @@
 #include "ObjectInterface/ComponentInterface.h"
 #include "ObjectInterface/ObjectManager.h"
 #include "VulkanAPI/BufferManager.h"
-#include "tiny_gltf.h"
+
 
 namespace OmegaEngine
 {
@@ -15,7 +15,7 @@ LightManager::LightManager()
 {
 	// allocate the memory required for the light POV data
 	alignedPovDataSize = VulkanAPI::Util::alignmentSize(sizeof(LightPOV));
-	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * MAX_LIGHTS);
+	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_LIGHTS * 2));
 }
 
 LightManager::~LightManager()
@@ -43,7 +43,7 @@ void LightManager::addSpotLight(const OEMaths::vec3f& position, const OEMaths::v
 	anim.animationType = animType;
 	anim.velocity = animVel;
 
-	lights.emplace_back(std::make_tuple(light, anim));
+	lights.emplace_back(std::make_tuple(std::move(light), anim));
 
 	isDirty = true;
 }
@@ -65,7 +65,7 @@ void LightManager::addPointLight(const OEMaths::vec3f& position, const OEMaths::
 	anim.animationType = animType;
 	anim.velocity = animVel;
 
-	lights.emplace_back(std::make_tuple(light, anim));
+	lights.emplace_back(std::make_tuple(std::move(light), anim));
 
 	isDirty = true;
 }
@@ -83,7 +83,7 @@ void LightManager::updateLightPositions(double time, double dt)
 	{
 		timer -= 1.0f;
 	}
-	printf("timer = %f   dt = %f\n", timer, dt / 10000000);
+
 	for (auto& info : lights)
 	{
 		auto& light = std::get<0>(info);
@@ -166,7 +166,10 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				const auto& spotLight = static_cast<SpotLight*>(light.get());
 
 				// fill in the data to be sent to the gpu
-				SpotLightUbo ubo();
+				SpotLightUbo ubo(light->lightMvp,
+								 OEMaths::vec4f{ spotLight->position, 1.0f },
+				                 OEMaths::vec4f{ spotLight->direction, 1.0f }, spotLight->colour, spotLight->radius,
+				                 spotLight->scale, spotLight->offset);
 				lightBuffer.spotLights[spotlightCount++] = ubo;
 			}
 			else if (light->type == LightType::Point)
@@ -174,13 +177,14 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				const auto& pointLight = static_cast<PointLight*>(light.get());
 
 				// fill in the data to be sent to the gpu
-				PointLightUbo ubo();
+				PointLightUbo ubo(light->lightMvp, OEMaths::vec4f{ pointLight->position, 1.0f },
+				                 pointLight->colour, pointLight->radius);
 				lightBuffer.pointLights[pointlightCount++] = ubo;
 			}
-
-			lightBuffer.spotLightCount = spotlightCount;
-			lightBuffer.pointLightCount = pointlightCount;
 		}
+
+		lightBuffer.spotLightCount = spotlightCount;
+		lightBuffer.pointLightCount = pointlightCount;
 
 		VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer),
 			                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };

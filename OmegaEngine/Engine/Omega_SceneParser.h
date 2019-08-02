@@ -48,7 +48,7 @@ public:
 	void loadModels();
 	void loadTerrainData();
 	void loadEnvironment();
-	void loadLights();
+	//void loadLights();
 
 	std::string &getFilenames(uint32_t index)
 	{
@@ -72,16 +72,6 @@ public:
 		return camera;
 	}
 
-	uint32_t lightCount() const
-	{
-		return static_cast<uint32_t>(lights.size());
-	}
-
-	LightInfo &getLights(const uint32_t index)
-	{
-		return lights[index];
-	}
-
 	EnvironmentInfo &getEnvironment()
 	{
 		return environment;
@@ -97,7 +87,6 @@ private:
 	EnvironmentInfo environment;
 
 	std::vector<ModelInfo> models;
-	std::vector<LightInfo> lights;
 };
 
 } // namespace OmegaEngine

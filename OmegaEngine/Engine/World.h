@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Managers/LightManager.h"
 #include "Managers/CameraManager.h"
+#include "Managers/LightManager.h"
 #include "Models/Gltf/GltfModel.h"
 #include "OEMaths/OEMaths.h"
 
@@ -78,14 +78,14 @@ public:
 	                      float zNear = 1.0f, float zFar = 1000.0f, float aspect = 1.7f, float velocity = 0.5f,
 	                      Camera::CameraType type = Camera::CameraType::FirstPerson);
 
-	void addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
-	                     float radius, float fov, float innerCone = 0.0f, float outerCone = 0.0f,
-	                     const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f,
-	                     const float animOffset = 0.0f);
 
-	void addLightToWorld(const LightType type, OEMaths::vec3f position, OEMaths::vec3f target, OEMaths::vec3f colour,
-	                     float radius, float fov, const LightAnimateType animType, const float animVel,
-	                     const float animOffset);
+	void addSpotLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
+	                         float fov, const OEMaths::vec3f& dir, float radius, float scale, float offset,
+	                         const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
+
+	void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+	                                 const OEMaths::vec3f& colour, float fov, float radius,
+	                                 const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
 
 	void update(double time, double dt);
 	void render(double interpolation);

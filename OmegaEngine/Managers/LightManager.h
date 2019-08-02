@@ -3,13 +3,11 @@
 #include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 
-#include "tiny_gltf.h"
-
 #include <cstdint>
 #include <tuple>
 #include <vector>
 
-#define MAX_LIGHTS 100
+#define MAX_LIGHTS 50
 
 namespace OmegaEngine
 {
@@ -84,6 +82,16 @@ public:
 	// a mirror of the shader structs
 	struct PointLightUbo
 	{
+		PointLightUbo() = default;
+		PointLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec3f& col, float rad)
+		    : lightMvp(mvp)
+		    , position(pos)
+		    , colour(col)
+		    , radius(rad)
+
+		{
+		}
+
 		OEMaths::mat4f lightMvp;
 		OEMaths::vec4f position;
 		OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
@@ -91,7 +99,20 @@ public:
 	};
 
 	struct SpotLightUbo
-	{	
+	{
+		SpotLightUbo() = default;
+		SpotLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec4f& dir,
+		             const OEMaths::vec3f& col, float rad, float sca, float ofs)
+		    : lightMvp(mvp)
+		    , position(pos)
+		    , direction(dir)
+		    , colour(col)
+		    , radius(rad)
+		    , scale(sca)
+		    , offset(ofs)
+		{
+		}
+
 		OEMaths::mat4f lightMvp;
 		OEMaths::vec4f position;
 		OEMaths::vec4f direction;
@@ -105,8 +126,8 @@ public:
 	{
 		SpotLightUbo spotLights[MAX_LIGHTS];
 		PointLightUbo pointLights[MAX_LIGHTS];
-		uint32_t spotLightCount;
-		uint32_t pointLightCount;
+		uint32_t spotLightCount = 0;
+		uint32_t pointLightCount = 0;
 	};
 
 	LightManager();

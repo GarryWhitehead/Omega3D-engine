@@ -96,7 +96,7 @@ void main()
 	vec3 colour = vec3(0.0);
 		
 	// spot lights
-	for(int i = 0; i < light_ubo.spotLightCount; ++i) 
+	for(int i = 0; i < 2; ++i) 
 	{  
 		SpotLight light = light_ubo.spotLights[i];
 		
@@ -110,7 +110,7 @@ void main()
 	}
 	
 	// point lights
-	for(int i = 0; i < light_ubo.pointLightCount; ++i) 
+	for(int i = 0; i < 1; ++i) 
 	{  
 		PointLight light = light_ubo.pointLights[i];
 		

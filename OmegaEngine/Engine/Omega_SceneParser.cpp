@@ -36,7 +36,7 @@ bool SceneParser::parse(std::string filename)
 	// all data is optional. If not present then default values will be used
 	loadCameraData();
 	loadModels();
-	loadLights();
+	//loadLights();
 	loadEnvironment();
 
 	return true;
@@ -117,7 +117,7 @@ void SceneParser::loadTerrainData()
 {
 }
 
-void SceneParser::loadLights()
+/*void SceneParser::loadLights()
 {
 	if (!document.HasMember("Lights"))
 	{
@@ -158,7 +158,7 @@ void SceneParser::loadLights()
 			lights[i].outerCone = arr["OuterCone"].GetFloat();
 		}
 	}
-}
+}*/
 
 void SceneParser::loadEnvironment()
 {

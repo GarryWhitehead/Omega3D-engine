@@ -18,7 +18,7 @@ RenderableShadow::RenderableShadow(std::unique_ptr<ProgramStateManager>& stateMa
                                    std::unique_ptr<VulkanAPI::Interface>& vkInterface, ShadowComponent& component,
                                    StaticMesh& mesh, PrimitiveMesh& primitive, uint32_t lightCount,
                                    uint32_t lightAlignmentSize, std::unique_ptr<RendererBase>& renderer)
-    : RenderableBase(RenderTypes::Skybox)
+    : RenderableBase(RenderTypes::ShadowMapped)
 {
 	// fill out the data which will be used for rendering
 	instanceData = new ShadowInstance;
