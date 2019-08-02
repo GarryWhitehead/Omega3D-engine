@@ -23,14 +23,14 @@ int main(int argc, char* argv[])
 	// create a new empty world
 	auto world = engine.createWorld("SceneOne");
 
-	/*{
+	{
 		// Use a gltf image as one of our scene objects
 		auto model = GltfModel::load("WaterBottle/WaterBottle.gltf");
 
 		// create an object, using a gltf model for vertices, materials, etc.
 		auto object = world->createGltfModelObject(model, OEMaths::vec3f{ 4.0f, 3.0f, 5.0f }, OEMaths::vec3f{ 15.0f },
 		                                           OEMaths::quatf{ 0.5, 0.0f, 0.5f, 0.5f }, true);
-	}*/
+	}
 
 	{
 		// Use a gltf image as one of our scene objects
@@ -41,10 +41,8 @@ int main(int argc, char* argv[])
 		                                           OEMaths::quatf{ 0.0f }, true);
 	}
 
-	
-
-	/*// adding stock models to the scene - add a capsule
-	{
+	// adding stock models to the scene - add a capsule
+	/*{
 		auto object =
 		    world->createObject(OEMaths::vec3f{ -2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
 
@@ -74,7 +72,7 @@ int main(int argc, char* argv[])
 	world->addCameraToWorld();
 
 	// add different lights
-	world->addSpotLightToWorld({ 0.0f, 3.0f, 10.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, { 0.0f }, 20.0f, 2.0f, 0.0f);
+	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, { 0.0f }, 90.0f, 2.0f, 0.0f);
 	world->addSpotLightToWorld({ 0.0f, -1.0f, -1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, { 0.0f, 1.0f, 1.0f }, 50.0f, 6.0f,
 	                           0.0f);
 	world->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 50.0f);

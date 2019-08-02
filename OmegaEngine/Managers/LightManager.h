@@ -117,6 +117,7 @@ public:
 		OEMaths::vec4f position;
 		OEMaths::vec4f direction;
 		OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+		float pad0;
 		float radius;
 		float scale;
 		float offset;
@@ -126,6 +127,7 @@ public:
 	{
 		SpotLightUbo spotLights[MAX_LIGHTS];
 		PointLightUbo pointLights[MAX_LIGHTS];
+		float pad[2];
 		uint32_t spotLightCount = 0;
 		uint32_t pointLightCount = 0;
 	};

@@ -30,6 +30,7 @@ layout (set = 0, binding = 2) uniform LightUbo
 {
 	SpotLight spotLights[MAX_LIGHT_COUNT];
 	PointLight pointLights[MAX_LIGHT_COUNT];
+	float pad[2];
 	uint spotLightCount;
 	uint pointLightCount;
 } light_ubo;
@@ -96,7 +97,7 @@ void main()
 	vec3 colour = vec3(0.0);
 		
 	// spot lights
-	for(int i = 0; i < 2; ++i) 
+	for(int i = 0; i < light_ubo.spotLightCount; ++i) 
 	{  
 		SpotLight light = light_ubo.spotLights[i];
 		
@@ -110,7 +111,7 @@ void main()
 	}
 	
 	// point lights
-	for(int i = 0; i < 1; ++i) 
+	for(int i = 0; i < light_ubo.pointLightCount; ++i) 
 	{  
 		PointLight light = light_ubo.pointLights[i];
 		

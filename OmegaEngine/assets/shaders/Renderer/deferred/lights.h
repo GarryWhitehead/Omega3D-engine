@@ -7,6 +7,7 @@ struct SpotLight
 		vec4 pos;
 		vec4 direction;
 		vec3 colour;
+		float pad0;
 		float radius;
 		float scale;
 		float offset;
