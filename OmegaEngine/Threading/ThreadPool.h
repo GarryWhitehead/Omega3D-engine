@@ -1,9 +1,11 @@
 #pragma once
+
+#include "Threading/ThreadedQueue.h"
+
 #include <atomic>
 #include <functional>
 #include <future>
 #include <mutex>
-#include <queue>
 #include <shared_mutex>
 #include <thread>
 #include <vector>
@@ -44,75 +46,6 @@ private:
 	std::future<T> fut;
 };
 
-template <typename T>
-class ThreadedQueue
-{
-public:
-	ThreadedQueue() = default;
-	~ThreadedQueue()
-	{
-		terminate();
-	}
-
-	bool tryPop(T& task)
-	{
-		std::lock_guard<std::mutex> lock{ qeueMutex };
-		if (tasks.empty() || finished)
-		{
-			return false;
-		}
-
-		task = std::move(tasks.front());
-		tasks.pop();
-		return true;
-	}
-
-	bool waitPop(T& task)
-	{
-		std::unique_lock<std::mutex> lock{ queueMutex };
-		queueCondition.wait(lock, [this]() { return !tasks.empty() || finished; });
-
-		if (finished)
-		{
-			return false;
-		}
-
-		task = std::move(tasks.front());
-		tasks.pop();
-		return true;
-	}
-
-	void pushTask(const T task)
-	{
-		std::lock_guard<std::mutex> lock(queueMutex);
-		tasks.push(std::move(task));
-		queueCondition.notify_one();
-	}
-
-	void clearAll()
-	{
-		std::lock_guard<std::mutex> lock{ queueMutex };
-		while (!tasks.empty())
-		{
-			tasks.pop();
-		}
-		queueCondition.notify_all();
-	}
-
-	void terminate()
-	{
-		std::lock_guard<std::mutex> lock{ queueMutex };
-		finished = true;
-		queueCondition.notify_all();
-	}
-
-private:
-	std::queue<T> tasks;
-	std::condition_variable queueCondition;
-	std::mutex queueMutex;
-	std::atomic_bool finished{ false };
-};
-
 class ThreadPool
 {
 
@@ -139,13 +72,15 @@ private:
 	class ThreadTask : public Task
 	{
 	public:
-		~ThreadTask() override = default;
+		~ThreadTask() = default;
 
 		ThreadTask(const ThreadTask&) = delete;
 		ThreadTask& operator=(const ThreadTask&) = delete;
 
 		ThreadTask(ThreadTask&&) = default;
 		ThreadTask& operator=(ThreadTask&&) = default;
+
+		ThreadTask() = default;
 
 		ThreadTask(ThreadedFunc&& _func)
 		    : func(std::move(_func))
@@ -162,7 +97,7 @@ private:
 	};
 
 public:
-	ThreadPool(uint8_t numThreads);
+	explicit ThreadPool(const uint8_t numThreads);
 	~ThreadPool();
 
 	ThreadPool(const ThreadPool&) = delete;
@@ -178,13 +113,13 @@ public:
 
 		PackagedTask pTask{ std::move(task) };
 		TaskFuture<ResultType> result{ pTask.get_future() };
-		workers.pushTask(std::make_unique<ThreadTask<PackagedTask>>(std::move(pTask)));
+		workers.push(std::make_unique<ThreadTask<PackagedTask>>(std::move(pTask)));
 
-		return result;
+		return std::move(result);
 	}
 
 private:
-	void worker(uint32_t thread_id);
+	void worker();
 
 	std::vector<std::thread> threads;
 	ThreadedQueue<std::unique_ptr<Task>> workers;

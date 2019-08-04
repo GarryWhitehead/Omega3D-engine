@@ -1,13 +1,14 @@
 #include "ThreadPool.h"
 
+
 namespace OmegaEngine
 {
 
-ThreadPool::ThreadPool(uint8_t numThreads)
+ThreadPool::ThreadPool(const uint8_t numThreads)
 {
 	for (uint8_t i = 0; i < numThreads; ++i)
 	{
-		threads.emplace_back(std::thread([this, i]() { this->worker(i); }));
+		threads.emplace_back(&ThreadPool::worker, this);
 	}
 }
 
@@ -24,7 +25,7 @@ ThreadPool::~ThreadPool()
 	}
 }
 
-void ThreadPool::worker(uint32_t thread_id)
+void ThreadPool::worker()
 {
 	while (!isComplete)
 	{

@@ -13,8 +13,8 @@ RenderQueue::~RenderQueue()
 {
 }
 
-void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmdBuffer, QueueType type,
-                         uint32_t start, uint32_t end, uint32_t threadGroupSize)
+void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmdBuffer, QueueType type, uint32_t start, uint32_t end,
+                         uint32_t threadGroupSize)
 {
 
 	// start the secondary command buffer recording - using one cmd buffer and pool per thread
@@ -23,17 +23,17 @@ void RenderQueue::submit(VulkanAPI::SecondaryCommandBuffer cmdBuffer, QueueType 
 	for (uint32_t i = start; i < end; i++)
 	{
 
-		RenderQueueInfo &queueInfo = renderQueues[type][i];
+		RenderQueueInfo& queueInfo = renderQueues[type][i];
 		queueInfo.renderFunction(queueInfo.renderableHandle, cmdBuffer, queueInfo.renderableData);
 	}
 
 	cmdBuffer.end();
 }
 
-void RenderQueue::dispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer, QueueType type)
+void RenderQueue::dispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer, QueueType type)
 {
 	// render by queue type
-	auto &queue = renderQueues[type];
+	auto& queue = renderQueues[type];
 
 	cmdBuffer->createSecondary(1);
 	VulkanAPI::SecondaryCommandBuffer secondaryCmdBuffer = cmdBuffer->getSecondary(0);
@@ -43,9 +43,8 @@ void RenderQueue::dispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer,
 	for (uint32_t i = 0; i < queue.size(); ++i)
 	{
 
-		RenderQueueInfo &queueInfo = queue[i];
-		queueInfo.renderFunction(queueInfo.renderableHandle, secondaryCmdBuffer,
-		                         queueInfo.renderableData);
+		RenderQueueInfo& queueInfo = queue[i];
+		queueInfo.renderFunction(queueInfo.renderableHandle, secondaryCmdBuffer, queueInfo.renderableData);
 	}
 
 	secondaryCmdBuffer.end();
@@ -54,9 +53,22 @@ void RenderQueue::dispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer,
 	cmdBuffer->executeSecondaryCommands(1);
 }
 
-void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer,
-                                   QueueType type)
+void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer, QueueType type)
 {
+	// submits the draw calls in the range specified for items in the queue
+	auto renderFunc = [](VulkanAPI::SecondaryCommandBuffer& secBuffer, std::vector<RenderQueueInfo>& renderQueue,
+	                     const uint32_t start, const uint32_t end, const uint32_t groupSize) -> void {
+		// start the secondary command buffer recording - using one cmd buffer and pool per thread
+		secBuffer.begin();
+
+		for (uint32_t i = start; i < end; i++)
+		{
+			renderQueue[i].renderFunction(renderQueue[i].renderableHandle, secBuffer, renderQueue[i].renderableData);
+		}
+
+		secBuffer.end();
+	};
+
 	uint32_t threadCount = std::thread::hardware_concurrency();
 	ThreadPool threadPool(threadCount);
 
@@ -64,7 +76,7 @@ void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cm
 	cmdBuffer->createSecondary(threadCount);
 
 	// render by queue type
-	auto &queue = renderQueues[type];
+	auto& queue = renderQueues[type];
 
 	uint32_t threadsUsed = 0;
 
@@ -74,21 +86,19 @@ void RenderQueue::threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cm
 
 	for (uint32_t i = 0, thread = 0; i < queue.size(); i += threadGroupSize, ++thread)
 	{
-		VulkanAPI::SecondaryCommandBuffer secondaryCmdBuffer = cmdBuffer->getSecondary(thread);
+		auto& secondaryCmdBuffer = cmdBuffer->getSecondary(thread);
 
 		// if we have no more threads left, then draw every thing that is remaining
 		if (i + 1 >= threadCount)
 		{
 
-			threadPool.submitTask([=]() {
-				submit(secondaryCmdBuffer, type, i, static_cast<uint32_t>(queue.size()),
-				       threadGroupSize);
-			});
+			auto fut = threadPool.submitTask(renderFunc, std::ref(secondaryCmdBuffer), std::ref(queue), i,
+			                                 static_cast<uint32_t>(queue.size()), threadGroupSize);
 			break;
 		}
 
-		threadPool.submitTask(
-		    [=]() { submit(secondaryCmdBuffer, type, i, i + threadGroupSize, threadGroupSize); });
+		auto fut = threadPool.submitTask(renderFunc, std::ref(secondaryCmdBuffer), std::ref(queue), i,
+		                                 i + threadGroupSize, threadGroupSize);
 
 		++threadsUsed;
 	}
@@ -106,10 +116,9 @@ void RenderQueue::sortAll()
 	{
 
 		// TODO : use a radix sort instead
-		std::sort(queue.second.begin(), queue.second.end(),
-		          [](const RenderQueueInfo &a, RenderQueueInfo &b) {
-			          return a.sortingKey.u.flags < b.sortingKey.u.flags;
-		          });
+		std::sort(queue.second.begin(), queue.second.end(), [](const RenderQueueInfo& a, RenderQueueInfo& b) {
+			return a.sortingKey.u.flags < b.sortingKey.u.flags;
+		});
 	}
 }
 
@@ -117,11 +126,11 @@ SortKey RenderQueue::createSortKey(RenderStage layer, uint32_t materialId, Rende
 {
 	SortKey key;
 
-	key.u.s.layerId = (uint64_t)layer; // layer is the highest priority to group
-	key.u.s.textureId = materialId; // then materials
-	key.u.s.shaderId = (uint64_t)shaderId; // then shader
-	key.u.s.depthId = 0; // TODO - this is camera-view . mesh_centre - camera-pos
+	key.u.s.layerId = (uint64_t)layer;        // layer is the highest priority to group
+	key.u.s.textureId = materialId;           // then materials
+	key.u.s.shaderId = (uint64_t)shaderId;    // then shader
+	key.u.s.depthId = 0;                      // TODO - this is camera-view . mesh_centre - camera-pos
 
 	return key;
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

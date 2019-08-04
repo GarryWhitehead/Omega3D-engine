@@ -180,6 +180,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/Renderers/DeferredRenderer.cpp Rendering/Renderers/DeferredRenderer.h
 	Rendering/Renderers/RendererBase.h
 	
+	Threading/ThreadedQueue.h
 	Threading/ThreadPool.cpp Threading/ThreadPool.h
 	Threading/ThreadUtil.cpp Threading/ThreadUtil.h
 	
