@@ -97,6 +97,23 @@ void LightManager::addPointLight(const OEMaths::vec3f& position, const OEMaths::
 	isDirty = true;
 }
 
+void LightManager::addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                 const OEMaths::vec3f& colour, float fov, float intensity)
+{
+	auto light = std::make_unique<DirectionalLight>();
+	light->position = position;
+	light->target = target;
+	light->colour = colour;
+	light->fov = fov;
+	light->type = LightType::Directional;
+	light->intensity = intensity;
+
+	lights.emplace_back(std::make_tuple(std::move(light), LightAnimateInfo{}));
+
+	isDirty = true;
+}
+
+
 void LightManager::updateLightPositions(double time, double dt)
 {
 	// update the timer first - a pretty simple fudged timer but adequate for lighting
@@ -205,6 +222,15 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				// fill in the data to be sent to the gpu
 				PointLightUbo ubo(light->lightMvp, OEMaths::vec4f{ pointLight->position, 1.0f }, pointLight->colour,
 				                  pointLight->intensity, pointLight->fallOut);
+				lightBuffer.pointLights[pointlightCount++] = ubo;
+			}
+			else if (light->type == LightType::Directional)
+			{
+				const auto& dirLight = static_cast<DirectionalLight*>(light.get());
+
+				// fill in the data to be sent to the gpu
+				PointLightUbo ubo(dirLight->lightMvp, OEMaths::vec4f{ dirLight->position, 1.0f }, dirLight->colour,
+				                  dirLight->intensity);
 				lightBuffer.pointLights[pointlightCount++] = ubo;
 			}
 		}

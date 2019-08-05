@@ -20,6 +20,13 @@ struct PointLight
 		float fallOut;
 };
 
+struct DirectionalLight
+{
+		mat4 viewMatrix;
+		vec4 pos;
+		vec4 colour;
+};
+
 float calculateAngle(vec3 lightDir, vec3 L, float scale, float offset)
 {
 	float angle = dot(lightDir, L);

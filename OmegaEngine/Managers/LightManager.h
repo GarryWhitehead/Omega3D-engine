@@ -7,7 +7,9 @@
 #include <tuple>
 #include <vector>
 
-#define MAX_LIGHTS 50
+#define MAX_SPOT_LIGHTS 50
+#define MAX_POINT_LIGHTS 50
+#define MAX_DIR_LIGHTS 5
 
 namespace OmegaEngine
 {
@@ -62,6 +64,11 @@ struct LightBase
 	LightType type;
 };
 
+struct DirectionalLight : public LightBase
+{
+	float intensity = 10000.0f;
+};
+
 struct PointLight : public LightBase
 {
 	float fallOut = 10.0f;
@@ -110,7 +117,7 @@ public:
 		    : lightMvp(mvp)
 		    , position(pos)
 		    , direction(dir)
-		    , colour(OEMaths::vec4f{col, intensity})
+		    , colour(OEMaths::vec4f{ col, intensity })
 		    , fallOut(fo)
 		    , scale(sca)
 		    , offset(ofs)
@@ -127,10 +134,29 @@ public:
 		float fallOut;
 	};
 
+	struct DirectionalLightUbo
+	{
+		DirectionalLightUbo() = default;
+		DirectionalLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec4f& dir,
+		             const OEMaths::vec3f& col, float intensity)
+		    : lightMvp(mvp)
+		    , position(pos)
+		    , direction(dir)
+		    , colour(OEMaths::vec4f{ col, intensity })
+		{
+		}
+
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::vec4f direction;
+		OEMaths::vec4f colour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1000.0f };
+	};
+
 	struct LightUboBuffer
 	{
-		SpotLightUbo spotLights[MAX_LIGHTS];
-		PointLightUbo pointLights[MAX_LIGHTS];
+		SpotLightUbo spotLights[MAX_SPOT_LIGHTS];
+		PointLightUbo pointLights[MAX_POINT_LIGHTS];
+		DirectionalLightUbo dirLights[MAX_DIR_LIGHTS];			// not anticipating as many directional lights required
 	};
 
 	LightManager();
@@ -154,6 +180,9 @@ public:
 	void addPointLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
 	                   float fov, float intensity, float fallOut,
 	                   const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f);
+
+	void LightManager::addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+	                                       const OEMaths::vec3f& colour, float fov, float intensity);
 
 	uint32_t getLightCount() const
 	{

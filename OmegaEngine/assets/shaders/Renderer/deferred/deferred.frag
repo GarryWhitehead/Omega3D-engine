@@ -24,12 +24,16 @@ layout (location = 1) in vec3 inCameraPos;
 
 layout (location = 0) out vec4 outFrag;
 
-#define MAX_LIGHT_COUNT 50	// make sure this matches the manager - could use a specilization constant
+// make sure this matches the manager - could use a specilization constant
+#define MAX_SPOT_LIGHTS 50	
+#define MAX_POINT_LIGHTS 50
+#define MAX_DIR_LIGHTS 5
 
 layout (set = 0, binding = 2) uniform LightUbo
 {
-	SpotLight spotLights[MAX_LIGHT_COUNT];
-	PointLight pointLights[MAX_LIGHT_COUNT];
+	SpotLight spotLights[MAX_SPOT_LIGHTS];
+	PointLight pointLights[MAX_POINT_LIGHTS];
+	DirectionalLight dirLights[MAX_DIR_LIGHTS];
 } light_ubo;
 
 layout (push_constant) uniform pushConstants
@@ -118,6 +122,18 @@ void main()
 		float intensity = light.colour.a;
 		
 		float attenuation = calculateDistance(lightPos, light.fallOut);
+		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, intensity, light.colour.rgb, specReflectance, specReflectance90);
+	}
+	
+	// directional lights
+	for(int i = 0; i < 1; ++i) 
+	{  
+		DirectionalLight light = light_ubo.dirLights[i];
+		
+		vec3 lightPos = light.pos.xyz - inPos;
+		vec3 L = normalize(lightPos);
+		float intensity = light.colour.a;
+		float attenuation = 1.0f;
 		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, intensity, light.colour.rgb, specReflectance, specReflectance90);
 	}
 	
