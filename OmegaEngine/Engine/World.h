@@ -80,12 +80,12 @@ public:
 
 
 	void addSpotLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
-	                         float fov, const OEMaths::vec3f& dir, float radius, float scale, float offset,
+	                         float fov, float intensity, float fallOut, float innerCone, float outerCone,
 	                         const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
 
-	void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
-	                                 const OEMaths::vec3f& colour, float fov, float radius,
-	                                 const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
+	void addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+	                          const OEMaths::vec3f& colour, float fov, float intensity, float fallOut,
+	                          const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
 
 	void update(double time, double dt);
 	void render(double interpolation);

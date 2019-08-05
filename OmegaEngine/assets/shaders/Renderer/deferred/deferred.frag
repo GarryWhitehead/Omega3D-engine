@@ -30,9 +30,6 @@ layout (set = 0, binding = 2) uniform LightUbo
 {
 	SpotLight spotLights[MAX_LIGHT_COUNT];
 	PointLight pointLights[MAX_LIGHT_COUNT];
-	float pad[2];
-	uint spotLightCount;
-	uint pointLightCount;
 } light_ubo;
 
 layout (push_constant) uniform pushConstants
@@ -97,29 +94,31 @@ void main()
 	vec3 colour = vec3(0.0);
 		
 	// spot lights
-	for(int i = 0; i < light_ubo.spotLightCount; ++i) 
+	for(int i = 0; i < 2; ++i) 
 	{  
 		SpotLight light = light_ubo.spotLights[i];
 		
 		vec3 lightPos = light.pos.xyz - inPos;
 		vec3 L = normalize(lightPos);
+		float intensity = light.colour.a;
 	
-		float attenuation = calculateDistance(lightPos, light.radius);
+		float attenuation = calculateDistance(lightPos, light.fallOut);
 		attenuation *= calculateAngle(light.direction.xyz, L, light.scale, light.offset); 	
 		
-		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, light.radius, light.colour.xyz, specReflectance, specReflectance90);
+		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, intensity, light.colour.rgb, specReflectance, specReflectance90);
 	}
 	
 	// point lights
-	for(int i = 0; i < light_ubo.pointLightCount; ++i) 
+	for(int i = 0; i < 1; ++i) 
 	{  
 		PointLight light = light_ubo.pointLights[i];
 		
 		vec3 lightPos = light.pos.xyz - inPos;
 		vec3 L = normalize(lightPos);
+		float intensity = light.colour.a;
 		
-		float attenuation = calculateDistance(lightPos, light.radius);
-		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, light.radius, light.colour.xyz, specReflectance, specReflectance90);
+		float attenuation = calculateDistance(lightPos, light.fallOut);
+		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, intensity, light.colour.rgb, specReflectance, specReflectance90);
 	}
 	
 	// add IBL contribution if needed
@@ -138,7 +137,7 @@ void main()
 	outFrag = vec4(colour, 1.0);
 	
 	// finally adjust the colour if in shadow for each light source
-	for(int i = 0; i < light_ubo.spotLightCount; i++) 
+	for(int i = 0; i < 2; i++) 
 	{
 		SpotLight light = light_ubo.spotLights[i];
 		
@@ -148,7 +147,7 @@ void main()
 		outFrag *= shadowFactor;
 	}
 	
-	for(int i = 0; i < light_ubo.pointLightCount; i++) 
+	for(int i = 0; i < 1; i++) 
 	{
 		PointLight light = light_ubo.pointLights[i];
 		

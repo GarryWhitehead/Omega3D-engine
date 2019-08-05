@@ -23,20 +23,44 @@ LightManager::~LightManager()
 	_aligned_free(lightPovData);
 }
 
+void LightManager::calculatePointIntensity(float intensity, PointLight& light)
+{
+	light.intensity = intensity * static_cast<float>(M_1_PI) * 0.25f;
+}
+
+void LightManager::calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight)
+{
+	// first calculate the spotlight cone values
+	float outer = std::min(std::abs(outerCone), static_cast<float>(M_PI));
+	float inner = std::min(std::abs(innerCone), static_cast<float>(M_PI));
+	inner = std::min(inner, outer);
+
+	float cosOuter = std::cos(outer);
+	float cosInner = std::cos(inner);
+	spotLight.scale = 1.0f / std::max(1.0f / 1024.0f, cosInner - cosOuter);
+	spotLight.offset = -cosOuter * spotLight.scale;
+
+	// this is a more focused spot - a unfocused spot would be:#
+	// intensity * static_cast<float>(M_1_PI)
+	cosOuter = -spotLight.offset / spotLight.scale;
+	float cosHalfOuter = std::sqrt((1.0f + cosOuter) * 0.5f);
+	spotLight.intensity = intensity / (2.0f * static_cast<float>(M_PI) * (1.0f - cosHalfOuter));
+}
+
 void LightManager::addSpotLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
-                                const OEMaths::vec3f& colour, const float fov, const OEMaths::vec3f dir, float radius,
-                                float scale, float offset, const LightAnimateType animType, const float animVel)
+                                const OEMaths::vec3f& colour, const float fov, float intensity, float fallOut,
+                                float innerCone, float outerCone, const LightAnimateType animType, const float animVel)
 {
 	auto light = std::make_unique<SpotLight>();
 	light->position = position;
 	light->target = target;
 	light->colour = colour;
-	light->radius = radius;
 	light->fov = fov;
-	light->direction = dir;
-	light->scale = scale;
-	light->offset = offset;
 	light->type = LightType::Spot;
+	light->radius = fallOut * fallOut;
+
+	// carry out some of the calculations on the cpu side to save time
+	calculateSpotIntensity(intensity, outerCone, innerCone, *light);
 
 	// animation part
 	LightAnimateInfo anim;
@@ -49,16 +73,19 @@ void LightManager::addSpotLight(const OEMaths::vec3f& position, const OEMaths::v
 }
 
 void LightManager::addPointLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
-                                 const OEMaths::vec3f& colour, float fov, float radius, const LightAnimateType animType,
-                                 const float animVel)
+                                 const OEMaths::vec3f& colour, float fov, float intensity, float fallOut,
+                                 const LightAnimateType animType, const float animVel)
 {
 	auto light = std::make_unique<PointLight>();
 	light->position = position;
 	light->target = target;
 	light->colour = colour;
-	light->radius = radius;
+	light->radius = fallOut * fallOut;
 	light->fov = fov;
 	light->type = LightType::Point;
+
+	// carry out some of the calculations on the cpu side to save time
+	calculatePointIntensity(intensity, *light);
 
 	// animation part - defualt
 	LightAnimateInfo anim;
@@ -166,10 +193,9 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				const auto& spotLight = static_cast<SpotLight*>(light.get());
 
 				// fill in the data to be sent to the gpu
-				SpotLightUbo ubo(light->lightMvp,
-								 OEMaths::vec4f{ spotLight->position, 1.0f },
-				                 OEMaths::vec4f{ spotLight->direction, 1.0f }, spotLight->colour, spotLight->radius,
-				                 spotLight->scale, spotLight->offset);
+				SpotLightUbo ubo(light->lightMvp, OEMaths::vec4f{ spotLight->position, 1.0f },
+				                 OEMaths::vec4f{ spotLight->target, 1.0f }, spotLight->colour, spotLight->fallOut,
+				                 spotLight->intensity, spotLight->scale, spotLight->offset);
 				lightBuffer.spotLights[spotlightCount++] = ubo;
 			}
 			else if (light->type == LightType::Point)
@@ -177,14 +203,14 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				const auto& pointLight = static_cast<PointLight*>(light.get());
 
 				// fill in the data to be sent to the gpu
-				PointLightUbo ubo(light->lightMvp, OEMaths::vec4f{ pointLight->position, 1.0f },
-				                 pointLight->colour, pointLight->radius);
+				PointLightUbo ubo(light->lightMvp, OEMaths::vec4f{ pointLight->position, 1.0f }, pointLight->colour,
+				                  pointLight->intensity, pointLight->fallOut);
 				lightBuffer.pointLights[pointlightCount++] = ubo;
 			}
 		}
 
-		lightBuffer.spotLightCount = spotlightCount;
-		lightBuffer.pointLightCount = pointlightCount;
+		//lightBuffer.spotLightCount = spotlightCount;
+		//lightBuffer.pointLightCount = pointlightCount;
 
 		VulkanAPI::BufferUpdateEvent event{ "Light", (void*)&lightBuffer, sizeof(LightUboBuffer),
 			                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };

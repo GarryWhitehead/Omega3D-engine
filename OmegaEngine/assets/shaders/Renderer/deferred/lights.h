@@ -6,19 +6,18 @@ struct SpotLight
 		mat4 viewMatrix;
 		vec4 pos;
 		vec4 direction;
-		vec3 colour;
-		float pad0;
-		float radius;
+		vec4 colour;
 		float scale;
 		float offset;
+		float fallOut;
 };
 
 struct PointLight
 {
 		mat4 viewMatrix;
 		vec4 pos;
-		vec3 colour;
-		float radius;
+		vec4 colour;
+		float fallOut;
 };
 
 float calculateAngle(vec3 lightDir, vec3 L, float scale, float offset)
@@ -28,10 +27,10 @@ float calculateAngle(vec3 lightDir, vec3 L, float scale, float offset)
 	return attenuation * attenuation;
 }
 
-float calculateDistance(vec3 L, float radius)
+float calculateDistance(vec3 L, float fallOut)
 {
 	float dist = dot(L, L);
-	float factor = dist * radius;
+	float factor = dist * fallOut;
 	float smoothFactor = clamp(1.0 - factor * factor, 0.0, 1.0);
 	float smoothFactor2 = smoothFactor * smoothFactor;
 	return smoothFactor2 * 1.0 / max(dist, 1e-4);

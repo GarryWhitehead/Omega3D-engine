@@ -34,15 +34,13 @@ World::World()
 {
 }
 
-World::World(Managers managers, std::unique_ptr<VulkanAPI::Device> &device,
-             EngineConfig &engineConfig)
+World::World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig)
 {
 	// all the boiler plater needed to generate the manager and interface instances
 	objectManager = std::make_unique<ObjectManager>();
 	componentInterface = std::make_unique<ComponentInterface>();
-	renderInterface = std::make_unique<RenderInterface>(
-	    device, engineConfig.screenWidth, engineConfig.screenHeight,
-	    static_cast<SceneType>(engineConfig.sceneType));
+	renderInterface = std::make_unique<RenderInterface>(device, engineConfig.screenWidth, engineConfig.screenHeight,
+	                                                    static_cast<SceneType>(engineConfig.sceneType));
 	assetManager = std::make_unique<AssetManager>();
 	bvh = std::make_unique<BVH>();
 
@@ -80,7 +78,7 @@ World::~World()
 {
 }
 
-bool World::create(const std::string &filename, const std::string &name)
+bool World::create(const std::string& filename, const std::string& name)
 {
 	// this worlds name, used as a reference
 	this->name = name;
@@ -123,7 +121,7 @@ bool World::create(const std::string &filename, const std::string &name)
 	return true;
 }
 
-void World::create(const std::string &name)
+void World::create(const std::string& name)
 {
 	// this worlds name, used as a reference
 	this->name = name;
@@ -131,8 +129,7 @@ void World::create(const std::string &name)
 	// an empty world, so not much to do for now!
 }
 
-Object *World::createObject(const OEMaths::vec3f &position, const OEMaths::vec3f &scale,
-                            const OEMaths::quatf &rotation)
+Object* World::createObject(const OEMaths::vec3f& position, const OEMaths::vec3f& scale, const OEMaths::quatf& rotation)
 {
 	auto object = objectManager->createObject();
 
@@ -145,39 +142,38 @@ Object *World::createObject(const OEMaths::vec3f &position, const OEMaths::vec3f
 	return object;
 }
 
-void World::extractGltfModelAssets(std::unique_ptr<GltfModel::Model> &model,
-                                   uint32_t &materialOffset, uint32_t &skinOffset,
-                                   uint32_t &animationOffset)
+void World::extractGltfModelAssets(std::unique_ptr<GltfModel::Model>& model, uint32_t& materialOffset,
+                                   uint32_t& skinOffset, uint32_t& animationOffset)
 {
 	// materials and their textures
-	auto &materialManager = componentInterface->getManager<MaterialManager>();
+	auto& materialManager = componentInterface->getManager<MaterialManager>();
 	materialOffset = materialManager.getBufferOffset();
 
-	for (auto &material : model->materials)
+	for (auto& material : model->materials)
 	{
 		materialManager.addMaterial(material, model->images);
 	}
 
 	// skins
-	auto &transformManager = componentInterface->getManager<TransformManager>();
+	auto& transformManager = componentInterface->getManager<TransformManager>();
 	skinOffset = transformManager.getSkinnedBufferOffset();
 
-	for (auto &skin : model->skins)
+	for (auto& skin : model->skins)
 	{
 		transformManager.addSkin(skin);
 	}
 
 	// animations
-	auto &animationManager = componentInterface->getManager<AnimationManager>();
+	auto& animationManager = componentInterface->getManager<AnimationManager>();
 	animationOffset = animationManager.getBufferOffset();
 
-	for (auto &animation : model->animations)
+	for (auto& animation : model->animations)
 	{
 		animationManager.addAnimation(animation);
 	}
 }
 
-void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode> &node, Object *parentObject,
+void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObject,
                                            const uint32_t materialOffset, const uint32_t skinOffset,
                                            const uint32_t animationOffset)
 {
@@ -197,13 +193,12 @@ void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>
 	}
 	if (node->isJoint())
 	{
-		parentObject->addComponent<SkeletonComponent>(node->getJoint(), skinOffset,
-		                                              node->isSkeletonRoot());
+		parentObject->addComponent<SkeletonComponent>(node->getJoint(), skinOffset, node->isSkeletonRoot());
 	}
 	if (node->hasAnimation())
 	{
-		parentObject->addComponent<AnimationComponent>(node->getAnimIndex(),
-		                                               node->getChannelIndices(), animationOffset);
+		parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndices(),
+		                                               animationOffset);
 	}
 
 	if (node->hasChildren())
@@ -211,13 +206,14 @@ void World::createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>
 		for (uint32_t i = 0; i < node->childCount(); ++i)
 		{
 			auto child = objectManager->createChildObject(*parentObject);
-			this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset,
-			                                     skinOffset, animationOffset);
+			this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset,
+			                                     animationOffset);
 		}
 	}
 }
 
-Object *World::createGltfModelObject(std::unique_ptr<GltfModel::Model> &model, const OEMaths::vec3f& position, const OEMaths::vec3f& scale, const OEMaths::quatf& rotation, bool useMaterial)
+Object* World::createGltfModelObject(std::unique_ptr<GltfModel::Model>& model, const OEMaths::vec3f& position,
+                                     const OEMaths::vec3f& scale, const OEMaths::quatf& rotation, bool useMaterial)
 {
 	uint32_t materialOffset, skinOffset, animationOffset;
 
@@ -229,51 +225,52 @@ Object *World::createGltfModelObject(std::unique_ptr<GltfModel::Model> &model, c
 	// be transformed by the root world matrix
 	auto rootObject = this->createObject(position, scale, rotation);
 
-	for (auto &node : model->nodes)
+	for (auto& node : model->nodes)
 	{
 		auto child = objectManager->createChildObject(*rootObject);
 
-		this->createGltfModelObjectRecursive(node, child, materialOffset, skinOffset,
-		                                     animationOffset);
+		this->createGltfModelObjectRecursive(node, child, materialOffset, skinOffset, animationOffset);
 	}
 
 	return rootObject;
 }
 
 // TODO : The world really shouldn't have this boiler plate. These should be dealt with as components
-void World::addSkybox(const std::string &filename, float blurFactor)
+void World::addSkybox(const std::string& filename, float blurFactor)
 {
 	assetManager->loadImageFile(filename, "Skybox");
 	auto object = objectManager->createObject();
 	object->addComponent<SkyboxComponent>(blurFactor);
 }
 
-void World::addCameraToWorld(OEMaths::vec3f &startPosition, float fov, float zNear, float zFar,
-                             float aspect, float velocity, Camera::CameraType type)
+void World::addCameraToWorld(OEMaths::vec3f& startPosition, float fov, float zNear, float zFar, float aspect,
+                             float velocity, Camera::CameraType type)
 {
-	auto &cameraManager = componentInterface->getManager<CameraManager>();
+	auto& cameraManager = componentInterface->getManager<CameraManager>();
 	cameraManager.addCamera(startPosition, fov, zNear, zFar, aspect, velocity, type);
 }
 
-void World::addSpotLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour, float fov,
-                                const OEMaths::vec3f& dir, float radius, float scale,
-                            float offset, const LightAnimateType animType, float animVel)
-{
-	auto &lightManager = componentInterface->getManager<LightManager>();
-	lightManager.addSpotLight(position, target, colour, fov, dir, radius, scale, offset, animType, animVel);
-}
-
-void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
-                            float fov, float radius, const LightAnimateType animType, float animVel)
+void World::addSpotLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                const OEMaths::vec3f& colour, float fov, float intensity, float fallOut,
+                                float innerCone, float outerCone, const LightAnimateType animType, float animVel)
 {
 	auto& lightManager = componentInterface->getManager<LightManager>();
-	lightManager.addPointLight(position, target, colour, fov, radius, animType, animVel);
+	lightManager.addSpotLight(position, target, colour, fov, intensity, fallOut, innerCone, outerCone, animType,
+	                          animVel);
+}
+
+void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                 const OEMaths::vec3f& colour, float fov, float intensity, float fallOut,
+                                 const LightAnimateType animType, float animVel)
+{
+	auto& lightManager = componentInterface->getManager<LightManager>();
+	lightManager.addPointLight(position, target, colour, fov, intensity, fallOut, animType, animVel);
 }
 
 void World::update(double time, double dt)
 {
 	// update on a per-frame basis
-	
+
 	// all other managers
 	componentInterface->update(time, dt, objectManager);
 
@@ -297,4 +294,4 @@ void World::render(double interpolation)
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

@@ -72,10 +72,9 @@ int main(int argc, char* argv[])
 	world->addCameraToWorld();
 
 	// add different lights
-	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, { 0.0f }, 90.0f, 2.0f, 0.0f);
-	world->addSpotLightToWorld({ 0.0f, -1.0f, -1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, { 0.0f, 1.0f, 1.0f }, 50.0f, 6.0f,
-	                           0.0f);
-	world->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 50.0f);
+	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f, 0.5f);
+	world->addSpotLightToWorld({ 0.0f, -1.0f, -1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 2000.0f, 50.0f, 1.0f, 1.0f);
+	world->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 4000.0f, 2.0f);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running

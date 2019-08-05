@@ -17,6 +17,7 @@
 #include <cstdint>
 
 #define M_PI 3.14159265358979323846264338327950288419716939937510582097
+#define M_1_PI 0.31830988618379067154	// 1 / M_PI
 #define EPSILON 0.00001
 
 // this should be defined if using the maths library with Vulkan to compensate for the difference in the y coord
