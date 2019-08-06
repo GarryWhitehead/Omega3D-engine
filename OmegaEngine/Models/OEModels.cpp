@@ -23,10 +23,10 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateQuadMesh(const float size)
 	mesh->vertices[2].uv0 = OEMaths::vec2f{ 0.0f, 0.0f };
 	mesh->vertices[3].uv0 = OEMaths::vec2f{ 1.0f, 0.0f };
 
-	mesh->vertices[0].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
-	mesh->vertices[1].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
-	mesh->vertices[2].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
-	mesh->vertices[3].normal = OEMaths::vec3f{ 0.0f, 0.0f, 1.0f };
+	mesh->vertices[0].normal = OEMaths::vec3f{ 0.0f, 0.0f, -1.0f };
+	mesh->vertices[1].normal = OEMaths::vec3f{ 0.0f, 0.0f, -1.0f };
+	mesh->vertices[2].normal = OEMaths::vec3f{ 0.0f, 0.0f, -1.0f };
+	mesh->vertices[3].normal = OEMaths::vec3f{ 0.0f, 0.0f, -1.0f };
 
 	// quad made up of two triangles
 	mesh->indices.resize(6);

@@ -267,6 +267,13 @@ void World::addPointLightToWorld(const OEMaths::vec3f& position, const OEMaths::
 	lightManager.addPointLight(position, target, colour, fov, intensity, fallOut, animType, animVel);
 }
 
+void World::addDirectionalLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+                                 const OEMaths::vec3f& colour, float fov, float intensity)
+{
+	auto& lightManager = componentInterface->getManager<LightManager>();
+	lightManager.addDirectionalLight(position, target, colour, fov, intensity);
+}
+
 void World::update(double time, double dt)
 {
 	// update on a per-frame basis

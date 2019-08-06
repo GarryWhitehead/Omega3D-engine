@@ -15,7 +15,7 @@ LightManager::LightManager()
 {
 	// allocate the memory required for the light POV data
 	alignedPovDataSize = VulkanAPI::Util::alignmentSize(sizeof(LightPOV));
-	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_LIGHTS * 2));
+	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
 }
 
 LightManager::~LightManager()
@@ -98,7 +98,7 @@ void LightManager::addPointLight(const OEMaths::vec3f& position, const OEMaths::
 }
 
 void LightManager::addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
-                                 const OEMaths::vec3f& colour, float fov, float intensity)
+                                       const OEMaths::vec3f& colour, float fov, float intensity)
 {
 	auto light = std::make_unique<DirectionalLight>();
 	light->position = position;
@@ -201,7 +201,8 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 		// now update ready for uploading on the gpu side
 		uint32_t spotlightCount = 0;
 		uint32_t pointlightCount = 0;
-
+		uint32_t dirLightCount = 0;
+		
 		for (auto& info : lights)
 		{
 			auto& light = std::get<0>(info);
@@ -229,9 +230,10 @@ void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectMan
 				const auto& dirLight = static_cast<DirectionalLight*>(light.get());
 
 				// fill in the data to be sent to the gpu
-				PointLightUbo ubo(dirLight->lightMvp, OEMaths::vec4f{ dirLight->position, 1.0f }, dirLight->colour,
-				                  dirLight->intensity);
-				lightBuffer.pointLights[pointlightCount++] = ubo;
+				DirectionalLightUbo ubo(dirLight->lightMvp, OEMaths::vec4f{ dirLight->position, 1.0f },
+				                        OEMaths::vec4f{ dirLight->target, 1.0f }, dirLight->colour,
+				                        dirLight->intensity);
+				lightBuffer.dirLights[dirLightCount++] = ubo;
 			}
 		}
 

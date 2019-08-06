@@ -87,6 +87,9 @@ public:
 	                          const OEMaths::vec3f& colour, float fov, float intensity, float fallOut,
 	                          const LightAnimateType animType = LightAnimateType::Static, float animVel = 0.0f);
 
+	void addDirectionalLightToWorld(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
+	                                const OEMaths::vec3f& colour, float fov, float intensity);
+
 	void update(double time, double dt);
 	void render(double interpolation);
 

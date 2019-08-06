@@ -130,8 +130,8 @@ void main()
 	{  
 		DirectionalLight light = light_ubo.dirLights[i];
 		
-		vec3 lightPos = light.pos.xyz - inPos;
-		vec3 L = normalize(lightPos);
+		//vec3 L = light.direction.xyz;
+		vec3 L = calculateSunArea(light.direction.xyz, light.pos.xyz, R);
 		float intensity = light.colour.a;
 		float attenuation = 1.0f;
 		colour += specularContribution(L, V, N, baseColour, metallic, alphaRoughness, attenuation, intensity, light.colour.rgb, specReflectance, specReflectance90);

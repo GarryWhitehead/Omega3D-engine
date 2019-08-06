@@ -73,7 +73,7 @@ int main(int argc, char* argv[])
 
 	// add different lights
 	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f, 0.5f);
-	world->addSpotLightToWorld({ 0.0f, -1.0f, -1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 2000.0f, 50.0f, 1.0f, 1.0f);
+	world->addDirectionalLightToWorld({ 0.0f, 0.0f, 0.0f }, { 8.0f, 8.0f, 0.0f }, { 0.9f, 0.8f, 0.2f }, 100.0f, 10000.0f);
 	world->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 4000.0f, 2.0f);
 
 	// we could load multiple world here, but for this example we will stick with one

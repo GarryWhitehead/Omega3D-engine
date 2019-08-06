@@ -24,6 +24,7 @@ struct DirectionalLight
 {
 		mat4 viewMatrix;
 		vec4 pos;
+		vec4 direction;
 		vec4 colour;
 };
 
@@ -41,6 +42,14 @@ float calculateDistance(vec3 L, float fallOut)
 	float smoothFactor = clamp(1.0 - factor * factor, 0.0, 1.0);
 	float smoothFactor2 = smoothFactor * smoothFactor;
 	return smoothFactor2 * 1.0 / max(dist, 1e-4);
+}
+
+vec3 calculateSunArea(vec3 direction, vec3 sunPosition, vec3 R)
+{
+	float LdotR = dot(direction, R);
+	vec3 s = R - LdotR * direction;
+	float d = sunPosition.x;
+	return LdotR < d ? normalize(direction * d + normalize(s) * sunPosition.y) : R;
 }
 
 #endif
