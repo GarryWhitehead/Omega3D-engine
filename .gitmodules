@@ -13,3 +13,20 @@
 [submodule "OmegaEngine/external/rapidjson"]
 	path = OmegaEngine/external/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "OmegaEngine/shaderc"]
+	
+	path = OmegaEngine/external/shaderc
+	
+	url = https://github.com/google/shaderc.git
+[submodule "OmegaEngine/external/SPIRV-Tools"]
+	path = OmegaEngine/external/SPIRV-Tools
+	url = https://github.com/KhronosGroup/SPIRV-Tools.git
+[submodule "OmegaEngine/external/glslang"]
+	path = OmegaEngine/external/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "OmegaEngine/external/googletest"]
+	path = OmegaEngine/external/googletest
+	url = https://github.com/google/googletest.git
+[submodule "OmegaEngine/external/SPIRV-Headers"]
+	path = OmegaEngine/external/SPIRV-Headers
+	url = https://github.com/KhronosGroup/SPIRV-Headers.git
