@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
 	std::unique_ptr<World> world = engine->createWorld("SceneOne");
 
 	// Use a gltf image as one of our scene objects
-	auto model = GltfModel::CreateInstance("WaterBottle/WaterBottle.gltf");
+	auto model = GltfModel::createInstance("WaterBottle/WaterBottle.gltf");
 	model.worldTransform(4.0f, 3.0f, 5.0);
 	model.worldScale(15.0f);
 	model.worldRotation(0.5, 0.0f, 0.5f, 0.5f);

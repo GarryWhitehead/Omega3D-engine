@@ -9,6 +9,7 @@ namespace VulkanAPI
 
 Device::Device()
 {
+	
 }
 
 Device::~Device()

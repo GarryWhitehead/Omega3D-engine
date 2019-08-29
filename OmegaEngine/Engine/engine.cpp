@@ -22,65 +22,15 @@ Engine::Engine(std::string title, uint32_t width, uint32_t height)
     : windowWidth(width)
     , windowHeight(height)
 {
-	// Create a new instance of glfw
-	createWindow(windowTitle);
-
-	// create all global instances including managers
-	Global::init();
-
 	// load config file if there is one, otherwise use default settings
 	loadConfigFile();
 
-	//create a new instance of the input manager
+	// create a new instance of the input manager
 	inputManager = std::make_unique<InputManager>(window, width, height);
 }
 
 Engine::~Engine()
 {
-}
-
-void Engine::createWindow(const std::string &winTitle)
-{
-	//glfwSetErrorCallback(glfw_error_callback);
-	if (!glfwInit())
-	{
-		LOGGER_ERROR("Critical error! Failed initialising GLFW. \n");
-	}
-
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
-
-	monitor = glfwGetPrimaryMonitor();
-	vmode = glfwGetVideoMode(monitor);
-
-	window = glfwCreateWindow(windowWidth, windowHeight, winTitle.c_str(), nullptr, nullptr);
-	if (!window)
-	{
-		LOGGER_ERROR("Critical error! Unable to open window!");
-	}
-
-	// now prepare the graphics device -  we can have multiple devices though this isn't fully implemented yet
-	auto &device = std::make_unique<VulkanAPI::Device>();
-	uint32_t instanceCount;
-
-	const char **instanceExt = glfwGetRequiredInstanceExtensions(&instanceCount);
-	device->createInstance(instanceExt, instanceCount);
-
-	// create a which will be the abstract scrren surface which will be used for creating swapchains
-	// TODO: add more cross-platform compatibility by adding more surfaceCount
-	VkSurfaceKHR tempSurface;
-	VkResult err = glfwCreateWindowSurface(device->getInstance(), window, nullptr, &tempSurface);
-	if (err)
-	{
-		LOGGER_ERROR("Unable to create window surface.");
-	}
-	device->setWindowSurface(vk::SurfaceKHR(tempSurface));
-
-	// prepare the physical and abstract device including queues
-	device->prepareDevice();
-
-	vkDevices.emplace_back(std::move(device));
-	currentVkDevice = static_cast<uint32_t>(vkDevices.size() - 1);
 }
 
 World *Engine::createWorld(const std::string &filename, const std::string &name)

@@ -44,7 +44,7 @@ public:
 	                                    std::vector<vk::ExtensionProperties> &properties);
 	static vk::Format getDepthFormat(vk::PhysicalDevice &gpu);
 
-	void createInstance(const char **glfwExtension, uint32_t extCount);
+	static void createInstance(const char **glfwExtension, uint32_t extCount);
 	void prepareDevice();
 
 	vk::Instance &getInstance()
@@ -78,6 +78,7 @@ public:
 	}
 
 private:
+
 	vk::Instance instance;
 
 	vk::Device device;
