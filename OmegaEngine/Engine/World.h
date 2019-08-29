@@ -1,7 +1,14 @@
 #pragma once
 
+#include "Managers/AnimationManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
+#include "Managers/MaterialManager.h"
+#include "Managers/MeshManager.h"
+#include "Managers/TransformManager.h"
+
+#include "ObjectInterface/ObjectManager.h"
+
 #include "Models/Gltf/GltfModel.h"
 #include "OEMaths/OEMaths.h"
 
@@ -20,42 +27,17 @@ namespace OmegaEngine
 // forward declerartions
 class RenderInterface;
 class ComponentInterface;
-class AnimationManager;
 class AssetManager;
 class ObjectManager;
 class Object;
 class BVH;
 struct EngineConfig;
 
-enum class Managers
-{
-	OE_MANAGERS_MESH = 1 << 0,
-	OE_MANAGERS_LIGHT = 1 << 1,
-	OE_MANAGERS_TRANSFORM = 1 << 2,
-	OE_MANAGERS_CAMERA = 1 << 3,
-	OE_MANAGERS_PHYSICS = 1 << 4,
-	OE_MANAGERS_COLLISION = 1 << 5,
-	OE_MANAGERS_MATERIAL = 1 << 6,
-	OE_MANAGERS_ANIMATION = 1 << 7,
-	OE_MANAGERS_ALL = 1 << 8
-};
-
-// bitwise overload so casts aren't needed
-inline bool operator&(Managers a, Managers b)
-{
-	return static_cast<int>(a) & static_cast<int>(b);
-}
-
-inline Managers operator|(Managers a, Managers b)
-{
-	return static_cast<Managers>(static_cast<int>(a) | static_cast<int>(b));
-}
-
 class World
 {
 public:
 	World();
-	World(Managers managers, std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
+	World(std::unique_ptr<VulkanAPI::Device>& device, EngineConfig& engineConfig);
 	~World();
 
 	// user interface stuff - world creation
@@ -100,15 +82,19 @@ private:
 
 	std::string name;
 
-	// managers that deal with entity / object component system
-	std::unique_ptr<ObjectManager> objectManager;
-	std::unique_ptr<ComponentInterface> componentInterface;
+	/// contains all the objects associated with this world
+	ObjectManager objectManager;
+	
+	/// and all the managers that are required to deal with each of the component types
+	AnimationManager animManager;
+	CameraManager cameraManager;
+	LightManager lightManager;
+	MaterialManager matManager;
+	MeshManager meshManager;
+	TransformManager transformManager;
 
-	// all assets that are not associated with a manager are dealt with here
-	std::unique_ptr<AssetManager> assetManager;
-
-	// the main rendering system - used for sorting and drawing all renderable objects. TODO: Keeping with the general scheme, this should probably be a manager
-	std::unique_ptr<RenderInterface> renderInterface;
+	/// all assets that are not associated with a manager are dealt with here
+	AssetManager assetManager;
 
 	// the octree as a 3d spatial representation of the world
 	std::unique_ptr<BVH> bvh;
