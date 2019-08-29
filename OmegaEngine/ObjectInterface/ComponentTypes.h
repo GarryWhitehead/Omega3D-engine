@@ -9,20 +9,6 @@
 
 namespace OmegaEngine
 {
-enum class ComponentType
-{
-	WorldTransform,
-	Transform,
-	Mesh,
-	Material,
-	Texture,
-	Skin,
-	Skybox,
-	ShadowMap,
-	Skeleton,
-	Joint,
-	OEModel
-};
 
 struct ComponentBase
 {
@@ -31,12 +17,7 @@ struct ComponentBase
 	ComponentBase()
 	{
 	}
-	ComponentBase(ComponentType _componentType)
-	    : componentType(_componentType)
-	{
-	}
-
-	ComponentType componentType;
+	
 };
 
 struct WorldTransformComponent : public ComponentBase
@@ -91,43 +72,69 @@ struct MeshComponent : public ComponentBase
 
 struct TransformComponent : public ComponentBase
 {
-	TransformComponent(std::unique_ptr<ModelTransform> &_transform)
-	    : transform(std::move(_transform))
-	    , ComponentBase(ComponentType::Transform)
-	{
-	}
+	TransformComponent() = default;
 
 	uint32_t index = 0;
 	uint32_t dynamicUboOffset = 0; // used by the renderable mesh
-	std::unique_ptr<ModelTransform> transform;
+
+	/**
+	 * sets the combined local matrix transform
+	 * @param localTransform: the local matrix.
+	 */
+	void setTransform(const OEMaths::mat4f& trans)
+	{
+		transform = trans;
+	}
+
+	OEMaths::mat4f trasform;
 };
 
 struct SkinnedComponent : public ComponentBase
 {
-	SkinnedComponent(uint32_t _index, uint32_t offset)
-	    : index(_index)
-	    , bufferOffset(offset)
-	    , ComponentBase(ComponentType::Skin)
+	SkinnedComponent() = default;
+
+	/**
+	 * The index of this skin component within the transform manager conatiner
+	 * @param index: the index within the particular of group of skins. For instance, this may
+	 * be associated with a group of GLTF skins whcih are being added
+	 * @param offset: The index offset in the transform manager buffer in which these group of skins
+	 * begin at.
+	 */
+	void setIndex(const uint32_t index, const uint32_t offset)
 	{
+		animIndex = index + offset;
 	}
 
 	uint32_t index = 0;
-	uint32_t bufferOffset = 0;
-	uint32_t dynamicUboOffset = 0;
+	uint32_t dynamicUboOffset = 0;	// not set by the user
 };
 
 struct SkeletonComponent : public ComponentBase
 {
-	SkeletonComponent(uint32_t _index, uint32_t offset, bool _isRoot)
-	    : index(_index)
-	    , bufferOffset(offset)
-	    , isRoot(_isRoot)
-	    , ComponentBase(ComponentType::Skeleton)
+	SkeletonComponent() = default;
+
+	/**
+	 * The index of this skeleton component within the transform manager conatiner
+	 * @param index: the index within the particular of group of skeletons. For instance, this may
+	 * be associated with a group of GLTF skeletons whcih are being added
+	 * @param offset: The index offset in the transform manager buffer in which these group of skeletons
+	 * begin at.
+	 */
+	void setIndex(const uint32_t index, const uint32_t offset)
 	{
+		animIndex = index + offset;
+	}
+
+	/**
+	 *  Specifies whether this skeleton is the root
+	 * @param isRoot: a boolean indicating if this comp is the root
+	 */
+	void setRoot(const bool root)
+	{
+		isRoot = root;
 	}
 
 	uint32_t index = 0;
-	uint32_t bufferOffset = 0;
 	bool isRoot = false;
 };
 
@@ -159,25 +166,46 @@ struct MaterialComponent : public ComponentBase
 
 struct AnimationComponent : public ComponentBase
 {
-	AnimationComponent(uint32_t anim, std::vector<uint32_t> &channels, uint32_t offset)
-	    : animIndex(anim)
-	    , bufferOffset(offset)
-	    , ComponentBase(ComponentType::Transform)
+	AnimationComponent() = default;
+
+	/**
+	 * The index of this animation component within the anim manager conatiner
+	 * @param index: the index within the particular of group of animations. For instance, this may
+	 * be associated with a group of GLFF animations whcih are being added
+	 * @param offset: The index offset in the anim manager buffer in which these group of anim
+	 * begin at.
+	 */
+	void setIndex(const uint32_t index, const uint32_t offset)
 	{
-		channelIndex = channels;
+		animIndex = index + offset;
+	}
+
+	/**
+	 * A group of channel indices which this animation refers too
+	 * @param indices: a vector of channel index values
+	 */
+	void setChannelIndex(const std::vector<uint32_t>& indices)
+	{
+		channelIndex = indicies;
 	}
 
 	uint32_t animIndex = 0;
 	std::vector<uint32_t> channelIndex;
-	uint32_t bufferOffset = 0;
 };
 
 struct SkyboxComponent : public ComponentBase
 {
-	SkyboxComponent(float factor)
-	    : blurFactor(factor)
-	    , ComponentBase(ComponentType::Skybox)
+	SkyboxComponent() = default;
+	
+	/**
+	 * Sets the blur factor to add to the skybox. Lower values create a more blurred
+	 * look. 
+	 * @param factor: the amount by which to blur the skybox by. Clamped between 0 and 1
+	 */
+	void setBlurFactor(const float factor)
 	{
+		float clamped = std::clamp(factor, 0.0f, 1.0f);
+		blurFactor = clamped;
 	}
 
 	float blurFactor = 0.0f;
@@ -185,12 +213,33 @@ struct SkyboxComponent : public ComponentBase
 
 struct ShadowComponent : public ComponentBase
 {
-	ShadowComponent(float clamp, float constant, float slope)
-	    : biasClamp(clamp)
-	    , biasConstant(constant)
-	    , biasSlope(slope)
-	    , ComponentBase(ComponentType::ShadowMap)
+	ShadowComponent() = default;
+
+	/**
+	 * Sets the clamped bias level when using mapped shadows
+	 * @param clamp:
+	 */
+	void setBiasClamp(const float clamp)
 	{
+		biasClamp = clamp;
+	}
+
+	/**
+	 * Sets the constant bias level when using mapped shadows
+	 * @param constant:
+	 */
+	void setBiasConstant(const float constant)
+	{
+		biasConstant = constant;
+	}
+
+	/**
+	 * Sets the slope bias level when using mapped shadows
+	 * @param slope:
+	 */
+	void setBiasSlope(const float slope)
+	{
+		biasSlope = slope;
 	}
 
 	uint32_t index = 0;

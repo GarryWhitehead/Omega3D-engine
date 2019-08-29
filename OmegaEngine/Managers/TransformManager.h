@@ -1,5 +1,4 @@
 #pragma once
-#include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "OEMaths/OEMaths_transform.h"
@@ -84,14 +83,14 @@ public:
 	private:
 		bool recalculateLocal = false;
 
-		// decomposed form
+		/// decomposed form
 		LocalTransform localTransform;
 
 		OEMaths::mat4f local;
 		OEMaths::mat4f world;
 	};
 
-	// data that will be hosted on the gpu side
+	/// data that will be hosted on the gpu side
 	struct TransformBufferInfo
 	{
 		OEMaths::mat4f modelMatrix;
@@ -112,16 +111,13 @@ public:
 		std::vector<OEMaths::mat4f> jointMatrices;
 	};
 
-	// the number of models to allocate mem space for - this will need optimising
-	// could also be dynamic and be altered to the archietecture being used
+	/// the number of models to allocate mem space for - this will need optimising 
+	/// could also be dynamic and be altered to the archietecture being used
 	const uint32_t TransformBlockSize = 25;
 	const uint32_t SkinnedBlockSize = 25;
 
 	TransformManager();
 	~TransformManager();
-
-	static std::unique_ptr<ModelTransform> transform(const OEMaths::vec3f &trans,
-	                                          const OEMaths::vec3f &sca, const OEMaths::quatf &rot);
 	
 	void addComponentToManager(TransformComponent *component);
 	bool addComponentToManager(SkeletonComponent *component, Object *object);
@@ -129,7 +125,7 @@ public:
 
 	// update per frame
 	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface) override;
+	                 ComponentInterface *componentInterface);
 
 	// local transform and skinning update
 	OEMaths::mat4f updateMatrixFromTree(Object &obj, std::unique_ptr<ObjectManager> &objectManager);
@@ -148,24 +144,24 @@ public:
 	}
 
 private:
-	// transform data for static meshes
+	/// transform data for static meshes
 	std::vector<TransformData> transforms;
 
-	// skinned transform data
+	/// skinned transform data
 	std::vector<SkinInfo> skinBuffer;
 
-	// store locally the aligned buffer sizes
+	/// store locally the aligned buffer sizes
 	uint32_t transformAligned = 0;
 	uint32_t skinnedAligned = 0;
 
-	// transform data for each object which will be added to the GPU
+	/// transform data for each object which will be added to the GPU
 	TransformBufferInfo *transformBufferData = nullptr;
 	SkinnedBufferInfo *skinnedBufferData = nullptr;
 
 	uint32_t transformBufferSize = 0;
 	uint32_t skinnedBufferSize = 0;
 
-	// flag which tells us whether we need to update the static data
+	/// flag which tells us whether we need to update the static data
 	bool isDirty = true;
 };
 

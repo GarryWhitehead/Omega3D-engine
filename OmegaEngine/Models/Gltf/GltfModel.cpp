@@ -83,9 +83,7 @@ std::unique_ptr<Model> load(std::string filename)
 	return std::move(outputModel);
 }
 
-void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObj,
-                                           const uint32_t matIndex, const uint32_t skinIndex,
-                                           const uint32_t animIndex)
+void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObj, World& world)
 {
 	if (node->hasMesh())
 	{
@@ -95,20 +93,41 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	}
 	if (node->hasTransform())
 	{
-		parentObj->addComponent<TransformComponent>(node->getTransform());
+		auto& transManager = world.getTransManager();
+		auto& trans = node->getTransform();
+		
+		size_t index = 0;
+		if (trans->hasMatrix)
+		{
+			index = transManager.addLocalTransform(trans->localMatrix);
+		}
+		else
+		{
+			index = transManager.addDecompTransform(trans->translation, trans->scale, trans->rotation);
+		}
+		
+		TransformComponent comp;
+		comp.setIndex(index);
+		parentObj->addComponent<TransformComponent>(comp);
 	}
+	
 	if (node->hasSkin())
 	{
-		parentObj->addComponent<SkinnedComponent>(node->getSkinIndex(), skinIndex);
+		SkinnedComponent comp;
+		comp.setIndex(node->getSkinIndex(), skinIndex);
+		parentObj->addComponent<SkinnedComponent>(comp);
 	}
 	if (node->isJoint())
 	{
-		parentObj->addComponent<SkeletonComponent>(node->getJoint(), skinIndex, node->isSkeletonRoot());
+		auto& transManager = world->getTransManager();
+		transManager->addSkeleton(node->getJoint(), node->isSkeletonRoot(), parentObj);
 	}
 	if (node->hasAnimation())
 	{
-		parentObj->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndices(),
-		                                               animIndex);
+		AnimationComponent comp;
+		comp.setIndex(node->getAnimIndex, animIndex);
+		comp.setChannelIndex(node->getChannelIndices());
+		parentObj->addComponent<AnimationComponent>(comp);
 	}
 
 	if (node->hasChildren())
@@ -116,21 +135,17 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 		for (uint32_t i = 0; i < node->childCount(); ++i)
 		
 			auto child = objectManager->createChildObject(*parentObject);
-			this->buildRecursive(node->getChildNode(i), child, materialOffset, skinOffset,
-			                                     animationOffset);
+			this->buildRecursive(node->getChildNode(i), child, matIndex, skinIndex,
+			                                     animIndex);
 		}
 	}
 }
 
-void build(GltfModel::Model& model, Object& obj)
+void build(GltfModel::Model& model, World& world, Object& obj)
 {
-	uint32_t matIndex, skinIndex, animIndex;
-
 	// ** extract all the data from the gltf blob and add to the appropiate manager **
 	// materials and their textures
 	auto& matManager = world->getMatManager();
-	matIndex = matManager->getIndex();
-
 	for (auto& mat : model->materials)
 	{
 		matManager->addMaterial(mat, model->images);
@@ -138,8 +153,6 @@ void build(GltfModel::Model& model, Object& obj)
 
 	// skins
 	auto& transManager = world->getTransManager();
-	skinIndex = transManager->getSkinIndex();
-
 	for (auto& skin : model->skins)
 	{
 		transManager->addSkin(skin);
@@ -147,8 +160,6 @@ void build(GltfModel::Model& model, Object& obj)
 
 	// animations
 	auto& animManager = world->getAnimManager();
-	animIndex = animManager->getIndex());
-
 	for (auto& anim : model->animations)
 	{
 		animManager->addAnim(anim);
@@ -159,7 +170,7 @@ void build(GltfModel::Model& model, Object& obj)
 	{
 		Object child = ObjectManager::createObject();
 
-		this->buildRecursive(node, child, materialOffset, skinOffset, animationOffset);
+		this->buildRecursive(node, child, world);
 		obj->addChild(child);
 	}
 }

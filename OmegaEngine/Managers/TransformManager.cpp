@@ -41,52 +41,46 @@ TransformManager::~TransformManager()
 	}
 }
 
-std::unique_ptr<ModelTransform> TransformManager::transform(const OEMaths::vec3f &trans,
-                                                             const OEMaths::vec3f &sca,
-                                                             const OEMaths::quatf &rot)
-{
-	auto& t = std::make_unique<ModelTransform>(trans, sca, rot);
-	return std::move(t);
-}
-
-void TransformManager::addComponentToManager(TransformComponent *component)
+size_t TransformManager::addLocalTransform(const OEMaths::mat4f& mat)
 {
 	TransformData transform;
 
-	if (component->transform->hasMatrix)
-	{
-		transform.setLocalMatrix(component->transform->trsMatrix);
-	}
-	else
-	{
-		transform.setTranslation(component->transform->translation);
-		transform.setScale(component->transform->scale);
-		transform.setRotation(component->transform->rotation);
-	}
+	transform.setLocalMatrix(mat);
+	transforms.emplace_back(transform);
+
+	return transforms.size() - 1;
+}
+
+size_t TransformManager::addDecompTransform(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
+{
+	TransformData transform;
+
+	transform.setTranslation(trans);
+	transform.setScale(scale);
+	transform.setRotation(rot);
 
 	transforms.emplace_back(transform);
 
-	component->index = static_cast<uint32_t>(transforms.size() - 1);
+	return transforms.size() - 1;
 }
 
-bool TransformManager::addComponentToManager(SkeletonComponent *component, Object *object)
+bool TransformManager::addSkeleton(size_t index, bool isRoot, Object *object)
 {
 	if (skinBuffer.empty())
 	{
 		return false;
 	}
 
-	uint32_t bufferIndex = component->index + component->bufferOffset;
-	assert(bufferIndex < skinBuffer.size());
+	assert(index < skinBuffer.size());
 
 	// check whether the skeleton root
-	if (component->isRoot)
+	if (isRoot)
 	{
-		skinBuffer[bufferIndex].skeleton = object;
+		skinBuffer[index].skeleton = object;
 	}
 
 	// link skinning info with objects
-	skinBuffer[bufferIndex].joints.emplace_back(object);
+	skinBuffer[index].joints.emplace_back(object);
 
 	return true;
 }
@@ -225,9 +219,7 @@ void TransformManager::updateTransform(std::unique_ptr<ObjectManager> &objectMan
 	}
 }
 
-void TransformManager::updateFrame(double time, double dt,
-                                   std::unique_ptr<ObjectManager> &objectManager,
-                                   ComponentInterface *componentInterface)
+void TransformManager::updateFrame(ObjectManager* objectManager)
 {
 	// check whether static data need updating
 	if (isDirty)
@@ -261,7 +253,7 @@ void TransformManager::updateObjectTranslation(Object *obj, OEMaths::vec4f trans
 	// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 	isDirty = true;
 }
-
+q
 void TransformManager::updateObjectScale(Object *obj, OEMaths::vec4f scale)
 {
 	uint32_t index = obj->getComponent<TransformComponent>().index;
