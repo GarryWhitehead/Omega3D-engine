@@ -83,6 +83,88 @@ std::unique_ptr<Model> load(std::string filename)
 	return std::move(outputModel);
 }
 
+void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObj,
+                                           const uint32_t matIndex, const uint32_t skinIndex,
+                                           const uint32_t animIndex)
+{
+	if (node->hasMesh())
+	{
+		parentObj->addComponent<MeshComponent>(node->getMesh(), matIndex);
+		// TODO: obtain these parameters from the config once it has been refactored
+		parentObj->addComponent<ShadowComponent>(0.0f, 1.25f, 1.75f);
+	}
+	if (node->hasTransform())
+	{
+		parentObj->addComponent<TransformComponent>(node->getTransform());
+	}
+	if (node->hasSkin())
+	{
+		parentObj->addComponent<SkinnedComponent>(node->getSkinIndex(), skinIndex);
+	}
+	if (node->isJoint())
+	{
+		parentObj->addComponent<SkeletonComponent>(node->getJoint(), skinIndex, node->isSkeletonRoot());
+	}
+	if (node->hasAnimation())
+	{
+		parentObj->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndices(),
+		                                               animIndex);
+	}
+
+	if (node->hasChildren())
+	{
+		for (uint32_t i = 0; i < node->childCount(); ++i)
+		
+			auto child = objectManager->createChildObject(*parentObject);
+			this->buildRecursive(node->getChildNode(i), child, materialOffset, skinOffset,
+			                                     animationOffset);
+		}
+	}
+}
+
+void build(GltfModel::Model& model, Object& obj)
+{
+	uint32_t matIndex, skinIndex, animIndex;
+
+	// ** extract all the data from the gltf blob and add to the appropiate manager **
+	// materials and their textures
+	auto& matManager = world->getMatManager();
+	matIndex = matManager->getIndex();
+
+	for (auto& mat : model->materials)
+	{
+		matManager->addMaterial(mat, model->images);
+	}
+
+	// skins
+	auto& transManager = world->getTransManager();
+	skinIndex = transManager->getSkinIndex();
+
+	for (auto& skin : model->skins)
+	{
+		transManager->addSkin(skin);
+	}
+
+	// animations
+	auto& animManager = world->getAnimManager();
+	animIndex = animManager->getIndex());
+
+	for (auto& anim : model->animations)
+	{
+		animManager->addAnim(anim);
+	}
+
+	// go through each node and add as a child of the parent
+	for (auto& node : model->nodes)
+	{
+		Object child = ObjectManager::createObject();
+
+		this->buildRecursive(node, child, materialOffset, skinOffset, animationOffset);
+		obj->addChild(child);
+	}
+}
+
+}
 namespace Extract
 {
 

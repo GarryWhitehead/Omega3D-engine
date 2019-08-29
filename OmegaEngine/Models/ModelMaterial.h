@@ -28,10 +28,10 @@ struct ModelMaterial
 
 	struct Factors
 	{
-		OEMaths::vec3f emissive = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
-		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
-		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
-		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
+		OEMaths::vec3f emissive = OEMaths::vec3f{ 1.0f };
+		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f };
+		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f };
+		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f };
 
 		float specularGlossiness = 1.0f;
 		float roughness = 1.0f;

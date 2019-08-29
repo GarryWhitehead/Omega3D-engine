@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Application/Application.h"
 #include "Engine/engine.h"
 #include "Engine/world.h"
 #include "Managers/CameraManager.h"
@@ -16,95 +17,9 @@
 
 using namespace OmegaEngine;
 
-void extractGltfModelAssets(std::unique_ptr<GltfModel::Model>& model, World* world, uint32_t& matIndex,
-                                   uint32_t& skinIndex, uint32_t& animIndex)
-{
-	// materials and their textures
-	auto& matManager = world->getMatManager();
-	matIndex = matManager->getIndex();
-
-	for (auto& mat : model->materials)
-	{
-		matManager->addMaterial(mat, model->images);
-	}
-
-	// skins
-	auto& transManager = world->getTransManager();
-	skinIndex = transManager->getSkinIndex();
-
-	for (auto& skin : model->skins)
-	{
-		transManager->addSkin(skin);
-	}
-
-	// animations
-	auto& animManager = world->getAnimManager();
-	animIndex = animManager->getIndex());
-
-	for (auto& anim : model->animations)
-	{
-		animManager->addAnim(anim);
-	}
-}
-
-void createGltfModelObjectRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObject,
-                                           const uint32_t materialOffset, const uint32_t skinOffset,
-                                           const uint32_t animationOffset)
-{
-	if (node->hasMesh())
-	{
-		parentObject->addComponent<MeshComponent>(node->getMesh(), materialOffset);
-		// TODO: obtain these parameters from the config once it has been refactored
-		parentObject->addComponent<ShadowComponent>(0.0f, 1.25f, 1.75f);
-	}
-	if (node->hasTransform())
-	{
-		parentObject->addComponent<TransformComponent>(node->getTransform());
-	}
-	if (node->hasSkin())
-	{
-		parentObject->addComponent<SkinnedComponent>(node->getSkinIndex(), skinOffset);
-	}
-	if (node->isJoint())
-	{
-		parentObject->addComponent<SkeletonComponent>(node->getJoint(), skinOffset, node->isSkeletonRoot());
-	}
-	if (node->hasAnimation())
-	{
-		parentObject->addComponent<AnimationComponent>(node->getAnimIndex(), node->getChannelIndices(),
-		                                               animationOffset);
-	}
-
-	if (node->hasChildren())
-	{
-		for (uint32_t i = 0; i < node->childCount(); ++i)
-		{
-			auto child = objectManager->createChildObject(*parentObject);
-			this->createGltfModelObjectRecursive(node->getChildNode(i), child, materialOffset, skinOffset,
-			                                     animationOffset);
-		}
-	}
-}
-
-Object* build(std::unique_ptr<GltfModel::Model>& model, const OEMaths::vec3f& position,
-                                     const OEMaths::vec3f& scale, const OEMaths::quatf& rotation, bool useMaterial)
-{
-	uint32_t materialOffset, skinOffset, animationOffset;
-
-	extractGltfModelAssets(model, materialOffset, skinOffset, animationOffset);
-
-	for (auto& node : model->nodes)
-	{
-		auto child = objectManager->createChildObject(*rootObject);
-
-		this->createGltfModelObjectRecursive(node, child, materialOffset, skinOffset, animationOffset);
-	}
-
-	return rootObject;
-}
-
 int main(int argc, char* argv[])
 {
+	Application app;
 	std::unique_ptr<Engine> engine = Engine::Init("Scene Example", 1280, 700);
 	
 	// create a new empty world
