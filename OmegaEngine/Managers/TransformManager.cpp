@@ -41,23 +41,21 @@ TransformManager::~TransformManager()
 	}
 }
 
-size_t TransformManager::addLocalTransform(const OEMaths::mat4f& mat)
+size_t TransformManager::addTransform(std::unique_ptr<ModelTransform>& trans)
 {
 	TransformData transform;
 
-	transform.setLocalMatrix(mat);
-	transforms.emplace_back(transform);
-
-	return transforms.size() - 1;
-}
-
-size_t TransformManager::addDecompTransform(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
-{
-	TransformData transform;
-
-	transform.setTranslation(trans);
-	transform.setScale(scale);
-	transform.setRotation(rot);
+	size_t index = 0;
+	if (trans->hasMatrix)
+	{
+		transform.addLocalTransform(trans->localMatrix);
+	}
+	else
+	{
+		transform.setTranslation(trans->translation);
+		transform.setScale(trans->scale);
+		transform.setRotation(trans->rotation);	
+	}
 
 	transforms.emplace_back(transform);
 
@@ -110,6 +108,8 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 
 	Object* parentObject = &obj;
 	uint64_t parentId = parentObject->getParent();
+	
+	// 0xfffff signifies that this is the root transform
 	while (parentId != UINT64_MAX)
 	{
 		parentObject = objectManager->getObject(parentId);
@@ -132,6 +132,7 @@ OEMaths::mat4f TransformManager::updateMatrixFromTree(Object &obj,
 		        OEMaths::mat4f::scale(component.scale);
 	}
 
+	// all local matrices are transformed by the world matrix
 	return mat * world;
 }
 
@@ -141,6 +142,7 @@ void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &
 {
 	OEMaths::mat4f mat;
 
+	// an object with a mesh component should always contain a transform, but better safe than sorry.
 	if (obj.hasComponent<MeshComponent>() && obj.hasComponent<TransformComponent>())
 	{
 		auto &transformComponent = obj.getComponent<TransformComponent>();
@@ -157,6 +159,7 @@ void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &
 
 		++transformBufferSize;
 
+		// If the object has a skinned element, then deal with that now
 		if (obj.hasComponent<SkinnedComponent>())
 		{
 			auto &skinnedComponent = obj.getComponent<SkinnedComponent>();
@@ -164,9 +167,10 @@ void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &
 			    (SkinnedBufferInfo *)((uint64_t)skinnedBufferData +
 			                          (skinnedAlignment * skinnedBufferSize));
 
-			// skinned transform
+			// the dynamic offset index is stored on the transfrom component
 			skinnedComponent.dynamicUboOffset = skinnedBufferSize * skinnedAlignment;
 
+			// the transform data index for this object is stored on the component
 			uint32_t skinIndex = skinnedComponent.index;
 
 			// prepare fianl output matrices buffer
@@ -205,7 +209,7 @@ void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager> &
 	}
 }
 
-void TransformManager::updateTransform(std::unique_ptr<ObjectManager> &objectManager)
+void TransformManager::updateTransform(ObjectManager& objectManager)
 {
 	// TODO: refactor this
 	auto objectList = objectManager->getObjectsList();
@@ -219,7 +223,7 @@ void TransformManager::updateTransform(std::unique_ptr<ObjectManager> &objectMan
 	}
 }
 
-void TransformManager::updateFrame(ObjectManager* objectManager)
+void TransformManager::updateFrame(ObjectManager& objectManager)
 {
 	// check whether static data need updating
 	if (isDirty)

@@ -16,6 +16,11 @@ namespace OmegaEngine
 
 MeshManager::MeshManager()
 {
+	// for performance purposes
+	meshBuffer.reserve(MESH_INIT_CONTAINER_SIZE);
+	staticVertices.reserve(1000000);		// these numbers need evaluating
+	skinnedVertices.reserve(1000000);
+	indices.reserve(1000000);
 }
 
 MeshManager::~MeshManager()
@@ -33,16 +38,16 @@ void MeshManager::linkMaterialWithMesh(MeshComponent* meshComponent, MaterialCom
 	}
 }
 
-void MeshManager::addComponentToManager(MeshComponent* component)
+size_t MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh)
 {
-	StaticMesh mesh;
-	auto vertexData = component->mesh->vertices;
+	StaticMesh newMesh;
+	auto vertexData = mesh->vertices;
 
 	// copy data from model into the manager
-	if (!component->mesh->skinned)
+	if (!mesh->skinned)
 	{
-		mesh.type = StateMesh::Static;
-		mesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
+		newMesh.type = StateMesh::Static;
+		newMesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
 
 		for (auto& vertex : vertexData)
 		{
@@ -57,8 +62,8 @@ void MeshManager::addComponentToManager(MeshComponent* component)
 	}
 	else
 	{
-		mesh.type = StateMesh::Skinned;
-		mesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
+		newMesh.type = StateMesh::Skinned;
+		newMesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
 
 		for (auto& vertex : vertexData)
 		{
@@ -75,19 +80,19 @@ void MeshManager::addComponentToManager(MeshComponent* component)
 	}
 
 	// and now the indices
-	auto& modelIndices = component->mesh->indices;
+	auto& modelIndices = mesh->indices;
 
-	uint32_t indexOffset = static_cast<uint32_t>(indices.size());
-	mesh.indexBufferOffset = indexOffset;
+	size_t indexOffset = indices.size();
+	newMesh.indexBufferOffset = indexOffset;
 
 	// simple copy from the model data to the manager
-	for (uint32_t i = 0; i < modelIndices.size(); ++i)
+	for (size_t i = 0; i < modelIndices.size(); ++i)
 	{
 		indices.emplace_back(modelIndices[i] + mesh.vertexBufferOffset);
 	}
 
 	// and the primitive data
-	auto& modelPrimitives = component->mesh->primitives;
+	auto& modelPrimitives = mesh->primitives;
 
 	for (auto& modelPrimitive : modelPrimitives)
 	{
@@ -95,20 +100,19 @@ void MeshManager::addComponentToManager(MeshComponent* component)
 		primitive.indexBase = modelPrimitive.indexBase;
 		primitive.indexCount = modelPrimitive.indexCount;
 		primitive.materialId = modelPrimitive.materialId + component->materialBufferOffset;
-		mesh.primitives.emplace_back(primitive);
+		newMesh.primitives.emplace_back(primitive);
 	}
 
-	mesh.topology = component->mesh->topology;
+	newMesh.topology = mesh->topology;
 
-	meshBuffer.emplace_back(mesh);
+	meshBuffer.emplace_back(newMesh);
 
 	// store the buffer index in the mesh component
-	component->index = static_cast<uint32_t>(meshBuffer.size() - 1);
+	return meshBuffer.size() - 1;
 }
 
 
-void MeshManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
-                              ComponentInterface* componentInterface)
+void MeshManager::updateFrame()
 {
 	if (isDirty)
 	{

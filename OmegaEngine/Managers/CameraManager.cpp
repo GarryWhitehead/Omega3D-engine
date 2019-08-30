@@ -8,8 +8,7 @@
 namespace OmegaEngine
 {
 
-CameraManager::CameraManager(float sensitivity)
-    : mouseSensitivity(sensitivity)
+CameraManager::CameraManager()
 {
 	// set up events
 	Global::eventManager()
@@ -17,29 +16,19 @@ CameraManager::CameraManager(float sensitivity)
 	Global::eventManager()
 	    ->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboardPressEvent>(
 	        this);
+
+	// for performance purposes, reserve a small amount of mem for the vector
+	cameras.reserve(INIT_CONTAINER_SIZE);
 }
 
 CameraManager::~CameraManager()
 {
 }
 
-void CameraManager::addCamera(OEMaths::vec3f &startPosition, float fov, float zNear, float zFar,
-                              float aspect, float velocity, Camera::CameraType type)
+void CameraManager::addCamera(Camera& camera)
 {
-	Camera camera;
-	camera.startPosition = startPosition;
-	camera.fov = fov;
-	camera.zNear = zNear;
-	camera.zFar = zFar;
-	camera.aspect = aspect;
-	camera.velocity = velocity;
-	camera.type = type;
-
-	currentPosition = camera.startPosition;
-	currentProjMatrix = camera.getPerspectiveMat();
-
-	cameras.emplace_back(std::move(camera));
-	cameraIndex = static_cast<uint32_t>(cameras.size() - 1);
+	cameras.emplace_back(camera);
+	cameraIndex = cameras.size() - 1;
 
 	isDirty = true;
 }
@@ -121,9 +110,7 @@ void CameraManager::updateViewMatrix()
 	currentViewMatrix = OEMaths::lookAt(currentPosition, target, camera.cameraUp);
 }
 
-void CameraManager::updateFrame(double time, double dt,
-                                std::unique_ptr<ObjectManager> &objectManager,
-                                ComponentInterface *componentInterface)
+void CameraManager::updateFrame(double time, double dt)
 {
 	if (isDirty)
 	{

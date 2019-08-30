@@ -14,28 +14,39 @@ struct ComponentBase
 {
 	virtual ~ComponentBase() = default;
 
-	ComponentBase()
-	{
-	}
+	ComponentBase() = default;
 	
 };
 
 struct WorldTransformComponent : public ComponentBase
 {
-	WorldTransformComponent()
+	WorldTransformComponent() = default;
+
+	/**
+	 * Sets the translation of the world transform.
+	 * @param trans: a vector containing the translation co-ords
+	 */
+	void setTranslation(const OEMaths::vec3f& trans)
 	{
-	}
-	~WorldTransformComponent()
-	{
+		translation = trans;
 	}
 
-	WorldTransformComponent(const OEMaths::vec3f& t, const OEMaths::vec3f& s,
-	                        const OEMaths::quatf& r)
-	    : translation(t)
-	    , scale(s), 
-		rotation(r)
-	    , ComponentBase(ComponentType::WorldTransform)
+	/**
+	 * Sets the scale of the world transform.
+	 * @param s: a vector containing the amount to scale each axis
+	 */
+	void setScale(const OEMaths::vec3f& s)
 	{
+		scale = s;
+	}
+
+	/**
+	 * Sets the rotation of the world transform.
+	 * @param r: a quaternoin containing the amount to rotate each axis
+	 */
+	void setRotation(const OEMaths::quatf& r)
+	{
+		rotation = r;
 	}
 
 	OEMaths::vec3f translation;
@@ -45,37 +56,27 @@ struct WorldTransformComponent : public ComponentBase
 
 struct MeshComponent : public ComponentBase
 {
-	MeshComponent()
+	MeshComponent() = default;
+
+	/**
+	 * The index of this skin component within the transform manager conatiner
+	 * @param index: the index within the manager - set through the builders
+	 */
+	void setIndex(const size_t i)
 	{
-	}
-	~MeshComponent()
-	{
+		index = i;
 	}
 
-	MeshComponent(std::unique_ptr<ModelMesh> &_mesh, uint32_t offset)
-	    : mesh(std::move(_mesh))
-	    , materialBufferOffset(offset)
-	    , ComponentBase(ComponentType::Mesh)
-	{
-	}
-
-	MeshComponent(std::unique_ptr<ModelMesh> &_mesh)
-	    : mesh(std::move(_mesh))
-		, ComponentBase(ComponentType::Mesh)
-	{
-	}
-
-	uint32_t index = 0;
-	int32_t materialBufferOffset = -1;
-	std::unique_ptr<ModelMesh> mesh;
+	size_t index = 0;
+	int32_t materialBufferOffset = -1;	// is this used?
 };
 
 struct TransformComponent : public ComponentBase
 {
 	TransformComponent() = default;
 
-	uint32_t index = 0;
-	uint32_t dynamicUboOffset = 0; // used by the renderable mesh
+	size_t index = 0;
+	size_t dynamicUboOffset = 0; // used by the renderable mesh
 
 	/**
 	 * sets the combined local matrix transform
@@ -86,7 +87,9 @@ struct TransformComponent : public ComponentBase
 		transform = trans;
 	}
 
-	OEMaths::mat4f trasform;
+	OEMaths::vec3f translation;
+	OEMaths::vec3f scale;
+	OEMaths::quatf rotation;
 };
 
 struct SkinnedComponent : public ComponentBase
@@ -100,42 +103,13 @@ struct SkinnedComponent : public ComponentBase
 	 * @param offset: The index offset in the transform manager buffer in which these group of skins
 	 * begin at.
 	 */
-	void setIndex(const uint32_t index, const uint32_t offset)
+	void setIndex(const size_t index, const size_t offset)
 	{
 		animIndex = index + offset;
 	}
 
-	uint32_t index = 0;
-	uint32_t dynamicUboOffset = 0;	// not set by the user
-};
-
-struct SkeletonComponent : public ComponentBase
-{
-	SkeletonComponent() = default;
-
-	/**
-	 * The index of this skeleton component within the transform manager conatiner
-	 * @param index: the index within the particular of group of skeletons. For instance, this may
-	 * be associated with a group of GLTF skeletons whcih are being added
-	 * @param offset: The index offset in the transform manager buffer in which these group of skeletons
-	 * begin at.
-	 */
-	void setIndex(const uint32_t index, const uint32_t offset)
-	{
-		animIndex = index + offset;
-	}
-
-	/**
-	 *  Specifies whether this skeleton is the root
-	 * @param isRoot: a boolean indicating if this comp is the root
-	 */
-	void setRoot(const bool root)
-	{
-		isRoot = root;
-	}
-
-	uint32_t index = 0;
-	bool isRoot = false;
+	size_t index = 0;
+	size_t dynamicUboOffset = 0;	// not set by the user
 };
 
 struct MaterialComponent : public ComponentBase
@@ -161,36 +135,7 @@ struct MaterialComponent : public ComponentBase
 	float roughness = 0.0f;
 	float metallic = 0.0f;
 	
-	uint32_t offset = 0;
-};
-
-struct AnimationComponent : public ComponentBase
-{
-	AnimationComponent() = default;
-
-	/**
-	 * The index of this animation component within the anim manager conatiner
-	 * @param index: the index within the particular of group of animations. For instance, this may
-	 * be associated with a group of GLFF animations whcih are being added
-	 * @param offset: The index offset in the anim manager buffer in which these group of anim
-	 * begin at.
-	 */
-	void setIndex(const uint32_t index, const uint32_t offset)
-	{
-		animIndex = index + offset;
-	}
-
-	/**
-	 * A group of channel indices which this animation refers too
-	 * @param indices: a vector of channel index values
-	 */
-	void setChannelIndex(const std::vector<uint32_t>& indices)
-	{
-		channelIndex = indicies;
-	}
-
-	uint32_t animIndex = 0;
-	std::vector<uint32_t> channelIndex;
+	size_t offset = 0;
 };
 
 struct SkyboxComponent : public ComponentBase
@@ -242,7 +187,7 @@ struct ShadowComponent : public ComponentBase
 		biasSlope = slope;
 	}
 
-	uint32_t index = 0;
+	size_t index = 0;
 
 	float biasClamp = 0.0f;
 	float biasConstant = 0.0f;

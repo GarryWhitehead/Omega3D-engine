@@ -142,15 +142,11 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 	animations.emplace_back(animInfo);
 }
 
-void AnimationManager::addComponentToManager(AnimationComponent *component, Object &object)
+void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Object &object)
 {
-	uint32_t animBufferIndex = component->animIndex + component->bufferOffset;
-	for (auto &index : component->channelIndex)
-	{
-		Channel &channel = animations[animBufferIndex].channels[index];
-		// link object with animation channel
-		channel.object = &object;
-	}
+	Channel &channel = animations[bufferIndex].channels[channelIndex];
+	// link object with animation channel
+	channel.object = &object;
 }
 
 void AnimationManager::updateFrame(double time, double dt,

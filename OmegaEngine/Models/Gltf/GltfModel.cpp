@@ -87,24 +87,20 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 {
 	if (node->hasMesh())
 	{
-		parentObj->addComponent<MeshComponent>(node->getMesh(), matIndex);
+		auto& meshManager = world.getMeshManager();
+		size_t index = meshManager.addMesh(node->getMesh());
+
+		MeshComponent mcomp;
+		comp.setIndex(index);
+		parentObj->addComponent<MeshComponent>(mcomp);
+
 		// TODO: obtain these parameters from the config once it has been refactored
 		parentObj->addComponent<ShadowComponent>(0.0f, 1.25f, 1.75f);
 	}
 	if (node->hasTransform())
 	{
 		auto& transManager = world.getTransManager();
-		auto& trans = node->getTransform();
-		
-		size_t index = 0;
-		if (trans->hasMatrix)
-		{
-			index = transManager.addLocalTransform(trans->localMatrix);
-		}
-		else
-		{
-			index = transManager.addDecompTransform(trans->translation, trans->scale, trans->rotation);
-		}
+		size_t index = transManager->addTransform(node->getTransform());
 		
 		TransformComponent comp;
 		comp.setIndex(index);
@@ -124,10 +120,13 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	}
 	if (node->hasAnimation())
 	{
-		AnimationComponent comp;
-		comp.setIndex(node->getAnimIndex, animIndex);
-		comp.setChannelIndex(node->getChannelIndices());
-		parentObj->addComponent<AnimationComponent>(comp);
+		auto& animManager = world->getAnimManager();
+		size_t bufferIndex = node->getAnimIndex + animIndex;
+
+		for (auto &index : node->getChannelIndices())
+		{
+			animManager->addAnimation(bufferIndex, parentObject);
+		}
 	}
 
 	if (node->hasChildren())

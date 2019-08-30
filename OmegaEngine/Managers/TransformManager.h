@@ -22,44 +22,60 @@ class TransformManager : public ManagerBase
 public:
 	struct TransformData
 	{
-		// static
-		struct LocalTransform
+		/// static
+		struct DecompTransform
 		{
 			OEMaths::vec3f translation;
-			OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+			OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f };
 			OEMaths::mat4f rotation;
 		};
 
-		void calculateLocalMatrix()
-		{
-			local = OEMaths::mat4f::translate(localTransform.translation) *
-			        localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
-		}
-
+		/**
+		 * Sets the translation of the decomposed form. 
+		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
+		 */
 		void setTranslation(OEMaths::vec3f &trans)
 		{
-			localTransform.translation = trans;
+			decomp.translation = trans;
 			recalculateLocal = true;
 		}
 
+		/**
+		 * Sets the rotation of the decomposed form. 
+		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
+		 */
 		void setRotation(OEMaths::mat4f &rot)
 		{
-			localTransform.rotation = rot;
+			decomp.rotation = rot;
 			recalculateLocal = true;
 		}
 
+		/**
+		 * Sets the translation of the decomposed form from a quaternoin. 
+		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
+		 * @param q: rotation as a quaternoin
+		 */
 		void setRotation(OEMaths::quatf &q)
 		{
-			localTransform.rotation = OEMaths::mat4f(q);
+			decomp.rotation = OEMaths::mat4f(q);
 			recalculateLocal = true;
 		}
 
+		/**
+		 * Sets the scale of the decomposed form. 
+		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
+		 */
 		void setScale(OEMaths::vec3f &scale)
 		{
-			localTransform.scale = scale;
+			decomp.scale = scale;
 			recalculateLocal = true;
 		}
 
+		/**
+		 * returns the local transform matrix. If any of the decomposed elements have changed,
+		 * the matrix will be re-calculated first.
+		 * @return A 4x4 transfrom matrix
+		 */
 		OEMaths::mat4f getLocalMatrix()
 		{
 			if (recalculateLocal)
@@ -70,21 +86,40 @@ public:
 			return local;
 		}
 
+		/**
+		 * Sets the local transform matrix.
+		 * @param A 4x4 transfrom matrix
+		 */
 		void setLocalMatrix(OEMaths::mat4f &local)
 		{
 			this->local = local;
 		}
-
+		
+		/**
+		 * Sets the world transform matrix.
+		 * @param A 4x4 transfrom matrix
+		 */
 		void setWorldMatixrix(OEMaths::mat4f &world)
 		{
 			this->world = world;
 		}
 
 	private:
+
+		/**
+		 *  Calculates the local transform matrix based on the deomposed form
+		 */
+		void calculateLocalMatrix()
+		{
+			local = OEMaths::mat4f::translate(localTransform.translation) *
+			        localTransform.rotation * OEMaths::mat4f::scale(localTransform.scale);
+		}
+
+	private:
 		bool recalculateLocal = false;
 
 		/// decomposed form
-		LocalTransform localTransform;
+		DecompTransform decomp;
 
 		OEMaths::mat4f local;
 		OEMaths::mat4f world;
@@ -119,13 +154,12 @@ public:
 	TransformManager();
 	~TransformManager();
 	
-	void addComponentToManager(TransformComponent *component);
-	bool addComponentToManager(SkeletonComponent *component, Object *object);
+	size_t addTransform(std::unique_ptr<ModelTransform>& trans);
+	bool addSkeleton(size_t index, bool isRoot, Object *object);
 	void addSkin(std::unique_ptr<ModelSkin> &skin);
 
 	// update per frame
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface);
+	void updateFrame(ObjectManager &objectManager);
 
 	// local transform and skinning update
 	OEMaths::mat4f updateMatrixFromTree(Object &obj, std::unique_ptr<ObjectManager> &objectManager);
@@ -138,9 +172,9 @@ public:
 	void updateObjectScale(Object *obj, OEMaths::vec4f scale);
 	void updateObjectRotation(Object *obj, OEMaths::quatf rot);
 
-	uint32_t getSkinnedBufferOffset() const
+	size_t getSkinIndex() const
 	{
-		return static_cast<uint32_t>(skinBuffer.size());
+		return skinBuffer.size();
 	}
 
 private:
@@ -151,15 +185,15 @@ private:
 	std::vector<SkinInfo> skinBuffer;
 
 	/// store locally the aligned buffer sizes
-	uint32_t transformAligned = 0;
-	uint32_t skinnedAligned = 0;
+	size_t transformAligned = 0;
+	size_t skinnedAligned = 0;
 
 	/// transform data for each object which will be added to the GPU
 	TransformBufferInfo *transformBufferData = nullptr;
 	SkinnedBufferInfo *skinnedBufferData = nullptr;
 
-	uint32_t transformBufferSize = 0;
-	uint32_t skinnedBufferSize = 0;
+	size_t transformBufferSize = 0;
+	size_t skinnedBufferSize = 0;
 
 	/// flag which tells us whether we need to update the static data
 	bool isDirty = true;

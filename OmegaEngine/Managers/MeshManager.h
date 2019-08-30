@@ -8,6 +8,8 @@
 #include <tuple>
 #include <unordered_map>
 
+#define MESH_INIT_CONTAINER_SIZE 50
+
 namespace OmegaEngine
 {
 // forard decleartions
@@ -17,7 +19,7 @@ struct MeshComponent;
 enum class StateTopolgy;
 enum class StateMesh;
 
-    struct PrimitiveMesh
+struct PrimitiveMesh
 {
 	StateMesh type;
 
@@ -84,11 +86,10 @@ public:
 	MeshManager();
 	~MeshManager();
 
-	// on a per-frame basis - if the mesh data is dirty then deal with that here (e.g. transforms to meshes, deletion, removal from gpu side...)
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
-	                 ComponentInterface* componentInterface) override;
+	/// called on a per-frame basis 
+	void updateFrame();
 
-	void addComponentToManager(MeshComponent* component);
+	void addMesh(std::unique_ptr<ModelMesh>& mesh);
 
 	void linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent);
 
@@ -106,9 +107,6 @@ private:
 	std::vector<Vertex> staticVertices;
 	std::vector<SkinnedVertex> skinnedVertices;
 	std::vector<uint32_t> indices;
-
-	uint32_t globalVertexOffset = 0;
-	uint32_t globalIndexOffset = 0;
 
 	bool isDirty = true;
 };
