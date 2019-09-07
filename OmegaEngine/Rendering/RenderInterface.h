@@ -75,20 +75,7 @@ public:
 	void updateRenderables(std::unique_ptr<ObjectManager> &objecctManager,
 	                       std::unique_ptr<ComponentInterface> &componentInterface);
 
-	// renderable type creation
-	template <typename T, typename... Args>
-	uint32_t addRenderable(Args &&... args)
-	{
-		T *renderable = new T(std::forward<Args>(args)...);
-		renderables.push_back({ renderable });
-		return static_cast<uint32_t>(renderables.size() - 1);
-	}
-
-	RenderableInfo &getRenderable(uint32_t index)
-	{
-		assert(index < renderables.size());
-		return renderables[index];
-	}
+	
 
 	template <typename T, typename... Args>
 	void setRenderer(Args &&... args)
@@ -123,8 +110,7 @@ private:
 	std::unique_ptr<VulkanAPI::Interface> vkInterface;
 	std::unique_ptr<PostProcessInterface> postProcessInterface;
 
-	// contains all objects that are renderable to the screen
-	std::vector<RenderableInfo> renderables;
+	
 
 	// queued visible renderables
 	std::unique_ptr<RenderQueue> renderQueue;

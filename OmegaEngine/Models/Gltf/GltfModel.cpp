@@ -1,6 +1,12 @@
 #include "GltfModel.h"
+
 #include "Utility/FileUtil.h"
 #include "Utility/logger.h"
+
+#include "Types/ComponentTypes.h"
+#include "Types/Object.h"
+
+#include "Core/World.h"
 
 namespace OmegaEngine
 {
@@ -91,7 +97,7 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 		size_t index = meshManager.addMesh(node->getMesh());
 
 		MeshComponent mcomp;
-		comp.setIndex(index);
+		mcomp.setIndex(index);
 		parentObj->addComponent<MeshComponent>(mcomp);
 
 		// TODO: obtain these parameters from the config once it has been refactored
@@ -115,17 +121,17 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	}
 	if (node->isJoint())
 	{
-		auto& transManager = world->getTransManager();
+		auto& transManager = world.getTransManager();
 		transManager->addSkeleton(node->getJoint(), node->isSkeletonRoot(), parentObj);
 	}
 	if (node->hasAnimation())
 	{
-		auto& animManager = world->getAnimManager();
+		auto& animManager = world.getAnimManager();
 		size_t bufferIndex = node->getAnimIndex + animIndex;
 
 		for (auto &index : node->getChannelIndices())
 		{
-			animManager->addAnimation(bufferIndex, parentObject);
+			animManager.addAnimation(bufferIndex, parentObject);
 		}
 	}
 
@@ -133,8 +139,8 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	{
 		for (uint32_t i = 0; i < node->childCount(); ++i)
 		
-			auto child = objectManager->createChildObject(*parentObject);
-			this->buildRecursive(node->getChildNode(i), child, matIndex, skinIndex,
+			auto child = objectManager->createChildObject(parentObject);
+			buildRecursive(node->getChildNode(i), child, matIndex, skinIndex,
 			                                     animIndex);
 		}
 	}
@@ -144,33 +150,33 @@ void build(GltfModel::Model& model, World& world, Object& obj)
 {
 	// ** extract all the data from the gltf blob and add to the appropiate manager **
 	// materials and their textures
-	auto& matManager = world->getMatManager();
-	for (auto& mat : model->materials)
+	auto& matManager = world.getMatManager();
+	for (auto& mat : model.materials)
 	{
-		matManager->addMaterial(mat, model->images);
+		matManager.addMaterial(mat, model.images);
 	}
 
 	// skins
-	auto& transManager = world->getTransManager();
-	for (auto& skin : model->skins)
+	auto& transManager = world.getTransManager();
+	for (auto& skin : model.skins)
 	{
 		transManager->addSkin(skin);
 	}
 
 	// animations
-	auto& animManager = world->getAnimManager();
-	for (auto& anim : model->animations)
+	auto& animManager = world.getAnimManager();
+	for (auto& anim : model.animations)
 	{
-		animManager->addAnim(anim);
+		animManager.addAnim(anim);
 	}
 
 	// go through each node and add as a child of the parent
-	for (auto& node : model->nodes)
+	for (auto& node : model.nodes)
 	{
 		Object child = ObjectManager::createObject();
 
-		this->buildRecursive(node, child, world);
-		obj->addChild(child);
+		buildRecursive(node, child, world);
+		obj.addChild(child);
 	}
 }
 

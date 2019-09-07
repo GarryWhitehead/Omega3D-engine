@@ -91,66 +91,8 @@ void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface>& componen
 	}
 }
 
-void RenderInterface::buildRenderableMeshTree(Object& obj, std::unique_ptr<ComponentInterface>& componentInterface,
-                                              bool isShadow)
-{
-	auto& meshManager = componentInterface->getManager<MeshManager>();
-	auto& lightManager = componentInterface->getManager<LightManager>();
 
-	if (obj.hasComponent<MeshComponent>())
-	{
-		auto& mesh = meshManager.getMesh(obj.getComponent<MeshComponent>());
 
-		// we need to add all the primitve sub meshes as renderables
-		for (auto& primitive : mesh.primitives)
-		{
-			uint32_t meshIndex = addRenderable<RenderableMesh>(componentInterface, vkInterface, mesh, primitive, obj,
-			                                                   stateManager, renderer);
-
-			// if using shadows, then draw the meshes into the offscreen depth buffer too
-			if (obj.hasComponent<ShadowComponent>())
-			{
-				addRenderable<RenderableShadow>(stateManager, vkInterface, obj.getComponent<ShadowComponent>(), mesh,
-				                                primitive, lightManager.getLightCount(),
-				                                lightManager.getAlignmentSize(), renderer);
-			}
-		}
-	}
-
-	// check whether the child objects contain mesh data
-	auto children = obj.getChildren();
-	for (auto child : children)
-	{
-		buildRenderableMeshTree(child, componentInterface, isShadow);
-	}
-}
-
-void RenderInterface::updateRenderables(std::unique_ptr<ObjectManager>& objectManager,
-                                        std::unique_ptr<ComponentInterface>& componentInterface)
-{
-	if (isDirty)
-	{
-		// get all objects that are available this frame
-		auto& objects = objectManager->getObjectsList();
-
-		for (auto& object : objects)
-		{
-			// objects which have skybox, landscape or ocean components won't have other components checked
-			if (object.second.hasComponent<SkyboxComponent>())
-			{
-				addRenderable<RenderableSkybox>(stateManager, object.second.getComponent<SkyboxComponent>(),
-				                                vkInterface, renderer);
-			}
-			else
-			{
-				// check whether object or children have mesh data
-				buildRenderableMeshTree(object.second, componentInterface, false);
-			}
-		}
-
-		isDirty = false;
-	}
-}
 
 void RenderInterface::prepareObjectQueue()
 {

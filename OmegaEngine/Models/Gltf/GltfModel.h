@@ -6,6 +6,11 @@
 #include "Models/Gltf/GltfNode.h"
 #include "Models/ModelSkin.h"
 #include "Models/ModelTransform.h"
+
+#define TINYGLTF_IMPLEMENTATION
+#define STB_IMAGE_IMPLEMENTATION
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#define STBI_MSC_SECURE_CRT
 #include "tiny_gltf.h"
 
 #include <memory>
