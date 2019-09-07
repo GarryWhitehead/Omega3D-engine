@@ -3,7 +3,13 @@ CMAKE_POLICY(VERSION 3.5)
 
 PROJECT(OMEGA_ENGINE VERSION 1 LANGUAGES CXX C)
 SET(CMAKE_CXX_STANDARD 17)
- 
+
+# Stop the annoying warning when changing the settings in subdirectories
+IF (${CMAKE_VERSION} VERSION_GREATER "3.13.0")
+   MESSAGE("Setting CMake policy CMP0077.")
+   CMAKE_POLICY(SET CMP0077 NEW)
+ENDIF()
+
 # compiler specific flags
 IF(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang"))
 	SET(OMEGA_CXX_FLAGS -Wshadow -Wall -Wextra -Wno-missing-field-initializers)
@@ -24,6 +30,10 @@ OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
 # optional path for assets directory
 SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for default location.")
+
+# required for shaderc
+SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
+SET(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -57,6 +67,8 @@ ENDIF()
 # libraries required for Omega Engine
 ADD_SUBDIRECTORY("external/Spirv-Cross" EXCLUDE_FROM_ALL)
 ADD_SUBDIRECTORY("external/glfw" EXCLUDE_FROM_ALL)
+ADD_SUBDIRECTORY("external/SPIRV-Tools")
+ADD_SUBDIRECTORY("external/shaderc" EXCLUDE_FROM_ALL)
 
 ADD_LIBRARY(TINY_GLTF STATIC "external/tiny-gltf/tiny_gltf.h")
 TARGET_INCLUDE_DIRECTORIES(TINY_GLTF 
@@ -211,6 +223,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
 	VulkanAPI/VkTextureManager.cpp VulkanAPI/VkTextureManager.h
+	VulkanAPI/ShaderManager.cpp VulkanAPI/ShaderManager.h
 )
 
 IF(ASSETS_DIR)
@@ -226,6 +239,7 @@ TARGET_LINK_LIBRARIES(OMEGA_ENGINE
 	${RAPID_JSON} 
 	glfw 
 	spirv-cross-core
+	shaderc
 )
 
 # build examples

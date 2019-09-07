@@ -13,6 +13,7 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
+#include "VulkanAPI/ShaderManager.h"
 #include "VulkanAPI/VkTextureManager.h"
 
 namespace OmegaEngine
@@ -121,9 +122,12 @@ RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& componentInt
 }
 
 void RenderableMesh::createMeshPipeline(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
-                                        std::unique_ptr<RendererBase>& renderer,
-                                        std::unique_ptr<ProgramState>& state, StateId::StateFlags& flags)
+                                        std::unique_ptr<RendererBase>& renderer, std::unique_ptr<ProgramState>& state,
+                                        StateId::StateFlags& flags)
 {
+	VulkanAPI::GlslCompiler comipler(OMEGA_ASSETS_DIR  "shaders/model/model.vert", VulkanAPI::StageType::Fragment);
+	comipler.compile(true);
+
 	// load shaders
 	if (flags.mesh == StateMesh::Static)
 	{
