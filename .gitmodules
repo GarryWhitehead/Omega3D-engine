@@ -1,15 +1,18 @@
-[submodule "OmegaEngine/external/spirv-cross"]
-	path = OmegaEngine/external/spirv-cross
+[submodule "external/spirv-cross"]
+	path = external/spirv-cross
 	url = https://github.com/KhronosGroup/SPIRV-Cross.git
-[submodule "OmegaEngine/external/Vulkan-Hpp"]
-	path = OmegaEngine/external/Vulkan-Hpp
+[submodule "external/Vulkan-Hpp"]
+	path = external/Vulkan-Hpp
 	url = https://github.com/KhronosGroup/Vulkan-Hpp.git
-[submodule "OmegaEngine/external/tiny-gltf"]
-	path = OmegaEngine/external/tiny-gltf
+[submodule "external/tiny-gltf"]
+	path = external/tiny-gltf
 	url = https://github.com/syoyo/tinygltf.git
-[submodule "OmegaEngine/external/glfw"]
-	path = OmegaEngine/external/glfw
+[submodule "external/glfw"]
+	path = external/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "OmegaEngine/external/rapidjson"]
-	path = OmegaEngine/external/rapidjson
+[submodule "external/rapidjson"]
+	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
+[submodule "external/glew"]
+	path = external/glew
+	url = https://github.com/nigels-com/glew.git
