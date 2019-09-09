@@ -2,42 +2,53 @@
 
 #include <cstring>
 #include <stdlib.h>
+#include <vector>
 
-namepsace Util
+namespace Util
 {
 	String::String(const char* str)
 	{
 		this->length = std::strlen(str);
 		if (this->length > 0)
 		{
-			this->buffer = (uint8_t*)malloc(len + 1);
-			memcpy(string, str, len);
-			string[len] = '\0';
+			this->buffer = (char*)malloc(length + 1);
+			memcpy(buffer, str, length);
+			buffer[length] = '\0';
 		}
 	}
 
 	String::String(const String& rhs)
-	    : String(rhs.c_str())
+	    : String(rhs.buffer)
 	{
 	}
 
 	String& String::operator=(const String& rhs)
 	{
 		if (this != &rhs)
-			{
+		{
 			if (buffer)
 			{
 				free(buffer);
 			}
-			String(rhs);
+			String(rhs.buffer);
 		}
+		return *this;
 	}
 
-	String::String(String && str)
+	String::String(String && rhs) :
+		buffer(std::exchange(rhs.buffer, nullptr)),
+		length(std::exchange(rhs.length, 0))
 	{
 	}
-	String& String::operator=(String&& str)
+
+	String& String::operator=(String&& rhs)
 	{
+		if (this != &rhs)
+		{
+			buffer = std::exchange(rhs.buffer, nullptr);
+			length = std::exchange(rhs.length, 0);
+		}
+		return *this;
 	}
 
 	String::~String()
@@ -53,7 +64,6 @@ namepsace Util
 	{
 		if (str.empty())
 		{
-			fprintf(stderr, "Error! Empty string given as parameter.\n");
 			return {};
 		}
 
