@@ -35,24 +35,20 @@ bool GlfwPlatform::createWindow()
     return true;
 }
 
-bool GlfwPlatform::createSurfaceKHR(Device& device)
+void* GlfwPlatform::getNativeWinPointer()
 {
-    // create a which will be the abstract scrren surface which will be used for creating swapchains
-    // TODO: add more cross-platform compatibility by adding more surfaceCount
-    VkSurfaceKHR tempSurface;
-    VkResult err = glfwCreateWindowSurface(device->getInstance(), window, nullptr, &tempSurface);
-    if (err)
-    {
-        return false;
-    }
-    device->setWindowSurface(vk::SurfaceKHR(tempSurface));
+	#ifdef _WIN32
+	return (void*)glfwGetWin32Window(window);
+	#endif
 }
 
-void GlfwPlatform::createVkInstance(Device& device)
+std::tuple<const char**, uint32_t> GlfwPlatform::getInstanceExt() 
 {
-    uint32_t instanceCount;
-	const char **instanceExt = glfwGetRequiredInstanceExtensions(&instanceCount);
-	device->createInstance(instanceExt, instanceCount);
+	uint32_t count = 0;
+    const char** glfwExtensions;
+    glfwExtensions = glfwGetRequiredInstanceExtensions(&count)
+
+	return std::make_tuple(glfwExtensions, count);
 }
 
 void GlfwPlatform::poll()

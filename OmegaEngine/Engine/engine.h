@@ -77,27 +77,13 @@ private:
 	EngineConfig engineConfig;
 
 	EngineState programState;
-
-	// glfw stuff
-	GLFWwindow *window = nullptr;
-	GLFWmonitor *monitor = nullptr;
-	const GLFWvidmode *vmode;
-
-	// all keyboard, mouse, gamepad, ect. inputs dealt with here
-	std::unique_ptr<InputManager> inputManager;
-
-	// windw details set on init
-	uint32_t windowWidth = 0;
-	uint32_t windowHeight = 0;
-	std::string windowTitle;
-
+	
 	// a collection of worlds registered with the engine
 	std::unordered_map<std::string, std::unique_ptr<World>> worlds;
 	std::string currentWorld;
 
-	// a list of all grpahics devices that are available
-	std::vector<std::unique_ptr<VulkanAPI::Device>> vkDevices;
-	uint32_t currentVkDevice = 0;
+	// The vulkan devie. Only one device supported at present
+	VulkanAPI::Device gfxDevice;
 };
 
 } // namespace OmegaEngine
