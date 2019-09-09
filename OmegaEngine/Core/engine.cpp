@@ -13,52 +13,34 @@
 #include "external/rapidjson/document.h"
 #include "external/rapidjson/stringbuffer.h"
 
-#include "glfw/glfw3.h"
+
 
 using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
 
-Engine::Engine(std::string title, uint32_t width, uint32_t height)
-    : windowWidth(width)
-    , windowHeight(height)
+Engine::Engine()
 {
 	// load config file if there is one, otherwise use default settings
 	loadConfigFile();
 
-	// create a new instance of the input manager
-	inputManager = std::make_unique<InputManager>(window, width, height);
+	uint32_t instanceCount;
+	const char **instanceExt = glfwGetRequiredInstanceExtensions(&instanceCount);
+	device->createInstance(instanceExt, instanceCount);
+
+	// prepare the physical and abstract device including queues
+	gfxDevice->prepareDevice();
 }
 
 Engine::~Engine()
 {
 }
 
-World *Engine::createWorld(const std::string &filename, const std::string &name)
-{
-	// create a world using a omega engine scene file
-	std::unique_ptr<World> world = std::make_unique<World>(
-	    Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
-
-	// throw an error here as calling a function for specifically creating a world with a scene file.
-	if (!world->create(filename, name))
-	{
-		LOGGER_ERROR("Unable to create world as no omega-scene file found.");
-	}
-
-	auto outputWorld = world.get();
-	worlds.emplace(name, std::move(world));
-	this->currentWorld = name;
-
-	return outputWorld;
-}
-
 World *Engine::createWorld(const std::string &name)
 {
 	// create an empty world
-	std::unique_ptr<World> world = std::make_unique<World>(
-	    Managers::OE_MANAGERS_ALL, vkDevices[currentVkDevice], engineConfig);
+	std::unique_ptr<World> world = std::make_unique<World>();
 
 	world->create(name);
 
