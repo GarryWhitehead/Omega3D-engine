@@ -1,5 +1,5 @@
 #include "CameraManager.h"
-#include "Engine/Omega_Global.h"
+#include "Core/Omega_Global.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "VulkanAPI/BufferManager.h"
 
