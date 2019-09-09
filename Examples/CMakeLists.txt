@@ -1,24 +1,33 @@
-# Libraries required for the examples
-SET(APP_FILES
-	Application/Application.cpp 
-)
-
-IF(WIN32)
-	LIST(APPEND APP_FILES Application/Platforms/PlatformGlfw.cpp)
-ENDIF()
-
-ADD_LIBRARY(EXAMPLE_LIBS ${APP_FILES})
 
 # =======================================================================
 # Builds the example with the relevant libs
 FUNCTION(BUILD_OMEGA_APPLICATION APP_NAME)
+	MESSAGE("Building ${APP_NAME}.....")
 	SET(APP_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/${APP_NAME}")
 	SET(APP_MAIN_CPP "${APP_FOLDER}/main.cpp")
 
 	ADD_EXECUTABLE(${APP_NAME} ${APP_MAIN_CPP})
-	TARGET_LINK_LIBRARIES(${APP_NAME} PRIVATE ${EXAMPLE_LIBS} OMEGA_ENGINE)
+
+	# Common directories
+	TARGET_INCLUDE_DIRECTORIES(${APP_NAME} PRIVATE
+		${CMAKE_CURRENT_SOURCE_DIR}/Application
+		${CMAKE_CURRENT_SOURCE_DIR}/Application/Platforms
+		${CMAKE_CURRENT_SOURCE_DIR}
+	)
+
+	# And source files
+	TARGET_SOURCES(${APP_NAME} PRIVATE
+		Application/Application.cpp	Application/Application.h
+		Application/Platforms/PlatformGlfw.cpp	Application/Platforms/PlatformGlfw.h
+	)
+
+	# link with the omega engine lib
+	TARGET_LINK_LIBRARIES(${APP_NAME} PRIVATE OMEGA_ENGINE)
+
+	# use the general compiler options
 	TARGET_COMPILE_OPTIONS(${APP_NAME} PRIVATE ${OMEGA_CXX_FLGAS})
 	
+	# link with sanitizers if requied
 	IF(OMEGA_THREAD_SANITIZE OR OMEGA_THREAD_SANITIZE)
 		SET_TARGET_PROPERTIES(${NAME} PROPERTIES 
 			LINK_FLAGS "${OMEGA_LINK_FLAGS}"

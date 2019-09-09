@@ -1,6 +1,8 @@
 #pragma once
 
-#include "Application/Application.h"
+#include "Application.h"
+
+#include "Core/Scene.h"
 #include "Core/engine.h"
 #include "Core/world.h"
 #include "Managers/CameraManager.h"
@@ -20,10 +22,14 @@ using namespace OmegaEngine;
 int main(int argc, char* argv[])
 {
 	Application app;
-	std::unique_ptr<Engine> engine = Engine::Init("Scene Example", 1280, 700);
-	
+
+	Engine engine;
+
 	// create a new empty world
-	std::unique_ptr<World> world = engine->createWorld("SceneOne");
+	World* world = engine.createWorld("SceneOne");
+
+	// add a scene
+	Scene* scene = world->createScene();
 
 	// Use a gltf image as one of our scene objects
 	auto model = GltfModel::create("WaterBottle/WaterBottle.gltf");
@@ -31,7 +37,7 @@ int main(int argc, char* argv[])
 	model.worldScale(15.0f);
 	model.worldRotation(0.5, 0.0f, 0.5f, 0.5f);
 	model.build(world, obj);
-	world->addObject(obj);
+	scene.addObject(obj);
 
 	/*// Use a gltf image as one of our scene objects
 	auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
@@ -55,8 +61,9 @@ int main(int argc, char* argv[])
 
 	// create a flat plane
 	{
-		Object obj = ObjectManager::create(OEMaths::vec3f{ -0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
-		
+		Object obj =
+		    ObjectManager::create(OEMaths::vec3f{ -0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
+
 		auto model = Model::BuildStock();
 		model.transform(-0.2f, 0.0f, 0.0f);
 		model.type(Model::Stock::Plane);
@@ -77,8 +84,10 @@ int main(int argc, char* argv[])
 	world->addCameraToWorld();
 
 	// add different lights
-	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f, 0.5f);
-	world->addDirectionalLightToWorld({ 0.0f, 0.0f, 0.0f }, { 8.0f, 8.0f, 0.0f }, { 0.9f, 0.8f, 0.2f }, 100.0f, 10000.0f);
+	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f,
+	                           0.5f);
+	world->addDirectionalLightToWorld({ 0.0f, 0.0f, 0.0f }, { 8.0f, 8.0f, 0.0f }, { 0.9f, 0.8f, 0.2f }, 100.0f,
+	                                  10000.0f);
 	world->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 4000.0f, 2.0f);
 
 	// we could load multiple world here, but for this example we will stick with one

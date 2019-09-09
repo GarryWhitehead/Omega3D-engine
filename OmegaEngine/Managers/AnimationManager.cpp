@@ -1,9 +1,13 @@
 #include "AnimationManager.h"
+
+#include "Core/World.h"
+
 #include "Managers/TransformManager.h"
+
 #include "Models/ModelAnimation.h"
-#include "ObjectInterface/ComponentInterface.h"
-#include "ObjectInterface/ComponentTypes.h"
-#include "ObjectInterface/ObjectManager.h"
+
+#include "Types/ComponentTypes.h"
+
 #include "Utility/logger.h"
 
 namespace OmegaEngine
@@ -149,11 +153,9 @@ void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Obj
 	channel.object = &object;
 }
 
-void AnimationManager::updateFrame(double time, double dt,
-                                   std::unique_ptr<ObjectManager> &objectManager,
-                                   ComponentInterface *componentInterface)
+void AnimationManager::updateFrame(double time, World& world)
 {
-	auto &transformManager = componentInterface->getManager<TransformManager>();
+	auto &transManager = world.getTransManager();
 
 	double timeSecs = time / 1000000000;
 
@@ -176,14 +178,14 @@ void AnimationManager::updateFrame(double time, double dt,
 			{
 				OEMaths::vec4f trans;
 				trans.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
-				transformManager.updateObjectTranslation(obj, trans);
+				transManager.updateObjectTranslation(obj, trans);
 				break;
 			}
 			case Channel::PathType::Scale:
 			{
 				OEMaths::vec4f scale;
 				scale.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
-				transformManager.updateObjectScale(obj, scale);
+				transManager.updateObjectScale(obj, scale);
 				break;
 			}
 			case Channel::PathType::Rotation:
@@ -204,7 +206,7 @@ void AnimationManager::updateFrame(double time, double dt,
 				OEMaths::quatf rot;
 				rot.linearMix(quat1, quat2, phase);
 				rot.normalise();
-				transformManager.updateObjectRotation(obj, rot);
+				transManager.updateObjectRotation(obj, rot);
 				break;
 			}
 			case Channel::PathType::CubicScale:

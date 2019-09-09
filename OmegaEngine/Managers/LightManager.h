@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 
 #include <cstdint>
@@ -13,6 +12,9 @@
 
 namespace OmegaEngine
 {
+
+// forward declerations
+class World;
 
 struct LightPOV
 {
@@ -85,7 +87,7 @@ struct SpotLight : public LightBase
 	float intensity = 1000.0f;
 };
 
-class LightManager : public ManagerBase
+class LightManager
 {
 
 public:
@@ -138,7 +140,7 @@ public:
 	{
 		DirectionalLightUbo() = default;
 		DirectionalLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec4f& dir,
-		             const OEMaths::vec3f& col, float intensity)
+		                    const OEMaths::vec3f& col, float intensity)
 		    : lightMvp(mvp)
 		    , position(pos)
 		    , direction(dir)
@@ -156,19 +158,18 @@ public:
 	{
 		SpotLightUbo spotLights[MAX_SPOT_LIGHTS];
 		PointLightUbo pointLights[MAX_POINT_LIGHTS];
-		DirectionalLightUbo dirLights[MAX_DIR_LIGHTS];			// not anticipating as many directional lights required
+		DirectionalLightUbo dirLights[MAX_DIR_LIGHTS];    // not anticipating as many directional lights required
 	};
 
 	LightManager();
 	~LightManager();
 
 	// not used at present - just here to keep the inheritance demons happy
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
-	                 ComponentInterface* componentInterface) override;
+	void updateFrame(double dt, World& world);
 
-	void updateLightPositions(double time, double dt);
+	void updateLightPositions(double dt);
 
-	void updateDynamicBuffer(ComponentInterface* componentInterface);
+	void updateDynamicBuffer(World& world);
 
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
@@ -181,8 +182,8 @@ public:
 	                   float fov, float intensity, float fallOut,
 	                   const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f);
 
-	void LightManager::addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target,
-	                                       const OEMaths::vec3f& colour, float fov, float intensity);
+	void addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
+	                         float fov, float intensity);
 
 	uint32_t getLightCount() const
 	{

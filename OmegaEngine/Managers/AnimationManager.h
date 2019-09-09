@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Managers/ManagerBase.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
-#include "ObjectInterface/Object.h"
+
+#include "Types/Object.h"
 
 #include <memory>
 #include <vector>
@@ -15,12 +15,11 @@ namespace OmegaEngine
 // forward declerations
 class Object;
 class TransformManager;
-class ObjectManager;
+class World;
 struct ModelAnimation;
 struct AnimationComponent;
-class ComponentInterface;
 
-class AnimationManager : public ManagerBase
+class AnimationManager
 {
 
 public:
@@ -68,11 +67,10 @@ public:
 	AnimationManager();
 	~AnimationManager();
 
-	void addComponentToManager(AnimationComponent *component, Object &object);
-	void addAnimation(std::unique_ptr<ModelAnimation> &animation);
+	void addAnimation(std::unique_ptr<ModelAnimation>& animation);
+	void addAnimation(size_t channelIndex, size_t bufferIndex, Object& object);
 
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface) override;
+	void updateFrame(double time, World& world);
 
 	uint32_t getBufferOffset() const
 	{

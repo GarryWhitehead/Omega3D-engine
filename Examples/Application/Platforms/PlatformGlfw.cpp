@@ -1,52 +1,72 @@
-#include "glfw.h"
+#include "PlatformGlfw.h"
 
-namespace Application
+#include "GLFW/glfw3native.h"
+
+GlfwPlatform::GlfwPlatform()
 {
-bool GlfwPlatform::init()
-{
-    if (!glfwInit())
-    {
-        return false;
-    }
-    return true;
 }
 
-bool GlfwPlatform::createWindow()
+GlfwPlatform::~GlfwPlatform()
 {
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+}
 
-    monitor = glfwGetPrimaryMonitor();
-    vmode = glfwGetVideoMode(monitor);
+bool GlfwPlatform::init()
+{
+	if (!glfwInit())
+	{
+		return false;
+	}
+	return true;
+}
 
-    window = glfwCreateWindow(windowWidth, windowHeight, winTitle.c_str(), nullptr, nullptr);
-    if (!window)
-    {
-        return false;
-    }
+bool GlfwPlatform::createWindow(uint32_t& width, uint32_t& height, const char* title)
+{
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+	glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    // ** set window inputs **
-    glfwSetWindowUserPointer(window, this);
-	glfwSetKeyCallback(window, keyCallback);                        // setup key response
-    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);    // centre cursor and disable cursor
-    glfwSetCursorPosCallback(window, mouseCallback);                // mouse movement feedback
-    glfwSetMouseButtonCallback(window, mouseButtonPressCallback);   // mouse button callback
+	// if no title specified, no window decorations will be used
+	if (!title)
+	{
+		glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
+	}
 
-    return true;
+	// if dimensions set to zero, get the primary monitor which will create a fullscreen, borderless window
+	if (width == 0 && height == 0)
+	{
+		monitor = glfwGetPrimaryMonitor();
+		vmode = glfwGetVideoMode(monitor);
+		width = vmode->width;
+		height = vmode->height;
+	}
+
+	window = glfwCreateWindow(width, height, title, monitor, nullptr);
+	if (!window)
+	{
+		return false;
+	}
+
+	// ** set window inputs **
+	glfwSetWindowUserPointer(window, this);
+	glfwSetKeyCallback(window, keyCallback);                         // setup key response
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);     // centre cursor and disable cursor
+	glfwSetCursorPosCallback(window, mouseCallback);                 // mouse movement feedback
+	glfwSetMouseButtonCallback(window, mouseButtonPressCallback);    // mouse button callback
+
+	return true;
 }
 
 void* GlfwPlatform::getNativeWinPointer()
 {
-	#ifdef _WIN32
+#ifdef _WIN32
 	return (void*)glfwGetWin32Window(window);
-	#endif
+#endif
 }
 
-std::tuple<const char**, uint32_t> GlfwPlatform::getInstanceExt() 
+std::tuple<const char**, uint32_t> GlfwPlatform::getInstanceExt()
 {
 	uint32_t count = 0;
-    const char** glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&count)
+	const char** glfwExtensions;
+	glfwExtensions = glfwGetRequiredInstanceExtensions(&count);
 
 	return std::make_tuple(glfwExtensions, count);
 }
@@ -56,30 +76,30 @@ void GlfwPlatform::poll()
 	glfwPollEvents();
 }
 
-void GlfwPlatform::keyResponse(GLFWwindow *window, int key, int scan_code, int action, int mode)
+void GlfwPlatform::keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
 	KeyboardPressEvent event;
 
 	if (key == GLFW_KEY_W)
 	{
-		event.isMovingForward = true; // forwrards (z-axis)
+		event.isMovingForward = true;    // forwrards (z-axis)
 	}
 	if (key == GLFW_KEY_S)
 	{
-		event.isMovingBackward = true; // backwards (z-axis)
+		event.isMovingBackward = true;    // backwards (z-axis)
 	}
 	if (key == GLFW_KEY_A)
 	{
-		event.isMovingLeft = true; // leftwards movement (x-axis)
+		event.isMovingLeft = true;    // leftwards movement (x-axis)
 	}
 	if (key == GLFW_KEY_D)
 	{
-		event.isMovingRight = true; // rightwards movement (x-axis)
+		event.isMovingRight = true;    // rightwards movement (x-axis)
 	}
 
 	if (key == GLFW_KEY_ESCAPE)
 	{
-		glfwSetWindowShouldClose(window, true); // exit
+		glfwSetWindowShouldClose(window, true);    // exit
 	}
 
 	if (Global::eventManager())
@@ -89,18 +109,18 @@ void GlfwPlatform::keyResponse(GLFWwindow *window, int key, int scan_code, int a
 	}
 }
 
-void InputManager::mouseButtonResponse(GLFWwindow *window, int button, int action, int mods)
+void GlfwPlatform::mouseButtonResponse(GLFWwindow* window, int button, int action, int mods)
 {
 	// check the left mouse button
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
 	{
 		if (action == GLFW_PRESS)
 		{
-			leftButtonPress = true;
+			leftMousePress = true;
 		}
 		else
 		{
-			leftButtonPress = false;
+			leftMousePress = false;
 		}
 	}
 
@@ -109,11 +129,11 @@ void InputManager::mouseButtonResponse(GLFWwindow *window, int button, int actio
 	{
 		if (action == GLFW_PRESS)
 		{
-			rightButtonPress = true;
+			rightMousePress = true;
 		}
 		else
 		{
-			rightButtonPress = false;
+			rightMousePress = false;
 		}
 	}
 }
@@ -124,7 +144,7 @@ void GlfwPlatform::mouseMoveResponse(double xpos, double ypos)
 
 	if (Global::eventManager())
 	{
-		if (leftButtonPress)
+		if (leftMousePress)
 		{
 			// update the camera position instantly so we reduce the chnace of lag
 			Global::eventManager()->instantNotification<MouseMoveEvent>(event);
@@ -138,22 +158,22 @@ bool GlfwPlatform::buttonState(int button)
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
 	{
-		state = leftButtonPress;
+		state = leftMousePress;
 	}
 	else if (button == GLFW_MOUSE_BUTTON_RIGHT)
 	{
-		state = rightButtonPress;
+		state = rightMousePress;
 	}
 
 	return state;
 }
 
-void GlfwPlatform::getCursorPos(GLFWwindow *window, double *xpos, double *ypos)
+void GlfwPlatform::getCursorPos(GLFWwindow* window, double* xpos, double* ypos)
 {
 	glfwGetCursorPos(window, xpos, ypos);
 }
 
-void GlfwPlatform::switchWindowCursorState(GLFWwindow *window)
+void GlfwPlatform::switchWindowCursorState(GLFWwindow* window)
 {
 	cursorState ^= 1;
 	glfwSetInputMode(window, GLFW_CURSOR, cursorState ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
@@ -161,34 +181,20 @@ void GlfwPlatform::switchWindowCursorState(GLFWwindow *window)
 
 // static functions for glfw input. Kind of a hack to allow for accessing class member functions ===========================================================================================================================================================================================================
 
-void keyCallback(GLFWwindow *window, int key, int scan_code, int action, int mode)
+void keyCallback(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
-	InputManager *inputSys = reinterpret_cast<InputManager *>(glfwGetWindowUserPointer(window));
+	GlfwPlatform* inputSys = reinterpret_cast<GlfwPlatform*>(glfwGetWindowUserPointer(window));
 	inputSys->keyResponse(window, key, scan_code, action, mode);
 }
 
-void mouseButtonPressCallback(GLFWwindow *window, int button, int action, int mods)
+void mouseButtonPressCallback(GLFWwindow* window, int button, int action, int mods)
 {
-	InputManager *inputSys = reinterpret_cast<InputManager *>(glfwGetWindowUserPointer(window));
+	GlfwPlatform* inputSys = reinterpret_cast<GlfwPlatform*>(glfwGetWindowUserPointer(window));
 	inputSys->mouseButtonResponse(window, button, action, mods);
 }
 
-void mouseCallback(GLFWwindow *window, double xpos, double ypos)
+void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
-	InputManager *inputSys = reinterpret_cast<InputManager *>(glfwGetWindowUserPointer(window));
+	GlfwPlatform* inputSys = reinterpret_cast<GlfwPlatform*>(glfwGetWindowUserPointer(window));
 	inputSys->mouseMoveResponse(xpos, ypos);
-}
-
-// ** helper functions **
-
-void GlfwPlatform::setWindowWidth(const uint32_t width)
-{
-    winWidth = width;
-}
-
-void GlfwPlatform::setWindowHeight(const uint32_t height)
-{
-    winHeight = height;
-}
-
 }

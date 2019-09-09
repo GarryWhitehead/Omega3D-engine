@@ -1,7 +1,8 @@
 #pragma once
-#include "AssetInterface/MappedTexture.h"
-#include "Managers/ManagerBase.h"
+#include "Types/MappedTexture.h"
+
 #include "Models/ModelMaterial.h"
+
 #include "OEMaths/OEMaths.h"
 
 #include <array>
@@ -59,7 +60,7 @@ struct MaterialInfo
 	bool usingSpecularGlossiness = false;
 };
 
-class MaterialManager : public ManagerBase
+class MaterialManager
 {
 
 public:
@@ -75,10 +76,6 @@ public:
 
 	MaterialManager();
 	~MaterialManager();
-
-	// a per-frame update if the material data becomes dirty
-	void updateFrame(double time, double dt, std::unique_ptr<ObjectManager> &objectManager,
-	                 ComponentInterface *componentInterface) override;
 
 	void addComponentToManager(MaterialComponent *component);
 

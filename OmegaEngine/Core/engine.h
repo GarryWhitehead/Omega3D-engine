@@ -13,12 +13,12 @@
 struct GLFWwindow;
 struct GLFWmonitor;
 struct GLFWvidmode;
+struct NativeWindowWrapper;
 
 namespace OmegaEngine
 {
 // forward declerations
 class World;
-class InputManager;
 
 // current state of the application
 class EngineState
@@ -54,10 +54,9 @@ private:
 class Engine
 {
 public:
-	Engine(std::string win_title, uint32_t width, uint32_t height);
+	Engine(NativeWindowWrapper& window);
 	~Engine();
 
-	World *createWorld(const std::string &filename, const std::string &name);
 	World *createWorld(const std::string &name);
 
 	void loadConfigFile();

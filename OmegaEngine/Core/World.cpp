@@ -1,5 +1,11 @@
 #include "World.h"
+
 #include "Utility/logger.h"
+
+#include "Core/Omega_Global.h"
+#include "Core/Scene.h"
+
+#include "Managers/EventManager.h"
 
 namespace OmegaEngine
 {
@@ -23,29 +29,30 @@ void World::prepare(const std::string& name)
 	// an empty world, so not much to do for now!
 }
 
+Scene* World::createScene()
+{
+	Scene scene(*this);
+	scenes.push_back(scene);
+	return &scenes.back();
+}
+
 void World::update(double time, double dt)
 {
 	// update on a per-frame basis
-
 	// all other managers
-	componentInterface->update(time, dt, objectManager);
+	animManager.updateFrame(time, *this);
+	cameraManager.updateFrame(time, dt);
+	lightManager.updateFrame(dt, *this);
+	meshManager.updateFrame();
+	transManager.updateFrame(objManager);
 
 	// newly added assets need to be hosted on the gpu
 	assetManager.update();
 
 	// check whether there are any queued events to deal with
 	Global::eventManager()->notifyQueued();
-
-	hasUpdatedOnce = true;
 }
 
-void World::render(double interpolation)
-{
-	if (hasUpdatedOnce)
-	{
-		renderInterface->render(interpolation);
-	}
-}
 // ** manager helper functions **
 AnimationManager& World::getAnimManager()
 {
@@ -64,7 +71,7 @@ LightManager& World::getLightManager()
 
 MaterialManager& World::getMatManager()
 {
-	return materialManager;
+	return matManager;
 }
 
 MeshManager& World::getMeshManager()
@@ -72,9 +79,9 @@ MeshManager& World::getMeshManager()
 	return meshManager;
 }
 
-TranformManager& World::getTransManager()
+TransformManager& World::getTransManager()
 {
-	return transformManager;
+	return transManager;
 }
 
 AssetManager& World::getAssetManager()

@@ -1,10 +1,13 @@
 #include "LightManager.h"
-#include "Engine/Omega_Global.h"
+
+#include "Core/Omega_Global.h"
+#include "Core/World.h"
+
 #include "Managers/CameraManager.h"
 #include "Managers/EventManager.h"
+
 #include "OEMaths/OEMaths_transform.h"
-#include "ObjectInterface/ComponentInterface.h"
-#include "ObjectInterface/ObjectManager.h"
+
 #include "VulkanAPI/BufferManager.h"
 
 
@@ -114,7 +117,7 @@ void LightManager::addDirectionalLight(const OEMaths::vec3f& position, const OEM
 }
 
 
-void LightManager::updateLightPositions(double time, double dt)
+void LightManager::updateLightPositions(double dt)
 {
 	// update the timer first - a pretty simple fudged timer but adequate for lighting
 	// TODO: make this a config option
@@ -161,11 +164,11 @@ void LightManager::updateLightPositions(double time, double dt)
 	}
 }
 
-void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
+void LightManager::updateDynamicBuffer(World& world)
 {
 	lightPovDataSize = 0;
 
-	auto& cameraManager = componentInterface->getManager<CameraManager>();
+	auto& cameraManager = world.getCameraManager();
 
 	for (auto& info : lights)
 	{
@@ -188,15 +191,14 @@ void LightManager::updateDynamicBuffer(ComponentInterface* componentInterface)
 	Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
 }
 
-void LightManager::updateFrame(double time, double dt, std::unique_ptr<ObjectManager>& objectManager,
-                               ComponentInterface* componentInterface)
+void LightManager::updateFrame(double dt, World& world)
 {
-	updateLightPositions(time, dt);
+	updateLightPositions(dt);
 
 	if (isDirty)
 	{
 		// update dynamic buffers used by shadow pipeline
-		updateDynamicBuffer(componentInterface);
+		updateDynamicBuffer(world);
 
 		// now update ready for uploading on the gpu side
 		uint32_t spotlightCount = 0;

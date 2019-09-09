@@ -13,24 +13,20 @@
 #include "external/rapidjson/document.h"
 #include "external/rapidjson/stringbuffer.h"
 
-
-
 using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
 
-Engine::Engine()
+Engine::Engine(NativeWindowWrapper& window)
 {
 	// load config file if there is one, otherwise use default settings
 	loadConfigFile();
 
-	uint32_t instanceCount;
-	const char **instanceExt = glfwGetRequiredInstanceExtensions(&instanceCount);
 	device->createInstance(instanceExt, instanceCount);
 
 	// prepare the physical and abstract device including queues
-	gfxDevice->prepareDevice();
+	gfxDevice.prepareDevice();
 }
 
 Engine::~Engine()
@@ -42,13 +38,13 @@ World *Engine::createWorld(const std::string &name)
 	// create an empty world
 	std::unique_ptr<World> world = std::make_unique<World>();
 
-	world->create(name);
+	world->prepare(name);
 
-	auto outputWorld = world.get();
 	worlds.emplace(name, std::move(world));
 	this->currentWorld = name;
 
-	return outputWorld;
+	// not exactly unique - maybe use a raw pointer here
+	return worlds[name].get();
 }
 
 void Engine::loadConfigFile()

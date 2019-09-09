@@ -15,6 +15,7 @@
 #include "Utility/logger.h"
 
 #include "VulkanAPI/BufferManager.h"
+
 #include "Rendering/ProgramStateManager.h"
 
 namespace OmegaEngine
