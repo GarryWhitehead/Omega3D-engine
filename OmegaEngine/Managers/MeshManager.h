@@ -1,7 +1,9 @@
 #pragma once
-#include "Managers/ManagerBase.h"
+#include "Types/Object.h"
+
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
+
 #include "Utility/logger.h"
 
 #include <memory>
@@ -46,7 +48,7 @@ struct StaticMesh
 	uint32_t indexBufferOffset;
 };
 
-class MeshManager : public ManagerBase
+class MeshManager
 {
 
 public:
@@ -89,7 +91,7 @@ public:
 	/// called on a per-frame basis 
 	void updateFrame();
 
-	void addMesh(std::unique_ptr<ModelMesh>& mesh);
+	void addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj);
 
 	void linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent);
 

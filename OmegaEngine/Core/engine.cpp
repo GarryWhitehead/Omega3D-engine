@@ -1,15 +1,17 @@
-#include "Engine/engine.h"
-#include "Engine/Omega_Global.h"
-#include "Engine/World.h"
-#include "Managers/InputManager.h"
+#include "Core/engine.h"
+#include "Core/Omega_Global.h"
+#include "Core/World.h"
+
 #include "Utility/FileUtil.h"
 #include "Utility/Timer.h"
+
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Device.h"
+
 #include "utility/logger.h"
 
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
+#include "external/rapidjson/document.h"
+#include "external/rapidjson/stringbuffer.h"
 
 #include "glfw/glfw3.h"
 

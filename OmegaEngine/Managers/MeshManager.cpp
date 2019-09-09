@@ -1,13 +1,19 @@
 #include "MeshManager.h"
-#include "Engine/Omega_Global.h"
+
+#include "Core/Omega_Global.h"
+
 #include "Managers/EventManager.h"
+#include "Managers/ObjectManager.h"
+
 #include "Models/ModelMesh.h"
+
 #include "OEMaths/OEMaths_transform.h"
-#include "ObjectInterface/ComponentTypes.h"
-#include "ObjectInterface/Object.h"
-#include "ObjectInterface/ObjectManager.h"
+
+#include "Types/ComponentTypes.h"
+
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
+
 #include "VulkanAPI/BufferManager.h"
 #include "Rendering/ProgramStateManager.h"
 
@@ -38,7 +44,7 @@ void MeshManager::linkMaterialWithMesh(MeshComponent* meshComponent, MaterialCom
 	}
 }
 
-size_t MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh)
+void MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj)
 {
 	StaticMesh newMesh;
 	auto vertexData = mesh->vertices;
@@ -108,7 +114,9 @@ size_t MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh)
 	meshBuffer.emplace_back(newMesh);
 
 	// store the buffer index in the mesh component
-	return meshBuffer.size() - 1;
+	MeshComponent mcomp;
+	mcomp.setIndex(index);
+	obj.addComponent<MeshComponent>(mcomp);
 }
 
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Omega_Config.h"
+#include "Core/Omega_Config.h"
 #include "VulkanAPI/Device.h"
 
 #include <chrono>
@@ -60,17 +60,9 @@ public:
 	World *createWorld(const std::string &filename, const std::string &name);
 	World *createWorld(const std::string &name);
 
-	void createWindow(const std::string &win_title);
 	void loadConfigFile();
 
 	void startLoop();
-
-	// helper functions
-	GLFWwindow *getGlfwWindow()
-	{
-		assert(window != nullptr);
-		return window;
-	}
 
 private:
 	// configuration for the omega engine

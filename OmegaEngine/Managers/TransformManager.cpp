@@ -1,13 +1,17 @@
 #include "TransformManager.h"
-#include "Engine/Omega_Global.h"
+
+#include "Core/Omega_Global.h"
+#include "Core/Omega_Common.h"
+
 #include "Managers/EventManager.h"
 #include "Managers/MeshManager.h"
+#include "Managers/ObjectManager.h"
+
 #include "Models/ModelSkin.h"
 #include "Models/ModelTransform.h"
-#include "ObjectInterface/ComponentTypes.h"
-#include "ObjectInterface/Object.h"
-#include "ObjectInterface/ObjectManager.h"
-#include "Omega_Common.h"
+
+#include "Types/ComponentTypes.h"
+
 #include "Utility/GeneralUtil.h"
 #include "VulkanAPI/BufferManager.h"
 
@@ -41,14 +45,14 @@ TransformManager::~TransformManager()
 	}
 }
 
-size_t TransformManager::addTransform(std::unique_ptr<ModelTransform>& trans)
+void TransformManager::addTransform(std::unique_ptr<ModelTransform>& trans, Object& obj)
 {
 	TransformData transform;
 
 	size_t index = 0;
 	if (trans->hasMatrix)
 	{
-		transform.addLocalTransform(trans->localMatrix);
+		transform.setLocalMatrix(trans->trsMatrix);
 	}
 	else
 	{
@@ -59,7 +63,9 @@ size_t TransformManager::addTransform(std::unique_ptr<ModelTransform>& trans)
 
 	transforms.emplace_back(transform);
 
-	return transforms.size() - 1;
+	TransformComponent comp;
+	comp.setIndex(index);
+	obj.addComponent<TransformComponent>(comp);
 }
 
 bool TransformManager::addSkeleton(size_t index, bool isRoot, Object *object)
@@ -257,7 +263,7 @@ void TransformManager::updateObjectTranslation(Object *obj, OEMaths::vec4f trans
 	// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
 	isDirty = true;
 }
-q
+
 void TransformManager::updateObjectScale(Object *obj, OEMaths::vec4f scale)
 {
 	uint32_t index = obj->getComponent<TransformComponent>().index;

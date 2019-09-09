@@ -94,11 +94,7 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	if (node->hasMesh())
 	{
 		auto& meshManager = world.getMeshManager();
-		size_t index = meshManager.addMesh(node->getMesh());
-
-		MeshComponent mcomp;
-		mcomp.setIndex(index);
-		parentObj->addComponent<MeshComponent>(mcomp);
+		meshManager.addMesh(node->getMesh());
 
 		// TODO: obtain these parameters from the config once it has been refactored
 		parentObj->addComponent<ShadowComponent>(0.0f, 1.25f, 1.75f);
@@ -106,11 +102,7 @@ void buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentO
 	if (node->hasTransform())
 	{
 		auto& transManager = world.getTransManager();
-		size_t index = transManager->addTransform(node->getTransform());
-		
-		TransformComponent comp;
-		comp.setIndex(index);
-		parentObj->addComponent<TransformComponent>(comp);
+		transManager->addTransform(node->getTransform(), parentObj);
 	}
 	
 	if (node->hasSkin())

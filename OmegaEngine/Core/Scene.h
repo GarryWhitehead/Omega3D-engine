@@ -1,7 +1,10 @@
 #pragma once
 
 #include "Types/Object.h"
+
 #include "Core/World.h"
+
+#include "Managers/ObjectManager.h"
 
 #include <vector>
 
@@ -19,19 +22,6 @@ public:
 	void update();
 
 	/**
-	* Adds a renderable type to the list.
-	* @param T renderable type
-	* @param args argument list which matches the init list for this particular renderable
-	*/
-
-	template <typename T, typename... Args>
-	void addRenderable(Args&&... args)
-	{
-		T* renderable = new T(std::forward<Args>(args)...);
-		renderables.push_back({ renderable });
-	}
-
-	/**
 	* Gets a renderable type from the list
 	* @param index the index of the renderable type
 	* @return A renderable type - this will be as the base class
@@ -42,11 +32,35 @@ public:
 		return renderables[index];
 	}
 
+	/**
+	* Return an instance of the object manager
+	* Used by the user for creating objects - usually passed to the scene
+	*/
+	ObjectManager& getObjManager()
+	{
+		return objManager;
+	}
 
 private:
 	
-	/// objects assoicated with this scene
-	std::vector<Object> objects;
+	// private functions to the scene
+	
+	/**
+	* Adds a renderable type to the list.
+	* @param T renderable type
+	* @param args argument list which matches the init list for this particular renderable
+	*/
+	template <typename T, typename... Args>
+	void addRenderable(Args&&... args)
+	{
+		T* renderable = new T(std::forward<Args>(args)...);
+		renderables.push_back({ renderable });
+	}
+
+private:
+
+	/// objects assoicated with this scene dealt with by the object manager
+	ObjectManager objManager;
 
 	/// contains all the renderable objects associated with this scene.
 	/// This data is used by the renderer to render the scene to the surface 
