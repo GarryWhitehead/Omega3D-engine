@@ -16,7 +16,7 @@ ProgramStateManager::~ProgramStateManager()
 }
 
 ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
-                                               std::unique_ptr<RendererBase>& renderer, const StateType type,
+                                               const StateType type,
                                                const StateTopology topology, const StateMesh meshType,
                                                const StateAlpha alpha)
 {
@@ -35,17 +35,17 @@ ProgramState* ProgramStateManager::createState(std::unique_ptr<VulkanAPI::Interf
 	{
 	case StateType::Mesh:
 	{
-		RenderableMesh::createMeshPipeline(vkInterface, renderer, newState, id.flags);
+		RenderableMesh::createMeshPipeline(vkInterface, newState, id.flags);
 		break;
 	}
 	case StateType::ShadowMapped:
 	{
-		RenderableShadow::createShadowPipeline(vkInterface, renderer, newState, id.flags);
+		RenderableShadow::createShadowPipeline(vkInterface, newState, id.flags);
 		break;
 	}
 	case StateType::Skybox:
 	{
-		RenderableSkybox::createSkyboxPipeline(vkInterface, renderer, newState, id.flags);
+		RenderableSkybox::createSkyboxPipeline(vkInterface, newState, id.flags);
 		break;
 	}
 	default:

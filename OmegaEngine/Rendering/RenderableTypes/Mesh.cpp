@@ -1,42 +1,49 @@
 #include "Mesh.h"
+
 #include "Managers/CameraManager.h"
 #include "Managers/MaterialManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
-#include "Models/ModelMaterial.h"
-#include "ObjectInterface/ComponentInterface.h"
-#include "ObjectInterface/Object.h"
+
+#include "Types/Object.h"
+#include "Types/ComponentTypes.h"
+
 #include "Rendering/RenderQueue.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
+
 #include "Threading/ThreadPool.h"
+
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkTextureManager.h"
 
+#include "Core/World.h"
+
 namespace OmegaEngine
 {
 
-RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& componentInterface,
-                               std::unique_ptr<VulkanAPI::Interface>& vkInterface, StaticMesh& mesh,
-                               PrimitiveMesh& primitive, Object& obj,
-                               std::unique_ptr<ProgramStateManager>& stateManager,
-                               std::unique_ptr<RendererBase>& renderer)
+RenderableMesh::RenderableMesh()
     : RenderableBase(RenderTypes::StaticMesh)
+{
+}
+
+void RenderableMesh::prepare(World& world, StaticMesh& mesh, PrimitiveMesh& primitive, Object& obj)
 {
 	VulkanAPI::VkTextureManager::TextureLayoutInfo layoutInfo;
 
 	// get the material for this primitive mesh from the manager
-	auto& materialManager = componentInterface->getManager<MaterialManager>();
-	auto& mat = materialManager.get(primitive.materialId);
+	auto& matManager = world.getMatManager();
+	auto& mat = matManager.getMaterial(primitive.materialId);
 
 	// create the sorting key for this mesh
 	sortKey = RenderQueue::createSortKey(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
 
 	// fill out the data which will be used for rendering
+	// using a static cast here as faster than a reinterpret and we can be certain it ia mesh instance
 	instanceData = new MeshInstance;
-	MeshInstance* meshInstance = reinterpret_cast<MeshInstance*>(instanceData);
+	MeshInstance* meshInstance = static_cast<MeshInstance*>(instanceData);
 
 	// skinned ior non-skinned mesh?
 	meshInstance->type = mesh.type;
@@ -60,69 +67,49 @@ RenderableMesh::RenderableMesh(std::unique_ptr<ComponentInterface>& componentInt
 	// a pointer to this instance. Note: states should be created were possible before hand as they are expenisive
 	// and will result in stuttering if created during the rendering loop.
 	// This can be reduced by loading cached data which will be added at some point in the future.
-	meshInstance->state =
-	    stateManager->createState(vkInterface, renderer, StateType::Mesh, mesh.topology, mesh.type, stateAlpha);
+	meshInstance->state = stateManager->createState(vkInterface, StateType::Mesh, mesh.topology, mesh.type, stateAlpha);
 
 	// pointer to the mesh pipeline
 	if (mesh.type == StateMesh::Static)
 	{
-		meshInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("StaticVertices");
-		layoutInfo = vkInterface->gettextureManager()->getTextureDescriptorLayout("Mesh");
+		meshInstance->vertexBufferID = "StaticVertices";
+		meshInstance->layoutInfoID = "StaticMesh";
 	}
 	else
 	{
-		meshInstance->vertexBuffer = vkInterface->getBufferManager()->getBuffer("SkinnedVertices");
-		layoutInfo = vkInterface->gettextureManager()->getTextureDescriptorLayout("SkinnedMesh");
+		meshInstance->vertexBufferID = "SkinnedVertices";
+		meshInstance->layoutInfoID = "SkinnedMesh";
 		meshInstance->skinnedDynamicOffset = obj.getComponent<SkinnedComponent>().dynamicUboOffset;
 	}
 
 	// index into the main buffer - this is the vertex offset plus the offset into the actual memory segment
 	meshInstance->vertexOffset = mesh.vertexBufferOffset;
 	meshInstance->indexOffset = mesh.indexBufferOffset;
-	meshInstance->indexBuffer = vkInterface->getBufferManager()->getBuffer("Indices");
+	meshInstance->indexBufferID = "Indices";
 
 	// per face indicies
 	meshInstance->indexPrimitiveOffset = primitive.indexBase;
 	meshInstance->indexPrimitiveCount = primitive.indexCount;
 
-	meshInstance->descriptorSet.init(vkInterface->getDevice(), *layoutInfo.layout, layoutInfo.setValue);
-	vkInterface->gettextureManager()->updateGroupedDescriptorSet(meshInstance->descriptorSet, mat.name.c_str(),
-	                                                             layoutInfo.setValue);
-
-	// material push block - ugly but can't see a way around this bulk of code!
-	meshInstance->materialPushBlock.baseColorFactor = mat.factors.baseColour;
-	meshInstance->materialPushBlock.metallicFactor = mat.factors.metallic;
-	meshInstance->materialPushBlock.roughnessFactor = mat.factors.roughness;
-	meshInstance->materialPushBlock.emissiveFactor = mat.factors.emissive;
-	meshInstance->materialPushBlock.specularFactor = mat.factors.specular;
-	meshInstance->materialPushBlock.diffuseFactor =
-	    OEMaths::vec3f{ mat.factors.diffuse.getX(), mat.factors.diffuse.getY(), mat.factors.diffuse.getZ() };
-	meshInstance->materialPushBlock.alphaMask = (float)mat.alphaMask;
-	meshInstance->materialPushBlock.alphaMaskCutoff = mat.alphaMaskCutOff;
-	meshInstance->materialPushBlock.haveBaseColourMap =
-	    mat.hasTexture[(int)ModelMaterial::TextureId::BaseColour] ? 1 : 0;
-	meshInstance->materialPushBlock.haveMrMap =
-	    mat.hasTexture[(int)ModelMaterial::TextureId::MetallicRoughness] ? 1 : 0;
-	meshInstance->materialPushBlock.haveNormalMap = mat.hasTexture[(int)ModelMaterial::TextureId::Normal] ? 1 : 0;
-	meshInstance->materialPushBlock.haveAoMap = mat.hasTexture[(int)ModelMaterial::TextureId::Occlusion] ? 1 : 0;
-	meshInstance->materialPushBlock.haveEmissiveMap = mat.hasTexture[(int)ModelMaterial::TextureId::Emissive] ? 1 : 0;
-	meshInstance->materialPushBlock.usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
-	meshInstance->materialPushBlock.baseColourUvSet = mat.uvSets.baseColour;
-	meshInstance->materialPushBlock.metallicRoughnessUvSet = mat.uvSets.metallicRoughness;
-	meshInstance->materialPushBlock.normalUvSet = mat.uvSets.normal;
-	meshInstance->materialPushBlock.occlusionUvSet = mat.uvSets.occlusion;
-	meshInstance->materialPushBlock.emissiveUvSet = mat.uvSets.emissive;
-
-	if (meshInstance->materialPushBlock.usingSpecularGlossiness)
-	{
-		meshInstance->materialPushBlock.metallicRoughnessUvSet = mat.uvSets.specularGlossiness;
-		meshInstance->materialPushBlock.baseColourUvSet = mat.uvSets.diffuse;
-	}
+	// prepare the material data 
+	meshInstance->pushBlock.prepare(mat);
 }
 
-void RenderableMesh::createMeshPipeline(std::unique_ptr<VulkanAPI::Interface>& vkInterface,
-                                        std::unique_ptr<RendererBase>& renderer,
-                                        std::unique_ptr<ProgramState>& state, StateId::StateFlags& flags)
+void RenderableMesh::preparePStateInfo(StateId::StateFlags& flags)
+{
+	
+	info.addShaderPath(PStateInfo::ShaderTarget::Vertex, "model/model.vert");
+	info.addShaderDefinition("");
+	info.setMaxSets(MAX_MATERIAL_SETS);
+	info.setInitSetOnly(true);
+	info.addUboTargets("CameraUbo", "Dynamic_StaticMeshUbo", "Dynamic_SkinnedUbo");
+	
+	info.setTopology(flags.topology);
+}
+
+void RenderableMesh::createMeshPipeline(
+                                        
+                                        )
 {
 	// load shaders
 	if (flags.mesh == StateMesh::Static)
@@ -198,7 +185,7 @@ void RenderableMesh::createMeshPipeline(std::unique_ptr<VulkanAPI::Interface>& v
 	// use stencil to fill in with ones where geometry is drawn
 	state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eAlways, vk::StencilOp::eReplace,
 	                                            vk::StencilOp::eReplace, vk::StencilOp::eReplace, 0xff, 0xff, 1);
-
+	
 	state->pipeline.setDepthState(VK_TRUE, VK_TRUE);
 	state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eBack);
 	state->pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);

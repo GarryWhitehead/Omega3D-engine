@@ -27,10 +27,10 @@ struct MaterialInfo
 
 	struct Factors
 	{
-		OEMaths::vec3f emissive = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
-		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
-		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1.0f };
-		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f, 0.0f, 0.0f };
+		OEMaths::vec3f emissive = OEMaths::vec3f{ 0.0f };
+		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f };
+		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f };
+		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f };
 
 		float specularGlossiness = 1.0f;
 		float roughness = 1.0f;
@@ -81,7 +81,8 @@ public:
 
 	void addMaterial(std::unique_ptr<ModelMaterial> &material,
 	                 std::vector<std::unique_ptr<ModelImage>> &images);
-	MaterialInfo &get(uint32_t index);
+	
+	MaterialInfo &getMaterial(uint32_t index);
 
 	uint32_t getBufferOffset() const
 	{

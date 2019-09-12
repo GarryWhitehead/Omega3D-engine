@@ -4,6 +4,8 @@
 
 #include "Platforms/PlatformGlfw.h"
 
+#include "Types/NativeWindowWrapper.h"
+
 #include <cstdint>
 #include <tuple>
 
@@ -12,17 +14,6 @@ class Application
     
 public:
     
-    /**
-     * A wrapper containing all the information needed to create a swapchain.
-     */
-    struct NativeWindowWrapper
-    {
-        void *nativeWin;
-        uint32_t width;
-        uint32_t height;
-        std::tuple<const char**, uint32_t> extensions;
-    };
-
     Application();
     ~Application();
 

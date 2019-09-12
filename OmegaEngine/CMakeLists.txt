@@ -19,10 +19,11 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/utility
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/DataTypes
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Platform
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${EXTERNAL_DIR}/tiny-gltf
-	${EXTERNAL_DIR}/rapidjson
-	${EXTERNAL_DIR}/rapidjson/include/rapidjson
+	
+	PRIVATE
+	${VULKAN_HEADERS_DIR}
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -60,6 +61,8 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/Object.cpp Types/Object.h
 	Types/ComponentTypes.h
 	Types/MappedTexture.cpp Types/MappedTexture.h
+	Types/NativeWindowWrapper.h
+	Types/PStateInfo.h
 	
 	OEMaths/OEMaths.cpp OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h
@@ -100,6 +103,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/Timer.cpp utility/Timer.h
 	
 	VulkanAPI/DataTypes/Texture.cpp VulkanAPI/DataTypes/Texture.h
+
+	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
+
 	VulkanAPI/BufferManager.cpp VulkanAPI/BufferManager.h
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
 	VulkanAPI/CommandBufferManager.cpp VulkanAPI/CommandBufferManager.h
@@ -127,9 +133,10 @@ ELSE()
 ENDIF()
 
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
-	${Vulkan_LIBRARY} 
+	${Vulkan_LIBRARIES} 
 	${TINY_GLTF} 
 	${RAPID_JSON} 
 	glfw 
 	spirv-cross-core
+	${VULKAN_HEADERS}
 )

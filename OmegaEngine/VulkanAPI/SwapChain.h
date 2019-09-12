@@ -9,7 +9,10 @@
 
 namespace VulkanAPI
 {
+
+// forward declerations
 class Device;
+struct NativeWindowWrapper;
 
 class Swapchain
 {
@@ -17,6 +20,10 @@ class Swapchain
 public:
 	Swapchain();
 	~Swapchain();
+	
+	// static functions
+	// Create a vulkan surface object from a native window pointer
+	static SurfaceWrapper createSurface(NativeWindowWrapper& window);
 
 	void create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::SurfaceKHR &surface,
 	            const uint32_t graphIndex, const uint32_t presentIndex, const uint32_t screenWidth,
@@ -68,7 +75,6 @@ private:
 	vk::Device device;
 	vk::PhysicalDevice gpu;
 
-	vk::SurfaceKHR surface;
 	vk::Extent2D extent;
 	vk::SurfaceFormatKHR surfaceFormat;
 	vk::SwapchainKHR swapchain;

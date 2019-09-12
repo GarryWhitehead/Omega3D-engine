@@ -5,35 +5,40 @@
 #include "Utility/FileUtil.h"
 #include "Utility/Timer.h"
 
-#include "VulkanAPI/Common.h"
 #include "VulkanAPI/Device.h"
+#include "VulkanAPI/SwapChain.h"
 
 #include "utility/logger.h"
 
-#include "external/rapidjson/document.h"
-#include "external/rapidjson/stringbuffer.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
 
 using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
 
-Engine::Engine(NativeWindowWrapper& window)
+Engine::Engine()
 {
 	// load config file if there is one, otherwise use default settings
 	loadConfigFile();
-
-	device->createInstance(instanceExt, instanceCount);
-
-	// prepare the physical and abstract device including queues
-	gfxDevice.prepareDevice();
 }
 
 Engine::~Engine()
 {
 }
 
-World *Engine::createWorld(const std::string &name)
+bool Engine::initDevice(NativeWindowWrapper& window)
+{
+	Surface surafce = SwapChain::CreateSurface(window);
+	
+	device.createInstance(instanceExt, instanceCount);
+
+	// prepare the physical and abstract device including queues
+	device.prepareDevice();
+}
+
+World* Engine::createWorld(const std::string& name)
 {
 	// create an empty world
 	std::unique_ptr<World> world = std::make_unique<World>();
@@ -50,7 +55,7 @@ World *Engine::createWorld(const std::string &name)
 void Engine::loadConfigFile()
 {
 	std::string json;
-	const char filename[] = "omega_engineConfig.ini"; // probably need to check the current dir here
+	const char filename[] = "omega_engineConfig.ini";    // probably need to check the current dir here
 	if (!FileUtil::readFileIntoBuffer(filename, json))
 	{
 		return;
@@ -104,7 +109,7 @@ void Engine::startLoop()
 		// poll for any input
 		inputManager->update();
 
-		auto &world = worlds[currentWorld];
+		auto& world = worlds[currentWorld];
 		while (accumulator >= timeStep)
 		{
 			// update everything else
@@ -121,4 +126,4 @@ void Engine::startLoop()
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

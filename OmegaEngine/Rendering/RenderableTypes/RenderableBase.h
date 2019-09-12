@@ -39,6 +39,7 @@ namespace OmegaEngine
 			if(instanceData != nullptr) 
 			{
 				delete instanceData;
+			    instanceData = nullptr;
 			} 
 		}
 

@@ -24,7 +24,7 @@ OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
 # optional path for assets directory
 SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for default location.")
-SET(EXTERNAL_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE PATH "Path to external third-party files.")
+SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -55,21 +55,39 @@ ELSE()
 	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
 	
-# libraries required for Omega Engine
-ADD_SUBDIRECTORY("external/Spirv-Cross" EXCLUDE_FROM_ALL)
-ADD_SUBDIRECTORY("external/glfw" EXCLUDE_FROM_ALL)
+# Use local vulkan header files
+#INCLUDE_DIRECTORIES(external/Vulkan-Headers/include)
+IF(FOUND_VULKAN)
+	SET(VULKAN_HEADERS_DIR ${Vulkan_INCLUDE_DIRS})
+	MESSAGE("Vulkan inc dir = ${Vulkan_INCLUDE_DIRS}")
+ENDIF()
 
-ADD_LIBRARY(TINY_GLTF STATIC "external/tiny-gltf/tiny_gltf.h")
+# libraries required for Omega Engine
+ADD_SUBDIRECTORY(external/Spirv-Cross)
+ADD_SUBDIRECTORY(external/glfw)
+
+ADD_LIBRARY(VULKAN_HEADERS STATIC)
+TARGET_INCLUDE_DIRECTORIES(VULKAN_HEADERS
+	PUBLIC
+	${VULKAN_HEADERS_DIR}
+)
+TARGET_SOURCES(VULKAN_HEADERS PUBLIC
+	${VULKAN_HEADERS_DIR}/vulkan/vulkan.hpp
+	${VULKAN_HEADERS_DIR}/vulkan/vulkan.h
+)
+SET_TARGET_PROPERTIES(VULKAN_HEADERS PROPERTIES LINKER_LANGUAGE CXX)
+
+ADD_LIBRARY(TINY_GLTF STATIC external/tiny-gltf/tiny_gltf.h)
 TARGET_INCLUDE_DIRECTORIES(TINY_GLTF 
 	PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}/external/tiny-gltf
+	${EXTERNAL_DIR}/tiny-gltf
 )
 SET_TARGET_PROPERTIES(TINY_GLTF PROPERTIES LINKER_LANGUAGE CXX)
 
-ADD_LIBRARY(RAPID_JSON STATIC "external/rapidjson/include/rapidjson/rapidjson.h")
+ADD_LIBRARY(RAPID_JSON STATIC external/rapidjson/include/rapidjson/rapidjson.h)
 TARGET_INCLUDE_DIRECTORIES(RAPID_JSON 
 	PUBLIC 
-	${CMAKE_CURRENT_SOURCE_DIR}/external/rapidjson 
+	${EXTERNAL_DIR}/rapidjson 
 )
 SET_TARGET_PROPERTIES(RAPID_JSON PROPERTIES LINKER_LANGUAGE CXX)
 

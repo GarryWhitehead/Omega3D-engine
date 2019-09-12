@@ -1,12 +1,22 @@
 #include "SwapChain.h"
+
 #include "Utility/logger.h"
+
 #include "VulkanAPI/Device.h"
+
+#include "Types/NativeWindowWrapper.h"
+
 #include <algorithm>
 
 namespace VulkanAPI
 {
 Swapchain::Swapchain()
 {
+}
+
+SurfaceWrapper Swapchain::createSurface(NativeWindowWrapper& window)
+{
+	
 }
 
 void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::SurfaceKHR &surface,

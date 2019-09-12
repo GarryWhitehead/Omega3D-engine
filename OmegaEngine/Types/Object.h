@@ -1,6 +1,5 @@
 #pragma once
 
-#include "ObjectInterface/ComponentTypes.h"
 #include "Utility/GeneralUtil.h"
 
 #include <stdint.h>
@@ -72,6 +71,7 @@ public:
 	std::vector<Object> &getChildren();
 
 private:
+
 	uint64_t id = UINT64_MAX;
 	uint64_t parentId = UINT64_MAX;
 	std::vector<Object> children;

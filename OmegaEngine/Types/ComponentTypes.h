@@ -1,8 +1,6 @@
 #pragma once
-#include "Models/Gltf/GltfModel.h"
-#include "Models/ModelMesh.h"
+
 #include "OEMaths/OEMaths.h"
-#include "Models/OEModels.h"
 
 #include <cstdint>
 #include <memory>
@@ -123,7 +121,6 @@ struct MaterialComponent : public ComponentBase
 	    , baseColour(_baseColour)
 	    , roughness(_roughness)
 	    , metallic(_metallic)
-	    , ComponentBase(ComponentType::Material)
 	{
 	}
 

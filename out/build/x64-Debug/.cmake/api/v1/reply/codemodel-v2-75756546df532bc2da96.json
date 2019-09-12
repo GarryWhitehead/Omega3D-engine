@@ -1,0 +1,304 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2,
+						4,
+						5
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "external/spirv-cross",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "external/spirv-cross",
+					"targetIndexes" : 
+					[
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14
+					]
+				},
+				{
+					"build" : "external/glfw",
+					"childIndexes" : 
+					[
+						3
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "external/glfw",
+					"targetIndexes" : 
+					[
+						15
+					]
+				},
+				{
+					"build" : "external/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 2,
+					"projectIndex" : 2,
+					"source" : "external/glfw/src",
+					"targetIndexes" : 
+					[
+						5
+					]
+				},
+				{
+					"build" : "OmegaEngine",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "OmegaEngine",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "Examples",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Examples",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						4,
+						5
+					],
+					"name" : "OMEGA_ENGINE",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "SPIRV-Cross",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2,
+						3
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						15
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 4,
+					"id" : "OMEGA_ENGINE::@497b31f2a0b3fb3e80fb",
+					"jsonFile" : "target-OMEGA_ENGINE-Debug-cf7da15192a141a7c40a.json",
+					"name" : "OMEGA_ENGINE",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RAPID_JSON::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RAPID_JSON-Debug-1d2bf971561a0049d1a5.json",
+					"name" : "RAPID_JSON",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "Scene::@e67388b41b83090ac410",
+					"jsonFile" : "target-Scene-Debug-b5b66758fe5ac8ddbec8.json",
+					"name" : "Scene",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "TINY_GLTF::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-TINY_GLTF-Debug-7a5c44b45e73daafe6e5.json",
+					"name" : "TINY_GLTF",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "VULKAN_HEADERS::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-VULKAN_HEADERS-Debug-6c32c0eec7095f334420.json",
+					"name" : "VULKAN_HEADERS",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "glfw::@ca12bac854c2ac6b2230",
+					"jsonFile" : "target-glfw-Debug-38f02648f8165fe97bf3.json",
+					"name" : "glfw",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-Debug-545c2b8d766fa469d8e2.json",
+					"name" : "spirv-cross",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-c::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-c-Debug-ec0853a37fa84d7369e6.json",
+					"name" : "spirv-cross-c",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-core::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-core-Debug-38a9e2ab0d635d49d5ab.json",
+					"name" : "spirv-cross-core",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-cpp::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-cpp-Debug-0f6afe4b923a731c36cf.json",
+					"name" : "spirv-cross-cpp",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-glsl::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-glsl-Debug-04716ea6e6cfdf4b67ad.json",
+					"name" : "spirv-cross-glsl",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-hlsl::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-hlsl-Debug-131e3ef659ddce05be6f.json",
+					"name" : "spirv-cross-hlsl",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-msl::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-msl-Debug-c821041b7c94a584f2f8.json",
+					"name" : "spirv-cross-msl",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-reflect::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-reflect-Debug-af870373e8d97ecdb5b0.json",
+					"name" : "spirv-cross-reflect",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "spirv-cross-util::@6da46b9a303f95fb92d4",
+					"jsonFile" : "target-spirv-cross-util-Debug-5498a99b85a6895a987c.json",
+					"name" : "spirv-cross-util",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "uninstall::@691b517da5fa0f694cd4",
+					"jsonFile" : "target-uninstall-Debug-47fdbb63d38b7c02fed3.json",
+					"name" : "uninstall",
+					"projectIndex" : 2
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug",
+		"source" : "C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}

@@ -18,7 +18,7 @@ MaterialManager::~MaterialManager()
 {
 }
 
-MaterialInfo &MaterialManager::get(uint32_t index)
+MaterialInfo &MaterialManager::getMaterial(uint32_t index)
 {
 	assert(index < materials.size());
 	return materials[index];

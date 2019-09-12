@@ -54,8 +54,10 @@ private:
 class Engine
 {
 public:
-	Engine(NativeWindowWrapper& window);
+	Engine();
 	~Engine();
+
+	bool initDevice(NativeWindowWrapper& window);
 
 	World *createWorld(const std::string &name);
 
@@ -74,7 +76,7 @@ private:
 	std::string currentWorld;
 
 	// The vulkan devie. Only one device supported at present
-	VulkanAPI::Device gfxDevice;
+	VulkanAPI::Device device;
 };
 
 } // namespace OmegaEngine

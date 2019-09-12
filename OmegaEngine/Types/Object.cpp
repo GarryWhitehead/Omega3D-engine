@@ -1,5 +1,6 @@
-#include "ObjectInterface/Object.h"
-#include "Engine/engine.h"
+#include "Object.h"
+
+#include "Core/engine.h"
 
 #include <cstdint>
 
