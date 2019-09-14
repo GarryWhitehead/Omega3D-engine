@@ -8,7 +8,7 @@
 
 #include "OEMaths/OEMaths_transform.h"
 
-#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Managers/BufferManager.h"
 
 
 namespace OmegaEngine
@@ -17,8 +17,8 @@ namespace OmegaEngine
 LightManager::LightManager()
 {
 	// allocate the memory required for the light POV data
-	alignedPovDataSize = VulkanAPI::Util::alignmentSize(sizeof(LightPOV));
-	lightPovData = (LightPOV*)Util::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
+	alignedPovDataSize = VulkanUtil::alignmentSize(sizeof(LightPOV));
+	lightPovData = (LightPOV*)VulkanUtil::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
 }
 
 LightManager::~LightManager()

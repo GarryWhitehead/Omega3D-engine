@@ -4,7 +4,9 @@
 #include "Rendering/RenderableTypes/Shadow.h"
 #include "Rendering/RenderableTypes/Skybox.h"
 
-#include "VulkanAPI/Interface.h"
+#include "VulkanAPI/Managers/ShaderManager.h"
+#include "VulkanAPI/Types/BufferReflect.h"
+#include "VulkanAPI/Types/ImageReflect.h"
 
 #include "Types/PStateInfo.h"
 
@@ -21,24 +23,34 @@ PipelineManager::~PipelineManager()
 {
 }
 
-void PipelineManager::build(const PStateInfo& pInfo)
+bool PipelineManager::build(const PStateInfo& pInfo)
 {
-	// load shaders
-	if (flags.mesh == StateMesh::Static)
+	BufferReflect bufferReflect;
+	ImageReflect imageReflect;
+
+	// load shaders and reflect
+	for (auto& shader : pInfo.shaderPaths)
 	{
-		if (!state->shader.add(vkInterface->getDevice(), "model/model-vert.spv", VulkanAPI::StageType::Vertex,
-		                       "model/model-frag.spv", VulkanAPI::StageType::Fragment))
+		GlslCompiler compiler(shader.second, shader.first);
+
+		for (auto& define : pInfo.shaderDefines)
 		{
-			LOGGER_ERROR("Unable to create static model shaders.");
+			compiler.addDefinition(define.first, define.second);
 		}
-	}
-	else if (flags.mesh == StateMesh::Skinned)
-	{
-		if (!state->shader.add(vkInterface->getDevice(), "model/model_skinned-vert.spv", VulkanAPI::StageType::Vertex,
-		                       "model/model-frag.spv", VulkanAPI::StageType::Fragment))
+		if (!compiler.compile(true))
 		{
-			LOGGER_ERROR("Unable to create skinned model shaders.");
+			LOGGER_ERROR("Unable to create shader bytecode with name %s.\n", shader.second.c_str());
+			return false;
 		}
+
+		// now grab all the info we need from the shaaders
+		uint32_t* data = compiler.getData();
+		size_t size = compiler.getDataSize();
+
+		bufferReflect.reflect(data, size, descrLayout);
+		imageReflect.reflect(data, size, descrLayout);
+
+		vkInterface.getShaderManager().addShader(data, shader.first);
 	}
 
 	// get pipeline layout and vertedx attributes by reflection of shader

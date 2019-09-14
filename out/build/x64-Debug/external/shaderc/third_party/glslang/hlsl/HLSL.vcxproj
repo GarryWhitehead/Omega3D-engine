@@ -35,7 +35,6 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) -w</AdditionalOptions>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -53,10 +52,9 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;NV_EXTENSIONS;AMD_EXTENSIONS;ENABLE_HLSL;GLSLANG_OSINCLUDE_WIN32;ENABLE_OPT=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>

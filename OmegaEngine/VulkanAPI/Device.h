@@ -6,7 +6,7 @@
 
 namespace VulkanAPI
 {
-namespace Util
+namespace VulkanUtil
 {
 vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::ImageTiling tiling,
                                vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice &gpu);

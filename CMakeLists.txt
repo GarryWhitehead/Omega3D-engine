@@ -34,11 +34,6 @@ SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
-# Use local vulkan header files
-include_directories(external)
-include_directories(external/tiny-gltf)
-include_directories(external/vulkan)
-
 # find vulkan using cmake module if the correct cmake version
 IF(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 	message(STATUS "Using cmake version which supports FindVulkan. Using this module to find Vulkan")

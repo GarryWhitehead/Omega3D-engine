@@ -114,6 +114,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Managers/CommandBufferManager.cpp VulkanAPI/Managers/CommandBufferManager.h
 	VulkanAPI/Managers/VkTextureManager.cpp VulkanAPI/Managers/VkTextureManager.h
 	VulkanAPI/Managers/SemaphoreManager.cpp VulkanAPI/Managers/SemaphoreManager.h
+	VulkanAPI/Managers/ShaderManager.cpp VulkanAPI/Managers/ShaderManager.h
 
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
 	VulkanAPI/Common.h

@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsC</CompileAs>
@@ -52,10 +52,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_GLFW_USE_CONFIG_H;_CRT_SECURE_NO_WARNINGS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\src;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>

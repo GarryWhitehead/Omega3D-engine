@@ -13,7 +13,7 @@
 #include "Types/ComponentTypes.h"
 
 #include "Utility/GeneralUtil.h"
-#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Managers/BufferManager.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -23,8 +23,8 @@ namespace OmegaEngine
 
 TransformManager::TransformManager()
 {
-	transformAligned = VulkanAPI::Util::alignmentSize(sizeof(TransformBufferInfo));
-	skinnedAligned = VulkanAPI::Util::alignmentSize(sizeof(SkinnedBufferInfo));
+	transformAligned = VulkanUtil::alignmentSize(sizeof(TransformBufferInfo));
+	skinnedAligned = VulkanUtil::alignmentSize(sizeof(SkinnedBufferInfo));
 
 	// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side
 	transformBufferData = (TransformBufferInfo *)Util::alloc_align(

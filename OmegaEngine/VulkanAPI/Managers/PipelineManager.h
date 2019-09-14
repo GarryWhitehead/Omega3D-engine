@@ -25,8 +25,8 @@ struct PipelineState
 	VulkanAPI::DescriptorSet descriptorSet;
 
 	// information extracted from shader reflection
-	VulkanAPI::BufferReflection bufferLayout;
-	VulkanAPI::ImageReflection imageLayout;
+	VulkanAPI::BufferReflect bufferLayout;
+	VulkanAPI::ImageReflect imageLayout;
 };
 
 enum class StateType

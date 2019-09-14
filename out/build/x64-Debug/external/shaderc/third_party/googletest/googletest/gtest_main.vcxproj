@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalOptions>%(AdditionalOptions) -J -w</AdditionalOptions>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -58,10 +58,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_UNICODE;UNICODE;_WIN32;STRICT;WIN32_LEAN_AND_MEAN;GTEST_HAS_PTHREAD=0;_HAS_EXCEPTIONS=1;NV_EXTENSIONS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>

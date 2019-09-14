@@ -3,6 +3,7 @@
 #include "Utility/logger.h"
 #include <assert.h>
 #include <iostream>
+#include <string.h>
 
 namespace VulkanAPI
 {
@@ -23,7 +24,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
                                                     void *data)
 {
 	// ignore access mask false positive
-	if (strcmp(layer_prefix, "DS") == 0 && code == 10)
+	if (std::strcmp(layer_prefix, "DS") == 0 && code == 10)
 	{
 		return VK_FALSE;
 	}
@@ -102,7 +103,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
 }
 
 // static functions - should probably get elsewhere at some point
-namespace Util
+namespace VulkanUtil
 {
 static vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::ImageTiling tiling,
                                       vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice &gpu)
@@ -153,7 +154,7 @@ vk::Format Device::getDepthFormat(vk::PhysicalDevice &gpu)
 	std::vector<vk::Format> formats = { vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
 		                                vk::Format::eD32Sfloat };
 
-	return Util::findSupportedFormat(formats, vk::ImageTiling::eOptimal,
+	return VulkanUtil::findSupportedFormat(formats, vk::ImageTiling::eOptimal,
 	                                 vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
 }
 

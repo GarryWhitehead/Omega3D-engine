@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>Debug/</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -56,10 +56,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;_SCL_SECURE_NO_WARNINGS;SPIRV_WINDOWS;SPIRV_COLOR_TERMINAL;SPIRV_CHECK_CONTEXT;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\tiny-gltf;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
