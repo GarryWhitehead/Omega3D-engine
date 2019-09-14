@@ -181,6 +181,10 @@ public:
 	}
 
 private:
+
+	// indice into the transform buffer for each object stored in this manager
+	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
+
 	// transform data for static meshes
 	std::vector<TransformData> transforms;
 

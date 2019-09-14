@@ -53,7 +53,7 @@ set_property(TARGET spirv-cross-cpp APPEND PROPERTY IMPORTED_CONFIGURATIONS DEBU
 set_target_properties(spirv-cross-cpp PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_DEBUG "CXX"
   IMPORTED_LINK_INTERFACE_LIBRARIES_DEBUG "spirv-cross-glsl"
-  IMPORTED_LOCATION_DEBUG "C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/spirv-cross/spirv-cross-cpp.lib"
+  IMPORTED_LOCATION_DEBUG "C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/spirv-cross/Debug/spirv-cross-cpp.lib"
   )
 
 # Make sure the targets which have been exported in some other 

@@ -1,5 +1,7 @@
+
+
 # Generate as a static library (Should also allow dylib)	
-ADD_LIBRARY(OMEGA_ENGINE STATIC "")
+ADD_LIBRARY(OMEGA_ENGINE STATIC)
 TARGET_COMPILE_OPTIONS(OMEGA_ENGINE PRIVATE ${OMEGA_CXX_FLAGS})
 
 # include targets
@@ -18,12 +20,13 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Threading
 	${CMAKE_CURRENT_SOURCE_DIR}/utility
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
-	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/DataTypes
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Platform
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Managers
 	${CMAKE_CURRENT_SOURCE_DIR}
-	
 	PRIVATE
-	${VULKAN_HEADERS_DIR}
+	${EXTERNAL_DIR}
+	${EXTERNAL_DIR}/vulkan
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -76,7 +79,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
-	Rendering/ProgramStateManager.cpp Rendering/ProgramStateManager.h
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
 	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
@@ -102,27 +104,29 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/String.cpp utility/String.h
 	utility/Timer.cpp utility/Timer.h
 	
-	VulkanAPI/DataTypes/Texture.cpp VulkanAPI/DataTypes/Texture.h
+	VulkanAPI/Types/Texture.cpp VulkanAPI/Types/Texture.h
 
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 
-	VulkanAPI/BufferManager.cpp VulkanAPI/BufferManager.h
+	VulkanAPI/Managers/BufferManager.cpp VulkanAPI/Managers/BufferManager.h
+	VulkanAPI/Managers/PipelineManager.cpp VulkanAPI/Managers/PipelineManager.h
+	VulkanAPI/Managers/MemoryAllocator.cpp VulkanAPI/Managers/MemoryAllocator.h
+	VulkanAPI/Managers/CommandBufferManager.cpp VulkanAPI/Managers/CommandBufferManager.h
+	VulkanAPI/Managers/VkTextureManager.cpp VulkanAPI/Managers/VkTextureManager.h
+	VulkanAPI/Managers/SemaphoreManager.cpp VulkanAPI/Managers/SemaphoreManager.h
+
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
-	VulkanAPI/CommandBufferManager.cpp VulkanAPI/CommandBufferManager.h
 	VulkanAPI/Common.h
 	VulkanAPI/Descriptors.cpp VulkanAPI/Descriptors.h
 	VulkanAPI/Device.cpp VulkanAPI/Device.h
 	VulkanAPI/Image.cpp VulkanAPI/Image.h
 	VulkanAPI/Interface.cpp VulkanAPI/Interface.h
-	VulkanAPI/MemoryAllocator.cpp VulkanAPI/MemoryAllocator.h
 	VulkanAPI/Pipeline.cpp VulkanAPI/Pipeline.h
 	VulkanAPI/Queue.cpp VulkanAPI/Queue.h
 	VulkanAPI/RenderPass.cpp VulkanAPI/RenderPass.h
 	VulkanAPI/Sampler.cpp VulkanAPI/Sampler.h
-	VulkanAPI/SemaphoreManager.cpp VulkanAPI/SemaphoreManager.h
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
-	VulkanAPI/VkTextureManager.cpp VulkanAPI/VkTextureManager.h
 )
 
 IF(ASSETS_DIR)
@@ -133,10 +137,10 @@ ELSE()
 ENDIF()
 
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
-	${Vulkan_LIBRARIES} 
+	${Vulkan_LIBRARY} 
 	${TINY_GLTF} 
 	${RAPID_JSON} 
 	glfw 
 	spirv-cross-core
-	${VULKAN_HEADERS}
+	shaderc
 )

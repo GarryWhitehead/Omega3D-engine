@@ -102,6 +102,10 @@ public:
 	}
 
 private:
+	
+	// indice into the mesh buffer for each object stored in this manager
+	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
+	
 	// the buffers containing all the model data
 	std::vector<StaticMesh> meshBuffer;
 
@@ -113,4 +117,4 @@ private:
 	bool isDirty = true;
 };
 
-}    // namespace OmegaEngine
+}    // namespace OmegaEngie

@@ -1,7 +1,7 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 CMAKE_POLICY(VERSION 3.5)
 
-PROJECT(OMEGA_ENGINE VERSION 1 LANGUAGES CXX C)
+PROJECT(OMEGA_ENGINE)
 SET(CMAKE_CXX_STANDARD 17)
  
 # compiler specific flags
@@ -22,11 +22,22 @@ OPTION(OMEGA_THREAD_SANITIZE "Run thread sanitizer" OFF)
 OPTION(OMEGA_ADDRESS_SANITIZE "Run address sanitizer" OFF)
 OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
+# paths to shader c and spirv-headers
+SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
+SET(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")
+
 # optional path for assets directory
 SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for default location.")
+
+# external directory path
 SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
+# Use local vulkan header files
+include_directories(external)
+include_directories(external/tiny-gltf)
+include_directories(external/vulkan)
 
 # find vulkan using cmake module if the correct cmake version
 IF(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
@@ -55,27 +66,12 @@ ELSE()
 	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
 	
-# Use local vulkan header files
-#INCLUDE_DIRECTORIES(external/Vulkan-Headers/include)
-IF(FOUND_VULKAN)
-	SET(VULKAN_HEADERS_DIR ${Vulkan_INCLUDE_DIRS})
-	MESSAGE("Vulkan inc dir = ${Vulkan_INCLUDE_DIRS}")
-ENDIF()
-
 # libraries required for Omega Engine
 ADD_SUBDIRECTORY(external/Spirv-Cross)
 ADD_SUBDIRECTORY(external/glfw)
-
-ADD_LIBRARY(VULKAN_HEADERS STATIC)
-TARGET_INCLUDE_DIRECTORIES(VULKAN_HEADERS
-	PUBLIC
-	${VULKAN_HEADERS_DIR}
-)
-TARGET_SOURCES(VULKAN_HEADERS PUBLIC
-	${VULKAN_HEADERS_DIR}/vulkan/vulkan.hpp
-	${VULKAN_HEADERS_DIR}/vulkan/vulkan.h
-)
-SET_TARGET_PROPERTIES(VULKAN_HEADERS PROPERTIES LINKER_LANGUAGE CXX)
+# needed for shaderc 
+ADD_SUBDIRECTORY(external/SPIRV-Tools)
+ADD_SUBDIRECTORY(external/shaderc)
 
 ADD_LIBRARY(TINY_GLTF STATIC external/tiny-gltf/tiny_gltf.h)
 TARGET_INCLUDE_DIRECTORIES(TINY_GLTF 

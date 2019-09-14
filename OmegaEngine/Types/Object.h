@@ -79,4 +79,20 @@ private:
 	std::unordered_map<uint32_t, ComponentBase *> components;
 };
 
+struct ObjHash
+{
+	size_t operator()(Object const& id) const noexcept
+	{
+		return std::hash<uint64_t>{}(id.getId());
+	}
+};
+
+struct ObjEqual
+{
+	bool operator()(const Object& lhs, const Object& rhs) const
+	{
+		return lhs.getId() == rhs.getId();
+	}
+};
+
 } // namespace OmegaEngine

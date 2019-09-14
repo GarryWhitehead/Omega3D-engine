@@ -3,10 +3,9 @@
 
 #include "RenderableBase.h"
 
-#include "Rendering/ProgramStateManager.h"
 #include "Rendering/RenderInterface.h"
 
-#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Managers/BufferManager.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Interface.h"
 

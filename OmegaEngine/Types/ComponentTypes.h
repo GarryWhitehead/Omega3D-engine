@@ -103,7 +103,7 @@ struct SkinnedComponent : public ComponentBase
 	 */
 	void setIndex(const size_t index, const size_t offset)
 	{
-		animIndex = index + offset;
+		index = index + offset;
 	}
 
 	size_t index = 0;

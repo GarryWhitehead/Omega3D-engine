@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\341484f00f6a064e02471e34d7e9586d\shaderc_combined.lib.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+    <CustomBuild Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\c65a8b8b2092324f467a5a72fe5dc4b1\shaderc_combined_genfile.rule">
+      <Filter>CMake Rules</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\CMakeFiles\shaderc_combined_genfile" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="CMake Rules">
+      <UniqueIdentifier>{E2770B84-C29B-3BF4-A3F8-154462BFDB6E}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

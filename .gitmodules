@@ -13,9 +13,3 @@
 [submodule "external/rapidjson"]
 	path = external/rapidjson
 	url = https://github.com/Tencent/rapidjson.git
-[submodule "external/glew"]
-	path = external/glew
-	url = https://github.com/nigels-com/glew.git
-[submodule "external/Vulkan-Headers"]
-	path = external/Vulkan-Headers
-	url = https://github.com/KhronosGroup/Vulkan-Headers.git
