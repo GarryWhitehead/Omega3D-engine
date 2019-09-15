@@ -56,6 +56,8 @@ public:
 	void create(vk::Device dev, RenderPass &renderpass, Shader &shader, PipelineType _type);
 	void create(vk::Device dev, PipelineType _type);
 
+	static void reflect(uint32_t* data, size_t dataSize, Pipeline& pipeline);
+	
 	PipelineType getPipelineType() const
 	{
 		return type;
@@ -109,6 +111,8 @@ public:
 	{
 		pushConstantSizes[(int)stage] = size;
 	}
+
+	static void reflect(uint32_t* data, size_t dataSize, PipelineLayout& layout);
 
 private:
 	// usually set through shader reflection

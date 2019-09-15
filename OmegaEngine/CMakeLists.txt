@@ -65,7 +65,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/ComponentTypes.h
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
-	Types/PStateInfo.h
+	Types/PBuildInfo.h
 	
 	OEMaths/OEMaths.cpp OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h
@@ -119,9 +119,8 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
 	VulkanAPI/Common.h
 	VulkanAPI/Descriptors.cpp VulkanAPI/Descriptors.h
-	VulkanAPI/Device.cpp VulkanAPI/Device.h
+	VulkanAPI/VkContext.cpp VulkanAPI/VkContext.h
 	VulkanAPI/Image.cpp VulkanAPI/Image.h
-	VulkanAPI/Interface.cpp VulkanAPI/Interface.h
 	VulkanAPI/Pipeline.cpp VulkanAPI/Pipeline.h
 	VulkanAPI/Queue.cpp VulkanAPI/Queue.h
 	VulkanAPI/RenderPass.cpp VulkanAPI/RenderPass.h

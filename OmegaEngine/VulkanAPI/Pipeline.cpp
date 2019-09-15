@@ -1,8 +1,10 @@
 #include "Pipeline.h"
-#include "Rendering/ProgramStateManager.h"
+
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
+
+#include "spirv_cross.hpp"
 
 namespace VulkanAPI
 {
@@ -50,6 +52,24 @@ void PipelineLayout::create(vk::Device& device,
 	VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
 }
 
+// ================== static functions ==============================
+void PipelineLayout::reflect(uint32_t* data, size_t dataSize, PipelineLayout& layout)
+{
+
+
+	spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
+
+	auto shaderResources = compiler.get_shader_resources();
+
+	// get push constants struct sizes if any
+	if (!shaderResources.push_constant_buffers.empty())
+	{
+		layout.add_push_constant((StageType)i, (uint32_t)compiler.get_declared_struct_size(compiler.get_type(
+			                                        shaderResources.push_constant_buffers.front().base_type_id)));
+	}
+}
+
+// ================== pipeline =======================
 Pipeline::Pipeline()
 {
 	// setup defualt pipeline states
@@ -304,6 +324,32 @@ void Pipeline::create(vk::Device dev, PipelineType _type)
 	                                          this->renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
+}
+
+// ========= static functions ==============
+void Pipeline::reflect(uint32_t* data, size_t dataSize, Pipeline& pipeline)
+{
+	spirv_cross::Compiler compiler(data, dataSize / sizeof(uint32_t));
+
+	auto shaderResources = compiler.get_shader_resources();
+
+	// get the number of input and output stages
+	for (auto& input : shaderResources.stage_inputs)
+	{
+		uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+		auto& base_type = compiler.get_type(input.base_type_id);
+		auto& member = compiler.get_type(base_type.self);
+
+		if (member.vecsize && member.columns == 1)
+		{
+			std::tuple<vk::Format, uint32_t> info = getTypeFormat(member.width, member.vecsize, member.basetype);
+			pipeline.addVertexInput(location, std::get<0>(info), std::get<1>(info));
+		}
+	}
+	/*for (auto& output : shaderResources.stage_outputs) {
+
+			uint32_t location = compiler.get_decoration(output.id, spv::DecorationLocation);
+		}*/
 }
 
 }    // namespace VulkanAPI

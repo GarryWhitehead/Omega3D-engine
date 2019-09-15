@@ -1,4 +1,4 @@
-#include "Device.h"
+#include "VkContext.h"
 
 #include "Utility/logger.h"
 #include <assert.h>
@@ -8,12 +8,12 @@
 namespace VulkanAPI
 {
 
-Device::Device()
+VkContext::VkContext()
 {
 	
 }
 
-Device::~Device()
+VkContext::~VkContext()
 {
 }
 
@@ -135,7 +135,7 @@ static vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::Imag
 }
 } // namespace Util
 
-bool Device::findExtensionProperties(const char *name,
+bool VkContext::findExtensionProperties(const char* name,
                                      std::vector<vk::ExtensionProperties> &properties)
 {
 	for (auto &ext : properties)
@@ -148,7 +148,7 @@ bool Device::findExtensionProperties(const char *name,
 	return false;
 };
 
-vk::Format Device::getDepthFormat(vk::PhysicalDevice &gpu)
+vk::Format VkContext::getDepthFormat(vk::PhysicalDevice& gpu)
 {
 	// in order of preference - TODO: allow user to define whether stencil format is required or not
 	std::vector<vk::Format> formats = { vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
@@ -158,7 +158,7 @@ vk::Format Device::getDepthFormat(vk::PhysicalDevice &gpu)
 	                                 vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
 }
 
-void Device::createInstance(const char **glfwExtension, uint32_t extCount)
+void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 {
 	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "",
 	                            VK_MAKE_VERSION(1, 1, 0), VK_API_VERSION_1_1);
@@ -274,7 +274,7 @@ void Device::createInstance(const char **glfwExtension, uint32_t extCount)
 #endif
 }
 
-void Device::prepareDevice()
+void VkContext::prepareDevice()
 {
 	if (!instance)
 	{
@@ -415,7 +415,7 @@ void Device::prepareDevice()
 	computeQueue.create(vkComputeQueue, device, queueFamilyIndex.compute);
 }
 
-uint32_t Device::getQueueIndex(QueueType type) const
+uint32_t VkContext::getQueueIndex(QueueType type) const
 {
 	switch (type)
 	{
@@ -433,7 +433,7 @@ uint32_t Device::getQueueIndex(QueueType type) const
 	}
 }
 
-VulkanAPI::Queue Device::getQueue(QueueType type)
+VulkanAPI::Queue VkContext::getQueue(QueueType type)
 {
 	VulkanAPI::Queue ret_queue;
 

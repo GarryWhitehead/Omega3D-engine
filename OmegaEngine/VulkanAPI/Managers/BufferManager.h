@@ -1,6 +1,7 @@
 #pragma once
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/MemoryAllocator.h"
+
+#include "VulkanAPI/Managers/MemoryAllocator.h"
 
 #include "Managers/EventManager.h"
 
@@ -20,6 +21,7 @@ uint32_t alignmentSize(const uint32_t size);
 
 // forward decleartions
 class DescriptorSet;
+class VkContext;
 
 struct BufferUpdateEvent : public OmegaEngine::Event
 {
@@ -69,13 +71,14 @@ public:
 		vk::DescriptorType descriptorType;
 	};
 
-	BufferManager(vk::Device dev, vk::PhysicalDevice physicalDevice, Queue qeuue);
+	BufferManager();
 	~BufferManager();
 
 	void enqueueDescrUpdate(DescrSetUpdateInfo &descriptorUpdate);
 	void enqueueDescrUpdate(const char *id, DescriptorSet *set, uint32_t setValue, uint32_t binding,
 	                        vk::DescriptorType descriptorType);
 
+	void init(VkContext* con);
 	void update();
 	void updateDescriptors();
 	void updateBuffer(BufferUpdateEvent &event);
@@ -85,9 +88,7 @@ public:
 
 private:
 	// local vulkan instance
-	vk::Device device;
-	vk::PhysicalDevice gpu;
-	Queue graphicsQueue;
+	VkContext* context;
 
 	std::unique_ptr<MemoryAllocator> memoryAllocator;
 

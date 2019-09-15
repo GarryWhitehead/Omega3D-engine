@@ -31,7 +31,7 @@ public:
 		}
 	};
 
-	void reflect(uint32_t* data, size_t dataSize, DescriptorLayout& descriptorLayout)
+	void prepare(uint32_t* data, size_t dataSize, DescriptorLayout& descriptorLayout)
 	{
 		spirv_cross::Compiler compiler(data, dataSize / sizeof(uint32_t));
 		auto shaderResources = compiler.get_shader_resources();

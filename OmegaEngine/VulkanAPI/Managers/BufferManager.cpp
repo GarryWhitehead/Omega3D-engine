@@ -1,8 +1,11 @@
 #include "BufferManager.h"
+
 #include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/VkContext.h"
+
 #include "utility/logger.h"
 
-#include "Engine/Omega_Global.h"
+#include "Core/Omega_Global.h"
 
 namespace VulkanAPI
 {
@@ -16,8 +19,7 @@ uint32_t alignmentSize(const uint32_t size)
 	return (size + min_align - 1) & ~(min_align - 1);
 }
 
-uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags,
-                        vk::PhysicalDevice gpu)
+uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags, vk::PhysicalDevice gpu)
 {
 	vk::PhysicalDeviceMemoryProperties memoryProp = gpu.getMemoryProperties();
 
@@ -30,53 +32,55 @@ uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags
 	return UINT32_MAX;
 }
 
-void createBuffer(vk::Device &device, vk::PhysicalDevice &gpu, const uint32_t size,
-                  vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props,
-                  vk::DeviceMemory &memory, vk::Buffer &buffer)
+void createBuffer(VkContext* context, const uint32_t size, vk::BufferUsageFlags flags,
+                  vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
 {
 	vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
-	VK_CHECK_RESULT(device.createBuffer(&createInfo, nullptr, &buffer));
+	VK_CHECK_RESULT(context->getDevice().createBuffer(&createInfo, nullptr, &buffer));
 
 	vk::MemoryRequirements memoryReq;
-	device.getBufferMemoryRequirements(buffer, &memoryReq);
+	context->getDevice().getBufferMemoryRequirements(buffer, &memoryReq);
 
-	uint32_t memoryType = findMemoryType(memoryReq.memoryTypeBits, props, gpu);
+	uint32_t memoryType = findMemoryType(memoryReq.memoryTypeBits, props, context->getGpu());
 
 	vk::MemoryAllocateInfo memoryInfo(memoryReq.size, memoryType);
 
 	VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
-	device.bindBufferMemory(buffer, memory, 0);
+	context->getDevice().bindBufferMemory(buffer, memory, 0);
 }
-} // namespace Util
+}    // namespace Util
 
-BufferManager::BufferManager(vk::Device dev, vk::PhysicalDevice physicalDevice, Queue queue)
-    : device(dev)
-    , gpu(physicalDevice)
-    , graphicsQueue(queue)
+BufferManager::BufferManager()
 {
-	OmegaEngine::Global::eventManager()
-	    ->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::updateBuffer>(this);
-
-	memoryAllocator = std::make_unique<MemoryAllocator>(device, gpu, graphicsQueue);
 }
 
 BufferManager::~BufferManager()
 {
 }
 
-void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo &descriptorUpdate)
+void BufferManager::init(VkContext* con)
+{
+	this->context = con;
+	
+	OmegaEngine::Global::eventManager()
+	    ->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::updateBuffer>(this);
+
+	memoryAllocator = std::make_unique<MemoryAllocator>(context->getDevice(), context->getGpu(), context->getQueue(VkContext::QueueType::Graphics));
+}
+
+void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo& descriptorUpdate)
 {
 	descriptorSetUpdateQueue.emplace_back(descriptorUpdate);
 }
 
-void BufferManager::enqueueDescrUpdate(const char *id, DescriptorSet *set, uint32_t setValue,
-                                       uint32_t binding, vk::DescriptorType descriptorType)
+void BufferManager::enqueueDescrUpdate(const char* id, DescriptorSet* set, uint32_t setValue, uint32_t binding,
+                                       vk::DescriptorType descriptorType)
 {
 	descriptorSetUpdateQueue.push_back({ id, set, setValue, binding, descriptorType });
 }
 
-void BufferManager::updateBuffer(BufferUpdateEvent &event)
+void BufferManager::updateBuffer(BufferUpdateEvent& event)
 {
 	// sanity debugging checks
 	assert(event.data != nullptr);
@@ -106,7 +110,7 @@ void BufferManager::updateBuffer(BufferUpdateEvent &event)
 		{
 			vk::MappedMemoryRange mem_range(memoryAllocator->getDeviceMemory(buffer.getId()),
 			                                (uint64_t)buffer.getOffset(), event.size);
-			device.flushMappedMemoryRanges(1, &mem_range);
+			context.flushMappedMemoryRanges(1, &mem_range);
 		}
 	}
 	else
@@ -124,7 +128,7 @@ void BufferManager::updateDescriptors()
 	if (!descriptorSetUpdateQueue.empty())
 	{
 
-		for (auto &descr : descriptorSetUpdateQueue)
+		for (auto& descr : descriptorSetUpdateQueue)
 		{
 
 			auto iter = buffers.begin();
@@ -144,8 +148,8 @@ void BufferManager::updateDescriptors()
 				// so the descriptors won't be updated.
 				MemorySegment segment = iter->second;
 				descr.set->writeSet(descr.setValue, descr.binding, descr.descriptorType,
-				                    memoryAllocator->getMemoryBuffer(segment.getId()),
-				                    segment.getOffset(), segment.getSize());
+				                    memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(),
+				                    segment.getSize());
 			}
 		}
 	}
@@ -158,7 +162,7 @@ void BufferManager::update()
 	updateDescriptors();
 }
 
-Buffer BufferManager::getBuffer(const char *id)
+Buffer BufferManager::getBuffer(const char* id)
 {
 	auto iter = buffers.begin();
 	while (iter != buffers.end())
@@ -177,4 +181,4 @@ Buffer BufferManager::getBuffer(const char *id)
 	}
 	return { memoryAllocator->getMemoryBuffer(iter->second.getId()), iter->second.getOffset() };
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

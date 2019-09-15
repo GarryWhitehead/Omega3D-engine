@@ -23,6 +23,16 @@ public:
 		defines.insert(define, value);
 	}
 	
+	uint32_t* getData()
+	{
+		return output.data();
+	}
+
+	size_t getSize() const
+	{
+		return output.size();
+	}
+
 private:
 	std::vector<uint32_t> output;
 

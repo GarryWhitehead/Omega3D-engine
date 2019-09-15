@@ -8,7 +8,7 @@
 namespace OmegaEngine
 {
 
-class PStateInfo
+class PBuildInfo
 {
 public:
 	enum class ShaderTarget
@@ -18,7 +18,7 @@ public:
 		Compute
 	};
 
-	PStateInfo() = default;
+	PBuildInfo() = default;
 
 	void addShaderPath(const ShaderTarget target, Util::String path)
 	{
@@ -36,6 +36,9 @@ public:
 	void setTopology()
 	{
 	}
+
+	// makes sense to have the pipeline build info class friends with the manager
+	friend class VulkanAPI::PipelineManager;
 
 private:
 	// shaders

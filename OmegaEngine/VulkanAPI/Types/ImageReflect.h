@@ -67,7 +67,7 @@ public:
 	}
 	
 
-	std::optional<ShaderImageLayout> find(uint32_t set, uint32_t binding)
+	std::optional<ImageLayout> find(uint32_t set, uint32_t binding)
 	{
 		for (auto& layout : layouts)
 		{

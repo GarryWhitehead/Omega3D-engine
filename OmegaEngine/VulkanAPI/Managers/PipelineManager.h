@@ -5,24 +5,28 @@
 #include "VulkanAPI/Shader.h"
 
 #include <memory>
-#include <set>
 #include <unordered_map>
+
+namespace OmegaEngine
+{
+class PBuildInfo;
+}
 
 namespace VulkanAPI
 {
+// forward declerations;
+class VkContext;
 
 /**
 * @brief Everything needed for the pipeline 
 */
-class PStateInfo;
 
-struct PipelineState
+struct PStateInfo
 {
-	VulkanAPI::Shader shader;
-	VulkanAPI::PipelineLayout pipelineLayout;
+	VulkanAPI::PipelineLayout pLayout;
 	VulkanAPI::Pipeline pipeline;
-	VulkanAPI::DescriptorLayout descriptorLayout;
-	VulkanAPI::DescriptorSet descriptorSet;
+	VulkanAPI::DescriptorLayout descrLayout;
+	VulkanAPI::DescriptorSet descrSet;
 
 	// information extracted from shader reflection
 	VulkanAPI::BufferReflect bufferLayout;
@@ -70,8 +74,8 @@ struct StateId
 	{
 	}
 
-	StateId(const StateType _type, const StateTopology topo, const StateAlpha _alpha,
-	        const StateFill _fill, const StateMesh _mesh)
+	StateId(const StateType _type, const StateTopology topo, const StateAlpha _alpha, const StateFill _fill,
+	        const StateMesh _mesh)
 	    : type(_type)
 	    , flags(topo, _alpha, _fill, _mesh)
 	{
@@ -81,8 +85,7 @@ struct StateId
 	struct StateFlags
 	{
 		StateFlags() = default;
-		StateFlags(const StateTopology topo, const StateAlpha _alpha, const StateFill _fill,
-		           const StateMesh _mesh)
+		StateFlags(const StateTopology topo, const StateAlpha _alpha, const StateFill _fill, const StateMesh _mesh)
 		    : topology(topo)
 		    , alpha(_alpha)
 		    , fill(_fill)
@@ -126,16 +129,12 @@ public:
 	PipelineManager();
 	~PipelineManager();
 
-	void build(const PStateInfo& pInfo);
-
-	static void reflect(uint32_t* data, size_t dataSize, Pipeline& pipeline);
-
-	// makes sense to have the pipeline build info class friends with the manager
-	friend class PStateInfo;
+	bool build(OmegaEngine::PBuildInfo& pInfo, PStateInfo& state);
 
 private:
+	VkContext* context;
 
-	std::unordered_map<StateId, std::unique_ptr<PipelineState>, StateHash, StateEqual> states;
+	std::unordered_map<StateId, std::unique_ptr<PStateInfo>, StateHash, StateEqual> states;
 };
 
-}    // namespace OmegaEngine
+}    // namespace VulkanAPI

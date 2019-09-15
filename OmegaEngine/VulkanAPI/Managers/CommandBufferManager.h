@@ -10,6 +10,7 @@ namespace VulkanAPI
 class RenderPass;
 class Swapchain;
 class SemaphoreManager;
+class VkContext;
 
 using CmdBufferHandle = uint64_t;
 
@@ -43,9 +44,10 @@ struct CommandBufferInfo
 class CommandBufferManager
 {
 public:
-	CommandBufferManager(vk::Device &device, vk::PhysicalDevice &physicalDevice, Queue &g_queue,
-	                     Queue &p_queue, Swapchain &swapchain, NewFrameMode mode);
+	CommandBufferManager();
 	~CommandBufferManager();
+
+	void init(VkContext* dev, const NewFrameMode mode);
 
 	CmdBufferHandle createInstance();
 	std::unique_ptr<CommandBuffer> &getCmdBuffer(CmdBufferHandle handle);
@@ -69,10 +71,8 @@ public:
 	}
 
 private:
-	vk::Device &device;
-	vk::PhysicalDevice gpu;
-	Queue graphicsQueue;
-	Queue presentionQueue;
+
+	VkContext* context;
 
 	// States how to treat cmd buffers each frame
 	NewFrameMode mode;

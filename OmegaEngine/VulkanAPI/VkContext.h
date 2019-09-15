@@ -12,7 +12,7 @@ vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::ImageTiling
                                vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice &gpu);
 }
 
-class Device
+class VkContext
 {
 
 public:
@@ -37,8 +37,8 @@ public:
 		bool hasDebugUtils = false;
 	};
 
-	Device();
-	~Device();
+	VkContext();
+	~VkContext();
 
 	static bool findExtensionProperties(const char *name,
 	                                    std::vector<vk::ExtensionProperties> &properties);
@@ -62,20 +62,9 @@ public:
 		return physical;
 	}
 
-	vk::SurfaceKHR &getSurface()
-	{
-		return windowSurface;
-	}
-
 	uint32_t getQueueIndex(QueueType type) const;
 	VulkanAPI::Queue getQueue(QueueType type);
 
-	void setWindowSurface(vk::SurfaceKHR &surface, SurfaceType type = SurfaceType::SurfaceKHR)
-	{
-		assert(surface);
-		windowSurface = surface;
-		surfaceType = type;
-	}
 
 private:
 
@@ -96,15 +85,6 @@ private:
 	VulkanAPI::Queue presentQueue;
 	VulkanAPI::Queue computeQueue;
 
-	// info on this device's swapchain
-	struct SwapchainInfo
-	{
-		vk::SurfaceFormatKHR format;
-		vk::PresentModeKHR mode;
-		vk::Extent2D extent;
-		vk::SwapchainKHR swapchain;
-	} swapchain;
-
 	// the images views for rendering via the framebuffer
 	std::vector<VkImageView> imageViews;
 
@@ -117,10 +97,6 @@ private:
 
 	// validation layers
 	std::vector<const char *> requiredLayers;
-
-	// the window surface that is linked to this device
-	SurfaceType surfaceType;
-	vk::SurfaceKHR windowSurface;
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
