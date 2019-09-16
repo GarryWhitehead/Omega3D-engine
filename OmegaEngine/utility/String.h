@@ -17,6 +17,14 @@ public:
 
 	~String();
 
+	/**
+	* @brief A comapre two strings; a simple wrapper around the c-style
+	* strncmp
+	* @param str the string to compare with
+	* @return A boolean indicating whether the two strings are identical
+	*/
+	bool compare(String str);
+
 	bool empty() const
 	{
 		return !buffer;

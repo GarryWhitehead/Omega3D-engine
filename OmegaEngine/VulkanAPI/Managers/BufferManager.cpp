@@ -3,13 +3,17 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/VkContext.h"
 
+#include "VulkanAPI/Types/BufferReflect.h"
+
 #include "utility/logger.h"
+
+#include "Types/UBufferInfo.h"
 
 #include "Core/Omega_Global.h"
 
 namespace VulkanAPI
 {
-namespace Util
+namespace VulkanUtil
 {
 // static functions
 uint32_t alignmentSize(const uint32_t size)
@@ -32,8 +36,8 @@ uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags
 	return UINT32_MAX;
 }
 
-void createBuffer(VkContext* context, const uint32_t size, vk::BufferUsageFlags flags,
-                  vk::MemoryPropertyFlags props, vk::DeviceMemory& memory, vk::Buffer& buffer)
+void createBuffer(VkContext* context, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props,
+                  vk::DeviceMemory& memory, vk::Buffer& buffer)
 {
 	vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
@@ -49,7 +53,7 @@ void createBuffer(VkContext* context, const uint32_t size, vk::BufferUsageFlags 
 	VK_CHECK_RESULT(device.allocateMemory(&memoryInfo, nullptr, &memory));
 	context->getDevice().bindBufferMemory(buffer, memory, 0);
 }
-}    // namespace Util
+}    // namespace VulkanUtil
 
 BufferManager::BufferManager()
 {
@@ -62,118 +66,122 @@ BufferManager::~BufferManager()
 void BufferManager::init(VkContext* con)
 {
 	this->context = con;
-	
-	OmegaEngine::Global::eventManager()
-	    ->registerListener<BufferManager, BufferUpdateEvent, &BufferManager::updateBuffer>(this);
 
-	memoryAllocator = std::make_unique<MemoryAllocator>(context->getDevice(), context->getGpu(), context->getQueue(VkContext::QueueType::Graphics));
+	memoryAllocator = std::make_unique<MemoryAllocator>(context->getDevice(), context->getGpu(),
+	                                                    context->getQueue(VkContext::QueueType::Graphics));
 }
 
-void BufferManager::enqueueDescrUpdate(DescrSetUpdateInfo& descriptorUpdate)
+bool BufferManager::updateBuffers(std::vector<OmegaEngine::UBufferUpdateInfo>& updates)
 {
-	descriptorSetUpdateQueue.emplace_back(descriptorUpdate);
-}
-
-void BufferManager::enqueueDescrUpdate(const char* id, DescriptorSet* set, uint32_t setValue, uint32_t binding,
-                                       vk::DescriptorType descriptorType)
-{
-	descriptorSetUpdateQueue.push_back({ id, set, setValue, binding, descriptorType });
-}
-
-void BufferManager::updateBuffer(BufferUpdateEvent& event)
-{
-	// sanity debugging checks
-	assert(event.data != nullptr);
-	assert(event.size > 0);
-
-	MemorySegment buffer;
-
-	auto iter = buffers.begin();
-	while (iter != buffers.end())
+	if (updates.empty())
 	{
-
-		if (std::strcmp(iter->first, event.id) == 0)
-		{
-			break;
-		}
-		iter++;
+		return true;
 	}
 
-	// check that the maanger doesn't already contain the same id - if it does then update the buffer
-	if (iter != buffers.end())
+	for (auto& update : updates)
 	{
+		// sanity debugging checks
+		assert(update.data);
+		assert(update.size > 0);
 
-		buffer = iter->second;
-		memoryAllocator->mapDataToSegment(buffer, event.data, event.size);
+		// check that the maanger contains the buffer id
+		auto iter = buffers.find(update.id);	
+		if (iter == buffers.end())
+		{
+			LOGGER_ERROR("Trying to update buffer with id: %s but it doesn't exsist. Are you sure you created it?\n", update.id.c_str());
+			return false;
+		}
 
-		if (event.flushMemory)
+		MemorySegment buffer = iter->second;
+		memoryAllocator->mapDataToSegment(buffer, update.data, update.size);
+
+		// Note: this should only be done for non-coherent memory
+		if (update.flushMem)
 		{
 			vk::MappedMemoryRange mem_range(memoryAllocator->getDeviceMemory(buffer.getId()),
-			                                (uint64_t)buffer.getOffset(), event.size);
-			context.flushMappedMemoryRanges(1, &mem_range);
+											(uint64_t)buffer.getOffset(), update.size);
+			context->getDevice().flushMappedMemoryRanges(1, &mem_range);
 		}
 	}
-	else
+}
+
+bool BufferManager::createBuffers(std::vector<OmegaEngine::UBufferCreateInfo>& newBuffers)
+{
+	if (newBuffers.empty())
 	{
+		return;
+	}
+
+	for (auto& newBuffer : newBuffers)
+	{
+		// sanity debugging checks
+		assert(newBuffer.data);
+		assert(newBuffer.size > 0);
+
+		// check that a buffer with the same id doesn't already exsist
+		auto iter = buffers.find(newBuffer.id);
+		if (iter != buffers.end())
+		{
+			LOGGER_ERROR("Buffer with id: %s already exsists within manager.\n", newBuffer.id.c_str());
+			return false;
+		}
+
 		// otherwise create a new memory segment
-		MemorySegment buffer = memoryAllocator->allocate(event.memoryType, event.size);
-		memoryAllocator->mapDataToSegment(buffer, event.data, event.size);
-		buffers[event.id] = buffer;
+		MemorySegment buffer = memoryAllocator->allocate(newBuffer.memoryType, newBuffer.size);
+		memoryAllocator->mapDataToSegment(buffer, newBuffer.data, newBuffer.size);
+		buffers[newBuffer.id] = buffer;
 	}
+
+	return true;
 }
 
-void BufferManager::updateDescriptors()
+void BufferManager::prepareDescrSet(BufferReflect& reflected, DescriptorSet& descrSet)
 {
 
-	if (!descriptorSetUpdateQueue.empty())
+	if (reflected.layouts.empty())
 	{
+		return;
+	}
 
-		for (auto& descr : descriptorSetUpdateQueue)
+	for (auto& layout : reflected.layouts)
+	{
+		// strip down ubo name to obtain the id used to assocaite the buffer
+		// for instance: the buffer used to create the CameraUbo data will be "Camera"
+		// Though the ubo title can also contain additional information designated by
+		// a underscore before the buffer title proper. For instance: Dyanamic_CameraUbo
+		// states that this is a dynamic buffer. This needs to be stripped to start.
+		Util::String str;
+
+		auto& splitStr = layout.name.split('_');
+		assert(splitStr.size() <= 1);
+
+		// if we only have one string, then no pre-descriptor
+		if (splitStr.size == 1)
 		{
+			str = splitStr[0];
+		}
+		else
+		{
+			str = splitStr[1];
+		}
 
-			auto iter = buffers.begin();
-			while (iter != buffers.end())
-			{
+		auto iter = buffers.find(str);
 
-				if (std::strcmp(iter->first, descr.id) == 0)
-				{
-					break;
-				}
-				iter++;
-			}
-
-			if (iter != buffers.end())
-			{
-				// this may not potentially be an error. For instance, the skinned program state is set up though there is no data
-				// so the descriptors won't be updated.
-				MemorySegment segment = iter->second;
-				descr.set->writeSet(descr.setValue, descr.binding, descr.descriptorType,
-				                    memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(),
-				                    segment.getSize());
-			}
+		if (iter != buffers.end())
+		{
+			// this may not potentially be an error. For instance, the skinned program state is set up though there is no data
+			// so the descriptors won't be updated.
+			MemorySegment segment = iter->second;
+			descrSet.writeSet(layout.set, layout.binding, layout.type,
+			                    memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(),
+			                    segment.getSize());
 		}
 	}
-
-	descriptorSetUpdateQueue.clear();
 }
 
-void BufferManager::update()
+BufferManager::BufferWrapper BufferManager::getBuffer(Util::String id)
 {
-	updateDescriptors();
-}
-
-Buffer BufferManager::getBuffer(const char* id)
-{
-	auto iter = buffers.begin();
-	while (iter != buffers.end())
-	{
-
-		if (std::strcmp(iter->first, id) == 0)
-		{
-			break;
-		}
-		iter++;
-	}
+	auto iter = buffers.find(id);
 
 	if (iter == buffers.end())
 	{

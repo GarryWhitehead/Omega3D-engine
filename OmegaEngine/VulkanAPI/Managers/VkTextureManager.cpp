@@ -1,7 +1,10 @@
 #include "VkTextureManager.h"
-#include "Engine/Omega_Global.h"
+
+#include "Core/Omega_Global.h"
+
 #include "Utility/logger.h"
-#include "VulkanAPI/DataTypes/Texture.h"
+
+#include "VulkanAPI/Types/Texture.h"
 #include "VulkanAPI/Descriptors.h"
 
 namespace VulkanAPI

@@ -7,12 +7,6 @@
 
 namespace VulkanAPI
 {
-namespace Util
-{
-void writeSet(vk::Device device, vk::DescriptorSet &descriptorSet, uint32_t set, uint32_t binding,
-              vk::DescriptorType type, vk::Sampler &sampler, vk::ImageView &imageView,
-              vk::ImageLayout layout);
-}
 
 class DescriptorLayout
 {

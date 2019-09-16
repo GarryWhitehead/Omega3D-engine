@@ -66,6 +66,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
 	Types/PBuildInfo.h
+	Types/UBufferInfo.h
 	
 	OEMaths/OEMaths.cpp OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h

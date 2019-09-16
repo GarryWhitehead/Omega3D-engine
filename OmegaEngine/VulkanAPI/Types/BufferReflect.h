@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utility/String.h"
+
 #include "spirv_cross.hpp"
 
 #include <optional>
@@ -19,9 +21,9 @@ public:
 		uint32_t binding;
 		uint32_t set;
 		size_t range;
-		std::string name;
+		Util::String name;
 
-		BufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, std::string _name, size_t _range)
+		BufferLayout(vk::DescriptorType _type, uint32_t _bind, uint32_t _set, Util::String _name, size_t _range)
 		    : type(_type)
 		    , binding(_bind)
 		    , set(_set)
@@ -60,7 +62,7 @@ public:
 			uint32_t set = compiler.get_decoration(ssbo.id, spv::DecorationDescriptorSet);
 			uint32_t binding = compiler.get_decoration(ssbo.id, spv::DecorationBinding);
 
-			// the descriptor type could be either a normal or dynamic storage buffer. Dynamic buffers must start with "Dynamic::"
+			// the descriptor type could be either a normal or dynamic storage buffer. Dynamic buffers must start with "Dynamic_"
 			vk::DescriptorType type = vk::DescriptorType::eStorageBuffer;
 			if (ssbo.name.find("Dynamic_") != std::string::npos)
 			{
@@ -82,7 +84,7 @@ public:
 		}
 	}
 
-	std::optional<ShaderBufferLayout> find(uint32_t set, uint32_t binding)
+	std::optional<BufferLayout> find(uint32_t set, uint32_t binding)
 	{
 		for (auto& layout : layouts)
 		{
@@ -93,6 +95,8 @@ public:
 		}
 		return std::nullopt;
 	}
+
+	friend class BufferManager;
 
 private:
 

@@ -13,11 +13,12 @@
 
 #include "Threading/ThreadPool.h"
 
-#include "VulkanAPI/BufferManager.h"
+#include "VulkanAPI/Managers/BufferManager.h"
+#include "VulkanAPI/Managers/VkTextureManager.h"
+
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
-#include "VulkanAPI/VkTextureManager.h"
 
 #include "Core/World.h"
 

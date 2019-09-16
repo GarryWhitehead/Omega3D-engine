@@ -22,7 +22,7 @@ PipelineManager::~PipelineManager()
 {
 }
 
-bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& state)
+bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& state, RenderableInfo& renderable)
 {
 	BufferReflect bufferReflect;
 	ImageReflect imageReflect;
@@ -56,56 +56,42 @@ bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& stat
 		context->getShaderManager().addShader(data, shader.first);
 	}
 
-	state.descrLayout.create(context->getDevice(), MAX_MATERIAL_SETS);
-
-	// we only want to init the uniform buffer sets, the material image samplers will be created by the materials themselves
-	for (auto& buffer : state->bufferLayout.layouts)
+	// the user can state the max number of sets or the number will be defined from the reflect results.
+	// defining the a greater number of sets is useful when you don't know the number of sets required at
+	// compile time. This is the case for materials for example, wehere there is a set for each material type
+	if (buildInfo.maxSetCount > 0)
 	{
-		state->descriptorSet.init(vkInterface->getDevice(), state->descriptorLayout.getLayout(buffer.set),
-		                          state->descriptorLayout.getDescriptorPool(), buffer.set);
+		state.descrLayout.create(context->getDevice(), buildInfo.maxSetCount);
+	}
+	else
+	{
+		state.descrLayout.create(context->getDevice());
 	}
 
-	// sort out the descriptor sets - as long as we have initilaised the VkBuffers, we don't need to have filled the buffers yet
-	// material sets will be created and owned by the actual material - note: these will always be set ZERO
-	auto& bufManager = context->getBufManager();
-
-	for (auto& layout : state->bufferLayout.layouts)
+	// now initialise the descriptor sets, which use the layout prepared above.
+	// In some cases not all sets will be defined here. For instance, material sets are created separately
+	// and the information is stored in the renderable instance. We will create the material set now
+	// if requied
+	if (renderable.hasMaterial)
 	{
-		// the shader must use these identifying names for uniform buffers -
-		if (layout.name == "CameraUbo")
-		{
-			bufManager->enqueueDescrUpdate("Camera", &state.descrSet, layout.set,
-			                                                    layout.binding, layout.type);
-		}
-		else if (layout.name == "Dynamic_StaticMeshUbo")
-		{
-			bufManager->enqueueDescrUpdate("Transform", &state.descrSet, layout.set,
-			                                                    layout.binding, layout.type);
-		}
-		else if (layout.name == "Dynamic_SkinnedUbo")
-		{
-			bufManager->enqueueDescrUpdate("SkinnedTransform", &state.descrSet, layout.set,
-			                                                    layout.binding, layout.type);
-		}
+		renderable.material.descrSet.init(context->getDevice());
+		context->getTexManager().prepareSet(renderable.material.name, state.descrSet);
 	}
+	
+	// prepare other descriptor sets
+	state.descrSet.init(context->getDevice(), state.descrLayout);
 
-	// inform the texture manager the layout of textures associated with the mesh shader
-	// TODO : automate this somehow rather than hard coded values
-	auto& texManager = context->getTexManager();
+	// writes descriptor sets - buffers must have been created prior to this
+	context->getBufManager().prepareDescrSet(bufferReflect, state.descrSet);
 
-	const uint8_t materialSet = 2;
-	if (flags.mesh == StateMesh::Static)
-	{
-		texManager->bindTexturesToDescriptorLayout("Mesh", &state->descriptorLayout, materialSet);
-	}
-	else if (flags.mesh == StateMesh::Skinned)
-	{
-		texManager->bindTexturesToDescriptorLayout("SkinnedMesh", &state->descriptorLayout,
-		                                                                 materialSet);
-	}
-	state->pipelineLayout.create(vkInterface->getDevice(), state->descriptorLayout.getLayout());
+	// also update descriptor sets for images
+	context->getTexManager().prepareSet(imageReflect, state.descrSet);
 
-	// use stencil to fill in with ones where geometry is drawn
+	// with the descriptor layout prepared, we can create the pipeline layout. 
+	// Pipeline layouts also contain push constant data which is retrieved through reflection
+	state.pLayout.create(context->getDevice(), state.descrLayout);
+
+	// now for the pipeline configuration details
 	state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eAlways, vk::StencilOp::eReplace,
 	                                            vk::StencilOp::eReplace, vk::StencilOp::eReplace, 0xff, 0xff, 1);
 
@@ -114,7 +100,9 @@ bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& stat
 	state.pipeline.setRasterFrontFace(vk::FrontFace::eCounterClockwise);
 	state.pipeline.setTopology(flags.topology);
 	state.pipeline.addColourAttachment(VK_FALSE, renderer->getFirstPass());
-	state.pipeline.create(vkInterface->getDevice(), renderer->getFirstPass(), state->shader, state->pipelineLayout,
+
+	// and finally build the pipeline
+	state.pipeline.create(context->getDevice(), renderer->getFirstPass(), state.shader, state.pLayout,
 	                       VulkanAPI::PipelineType::Graphics);
 }
 

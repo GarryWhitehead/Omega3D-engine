@@ -1,6 +1,12 @@
 #pragma once
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Queue.h"
+
+#include "VulkanAPI/Managers/BufferManager.h"
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/Managers/PipelineManager.h"
+#include "VulkanAPI/Managers/VkTextureManager.h"
+
 #include <set>
 #include <vector>
 
@@ -8,8 +14,8 @@ namespace VulkanAPI
 {
 namespace VulkanUtil
 {
-vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::ImageTiling tiling,
-                               vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice &gpu);
+vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
+                               vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu);
 }
 
 class VkContext
@@ -40,24 +46,23 @@ public:
 	VkContext();
 	~VkContext();
 
-	static bool findExtensionProperties(const char *name,
-	                                    std::vector<vk::ExtensionProperties> &properties);
-	static vk::Format getDepthFormat(vk::PhysicalDevice &gpu);
+	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
+	static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
 
-	static void createInstance(const char **glfwExtension, uint32_t extCount);
+	static void createInstance(const char** glfwExtension, uint32_t extCount);
 	void prepareDevice();
 
-	vk::Instance &getInstance()
+	vk::Instance& getInstance()
 	{
 		return instance;
 	}
 
-	vk::Device &getDevice()
+	vk::Device& getDevice()
 	{
 		return device;
 	}
 
-	vk::PhysicalDevice &getPhysicalDevice()
+	vk::PhysicalDevice& getPhysicalDevice()
 	{
 		return physical;
 	}
@@ -65,8 +70,33 @@ public:
 	uint32_t getQueueIndex(QueueType type) const;
 	VulkanAPI::Queue getQueue(QueueType type);
 
+	// ====== manager helper functions =========
+	PipelineManager& getPLineManager()
+	{
+		return plineManager;
+	}
+
+	BufferManager& getBufManager()
+	{
+		return bufManager;
+	}
+
+	CommandBufferManager& getCmdBufManager()
+	{
+		return cmdBufManager;
+	}
+
+	VkTextureManager& getTexManager()
+	{
+		return texManager;
+	}
 
 private:
+	// managers
+	PipelineManager plineManager;
+	CommandBufferManager cmdBufManager;
+	BufferManager bufManager;
+	VkTextureManager texManager;
 
 	vk::Instance instance;
 
@@ -96,7 +126,7 @@ private:
 	Extensions deviceExtensions;
 
 	// validation layers
-	std::vector<const char *> requiredLayers;
+	std::vector<const char*> requiredLayers;
 
 #ifdef VULKAN_VALIDATION_DEBUG
 
@@ -106,4 +136,4 @@ private:
 #endif
 };
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI
