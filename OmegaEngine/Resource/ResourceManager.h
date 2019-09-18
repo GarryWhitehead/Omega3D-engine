@@ -7,7 +7,6 @@
 #include "models/ModelImage.h"
 
 #include <memory>
-#include <string>
 #include <unordered_map>
 
 namespace OmegaEngine
@@ -55,7 +54,7 @@ struct AssetGltfImageUpdateEvent : public OmegaEngine::Event
 	std::unique_ptr<ModelImage> image;
 };
 
-class AssetManager
+class ResourceManager
 {
 
 public:
@@ -68,8 +67,8 @@ public:
 	// texture identifiers
 	static constexpr char materialIdentifier[] = "MAT_";
 
-	AssetManager();
-	~AssetManager();
+	ResourceManager();
+	~ResourceManager();
 
 	void updateImage(AssetImageUpdateEvent& event);
 	void updateGltfImage(AssetGltfImageUpdateEvent &event);

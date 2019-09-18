@@ -8,7 +8,7 @@ TARGET_COMPILE_OPTIONS(OMEGA_ENGINE PRIVATE ${OMEGA_CXX_FLAGS})
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
-	${CMAKE_CURRENT_SOURCE_DIR}/Image
+	${CMAKE_CURRENT_SOURCE_DIR}/Resource
 	${CMAKE_CURRENT_SOURCE_DIR}/Managers
 	${CMAKE_CURRENT_SOURCE_DIR}/Models
 	${CMAKE_CURRENT_SOURCE_DIR}/Models/Gltf
@@ -27,6 +27,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	PRIVATE
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/vulkan
+	${EXTERNAL_DIR}/tiny-gltf
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -38,17 +39,16 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/Scene.cpp Core/Scene.h
 	Core/Omega_Common.h
 	
-	Image/KtxReader.cpp Image/KtxReader.h
+	Resource/ResourceManager.cpp Resource/ResourceManager.h
+	Resource/ImageParser.cpp Resource/ImageParser.h
 
 	Managers/AnimationManager.cpp Managers/AnimationManager.h
 	Managers/CameraManager.cpp Managers/CameraManager.h
 	Managers/EventManager.cpp Managers/EventManager.h
 	Managers/LightManager.cpp Managers/LightManager.h
-	Managers/MaterialManager.cpp Managers/MaterialManager.h
 	Managers/MeshManager.cpp Managers/MeshManager.h
 	Managers/TransformManager.cpp Managers/TransformManager.h
 	Managers/ObjectManager.cpp Managers/ObjectManager.h
-	Managers/AssetManager.cpp Managers/AssetManager.h
 	
 	Models/Gltf/GltfModel.cpp Models/Gltf/GltfModel.h
 	Models/Gltf/GltfNode.cpp Models/Gltf/GltfNode.h
@@ -61,12 +61,14 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/OEModels.cpp Models/OEModels.h
 	Models/OEMaterials.h
 	
+	Types/Material.cpp Types/Material.h
 	Types/Object.cpp Types/Object.h
 	Types/ComponentTypes.h
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
 	Types/PBuildInfo.h
 	Types/UBufferInfo.h
+	Types/TextureInfo.h
 	
 	OEMaths/OEMaths.cpp OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h

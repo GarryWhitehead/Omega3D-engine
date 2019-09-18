@@ -16,14 +16,12 @@ public:
 	{
 		uint32_t binding;
 		uint32_t set;
-		std::string name;
+		Util::String name;
 		vk::ImageLayout layout;
 		vk::DescriptorType type;
 		Sampler sampler;
 
-		ImageLayout()
-		{
-		}
+		ImageLayout() = default;
 
 		ImageLayout(vk::DescriptorType _type, vk::ImageLayout lo, uint32_t bind, uint32_t s, std::string n, Sampler spl)
 		    : type(_type)
@@ -78,6 +76,8 @@ public:
 		}
 		return std::nullopt;
 	}
+
+	friend class VulkanAPI::VkTextureManager;
 
 private:
 

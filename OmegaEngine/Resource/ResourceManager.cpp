@@ -1,18 +1,20 @@
-#include "AssetManager.h"
-#include "Engine/Omega_global.h"
+#include "ResourceManager.h" 
+
+#include "Core/Omega_global.h"
+
 #include "Managers/EventManager.h"
 #include "Managers/MaterialManager.h"
+
 #include "Models/ModelImage.h"
-#include "ObjectInterface/ComponentInterface.h"
-#include "Utility/StringUtil.h"
-#include "VulkanAPI/VkTextureManager.h"
+
+#include "Utility/String.h"
 #include "utility/GeneralUtil.h"
 #include "utility/logger.h"
 
 namespace OmegaEngine
 {
 
-AssetManager::AssetManager()
+ResourceManager::ResourceManager()
 {
 	OmegaEngine::Global::eventManager()
 	    ->registerListener<AssetManager, AssetImageUpdateEvent, &AssetManager::updateImage>(this);
@@ -20,21 +22,21 @@ AssetManager::AssetManager()
 	    ->registerListener<AssetManager, AssetGltfImageUpdateEvent, &AssetManager::updateGltfImage>(this);
 }
 
-AssetManager::~AssetManager()
+ResourceManager::~ResourceManager()
 {
 }
 
-void AssetManager::updateImage(AssetImageUpdateEvent &event)
+void ResourceManager::updateImage(AssetImageUpdateEvent& event)
 {
 	addImage(event.texture, event.samplerType, event.id);
 }
 
-void AssetManager::updateGltfImage(AssetGltfImageUpdateEvent &event)
+void ResourceManager::updateGltfImage(AssetGltfImageUpdateEvent& event)
 {
 	addImage(event.image, event.id);
 }
 
-void AssetManager::addImage(std::unique_ptr<ModelImage> &image, std::string id)
+void ResourceManager::addImage(std::unique_ptr<ModelImage>& image, std::string id)
 {
 	TextureAssetInfo assetInfo;
 	assetInfo.texture.mapTexture(image->getWidth(), image->getHeight(), 4, image->getData(),
@@ -56,7 +58,7 @@ void AssetManager::addImage(std::unique_ptr<ModelImage> &image, std::string id)
 	isDirty = true;
 }
 
-void AssetManager::addImage(MappedTexture &texture, std::string id)
+void ResourceManager::addImage(MappedTexture& texture, std::string id)
 {
 	TextureAssetInfo assetInfo;
 	assetInfo.texture = std::move(texture);
@@ -66,7 +68,7 @@ void AssetManager::addImage(MappedTexture &texture, std::string id)
 	isDirty = true;
 }
 
-void AssetManager::addImage(MappedTexture &texture, VulkanAPI::SamplerType& samplerType, std::string id)
+void ResourceManager::addImage(MappedTexture& texture, VulkanAPI::SamplerType& samplerType, std::string id)
 {
 	TextureAssetInfo assetInfo;
 	assetInfo.texture = std::move(texture);
@@ -76,7 +78,7 @@ void AssetManager::addImage(MappedTexture &texture, VulkanAPI::SamplerType& samp
 	isDirty = true;
 }
 
-void AssetManager::loadImageFile(const std::string &filename, const std::string &imageId)
+void ResourceManager::loadImageFile(const std::string& filename, const std::string& imageId)
 {
 	ImageUtility::KtxReader reader;
 
@@ -115,7 +117,7 @@ void AssetManager::loadImageFile(const std::string &filename, const std::string 
 	}
 }
 
-void AssetManager::update(std::unique_ptr<ComponentInterface> &componentInterface)
+void ResourceManager::update(std::unique_ptr<ComponentInterface>& componentInterface)
 {
 	if (isDirty)
 	{

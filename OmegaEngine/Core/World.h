@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Managers/AnimationManager.h"
-#include "Managers/AssetManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
 #include "Managers/MaterialManager.h"
@@ -9,12 +8,14 @@
 #include "Managers/ObjectManager.h"
 #include "Managers/TransformManager.h"
 
+#include "Resource/ResourceManager.h"
+
 #include "Models/Gltf/GltfModel.h"
 
 #include "OEMaths/OEMaths.h"
 
-#include <memory>
-#include <string>
+#include "utility/String.h"
+
 #include <unordered_map>
 #include <vector>
 
@@ -57,11 +58,11 @@ public:
 	MaterialManager& getMatManager();
 	MeshManager& getMeshManager();
 	TransformManager& getTransManager();
-	AssetManager& getAssetManager();
+	ResourceManager& getResourceManager();
 
 private:
 	// name used to identify this world
-	std::string name;
+	Util::String name;
 
 	// and all the managers that are required to deal with each of the component types
 	AnimationManager animManager;
@@ -71,11 +72,8 @@ private:
 	MeshManager meshManager;
 	TransformManager transManager;
 
-	// all assets that are not associated with a manager are dealt with here
-	AssetManager assetManager;
-
-	// the octree as a 3d spatial representation of the world
-	std::unique_ptr<BVH> bvh;
+	// all resources that are not associated with a manager are dealt with here
+	ResourceManager resourceManager;
 
 	// scenes associated with this world
 	std::vector<Scene> scenes;

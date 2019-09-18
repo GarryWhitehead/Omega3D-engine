@@ -1,4 +1,4 @@
-#include "KtxReader.h"
+#include "ImageParser.h"
 
 namespace ImageUtility
 {

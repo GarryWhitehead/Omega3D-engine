@@ -47,7 +47,7 @@ void World::update(double time, double dt)
 	transManager.updateFrame(objManager);
 
 	// newly added assets need to be hosted on the gpu
-	assetManager.update();
+	resourceManager.update();
 
 	// check whether there are any queued events to deal with
 	Global::eventManager()->notifyQueued();
@@ -84,9 +84,9 @@ TransformManager& World::getTransManager()
 	return transManager;
 }
 
-AssetManager& World::getAssetManager()
+ResourceManager& World::getResourceManager()
 {
-	return assetManager;
+	return resourceManager;
 }
 
 }    // namespace OmegaEngine

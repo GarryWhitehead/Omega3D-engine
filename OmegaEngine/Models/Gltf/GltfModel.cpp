@@ -54,14 +54,14 @@ std::unique_ptr<Model> load(std::string filename)
 		// materials
 		for (auto &material : model.materials)
 		{
-			auto newMaterial = Extract::material(material);
+			auto newMaterial = GltfParser::material(material);
 			outputModel->materials.emplace_back(std::move(newMaterial));
 		}
 
 		// images and samplers
 		for (auto &texture : model.textures)
 		{
-			auto newImage = Extract::image(model, texture);
+			auto newImage = GltfParser::image(model, texture);
 			outputModel->images.emplace_back(std::move(newImage));
 		}
 
@@ -69,7 +69,7 @@ std::unique_ptr<Model> load(std::string filename)
 		uint32_t skinIndex = 0;
 		for (tinygltf::Skin &skin : model.skins)
 		{
-			auto newSkin = Extract::skin(model, skin, outputModel, skinIndex++);
+			auto newSkin = GltfParser::skin(model, skin, outputModel, skinIndex++);
 			outputModel->skins.emplace_back(std::move(newSkin));
 		}
 
@@ -77,7 +77,7 @@ std::unique_ptr<Model> load(std::string filename)
 		uint32_t animIndex = 0;
 		for (tinygltf::Animation &anim : model.animations)
 		{
-			auto newAnim = Extract::animation(model, anim, outputModel, animIndex++);
+			auto newAnim = GltfParser::animation(model, anim, outputModel, animIndex++);
 			outputModel->animations.emplace_back(std::move(newAnim));
 		}
 	}
@@ -173,7 +173,8 @@ void build(GltfModel::Model& model, World& world, Object& obj)
 }
 
 }
-namespace Extract
+
+namespace GltfParser
 {
 
 std::unique_ptr<OmegaEngine::ModelImage> image(tinygltf::Model &model, tinygltf::Texture &texture)

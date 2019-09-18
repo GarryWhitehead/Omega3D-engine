@@ -61,7 +61,7 @@ void ModelNode::extractNodeData(tinygltf::Model &model, tinygltf::Node &gltfNode
 	if (gltfNode.mesh > -1)
  	{
 		// index is used to determine the correct nodes for applying joint transforms, etc.
-		mesh = Extract::mesh(model, gltfNode);
+		mesh = GltfParser::mesh(model, gltfNode);
 
 	}
 }
