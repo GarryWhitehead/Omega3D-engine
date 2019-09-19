@@ -37,7 +37,7 @@ vk::ShaderStageFlagBits Shader::getStageFlags(StageType type)
 	return ret;
 }
 
-bool Shader::add(vk::Device device, const std::string &filename, StageType type)
+bool Shader::add(vk::Device device, const std::string& filename, StageType type)
 {
 	this->device = device;
 
@@ -55,8 +55,8 @@ bool Shader::add(vk::Device device, const std::string &filename, StageType type)
 	return true;
 }
 
-bool Shader::add(vk::Device device, const std::string &filename1, StageType type1,
-                 const std::string &filename2, StageType type2)
+bool Shader::add(vk::Device device, const std::string& filename1, StageType type1, const std::string& filename2,
+                 StageType type2)
 {
 	this->device = device;
 
@@ -75,7 +75,7 @@ bool Shader::add(vk::Device device, const std::string &filename1, StageType type
 	return true;
 }
 
-bool Shader::loadShaderBinary(const char *filename, StageType type)
+bool Shader::loadShaderBinary(const char* filename, StageType type)
 {
 	std::string shaderDir(OMEGA_ASSETS_DIR "shaders/");
 	std::ifstream file(shaderDir + filename, std::ios_base::ate | std::ios_base::binary);
@@ -87,14 +87,13 @@ bool Shader::loadShaderBinary(const char *filename, StageType type)
 	std::ifstream::pos_type filePos = file.tellg();
 	data[(int)type].resize(filePos);
 	file.seekg(0, std::ios_base::beg);
-	file.read((char *)data[(int)type].data(), filePos);
+	file.read((char*)data[(int)type].data(), filePos);
 	return true;
 }
 
 void Shader::createModule(vk::Device device, StageType type)
 {
-	vk::ShaderModuleCreateInfo shaderInfo({}, static_cast<uint32_t>(data[(int)type].size()),
-	                                      data[(int)type].data());
+	vk::ShaderModuleCreateInfo shaderInfo({}, static_cast<uint32_t>(data[(int)type].size()), data[(int)type].data());
 
 	VK_CHECK_RESULT(device.createShaderModule(&shaderInfo, nullptr, &modules[(int)type]));
 }
@@ -234,4 +233,4 @@ std::tuple<vk::Format, uint32_t> Shader::getTypeFormat(uint32_t width, uint32_t 
 
 	return std::make_tuple(format, size);
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

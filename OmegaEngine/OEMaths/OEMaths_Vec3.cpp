@@ -8,10 +8,10 @@
 
 namespace OEMaths
 {
-vec3f::vec3f(const float *data)
+vec3f::vec3f(const float* data)
 {
 	assert(data != nullptr);
-	float *ptr = (float *)data;
+	float* ptr = (float*)data;
 
 	this->x = *ptr;
 	++ptr;
@@ -20,10 +20,10 @@ vec3f::vec3f(const float *data)
 	this->z = *ptr;
 }
 
-vec3f::vec3f(const double *data)
+vec3f::vec3f(const double* data)
 {
 	assert(data != nullptr);
-	double *ptr = (double *)data;
+	double* ptr = (double*)data;
 
 	this->x = (float)*ptr;
 	++ptr;
@@ -32,7 +32,7 @@ vec3f::vec3f(const double *data)
 	this->z = (float)*ptr;
 }
 
-vec3f vec3f::operator-(const vec3f &other) const
+vec3f vec3f::operator-(const vec3f& other) const
 {
 	vec3f result;
 	result.x = this->x - other.x;
@@ -41,7 +41,7 @@ vec3f vec3f::operator-(const vec3f &other) const
 	return result;
 }
 
-vec3f vec3f::operator+(const vec3f &other) const
+vec3f vec3f::operator+(const vec3f& other) const
 {
 	vec3f result;
 	result.x = this->x + other.x;
@@ -50,7 +50,7 @@ vec3f vec3f::operator+(const vec3f &other) const
 	return result;
 }
 
-vec3f vec3f::operator*(const vec3f &other) const
+vec3f vec3f::operator*(const vec3f& other) const
 {
 	vec3f result;
 	result.x = this->x * other.x;
@@ -59,7 +59,7 @@ vec3f vec3f::operator*(const vec3f &other) const
 	return result;
 }
 
-vec3f vec3f::operator*(vec4f &other) const
+vec3f vec3f::operator*(vec4f& other) const
 {
 	vec3f result;
 	result.x = this->x * other.getX();
@@ -68,7 +68,7 @@ vec3f vec3f::operator*(vec4f &other) const
 	return result;
 }
 
-vec3f vec3f::operator*(const float &other) const
+vec3f vec3f::operator*(const float& other) const
 {
 	vec3f result;
 	result.x = this->x * other;
@@ -77,7 +77,7 @@ vec3f vec3f::operator*(const float &other) const
 	return result;
 }
 
-vec3f vec3f::operator*(const mat4f &other) const
+vec3f vec3f::operator*(const mat4f& other) const
 {
 	vec3f result;
 	result.x = other.getValue(0) * x + other.getValue(1) * y + other.getValue(2) * z;
@@ -86,7 +86,7 @@ vec3f vec3f::operator*(const mat4f &other) const
 	return result;
 }
 
-vec3f vec3f::operator/(const vec3f &other) const
+vec3f vec3f::operator/(const vec3f& other) const
 {
 	vec3f result;
 	result.x = x / other.x;
@@ -95,7 +95,7 @@ vec3f vec3f::operator/(const vec3f &other) const
 	return result;
 }
 
-vec3f &vec3f::operator-=(const vec3f &other)
+vec3f& vec3f::operator-=(const vec3f& other)
 {
 	x -= other.x;
 	y -= other.y;
@@ -103,7 +103,7 @@ vec3f &vec3f::operator-=(const vec3f &other)
 	return *this;
 }
 
-vec3f &vec3f::operator+=(const vec3f &other)
+vec3f& vec3f::operator+=(const vec3f& other)
 {
 	x += other.x;
 	y += other.y;
@@ -125,7 +125,7 @@ void vec3f::normalise()
 	this->z /= l;
 }
 
-vec3f vec3f::cross(vec3f &v1)
+vec3f vec3f::cross(vec3f& v1)
 {
 	vec3f result;
 	result.x = this->y * v1.getZ() - this->z * v1.getY();
@@ -135,12 +135,12 @@ vec3f vec3f::cross(vec3f &v1)
 	return result;
 }
 
-float vec3f::dot(vec3f &v1)
+float vec3f::dot(vec3f& v1)
 {
 	return this->x * v1.getX() + this->y * v1.getY() + this->z * v1.getZ();
 }
 
-vec3f vec3f::mix(vec3f &v1, float u)
+vec3f vec3f::mix(vec3f& v1, float u)
 {
 	vec3f result;
 	result.x = this->x * (1.0f - u) + v1.getX() * u;
@@ -149,4 +149,4 @@ vec3f vec3f::mix(vec3f &v1, float u)
 
 	return result;
 }
-} // namespace OEMaths
+}    // namespace OEMaths

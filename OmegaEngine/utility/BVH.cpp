@@ -35,23 +35,22 @@ void Extents::reset()
 	}
 }
 
-void Extents::extendBounds(const Extents &extents)
+void Extents::extendBounds(const Extents& extents)
 {
 	for (uint8_t c = 0; c < boundingPlaneCount; ++c)
 	{
 		if (extents.distance[c].near < distance[c].near)
 		{
-			distance[c].near = extents.distance[c].near; // extend plane by the tmin
+			distance[c].near = extents.distance[c].near;    // extend plane by the tmin
 		}
 		if (extents.distance[c].far > distance[c].far)
 		{
-			distance[c].far = extents.distance[c].far; // extend plane by the max value
+			distance[c].far = extents.distance[c].far;    // extend plane by the max value
 		}
 	}
 }
 
-bool Extents::testForPlaneIntersect(float &tNear, float &tFar, const float *normDotOrig,
-                                    const float *normDotDir)
+bool Extents::testForPlaneIntersect(float& tNear, float& tFar, const float* normDotOrig, const float* normDotDir)
 {
 	for (uint8_t c = 0; c < boundingPlaneCount; ++c)
 	{
@@ -60,13 +59,12 @@ bool Extents::testForPlaneIntersect(float &tNear, float &tFar, const float *norm
 
 		if (normDotDir[c] < 0.0f)
 		{
-			std::swap(
-			    tNearExtents,
-			    tFarExtents); // planes have switched so exchange values - stops divide by zero
+			std::swap(tNearExtents,
+			          tFarExtents);    // planes have switched so exchange values - stops divide by zero
 		}
 		if (tNearExtents > tNear)
 		{
-			tNear = tNearExtents; // confine extents within tnear/tfar
+			tNear = tNearExtents;    // confine extents within tnear/tfar
 		}
 		if (tFarExtents < tFar)
 		{
@@ -82,14 +80,14 @@ bool Extents::testForPlaneIntersect(float &tNear, float &tFar, const float *norm
 
 OEMaths::vec3f Extents::calculateCentroid()
 {
-	return { (distance[0].near + distance[0].far) * 0.5f, // x-plane
-		     (distance[1].near + distance[1].far) * 0.5f, // y-plane
-		     (distance[2].near + distance[2].far) * 0.5f }; // z-plane
+	return { (distance[0].near + distance[0].far) * 0.5f,      // x-plane
+		     (distance[1].near + distance[1].far) * 0.5f,      // y-plane
+		     (distance[2].near + distance[2].far) * 0.5f };    // z-plane
 }
 
 // Octree functions ===========================================================================================================================
 
-Octree::Octree(const Extents &sceneExtents)
+Octree::Octree(const Extents& sceneExtents)
 {
 	// create root bounding box extents based on the min and max values of the canvas
 	float xSize = sceneExtents.distance[0].far - sceneExtents.distance[0].near;
@@ -108,7 +106,7 @@ Octree::Octree(const Extents &sceneExtents)
 	// creare a new root node
 	octree.push_back({ sceneExtents });
 
-	nextFreeIndex = 1; // there will always be a root node so start from one
+	nextFreeIndex = 1;    // there will always be a root node so start from one
 }
 
 void Octree::buildBvhIterative()
@@ -132,7 +130,7 @@ void Octree::buildBvhIterative()
 		assert(currentIndex < octree.size());
 
 		if (visitedNodes.count(currentIndex))
-		{ // doubnle check that we haven't already processed this node - probably not needed as it's highly unlikely to happen
+		{    // doubnle check that we haven't already processed this node - probably not needed as it's highly unlikely to happen
 			continue;
 		}
 		visitedNodes.insert(currentIndex);
@@ -143,7 +141,7 @@ void Octree::buildBvhIterative()
 		if (octree[currentIndex].isLeaf)
 		{
 			// if this node ia a leaf, extend the extents by each object
-			for (auto &extent : octree[currentIndex].nodeExtentsList)
+			for (auto& extent : octree[currentIndex].nodeExtentsList)
 			{
 				octree[currentIndex].nodeExtents.extendBounds(extent);
 			}
@@ -170,13 +168,13 @@ void Octree::buildBvhIterative()
 
 		uint32_t parentIndex = octree[currentIndex].parentIndex;
 		if (parentIndex != UINT32_MAX)
-		{ // check were not at the root
+		{    // check were not at the root
 			octree[parentIndex].nodeExtents.extendBounds(octree[currentIndex].nodeExtents);
 		}
 	}
 }
 
-void Octree::insertObjectIntoTreeIterative(const Extents &extents)
+void Octree::insertObjectIntoTreeIterative(const Extents& extents)
 {
 	std::stack<IterativeTreeInfo> treeStack;
 
@@ -184,7 +182,7 @@ void Octree::insertObjectIntoTreeIterative(const Extents &extents)
 	uint8_t currentDepth = 0;
 
 	// start at the root
-	treeStack.push({ currentIndex, currentDepth, bbox, extents }); // push root data onto stack
+	treeStack.push({ currentIndex, currentDepth, bbox, extents });    // push root data onto stack
 
 	while (!treeStack.empty())
 	{
@@ -204,13 +202,13 @@ void Octree::insertObjectIntoTreeIterative(const Extents &extents)
 			}
 			else
 			{
-				octree[currentIndex].isLeaf = false; // set as internal branch node
+				octree[currentIndex].isLeaf = false;    // set as internal branch node
 
 				// split into 8 new child cells and transfer the current objects - this will only be one object!
 				while (octree[currentIndex].nodeExtentsList.size())
 				{
-					treeStack.push({ currentIndex, currentDepth, currentBBox,
-					                 octree[currentIndex].nodeExtentsList.back() });
+					treeStack.push(
+					    { currentIndex, currentDepth, currentBBox, octree[currentIndex].nodeExtentsList.back() });
 					octree[currentIndex].nodeExtentsList.pop_back();
 				}
 				// and also insert the new object into the tree
@@ -276,8 +274,7 @@ void Octree::insertObjectIntoTreeIterative(const Extents &extents)
 
 			// add to stack for processing - move down (up?) a branch
 			uint8_t nextDepth = currentDepth + 1;
-			treeStack.push({ octree[currentIndex].childNode[childIndex], nextDepth, childBBox,
-			                 currentExtent });
+			treeStack.push({ octree[currentIndex].childNode[childIndex], nextDepth, childBBox, currentExtent });
 		}
 	}
 }
@@ -349,7 +346,7 @@ void BVH::buildTree()
 	// bvh tree is built in two steps - first step is to generate a spatial representation of the world in an octree for all primitive types.
 	// The second step is to work form the leaves in a bottom up fashion and adjust the bounding boxes in relation to the
 	// objects within the leaves.
-	for (auto &primitive : primitiveExtents)
+	for (auto& primitive : primitiveExtents)
 	{
 		octree->insertObjectIntoTreeIterative(primitive);
 	}
@@ -358,8 +355,7 @@ void BVH::buildTree()
 	octree->buildBvhIterative();
 }
 
-void BVH::addPrimitive(OEMaths::vec3f min, OEMaths::vec3f max, uint32_t mesh_index,
-                       uint32_t primitive_index)
+void BVH::addPrimitive(OEMaths::vec3f min, OEMaths::vec3f max, uint32_t mesh_index, uint32_t primitive_index)
 {
 	primitives.push_back({ mesh_index, primitive_index, min, max });
 }
@@ -386,4 +382,4 @@ uint32_t BVH::primitiveExtentsSize() const
 	return static_cast<uint32_t>(primitiveExtents.size());
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

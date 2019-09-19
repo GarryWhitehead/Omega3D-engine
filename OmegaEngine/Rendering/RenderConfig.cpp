@@ -8,7 +8,7 @@ namespace OmegaEngine
 void RenderConfig::load()
 {
 	std::string json;
-	const char filename[] = "renderConfig.ini"; // probably need to check the current dir here
+	const char filename[] = "renderConfig.ini";    // probably need to check the current dir here
 	if (!FileUtil::readFileIntoBuffer(filename, json))
 	{
 		return;
@@ -29,4 +29,4 @@ void RenderConfig::load()
 		general.renderer = static_cast<RendererType>(renderer);
 	}
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

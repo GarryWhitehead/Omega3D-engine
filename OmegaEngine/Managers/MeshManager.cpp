@@ -24,7 +24,7 @@ MeshManager::MeshManager()
 {
 	// for performance purposes
 	meshBuffer.reserve(MESH_INIT_CONTAINER_SIZE);
-	staticVertices.reserve(1000000);		// these numbers need evaluating
+	staticVertices.reserve(1000000);    // these numbers need evaluating
 	skinnedVertices.reserve(1000000);
 	indices.reserve(1000000);
 }

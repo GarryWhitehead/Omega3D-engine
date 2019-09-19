@@ -21,7 +21,7 @@ vk::Format KtxReader::convertGlToVkFormat(uint32_t internalFormat)
 	vk::Format format;
 	switch (internalFormat)
 	{
-	case 15: // RGB8_ETC2
+	case 15:    // RGB8_ETC2
 		format = vk::Format::eEtc2R8G8B8A8UnormBlock;
 		break;
 	case 16:
@@ -46,9 +46,9 @@ vk::Format KtxReader::convertGlToVkFormat(uint32_t internalFormat)
 	return format;
 }
 
-bool KtxReader::open(const char *filename, size_t &fileSize)
+bool KtxReader::open(const char* filename, size_t& fileSize)
 {
-	FILE *file = fopen(filename, "rb");
+	FILE* file = fopen(filename, "rb");
 	if (!file)
 	{
 		return false;
@@ -71,9 +71,9 @@ bool KtxReader::open(const char *filename, size_t &fileSize)
 	return true;
 }
 
-bool KtxReader::save(const char *filename, std::vector<uint8_t> &data)
+bool KtxReader::save(const char* filename, std::vector<uint8_t>& data)
 {
-	FILE *file = fopen(filename, "wb");
+	FILE* file = fopen(filename, "wb");
 	if (!file)
 	{
 		fprintf(stderr, "Error creating file %s.\n", filename);
@@ -168,7 +168,7 @@ bool KtxReader::parse(const size_t fileSize)
 
 	// store the data in one big blob
 	imageOutput.data = new uint8_t[fileSize - data_offset];
-	uint8_t *dataPtr = imageOutput.data;
+	uint8_t* dataPtr = imageOutput.data;
 
 	// fill out what we can of the output container
 	imageOutput.arrayCount = header.numberOfArrayElements;
@@ -176,9 +176,9 @@ bool KtxReader::parse(const size_t fileSize)
 	imageOutput.mipLevels = header.numberOfMipmapLevels;
 	imageOutput.width = header.pixelWidth;
 	imageOutput.height = header.pixelHeight;
-	imageOutput.totalSize = (header.pixelWidth * header.pixelHeight * 4 *
-	                         header.numberOfMipmapLevels * header.numberOffaceCount) *
-	                        header.numberOfArrayElements;
+	imageOutput.totalSize =
+	    (header.pixelWidth * header.pixelHeight * 4 * header.numberOfMipmapLevels * header.numberOffaceCount) *
+	    header.numberOfArrayElements;
 
 	// now for the actual images
 	for (uint32_t mips = 0; mips < header.numberOfMipmapLevels; ++mips)
@@ -207,9 +207,8 @@ bool KtxReader::parse(const size_t fileSize)
 	return true;
 }
 
-std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t> &data, uint32_t width,
-                                         uint32_t height, uint32_t arrayCount, uint32_t faceCount,
-                                         uint32_t mipLevels)
+std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height,
+                                         uint32_t arrayCount, uint32_t faceCount, uint32_t mipLevels)
 {
 	std::vector<uint8_t> output_data;
 
@@ -219,14 +218,14 @@ std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t> &data, uint32_t wi
 	// then the data header
 	KtxHeaderV1 header;
 	header.endianness = 0;
-	header.glType = 0; // openGl not supported
+	header.glType = 0;    // openGl not supported
 	header.glTypeSize = 0;
 	header.glFormat = 0;
 	header.glInternalFormat = 0;
 	header.glBaseInternalFormat = 0;
 	header.pixelWidth = width;
 	header.pixelHeight = height;
-	header.pixelDepth = 1; // must be 1
+	header.pixelDepth = 1;    // must be 1
 	header.numberOfArrayElements = arrayCount;
 	header.numberOffaceCount = faceCount;
 	header.numberOfMipmapLevels = mipLevels;
@@ -266,7 +265,7 @@ std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t> &data, uint32_t wi
 	return output_data;
 }
 
-bool KtxReader::loadFile(const char *filename)
+bool KtxReader::loadFile(const char* filename)
 {
 	if (!filename)
 	{
@@ -289,9 +288,8 @@ bool KtxReader::loadFile(const char *filename)
 	return true;
 }
 
-bool KtxReader::saveFile(const char *filename, std::vector<uint8_t> &data, uint32_t mipLevels,
-                         uint32_t arrayCount, uint32_t num_faceCount, uint32_t width,
-                         uint32_t height)
+bool KtxReader::saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount,
+                         uint32_t num_faceCount, uint32_t width, uint32_t height)
 {
 	if (!filename)
 	{
@@ -299,8 +297,7 @@ bool KtxReader::saveFile(const char *filename, std::vector<uint8_t> &data, uint3
 		return false;
 	}
 
-	std::vector<uint8_t> output =
-	    generate(data, width, height, arrayCount, num_faceCount, mipLevels);
+	std::vector<uint8_t> output = generate(data, width, height, arrayCount, num_faceCount, mipLevels);
 	if (output.empty())
 	{
 		fprintf(stderr, "Error whilst generating ktx file binary.\n");
@@ -315,4 +312,4 @@ bool KtxReader::saveFile(const char *filename, std::vector<uint8_t> &data, uint3
 	return true;
 }
 
-} // namespace ImageUtility
+}    // namespace ImageUtility

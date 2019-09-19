@@ -92,8 +92,6 @@ void RenderInterface::initRenderer(std::unique_ptr<ComponentInterface>& componen
 }
 
 
-
-
 void RenderInterface::prepareObjectQueue()
 {
 	RenderQueueInfo queueInfo;

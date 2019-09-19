@@ -57,8 +57,7 @@ void DescriptorLayout::prepare(vk::Device dev, const uint32_t imageSets)
 	{
 
 		// we can have multiple sets of images - useful in the case of materials for instance
-		vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler,
-		                            layout_bind.samplerCount * imageSets);
+		vk::DescriptorPoolSize pool(vk::DescriptorType::eCombinedImageSampler, layout_bind.samplerCount * imageSets);
 		pools.push_back(pool);
 	}
 	if (layout_bind.ssboCount)
@@ -70,22 +69,19 @@ void DescriptorLayout::prepare(vk::Device dev, const uint32_t imageSets)
 	if (layout_bind.uboDynamicCount)
 	{
 
-		vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBufferDynamic,
-		                            layout_bind.uboDynamicCount);
+		vk::DescriptorPoolSize pool(vk::DescriptorType::eUniformBufferDynamic, layout_bind.uboDynamicCount);
 		pools.push_back(pool);
 	}
 	if (layout_bind.ssboDynamicCount)
 	{
 
-		vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBufferDynamic,
-		                            layout_bind.ssboDynamicCount);
+		vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageBufferDynamic, layout_bind.ssboDynamicCount);
 		pools.push_back(pool);
 	}
 	if (layout_bind.storageImageCount)
 	{
 
-		vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageImage,
-		                            layout_bind.storageImageCount);
+		vk::DescriptorPoolSize pool(vk::DescriptorType::eStorageImage, layout_bind.storageImageCount);
 		pools.push_back(pool);
 	}
 
@@ -95,16 +91,14 @@ void DescriptorLayout::prepare(vk::Device dev, const uint32_t imageSets)
 	{
 		set_count += imageSets - 1;
 	}
-	vk::DescriptorPoolCreateInfo createInfo({}, set_count, static_cast<uint32_t>(pools.size()),
-	                                        pools.data());
+	vk::DescriptorPoolCreateInfo createInfo({}, set_count, static_cast<uint32_t>(pools.size()), pools.data());
 	VK_CHECK_RESULT(device.createDescriptorPool(&createInfo, nullptr, &pool));
 
 	// and create the descriptor layout for each set
 	for (auto set : layout_bind.layouts)
 	{
-		auto &binding = set.second;
-		vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(binding.size()),
-		                                             binding.data());
+		auto& binding = set.second;
+		vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(binding.size()), binding.data());
 
 		vk::DescriptorSetLayout layout;
 		VK_CHECK_RESULT(device.createDescriptorSetLayout(&layoutInfo, nullptr, &layout));
@@ -130,12 +124,12 @@ DescriptorSet::DescriptorSet(vk::Device device, DescriptorLayout descriptorLayou
 	init(device, descriptorLayout, set);
 }
 
-void DescriptorSet::init(vk::Device &device, DescriptorLayout &descriptorLayout)
+void DescriptorSet::init(vk::Device& device, DescriptorLayout& descriptorLayout)
 {
 	this->device = device;
 
 	// create all stes that will be reauired - this can be determined by the numbner of layouts we have
-	auto &layout = descriptorLayout.getLayout();
+	auto& layout = descriptorLayout.getLayout();
 	for (uint32_t i = 0; i < layout.size(); ++i)
 	{
 
@@ -143,8 +137,7 @@ void DescriptorSet::init(vk::Device &device, DescriptorLayout &descriptorLayout)
 		vk::DescriptorSetLayout set_layout;
 		std::tie(set, set_layout) = layout[i];
 
-		vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1,
-		                                        &set_layout);
+		vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1, &set_layout);
 
 		vk::DescriptorSet descriptorSet;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descriptorSet));
@@ -152,20 +145,18 @@ void DescriptorSet::init(vk::Device &device, DescriptorLayout &descriptorLayout)
 	}
 }
 
-void DescriptorSet::init(vk::Device &device, DescriptorLayout &descriptorLayout, uint32_t set)
+void DescriptorSet::init(vk::Device& device, DescriptorLayout& descriptorLayout, uint32_t set)
 {
 	this->device = device;
 
-	vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1,
-	                                        &descriptorLayout.getLayout(set));
+	vk::DescriptorSetAllocateInfo allocInfo(descriptorLayout.getDescriptorPool(), 1, &descriptorLayout.getLayout(set));
 
 	vk::DescriptorSet descriptorSet;
 	VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descriptorSet));
 	descriptorSets[set] = descriptorSet;
 }
 
-void DescriptorSet::init(vk::Device &device, vk::DescriptorSetLayout &layout,
-                         vk::DescriptorPool &pool, uint32_t set)
+void DescriptorSet::init(vk::Device& device, vk::DescriptorSetLayout& layout, vk::DescriptorPool& pool, uint32_t set)
 {
 	this->device = device;
 
@@ -176,31 +167,27 @@ void DescriptorSet::init(vk::Device &device, vk::DescriptorSetLayout &layout,
 	descriptorSets[set] = descriptorSet;
 }
 
-void DescriptorSet::writeSet(ImageReflection::ShaderImageLayout &imageLayout,
-                             vk::ImageView &imageView)
+void DescriptorSet::writeSet(ImageReflection::ShaderImageLayout& imageLayout, vk::ImageView& imageView)
 {
-	vk::DescriptorImageInfo image_info(imageLayout.sampler.getSampler(), imageView,
-	                                   imageLayout.layout);
-	vk::WriteDescriptorSet writeSet(descriptorSets[imageLayout.set], imageLayout.binding, 0, 1,
-	                                imageLayout.type, &image_info, nullptr, nullptr);
+	vk::DescriptorImageInfo image_info(imageLayout.sampler.getSampler(), imageView, imageLayout.layout);
+	vk::WriteDescriptorSet writeSet(descriptorSets[imageLayout.set], imageLayout.binding, 0, 1, imageLayout.type,
+	                                &image_info, nullptr, nullptr);
 	device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 }
 
-void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type,
-                             vk::Buffer &buffer, uint32_t offset, uint32_t range)
+void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer,
+                             uint32_t offset, uint32_t range)
 {
 	vk::DescriptorBufferInfo buffer_info(buffer, offset, range);
-	vk::WriteDescriptorSet writeSet(descriptorSets[set], binding, 0, 1, type, nullptr, &buffer_info,
-	                                nullptr);
+	vk::WriteDescriptorSet writeSet(descriptorSets[set], binding, 0, 1, type, nullptr, &buffer_info, nullptr);
 	device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 }
 
-void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type,
-                             vk::Sampler &sampler, vk::ImageView &imageView, vk::ImageLayout layout)
+void DescriptorSet::writeSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
+                             vk::ImageView& imageView, vk::ImageLayout layout)
 {
 	vk::DescriptorImageInfo image_info(sampler, imageView, layout);
-	vk::WriteDescriptorSet writeSet(descriptorSets[set], binding, 0, 1, type, &image_info, nullptr,
-	                                nullptr);
+	vk::WriteDescriptorSet writeSet(descriptorSets[set], binding, 0, 1, type, &image_info, nullptr, nullptr);
 	device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

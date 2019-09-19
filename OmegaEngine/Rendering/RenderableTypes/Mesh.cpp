@@ -5,8 +5,8 @@
 #include "Managers/MeshManager.h"
 #include "Managers/TransformManager.h"
 
-#include "Types/Object.h"
 #include "Types/ComponentTypes.h"
+#include "Types/Object.h"
 
 #include "Rendering/RenderQueue.h"
 #include "Rendering/Renderers/DeferredRenderer.h"
@@ -92,19 +92,19 @@ void RenderableMesh::prepare(World& world, StaticMesh& mesh, PrimitiveMesh& prim
 	meshInstance->indexPrimitiveOffset = primitive.indexBase;
 	meshInstance->indexPrimitiveCount = primitive.indexCount;
 
-	// prepare the material data 
+	// prepare the material data
 	meshInstance->pushBlock.prepare(mat);
 }
 
 void RenderableMesh::preparePStateInfo(StateId::StateFlags& flags)
 {
-	
+
 	info.addShaderPath(PStateInfo::ShaderTarget::Vertex, "model/model.vert");
 	info.addShaderDefinition("");
 	info.setMaxSets(MAX_MATERIAL_SETS);
 	info.setInitSetOnly(true);
 	info.addUboTargets("CameraUbo", "Dynamic_StaticMeshUbo", "Dynamic_SkinnedUbo");
-	
+
 	info.setTopology(flags.topology);
 }
 
@@ -136,6 +136,6 @@ void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* 
 	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer,
 	                          instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
 	cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
-}  
+}
 
 }    // namespace OmegaEngine

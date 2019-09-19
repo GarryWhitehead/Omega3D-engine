@@ -31,7 +31,7 @@ Engine::~Engine()
 bool Engine::initDevice(NativeWindowWrapper& window)
 {
 	Surface surafce = SwapChain::CreateSurface(window);
-	
+
 	device.createInstance(instanceExt, instanceCount);
 
 	// prepare the physical and abstract device including queues

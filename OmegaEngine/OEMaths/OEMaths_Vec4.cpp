@@ -8,10 +8,10 @@
 
 namespace OEMaths
 {
-vec4f::vec4f(const float *data)
+vec4f::vec4f(const float* data)
 {
 	assert(data != nullptr);
-	float *ptr = (float *)data;
+	float* ptr = (float*)data;
 
 	this->x = *ptr;
 	++ptr;
@@ -22,10 +22,10 @@ vec4f::vec4f(const float *data)
 	this->w = *ptr;
 }
 
-vec4f::vec4f(const double *data)
+vec4f::vec4f(const double* data)
 {
 	assert(data != nullptr);
-	double *ptr = (double *)data;
+	double* ptr = (double*)data;
 
 	this->x = (float)*ptr;
 	++ptr;
@@ -36,10 +36,10 @@ vec4f::vec4f(const double *data)
 	this->w = (float)*ptr;
 }
 
-vec4f::vec4f(const uint16_t *data)
+vec4f::vec4f(const uint16_t* data)
 {
 	assert(data != nullptr);
-	uint16_t *ptr = (uint16_t *)data;
+	uint16_t* ptr = (uint16_t*)data;
 
 	this->x = (float)*ptr;
 	++ptr;
@@ -50,7 +50,7 @@ vec4f::vec4f(const uint16_t *data)
 	this->w = (float)*ptr;
 }
 
-vec4f vec4f::operator*(const vec4f &other) const
+vec4f vec4f::operator*(const vec4f& other) const
 {
 	vec4f result;
 	result.x = x * other.x;
@@ -75,11 +75,11 @@ void vec4f::normalise()
 	this->w = this->w / l;
 }
 
-void vec4f::mix(vec4f &v1, vec4f &v2, float u)
+void vec4f::mix(vec4f& v1, vec4f& v2, float u)
 {
 	this->x = v1.x * (1.0f - u) + v2.x * u;
 	this->y = v1.y * (1.0f - u) + v2.y * u;
 	this->z = v1.z * (1.0f - u) + v2.z * u;
 	this->w = v1.w * (1.0f - u) + v2.w * u;
 }
-} // namespace OEMaths
+}    // namespace OEMaths

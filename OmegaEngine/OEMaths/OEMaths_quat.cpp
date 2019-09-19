@@ -4,10 +4,10 @@
 
 namespace OEMaths
 {
-quatf::quatf(const float *data)
+quatf::quatf(const float* data)
 {
 	assert(data != nullptr);
-	float *ptr = (float *)data;
+	float* ptr = (float*)data;
 
 	this->x = *ptr;
 	++ptr;
@@ -18,10 +18,10 @@ quatf::quatf(const float *data)
 	this->w = *ptr;
 }
 
-quatf::quatf(const double *data)
+quatf::quatf(const double* data)
 {
 	assert(data != nullptr);
-	double *ptr = (double *)data;
+	double* ptr = (double*)data;
 
 	this->x = (float)*ptr;
 	++ptr;
@@ -47,7 +47,7 @@ void quatf::normalise()
 	this->w = this->w / l;
 }
 
-void quatf::linearMix(quatf &q1, quatf &q2, float u)
+void quatf::linearMix(quatf& q1, quatf& q2, float u)
 {
 	this->x = q1.x * (1.0f - u) + q2.x * u;
 	this->y = q1.y * (1.0f - u) + q2.y * u;
@@ -55,7 +55,7 @@ void quatf::linearMix(quatf &q1, quatf &q2, float u)
 	this->w = q1.w * (1.0f - u) + q2.w * u;
 }
 
-quatf quatf::cubic_mix(quatf &q1, quatf &q2, quatf &q3, float u)
+quatf quatf::cubic_mix(quatf& q1, quatf& q2, quatf& q3, float u)
 {
 	quatf result;
 	float a0, a1, a2, a3, u_sqr;
@@ -91,4 +91,4 @@ quatf quatf::cubic_mix(quatf &q1, quatf &q2, quatf &q3, float u)
 	return result;
 }
 
-} // namespace OEMaths
+}    // namespace OEMaths

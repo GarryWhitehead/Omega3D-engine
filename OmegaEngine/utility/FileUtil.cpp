@@ -6,7 +6,7 @@ namespace OmegaEngine
 namespace FileUtil
 {
 
-bool GetFileExtension(std::string filename, std::string &ext)
+bool GetFileExtension(std::string filename, std::string& ext)
 {
 	if (filename.empty())
 	{
@@ -16,14 +16,14 @@ bool GetFileExtension(std::string filename, std::string &ext)
 	auto pos = filename.find_last_of('.');
 	if (pos == std::string::npos)
 	{
-		return false; // if there is no extension, then there's a formatting error somewhere
+		return false;    // if there is no extension, then there's a formatting error somewhere
 	}
 
 	ext = filename.substr(pos + 1, filename.size());
 	return true;
 }
 
-bool readFileIntoBuffer(std::string filename, std::string &buffer)
+bool readFileIntoBuffer(std::string filename, std::string& buffer)
 {
 	std::ifstream file;
 	file.open(filename);
@@ -42,5 +42,5 @@ bool readFileIntoBuffer(std::string filename, std::string &buffer)
 	return true;
 }
 
-} // namespace FileUtil
-} // namespace OmegaEngine
+}    // namespace FileUtil
+}    // namespace OmegaEngine

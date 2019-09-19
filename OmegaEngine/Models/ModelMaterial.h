@@ -1,5 +1,10 @@
 #pragma once
+
 #include "OEMaths/OEMaths.h"
+
+#include "utility/String.h"
+
+#include "cgltf/cgltf.h"
 
 #include <cstdint>
 #include <string>
@@ -7,7 +12,7 @@
 namespace OmegaEngine
 {
 
-struct ModelMaterial
+class ModelMaterial
 {
 	enum class TextureId
 	{
@@ -22,7 +27,9 @@ struct ModelMaterial
 	ModelMaterial();
 	~ModelMaterial();
 
-	int32_t getTexture(const TextureId id);
+	Util::String getTextureUri(cgltf_texture_view& view);
+
+	bool prepare(cgltf_material& mat);
 
 	std::string name;
 
@@ -37,9 +44,14 @@ struct ModelMaterial
 		float roughness = 1.0f;
 		float metallic = 1.0f;
 
-		std::string mask;
-		float alphaMaskCutOff = 1.0f;
 	} factors;
+
+	struct AlphaBlending
+	{
+		Util::String mask;
+		float alphaMaskCutOff = 1.0f;
+
+	} blending;
 
 	struct TexCoordSets
 	{
@@ -52,13 +64,16 @@ struct ModelMaterial
 		uint32_t diffuse = 0;
 	} uvSets;
 
-	struct TextureIndex
+	/**
+	 * @brief Filenames which will be passed to the resource manager for loading 
+	 */
+	struct Textures
 	{
-		int32_t baseColour = -1;
-		int32_t emissive = -1;
-		int32_t metallicRoughness = -1;
-		int32_t normal = -1;
-		int32_t occlusion = -1;
+		Util::String baseColour;
+		Util::String emissive;
+		Util::String metallicRoughness;
+		Util::String normal;
+		Util::String occlusion;
 	} textures;
 
 	// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow

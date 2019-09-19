@@ -10,10 +10,10 @@
 
 namespace OEMaths
 {
-mat4f::mat4f(const float *mat_data)
+mat4f::mat4f(const float* mat_data)
 {
 	assert(data != nullptr);
-	float *ptr = (float *)mat_data;
+	float* ptr = (float*)mat_data;
 
 	for (uint8_t col = 0; col < 4; ++col)
 	{
@@ -25,10 +25,10 @@ mat4f::mat4f(const float *mat_data)
 	}
 }
 
-mat4f::mat4f(const double *mat_data)
+mat4f::mat4f(const double* mat_data)
 {
 	assert(data != nullptr);
-	double *ptr = (double *)mat_data;
+	double* ptr = (double*)mat_data;
 
 	for (uint8_t col = 0; col < 4; ++col)
 	{
@@ -40,7 +40,7 @@ mat4f::mat4f(const double *mat_data)
 	}
 }
 
-mat4f::mat4f(quatf &q)
+mat4f::mat4f(quatf& q)
 {
 	float twoX = 2.0f * q.getX();
 	float twoY = 2.0f * q.getY();
@@ -69,14 +69,14 @@ mat4f::mat4f(quatf &q)
 	setCol(3, v3);
 }
 
-float &mat4f::operator()(const uint8_t &col, const uint8_t &row)
+float& mat4f::operator()(const uint8_t& col, const uint8_t& row)
 {
 	// using col major
 	assert(row < 4 && col < 4);
 	return data[col * 4 + row];
 }
 
-mat4f &mat4f::operator()(const vec4f &vec, const uint8_t &col)
+mat4f& mat4f::operator()(const vec4f& vec, const uint8_t& col)
 {
 	assert(col < 4);
 	data[col * 4] = vec.getX();
@@ -86,7 +86,7 @@ mat4f &mat4f::operator()(const vec4f &vec, const uint8_t &col)
 	return *this;
 }
 
-mat4f &mat4f::operator/=(const float &div)
+mat4f& mat4f::operator/=(const float& div)
 {
 	const float invDiv = 1 / div;
 	data[0] /= div;
@@ -111,12 +111,12 @@ mat4f &mat4f::operator/=(const float &div)
 	return *this;
 }
 
-float &mat4f::operator[](const uint32_t &index)
+float& mat4f::operator[](const uint32_t& index)
 {
 	return data[index];
 }
 
-void mat4f::setCol(const uint8_t col, vec4f &v)
+void mat4f::setCol(const uint8_t col, vec4f& v)
 {
 	assert(col < 4);
 	uint8_t row = 0;
@@ -129,35 +129,27 @@ void mat4f::setCol(const uint8_t col, vec4f &v)
 	data[col * 4 + row] = v.getW();
 }
 
-vec4f operator*(const mat4f &mat, const vec4f &vec)
+vec4f operator*(const mat4f& mat, const vec4f& vec)
 {
 	vec4f result;
-	result.x =
-	    mat.data[0] * vec.x + mat.data[1] * vec.y + mat.data[2] * vec.z + mat.data[3] * vec.w;
-	result.y =
-	    mat.data[4] * vec.x + mat.data[5] * vec.y + mat.data[6] * vec.z + mat.data[7] * vec.w;
-	result.z =
-	    mat.data[8] * vec.x + mat.data[9] * vec.y + mat.data[10] * vec.z + mat.data[11] * vec.w;
-	result.w =
-	    mat.data[12] * vec.x + mat.data[13] * vec.y + mat.data[14] * vec.z + mat.data[15] * vec.w;
+	result.x = mat.data[0] * vec.x + mat.data[1] * vec.y + mat.data[2] * vec.z + mat.data[3] * vec.w;
+	result.y = mat.data[4] * vec.x + mat.data[5] * vec.y + mat.data[6] * vec.z + mat.data[7] * vec.w;
+	result.z = mat.data[8] * vec.x + mat.data[9] * vec.y + mat.data[10] * vec.z + mat.data[11] * vec.w;
+	result.w = mat.data[12] * vec.x + mat.data[13] * vec.y + mat.data[14] * vec.z + mat.data[15] * vec.w;
 	return result;
 }
 
-vec4f operator*(const vec4f &vec, const mat4f &mat)
+vec4f operator*(const vec4f& vec, const mat4f& mat)
 {
 	vec4f result;
-	result.x =
-	    vec.x * mat.data[0] + vec.y * mat.data[1] + vec.z * mat.data[2] + vec.w * mat.data[3];
-	result.y =
-	    vec.x * mat.data[4] + vec.y * mat.data[5] + vec.z * mat.data[6] + vec.w * mat.data[7];
-	result.z =
-	    vec.x * mat.data[8] + vec.y * mat.data[9] + vec.z * mat.data[10] + vec.w * mat.data[11];
-	result.w =
-	    vec.x * mat.data[12] + vec.y * mat.data[13] + vec.z * mat.data[14] + vec.w * mat.data[15];
+	result.x = vec.x * mat.data[0] + vec.y * mat.data[1] + vec.z * mat.data[2] + vec.w * mat.data[3];
+	result.y = vec.x * mat.data[4] + vec.y * mat.data[5] + vec.z * mat.data[6] + vec.w * mat.data[7];
+	result.z = vec.x * mat.data[8] + vec.y * mat.data[9] + vec.z * mat.data[10] + vec.w * mat.data[11];
+	result.w = vec.x * mat.data[12] + vec.y * mat.data[13] + vec.z * mat.data[14] + vec.w * mat.data[15];
 	return result;
 }
 
-mat4f operator*(const mat4f &m1, const mat4f &m2)
+mat4f operator*(const mat4f& m1, const mat4f& m2)
 {
 	mat4f result;
 
@@ -178,7 +170,7 @@ mat4f operator*(const mat4f &m1, const mat4f &m2)
 	return result;
 }
 
-mat4f mat4f::translate(vec3f &trans)
+mat4f mat4f::translate(vec3f& trans)
 {
 	mat4f result;
 	result[12] = trans.getX();
@@ -188,7 +180,7 @@ mat4f mat4f::translate(vec3f &trans)
 	return result;
 }
 
-mat4f mat4f::scale(vec3f &scale)
+mat4f mat4f::scale(vec3f& scale)
 {
 	mat4f result;
 	result[0] = scale.getX();
@@ -198,13 +190,13 @@ mat4f mat4f::scale(vec3f &scale)
 	return result;
 }
 
-mat4f mat4f::rotate(float theta, vec3f &axis)
+mat4f mat4f::rotate(float theta, vec3f& axis)
 {
 	mat4f result;
 
 	const float angleRad = radians(theta);
 
-	vec3f axis_norm = axis / (angleRad == 0.0f ? 1.0f : angleRad); //avoid divide by zero
+	vec3f axis_norm = axis / (angleRad == 0.0f ? 1.0f : angleRad);    //avoid divide by zero
 	const float xy = axis_norm.getX() * axis_norm.getY();
 	const float yz = axis_norm.getY() * axis_norm.getZ();
 	const float zx = axis_norm.getZ() * axis_norm.getX();
@@ -232,69 +224,53 @@ mat4f mat4f::inverse()
 	mat4f inv, result;
 	float det;
 
-	inv[0] = data[5] * data[10] * data[15] - data[5] * data[11] * data[14] -
-	         data[9] * data[6] * data[15] + data[9] * data[7] * data[14] +
-	         data[13] * data[6] * data[11] - data[13] * data[7] * data[10];
+	inv[0] = data[5] * data[10] * data[15] - data[5] * data[11] * data[14] - data[9] * data[6] * data[15] +
+	         data[9] * data[7] * data[14] + data[13] * data[6] * data[11] - data[13] * data[7] * data[10];
 
-	inv[4] = -data[4] * data[10] * data[15] + data[4] * data[11] * data[14] +
-	         data[8] * data[6] * data[15] - data[8] * data[7] * data[14] -
-	         data[12] * data[6] * data[11] + data[12] * data[7] * data[10];
+	inv[4] = -data[4] * data[10] * data[15] + data[4] * data[11] * data[14] + data[8] * data[6] * data[15] -
+	         data[8] * data[7] * data[14] - data[12] * data[6] * data[11] + data[12] * data[7] * data[10];
 
-	inv[8] = data[4] * data[9] * data[15] - data[4] * data[11] * data[13] -
-	         data[8] * data[5] * data[15] + data[8] * data[7] * data[13] +
-	         data[12] * data[5] * data[11] - data[12] * data[7] * data[9];
+	inv[8] = data[4] * data[9] * data[15] - data[4] * data[11] * data[13] - data[8] * data[5] * data[15] +
+	         data[8] * data[7] * data[13] + data[12] * data[5] * data[11] - data[12] * data[7] * data[9];
 
-	inv[12] = -data[4] * data[9] * data[14] + data[4] * data[10] * data[13] +
-	          data[8] * data[5] * data[14] - data[8] * data[6] * data[13] -
-	          data[12] * data[5] * data[10] + data[12] * data[6] * data[9];
+	inv[12] = -data[4] * data[9] * data[14] + data[4] * data[10] * data[13] + data[8] * data[5] * data[14] -
+	          data[8] * data[6] * data[13] - data[12] * data[5] * data[10] + data[12] * data[6] * data[9];
 
-	inv[1] = -data[1] * data[10] * data[15] + data[1] * data[11] * data[14] +
-	         data[9] * data[2] * data[15] - data[9] * data[3] * data[14] -
-	         data[13] * data[2] * data[11] + data[13] * data[3] * data[10];
+	inv[1] = -data[1] * data[10] * data[15] + data[1] * data[11] * data[14] + data[9] * data[2] * data[15] -
+	         data[9] * data[3] * data[14] - data[13] * data[2] * data[11] + data[13] * data[3] * data[10];
 
-	inv[5] = data[0] * data[10] * data[15] - data[0] * data[11] * data[14] -
-	         data[8] * data[2] * data[15] + data[8] * data[3] * data[14] +
-	         data[12] * data[2] * data[11] - data[12] * data[3] * data[10];
+	inv[5] = data[0] * data[10] * data[15] - data[0] * data[11] * data[14] - data[8] * data[2] * data[15] +
+	         data[8] * data[3] * data[14] + data[12] * data[2] * data[11] - data[12] * data[3] * data[10];
 
-	inv[9] = -data[0] * data[9] * data[15] + data[0] * data[11] * data[13] +
-	         data[8] * data[1] * data[15] - data[8] * data[3] * data[13] -
-	         data[12] * data[1] * data[11] + data[12] * data[3] * data[9];
+	inv[9] = -data[0] * data[9] * data[15] + data[0] * data[11] * data[13] + data[8] * data[1] * data[15] -
+	         data[8] * data[3] * data[13] - data[12] * data[1] * data[11] + data[12] * data[3] * data[9];
 
-	inv[13] = data[0] * data[9] * data[14] - data[0] * data[10] * data[13] -
-	          data[8] * data[1] * data[14] + data[8] * data[2] * data[13] +
-	          data[12] * data[1] * data[10] - data[12] * data[2] * data[9];
+	inv[13] = data[0] * data[9] * data[14] - data[0] * data[10] * data[13] - data[8] * data[1] * data[14] +
+	          data[8] * data[2] * data[13] + data[12] * data[1] * data[10] - data[12] * data[2] * data[9];
 
-	inv[2] = data[1] * data[6] * data[15] - data[1] * data[7] * data[14] -
-	         data[5] * data[2] * data[15] + data[5] * data[3] * data[14] +
-	         data[13] * data[2] * data[7] - data[13] * data[3] * data[6];
+	inv[2] = data[1] * data[6] * data[15] - data[1] * data[7] * data[14] - data[5] * data[2] * data[15] +
+	         data[5] * data[3] * data[14] + data[13] * data[2] * data[7] - data[13] * data[3] * data[6];
 
-	inv[6] = -data[0] * data[6] * data[15] + data[0] * data[7] * data[14] +
-	         data[4] * data[2] * data[15] - data[4] * data[3] * data[14] -
-	         data[12] * data[2] * data[7] + data[12] * data[3] * data[6];
+	inv[6] = -data[0] * data[6] * data[15] + data[0] * data[7] * data[14] + data[4] * data[2] * data[15] -
+	         data[4] * data[3] * data[14] - data[12] * data[2] * data[7] + data[12] * data[3] * data[6];
 
-	inv[10] = data[0] * data[5] * data[15] - data[0] * data[7] * data[13] -
-	          data[4] * data[1] * data[15] + data[4] * data[3] * data[13] +
-	          data[12] * data[1] * data[7] - data[12] * data[3] * data[5];
+	inv[10] = data[0] * data[5] * data[15] - data[0] * data[7] * data[13] - data[4] * data[1] * data[15] +
+	          data[4] * data[3] * data[13] + data[12] * data[1] * data[7] - data[12] * data[3] * data[5];
 
-	inv[14] = -data[0] * data[5] * data[14] + data[0] * data[6] * data[13] +
-	          data[4] * data[1] * data[14] - data[4] * data[2] * data[13] -
-	          data[12] * data[1] * data[6] + data[12] * data[2] * data[5];
+	inv[14] = -data[0] * data[5] * data[14] + data[0] * data[6] * data[13] + data[4] * data[1] * data[14] -
+	          data[4] * data[2] * data[13] - data[12] * data[1] * data[6] + data[12] * data[2] * data[5];
 
-	inv[3] = -data[1] * data[6] * data[11] + data[1] * data[7] * data[10] +
-	         data[5] * data[2] * data[11] - data[5] * data[3] * data[10] -
-	         data[9] * data[2] * data[7] + data[9] * data[3] * data[6];
+	inv[3] = -data[1] * data[6] * data[11] + data[1] * data[7] * data[10] + data[5] * data[2] * data[11] -
+	         data[5] * data[3] * data[10] - data[9] * data[2] * data[7] + data[9] * data[3] * data[6];
 
-	inv[7] = data[0] * data[6] * data[11] - data[0] * data[7] * data[10] -
-	         data[4] * data[2] * data[11] + data[4] * data[3] * data[10] +
-	         data[8] * data[2] * data[7] - data[8] * data[3] * data[6];
+	inv[7] = data[0] * data[6] * data[11] - data[0] * data[7] * data[10] - data[4] * data[2] * data[11] +
+	         data[4] * data[3] * data[10] + data[8] * data[2] * data[7] - data[8] * data[3] * data[6];
 
-	inv[11] = -data[0] * data[5] * data[11] + data[0] * data[7] * data[9] +
-	          data[4] * data[1] * data[11] - data[4] * data[3] * data[9] -
-	          data[8] * data[1] * data[7] + data[8] * data[3] * data[5];
+	inv[11] = -data[0] * data[5] * data[11] + data[0] * data[7] * data[9] + data[4] * data[1] * data[11] -
+	          data[4] * data[3] * data[9] - data[8] * data[1] * data[7] + data[8] * data[3] * data[5];
 
-	inv[15] = data[0] * data[5] * data[10] - data[0] * data[6] * data[9] -
-	          data[4] * data[1] * data[10] + data[4] * data[2] * data[9] +
-	          data[8] * data[1] * data[6] - data[8] * data[2] * data[5];
+	inv[15] = data[0] * data[5] * data[10] - data[0] * data[6] * data[9] - data[4] * data[1] * data[10] +
+	          data[4] * data[2] * data[9] + data[8] * data[1] * data[6] - data[8] * data[2] * data[5];
 
 	det = data[0] * inv[0] + data[1] * inv[4] + data[2] * inv[8] + data[3] * inv[12];
 
@@ -313,4 +289,4 @@ mat4f mat4f::inverse()
 
 	return result;
 }
-} // namespace OEMaths
+}    // namespace OEMaths

@@ -34,4 +34,4 @@ void SemaphoreManager::recycle(vk::Semaphore semaphore)
 {
 	semaphores.push_back(semaphore);
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

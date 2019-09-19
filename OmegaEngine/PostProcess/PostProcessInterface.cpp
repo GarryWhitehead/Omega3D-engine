@@ -14,8 +14,7 @@ PostProcessInterface::~PostProcessInterface()
 {
 }
 
-vk::ImageView PostProcessInterface::createPipelines(vk::ImageView &forwardImage,
-                                                    RenderConfig &renderConfig)
+vk::ImageView PostProcessInterface::createPipelines(vk::ImageView& forwardImage, RenderConfig& renderConfig)
 {
 	vk::ImageView finalImage = forwardImage;
 
@@ -26,12 +25,12 @@ vk::ImageView PostProcessInterface::createPipelines(vk::ImageView &forwardImage,
 	return finalImage;
 }
 
-void PostProcessInterface::render(RenderConfig &renderConfig)
+void PostProcessInterface::render(RenderConfig& renderConfig)
 {
 	// run through all post processing passes required
-	for (auto &pass : postProcessPasses)
+	for (auto& pass : postProcessPasses)
 	{
 		pass.renderFunction(pass.postProcessHandle, pass.postProcessData);
 	}
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

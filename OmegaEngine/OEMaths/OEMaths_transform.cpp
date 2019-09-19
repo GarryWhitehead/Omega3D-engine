@@ -4,7 +4,7 @@
 
 namespace OEMaths
 {
-mat4f lookAt(vec3f &position, vec3f &target, vec3f &upVec)
+mat4f lookAt(vec3f& position, vec3f& target, vec3f& upVec)
 {
 	vec3f dir = target - position;
 	dir.normalise();
@@ -56,7 +56,7 @@ mat4f perspective(float fov, float aspect, float zNear, float zFar)
 
 	result(1, 1) = 1.0f / tanHalfFov;
 
-	result(2, 2) = zFar / (zFar - zNear); // note: this is Vulkan specific i.e. using 0-1 for depth
+	result(2, 2) = zFar / (zFar - zNear);    // note: this is Vulkan specific i.e. using 0-1 for depth
 	result(2, 3) = 1.0f;
 
 	result(3, 2) = -(zFar * zNear) / (zFar - zNear);
@@ -84,4 +84,4 @@ mat4f ortho(float left, float right, float top, float bottom, float zNear, float
 	return result;
 }
 
-} // namespace OEMaths
+}    // namespace OEMaths

@@ -19,12 +19,12 @@ Object::~Object()
 {
 }
 
-bool Object::operator==(const Object &obj) const
+bool Object::operator==(const Object& obj) const
 {
 	return this->id == obj.id;
 }
 
-Object &Object::addChild(const uint32_t id)
+Object& Object::addChild(const uint32_t id)
 {
 	Object childObject(id);
 	childObject.parentId = this->id;
@@ -50,9 +50,9 @@ uint64_t Object::getParent() const
 	return this->parentId;
 }
 
-std::vector<Object> &Object::getChildren()
+std::vector<Object>& Object::getChildren()
 {
 	return children;
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

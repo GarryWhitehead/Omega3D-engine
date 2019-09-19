@@ -49,7 +49,7 @@ void SceneParser::loadCameraData()
 		LOGGER_INFO("No camera found in scene file. Using default calibration.");
 		return;
 	}
-	const Value &cam = document["Camera"];
+	const Value& cam = document["Camera"];
 
 	// read the camera values from the array
 	camera.zNear = cam["Znear"].GetFloat();
@@ -57,10 +57,10 @@ void SceneParser::loadCameraData()
 	camera.velocity = cam["Velocity"].GetFloat();
 	camera.fov = cam["fov"].GetFloat();
 
-	auto &pos = cam["Position"];
+	auto& pos = cam["Position"];
 	camera.startPosition = OEMaths::vec3f(pos[0].GetFloat(), pos[1].GetFloat(), pos[2].GetFloat());
 
-	auto &up = cam["CameraUp"];
+	auto& up = cam["CameraUp"];
 	camera.cameraUp = OEMaths::vec3f(up[0].GetFloat(), up[1].GetFloat(), up[2].GetFloat());
 
 	std::string type = cam["Type"].GetString();
@@ -84,7 +84,7 @@ void SceneParser::loadModels()
 	}
 
 	// parse all the spaces out of the array
-	const Value &modelArray = document["Models"];
+	const Value& modelArray = document["Models"];
 	if (modelArray.Empty())
 	{
 		return;
@@ -96,20 +96,17 @@ void SceneParser::loadModels()
 	models.resize(modelArray.Size());
 	for (uint32_t i = 0; i < modelArray.Size(); ++i)
 	{
-		auto &arr = modelArray[i];
+		auto& arr = modelArray[i];
 		models[i].gltfFilename = dir + arr["Filename"].GetString();
 
-		auto &rot = arr["Rotation"];
-		models[i].worldRotation =
-		    OEMaths::vec3f(rot[0].GetFloat(), rot[1].GetFloat(), rot[2].GetFloat());
+		auto& rot = arr["Rotation"];
+		models[i].worldRotation = OEMaths::vec3f(rot[0].GetFloat(), rot[1].GetFloat(), rot[2].GetFloat());
 
-		auto &sca = arr["Scale"];
-		models[i].worldScale =
-		    OEMaths::vec3f(sca[0].GetFloat(), sca[1].GetFloat(), sca[2].GetFloat());
+		auto& sca = arr["Scale"];
+		models[i].worldScale = OEMaths::vec3f(sca[0].GetFloat(), sca[1].GetFloat(), sca[2].GetFloat());
 
-		auto &tran = arr["Translation"];
-		models[i].worldTranslation =
-		    OEMaths::vec3f(tran[0].GetFloat(), tran[1].GetFloat(), tran[2].GetFloat());
+		auto& tran = arr["Translation"];
+		models[i].worldTranslation = OEMaths::vec3f(tran[0].GetFloat(), tran[1].GetFloat(), tran[2].GetFloat());
 	}
 }
 
@@ -179,4 +176,4 @@ void SceneParser::loadEnvironment()
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

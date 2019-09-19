@@ -80,7 +80,7 @@ void CommandBuffer::createPrimary()
 	VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
 
-void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo &beginInfo, bool useSecondary)
+void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, bool useSecondary)
 {
 	// stor the renderpass and framebuffer locally
 	renderpass = beginInfo.renderPass;
@@ -92,12 +92,10 @@ void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo &beginInfo, bool use
 	// set viewport and scissor using values from renderpass. Shoule be overridable too
 	viewPort =
 	    vk::Viewport((float)beginInfo.renderArea.offset.x, (float)beginInfo.renderArea.offset.y,
-	                 (float)beginInfo.renderArea.extent.width,
-	                 (float)beginInfo.renderArea.extent.height, 0.0f, 1.0f);
+	                 (float)beginInfo.renderArea.extent.width, (float)beginInfo.renderArea.extent.height, 0.0f, 1.0f);
 
-	scissor =
-	    vk::Rect2D({ { beginInfo.renderArea.offset.x, beginInfo.renderArea.offset.y },
-	                 { beginInfo.renderArea.extent.width, beginInfo.renderArea.extent.height } });
+	scissor = vk::Rect2D({ { beginInfo.renderArea.offset.x, beginInfo.renderArea.offset.y },
+	                       { beginInfo.renderArea.extent.width, beginInfo.renderArea.extent.height } });
 
 	if (!useSecondary)
 	{
@@ -109,7 +107,7 @@ void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo &beginInfo, bool use
 	}
 }
 
-void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo &beginInfo, vk::Viewport &viewPort)
+void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, vk::Viewport& viewPort)
 {
 	// stor the renderpass and framebuffer locally
 	renderpass = beginInfo.renderPass;
@@ -122,8 +120,7 @@ void CommandBuffer::beginRenderpass(vk::RenderPassBeginInfo &beginInfo, vk::View
 
 	// use custom defined viewport
 	scissor = vk::Rect2D{ { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
-		                  { static_cast<uint32_t>(viewPort.width),
-		                    static_cast<uint32_t>(viewPort.height) } };
+		                  { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
 
 	cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
 }
@@ -148,42 +145,37 @@ void CommandBuffer::setScissor()
 	cmdBuffer.setScissor(0, 1, &scissor);
 }
 
-void CommandBuffer::setViewport(const vk::Viewport &viewPort)
+void CommandBuffer::setViewport(const vk::Viewport& viewPort)
 {
 	this->viewPort = viewPort;
-	scissor = vk::Rect2D{
-		{ 0, 0 }, { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) }
-	};
+	scissor = vk::Rect2D{ { 0, 0 }, { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
 	cmdBuffer.setViewport(0, 1, &viewPort);
 }
 
-void CommandBuffer::bindPipeline(Pipeline &pipeline)
+void CommandBuffer::bindPipeline(Pipeline& pipeline)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(pipeline.getPipelineType());
 	cmdBuffer.bindPipeline(bindPoint, pipeline.get());
 }
 
-void CommandBuffer::bindDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-                                    PipelineType type)
+void CommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
 	std::vector<vk::DescriptorSet> sets = descriptorSet.get();
-	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0,
-	                             static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0,
+	                             nullptr);
 }
 
-void CommandBuffer::bindDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-                                    uint32_t offsetCount, uint32_t *offsets, PipelineType type)
+void CommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, uint32_t offsetCount,
+                                    uint32_t* offsets, PipelineType type)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
 	std::vector<vk::DescriptorSet> sets = descriptorSet.get();
-	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0,
-	                             static_cast<uint32_t>(sets.size()), sets.data(), offsetCount,
-	                             offsets);
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(),
+	                             offsetCount, offsets);
 }
 
-void CommandBuffer::bindPushBlock(PipelineLayout &pipelineLayout, vk::ShaderStageFlags stage,
-                                  uint32_t size, void *data)
+void CommandBuffer::bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data)
 {
 	cmdBuffer.pushConstants(pipelineLayout.get(), stage, 0, size, data);
 }
@@ -193,12 +185,12 @@ void CommandBuffer::setDepthBias(float biasConstant, float biasClamp, float bias
 	cmdBuffer.setDepthBias(biasConstant, biasClamp, biasSlope);
 }
 
-void CommandBuffer::bindVertexBuffer(vk::Buffer &buffer, vk::DeviceSize offset)
+void CommandBuffer::bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset)
 {
 	cmdBuffer.bindVertexBuffers(0, 1, &buffer, &offset);
 }
 
-void CommandBuffer::bindIndexBuffer(vk::Buffer &buffer, uint32_t offset)
+void CommandBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
 {
 	cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 }
@@ -214,8 +206,7 @@ void CommandBuffer::executeSecondaryCommands()
 		executeCmdBuffers[i] = secondaryCmdBuffers[i].get();
 	}
 
-	cmdBuffer.executeCommands(static_cast<uint32_t>(executeCmdBuffers.size()),
-	                          executeCmdBuffers.data());
+	cmdBuffer.executeCommands(static_cast<uint32_t>(executeCmdBuffers.size()), executeCmdBuffers.data());
 }
 
 void CommandBuffer::executeSecondaryCommands(uint32_t count)
@@ -232,10 +223,9 @@ void CommandBuffer::executeSecondaryCommands(uint32_t count)
 	cmdBuffer.executeCommands(count, executeCmdBuffers.data());
 }
 
-SecondaryCommandBuffer &CommandBuffer::createSecondary()
+SecondaryCommandBuffer& CommandBuffer::createSecondary()
 {
-	SecondaryCommandBuffer buffer{ device, queueFamilyIndex, renderpass,
-		                           framebuffer, viewPort, scissor };
+	SecondaryCommandBuffer buffer{ device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor };
 	buffer.create();
 	secondaryCmdBuffers.push_back(buffer);
 	return secondaryCmdBuffers.back();
@@ -246,8 +236,7 @@ void CommandBuffer::createSecondary(uint32_t count)
 	secondaryCmdBuffers.resize(count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		secondaryCmdBuffers[i] = { device, queueFamilyIndex, renderpass,
-			                       framebuffer, viewPort, scissor };
+		secondaryCmdBuffers[i] = { device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor };
 		secondaryCmdBuffers[i].create();
 	}
 }
@@ -268,9 +257,8 @@ SecondaryCommandBuffer::SecondaryCommandBuffer()
 {
 }
 
-SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint32_t index,
-                                               vk::RenderPass &rpass, vk::Framebuffer &fbuffer,
-                                               vk::Viewport &view, vk::Rect2D &_scissor)
+SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint32_t index, vk::RenderPass& rpass,
+                                               vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)
 {
 	init(dev, index, rpass, fbuffer, view, _scissor);
 }
@@ -279,9 +267,8 @@ SecondaryCommandBuffer::~SecondaryCommandBuffer()
 {
 }
 
-void SecondaryCommandBuffer::init(vk::Device dev, uint32_t index, vk::RenderPass &rpass,
-                                  vk::Framebuffer &fbuffer, vk::Viewport &view,
-                                  vk::Rect2D &_scissor)
+void SecondaryCommandBuffer::init(vk::Device dev, uint32_t index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer,
+                                  vk::Viewport& view, vk::Rect2D& _scissor)
 {
 	device = dev;
 	queueFamilyIndex = index;
@@ -298,8 +285,7 @@ void SecondaryCommandBuffer::end()
 
 void SecondaryCommandBuffer::create()
 {
-	vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-	                                     queueFamilyIndex);
+	vk::CommandPoolCreateInfo createInfo(vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queueFamilyIndex);
 
 	device.createCommandPool(&createInfo, nullptr, &cmdPool);
 
@@ -310,75 +296,68 @@ void SecondaryCommandBuffer::create()
 
 void SecondaryCommandBuffer::begin()
 {
-	vk::CommandBufferInheritanceInfo inheritanceInfo(renderpass, 0, framebuffer, VK_FALSE,
-	                                                 (vk::QueryControlFlagBits)0,
+	vk::CommandBufferInheritanceInfo inheritanceInfo(renderpass, 0, framebuffer, VK_FALSE, (vk::QueryControlFlagBits)0,
 	                                                 (vk::QueryPipelineStatisticFlagBits)0);
 
-	vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue,
-	                                     &inheritanceInfo);
+	vk::CommandBufferBeginInfo beginInfo(vk::CommandBufferUsageFlagBits::eRenderPassContinue, &inheritanceInfo);
 	VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
 
-void SecondaryCommandBuffer::bindPipeline(Pipeline &pipeline)
+void SecondaryCommandBuffer::bindPipeline(Pipeline& pipeline)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(pipeline.getPipelineType());
 	cmdBuffer.bindPipeline(bindPoint, pipeline.get());
 }
 
-void SecondaryCommandBuffer::bindDescriptors(PipelineLayout &pipelineLayout,
-                                             DescriptorSet &descriptorSet, PipelineType type)
+void SecondaryCommandBuffer::bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet,
+                                             PipelineType type)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
 	std::vector<vk::DescriptorSet> sets = descriptorSet.get();
-	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0,
-	                             static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 0,
+	                             nullptr);
 }
 
-void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout &pipelineLayout,
-                                                    DescriptorSet &descriptorSet, PipelineType type,
-                                                    std::vector<uint32_t> &dynamicOffsets)
+void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet,
+                                                    PipelineType type, std::vector<uint32_t>& dynamicOffsets)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
 	std::vector<vk::DescriptorSet> sets = descriptorSet.get();
-	cmdBuffer.bindDescriptorSets(
-	    bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(),
-	    static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(),
+	                             static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
 }
 
-void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout &pipelineLayout,
-                                                    DescriptorSet &descriptorSet, PipelineType type,
-                                                    uint32_t &dynamicOffset)
+void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet,
+                                                    PipelineType type, uint32_t& dynamicOffset)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
 	std::vector<vk::DescriptorSet> sets = descriptorSet.get();
-	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0,
-	                             static_cast<uint32_t>(sets.size()), sets.data(), 1,
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(), 1,
 	                             &dynamicOffset);
 }
 
-void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout &pipelineLayout,
-                                                    std::vector<vk::DescriptorSet> &descriptorSet,
-                                                    PipelineType type,
-                                                    std::vector<uint32_t> &dynamicOffsets)
+void SecondaryCommandBuffer::bindDynamicDescriptors(PipelineLayout& pipelineLayout,
+                                                    std::vector<vk::DescriptorSet>& descriptorSet, PipelineType type,
+                                                    std::vector<uint32_t>& dynamicOffsets)
 {
 	vk::PipelineBindPoint bindPoint = createBindPoint(type);
-	cmdBuffer.bindDescriptorSets(
-	    bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(descriptorSet.size()),
-	    descriptorSet.data(), static_cast<uint32_t>(dynamicOffsets.size()), dynamicOffsets.data());
+	cmdBuffer.bindDescriptorSets(bindPoint, pipelineLayout.get(), 0, static_cast<uint32_t>(descriptorSet.size()),
+	                             descriptorSet.data(), static_cast<uint32_t>(dynamicOffsets.size()),
+	                             dynamicOffsets.data());
 }
 
-void SecondaryCommandBuffer::bindPushBlock(PipelineLayout &pipelineLayout,
-                                           vk::ShaderStageFlags stage, uint32_t size, void *data)
+void SecondaryCommandBuffer::bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size,
+                                           void* data)
 {
 	cmdBuffer.pushConstants(pipelineLayout.get(), stage, 0, size, data);
 }
 
-void SecondaryCommandBuffer::bindVertexBuffer(vk::Buffer &buffer, vk::DeviceSize offset)
+void SecondaryCommandBuffer::bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset)
 {
 	cmdBuffer.bindVertexBuffers(0, 1, &buffer, &offset);
 }
 
-void SecondaryCommandBuffer::bindIndexBuffer(vk::Buffer &buffer, uint32_t offset)
+void SecondaryCommandBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
 {
 	cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 }
@@ -420,4 +399,4 @@ void CommandBuffer::createCmdPool()
 	device.createCommandPool(&createInfo, nullptr, &cmdPool);
 }
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

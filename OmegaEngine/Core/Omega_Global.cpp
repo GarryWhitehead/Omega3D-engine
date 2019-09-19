@@ -12,12 +12,12 @@ namespace Global
 
 struct Managers
 {
-	EventManager *eventManager = nullptr;
+	EventManager* eventManager = nullptr;
 };
 
 static Managers managers;
 
-EventManager *eventManager()
+EventManager* eventManager()
 {
 	assert(managers.eventManager != nullptr);
 	return managers.eventManager;
@@ -33,5 +33,5 @@ void init()
 {
 	initEventManager();
 }
-} // namespace Global
-} // namespace OmegaEngine
+}    // namespace Global
+}    // namespace OmegaEngine

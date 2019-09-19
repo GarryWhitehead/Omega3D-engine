@@ -16,7 +16,8 @@ namespace OmegaEngine
 {
 
 RenderableSkybox::RenderableSkybox(std::unique_ptr<ProgramStateManager>& stateManager, SkyboxComponent& component,
-                                   std::unique_ptr<VulkanAPI::Interface>& vkInterface, std::unique_ptr<RendererBase>& renderer)
+                                   std::unique_ptr<VulkanAPI::Interface>& vkInterface,
+                                   std::unique_ptr<RendererBase>& renderer)
     : RenderableBase(RenderTypes::Skybox)
 {
 	// upload the indices and verices to the gpu. This will happen per skybox

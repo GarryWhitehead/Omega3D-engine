@@ -11,11 +11,9 @@ namespace OmegaEngine
 CameraManager::CameraManager()
 {
 	// set up events
-	Global::eventManager()
-	    ->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouseMoveEvent>(this);
-	Global::eventManager()
-	    ->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboardPressEvent>(
-	        this);
+	Global::eventManager()->registerListener<CameraManager, MouseMoveEvent, &CameraManager::mouseMoveEvent>(this);
+	Global::eventManager()->registerListener<CameraManager, KeyboardPressEvent, &CameraManager::keyboardPressEvent>(
+	    this);
 
 	// for performance purposes, reserve a small amount of mem for the vector
 	cameras.reserve(INIT_CONTAINER_SIZE);
@@ -33,7 +31,7 @@ void CameraManager::addCamera(Camera& camera)
 	isDirty = true;
 }
 
-void CameraManager::mouseMoveEvent(MouseMoveEvent &event)
+void CameraManager::mouseMoveEvent(MouseMoveEvent& event)
 {
 	if (firstTime)
 	{
@@ -57,20 +55,20 @@ void CameraManager::mouseMoveEvent(MouseMoveEvent &event)
 	updateCameraRotation();
 }
 
-void CameraManager::keyboardPressEvent(KeyboardPressEvent &event)
+void CameraManager::keyboardPressEvent(KeyboardPressEvent& event)
 {
 
-	auto &camera = cameras[cameraIndex];
+	auto& camera = cameras[cameraIndex];
 	float velocity = camera.velocity;
 
 	// check for forwards and strafe movement
 	if (event.isMovingForward)
 	{
-		currentPosition += frontVec * velocity; // Engine::DT;	<- Needed?
+		currentPosition += frontVec * velocity;    // Engine::DT;	<- Needed?
 	}
 	if (event.isMovingBackward)
 	{
-		currentPosition -= frontVec * velocity; // Engine::DT;
+		currentPosition -= frontVec * velocity;    // Engine::DT;
 	}
 	if (event.isMovingLeft)
 	{
@@ -90,13 +88,12 @@ void CameraManager::keyboardPressEvent(KeyboardPressEvent &event)
 
 void CameraManager::updateCameraRotation()
 {
-	auto &camera = cameras[cameraIndex];
+	auto& camera = cameras[cameraIndex];
 
 	//calculate the pitch and yaw vectors
-	frontVec =
-	    OEMaths::vec3f{ std::cos(OEMaths::radians(pitch)) * std::cos(OEMaths::radians(yaw)),
-		                std::sin(OEMaths::radians(pitch)),
-		                std::cos(OEMaths::radians(pitch)) * std::sin(OEMaths::radians(yaw)) };
+	frontVec = OEMaths::vec3f{ std::cos(OEMaths::radians(pitch)) * std::cos(OEMaths::radians(yaw)),
+		                       std::sin(OEMaths::radians(pitch)),
+		                       std::cos(OEMaths::radians(pitch)) * std::sin(OEMaths::radians(yaw)) };
 	frontVec.normalise();
 
 	isDirty = true;
@@ -105,7 +102,7 @@ void CameraManager::updateCameraRotation()
 void CameraManager::updateViewMatrix()
 {
 	assert(!cameras.empty());
-	auto &camera = cameras[cameraIndex];
+	auto& camera = cameras[cameraIndex];
 	OEMaths::vec3f target = currentPosition + frontVec;
 	currentViewMatrix = OEMaths::lookAt(currentPosition, target, camera.cameraUp);
 }
@@ -117,16 +114,15 @@ void CameraManager::updateFrame(double time, double dt)
 		updateViewMatrix();
 
 		// update everything in the buffer
-		cameraBuffer.mvp = currentProjMatrix * currentViewMatrix; // * model
+		cameraBuffer.mvp = currentProjMatrix * currentViewMatrix;    // * model
 		cameraBuffer.cameraPosition = currentPosition;
 		cameraBuffer.projection = currentProjMatrix;
-		cameraBuffer.model = currentModelMatrix; // this is just identity for now
+		cameraBuffer.model = currentModelMatrix;    // this is just identity for now
 		cameraBuffer.view = currentViewMatrix;
 		cameraBuffer.zNear = cameras[cameraIndex].zNear;
 		cameraBuffer.zFar = cameras[cameraIndex].zFar;
 
-		VulkanAPI::BufferUpdateEvent event{ "Camera", (void *)&cameraBuffer,
-			                                sizeof(CameraBufferInfo),
+		VulkanAPI::BufferUpdateEvent event{ "Camera", (void*)&cameraBuffer, sizeof(CameraBufferInfo),
 			                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
 
 		// let the buffer manager know that the buffers needs creating/updating via the event process
@@ -136,4 +132,4 @@ void CameraManager::updateFrame(double time, double dt)
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

@@ -77,7 +77,7 @@ bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& stat
 		renderable.material.descrSet.init(context->getDevice());
 		context->getTexManager().prepareSet(renderable.material.name, state.descrSet);
 	}
-	
+
 	// prepare other descriptor sets
 	state.descrSet.init(context->getDevice(), state.descrLayout);
 
@@ -87,7 +87,7 @@ bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& stat
 	// also update descriptor sets for images
 	context->getTexManager().prepareSet(imageReflect, state.descrSet);
 
-	// with the descriptor layout prepared, we can create the pipeline layout. 
+	// with the descriptor layout prepared, we can create the pipeline layout.
 	// Pipeline layouts also contain push constant data which is retrieved through reflection
 	state.pLayout.create(context->getDevice(), state.descrLayout);
 
@@ -103,7 +103,7 @@ bool PipelineManager::build(OmegaEngine::PBuildInfo& buildInfo, PStateInfo& stat
 
 	// and finally build the pipeline
 	state.pipeline.create(context->getDevice(), renderer->getFirstPass(), state.shader, state.pLayout,
-	                       VulkanAPI::PipelineType::Graphics);
+	                      VulkanAPI::PipelineType::Graphics);
 }
 
 

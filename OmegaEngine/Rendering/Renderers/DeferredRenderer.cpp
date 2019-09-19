@@ -102,7 +102,7 @@ void DeferredRenderer::createGbufferPass()
 	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // normal
 	firstRenderpass.addAttachment(vk::Format::eR16G16Sfloat, VulkanAPI::FinalLayoutType::Auto);          // pbr
 	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // emissive
-	firstRenderpass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);                 // depth
+	firstRenderpass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);                        // depth
 	firstRenderpass.prepareRenderPass();
 
 	const uint8_t attachmentCount = 6;

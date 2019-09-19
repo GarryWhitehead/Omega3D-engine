@@ -32,7 +32,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateQuadMesh(const float size)
 	mesh->indices.resize(6);
 	std::array<uint32_t, 6> indices = { 0, 1, 2, 2, 3, 0 };
 	for (uint32_t i = 0; i < 6; ++i)
-	{ 
+	{
 		mesh->indices[i] = indices[i];
 	}
 
@@ -40,7 +40,7 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateQuadMesh(const float size)
 	mesh->topology = StateTopology::List;
 
 	return std::move(mesh);
-}   
+}
 
 std::unique_ptr<OmegaEngine::ModelMesh> generateSphereMesh(const uint32_t density)
 {
@@ -287,5 +287,5 @@ std::unique_ptr<OmegaEngine::ModelMesh> generateCubeMesh(const OEMaths::vec3f& s
 	return std::move(mesh);
 }
 
-}    // namespace OmegaEngine
+}    // namespace OEModels
 }    // namespace OmegaEngine

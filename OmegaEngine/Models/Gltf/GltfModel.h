@@ -7,11 +7,8 @@
 #include "Models/ModelSkin.h"
 #include "Models/ModelTransform.h"
 
-#define TINYGLTF_IMPLEMENTATION
-#define STB_IMAGE_IMPLEMENTATION
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#define STBI_MSC_SECURE_CRT
-#include "tiny_gltf.h"
+#define CGLTF_IMPLEMENTATION
+#include "cgltf/cgltf.h"
 
 #include <memory>
 #include <vector>
@@ -19,16 +16,20 @@
 namespace OmegaEngine
 {
 
-namespace GltfModel
+class Model
 {
+	
+public:
 
-struct Model
-{
-	std::vector<std::unique_ptr<ModelNode>> nodes;
-	std::vector<std::unique_ptr<OmegaEngine::ModelMaterial>> materials;
-	std::vector<std::unique_ptr<OmegaEngine::ModelImage>> images;
-	std::vector<std::unique_ptr<OmegaEngine::ModelSkin>> skins;
-	std::vector<std::unique_ptr<OmegaEngine::ModelAnimation>> animations;
+	Model load(std::string filename);
+
+private:
+	
+	ModelNode nodes;
+	ModelMaterial materials;
+	ModelImage images;
+	ModelSkin skins;
+	ModelAnimation animations;
 
 	ModelNode *getNode(uint32_t index)
 	{
@@ -45,24 +46,7 @@ struct Model
 	}
 };
 
-std::unique_ptr<Model> load(std::string filename);
 
-namespace Extract
-{
-std::unique_ptr<OmegaEngine::ModelImage> image(tinygltf::Model &model, tinygltf::Texture &texture);
-
-std::unique_ptr<OmegaEngine::ModelMesh> mesh(tinygltf::Model &model, tinygltf::Node &node);
-
-std::unique_ptr<OmegaEngine::ModelMaterial> material(tinygltf::Material &gltfMaterial);
-
-std::unique_ptr<OmegaEngine::ModelAnimation> animation(tinygltf::Model &gltfModel,
-                                                        tinygltf::Animation &anim,
-                          std::unique_ptr<GltfModel::Model> &model, const uint32_t index);
-
-std::unique_ptr<OmegaEngine::ModelTransform> transform(tinygltf::Node &node);
-
-std::unique_ptr<OmegaEngine::ModelSkin> skin(tinygltf::Model &gltfModel, tinygltf::Skin &skin,
-                     std::unique_ptr<GltfModel::Model> &model, uint32_t skinIndex);
 
 template <typename T>
 void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView,

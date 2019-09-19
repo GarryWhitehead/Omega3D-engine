@@ -16,12 +16,11 @@ Swapchain::Swapchain()
 
 SurfaceWrapper Swapchain::createSurface(NativeWindowWrapper& window)
 {
-	
 }
 
-void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::SurfaceKHR &surface,
-                       const uint32_t graphIndex, const uint32_t presentIndex,
-                       const uint32_t screenWidth, const uint32_t screenHeight)
+void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface,
+                       const uint32_t graphIndex, const uint32_t presentIndex, const uint32_t screenWidth,
+                       const uint32_t screenHeight)
 {
 	this->device = dev;
 	this->gpu = physicalDevice;
@@ -50,10 +49,9 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::S
 	}
 	else
 	{
-		for (auto &format : surfaceFormats)
+		for (auto& format : surfaceFormats)
 		{
-			if (format.format == vk::Format::eB8G8R8A8Unorm &&
-			    format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+			if (format.format == vk::Format::eB8G8R8A8Unorm && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
 			{
 				requiredSurfaceFormats = format;
 				break;
@@ -64,16 +62,16 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::S
 
 	// And then the presentation format - the preferred format is triple buffering
 	vk::PresentModeKHR requiredPresentMode;
-	for (auto &mode : presentModes)
+	for (auto& mode : presentModes)
 	{
-		if (mode == vk::PresentModeKHR::eMailbox) // our preferred triple buffering mode
+		if (mode == vk::PresentModeKHR::eMailbox)    // our preferred triple buffering mode
 		{
 			requiredPresentMode = mode;
 			break;
 		}
 		else if (mode == vk::PresentModeKHR::eImmediate)
 		{
-			requiredPresentMode = mode; // immediate mode is only supported on some drivers.
+			requiredPresentMode = mode;    // immediate mode is only supported on some drivers.
 			break;
 		}
 	}
@@ -82,19 +80,19 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::S
 	// First of check if we can manually set the dimension - some GPUs allow this by setting the max as the size of uint32
 	if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max())
 	{
-		this->extent = capabilities.currentExtent; // go with the automatic settings
+		this->extent = capabilities.currentExtent;    // go with the automatic settings
 	}
 	else
 	{
-		this->extent.width = std::max(capabilities.minImageExtent.width,
-		                              std::min(capabilities.maxImageExtent.width, screenWidth));
-		this->extent.height = std::max(capabilities.minImageExtent.height,
-		                               std::min(capabilities.maxImageExtent.height, screenHeight));
+		this->extent.width =
+		    std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, screenWidth));
+		this->extent.height =
+		    std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, screenHeight));
 	}
 
 	// Get the number of possible images we can send to the queue
 	uint32_t imageCount =
-	    capabilities.minImageCount + 1; // adding one as we would like to implement triple buffering
+	    capabilities.minImageCount + 1;    // adding one as we would like to implement triple buffering
 	if (capabilities.maxImageCount > 0 && imageCount > capabilities.maxImageCount)
 	{
 		imageCount = capabilities.maxImageCount;
@@ -112,10 +110,9 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::S
 	}
 
 	vk::SwapchainCreateInfoKHR createInfo(
-	    {}, surface, imageCount, requiredSurfaceFormats.format, requiredSurfaceFormats.colorSpace,
-	    extent, 1, vk::ImageUsageFlagBits::eColorAttachment, sharingMode, 0, nullptr,
-	    capabilities.currentTransform, vk::CompositeAlphaFlagBitsKHR::eOpaque, requiredPresentMode,
-	    VK_TRUE, {});
+	    {}, surface, imageCount, requiredSurfaceFormats.format, requiredSurfaceFormats.colorSpace, extent, 1,
+	    vk::ImageUsageFlagBits::eColorAttachment, sharingMode, 0, nullptr, capabilities.currentTransform,
+	    vk::CompositeAlphaFlagBitsKHR::eOpaque, requiredPresentMode, VK_TRUE, {});
 
 	// And finally, create the swap chain
 	VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain));
@@ -126,8 +123,8 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::S
 	for (int c = 0; c < images.size(); ++c)
 	{
 		ImageView imageView;
-		imageView.create(device, images[c], requiredSurfaceFormats.format,
-		                 vk::ImageAspectFlagBits::eColor, vk::ImageViewType::e2D);
+		imageView.create(device, images[c], requiredSurfaceFormats.format, vk::ImageAspectFlagBits::eColor,
+		                 vk::ImageViewType::e2D);
 		imageViews.emplace_back(std::move(imageView));
 	}
 
@@ -144,13 +141,12 @@ Swapchain::~Swapchain()
 	device.destroySwapchainKHR(swapchain, nullptr);
 }
 
-void Swapchain::begin_frame(vk::Semaphore &semaphore)
+void Swapchain::begin_frame(vk::Semaphore& semaphore)
 {
-	device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), semaphore, {},
-	                           &imageIndex);
+	device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), semaphore, {}, &imageIndex);
 }
 
-void Swapchain::submitFrame(vk::Semaphore &presentSemaphore, vk::Queue &presentionQueue)
+void Swapchain::submitFrame(vk::Semaphore& presentSemaphore, vk::Queue& presentionQueue)
 {
 	vk::PresentInfoKHR present_info(1, &presentSemaphore, 1, &swapchain, &imageIndex, nullptr);
 
@@ -177,11 +173,9 @@ void Swapchain::prepareSwapchainPass()
 	{
 
 		// create a frame buffer for each swapchain image
-		std::vector<vk::ImageView> views{ imageViews[i].getImageView(),
-			                              depthTexture->getImageView() };
-		renderpass->prepareFramebuffer(static_cast<uint32_t>(views.size()), views.data(),
-		                               extent.width, extent.height);
+		std::vector<vk::ImageView> views{ imageViews[i].getImageView(), depthTexture->getImageView() };
+		renderpass->prepareFramebuffer(static_cast<uint32_t>(views.size()), views.data(), extent.width, extent.height);
 	}
 }
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

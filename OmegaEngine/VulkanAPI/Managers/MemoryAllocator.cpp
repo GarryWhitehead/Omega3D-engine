@@ -9,7 +9,7 @@ MemoryAllocator::MemoryAllocator()
 {
 }
 
-MemoryAllocator::MemoryAllocator(vk::Device &dev, vk::PhysicalDevice &physical, Queue &queue)
+MemoryAllocator::MemoryAllocator(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue)
 {
 	init(dev, physical, queue);
 }
@@ -19,7 +19,7 @@ MemoryAllocator::~MemoryAllocator()
 	destroyAllBlocks();
 }
 
-void MemoryAllocator::init(vk::Device &dev, vk::PhysicalDevice &physical, Queue &queue)
+void MemoryAllocator::init(vk::Device& dev, vk::PhysicalDevice& physical, Queue& queue)
 {
 	device = dev;
 	gpu = physical;
@@ -40,9 +40,8 @@ uint32_t MemoryAllocator::findMemoryType(uint32_t type, vk::MemoryPropertyFlags 
 	return UINT32_MAX;
 }
 
-void MemoryAllocator::createBuffer(uint32_t size, vk::BufferUsageFlags flags,
-                                   vk::MemoryPropertyFlags props, vk::DeviceMemory &memory,
-                                   vk::Buffer &buffer)
+void MemoryAllocator::createBuffer(uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props,
+                                   vk::DeviceMemory& memory, vk::Buffer& buffer)
 {
 	vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
 
@@ -59,13 +58,13 @@ void MemoryAllocator::createBuffer(uint32_t size, vk::BufferUsageFlags flags,
 	device.bindBufferMemory(buffer, memory, 0);
 }
 
-vk::Buffer &MemoryAllocator::getMemoryBuffer(const uint32_t id)
+vk::Buffer& MemoryAllocator::getMemoryBuffer(const uint32_t id)
 {
 	assert(id < memoryBlocks.size());
 	return memoryBlocks[id].blockBuffer;
 }
 
-vk::DeviceMemory &MemoryAllocator::getDeviceMemory(const uint32_t id)
+vk::DeviceMemory& MemoryAllocator::getDeviceMemory(const uint32_t id)
 {
 	assert(id < memoryBlocks.size());
 	return memoryBlocks[id].blockMemory;
@@ -85,13 +84,12 @@ uint32_t MemoryAllocator::allocateBlock(MemoryType type, uint32_t size)
 
 		// instead of creating a buffer for each usage flag, just allow this buffer to hold any usage type. This keeps allocations to a min and doesn't seem to effect performance
 		// TODO: remove the usage parameter as not really needed
-		createBuffer(
-		    allocatedSize,
-		    vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer |
-		        vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
-		        vk::BufferUsageFlagBits::eTransferDst,
-		    vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
-		    block.blockMemory, block.blockBuffer);
+		createBuffer(allocatedSize,
+		             vk::BufferUsageFlagBits::eIndexBuffer | vk::BufferUsageFlagBits::eVertexBuffer |
+		                 vk::BufferUsageFlagBits::eUniformBuffer | vk::BufferUsageFlagBits::eStorageBuffer |
+		                 vk::BufferUsageFlagBits::eTransferDst,
+		             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent,
+		             block.blockMemory, block.blockBuffer);
 
 		block.type = MemoryType::VK_BLOCK_TYPE_HOST;
 	}
@@ -100,12 +98,11 @@ uint32_t MemoryAllocator::allocateBlock(MemoryType type, uint32_t size)
 		allocatedSize = (size == 0) ? static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL) : size;
 
 		// locally created buffers have the transfer dest bit as the data will be copied from a temporary hosted buffer to the local destination buffer
-		createBuffer(
-		    allocatedSize,
-		    vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer |
-		        vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eUniformBuffer |
-		        vk::BufferUsageFlagBits::eStorageBuffer,
-		    vk::MemoryPropertyFlagBits::eDeviceLocal, block.blockMemory, block.blockBuffer);
+		createBuffer(allocatedSize,
+		             vk::BufferUsageFlagBits::eTransferDst | vk::BufferUsageFlagBits::eIndexBuffer |
+		                 vk::BufferUsageFlagBits::eVertexBuffer | vk::BufferUsageFlagBits::eUniformBuffer |
+		                 vk::BufferUsageFlagBits::eStorageBuffer,
+		             vk::MemoryPropertyFlagBits::eDeviceLocal, block.blockMemory, block.blockBuffer);
 
 		block.type = MemoryType::VK_BLOCK_TYPE_LOCAL;
 	}
@@ -123,13 +120,11 @@ uint32_t MemoryAllocator::allocateBlock(MemoryUsage memoryUsage)
 
 	if (memoryUsage & MemoryUsage::VK_BUFFER_DYNAMIC)
 	{
-		blockId = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST,
-		                        static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST));
+		blockId = allocateBlock(MemoryType::VK_BLOCK_TYPE_HOST, static_cast<uint32_t>(ALLOC_BLOCK_SIZE_HOST));
 	}
 	else if (memoryUsage & MemoryUsage::VK_BUFFER_STATIC)
 	{
-		blockId = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL,
-		                        static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL));
+		blockId = allocateBlock(MemoryType::VK_BLOCK_TYPE_LOCAL, static_cast<uint32_t>(ALLOC_BLOCK_SIZE_LOCAL));
 	}
 
 	return blockId;
@@ -180,15 +175,13 @@ uint32_t MemoryAllocator::findBlockType(MemoryUsage usage)
 {
 	uint32_t id = UINT32_MAX;
 
-	for (auto &block : memoryBlocks)
+	for (auto& block : memoryBlocks)
 	{
-		if (block.type == MemoryType::VK_BLOCK_TYPE_HOST &&
-		    (usage & MemoryUsage::VK_BUFFER_DYNAMIC))
+		if (block.type == MemoryType::VK_BLOCK_TYPE_HOST && (usage & MemoryUsage::VK_BUFFER_DYNAMIC))
 		{
 			id = block.blockId;
 		}
-		else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL &&
-		         (usage & MemoryUsage::VK_BUFFER_STATIC))
+		else if (block.type == MemoryType::VK_BLOCK_TYPE_LOCAL && (usage & MemoryUsage::VK_BUFFER_STATIC))
 		{
 			id = block.blockId;
 		}
@@ -234,8 +227,7 @@ uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segm
 				uint32_t unallocatedSize = segment.second - segmentSize;
 				if (unallocatedSize > 0)
 				{
-					memoryBlocks[id].freeSegments.insert(
-					    std::make_pair(offset + segmentSize, unallocatedSize));
+					memoryBlocks[id].freeSegments.insert(std::make_pair(offset + segmentSize, unallocatedSize));
 
 					// defrag mem by checking for adjacent free segments
 					// DefragBlockMem(blockId);		// TODO: add this function!
@@ -252,8 +244,7 @@ uint32_t MemoryAllocator::findFreeSegment(const uint32_t id, const uint32_t segm
 }
 
 // override of the segment mapping function that allows data of type *void to be passed
-void MemoryAllocator::mapDataToSegment(MemorySegment &segment, void *data, uint32_t totalSize,
-                                       uint32_t offset)
+void MemoryAllocator::mapDataToSegment(MemorySegment& segment, void* data, uint32_t totalSize, uint32_t offset)
 {
 	assert(segment.getId() < (int32_t)memoryBlocks.size());
 	MemoryBlock block = memoryBlocks[segment.getId()];
@@ -271,13 +262,12 @@ void MemoryAllocator::mapDataToSegment(MemorySegment &segment, void *data, uint3
 		vk::Buffer tempBuffer;
 		vk::DeviceMemory tempMemory;
 		createBuffer(segment.getSize(), vk::BufferUsageFlagBits::eTransferSrc,
-		             vk::MemoryPropertyFlagBits::eHostVisible |
-		                 vk::MemoryPropertyFlagBits::eHostCoherent,
-		             tempMemory, tempBuffer);
+		             vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent, tempMemory,
+		             tempBuffer);
 
 		// map data to temporary buffer
 		segment.map(device, tempMemory, 0, data, totalSize,
-		            offset); // mem offseting not allowed for device local buffer
+		            offset);    // mem offseting not allowed for device local buffer
 
 		// create cmd buffer for copy and transfer to device local memory
 		CommandBuffer copyCmdBuffer(device, graphicsQueue.getIndex());
@@ -294,16 +284,16 @@ void MemoryAllocator::mapDataToSegment(MemorySegment &segment, void *data, uint3
 	}
 }
 
-void MemoryAllocator::destroySegment(MemorySegment &segment)
+void MemoryAllocator::destroySegment(MemorySegment& segment)
 {
 	if (segment.getSize() <= 0)
-	{ // if the segment size is zero, it obviously hasn't yet been allocated
+	{    // if the segment size is zero, it obviously hasn't yet been allocated
 		return;
 	}
 
 	// check that the segment exsists within the map
-	auto &allocatedSegments = memoryBlocks[segment.getId()].allocatedSegments;
-	auto &iter = allocatedSegments.find(segment.getOffset());
+	auto& allocatedSegments = memoryBlocks[segment.getId()].allocatedSegments;
+	auto& iter = allocatedSegments.find(segment.getOffset());
 
 	if (iter != allocatedSegments.end())
 	{
@@ -312,8 +302,7 @@ void MemoryAllocator::destroySegment(MemorySegment &segment)
 		allocatedSegments.erase(segment.getOffset());
 
 		// and add to the free segments pool
-		memoryBlocks[segment.getId()].freeSegments.insert(
-		    std::make_pair(segment.getOffset(), segment.getSize()));
+		memoryBlocks[segment.getId()].freeSegments.insert(std::make_pair(segment.getOffset(), segment.getSize()));
 	}
 }
 
@@ -333,7 +322,7 @@ void MemoryAllocator::destroyBlock(uint32_t id)
 
 void MemoryAllocator::destroyAllBlocks()
 {
-	for (auto &block : memoryBlocks)
+	for (auto& block : memoryBlocks)
 	{
 
 		destroyBlock(block.blockId);
@@ -345,7 +334,7 @@ void MemoryAllocator::outputLog()
 	// just outputting to stderr for now. Would be useful to write to csv file at some point
 	LOGGER_INFO("Current memory blocks in use: %zu", memoryBlocks.size());
 
-	for (auto &block : memoryBlocks)
+	for (auto& block : memoryBlocks)
 	{
 		LOGGER_INFO("-----------------------------------------\n");
 		LOGGER_INFO("Block Id #%i :\n", block.blockId);
@@ -356,10 +345,9 @@ void MemoryAllocator::outputLog()
 		uint32_t count = 0;
 		uint32_t totalUsed = 0;
 
-		for (auto &segment : block.allocatedSegments)
+		for (auto& segment : block.allocatedSegments)
 		{
-			LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first,
-			            segment.second);
+			LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first, segment.second);
 			++count;
 			totalUsed += segment.second;
 		}
@@ -369,10 +357,9 @@ void MemoryAllocator::outputLog()
 		LOGGER("Free segments.....\n");
 		count = 0;
 		totalUsed = 0;
-		for (auto &segment : block.freeSegments)
+		for (auto& segment : block.freeSegments)
 		{
-			LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first,
-			            segment.second);
+			LOGGER_INFO("Segment %i:   Offset = %i     Size = %i\n", count, segment.first, segment.second);
 			++count;
 			totalUsed += segment.second;
 		}
@@ -382,8 +369,8 @@ void MemoryAllocator::outputLog()
 
 // ================================================================ MemorySegment functions ====================================================================================================================
 
-void MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset,
-                        void *sourceData, uint32_t totalSize, uint32_t mappedOffset)
+void MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t offset, void* sourceData,
+                        uint32_t totalSize, uint32_t mappedOffset)
 {
 	assert(totalSize <= size);
 
@@ -397,8 +384,8 @@ void MemorySegment::map(vk::Device dev, vk::DeviceMemory memory, const uint32_t 
 	else
 	{
 		// preserve the original mapped loaction - cast to char* required as unable to add offset to incomplete type such as void*
-		void *mapped = static_cast<char *>(data) + mappedOffset;
+		void* mapped = static_cast<char*>(data) + mappedOffset;
 		memcpy(mapped, sourceData, totalSize);
 	}
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

@@ -1,7 +1,7 @@
 #include "CommandBufferManager.h"
 
-#include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/Managers/SemaphoreManager.h"
+#include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkContext.h"
 
@@ -82,8 +82,7 @@ std::unique_ptr<VulkanAPI::CommandBuffer>& CommandBufferManager::beginNewFame(Cm
 	{
 		if (cmdBuffers[handle].cmdBuffer == nullptr)
 		{
-			cmdBuffers[handle].cmdBuffer =
-			    std::make_unique<CommandBuffer>(dev, CommandBuffer::UsageType::Multi);
+			cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(dev, CommandBuffer::UsageType::Multi);
 			cmdBuffers[handle].cmdBuffer->createPrimary();
 		}
 		else
@@ -110,8 +109,8 @@ std::unique_ptr<VulkanAPI::CommandBuffer>& CommandBufferManager::beginNewFame(Cm
 		{
 			if (cmdBuffers[handle].cmdBuffer == nullptr)
 			{
-				cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(
-				    context, CommandBuffer::UsageType::Multi);
+				cmdBuffers[handle].cmdBuffer =
+				    std::make_unique<CommandBuffer>(context, CommandBuffer::UsageType::Multi);
 				cmdBuffers[handle].cmdBuffer->createPrimary();
 			}
 			else

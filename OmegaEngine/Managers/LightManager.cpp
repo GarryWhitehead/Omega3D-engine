@@ -204,7 +204,7 @@ void LightManager::updateFrame(double dt, World& world)
 		uint32_t spotlightCount = 0;
 		uint32_t pointlightCount = 0;
 		uint32_t dirLightCount = 0;
-		
+
 		for (auto& info : lights)
 		{
 			auto& light = std::get<0>(info);

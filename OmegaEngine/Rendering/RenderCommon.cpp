@@ -7,8 +7,8 @@
 #include "Rendering/RenderableTypes/Skybox.h"
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/Interface.h"
-#include "VulkanAPI/Swapchain.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/Swapchain.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -16,9 +16,9 @@ namespace OmegaEngine
 
 namespace Rendering
 {
-void renderObjects(std::unique_ptr<RenderQueue> &renderQueue, VulkanAPI::RenderPass &renderpass,
-                   std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer, QueueType type,
-                   RenderConfig &renderConfig, bool clearAttachment)
+void renderObjects(std::unique_ptr<RenderQueue>& renderQueue, VulkanAPI::RenderPass& renderpass,
+                   std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer, QueueType type, RenderConfig& renderConfig,
+                   bool clearAttachment)
 {
 
 	// sort by the set order - layer, shader, material and depth
@@ -33,8 +33,7 @@ void renderObjects(std::unique_ptr<RenderQueue> &renderQueue, VulkanAPI::RenderP
 	vk::RenderPassBeginInfo beginInfo;
 	if (clearAttachment)
 	{
-		beginInfo =
-		    renderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
+		beginInfo = renderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
 	}
 	else
 	{
@@ -49,12 +48,12 @@ void renderObjects(std::unique_ptr<RenderQueue> &renderQueue, VulkanAPI::RenderP
 	// end the primary pass and buffer
 	cmdBuffer->endRenderpass();
 }
-} // namespace Rendering
+}    // namespace Rendering
 
-PresentationPass::PresentationPass(RenderConfig &renderConfig)
+PresentationPass::PresentationPass(RenderConfig& renderConfig)
 {
 	// create the ubo buffer data now for the shader as this will remain static
-	VulkanAPI::BufferUpdateEvent event{ "Present", (void *)&renderConfig.toneMapSettings,
+	VulkanAPI::BufferUpdateEvent event{ "Present", (void*)&renderConfig.toneMapSettings,
 		                                sizeof(RenderConfig::ToneMapSettings),
 		                                VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
 
@@ -66,8 +65,7 @@ PresentationPass::~PresentationPass()
 {
 }
 
-void PresentationPass::createPipeline(vk::ImageView &postProcessImageView,
-                                      VulkanAPI::Interface &vkInterface)
+void PresentationPass::createPipeline(vk::ImageView& postProcessImageView, VulkanAPI::Interface& vkInterface)
 {
 
 	if (!state.shader.add(vkInterface.getDevice(), "quad-vert.spv", VulkanAPI::StageType::Vertex,
@@ -83,28 +81,27 @@ void PresentationPass::createPipeline(vk::ImageView &postProcessImageView,
 	state.descriptorSet.init(vkInterface.getDevice(), state.descriptorLayout);
 
 	// sort out the descriptor sets - buffers
-	for (auto &layout : state.bufferLayout.layouts)
+	for (auto& layout : state.bufferLayout.layouts)
 	{
 		if (layout.name == "UboBuffer")
 		{
-			vkInterface.getBufferManager()->enqueueDescrUpdate(
-			    "Present", &state.descriptorSet, layout.set, layout.binding, layout.type);
+			vkInterface.getBufferManager()->enqueueDescrUpdate("Present", &state.descriptorSet, layout.set,
+			                                                   layout.binding, layout.type);
 		}
 	}
 
-	for (auto &layout : state.imageLayout.layouts)
+	for (auto& layout : state.imageLayout.layouts)
 	{
 		if (layout.name == "imageSampler")
 		{
-			auto &image = state.imageLayout.find(layout.set, layout.binding);
+			auto& image = state.imageLayout.find(layout.set, layout.binding);
 			if (image)
 			{
 				state.descriptorSet.writeSet(image.value(), postProcessImageView);
 			}
 			else
 			{
-				LOGGER_ERROR("Unable to find image sampler %s after shader reflection\n",
-				             layout.name.c_str());
+				LOGGER_ERROR("Unable to find image sampler %s after shader reflection\n", layout.name.c_str());
 			}
 		}
 	}
@@ -120,16 +117,16 @@ void PresentationPass::createPipeline(vk::ImageView &postProcessImageView,
 	state.pipeline.setRasterFrontFace(vk::FrontFace::eClockwise);
 	state.pipeline.setTopology(StateTopology::List);
 	state.pipeline.addColourAttachment(VK_FALSE, vkInterface.getSwapchain().getRenderpass());
-	state.pipeline.create(vkInterface.getDevice(), vkInterface.getSwapchain().getRenderpass(),
-	                      state.shader, state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
+	state.pipeline.create(vkInterface.getDevice(), vkInterface.getSwapchain().getRenderpass(), state.shader,
+	                      state.pipelineLayout, VulkanAPI::PipelineType::Graphics);
 }
 
-void PresentationPass::render(VulkanAPI::Interface &vkInterface, RenderConfig &renderConfig)
+void PresentationPass::render(VulkanAPI::Interface& vkInterface, RenderConfig& renderConfig)
 {
 	uint32_t imageCount = vkInterface.getCmdBufferManager()->getPresentImageCount();
 	for (uint32_t i = 0; i < imageCount; ++i)
 	{
-		auto &cmdBuffer = vkInterface.getCmdBufferManager()->beginPresentCmdBuffer(
+		auto& cmdBuffer = vkInterface.getCmdBufferManager()->beginPresentCmdBuffer(
 		    vkInterface.getSwapchain().getRenderpass(), renderConfig.general.backgroundColour, i);
 
 		cmdBuffer->setViewport();
@@ -137,8 +134,7 @@ void PresentationPass::render(VulkanAPI::Interface &vkInterface, RenderConfig &r
 
 		// bind everything required to draw
 		cmdBuffer->bindPipeline(state.pipeline);
-		cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet,
-		                           VulkanAPI::PipelineType::Graphics);
+		cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
 
 		// render full screen quad to screen
 		cmdBuffer->drawQuad();
@@ -149,4 +145,4 @@ void PresentationPass::render(VulkanAPI::Interface &vkInterface, RenderConfig &r
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

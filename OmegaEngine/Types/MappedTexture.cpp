@@ -23,7 +23,7 @@ MappedTexture::~MappedTexture()
 	}
 }
 
-MappedTexture::MappedTexture(const MappedTexture &other)
+MappedTexture::MappedTexture(const MappedTexture& other)
 {
 	width = other.width;
 	height = other.height;
@@ -32,17 +32,16 @@ MappedTexture::MappedTexture(const MappedTexture &other)
 	arrayCount = other.arrayCount;
 	totalSize = other.totalSize;
 	format = other.format;
-	
+
 	if (other.bin)
 	{
 		uint32_t copySize = width * height * 4;
 		bin = new uint8_t[copySize];
 		memcpy(bin, other.bin, copySize);
 	}
-
 }
 
-MappedTexture &MappedTexture::operator=(const MappedTexture &other)
+MappedTexture& MappedTexture::operator=(const MappedTexture& other)
 {
 	if (this != &other)
 	{
@@ -66,7 +65,7 @@ MappedTexture &MappedTexture::operator=(const MappedTexture &other)
 	return *this;
 }
 
-MappedTexture::MappedTexture(MappedTexture &&other)
+MappedTexture::MappedTexture(MappedTexture&& other)
     : bin(nullptr)
 {
 	width = other.width;
@@ -87,7 +86,7 @@ MappedTexture::MappedTexture(MappedTexture &&other)
 	other.bin = nullptr;
 }
 
-MappedTexture &MappedTexture::operator=(MappedTexture &&other)
+MappedTexture& MappedTexture::operator=(MappedTexture&& other)
 {
 	if (this != &other)
 	{
@@ -112,8 +111,8 @@ MappedTexture &MappedTexture::operator=(MappedTexture &&other)
 	return *this;
 }
 
-bool MappedTexture::mapTexture(uint8_t *data, uint32_t w, uint32_t h, uint32_t _faceCount,
-                               uint32_t arrays, uint32_t mips, uint32_t size, TextureFormat format)
+bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t _faceCount, uint32_t arrays,
+                               uint32_t mips, uint32_t size, TextureFormat format)
 {
 	width = w;
 	height = h;
@@ -137,8 +136,8 @@ bool MappedTexture::mapTexture(uint8_t *data, uint32_t w, uint32_t h, uint32_t _
 	return true;
 }
 
-bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t *imageData,
-                               TextureFormat format, bool createMipMaps)
+bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t* imageData, TextureFormat format,
+                               bool createMipMaps)
 {
 	if (comp == 3)
 	{
@@ -158,7 +157,7 @@ bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t *i
 	}
 
 	// copy image to local store
-	uint32_t imageSize = width * height * comp; // assuming 4 channels here
+	uint32_t imageSize = width * height * comp;    // assuming 4 channels here
 	bin = new uint8_t[imageSize];
 
 	if (!bin)
@@ -171,8 +170,7 @@ bool MappedTexture::mapTexture(uint32_t w, uint32_t h, uint32_t comp, uint8_t *i
 	return true;
 }
 
-bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, TextureFormat format,
-                                       bool setToBlack)
+bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, TextureFormat format, bool setToBlack)
 {
 	width = w;
 	height = h;
@@ -196,4 +194,4 @@ bool MappedTexture::createEmptyTexture(uint32_t w, uint32_t h, TextureFormat for
 
 	return true;
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

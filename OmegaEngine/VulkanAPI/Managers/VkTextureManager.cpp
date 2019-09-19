@@ -148,9 +148,8 @@ bool VkTextureManager::prepareDescriptors(ImageReflect& reflected, DescriptorSet
 
 		if (iter != textures.end())
 		{
-			descrSet.writeSet(reflect.set, reflect.binding, vk::DescriptorType::eCombinedImageSampler,
-				                reflect.sampler, iter->second.texture.getImageView(),
-				                vk::ImageLayout::eShaderReadOnlyOptimal);
+			descrSet.writeSet(reflect.set, reflect.binding, vk::DescriptorType::eCombinedImageSampler, reflect.sampler,
+			                  iter->second.texture.getImageView(), vk::ImageLayout::eShaderReadOnlyOptimal);
 		}
 	}
 }

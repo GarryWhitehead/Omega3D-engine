@@ -1,4 +1,4 @@
-#include "ResourceManager.h" 
+#include "ResourceManager.h"
 
 #include "Core/Omega_global.h"
 
@@ -39,11 +39,10 @@ void ResourceManager::updateGltfImage(AssetGltfImageUpdateEvent& event)
 void ResourceManager::addImage(std::unique_ptr<ModelImage>& image, std::string id)
 {
 	TextureAssetInfo assetInfo;
-	assetInfo.texture.mapTexture(image->getWidth(), image->getHeight(), 4, image->getData(),
-	                             image->getFormat(), true);
+	assetInfo.texture.mapTexture(image->getWidth(), image->getHeight(), 4, image->getData(), image->getFormat(), true);
 
 	// samplers
-	auto &sampler = image->getSampler();
+	auto& sampler = image->getSampler();
 	if (sampler)
 	{
 		assetInfo.samplerType = VulkanAPI::Sampler::getSamplerType(sampler->mode, sampler->filter);
@@ -109,9 +108,9 @@ void ResourceManager::loadImageFile(const std::string& filename, const std::stri
 		}
 
 		TextureAssetInfo assetInfo;
-		assetInfo.texture.mapTexture(image.data, image.width, image.height, image.faceCount,
-		                             image.arrayCount, image.mipLevels, image.totalSize,
-		                             TextureFormat::Image8UC4); // TODO: add better format selection
+		assetInfo.texture.mapTexture(image.data, image.width, image.height, image.faceCount, image.arrayCount,
+		                             image.mipLevels, image.totalSize,
+		                             TextureFormat::Image8UC4);    // TODO: add better format selection
 		images.emplace(id, std::move(assetInfo));
 		isDirty = true;
 	}
@@ -121,7 +120,7 @@ void ResourceManager::update(std::unique_ptr<ComponentInterface>& componentInter
 {
 	if (isDirty)
 	{
-		for (auto &image : images)
+		for (auto& image : images)
 		{
 			// check for identifier - at the moment they are only MAT_ which sigifies a material texture
 			if (image.first.find(materialIdentifier) != std::string::npos)
@@ -133,10 +132,10 @@ void ResourceManager::update(std::unique_ptr<ComponentInterface>& componentInter
 				std::string pbrType = splitStr[splitStr.size() - 1];
 
 				// find in list - order equates to binding order in shader
-				auto &materialManager = componentInterface->getManager<MaterialManager>();
+				auto& materialManager = componentInterface->getManager<MaterialManager>();
 
 				uint32_t binding = UINT32_MAX;
-				for (auto &extension : materialManager.textureExtensions)
+				for (auto& extension : materialManager.textureExtensions)
 				{
 					if (std::get<0>(extension) == pbrType)
 					{
@@ -169,4 +168,4 @@ void ResourceManager::update(std::unique_ptr<ComponentInterface>& componentInter
 		isDirty = false;
 	}
 }
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

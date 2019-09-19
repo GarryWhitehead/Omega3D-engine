@@ -6,10 +6,10 @@
 #include "Utility/logger.h"
 #include "VulkanAPI/BufferManager.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/VkTextureManager.h"
 #include "VulkanAPI/DataTypes/Texture.h"
-#include "VulkanAPI/Shader.h"
 #include "VulkanAPI/Interface.h"
+#include "VulkanAPI/Shader.h"
+#include "VulkanAPI/VkTextureManager.h"
 
 namespace OmegaEngine
 {
@@ -30,8 +30,8 @@ RenderableShadow::RenderableShadow(std::unique_ptr<ProgramStateManager>& stateMa
 	queueType = QueueType::Shadow;
 
 	// pointer to the mesh pipeline
-	shadowInstance->state =
-	    stateManager->createState(vkInterface, renderer, StateType::ShadowMapped, mesh.topology, mesh.type, StateAlpha::Opaque);
+	shadowInstance->state = stateManager->createState(vkInterface, renderer, StateType::ShadowMapped, mesh.topology,
+	                                                  mesh.type, StateAlpha::Opaque);
 
 	// pointer to the mesh pipeline
 	if (mesh.type == StateMesh::Static)

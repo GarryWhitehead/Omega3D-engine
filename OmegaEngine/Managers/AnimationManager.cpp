@@ -73,12 +73,12 @@ float AnimationManager::Sampler::getPhase(double time)
 	return static_cast<float>(phase);
 }
 
-void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
+void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation>& animation)
 {
 	AnimationInfo animInfo;
 
 	// copy the samplers
-	for (auto &sampler : animation->samplers)
+	for (auto& sampler : animation->samplers)
 	{
 		Sampler newSampler;
 
@@ -101,17 +101,15 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 
 		// straight copy
 		newSampler.timeStamps.resize(sampler.timeStamps.size());
-		memcpy(newSampler.timeStamps.data(), sampler.timeStamps.data(),
-		       newSampler.timeStamps.size() * sizeof(float));
+		memcpy(newSampler.timeStamps.data(), sampler.timeStamps.data(), newSampler.timeStamps.size() * sizeof(float));
 
 		newSampler.outputs.resize(sampler.outputs.size());
-		memcpy(newSampler.outputs.data(), sampler.outputs.data(),
-		       newSampler.outputs.size() * sizeof(OEMaths::vec4f));
+		memcpy(newSampler.outputs.data(), sampler.outputs.data(), newSampler.outputs.size() * sizeof(OEMaths::vec4f));
 
 		animInfo.samplers.emplace_back(newSampler);
 	}
 
-	for (auto &channel : animation->channels)
+	for (auto& channel : animation->channels)
 	{
 		Channel newChannel;
 
@@ -146,28 +144,28 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation> &animation)
 	animations.emplace_back(animInfo);
 }
 
-void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Object &object)
+void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Object& object)
 {
-	Channel &channel = animations[bufferIndex].channels[channelIndex];
+	Channel& channel = animations[bufferIndex].channels[channelIndex];
 	// link object with animation channel
 	channel.object = &object;
 }
 
 void AnimationManager::updateFrame(double time, World& world)
 {
-	auto &transManager = world.getTransManager();
+	auto& transManager = world.getTransManager();
 
 	double timeSecs = time / 1000000000;
 
-	for (auto &anim : animations)
+	for (auto& anim : animations)
 	{
 		float animTime = std::fmod(timeSecs - anim.start, anim.end);
 
 		// go through each target and caluclate the animation transform and update on the transform manager side
-		for (auto &channel : anim.channels)
+		for (auto& channel : anim.channels)
 		{
-			Object *obj = channel.object;
-			Sampler &sampler = anim.samplers[channel.samplerIndex];
+			Object* obj = channel.object;
+			Sampler& sampler = anim.samplers[channel.samplerIndex];
 
 			uint32_t timeIndex = sampler.indexFromTime(animTime);
 			float phase = sampler.getPhase(animTime);
@@ -197,10 +195,8 @@ void AnimationManager::updateFrame(double time, World& world)
 					sampler.outputs[timeIndex].getW(),
 				};
 
-				OEMaths::quatf quat2{ sampler.outputs[timeIndex + 1].getX(),
-					                  sampler.outputs[timeIndex + 1].getY(),
-					                  sampler.outputs[timeIndex + 1].getZ(),
-					                  sampler.outputs[timeIndex + 1].getW() };
+				OEMaths::quatf quat2{ sampler.outputs[timeIndex + 1].getX(), sampler.outputs[timeIndex + 1].getY(),
+					                  sampler.outputs[timeIndex + 1].getZ(), sampler.outputs[timeIndex + 1].getW() };
 
 				// TODO: add cubic and step interpolation
 				OEMaths::quatf rot;
@@ -222,4 +218,4 @@ void AnimationManager::updateFrame(double time, World& world)
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

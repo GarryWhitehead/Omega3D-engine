@@ -15,7 +15,7 @@ Material::~Material()
 {
 }
 
-void Material::prepare(MaterialComponent *component)
+void Material::prepare(MaterialComponent* component)
 {
 	name = component->name;
 
@@ -31,7 +31,6 @@ void Material::prepare(MaterialComponent *component)
 
 	// only opaque supported for user-defined materials at the moment
 	alphaMask = AlphaMode::Opaque;
-
 }
 
 void Material::prepare(ModelMaterial& material)
@@ -79,4 +78,4 @@ void Material::prepare(ModelMaterial& material)
 	usingSpecularGlossiness = material.usingSpecularGlossiness;
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

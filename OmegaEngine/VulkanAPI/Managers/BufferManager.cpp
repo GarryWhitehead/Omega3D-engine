@@ -85,10 +85,11 @@ bool BufferManager::updateBuffers(std::vector<OmegaEngine::UBufferUpdateInfo>& u
 		assert(update.size > 0);
 
 		// check that the maanger contains the buffer id
-		auto iter = buffers.find(update.id);	
+		auto iter = buffers.find(update.id);
 		if (iter == buffers.end())
 		{
-			LOGGER_ERROR("Trying to update buffer with id: %s but it doesn't exsist. Are you sure you created it?\n", update.id.c_str());
+			LOGGER_ERROR("Trying to update buffer with id: %s but it doesn't exsist. Are you sure you created it?\n",
+			             update.id.c_str());
 			return false;
 		}
 
@@ -99,7 +100,7 @@ bool BufferManager::updateBuffers(std::vector<OmegaEngine::UBufferUpdateInfo>& u
 		if (update.flushMem)
 		{
 			vk::MappedMemoryRange mem_range(memoryAllocator->getDeviceMemory(buffer.getId()),
-											(uint64_t)buffer.getOffset(), update.size);
+			                                (uint64_t)buffer.getOffset(), update.size);
 			context->getDevice().flushMappedMemoryRanges(1, &mem_range);
 		}
 	}
@@ -173,8 +174,8 @@ void BufferManager::prepareDescrSet(BufferReflect& reflected, DescriptorSet& des
 			// so the descriptors won't be updated.
 			MemorySegment segment = iter->second;
 			descrSet.writeSet(layout.set, layout.binding, layout.type,
-			                    memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(),
-			                    segment.getSize());
+			                  memoryAllocator->getMemoryBuffer(segment.getId()), segment.getOffset(),
+			                  segment.getSize());
 		}
 	}
 }

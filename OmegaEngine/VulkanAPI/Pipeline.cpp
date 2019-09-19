@@ -65,7 +65,7 @@ void PipelineLayout::reflect(uint32_t* data, size_t dataSize, PipelineLayout& la
 	if (!shaderResources.push_constant_buffers.empty())
 	{
 		layout.add_push_constant((StageType)i, (uint32_t)compiler.get_declared_struct_size(compiler.get_type(
-			                                        shaderResources.push_constant_buffers.front().base_type_id)));
+		                                           shaderResources.push_constant_buffers.front().base_type_id)));
 	}
 }
 

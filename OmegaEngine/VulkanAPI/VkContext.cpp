@@ -10,18 +10,15 @@ namespace VulkanAPI
 
 VkContext::VkContext()
 {
-	
 }
 
 VkContext::~VkContext()
 {
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
-                                                    VkDebugReportObjectTypeEXT obj_type,
-                                                    uint64_t obj, size_t loc, int32_t code,
-                                                    const char *layer_prefix, const char *msg,
-                                                    void *data)
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type,
+                                                    uint64_t obj, size_t loc, int32_t code, const char* layer_prefix,
+                                                    const char* msg, void* data)
 {
 	// ignore access mask false positive
 	if (std::strcmp(layer_prefix, "DS") == 0 && code == 10)
@@ -47,9 +44,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
 	return VK_FALSE;
 }
 
-static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
-    VkDebugUtilsMessageSeverityFlagBitsEXT severity, VkDebugUtilsMessageTypeFlagsEXT type,
-    const VkDebugUtilsMessengerCallbackDataEXT *data, void *user_data)
+static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+                                                     VkDebugUtilsMessageTypeFlagsEXT type,
+                                                     const VkDebugUtilsMessengerCallbackDataEXT* data, void* user_data)
 {
 	switch (severity)
 	{
@@ -82,7 +79,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
 	bool logObjectNames = false;
 	for (uint32_t i = 0; i < data->objectCount; i++)
 	{
-		auto *name = data->pObjects[i].pObjectName;
+		auto* name = data->pObjects[i].pObjectName;
 		if (name)
 		{
 			logObjectNames = true;
@@ -94,7 +91,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
 	{
 		for (uint32_t i = 0; i < data->objectCount; i++)
 		{
-			auto *name = data->pObjects[i].pObjectName;
+			auto* name = data->pObjects[i].pObjectName;
 			LOGGER_INFO("  Object #%u: %s\n", i, name ? name : "N/A");
 		}
 	}
@@ -105,8 +102,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
 // static functions - should probably get elsewhere at some point
 namespace VulkanUtil
 {
-static vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::ImageTiling tiling,
-                                      vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice &gpu)
+static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
+                                      vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu)
 {
 	vk::Format outputFormat;
 
@@ -114,8 +111,7 @@ static vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::Imag
 	{
 		vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-		if (tiling == vk::ImageTiling::eLinear &&
-		    formatFeature == (properties.linearTilingFeatures & formatFeature))
+		if (tiling == vk::ImageTiling::eLinear && formatFeature == (properties.linearTilingFeatures & formatFeature))
 		{
 			outputFormat = format;
 			break;
@@ -133,12 +129,11 @@ static vk::Format findSupportedFormat(std::vector<vk::Format> &formats, vk::Imag
 	}
 	return outputFormat;
 }
-} // namespace Util
+}    // namespace VulkanUtil
 
-bool VkContext::findExtensionProperties(const char* name,
-                                     std::vector<vk::ExtensionProperties> &properties)
+bool VkContext::findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties)
 {
-	for (auto &ext : properties)
+	for (auto& ext : properties)
 	{
 		if (std::strcmp(ext.extensionName, name) == 0)
 		{
@@ -155,24 +150,23 @@ vk::Format VkContext::getDepthFormat(vk::PhysicalDevice& gpu)
 		                                vk::Format::eD32Sfloat };
 
 	return VulkanUtil::findSupportedFormat(formats, vk::ImageTiling::eOptimal,
-	                                 vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
+	                                       vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
 }
 
 void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 {
-	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "",
-	                            VK_MAKE_VERSION(1, 1, 0), VK_API_VERSION_1_1);
+	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "", VK_MAKE_VERSION(1, 1, 0),
+	                            VK_API_VERSION_1_1);
 
 	// glfw extensions
-	std::vector<const char *> extensions;
+	std::vector<const char*> extensions;
 	for (uint32_t c = 0; c < extCount; ++c)
 	{
 		extensions.push_back(glfwExtension[c]);
 	}
 
 	// extension properties
-	std::vector<vk::ExtensionProperties> extensionProps =
-	    vk::enumerateInstanceExtensionProperties();
+	std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
 
 	for (uint32_t i = 0; i < extCount; ++i)
 	{
@@ -182,16 +176,13 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 		}
 	}
 
-	if (findExtensionProperties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME,
-	                            extensionProps))
+	if (findExtensionProperties(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME, extensionProps))
 	{
 		extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		deviceExtensions.hasPhysicalDeviceProps2 = true;
 
-		if (findExtensionProperties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME,
-		                            extensionProps) &&
-		    findExtensionProperties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME,
-		                            extensionProps))
+		if (findExtensionProperties(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME, extensionProps) &&
+		    findExtensionProperties(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME, extensionProps))
 		{
 			extensions.push_back(VK_KHR_EXTERNAL_MEMORY_CAPABILITIES_EXTENSION_NAME);
 			extensions.push_back(VK_KHR_EXTERNAL_SEMAPHORE_CAPABILITIES_EXTENSION_NAME);
@@ -207,8 +198,8 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	// layer extensions, if any
 	std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
 
-	auto findLayerExtension = [&](const char *name) -> bool {
-		for (auto &ext : layerExt)
+	auto findLayerExtension = [&](const char* name) -> bool {
+		for (auto& ext : layerExt)
 		{
 			if (std::strcmp(ext.layerName, name) == 0)
 			{
@@ -230,15 +221,13 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	}
 
 	// if debug utils isn't supported, try debug report
-	if (!deviceExtensions.hasDebugUtils &&
-	    findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
+	if (!deviceExtensions.hasDebugUtils && findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
 	{
 		extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
 	}
 #endif
 
-	vk::InstanceCreateInfo createInfo({}, &appInfo, static_cast<uint32_t>(requiredLayers.size()),
-	                                  requiredLayers.data(),
+	vk::InstanceCreateInfo createInfo({}, &appInfo, static_cast<uint32_t>(requiredLayers.size()), requiredLayers.data(),
 	                                  static_cast<uint32_t>(extensions.size()), extensions.data());
 
 	VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance));
@@ -251,23 +240,19 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	{
 		vk::DebugUtilsMessengerCreateInfoEXT createInfo(
 		    {},
-		    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError |
-		        vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
-		        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose |
-		        vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
-		    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
-		        vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
+		    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
+		        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
+		    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
 		    DebugMessenger, this);
 
-		auto debugReport =
-		    instance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger, dldi);
+		auto debugReport = instance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger, dldi);
 	}
 	else if (findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
 	{
-		vk::DebugReportCallbackCreateInfoEXT createInfo(
-		    vk::DebugReportFlagBitsEXT::eError | vk::DebugReportFlagBitsEXT::eWarning |
-		        vk::DebugReportFlagBitsEXT::ePerformanceWarning,
-		    DebugCallback, this);
+		vk::DebugReportCallbackCreateInfoEXT createInfo(vk::DebugReportFlagBitsEXT::eError |
+		                                                    vk::DebugReportFlagBitsEXT::eWarning |
+		                                                    vk::DebugReportFlagBitsEXT::ePerformanceWarning,
+		                                                DebugCallback, this);
 
 		instance.createDebugReportCallbackEXT(&createInfo, nullptr, &debugCallback, dldi);
 	}
@@ -283,7 +268,7 @@ void VkContext::prepareDevice()
 
 	// find a suitable gpu - at the moment this is pretty basic - find a gpu and that will do. In the future, find the best match
 	std::vector<vk::PhysicalDevice> gpus = instance.enumeratePhysicalDevices();
-	for (auto const &gpu : gpus)
+	for (auto const& gpu : gpus)
 	{
 		if (gpu)
 		{
@@ -350,10 +335,9 @@ void VkContext::prepareDevice()
 
 	float queuePriority = 1.0f;
 	std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
-	std::set<int> uniqueQueues = { queueFamilyIndex.graphics, queueFamilyIndex.present,
-		                           queueFamilyIndex.compute };
+	std::set<int> uniqueQueues = { queueFamilyIndex.graphics, queueFamilyIndex.present, queueFamilyIndex.compute };
 
-	for (auto &queue : uniqueQueues)
+	for (auto& queue : uniqueQueues)
 	{
 		vk::DeviceQueueCreateInfo createInfo({}, queue, 1, &queuePriority);
 		queueInfo.push_back(createInfo);
@@ -387,18 +371,17 @@ void VkContext::prepareDevice()
 		requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
 	}
 
-	const std::vector<const char *> swapChainExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	const std::vector<const char*> swapChainExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	if (!findExtensionProperties(swapChainExtension[0], extensions))
 	{
 		LOGGER_ERROR("Critical error! Swap chain extension not found.");
 	}
 
-	vk::DeviceCreateInfo createInfo({}, static_cast<uint32_t>(queueInfo.size()), queueInfo.data(),
-	                                static_cast<uint32_t>(requiredLayers.size()),
-	                                requiredLayers.empty() ? nullptr : requiredLayers.data(),
-	                                static_cast<uint32_t>(swapChainExtension.size()),
-	                                swapChainExtension.data(), &requiredFeatures);
+	vk::DeviceCreateInfo createInfo(
+	    {}, static_cast<uint32_t>(queueInfo.size()), queueInfo.data(), static_cast<uint32_t>(requiredLayers.size()),
+	    requiredLayers.empty() ? nullptr : requiredLayers.data(), static_cast<uint32_t>(swapChainExtension.size()),
+	    swapChainExtension.data(), &requiredFeatures);
 
 	VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 
@@ -452,4 +435,4 @@ VulkanAPI::Queue VkContext::getQueue(QueueType type)
 
 	return ret_queue;
 }
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

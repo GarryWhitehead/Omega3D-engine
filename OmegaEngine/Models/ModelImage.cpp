@@ -66,7 +66,7 @@ void ModelSampler::getFilterMode(int32_t filter)
 	}
 }
 
-void ModelImage::map(uint32_t width, uint32_t height, void *data)
+void ModelImage::map(uint32_t width, uint32_t height, void* data)
 {
 	assert(data != nullptr);
 	uint32_t size = width * height * 4;
@@ -81,4 +81,4 @@ void ModelImage::map(uint32_t width, uint32_t height, void *data)
 	format = TextureFormat::Image8UC4;
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

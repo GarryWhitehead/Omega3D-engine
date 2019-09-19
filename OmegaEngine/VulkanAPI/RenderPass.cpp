@@ -61,11 +61,11 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 void RenderPass::addAttachment(const vk::Format format, const FinalLayoutType layoutType, bool clearAttachment)
 {
 	vk::ImageLayout finalLayout;
-	switch(layoutType)
+	switch (layoutType)
 	{
 	case FinalLayoutType::Auto:
 		finalLayout = getFinalTransitionLayout(format);
-		break; 
+		break;
 	case FinalLayoutType::PresentKHR:
 		finalLayout = vk::ImageLayout::ePresentSrcKHR;
 		break;

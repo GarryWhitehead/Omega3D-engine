@@ -16,7 +16,7 @@ ThreadPool::~ThreadPool()
 {
 	isComplete = true;
 	workers.terminate();
-	for (auto &thread : threads)
+	for (auto& thread : threads)
 	{
 		if (thread.joinable())
 		{
@@ -37,4 +37,4 @@ void ThreadPool::worker()
 	}
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

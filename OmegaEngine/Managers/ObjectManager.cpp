@@ -13,7 +13,7 @@ ObjectManager::~ObjectManager()
 {
 }
 
-Object *ObjectManager::createObject()
+Object* ObjectManager::createObject()
 {
 	uint32_t id = 0;
 	if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)
@@ -26,13 +26,13 @@ Object *ObjectManager::createObject()
 		id = nextId++;
 	}
 
-	Object &object = objects[id];
+	Object& object = objects[id];
 
 	object.setId(id);
 	return &object;
 }
 
-Object *ObjectManager::createChildObject(Object &parentObj)
+Object* ObjectManager::createChildObject(Object& parentObj)
 {
 	uint32_t id = 0;
 	if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)
@@ -48,11 +48,11 @@ Object *ObjectManager::createChildObject(Object &parentObj)
 	return &parentObj.addChild(id);
 }
 
-void ObjectManager::destroyObject(Object &obj)
+void ObjectManager::destroyObject(Object& obj)
 {
 	uint64_t id = obj.getId();
 	objects.erase(id);
 	freeIds.push_front(id);
 }
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

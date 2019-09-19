@@ -16,28 +16,24 @@ Queue::~Queue()
 {
 }
 
-void Queue::submitCmdBuffer(std::vector<vk::CommandBuffer> &cmdBuffers,
-                            std::vector<vk::Semaphore> &waitSemaphores,
-                            std::vector<vk::Semaphore> &signalSemaphores,
-                            vk::PipelineStageFlags *stage_flags)
+void Queue::submitCmdBuffer(std::vector<vk::CommandBuffer>& cmdBuffers, std::vector<vk::Semaphore>& waitSemaphores,
+                            std::vector<vk::Semaphore>& signalSemaphores, vk::PipelineStageFlags* stage_flags)
 {
-	assert(!cmdBuffers.empty() && !waitSemaphores.empty() && !signalSemaphores.empty() &&
-	       stage_flags != nullptr);
+	assert(!cmdBuffers.empty() && !waitSemaphores.empty() && !signalSemaphores.empty() && stage_flags != nullptr);
 
 	vk::PipelineStageFlags default_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
 	vk::SubmitInfo submit_info(static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.data(),
 	                           stage_flags == nullptr ? &default_flag : stage_flags,
 	                           static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data(),
-	                           static_cast<uint32_t>(signalSemaphores.size()),
-	                           signalSemaphores.data());
+	                           static_cast<uint32_t>(signalSemaphores.size()), signalSemaphores.data());
 
 	VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
 	queue.waitIdle();
 }
 
-void Queue::submitCmdBuffer(vk::CommandBuffer &cmdBuffer, vk::Semaphore &waitSemaphore,
-                            vk::Semaphore &signalSemaphore, vk::Fence &fence)
+void Queue::submitCmdBuffer(vk::CommandBuffer& cmdBuffer, vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore,
+                            vk::Fence& fence)
 {
 	vk::PipelineStageFlags stage_flag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
@@ -55,4 +51,4 @@ void Queue::flushCmdBuffer(vk::CommandBuffer cmdBuffer)
 	queue.waitIdle();
 }
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI
