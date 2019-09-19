@@ -2,9 +2,12 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "utility/String.h"
+
 #include "cgltf/cgltf.h"
 
 #include <memory>
+#include <unordered_map>
 
 namespace OmegaEngine
 {
@@ -16,7 +19,7 @@ struct ModelNode
 	ModelNode();
 	~ModelNode();
 
-	bool prepareExtensions(const cgltf_extras& extras, cgltf_data& data);
+	
 
 	OEMaths::vec3f translation;
 	OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f };

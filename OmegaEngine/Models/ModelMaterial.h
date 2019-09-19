@@ -7,13 +7,13 @@
 #include "cgltf/cgltf.h"
 
 #include <cstdint>
-#include <string>
 
 namespace OmegaEngine
 {
 
 class ModelMaterial
 {
+public:
 	enum class TextureId
 	{
 		BaseColour,
@@ -29,9 +29,10 @@ class ModelMaterial
 
 	Util::String getTextureUri(cgltf_texture_view& view);
 
-	bool prepare(cgltf_material& mat);
+	bool prepare(cgltf_material& mat, ExtensionData& extensions);
 
-	std::string name;
+private:
+	Util::String name;
 
 	struct Factors
 	{
@@ -80,4 +81,4 @@ class ModelMaterial
 	bool usingSpecularGlossiness = false;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

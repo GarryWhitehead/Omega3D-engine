@@ -2,6 +2,10 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "Models/Gltf/GltfModel.h" 
+
+#include "cgltf/cgltf.h"
+
 #include <vector>
 
 namespace OmegaEngine
@@ -10,8 +14,10 @@ namespace OmegaEngine
 // forward declerations
 enum class StateTopology;
 
-struct ModelMesh
+class ModelMesh
 {
+public:
+
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -51,6 +57,11 @@ struct ModelMesh
 		uint32_t indexCount = 0;
 	};
 
+	ModelMesh() = default;
+
+	bool prepare(const cgltf_mesh& mesh);
+
+private:
 	// defines the topology to use in the program state
 	StateTopology topology;
 

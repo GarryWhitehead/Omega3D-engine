@@ -99,10 +99,6 @@
       <Project>{6F160C0D-1411-3FE8-9DC9-A5DBBEC62178}</Project>
       <Name>Scene</Name>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\TINY_GLTF.vcxproj">
-      <Project>{6793285B-BA8C-36E7-B524-1733E64B1A3B}</Project>
-      <Name>TINY_GLTF</Name>
-    </ProjectReference>
     <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\check-copyright.vcxproj">
       <Project>{3658D8E4-6C41-34A9-9B6C-B82B0BB31E83}</Project>
       <Name>check-copyright</Name>

@@ -3,38 +3,50 @@
 #include "Models/ModelImage.h"
 #include "Models/ModelMaterial.h"
 #include "Models/ModelMesh.h"
-#include "Models/Gltf/GltfNode.h"
+#include "Models/ModelNode.h"
 #include "Models/ModelSkin.h"
-#include "Models/ModelTransform.h"
+
+#include "utility/String.h"
+
+#include "OEMaths/OEMaths.h"
 
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
 
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 namespace OmegaEngine
 {
 
-class Model
-{
-	
-public:
+// <extension name, value (as string)>
+using ExtensionData = std::unordered_map<Util::String, Util::String>;
 
-	Model load(std::string filename);
+class GltfModel
+{
+
+public:
+	// utility functions for dealing with gltf json data
+	static bool prepareExtensions(const cgltf_extras& extras, cgltf_data& data, ExtensionData& extensions);
+	static OEMaths::vec3f tokenToVec3(Util::String str);
+
+	// atributes
+	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
+
+	bool load(Util::String filename);
 
 private:
-	
 	ModelNode nodes;
 	ModelMaterial materials;
 	ModelImage images;
 	ModelSkin skins;
 	ModelAnimation animations;
 
-	ModelNode *getNode(uint32_t index)
+	ModelNode* getNode(uint32_t index)
 	{
-		ModelNode *foundNode = nullptr;
-		for (auto &node : nodes)
+		ModelNode* foundNode = nullptr;
+		for (auto& node : nodes)
 		{
 			foundNode = node->getNodeRecursive(index);
 			if (foundNode)
@@ -46,26 +58,4 @@ private:
 	}
 };
 
-
-
-template <typename T>
-void parseIndices(tinygltf::Accessor accessor, tinygltf::BufferView bufferView,
-                  tinygltf::Buffer buffer, std::vector<uint32_t> &indiciesBuffer,
-                  uint32_t indexStart)
-{
-	T *buf = new T[accessor.count];
-	memcpy(buf, &buffer.data[accessor.byteOffset + bufferView.byteOffset],
-	       accessor.count * sizeof(T));
-
-	// copy the data to our indices buffer at the correct offset
-	for (uint32_t j = 0; j < accessor.count; ++j)
-	{
-		indiciesBuffer.push_back(buf[j] + indexStart);
-	}
-
-	delete buf;
-}
-} // namespace Extract
-} // namespace GltfModel
-
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

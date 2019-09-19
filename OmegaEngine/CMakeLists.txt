@@ -28,7 +28,6 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/vulkan
 	${EXTERNAL_DIR}/tiny-gltf
-	${EXTERNAL_DIR}/cgltf
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -52,15 +51,18 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Managers/ObjectManager.cpp Managers/ObjectManager.h
 	
 	Models/Gltf/GltfModel.cpp Models/Gltf/GltfModel.h
-	Models/Gltf/GltfNode.cpp Models/Gltf/GltfNode.h
 	Models/ModelAnimation.h
 	Models/ModelImage.cpp Models/ModelImage.h
 	Models/ModelMaterial.cpp Models/ModelMaterial.h 
-	Models/ModelMesh.h
+	Models/ModelMesh.cpp Models/ModelMesh.h
 	Models/ModelSkin.h
-	Models/ModelTransform.h
-	Models/OEModels.cpp Models/OEModels.h
-	Models/OEMaterials.h
+	Models/ModelNode.cpp Models/ModelNode.h
+
+	Misc/OEMaterials.h
+	Misc/Primitives/Sphere.cpp Misc/Primitives/Sphere.h
+	Misc/Primitives/Capsule.cpp Misc/Primitives/Capsule.h
+	Misc/Primitives/Cube.cpp Misc/Primitives/Cube.h
+	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
 	Types/Material.cpp Types/Material.h
 	Types/Object.cpp Types/Object.h
