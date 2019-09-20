@@ -92,6 +92,32 @@ bool GltfModel::prepareExtensions(const cgltf_extras& extras, cgltf_data& data, 
 	return true;
 }
 
+void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
+{
+	linearisedNodes.emplace(&node, index++);
+
+	cgltf_node** childEnd = node.children + node.children_count;
+	for (cgltf_node* const* child = node.children; child < childEnd; ++child)
+	{
+		lineariseRecursive(**child, index);
+	}
+}
+
+void GltfModel::lineariseNodes(cgltf_data* data)
+{
+	size_t index = 0;
+
+	cgltf_scene* sceneEnd = data->scenes + data->scenes_count;
+	for (const cgltf_scene* scene = data->scenes; scene < sceneEnd; ++scene)
+	{
+		cgltf_node* const* nodeEnd = scene->nodes + scene->nodes_count;
+		for (cgltf_node* const* node = scene->nodes; node < nodeEnd; ++node)
+		{
+			lineariseRecursive(**node, index);
+		}
+	}
+}
+
 bool GltfModel::load(Util::String filename)
 {
 	// no additional options required
@@ -111,6 +137,26 @@ bool GltfModel::load(Util::String filename)
 	{
 		LOGGER_ERROR("Unable to open gltf file data for %s. Error code: %d\n", filename.c_str(), res);
 		return false;
+	}
+
+	// start by linearising the nodes. This is ued for matching nodes with an index value
+	// in skeleton and animation
+	lineariseNodes(gltfData);
+
+	cgltf_scene* sceneEnd = gltfData->scenes + gltfData->scenes_count;
+
+	// for each scene, visit each node in that scene
+	for (const cgltf_scene* scene = gltfData->scenes; scene < sceneEnd; ++scene)
+	{
+		cgltf_node* const* nodeEnd = scene->nodes + scene->nodes_count;
+		for (cgltf_node* const* node = scene->nodes; node < nodeEnd; ++node)
+		{
+			ModelNode newNode;
+			if (!newNode.prepare(**node, OEMaths::mat4f{}))
+			{
+				return false;
+			}
+		}
 	}
 }
 

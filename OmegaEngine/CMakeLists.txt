@@ -51,11 +51,11 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Managers/ObjectManager.cpp Managers/ObjectManager.h
 	
 	Models/Gltf/GltfModel.cpp Models/Gltf/GltfModel.h
-	Models/ModelAnimation.h
+	Models/ModelAnimation.cpp Models/ModelAnimation.h
 	Models/ModelImage.cpp Models/ModelImage.h
 	Models/ModelMaterial.cpp Models/ModelMaterial.h 
 	Models/ModelMesh.cpp Models/ModelMesh.h
-	Models/ModelSkin.h
+	Models/ModelSkin.cpp Models/ModelSkin.h
 	Models/ModelNode.cpp Models/ModelNode.h
 
 	Misc/OEMaterials.h

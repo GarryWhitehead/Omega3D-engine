@@ -12,6 +12,17 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 	cgltf_primitive* meshEnd = mesh.primitives + mesh.primitives_count;
 	for (const cgltf_primitive* primitive = mesh.primitives; primitive < meshEnd; ++primitive)
 	{
+		Primitive newPrimitive;
+
+		// used as an offset for indices
+		size_t vertexStart = modelMesh->vertices.size();
+
+		// must have indices otherwise got to the next primitive
+		if (!primitive->indices || primitive->indices->count == 0)
+		{
+			continue;
+		}
+
 		// must be triangle type otherwise we won't be able to deal with it
 		if (primitive->type != cgltf_primitive_type_triangles)
 		{
@@ -21,7 +32,7 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 
 		// get the number of vertices to process
 		size_t vertCount = primitive->attributes[0].data->count;
-		vertices.resize(vertCount);
+		vertices.reserve(vertCount);
 
 		// somewhere to store the base pointers and stride for each attribute
 		uint8_t* posBase = nullptr;
@@ -104,7 +115,47 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 				vertex.joint = OEMaths::vec4f((uint16_t*)jointsBase);
 				jointsBase += jointsStride;
 			}
+
+			vertices.emplace_back(vertex);
 		}
+		
+		size_t indicesCount = primitives->indices->count;
+		newPrimitive.indexBase = indices.size();
+		newPrimitive.indexCount = indicesCount;
+		indices.reserve(indicesCount);
+
+		// now for the indices - Note: if the idices aren't 32-bit ints, they will
+		// be casted into this format
+		if ((indicesCount % 3) != 0)
+		{
+			LOGGER_ERROR("Indices data is of incorrect size.\n");
+			return false;
+		}
+
+		const uint8_t* base = static_cast<uint8_t&>(primitive->indices->buffer_view->buffer->data) +
+		                      primitive->indices->offset + primitive->indices->buffer_view->offset;
+
+		for (size_t i = 0; i < primitive->indices->count; ++i)
+		{
+			uint32_t index = 0;
+			if (primitve->indices->component_type == cgltf_component_type_r_32u)
+			{
+				index = *reinterpret_cast<const uint32_t*>(base + sizeof(uint32_t) * i);
+			}
+			else if (primitve->indices->component_type == cgltf_component_type_r_16u)
+			{
+				index = *reinterpret_cast<const uint16_t*>(base + sizeof(uint16_t) * i);
+			}
+			else
+			{
+				LOGGER_ERROR("Unsupported indices type. Unable to proceed.\n");
+				return false;
+			}
+
+			indices.emplace_back(index);
+		}
+
+		primitives.emplace_back(newPrimitive);
 	}
 }
 

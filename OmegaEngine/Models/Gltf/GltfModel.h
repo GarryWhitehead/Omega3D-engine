@@ -34,14 +34,17 @@ public:
 	// atributes
 	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
 
+	void lineariseRecursive(cgltf_node& node, size_t index);
+	void lineariseNodes(cgltf_data* data);
+
 	bool load(Util::String filename);
 
 private:
-	ModelNode nodes;
-	ModelMaterial materials;
-	ModelImage images;
-	ModelSkin skins;
-	ModelAnimation animations;
+
+	std::vector<ModelNode> nodes;
+	
+	// linking nodes to index values 
+	std::unordered_map<cgltf_node*, size_t> linearisedNodes;
 
 	ModelNode* getNode(uint32_t index)
 	{

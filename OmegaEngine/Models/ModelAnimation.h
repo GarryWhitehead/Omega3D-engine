@@ -1,17 +1,18 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
 
+#include "cgltf/cgltf.h"
+
 #include <vector>
 
 namespace OmegaEngine
 {
 
-struct ModelAnimation
+class ModelAnimation
 {
+public:
+
 	ModelAnimation() = default;
-	~ModelAnimation()
-	{
-	}
 
 	struct Sampler
 	{
@@ -25,6 +26,10 @@ struct ModelAnimation
 		std::string pathType;
 		uint32_t samplerIndex;
 	};
+
+	bool prepare(cgltf_animation& anim);
+
+private:
 
 	const char *name;
 	float start = std::numeric_limits<float>::max();
