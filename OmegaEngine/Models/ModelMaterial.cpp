@@ -1,6 +1,6 @@
 #include "ModelMaterial.h"
 
-#include "Models/Gltf/GltfModel.h"
+#include "Models/Formats/GltfModel.h"
 
 namespace OmegaEngine
 {
@@ -72,7 +72,44 @@ bool ModelMaterial::prepare(cgltf_material& mat, ExtensionData& extensions)
 	blending.mask = convertToAlpha(mat.alpha_mode);
 }
 
-
+bool ModelMaterial::prepare(aiMaterial* mat)
+{
+    mat->Get(AI_MATKEY_NAME, this->name);
+    
+    // factors
+    aiColor4D ambient;
+    mat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
+    factors.baseColour = OEMaths::vec4f(ambient.r);
+    
+    aiColor4D diffuse;
+    mat->Get(AI_MATKEY_COLOR_AMBIENT, diffuse);
+    factors.diffuse = OEMaths::vec4f(diffuse.r);
+    
+    aiColor4D specular;
+    mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
+    factors.specular = OEMaths::vec3f(specular.r);
+    
+    aiColor3D emissive;
+    mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
+    factors.specular = OEMaths::vec3f(emissive.r);
+    
+    // alpha
+    
+    // textures
+    aiString diffusePath;
+    mat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath);
+    textures.baseColour = diffusePath.C_Str();
+    
+    aiString normalPath;
+    mat->GetTexture(aiTextureType_NORMALS, 0, &normalPath);
+    textures.baseColour = normalPath.C_Str();
+    
+    aiString emissivePath;
+    mat->GetTexture(aiTextureType_EMISSIVE, 0, &emissivePath);
+    textures.emissive = emissivePath.C_Str();
+    
+    
+}
 
 
 }    // namespace OmegaEngine

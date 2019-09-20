@@ -6,7 +6,11 @@
 
 #include "cgltf/cgltf.h"
 
+#include "assimp/Importer.hpp"
+#include "assimp/scene.h"
+
 #include <cstdint>
+
 
 namespace OmegaEngine
 {
@@ -30,7 +34,9 @@ public:
 	Util::String getTextureUri(cgltf_texture_view& view);
 
 	bool prepare(cgltf_material& mat, ExtensionData& extensions);
-
+    
+    bool prepare(aiMaterial* mat);
+    
 private:
 	Util::String name;
 
