@@ -20,10 +20,98 @@ ASCIIDOCTOR_EXE:FILEPATH=ASCIIDOCTOR_EXE-NOTFOUND
 //Path to assets directory location. Leave empty for default location.
 ASSETS_DIR:PATH=
 
+//Android JNI IOSystem support is active
+ASSIMP_ANDROID_JNIIOSYSTEM:BOOL=OFF
+
+//Enable AddressSanitizer.
+ASSIMP_ASAN:BOOL=OFF
+
+//Path the tool executables are installed to.
+ASSIMP_BIN_INSTALL_DIR:STRING=bin
+
+//default value of all ASSIMP_BUILD_XXX_EXPORTER values
+ASSIMP_BUILD_ALL_EXPORTERS_BY_DEFAULT:BOOL=ON
+
+//default value of all ASSIMP_BUILD_XXX_IMPORTER values
+ASSIMP_BUILD_ALL_IMPORTERS_BY_DEFAULT:BOOL=ON
+
+//describe the current architecture.
+ASSIMP_BUILD_ARCHITECTURE:STRING=
+
+//If the supplementary tools for Assimp are built in addition to
+// the library.
+ASSIMP_BUILD_ASSIMP_TOOLS:BOOL=ON
+
+//describe the current compiler.
+ASSIMP_BUILD_COMPILER:STRING=
+
+//Build the C4D importer, which relies on the non-free Melange
+// SDK.
+ASSIMP_BUILD_NONFREE_C4D_IMPORTER:BOOL=OFF
+
+//If the official samples are built as well (needs Glut).
+ASSIMP_BUILD_SAMPLES:BOOL=OFF
+
+//If the test suite for Assimp is built in addition to the library.
+ASSIMP_BUILD_TESTS:BOOL=ON
+
+//Build your own zlib
+ASSIMP_BUILD_ZLIB:BOOL=OFF
+
+//Enable this to measure test coverage.
+ASSIMP_COVERALLS:BOOL=OFF
+
+//Set to ON to enable double precision processing
+ASSIMP_DOUBLE_PRECISION:BOOL=OFF
+
+//adds the target headercheck which compiles every header file,
+// default disabled because it adds many targets
+ASSIMP_HEADERCHECK:BOOL=OFF
+
+//Path the header files are installed to.
+ASSIMP_INCLUDE_INSTALL_DIR:STRING=include
+
+//Install MSVC debug files.
+ASSIMP_INSTALL_PDB:BOOL=ON
+
+//Suffix to append to library names
+ASSIMP_LIBRARY_SUFFIX:STRING=
+
+//Path the built library files are installed to.
+ASSIMP_LIB_INSTALL_DIR:STRING=lib
+
+//Disable Assimp's export functionality.
+ASSIMP_NO_EXPORT:BOOL=OFF
+
+//Set to ON to generate CPack configuration files and packaging
+// targets
+ASSIMP_OPT_BUILD_PACKAGES:BOOL=OFF
+
+//the package-specific version used for uploading the sources
+ASSIMP_PACKAGE_VERSION:STRING=0
+
+//Enable Undefined Behavior sanitizer.
+ASSIMP_UBSAN:BOOL=OFF
+
+//Treat warnings as errors.
+ASSIMP_WERROR:BOOL=OFF
+
+//Value Computed by CMake
+Assimp_BINARY_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp
+
+//Value Computed by CMake
+Assimp_SOURCE_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp
+
+//Build documentation using Doxygen.
+BUILD_DOCS:BOOL=OFF
+
+//Build package as Mac OS X Framework bundle.
+BUILD_FRAMEWORK:BOOL=OFF
+
 //Builds the googlemock subproject
 BUILD_GMOCK:BOOL=ON
 
-//Build Shared Libraries
+//Build package with shared libraries.
 BUILD_SHARED_LIBS:BOOL=OFF
 
 //Build the testing tree.
@@ -31,6 +119,10 @@ BUILD_TESTING:BOOL=ON
 
 //Path to a program.
 BZRCOMMAND:FILEPATH=BZRCOMMAND-NOTFOUND
+
+//For backwards compatibility, what version of CMake commands and
+// syntax should this version of CMake try to support.
+CMAKE_BACKWARDS_COMPATIBILITY:STRING=2.4
 
 //No help, variable specified on the command line.
 CMAKE_CONFIGURATION_TYPES:UNINITIALIZED=Debug
@@ -76,6 +168,9 @@ CMAKE_C_FLAGS_RELWITHDEBINFO:STRING=/MD /Zi /O2 /Ob1 /DNDEBUG
 
 //Libraries linked by default with all C applications.
 CMAKE_C_STANDARD_LIBRARIES:STRING=kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib
+
+//Debug Postfix for lib, samples and tools
+CMAKE_DEBUG_POSTFIX:STRING=d
 
 //Flags used by the linker during all build types.
 CMAKE_EXE_LINKER_FLAGS:STRING=/machine:x64
@@ -289,6 +384,36 @@ DISABLE_RTTI:BOOL=OFF
 //Doxygen documentation generation tool (http://www.doxygen.org)
 DOXYGEN_EXECUTABLE:FILEPATH=DOXYGEN_EXECUTABLE-NOTFOUND
 
+//Path to a file.
+DirectX_D3D11_INCLUDE_DIR:PATH=C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/um
+
+//Path to a library.
+DirectX_D3D11_LIBRARY:FILEPATH=C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64/d3d11.lib
+
+//Path to a library.
+DirectX_D3DCOMPILER_LIBRARY:FILEPATH=C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64/d3dcompiler.lib
+
+//Path to a library.
+DirectX_D3DX11_LIBRARY:FILEPATH=DirectX_D3DX11_LIBRARY-NOTFOUND
+
+//Path to a library.
+DirectX_D3DX9_LIBRARY:FILEPATH=DirectX_D3DX9_LIBRARY-NOTFOUND
+
+//Path to a library.
+DirectX_DXERR_LIBRARY:FILEPATH=DirectX_DXERR_LIBRARY-NOTFOUND
+
+//Path to a library.
+DirectX_DXGI_LIBRARY:FILEPATH=C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64/dxgi.lib
+
+//Path to a library.
+DirectX_DXGUID_LIBRARY:FILEPATH=C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64/dxguid.lib
+
+//x
+DirectX_INCLUDE_DIR:PATH=C:/Program Files (x86)/Windows Kits/10/Include/10.0.18362.0/shared
+
+//x
+DirectX_LIBRARY:FILEPATH=C:/Program Files (x86)/Windows Kits/10/Lib/10.0.18362.0/um/x64/d3d9.lib
+
 //Enables support of AMD-specific extensions
 ENABLE_AMD_EXTENSIONS:BOOL=ON
 
@@ -309,6 +434,9 @@ ENABLE_OPT:BOOL=ON
 
 //Enables building of SPVRemapper
 ENABLE_SPVREMAPPER:BOOL=ON
+
+//Single output directory for building all executables.
+EXECUTABLE_OUTPUT_PATH:PATH=
 
 //Path to a program.
 GITCOMMAND:FILEPATH=C:/Program Files/Git/cmd/git.exe
@@ -343,9 +471,33 @@ GLFW_VULKAN_STATIC:BOOL=OFF
 //Path to a program.
 HGCOMMAND:FILEPATH=HGCOMMAND-NOTFOUND
 
+//Enable Hunter package manager support
+HUNTER_ENABLED:BOOL=OFF
+
+//Print a lot info
+HUNTER_STATUS_DEBUG:BOOL=OFF
+
+//Print working status
+HUNTER_STATUS_PRINT:BOOL=ON
+
+//Enable/disable TLS certificate checking on downloads
+HUNTER_TLS_VERIFY:BOOL=ON
+
+//Don't call git to get the hash.
+IGNORE_GIT_HASH:BOOL=OFF
+
+//Inject debug postfix in .a/.so/.dll lib names
+INJECT_DEBUG_POSTFIX:BOOL=ON
+
 //Enable installation of googletest. (Projects embedding googletest
 // may want to turn this OFF.)
 INSTALL_GTEST:BOOL=ON
+
+//Single output directory for building all libraries.
+LIBRARY_OUTPUT_PATH:PATH=
+
+//the suffix for the assimp windows library
+LIBRARY_SUFFIX:STRING=-vc141-mt
 
 //Specify VC++ CRT to use for Debug configurations.
 LLVM_USE_CRT_DEBUG:STRING=MTd
@@ -401,14 +553,29 @@ OMEGA_MEMORY_SANITIZE:BOOL=OFF
 //Run thread sanitizer
 OMEGA_THREAD_SANITIZE:BOOL=OFF
 
+//OpenGL library for win32
+OPENGL_gl_LIBRARY:STRING=opengl32
+
+//GLU library for win32
+OPENGL_glu_LIBRARY:STRING=glu32
+
 //Path to a program.
 P4COMMAND:FILEPATH=P4COMMAND-NOTFOUND
+
+//pkg-config executable
+PKG_CONFIG_EXECUTABLE:FILEPATH=PKG_CONFIG_EXECUTABLE-NOTFOUND
 
 //Path to a program.
 PYTHON_EXECUTABLE:FILEPATH=C:/Users/GARRY/AppData/Local/Programs/Python/Python37-32/python.exe
 
+//The directory containing a CMake configuration file for Qt5.
+Qt5_DIR:PATH=Qt5_DIR-NOTFOUND
+
 //Run RE2 Tests
 RE2_BUILD_TESTING:STRING=OFF
+
+//Path to a library.
+RT_LIBRARY:FILEPATH=RT_LIBRARY-NOTFOUND
 
 //Path to scp command, used by CTest for submitting results to
 // a Dart server
@@ -580,6 +747,9 @@ SPIRV_WERROR:BOOL=ON
 //Path to a program.
 SVNCOMMAND:FILEPATH=SVNCOMMAND-NOTFOUND
 
+//Use system installed Irrlicht/IrrXML library.
+SYSTEM_IRRXML:BOOL=OFF
+
 //Use ccache
 USE_CCACHE:BOOL=OFF
 
@@ -591,6 +761,24 @@ Vulkan_INCLUDE_DIR:PATH=C:/CLibs/Vulkan 1.1.92.1/Include
 
 //Path to a library.
 Vulkan_LIBRARY:FILEPATH=C:/CLibs/Vulkan 1.1.92.1/Lib/vulkan-1.lib
+
+//Path to a file.
+ZLIB_INCLUDE_DIR:PATH=ZLIB_INCLUDE_DIR-NOTFOUND
+
+//Path to a library.
+ZLIB_LIBRARY_DBG:FILEPATH=ZLIB_LIBRARY_DBG-NOTFOUND
+
+//Path to a library.
+ZLIB_LIBRARY_REL:FILEPATH=ZLIB_LIBRARY_REL-NOTFOUND
+
+//Dependencies for the target
+assimp_LIB_DEPENDS:STATIC=general;zlibstatic;general;IrrXML;
+
+//Value Computed by CMake
+assimp_qt_viewer_BINARY_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/tools/assimp_qt_viewer
+
+//Value Computed by CMake
+assimp_qt_viewer_SOURCE_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/tools/assimp_qt_viewer
 
 //Value Computed by CMake
 glslang_BINARY_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/glslang
@@ -707,11 +895,25 @@ spirv-tools_BINARY_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projec
 //Value Computed by CMake
 spirv-tools_SOURCE_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools
 
+//Value Computed by CMake
+zlib_BINARY_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/contrib/zlib
+
+//Value Computed by CMake
+zlib_SOURCE_DIR:STATIC=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/contrib/zlib
+
 
 ########################
 # INTERNAL cache entries
 ########################
 
+//Enable building amd64 assembly implementation
+AMD64:INTERNAL=FALSE
+//Enable building i686 assembly implementation
+ASM686:INTERNAL=FALSE
+//ADVANCED property for variable: ASSIMP_BUILD_ARCHITECTURE
+ASSIMP_BUILD_ARCHITECTURE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ASSIMP_BUILD_COMPILER
+ASSIMP_BUILD_COMPILER-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: BZRCOMMAND
 BZRCOMMAND-ADVANCED:INTERNAL=1
 //This is the directory where this CMakeCache.txt was created
@@ -824,7 +1026,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELEASE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO
 CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=50
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=59
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RC_COMPILER
@@ -888,6 +1090,28 @@ CVS_UPDATE_OPTIONS-ADVANCED:INTERNAL=1
 DART_TESTING_TIMEOUT-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: DOXYGEN_EXECUTABLE
 DOXYGEN_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_D3D11_INCLUDE_DIR
+DirectX_D3D11_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_D3D11_LIBRARY
+DirectX_D3D11_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_D3DCOMPILER_LIBRARY
+DirectX_D3DCOMPILER_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_D3DX11_LIBRARY
+DirectX_D3DX11_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_D3DX9_LIBRARY
+DirectX_D3DX9_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_DXERR_LIBRARY
+DirectX_DXERR_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_DXGI_LIBRARY
+DirectX_DXGI_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_DXGUID_LIBRARY
+DirectX_DXGUID_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_INCLUDE_DIR
+DirectX_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: DirectX_LIBRARY
+DirectX_LIBRARY-ADVANCED:INTERNAL=1
+//x
+DirectX_PREFIX_PATH_INT_CHECK:INTERNAL=C:/apps_x86/Microsoft DirectX SDK*;C:/Program Files (x86)/Microsoft DirectX SDK*;C:/apps/Microsoft DirectX SDK*;C:/Program Files/Microsoft DirectX SDK*;C:/Program Files (x86)/Windows Kits/8.1;C:\Program Files (x86)/Microsoft DirectX SDK*
 //Details about finding Git
 FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[C:/Program Files/Git/cmd/git.exe][v2.15.0.windows.1()]
 //Details about finding PythonInterp
@@ -900,8 +1124,22 @@ FIND_PACKAGE_MESSAGE_DETAILS_Vulkan:INTERNAL=[C:/CLibs/Vulkan 1.1.92.1/Lib/vulka
 GITCOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: GIT_EXECUTABLE
 GIT_EXECUTABLE-ADVANCED:INTERNAL=1
+//Have function fseeko
+HAVE_FSEEKO:INTERNAL=
+//Result of TRY_COMPILE
+HAVE_OFF64_T:INTERNAL=FALSE
+//Have include stddef.h
+HAVE_STDDEF_H:INTERNAL=1
+//Have include stdint.h
+HAVE_STDINT_H:INTERNAL=1
+//Have include sys/types.h
+HAVE_SYS_TYPES_H:INTERNAL=1
 //ADVANCED property for variable: HGCOMMAND
 HGCOMMAND-ADVANCED:INTERNAL=1
+//IrrXML_Include
+IRRXML_INCLUDE_DIR:INTERNAL=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/contrib/irrXML
+//IrrXML
+IRRXML_LIBRARY:INTERNAL=IrrXML
 //STRINGS property for variable: LLVM_USE_CRT_DEBUG
 LLVM_USE_CRT_DEBUG-STRINGS:INTERNAL=MD;MDd;MT;MTd
 //ADVANCED property for variable: MAKECOMMAND
@@ -910,10 +1148,20 @@ MAKECOMMAND-ADVANCED:INTERNAL=1
 MEMORYCHECK_COMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: MEMORYCHECK_SUPPRESSIONS_FILE
 MEMORYCHECK_SUPPRESSIONS_FILE-ADVANCED:INTERNAL=1
+//CHECK_TYPE_SIZE: off64_t unknown
+OFF64_T:INTERNAL=
+//ADVANCED property for variable: OPENGL_gl_LIBRARY
+OPENGL_gl_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: OPENGL_glu_LIBRARY
+OPENGL_glu_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: P4COMMAND
 P4COMMAND-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: PKG_CONFIG_EXECUTABLE
+PKG_CONFIG_EXECUTABLE-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: PYTHON_EXECUTABLE
 PYTHON_EXECUTABLE-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: RT_LIBRARY
+RT_LIBRARY-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SCPCOMMAND
 SCPCOMMAND-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: SITE
@@ -928,6 +1176,16 @@ SVNCOMMAND-ADVANCED:INTERNAL=1
 Vulkan_INCLUDE_DIR-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: Vulkan_LIBRARY
 Vulkan_LIBRARY-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_INCLUDE_DIR
+ZLIB_INCLUDE_DIR-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_DBG
+ZLIB_LIBRARY_DBG-ADVANCED:INTERNAL=1
+//ADVANCED property for variable: ZLIB_LIBRARY_REL
+ZLIB_LIBRARY_REL-ADVANCED:INTERNAL=1
+//x
+ZLIB_PREFIX_PATH_INT_CHECK:INTERNAL=
+//Have include unistd.h
+Z_HAVE_UNISTD_H:INTERNAL=
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/install/x64-Debug
 generated_dir:INTERNAL=C:/Users/GARRY/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/googletest/googletest/generated

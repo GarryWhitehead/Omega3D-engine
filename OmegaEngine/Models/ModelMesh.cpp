@@ -119,7 +119,7 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 			vertices.emplace_back(vertex);
 		}
 		
-		size_t indicesCount = primitives->indices->count;
+		size_t indicesCount = primitive->indices->count;
 		newPrimitive.indexBase = indices.size();
 		newPrimitive.indexCount = indicesCount;
 		indices.reserve(indicesCount);
@@ -132,17 +132,17 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 			return false;
 		}
 
-		const uint8_t* base = static_cast<uint8_t&>(primitive->indices->buffer_view->buffer->data) +
+		const uint8_t* base = static_cast<const uint8_t*>(primitive->indices->buffer_view->buffer->data) +
 		                      primitive->indices->offset + primitive->indices->buffer_view->offset;
 
 		for (size_t i = 0; i < primitive->indices->count; ++i)
 		{
 			uint32_t index = 0;
-			if (primitve->indices->component_type == cgltf_component_type_r_32u)
+			if (primitive->indices->component_type == cgltf_component_type_r_32u)
 			{
 				index = *reinterpret_cast<const uint32_t*>(base + sizeof(uint32_t) * i);
 			}
-			else if (primitve->indices->component_type == cgltf_component_type_r_16u)
+			else if (primitive->indices->component_type == cgltf_component_type_r_16u)
 			{
 				index = *reinterpret_cast<const uint16_t*>(base + sizeof(uint16_t) * i);
 			}
@@ -156,6 +156,53 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 		}
 
 		primitives.emplace_back(newPrimitive);
+	}
+}
+
+bool ModelMesh::prepare(aiScene* scene)
+{
+	for (size_t i = 0; i < scene->mNumMeshes; ++i)
+	{
+		Primitive primitive;
+
+		// used to offset the indices values
+		size_t vertCount = vertices.size();
+		
+		const aiMesh* mesh = scene->mMeshes[i];
+
+		for (size_t j = 0; j < mesh->mNumVertices; ++j)
+		{
+			Vertex vertex;
+
+			const aiVector3D* position = &mesh->mVertices[j];
+			vertex.position = OEMaths::vec4f(position->x, -position->y, position->z, 1.0f);
+
+			const aiVector3D* normal = &mesh->mNormals[j];
+			vertex.normal = OEMaths::vec3f(normal->x, -normal->y, normal->z);
+
+			if (mesh->HasTextureCoords)
+			{
+				const aiVector3D* uv = &mesh->mTextureCoords[j];
+				vertex.uv0 = OEMaths::vec2f(uv->x, uv->y);
+			}
+
+			vertices.emplace_back(vertex);
+		}
+
+		size_t indexCount = 0;
+		primitive.indexBase = indices.size();
+		for (size_t j = 0; j < mesh->mNumFaces; ++j)
+		{
+			const aiFace& face = mesh->mFaces[j];
+			for (size_t k = 0; k < 3; ++k)
+			{
+				indices.emplace_back(face.mIndices[k] + vertCount);
+			}
+			indexCount += 3;
+		}
+
+		primitive.indexCount = indexCount;
+		primitives.emplace_back(primitive);
 	}
 }
 

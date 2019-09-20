@@ -66,7 +66,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>Debug\spirv-cross-glsl.lib;Debug\spirv-cross-hlsl.lib;Debug\spirv-cross-cpp.lib;Debug\spirv-cross-reflect.lib;Debug\spirv-cross-msl.lib;Debug\spirv-cross-util.lib;Debug\spirv-cross-core.lib;Debug\spirv-cross-glsl.lib;Debug\spirv-cross-core.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>Debug\spirv-cross-glsld.lib;Debug\spirv-cross-hlsld.lib;Debug\spirv-cross-cppd.lib;Debug\spirv-cross-reflectd.lib;Debug\spirv-cross-msld.lib;Debug\spirv-cross-utild.lib;Debug\spirv-cross-cored.lib;Debug\spirv-cross-glsld.lib;Debug\spirv-cross-cored.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>

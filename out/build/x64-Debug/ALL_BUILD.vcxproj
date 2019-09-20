@@ -51,6 +51,10 @@
       <Project>{4DC0C228-96A0-33F0-B016-66EFF8E2888A}</Project>
       <Name>HLSL</Name>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\irrXML\IrrXML.vcxproj">
+      <Project>{CE1D8BAD-426F-358D-89DD-4DAC87FB4BA3}</Project>
+      <Name>IrrXML</Name>
+    </ProjectReference>
     <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
       <Project>{02DEB690-0B2A-3F97-B534-9C50AE46E501}</Project>
       <Name>OGLCompiler</Name>
@@ -98,6 +102,14 @@
     <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\Scene.vcxproj">
       <Project>{6F160C0D-1411-3FE8-9DC9-A5DBBEC62178}</Project>
       <Name>Scene</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\code\assimp.vcxproj">
+      <Project>{15254FD3-5077-3409-9EDB-3F26D75A3077}</Project>
+      <Name>assimp</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\tools\assimp_cmd\assimp_cmd.vcxproj">
+      <Project>{6929B8E4-FD6F-3138-9E04-C664737EB27F}</Project>
+      <Name>assimp_cmd</Name>
     </ProjectReference>
     <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\check-copyright.vcxproj">
       <Project>{3658D8E4-6C41-34A9-9B6C-B82B0BB31E83}</Project>
@@ -346,6 +358,18 @@
     <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-val.vcxproj">
       <Project>{586E7493-903F-35A2-AE6C-79C8DD895682}</Project>
       <Name>spirv-val</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\test\unit.vcxproj">
+      <Project>{D71C92DA-CF5B-3A6C-91F7-1A1A4B869154}</Project>
+      <Name>unit</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlib.vcxproj">
+      <Project>{4320E04F-02D7-3344-8059-79C79C5E8126}</Project>
+      <Name>zlib</Name>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlibstatic.vcxproj">
+      <Project>{E73B303A-E195-34E2-A58A-F9A07F7A1305}</Project>
+      <Name>zlibstatic</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

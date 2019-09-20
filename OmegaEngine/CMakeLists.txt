@@ -28,6 +28,8 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/vulkan
 	${EXTERNAL_DIR}/tiny-gltf
+	${EXTERNAL_DIR}/assimp/include
+	${EXTERNAL_DIR}/rapidjson/include
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -50,7 +52,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Managers/TransformManager.cpp Managers/TransformManager.h
 	Managers/ObjectManager.cpp Managers/ObjectManager.h
 	
-	Models/Gltf/GltfModel.cpp Models/Gltf/GltfModel.h
+	Models/Formats/GltfModel.cpp Models/Formats/GltfModel.h
+	Models/Formats/AssimpModel.cpp Models/Formats/AssimpModel.h
+
 	Models/ModelAnimation.cpp Models/ModelAnimation.h
 	Models/ModelImage.cpp Models/ModelImage.h
 	Models/ModelMaterial.cpp Models/ModelMaterial.h 
@@ -144,7 +148,6 @@ ENDIF()
 
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
 	${Vulkan_LIBRARY} 
-	${TINY_GLTF} 
 	${RAPID_JSON} 
 	glfw 
 	spirv-cross-core

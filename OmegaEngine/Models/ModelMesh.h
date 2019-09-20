@@ -2,11 +2,13 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include "Models/Gltf/GltfModel.h" 
+#include "Models/Formats/GltfModel.h"
 
+#include "assimp/include/assimp/scene.h"
 #include "cgltf/cgltf.h"
 
 #include <vector>
+
 
 namespace OmegaEngine
 {
@@ -17,7 +19,6 @@ enum class StateTopology;
 class ModelMesh
 {
 public:
-
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -41,13 +42,7 @@ public:
 
 	struct Primitive
 	{
-		Primitive(uint32_t offset, uint32_t size, int32_t matId)
-		    : indexBase(offset)
-		    , indexCount(size)
-		    , materialId(matId)
-		{
-			// add to bvh here?
-		}
+		Primitive() = default;
 
 		Dimensions dimensions;
 		int32_t materialId = -1;
@@ -60,6 +55,8 @@ public:
 	ModelMesh() = default;
 
 	bool prepare(const cgltf_mesh& mesh);
+
+	bool prepare(aiScene* scene);
 
 private:
 	// defines the topology to use in the program state

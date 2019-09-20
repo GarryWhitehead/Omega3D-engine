@@ -74,7 +74,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Project>{583FD8C7-FC58-31B9-A7B4-283D53DA5305}</Project>
       <Name>ZERO_CHECK</Name>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\ALL_BUILD.vcxproj">
+    <ProjectReference Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\ALL_BUILD.vcxproj">
       <Project>{A4120F9E-0B58-321B-AB1B-A72822291B4E}</Project>
       <Name>ALL_BUILD</Name>
     </ProjectReference>
