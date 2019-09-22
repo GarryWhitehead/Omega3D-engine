@@ -1,22 +1,37 @@
 #pragma once
 
-#include "Types/Object.h"
-
-#include "Core/World.h"
-
 #include "Managers/ObjectManager.h"
+
+#include "Models/Formats/GltfModel.h"
 
 #include <vector>
 
 namespace OmegaEngine
 {
 
+// forward decleartions
+class World;
+class GltfModel;
+class Object;
+class MaterialInfo;
+
 class Scene
 {
 public:
+	Scene() = default;
 
 	Scene(World& world);
 	~Scene();
+
+	// as scene isn't copyable
+	Scene(Scene&) = delete;
+	Scene& operator=(Scene&) = delete;
+
+	// but is moveable
+	Scene(Scene&&) = default;
+	Scene& operator=(Scene&&) = default;
+
+	void buildModel(GltfModel& model, World& world);
 
 	void buildRenderableMeshTree(Object& obj);
 	void update();
@@ -42,9 +57,8 @@ public:
 	}
 
 private:
-	
 	// private functions to the scene
-	
+
 	/**
 	* Adds a renderable type to the list.
 	* @param T renderable type
@@ -58,17 +72,18 @@ private:
 	}
 
 private:
-
 	/// objects assoicated with this scene dealt with by the object manager
 	ObjectManager objManager;
 
+	/// All the materials associated with this scene
+	std::vector<MaterialInfo> materials;
+
 	/// contains all the renderable objects associated with this scene.
-	/// This data is used by the renderer to render the scene to the surface 
+	/// This data is used by the renderer to render the scene to the surface
 	std::vector<RenderableBase*> renderables;
-	
+
 	/// The world this scene is assocaited with
 	/// Should be safe, as the scene will be deleted before the world
 	World& world;
-
 };
 }    // namespace OmegaEngine

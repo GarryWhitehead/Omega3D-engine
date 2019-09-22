@@ -12,6 +12,9 @@
 namespace OmegaEngine
 {
 
+// forward decleartions
+class GltfModel;
+
 class ModelNode
 {
 public:
@@ -21,15 +24,15 @@ public:
 	ModelNode();
 	~ModelNode();
 
-	bool prepare(cgltf_node* node, OEMaths::mat4f& parentTransform);
+	bool prepare(cgltf_node* node, OEMaths::mat4f& parentTransform, GltfModel& model);
 	void prepareTranslation(cgltf_node* node);
 
 private:
 
+	Util::String name;
+	size_t skinIndex;
+
 	std::unique_ptr<ModelMesh> mesh;
-	std::unique_ptr<ModelMaterial> material;
-	std::unique_ptr<ModelSkin> skin;
-	std::unique_ptr<ModelAnimation> animation;
 
 	// local decomposed node transfroms
 	OEMaths::vec3f translation;

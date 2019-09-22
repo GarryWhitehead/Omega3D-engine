@@ -1,6 +1,6 @@
-#include "ImageParser.h"
+#include "KtxParser.h"
 
-namespace ImageUtility
+namespace OmegaEngine
 {
 
 KtxReader::KtxReader()
@@ -46,9 +46,9 @@ vk::Format KtxReader::convertGlToVkFormat(uint32_t internalFormat)
 	return format;
 }
 
-bool KtxReader::open(const char* filename, size_t& fileSize)
+bool KtxReader::load(Util::String filename, size_t& fileSize)
 {
-	FILE* file = fopen(filename, "rb");
+	FILE* file = fopen(filename.c_str(), "rb");
 	if (!file)
 	{
 		return false;
@@ -68,12 +68,17 @@ bool KtxReader::open(const char* filename, size_t& fileSize)
 	}
 	fclose(file);
 
+	if (!parse(fileSize))
+	{
+		return false;
+	}
+
 	return true;
 }
 
-bool KtxReader::save(const char* filename, std::vector<uint8_t>& data)
+bool KtxReader::save(Util::String filename, std::vector<uint8_t>& data)
 {
-	FILE* file = fopen(filename, "wb");
+	FILE* file = fopen(filename.c_str(), "wb");
 	if (!file)
 	{
 		fprintf(stderr, "Error creating file %s.\n", filename);
@@ -265,7 +270,7 @@ std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t>& data, uint32_t wi
 	return output_data;
 }
 
-bool KtxReader::loadFile(const char* filename)
+bool KtxReader::loadFile(Util::String filename)
 {
 	if (!filename)
 	{
@@ -274,7 +279,7 @@ bool KtxReader::loadFile(const char* filename)
 	}
 
 	size_t fileSize = 0;
-	if (!open(filename, fileSize))
+	if (!load(filename.c_str(), fileSize))
 	{
 		fprintf(stderr, "Unable to open .ktx file: %s.", filename);
 		return false;

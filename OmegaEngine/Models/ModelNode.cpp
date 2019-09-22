@@ -1,6 +1,7 @@
 #include "ModelNode.h"
 
 #include "Models/ModelMesh.h"
+#include "Models/Formats/GltfModel.h"
 
 #include "OEMaths/OEMaths_transform.h"
 
@@ -16,22 +17,19 @@ ModelNode::~ModelNode()
 {
 }
 
-bool ModelNode::prepare(cgltf_node* node, OEMaths::mat4f& parentTransform)
+bool ModelNode::prepare(cgltf_node* node, OEMaths::mat4f& parentTransform, GltfModel& model)
 {
 	// only deal with nodes that have meshes
 	// transform nodes will be concenated
 	if (node->mesh)
 	{
-		mesh->prepare(*node->mesh);
-
-		if (node->mesh->primitives[0].material)
-		{
-			material->prepare(*node->mesh->primitives[0].material);
-		}
+		mesh->prepare(*node->mesh, model);
 
 		if (node->skin)
 		{
-			skin->prepare(*node->skin);
+			ModelSkin skin;
+			skin.prepare(*node->skin);
+			skinIndex = model.addSkin(skin);
 		}
 
 		// propogate transforms through node list

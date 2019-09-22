@@ -74,6 +74,7 @@ public:
 		return sampler;
 	}
 
+	friend class MaterialInfo;
 
 private:
 	std::string name;

@@ -3,14 +3,13 @@
 #include "Managers/AnimationManager.h"
 #include "Managers/CameraManager.h"
 #include "Managers/LightManager.h"
-#include "Managers/MaterialManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/ObjectManager.h"
 #include "Managers/TransformManager.h"
 
 #include "Resource/ResourceManager.h"
 
-#include "Models/Gltf/GltfModel.h"
+#include "Models/Formats/GltfModel.h"
 
 #include "OEMaths/OEMaths.h"
 
@@ -55,7 +54,6 @@ public:
 	AnimationManager& getAnimManager();
 	CameraManager& getCameraManager();
 	LightManager& getLightManager();
-	MaterialManager& getMatManager();
 	MeshManager& getMeshManager();
 	TransformManager& getTransManager();
 	ResourceManager& getResourceManager();
@@ -68,7 +66,6 @@ private:
 	AnimationManager animManager;
 	CameraManager cameraManager;
 	LightManager lightManager;
-	MaterialManager matManager;
 	MeshManager meshManager;
 	TransformManager transManager;
 

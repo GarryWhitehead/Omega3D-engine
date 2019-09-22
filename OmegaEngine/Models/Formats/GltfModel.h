@@ -34,16 +34,48 @@ public:
 	// atributes
 	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
 
-	void lineariseRecursive(cgltf_node& node, size_t index);
-	void lineariseNodes(cgltf_data* data);
-
+	/**
+	* @ loads a specified gltf file and parses the data
+	* @ param absolute path to the gltf model file. Binary data must also be present in the directory
+	* @ return Whether the file was succesfully loaded and parsed
+	*/
 	bool load(Util::String filename);
+
+	// helper functions
+	/**
+	* @ brief Adds a matrial to the container after checking for duplicate.
+	* If a duplicate, returns the index were the duplicate is located
+	* Otherwise adds the material and returns a index to this material
+	* @param The prepared material to add
+	*/
+	size_t addMaterial(ModelMaterial& mat);
+
+	/**
+	* @brief Adds a new skin to the container
+	* @param skin New skin to add
+	* @return index where the new skin has been added
+	*/
+	size_t addSkin(ModelSkin& skin);
+
+	friend class Scene;
 
 private:
 
+	void lineariseRecursive(cgltf_node& node, size_t index);
+	void lineariseNodes(cgltf_data* data);
+
+private:
 	std::vector<ModelNode> nodes;
-	
-	// linking nodes to index values 
+
+	// materials and image paths pulled out of the nodes.
+	std::vector<ModelMaterial> materials;
+
+	// skeleton data also removed from the nodes
+	std::vector<ModelSkin> skins;
+
+	std::vector<ModelAnimation> animations;
+
+	// linking nodes to index values
 	std::unordered_map<cgltf_node*, size_t> linearisedNodes;
 
 	ModelNode* getNode(uint32_t index)

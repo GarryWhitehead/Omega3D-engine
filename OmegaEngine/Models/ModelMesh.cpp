@@ -7,7 +7,7 @@
 namespace OmegaEngine
 {
 
-bool ModelMesh::prepare(const cgltf_mesh& mesh)
+bool ModelMesh::prepare(const cgltf_mesh& mesh, GltfModel& model)
 {
 	cgltf_primitive* meshEnd = mesh.primitives + mesh.primitives_count;
 	for (const cgltf_primitive* primitive = mesh.primitives; primitive < meshEnd; ++primitive)
@@ -29,6 +29,12 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh)
 			LOGGER_ERROR("At the moment only triangles are supported by the gltf parser.\n");
 			return false;
 		}
+
+		// sort out the material and add to the list
+		// we alos check for duplicated materials and only return an index if so
+		ModelMaterial material;
+		material.prepare(*primitive->material);
+		newPrimitive.materialId = model.addMaterial(material);
 
 		// get the number of vertices to process
 		size_t vertCount = primitive->attributes[0].data->count;

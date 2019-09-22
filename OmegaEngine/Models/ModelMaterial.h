@@ -34,11 +34,29 @@ public:
 	Util::String getTextureUri(cgltf_texture_view& view);
 
 	bool prepare(cgltf_material& mat, ExtensionData& extensions);
-    
-    bool prepare(aiMaterial* mat);
-    
+
+	bool prepare(aiMaterial* mat);
+
+	// helper functions
+	Util::String getName()
+	{
+		assert(!name.empty());    // sanity check!
+		return name;
+	}
+
+	void updateIndex(size_t index)
+	{
+		bufferIndex = index;
+	}
+
+	friend class MaterialInfo;
+
 private:
+	// used to identify this material. Must be set!
 	Util::String name;
+
+	// index into container
+	size_t bufferIndex;
 
 	struct Factors
 	{
@@ -73,14 +91,23 @@ private:
 
 	/**
 	 * @brief Filenames which will be passed to the resource manager for loading 
+	 * Ids will be hashed from the paths and used to link between materials
+	 * and resources
 	 */
-	struct Textures
+	using ImageId = uint32_t;
+	struct TextureInfo
 	{
-		Util::String baseColour;
-		Util::String emissive;
-		Util::String metallicRoughness;
-		Util::String normal;
-		Util::String occlusion;
+		Util::String path;
+		ImageId id = UINT32_MAX;
+	};
+
+	struct TextureIds
+	{
+		TextureInfo baseColour;
+		TextureInfo emissive;
+		TextureInfo metallicRoughness;
+		TextureInfo normal;
+		TextureInfo occlusion;
 	} textures;
 
 	// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow

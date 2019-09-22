@@ -40,9 +40,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/World.cpp Core/World.h
 	Core/Scene.cpp Core/Scene.h
 	Core/Omega_Common.h
-	
-	Resource/ResourceManager.cpp Resource/ResourceManager.h
-	Resource/ImageParser.cpp Resource/ImageParser.h
+
+	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
+	ImageUtils/StbLoader.cpp ImageUtils/Stbloader.h
 
 	Managers/AnimationManager.cpp Managers/AnimationManager.h
 	Managers/CameraManager.cpp Managers/CameraManager.h
@@ -68,10 +68,10 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Cube.cpp Misc/Primitives/Cube.h
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
-	Types/Material.cpp Types/Material.h
+	Types/MaterialInfo.cpp Types/MaterialInfo.h
 	Types/Object.cpp Types/Object.h
 	Types/ComponentTypes.h
-	Types/MappedTexture.cpp Types/MappedTexture.h
+	Types/Texture.cpp Types/Texture.h
 	Types/NativeWindowWrapper.h
 	Types/PBuildInfo.h
 	Types/UBufferInfo.h

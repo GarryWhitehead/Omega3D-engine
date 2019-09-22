@@ -97,10 +97,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Scene.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Scene.h" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Common.h" />
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ResourceManager.cpp" />
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ResourceManager.h" />
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ImageParser.cpp" />
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ImageParser.h" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.cpp" />
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.h" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\StbLoader.cpp" />
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\StbLoader.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Managers\AnimationManager.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Managers\AnimationManager.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Managers\CameraManager.cpp" />
@@ -140,13 +140,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives\Cube.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives\Quad.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives\Quad.h" />
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Material.cpp" />
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Material.h" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MaterialInfo.cpp" />
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MaterialInfo.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Object.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Object.h" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\ComponentTypes.h" />
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MappedTexture.cpp" />
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MappedTexture.h" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Texture.cpp">
+      <ObjectFileName>$(IntDir)/Types/Texture.cpp.obj</ObjectFileName>
+    </ClCompile>
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Texture.h" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\NativeWindowWrapper.h" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\PBuildInfo.h" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\UBufferInfo.h" />
@@ -210,7 +212,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\String.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\Timer.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\Timer.h" />
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types\Texture.cpp" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types\Texture.cpp">
+      <ObjectFileName>$(IntDir)/VulkanAPI/Types/Texture.cpp.obj</ObjectFileName>
+    </ClCompile>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types\Texture.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform\Surface.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform\Surface.h" />

@@ -5,6 +5,7 @@
 #include "Models/Formats/GltfModel.h"
 
 #include "assimp/include/assimp/scene.h"
+
 #include "cgltf/cgltf.h"
 
 #include <vector>
@@ -54,7 +55,7 @@ public:
 
 	ModelMesh() = default;
 
-	bool prepare(const cgltf_mesh& mesh);
+	bool prepare(const cgltf_mesh& mesh, GltfModel& model);
 
 	bool prepare(aiScene* scene);
 

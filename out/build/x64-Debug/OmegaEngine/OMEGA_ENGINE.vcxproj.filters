@@ -16,10 +16,10 @@
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Scene.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ResourceManager.cpp">
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ImageParser.cpp">
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\StbLoader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Managers\AnimationManager.cpp">
@@ -79,13 +79,13 @@
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives\Quad.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Material.cpp">
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MaterialInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Object.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MappedTexture.cpp">
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths\OEMaths.cpp">
@@ -246,10 +246,10 @@
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ResourceManager.h">
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Resource\ImageParser.h">
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\StbLoader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Managers\AnimationManager.h">
@@ -312,7 +312,7 @@
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives\Quad.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Material.h">
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MaterialInfo.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Object.h">
@@ -321,7 +321,7 @@
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\ComponentTypes.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MappedTexture.h">
+    <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\NativeWindowWrapper.h">
