@@ -1,4 +1,4 @@
-#include "Mesh.h"
+#include "RenderableObject.h"
 
 #include "Managers/CameraManager.h"
 #include "Managers/MaterialManager.h"
@@ -25,30 +25,16 @@
 namespace OmegaEngine
 {
 
-RenderableMesh::RenderableMesh()
-    : RenderableBase(RenderTypes::StaticMesh)
+RenderableObject::RenderableObject()
 {
 }
 
-void RenderableMesh::prepare(World& world, StaticMesh& mesh, PrimitiveMesh& primitive, Object& obj)
+RenderableObject::~RenderableObject()
 {
-	VulkanAPI::VkTextureManager::TextureLayoutInfo layoutInfo;
+}
 
-	// get the material for this primitive mesh from the manager
-	auto& matManager = world.getMatManager();
-	auto& mat = matManager.getMaterial(primitive.materialId);
-
-	// create the sorting key for this mesh
-	sortKey = RenderQueue::createSortKey(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
-
-	// fill out the data which will be used for rendering
-	// using a static cast here as faster than a reinterpret and we can be certain it ia mesh instance
-	instanceData = new MeshInstance;
-	MeshInstance* meshInstance = static_cast<MeshInstance*>(instanceData);
-
-	// skinned ior non-skinned mesh?
-	meshInstance->type = mesh.type;
-
+void RenderableObject::prepareMaterial(ModelMaterial& mat)
+{
 	// queue and state type - opaque or transparent texture
 	StateAlpha stateAlpha;
 	if (mat.alphaMask == MaterialInfo::AlphaMode::Opaque)
@@ -61,6 +47,36 @@ void RenderableMesh::prepare(World& world, StaticMesh& mesh, PrimitiveMesh& prim
 		queueType = QueueType::Transparent;
 		stateAlpha = StateAlpha::Transparent;
 	}
+}
+
+void RenderableObject::prepare(World& world, Object& obj)
+{
+	VulkanAPI::VkTextureManager::TextureLayoutInfo layoutInfo;
+
+	// shadows don't have materials.
+	if (type != RenderableType::Shadow)
+	{
+		// but meshes mayabe do!
+		auto& matManager = world.getMatManager();
+		ModelMaterial* mat = matManager.getMaterial(obj);
+
+		if (mat)
+		{
+			prepareMaterial(*mat);
+		}
+	}
+
+	// get the mesh
+	auto& meshManager = world.getMeshManager();
+	MeshInfo mesh = meshManager.getMesh(obj);
+
+	// create the sorting key for this mesh - MOVE TO RENDER QUEUE!
+	sortKey = RenderQueue::createSortKey(RenderStage::First, primitive.materialId, RenderTypes::StaticMesh);
+
+	// skinned ior non-skinned mesh?
+	meshInstance->type = mesh.type;
+
+	
 
 	meshInstance->transformDynamicOffset = obj.getComponent<TransformComponent>().dynamicUboOffset;
 

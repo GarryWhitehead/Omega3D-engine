@@ -15,25 +15,32 @@
 namespace OmegaEngine
 {
 
+enum TextureType : size_t
+{
+	BaseColour,
+	Emissive,
+	MetallicRoughness,
+	Normal,
+	Occlusion,
+	Count
+};
+
 class ModelMaterial
 {
 public:
-	enum class TextureId
-	{
-		BaseColour,
-		Emissive,
-		MetallicRoughness,
-		Normal,
-		Occlusion,
-		Count
-	};
 
 	ModelMaterial();
 	~ModelMaterial();
 
+	// copyable and moveable
+	ModelMaterial(const ModelMaterial&) = default;
+	ModelMaterial& operator=(const ModelMaterial&) = default;
+	ModelMaterial(ModelMaterial&&) = default;
+	ModelMaterial& operator=(ModelMaterial&&) = default;
+
 	Util::String getTextureUri(cgltf_texture_view& view);
 
-	bool prepare(cgltf_material& mat, ExtensionData& extensions);
+	bool prepare(cgltf_material& mat);
 
 	bool prepare(aiMaterial* mat);
 
@@ -44,18 +51,14 @@ public:
 		return name;
 	}
 
-	void updateIndex(size_t index)
-	{
-		bufferIndex = index;
-	}
-
-	friend class MaterialInfo;
+	friend class MaterialManager;
 
 private:
-	// used to identify this material. Must be set!
+
+	// used to identify this material. 
 	Util::String name;
 
-	// index into container
+	// used to find the texture group in the list
 	size_t bufferIndex;
 
 	struct Factors
@@ -78,40 +81,13 @@ private:
 
 	} blending;
 
-	struct TexCoordSets
-	{
-		uint32_t baseColour = 0;
-		uint32_t metallicRoughness = 0;
-		uint32_t normal = 0;
-		uint32_t emissive = 0;
-		uint32_t occlusion = 0;
-		uint32_t specularGlossiness = 0;
-		uint32_t diffuse = 0;
-	} uvSets;
-
-	/**
-	 * @brief Filenames which will be passed to the resource manager for loading 
-	 * Ids will be hashed from the paths and used to link between materials
-	 * and resources
-	 */
-	using ImageId = uint32_t;
-	struct TextureInfo
-	{
-		Util::String path;
-		ImageId id = UINT32_MAX;
-	};
-
-	struct TextureIds
-	{
-		TextureInfo baseColour;
-		TextureInfo emissive;
-		TextureInfo metallicRoughness;
-		TextureInfo normal;
-		TextureInfo occlusion;
-	} textures;
+	// the paths for all textures. Empty paths signify that this texture isn't used
+	Util::String texturePaths[TextureType::Count];
 
 	// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 	bool usingSpecularGlossiness = false;
+
+	bool doubleSided = false;
 };
 
 }    // namespace OmegaEngine

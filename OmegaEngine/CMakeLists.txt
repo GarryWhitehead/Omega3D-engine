@@ -8,17 +8,19 @@ TARGET_COMPILE_OPTIONS(OMEGA_ENGINE PRIVATE ${OMEGA_CXX_FLAGS})
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
-	${CMAKE_CURRENT_SOURCE_DIR}/Resource
+	${CMAKE_CURRENT_SOURCE_DIR}/ImageUtils
 	${CMAKE_CURRENT_SOURCE_DIR}/Managers
 	${CMAKE_CURRENT_SOURCE_DIR}/Models
-	${CMAKE_CURRENT_SOURCE_DIR}/Models/Gltf
+	${CMAKE_CURRENT_SOURCE_DIR}/Models/Formats
 	${CMAKE_CURRENT_SOURCE_DIR}/OEMaths
 	${CMAKE_CURRENT_SOURCE_DIR}/PostProcess
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering
-	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/RenderableTypes
+	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Renderers
 	${CMAKE_CURRENT_SOURCE_DIR}/Threading
 	${CMAKE_CURRENT_SOURCE_DIR}/utility
+	${CMAKE_CURRENT_SOURCE_DIR}/Misc
+	${CMAKE_CURRENT_SOURCE_DIR}/Misc/Primitives
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Platform
@@ -30,6 +32,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}/tiny-gltf
 	${EXTERNAL_DIR}/assimp/include
 	${EXTERNAL_DIR}/rapidjson/include
+	${EXTERNAL_DIR}/stb
 )
 
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
@@ -42,7 +45,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/Omega_Common.h
 
 	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
-	ImageUtils/StbLoader.cpp ImageUtils/Stbloader.h
+	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h
 
 	Managers/AnimationManager.cpp Managers/AnimationManager.h
 	Managers/CameraManager.cpp Managers/CameraManager.h
@@ -56,7 +59,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/Formats/AssimpModel.cpp Models/Formats/AssimpModel.h
 
 	Models/ModelAnimation.cpp Models/ModelAnimation.h
-	Models/ModelImage.cpp Models/ModelImage.h
 	Models/ModelMaterial.cpp Models/ModelMaterial.h 
 	Models/ModelMesh.cpp Models/ModelMesh.h
 	Models/ModelSkin.cpp Models/ModelSkin.h
@@ -68,7 +70,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Cube.cpp Misc/Primitives/Cube.h
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
-	Types/MaterialInfo.cpp Types/MaterialInfo.h
 	Types/Object.cpp Types/Object.h
 	Types/ComponentTypes.h
 	Types/Texture.cpp Types/Texture.h
@@ -94,12 +95,10 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderInterface.cpp Rendering/RenderInterface.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
-	Rendering/RenderableTypes/Mesh.cpp Rendering/RenderableTypes/Mesh.h
-	Rendering/RenderableTypes/Shadow.cpp Rendering/RenderableTypes/Shadow.h
-	Rendering/RenderableTypes/Skybox.cpp Rendering/RenderableTypes/Skybox.h
-	Rendering/RenderableTypes/RenderableBase.h
 	Rendering/Renderers/DeferredRenderer.cpp Rendering/Renderers/DeferredRenderer.h
 	Rendering/Renderers/RendererBase.h
+
+	Rendering/RenderTypes/RenderableObject.cpp Rendering/RenderTypes/RenderableObject.h
 	
 	Threading/ThreadedQueue.h
 	Threading/ThreadPool.cpp Threading/ThreadPool.h
@@ -114,7 +113,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/String.cpp utility/String.h
 	utility/Timer.cpp utility/Timer.h
 	
-	VulkanAPI/Types/Texture.cpp VulkanAPI/Types/Texture.h
+	VulkanAPI/Types/VkTexture.cpp VulkanAPI/Types/VkTexture.h
 
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 

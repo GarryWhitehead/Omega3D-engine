@@ -33,7 +33,7 @@ struct PrimitiveMesh
 	uint32_t materialId;
 };
 
-struct StaticMesh
+struct MeshInfo
 {
 	StateMesh type;
 
@@ -87,19 +87,19 @@ public:
 
 	MeshManager();
 	~MeshManager();
+	
+	// non-copyable and moveable
+	MeshManager(const MeshManager&) = delete;
+	MeshManager& operator=(const MeshManager&) = delete;
+	MeshManager(MeshManager&&) = delete;
+	MeshManager& operator=(MeshManager&&) = delete;
 
 	/// called on a per-frame basis 
 	void updateFrame();
 
 	void addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj);
 
-	void linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent);
-
-	StaticMesh& getMesh(MeshComponent& comp)
-	{
-		assert(comp.index < meshBuffer.size());
-		return meshBuffer[comp.index];
-	}
+	MeshInfo& getMesh(Object& obj);
 
 private:
 	
@@ -107,7 +107,7 @@ private:
 	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
 	
 	// the buffers containing all the model data
-	std::vector<StaticMesh> meshBuffer;
+	std::vector<MeshInfo> meshes;
 
 	// all vertices and indices held in one large buffer
 	std::vector<Vertex> staticVertices;

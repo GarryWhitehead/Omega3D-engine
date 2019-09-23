@@ -23,7 +23,7 @@ Util::String ModelMaterial::getTextureUri(cgltf_texture_view& view)
 	return "";
 }
 
-bool ModelMaterial::prepare(cgltf_material& mat, ExtensionData& extensions)
+bool ModelMaterial::prepare(cgltf_material& mat)
 {
 	// two pipelines, either specular glosiness or metallic roughness
 	// according to the spec, metallic roughness shoule be preferred
@@ -31,7 +31,7 @@ bool ModelMaterial::prepare(cgltf_material& mat, ExtensionData& extensions)
 	{
 		usingSpecularGlossiness = true;
 
-		textures.baseColour = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
+		texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
 		factors.baseColour = OEMaths::vec4f(mat.pbr_specular_glossiness.diffuse_factor);
 		factors.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
 	}
@@ -41,21 +41,21 @@ bool ModelMaterial::prepare(cgltf_material& mat, ExtensionData& extensions)
 	{
 		usingSpecularGlossiness = false;
 
-		textures.baseColour = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
-		textures.metallicRoughness = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
+		texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
+		texturePaths[TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
 		factors.baseColour = OEMaths::vec4f(mat.pbr_metallic_roughness.base_color_factor);
 		factors.roughness = mat.pbr_metallic_roughness.roughness_factor;
 		factors.metallic = mat.pbr_metallic_roughness.metallic_factor;
 	}
 
 	// normal texture
-	textures.normal = getTextureUri(mat.normal_texture);
+	texturePaths[TextureType::Normal] = getTextureUri(mat.normal_texture);
 
 	// occlusion texture
-	textures.occlusion = getTextureUri(mat.occlusion_texture);
+	texturePaths[TextureType::Occlusion] = getTextureUri(mat.occlusion_texture);
 
 	// emissive texture
-	textures.emissive = getTextureUri(mat.emissive_texture);
+	texturePaths[TextureType::Emissive] = getTextureUri(mat.emissive_texture);
 	
 	// emissive factor
 	factors.emissive = OEMaths::vec3f(mat.emissive_factor);
@@ -70,6 +70,10 @@ bool ModelMaterial::prepare(cgltf_material& mat, ExtensionData& extensions)
 	// alpha blending
 	blending.alphaMaskCutOff = mat.alpha_cutoff;
 	blending.mask = convertToAlpha(mat.alpha_mode);
+
+	// determines the type of culling required
+	doubleSided = mat.double_sided;
+
 }
 
 bool ModelMaterial::prepare(aiMaterial* mat)

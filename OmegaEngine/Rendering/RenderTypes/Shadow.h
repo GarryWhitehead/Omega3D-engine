@@ -35,12 +35,7 @@ public:
 		uint32_t vertexOffset = 0;
 		uint32_t indexOffset = 0;
 
-		uint32_t lightAlignmentSize = 0;
-		uint32_t lightCount = 0;
-
-		float biasConstant = 0.0f;
-		float biasClamp = 0.0f;
-		float biasSlope = 0.0f;
+		
 	};
 
 	RenderableShadow(std::unique_ptr<ProgramStateManager>& stateManager,

@@ -14,8 +14,6 @@
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
 
-#include "VulkanAPI/BufferManager.h"
-
 
 namespace OmegaEngine
 {
@@ -31,17 +29,6 @@ MeshManager::MeshManager()
 
 MeshManager::~MeshManager()
 {
-}
-
-void MeshManager::linkMaterialWithMesh(MeshComponent* meshComponent, MaterialComponent* materialComponent)
-{
-	uint32_t meshIndex = meshComponent->index;
-
-	// for now, assume all primitives have the same material
-	for (auto& primitive : meshBuffer[meshIndex].primitives)
-	{
-		primitive.materialId = materialComponent->offset;
-	}
 }
 
 void MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj)
@@ -111,7 +98,7 @@ void MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj)
 
 	newMesh.topology = mesh->topology;
 
-	meshBuffer.emplace_back(newMesh);
+	meshes.emplace_back(newMesh);
 
 	// store the buffer index in the mesh component
 	MeshComponent mcomp;
@@ -148,4 +135,16 @@ void MeshManager::updateFrame()
 		isDirty = false;
 	}
 }
+
+MeshInfo& MeshManager::getMesh(Object& obj)
+{
+	auto iter = objIndices.find(obj);
+	assert(iter != objIndices.end());
+
+	size_t index = iter->second;
+	assert(index < meshes.size());
+
+	return meshes[index];
+}
+
 }    // namespace OmegaEngine

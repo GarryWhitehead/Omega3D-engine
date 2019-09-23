@@ -6,8 +6,7 @@
 #include "Managers/MeshManager.h"
 #include "Managers/ObjectManager.h"
 #include "Managers/TransformManager.h"
-
-#include "Resource/ResourceManager.h"
+#include "Managers/MaterialManager.h"
 
 #include "Models/Formats/GltfModel.h"
 
@@ -56,7 +55,7 @@ public:
 	LightManager& getLightManager();
 	MeshManager& getMeshManager();
 	TransformManager& getTransManager();
-	ResourceManager& getResourceManager();
+	MaterialManager& getMatManager();
 
 private:
 	// name used to identify this world
@@ -68,9 +67,7 @@ private:
 	LightManager lightManager;
 	MeshManager meshManager;
 	TransformManager transManager;
-
-	// all resources that are not associated with a manager are dealt with here
-	ResourceManager resourceManager;
+	MaterialManager matManager;
 
 	// scenes associated with this world
 	std::vector<Scene> scenes;

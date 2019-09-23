@@ -5,7 +5,7 @@
 #include "utility/String.h"
 
 #include "ImageUtils/KtxParser.h"
-#include "ImageUtils/StbLoader.h"
+#include "ImageUtils/ImageLoader.h"
 
 namespace OmegaEngine
 {
@@ -14,8 +14,6 @@ class Texture
 
 public:
 	Texture() = default;
-
-	Texture(std::string name);
 	~Texture();
 
 	// textures are not copyable but moveable

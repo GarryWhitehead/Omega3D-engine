@@ -1,4 +1,5 @@
 #include "Texture.h"
+
 #include "Utility/logger.h"
 
 #include <algorithm>
@@ -15,8 +16,8 @@ Texture::~Texture()
 	}
 }
 
-bool Texture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays,
-                               uint32_t mips, uint32_t size, TextureFormat format)
+bool Texture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips,
+                         uint32_t size, TextureFormat format)
 {
 	width = w;
 	height = h;
@@ -63,7 +64,7 @@ bool Texture::load(Util::String filePath)
 		}
 
 		KtxReader::ImageOutput* data = parser.getImageData();
-		this-> width = data->width;
+		this->width = data->width;
 		this->height = data->height;
 		this->mipLevels = data->mipLevels;
 		this->arrayCount = data->arrayCount;
@@ -71,16 +72,29 @@ bool Texture::load(Util::String filePath)
 		this->totalSize = data->totalSize;
 		assert(totalSize);
 		assert(data->data);
+
+		// create the buffer and copy the pixels across
+		buffer = new uint8_t[totalSize];
 		memcpy(buffer, data->data, totalSize);
-
 	}
-	else if (ext.compare("png"))
+	else if (ext.compare("png") || ext.compare("jpg"))
 	{
+		ImageLoader loader;
+		if (!loader.load(filePath))
+		{
+			return false;
+		}
 
-	}
-	else if (ext.compare("jpg"))
-	{
+		this->width = loader.getWidth();
+		this->height = loader.getHeight();
 
+		// calculate total size
+		int comp = loader.getComponentCount();
+		this->totalSize = width * height * comp;
+
+		// create the buffer and copy the data across
+		buffer = new uint8_t[totalSize];
+		memcpy(buffer, loader.getData(), totalSize);
 	}
 	else
 	{
@@ -88,6 +102,7 @@ bool Texture::load(Util::String filePath)
 		return false;
 	}
 
+	return true;
 }
 
 
