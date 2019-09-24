@@ -1,9 +1,6 @@
 #pragma once
 
-#include "Utility/GeneralUtil.h"
-
 #include <stdint.h>
-#include <unordered_map>
 
 namespace OmegaEngine
 {
@@ -13,70 +10,41 @@ class Object
 {
 
 public:
-	Object();
-	Object(const uint32_t _id);
-	~Object();
+
+	using ObjectId = uint64_t;
+
+	Object() = default;
+	~Object() = default;
+
+	Object(const ObjectId id)
+	{
+		this->id = id;
+	}
+
+	// object are not copyable - could mess up ids
+	Object(const Object&) = delete;
+	Object& operator=(const Object&) = delete;
+
+	// but are moveable
+	Object(Object&&) = default;
+	Object& operator=(Object&&) = default;
 
 	// operator overloads
-	bool operator==(const Object &obj) const;
-
-	Object &addChild(const uint32_t _id);
+	bool operator==(const Object &obj) const
+	{
+		return this->id == obj.id;
+	}
 
 	// helper functions
-	uint64_t getId() const;
-	void setId(const uint64_t id);
-	uint64_t getParent() const;
-
-	template <typename T>
-	T &getComponent()
+	ObjectId getId() const
 	{
-		uint32_t id = Util::TypeId<T>::id();
-		assert(components.find(id) != components.end());
-
-		T *derived = dynamic_cast<T *>(components[id]);
-		assert(derived != nullptr);
-		return *derived;
+		return this->id;
 	}
-
-	template <typename T, typename... Args>
-	void addComponent(Args &&... args)
-	{
-		uint32_t id = Util::TypeId<T>::id();
-		components[id] = new T(std::forward<Args>(args)...);
-	}
-
-	template <typename T>
-	void addComponent()
-	{
-		uint32_t id = Util::TypeId<T>::id();
-		components[id] = new T();
-	}
-
-	template <typename T>
-	bool hasComponent()
-	{
-		uint32_t id = Util::TypeId<T>::id();
-		if (components.find(id) == components.end())
-		{
-			return false;
-		}
-		return true;
-	}
-
-	bool hasChildren() const
-	{
-		return !children.empty();
-	}
-
-	std::vector<Object> &getChildren();
 
 private:
 
-	uint64_t id = UINT64_MAX;
-	uint64_t parentId = UINT64_MAX;
-	std::vector<Object> children;
+	ObjectId id;
 
-	std::unordered_map<uint32_t, ComponentBase *> components;
 };
 
 } // namespace OmegaEngine
