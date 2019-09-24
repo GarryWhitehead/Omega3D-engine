@@ -6,6 +6,11 @@
 
 #include "Utility/logger.h"
 
+#include "Models/ModelMaterial.h"
+#include "Models/ModelMesh.h"
+
+#include "Components/ComponentManager.h"
+
 #include <memory>
 #include <tuple>
 #include <unordered_map>
@@ -15,40 +20,44 @@
 namespace OmegaEngine
 {
 // forard decleartions
-class ObjectManager;
+class Texture;
+class ModelMesh;
+class World;
 class Object;
-struct MeshComponent;
-enum class StateTopolgy;
-enum class StateMesh;
 
-struct PrimitiveMesh
+
+/**
+	* @brief A convienent way to group textures together
+	* supports PBR materials - if null, field not used
+	*/
+struct TextureGroup
 {
-	StateMesh type;
+	TextureGroup() = default;
 
-	// index offsets
-	uint32_t indexBase = 0;
-	uint32_t indexCount = 0;
+	~TextureGroup()
+	{
+		for (size_t i = 0; i < TextureType::Count; ++i)
+		{
+			if (textures[i])
+			{
+				delete textures[i];
+				textures[i] = nullptr;
+			}
+		}
+	}
 
-	// material id
-	uint32_t materialId;
+	// ensure not copyable
+	TextureGroup(const TextureGroup&) = delete;
+	TextureGroup& operator=(const TextureGroup&) = delete;
+
+	// but moveable
+	TextureGroup(TextureGroup&&) = default;
+	TextureGroup& operator=(TextureGroup&&) = default;
+
+	Texture* textures[TextureType::Count];
 };
 
-struct MeshInfo
-{
-	StateMesh type;
-
-	// primitives assoicated with this mesh
-	std::vector<PrimitiveMesh> primitives;
-
-	// states
-	StateTopology topology;
-
-	// offset into mega buffer
-	uint32_t vertexBufferOffset;
-	uint32_t indexBufferOffset;
-};
-
-class MeshManager
+class RenderableManager : public ComponentManager
 {
 
 public:
@@ -56,63 +65,79 @@ public:
 	static constexpr float VertexBlockSize = 1e+5;
 	static constexpr float IndexBlockSize = 1e+5;
 
-	struct Dimensions
+	/**
+	* @brief A basic struct pointing to the vertex and indices data within#
+	* the larger buffer. Meshes are made up of sub-meshes or primitives
+	* which reference the mesh data. They also contain an index to the material data
+	* which is set when a renderable is added
+	*/
+	struct RenderableInfo
 	{
-		OEMaths::vec3f min;
-		OEMaths::vec3f max;
-		OEMaths::vec3f size;
-		OEMaths::vec3f center;
-		float radius;
+		StateMesh type;
 
-		//void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
+		// primitives assoicated with this mesh
+		std::vector<ModelMesh::Primitive> primitives;
+
+		// states
+		StateTopology topology;
+
+		// offset into mega buffer
+		size_t vertOffset = 0;
+		size_t idxOffset = 0;
 	};
 
-	struct Vertex
-	{
-		OEMaths::vec4f position;
-		OEMaths::vec2f uv0;
-		OEMaths::vec2f uv1;
-		OEMaths::vec3f normal;
-	};
-
-	struct SkinnedVertex
-	{
-		OEMaths::vec4f position;
-		OEMaths::vec2f uv0;
-		OEMaths::vec2f uv1;
-		OEMaths::vec3f normal;
-		OEMaths::vec4f weight;
-		OEMaths::vec4f joint;
-	};
-
-	MeshManager();
-	~MeshManager();
-	
-	// non-copyable and moveable
-	MeshManager(const MeshManager&) = delete;
-	MeshManager& operator=(const MeshManager&) = delete;
-	MeshManager(MeshManager&&) = delete;
-	MeshManager& operator=(MeshManager&&) = delete;
+	RenderableManager();
+	~RenderableManager();
 
 	/// called on a per-frame basis 
 	void updateFrame();
 
-	void addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj);
+	/**
+	* @brief The main call here - adds a renderable consisting of mesh, and not
+	* always, material and texture data. This function adds a number of materials if required
+	*/
+	void addRenderable(ModelMesh& mesh, ModelMaterial* mat, const size_t matCount, Object& obj);
 
-	MeshInfo& getMesh(Object& obj);
+	// === mesh related functions ===
+	/**
+	* @brief Adds a mesh and primitives to the manager. 
+	* @param mesh The prepared mesh to add
+	* @param idx The index derived from calling **getObjIndex**
+	* @param offset The material buffer offset which will be added to the 
+	* primitive ids. This value is obtained from **addMaterial**
+	*/
+	void addMesh(ModelMesh& mesh, const size_t idx, const size_t offset);
+
+	RenderableInfo& getMesh(Object& obj);
+
+	// === material related functions ===
+	/**
+	* @brief Adds a specified number of materials to the manager
+	* @param mat A pointer to a group of materials. This must not be a nullptr
+	* @param count The number of materials to add
+	* @return The starting index in which this group of materials is found at 
+	* within the managers larger container
+	*/
+	size_t addMaterial(ModelMaterial* mat, const size_t count);
+	
+private:
+
+	bool prepareTexture(Util::String path, Texture* tex);
 
 private:
 	
-	// indice into the mesh buffer for each object stored in this manager
-	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
-	
 	// the buffers containing all the model data
-	std::vector<MeshInfo> meshes;
+	std::vector<RenderableInfo> renderables;
 
 	// all vertices and indices held in one large buffer
-	std::vector<Vertex> staticVertices;
-	std::vector<SkinnedVertex> skinnedVertices;
+	std::vector<ModelMesh::Vertex> vertices;
 	std::vector<uint32_t> indices;
+
+	// all the materials
+	std::vector<ModelMaterial> materials;
+
+	// and all the textures
+	std::vector<TextureGroup> textures;
 
 	bool isDirty = true;
 };

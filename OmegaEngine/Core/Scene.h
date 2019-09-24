@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Managers/ObjectManager.h"
+#include "Core/ObjectManager.h"
 
 #include "Models/Formats/GltfModel.h"
 
@@ -75,11 +75,10 @@ private:
 	/// objects assoicated with this scene dealt with by the object manager
 	ObjectManager objManager;
 
-	/// All the materials associated with this scene
-	std::vector<MaterialInfo> materials;
-
 	/// contains all the renderable objects associated with this scene.
-	/// This data is used by the renderer to render the scene to the surface
+	/// These have gone through visibilty checks and basically wrap the 
+	/// data stored by the renderable manager which will be exposed to
+	/// the renderer.
 	std::vector<RenderableBase*> renderables;
 
 	/// The world this scene is assocaited with

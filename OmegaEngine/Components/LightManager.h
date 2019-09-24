@@ -2,9 +2,12 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "Components/ComponentManager.h"
+
 #include <cstdint>
 #include <tuple>
 #include <vector>
+#include <memory>
 
 #define MAX_SPOT_LIGHTS 50
 #define MAX_POINT_LIGHTS 50
@@ -36,7 +39,7 @@ enum class LightAnimateType
 	RotateZ
 };
 
-struct LightAnimateInfo
+struct LightAnimateInfo 
 {
 	LightAnimateInfo() = default;
 
@@ -87,7 +90,7 @@ struct SpotLight : public LightBase
 	float intensity = 1000.0f;
 };
 
-class LightManager
+class LightManager : public ComponentManager
 {
 
 public:

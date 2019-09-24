@@ -7,6 +7,8 @@
 
 #include "Utility/logger.h"
 
+#include "Components/ComponentManager.h"
+
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -20,7 +22,7 @@ struct SkinnedComponent;
 struct ModelSkin;
 class ModelTransform;
 
-class TransformManager
+class TransformManager : public ComponentManager
 {
 
 public:
@@ -181,9 +183,6 @@ public:
 	}
 
 private:
-
-	// indice into the transform buffer for each object stored in this manager
-	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
 
 	// transform data for static meshes
 	std::vector<TransformData> transforms;

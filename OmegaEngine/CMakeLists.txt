@@ -71,7 +71,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
 	Types/Object.cpp Types/Object.h
-	Types/ComponentTypes.h
 	Types/Texture.cpp Types/Texture.h
 	Types/NativeWindowWrapper.h
 	Types/PBuildInfo.h

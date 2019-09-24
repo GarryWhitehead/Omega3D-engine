@@ -1,12 +1,6 @@
 #pragma once
 
-#include "Managers/AnimationManager.h"
-#include "Managers/CameraManager.h"
-#include "Managers/LightManager.h"
-#include "Managers/MeshManager.h"
-#include "Managers/ObjectManager.h"
-#include "Managers/TransformManager.h"
-#include "Managers/MaterialManager.h"
+#include "Core/ObjectManager.h"
 
 #include "Models/Formats/GltfModel.h"
 
@@ -28,6 +22,11 @@ namespace OmegaEngine
 class Scene;
 class Object;
 class BVH;
+class AnimationManager;
+class CameraManager;
+class LightManager;
+class RenderableManager;
+class TransformManager;
 
 class World
 {
@@ -53,21 +52,19 @@ public:
 	AnimationManager& getAnimManager();
 	CameraManager& getCameraManager();
 	LightManager& getLightManager();
-	MeshManager& getMeshManager();
+	RenderableManager& getRendManager();
 	TransformManager& getTransManager();
-	MaterialManager& getMatManager();
 
 private:
 	// name used to identify this world
 	Util::String name;
 
 	// and all the managers that are required to deal with each of the component types
-	AnimationManager animManager;
-	CameraManager cameraManager;
-	LightManager lightManager;
-	MeshManager meshManager;
-	TransformManager transManager;
-	MaterialManager matManager;
+	AnimationManager* animManager = nullptr;
+	CameraManager* cameraManager = nullptr;
+	LightManager* lightManager = nullptr;
+	RenderableManager* rendManager = nullptr;
+	TransformManager* transManager = nullptr;
 
 	// scenes associated with this world
 	std::vector<Scene> scenes;

@@ -51,7 +51,7 @@ public:
 		return name;
 	}
 
-	friend class MaterialManager;
+	friend class RenderableManager;
 
 private:
 

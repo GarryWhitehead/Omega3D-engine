@@ -1,7 +1,10 @@
 #pragma once
-#include "Managers/EventManager.h"
+#include "utility/EventManager.h"
+
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
+
+#include "Components/ComponentManager.h"
 
 // the init number of cameras to resrve mem for.
 #define INIT_CONTAINER_SIZE 10
@@ -38,7 +41,7 @@ struct MouseMoveEvent : public Event
 	double ypos = 0.0;
 };
 
-class CameraManager 
+class CameraManager : public ComponentManager
 {
 
 public:

@@ -1,11 +1,15 @@
 #include "World.h"
 
+#include "Components/AnimationManager.h"
+#include "Components/CameraManager.h"
+#include "Components/LightManager.h"
+#include "Components/RenderableManager.h"
+#include "Components/TransformManager.h"
+
 #include "Utility/logger.h"
 
 #include "Core/Omega_Global.h"
 #include "Core/Scene.h"
-
-#include "Managers/EventManager.h"
 
 namespace OmegaEngine
 {
@@ -40,11 +44,11 @@ void World::update(double time, double dt)
 {
 	// update on a per-frame basis
 	// all other managers
-	animManager.updateFrame(time, *this);
-	cameraManager.updateFrame(time, dt);
-	lightManager.updateFrame(dt, *this);
-	meshManager.updateFrame();
-	transManager.updateFrame(objManager);
+	animManager->updateFrame(time, *this);
+	cameraManager->updateFrame(time, dt);
+	lightManager->updateFrame(dt, *this);
+	rendManager->updateFrame();
+	transManager->updateFrame(objManager);
 
 	// check whether there are any queued events to deal with
 	Global::eventManager()->notifyQueued();
@@ -53,37 +57,27 @@ void World::update(double time, double dt)
 // ** manager helper functions **
 AnimationManager& World::getAnimManager()
 {
-	return animManager;
+	return *animManager;
 }
 
 CameraManager& World::getCameraManager()
 {
-	return cameraManager;
+	return *cameraManager;
 }
 
 LightManager& World::getLightManager()
 {
-	return lightManager;
+	return *lightManager;
 }
 
-MaterialManager& World::getMatManager()
+RenderableManager& World::getRendManager()
 {
-	return matManager;
-}
-
-MeshManager& World::getMeshManager()
-{
-	return meshManager;
+	return *rendManager;
 }
 
 TransformManager& World::getTransManager()
 {
-	return transManager;
-}
-
-MaterialManager& World::getMatManager()
-{
-	return matManager;
+	return *transManager;
 }
 
 }    // namespace OmegaEngine

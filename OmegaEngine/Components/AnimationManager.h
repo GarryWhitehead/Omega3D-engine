@@ -5,6 +5,8 @@
 
 #include "Types/Object.h"
 
+#include "Components/ComponentManager.h"
+
 #include <memory>
 #include <vector>
 
@@ -19,7 +21,7 @@ class World;
 struct ModelAnimation;
 struct AnimationComponent;
 
-class AnimationManager
+class AnimationManager : public ComponentManager
 {
 
 public:
@@ -79,9 +81,6 @@ public:
 
 private:
 	
-	// indice into the animation buffer for each object stored in this manager
-	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
-
 	std::vector<AnimationInfo> animations;
 };
 

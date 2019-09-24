@@ -1,15 +1,8 @@
-#include "MeshManager.h"
-
-#include "Core/Omega_Global.h"
-
-#include "Managers/EventManager.h"
-#include "Managers/ObjectManager.h"
-
-#include "Models/ModelMesh.h"
+#include "RenderableManager.h"
 
 #include "OEMaths/OEMaths_transform.h"
 
-#include "Types/ComponentTypes.h"
+#include "Types/Texture.h"
 
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
@@ -18,133 +11,135 @@
 namespace OmegaEngine
 {
 
-MeshManager::MeshManager()
+RenderableManager::RenderableManager()
 {
 	// for performance purposes
-	meshBuffer.reserve(MESH_INIT_CONTAINER_SIZE);
-	staticVertices.reserve(1000000);    // these numbers need evaluating
-	skinnedVertices.reserve(1000000);
+	renderables.reserve(MESH_INIT_CONTAINER_SIZE);
+	vertices.reserve(1000000);    // these numbers need evaluating
 	indices.reserve(1000000);
 }
 
-MeshManager::~MeshManager()
+RenderableManager::~RenderableManager()
 {
 }
 
-void MeshManager::addMesh(std::unique_ptr<ModelMesh>& mesh, Object& obj)
+void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t offset)
 {
-	StaticMesh newMesh;
-	auto vertexData = mesh->vertices;
+	RenderableInfo rend;
 
-	// copy data from model into the manager
-	if (!mesh->skinned)
+	rend.vertOffset = vertices.size();
+	rend.idxOffset = indices.size();
+
+	// copy the meshes into the main buffer
+	std::copy(mesh.vertices.begin(), mesh.vertices.end(), vertices.end());
+
+	// and the indices
+	std::copy(mesh.indices.begin(), mesh.indices.end(), indices.end());
+
+	// straight copy for the primitives
+	rend.primitives = mesh.primitives;
+
+	// now adjust the material index values of each primitive to take into account
+	// the offset
+	if (offset >= 0)	//< a value of -1 indicate no materials for this renderable
 	{
-		newMesh.type = StateMesh::Static;
-		newMesh.vertexBufferOffset = static_cast<uint32_t>(staticVertices.size());
-
-		for (auto& vertex : vertexData)
+		for (auto& prim : rend.primitives)
 		{
-			Vertex vert;
-			vert.normal = vertex.normal;
-			vert.position = vertex.position;
-			vert.uv0 = vertex.uv0;
-			vert.uv1 = vertex.uv1;
-
-			staticVertices.emplace_back(vert);
+			assert(prim.materialId >= 0);
+			prim.materialId += offset;
 		}
+	}
+
+	// check whether we just add to the back or use a freed slot
+	if (renderables.size() < idx)
+	{
+		renderables.emplace_back(rend);
 	}
 	else
 	{
-		newMesh.type = StateMesh::Skinned;
-		newMesh.vertexBufferOffset = static_cast<uint32_t>(skinnedVertices.size());
-
-		for (auto& vertex : vertexData)
-		{
-			SkinnedVertex vert;
-			vert.normal = vertex.normal;
-			vert.position = vertex.position;
-			vert.uv0 = vertex.uv0;
-			vert.uv1 = vertex.uv1;
-			vert.weight = vertex.weight;
-			vert.joint = vertex.joint;
-
-			skinnedVertices.emplace_back(vert);
-		}
+		renderables[idx] = rend;
 	}
-
-	// and now the indices
-	auto& modelIndices = mesh->indices;
-
-	size_t indexOffset = indices.size();
-	newMesh.indexBufferOffset = indexOffset;
-
-	// simple copy from the model data to the manager
-	for (size_t i = 0; i < modelIndices.size(); ++i)
-	{
-		indices.emplace_back(modelIndices[i] + mesh.vertexBufferOffset);
-	}
-
-	// and the primitive data
-	auto& modelPrimitives = mesh->primitives;
-
-	for (auto& modelPrimitive : modelPrimitives)
-	{
-		PrimitiveMesh primitive;
-		primitive.indexBase = modelPrimitive.indexBase;
-		primitive.indexCount = modelPrimitive.indexCount;
-		primitive.materialId = modelPrimitive.materialId + component->materialBufferOffset;
-		newMesh.primitives.emplace_back(primitive);
-	}
-
-	newMesh.topology = mesh->topology;
-
-	meshes.emplace_back(newMesh);
-
-	// store the buffer index in the mesh component
-	MeshComponent mcomp;
-	mcomp.setIndex(index);
-	obj.addComponent<MeshComponent>(mcomp);
 }
 
+bool RenderableManager::prepareTexture(Util::String path, Texture* tex)
+{
+	if (!path.empty())
+	{
+		tex = new Texture;
+		if (!tex->load(path))
+		{
+			return false;
+		}
+	}
+	// it's not an error if the path is empty.
+	return true;
+}
 
-void MeshManager::updateFrame()
+size_t RenderableManager::addMaterial(ModelMaterial* mat, size_t count)
+{
+	assert(mat);
+	assert(count > 0);
+
+	size_t startOffset = materials.size();
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		// sort out the textures
+		TextureGroup group;
+
+		for (size_t i = 0; i < TextureType::Count; ++i)
+		{
+			// this function does return an error value but unsure yet
+			// whether just to continue (it will be obvious that somethings gone
+			// wrong when rendered) or return an error
+			prepareTexture(mat->texturePaths[i], group.textures[i]);
+		}
+
+		textures.emplace_back(std::move(group));
+		materials.emplace_back(std::move(*mat));
+
+		++mat;
+	}
+
+	return startOffset;
+}
+
+void RenderableManager::addRenderable(ModelMesh& mesh, ModelMaterial* mat, const size_t matCount, Object& obj)
+{
+	// first add the object which will give us a free slot
+	size_t idx = addObject(obj);
+
+	size_t matOffset = -1;
+
+	// note: materials don't require a slot as there might be more than one material
+	// per mesh. Instead the primitive stores a index to the required material
+	if (mat)
+	{
+		matOffset = addMaterial(mat, matCount);
+	}
+
+	// now add the mesh and material and any textures
+	addMesh(mesh, idx, matOffset);
+}
+
+RenderableManager::RenderableInfo& RenderableManager::getMesh(Object& obj)
+{
+	size_t index = getObjIndex(obj);
+	if (!index)
+	{
+		LOGGER_ERROR("Unable to find object within renderable manager.\n");
+		return {};    // TODO: Better error handling here
+	}
+	return renderables[index];
+}
+
+void RenderableManager::updateFrame()
 {
 	if (isDirty)
 	{
-		// static and skinned meshes if any
-		if (!staticVertices.empty())
-		{
-			VulkanAPI::BufferUpdateEvent event{ "StaticVertices", staticVertices.data(),
-				                                staticVertices.size() * sizeof(Vertex),
-				                                VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
-		}
-		if (!skinnedVertices.empty())
-		{
-			VulkanAPI::BufferUpdateEvent event{ "SkinnedVertices", skinnedVertices.data(),
-				                                skinnedVertices.size() * sizeof(SkinnedVertex),
-				                                VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
-		}
-
-		// and the indices....
-		VulkanAPI::BufferUpdateEvent event{ "Indices", indices.data(), indices.size() * sizeof(uint32_t),
-			                                VulkanAPI::MemoryUsage::VK_BUFFER_STATIC };
-		Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
-
+		
 		isDirty = false;
 	}
-}
-
-MeshInfo& MeshManager::getMesh(Object& obj)
-{
-	auto iter = objIndices.find(obj);
-	assert(iter != objIndices.end());
-
-	size_t index = iter->second;
-	assert(index < meshes.size());
-
-	return meshes[index];
 }
 
 }    // namespace OmegaEngine

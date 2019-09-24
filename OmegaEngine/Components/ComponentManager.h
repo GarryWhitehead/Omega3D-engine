@@ -65,6 +65,20 @@ public:
 	}
 
 	/**
+	* @brief Returns an objects index value if found 
+	* Note: returns zero if not found 
+	*/
+	size_t getObjIndex(Object& obj)
+	{
+		auto iter = objects.find(obj);
+		if (iter == objects.end())
+		{
+			return 0;	//< zero indicates an error
+		}
+		return iter->second;
+	}
+
+	/**
 	* @brief Removes an object from the manager and adds its slot index to
 	* to the freed list for reuse.
 	*/
@@ -89,7 +103,8 @@ protected:
 	std::vector<size_t> freeSlots;
 
 	// the current index into the main manager buffers which will be allocated
-	// to the next object that is added
-	size_t index = 0;
+	// to the next object that is added. The index starts from one as zero is reserved
+	// as primarily a error indicator (though can be used for other things)
+	size_t index = 1;
 };
 }    // namespace OmegaEngine

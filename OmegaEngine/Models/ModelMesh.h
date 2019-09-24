@@ -34,8 +34,7 @@ public:
 	struct Vertex
 	{
 		OEMaths::vec4f position;
-		OEMaths::vec2f uv0;
-		OEMaths::vec2f uv1;
+		OEMaths::vec2f uv;
 		OEMaths::vec3f normal;
 		OEMaths::vec4f weight;
 		OEMaths::vec4f joint;
@@ -46,7 +45,7 @@ public:
 		Primitive() = default;
 
 		Dimensions dimensions;
-		int32_t materialId = -1;
+		int32_t materialId = -1;  ///< set once added to the renderable manager
 
 		// index offsets
 		uint32_t indexBase = 0;
@@ -59,7 +58,10 @@ public:
 
 	bool prepare(aiScene* scene);
 
+	friend class RenderableManager;
+
 private:
+
 	// defines the topology to use in the program state
 	StateTopology topology;
 
