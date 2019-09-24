@@ -9,7 +9,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
 	${CMAKE_CURRENT_SOURCE_DIR}/ImageUtils
-	${CMAKE_CURRENT_SOURCE_DIR}/Managers
+	${CMAKE_CURRENT_SOURCE_DIR}/Components
 	${CMAKE_CURRENT_SOURCE_DIR}/Models
 	${CMAKE_CURRENT_SOURCE_DIR}/Models/Formats
 	${CMAKE_CURRENT_SOURCE_DIR}/OEMaths
@@ -40,6 +40,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/engine.cpp Core/engine.h
 	Core/Omega_Global.h Core/Omega_Global.cpp
 	Core/Omega_SceneParser.cpp Core/Omega_SceneParser.h
+	Core/ObjectManager.cpp Core/ObjectManager.h
 	Core/World.cpp Core/World.h
 	Core/Scene.cpp Core/Scene.h
 	Core/Omega_Common.h
@@ -47,13 +48,12 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
 	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h
 
-	Managers/AnimationManager.cpp Managers/AnimationManager.h
-	Managers/CameraManager.cpp Managers/CameraManager.h
-	Managers/EventManager.cpp Managers/EventManager.h
-	Managers/LightManager.cpp Managers/LightManager.h
-	Managers/MeshManager.cpp Managers/MeshManager.h
-	Managers/TransformManager.cpp Managers/TransformManager.h
-	Managers/ObjectManager.cpp Managers/ObjectManager.h
+	Components/ComponentManager.h
+	Components/AnimationManager.cpp Components/AnimationManager.h
+	Components/CameraManager.cpp Components/CameraManager.h
+	Components/LightManager.cpp Components/LightManager.h
+	Components/RenderableManager.cpp Components/RenderableManager.h
+	Components/TransformManager.cpp Components/TransformManager.h
 	
 	Models/Formats/GltfModel.cpp Models/Formats/GltfModel.h
 	Models/Formats/AssimpModel.cpp Models/Formats/AssimpModel.h
@@ -104,6 +104,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Threading/ThreadPool.cpp Threading/ThreadPool.h
 	Threading/ThreadUtil.cpp Threading/ThreadUtil.h
 	
+	utility/EventManager.cpp utility/EventManager.h
 	utility/BVH.cpp utility/BVH.hpp
 	utility/FileUtil.cpp utility/FileUtil.h
 	utility/GeneralUtil.cpp utility/GeneralUtil.h

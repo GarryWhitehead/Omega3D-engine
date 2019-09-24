@@ -1,9 +1,11 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
-#include "ObjectInterface/Object.h"
-#include "Utility/GeneralUtil.h"
-#include "Utility/logger.h"
+
+#include "Types/Object.h"
+
+#include "utility/GeneralUtil.h"
+#include "utility/logger.h"
 
 #include <deque>
 #include <memory>

@@ -52,12 +52,6 @@ public:
 	MaterialManager();
 	~MaterialManager();
 
-	// not copyable or moveable
-	MaterialManager(const MaterialManager&) = delete;
-	MaterialManager& operator=(const MaterialManager&) = delete;
-	MaterialManager(MaterialManager&&) = delete;
-	MaterialManager& operator=(MaterialManager&&) = delete;
-
 	bool addMaterial(ModelMaterial& mat, World& world);
 
 	ModelMaterial& getMaterial(Object& obj);
@@ -67,9 +61,6 @@ private:
 	bool prepareTexture(Util::String path, Texture* tex);
 
 private:
-
-	// indice into the transform buffer for each object stored in this manager
-	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objIndices;
 
 	// all the materials 
 	std::vector<ModelMaterial> materials;
