@@ -23,7 +23,9 @@ bool ModelNode::prepare(cgltf_node* node, OEMaths::mat4f& parentTransform, GltfM
 	// transform nodes will be concenated
 	if (node->mesh)
 	{
-		mesh->prepare(*node->mesh, model);
+		ModelMesh mesh;
+		mesh.prepare(*node->mesh, model);
+		model.addMesh(mesh);
 
 		if (node->skin)
 		{

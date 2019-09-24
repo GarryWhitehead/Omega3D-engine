@@ -4,6 +4,8 @@
 
 #include "Core/World.h"
 
+#include "Components/RenderableManager.h"
+
 namespace OmegaEngine
 {
 
@@ -26,14 +28,10 @@ void Scene::buildModel(GltfModel& model, World& world)
 {
 	// ** extract all the data from the gltf blob and add to the appropiate manager **
 	// materials 
-	auto& resManager = world.getResourceManager();
+	auto& rendManager = world.getRendManager();
+	size_t matOffset = rendManager.addMaterial(model.materials.data(), model.materials.size());
 
-	for (auto& mat : model.materials)
-	{
-		MaterialInfo newMaterial;
-		newMaterial.build(mat, world);
-	}
-
+	
 	// skins
 	auto& transManager = world.getTransManager();
 	for (auto& skin : model.skins)
@@ -51,6 +49,7 @@ void Scene::buildModel(GltfModel& model, World& world)
 	// go through each node and add as a child of the parent
 	for (auto& node : model.nodes)
 	{
+		
 		Object child = ObjectManager::createObject();
 
 		buildRecursive(node, child, world);

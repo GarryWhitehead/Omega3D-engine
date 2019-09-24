@@ -32,8 +32,6 @@ private:
 	Util::String name;
 	size_t skinIndex;
 
-	std::unique_ptr<ModelMesh> mesh;
-
 	// local decomposed node transfroms
 	OEMaths::vec3f translation;
 	OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f };
