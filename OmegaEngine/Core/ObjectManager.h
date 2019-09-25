@@ -18,63 +18,25 @@ namespace OmegaEngine
 {
 // forward declerations
 
-using GroupedHandle = uint64_t;
 
 class ObjectManager
 {
 public:
 
-	ObjectManager();
-	~ObjectManager();
+	ObjectManager() = default;
+	~ObjectManager() = default;
+
+	// no copying or moving of this manager
+	ObjectManager(const ObjectManager&) = delete;
+	ObjectManager& operator=(const ObjectManager&) = delete;
+	ObjectManager(ObjectManager&&) = delete;
+	ObjectManager& operator=(ObjectManager&&) = delete;
 
 	// object creation functions 
-	Object& createObject();
-	Object& createChildObject(Object &parentObj);
+	Object* createObject();
 	
 	// 
 	void destroyObject(Object &obj);
-
-	// templated functions
-	Object *getObjectRecursive(uint64_t id, Object &parent)
-	{
-		Object *obj = nullptr;
-		if (parent.getId() == id)
-		{
-			return &parent;
-		}
-
-		auto &children = parent.getChildren();
-		for (auto &child : children)
-		{
-			obj = getObjectRecursive(id, child);
-			if (obj)
-			{
-				break;
-			}
-		}
-
-		return obj;
-	}
-
-	Object *getObject(uint64_t id)
-	{
-		Object *requiredObj = nullptr;
-		for (auto &obj : objects)
-		{
-			requiredObj = getObjectRecursive(id, obj.second);
-			if (requiredObj)
-			{
-				break;
-			}
-		}
-
-		if (!requiredObj)
-		{
-			LOGGER_ERROR("Fatal Error. Unable to find object with index %I64i.\n", id);
-		}
-
-		return requiredObj;
-	}
 
 	std::unordered_map<uint64_t, Object> &getObjectsList()
 	{

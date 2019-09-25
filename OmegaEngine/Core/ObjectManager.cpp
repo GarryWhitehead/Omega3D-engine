@@ -1,6 +1,6 @@
-#include "ObjectInterface/ObjectManager.h"
+#include "ObjectManager.h"
 
-#include "ObjectInterface/Object.h"
+#include "Types/Object.h"
 
 namespace OmegaEngine
 {
@@ -15,7 +15,7 @@ ObjectManager::~ObjectManager()
 
 Object* ObjectManager::createObject()
 {
-	uint32_t id = 0;
+	ObjectId id = 0;
 	if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)
 	{
 		id = freeIds.front();
@@ -30,22 +30,6 @@ Object* ObjectManager::createObject()
 
 	object.setId(id);
 	return &object;
-}
-
-Object* ObjectManager::createChildObject(Object& parentObj)
-{
-	uint32_t id = 0;
-	if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)
-	{
-		id = freeIds.front();
-		freeIds.pop_front();
-	}
-	else
-	{
-		id = nextId++;
-	}
-
-	return &parentObj.addChild(id);
 }
 
 void ObjectManager::destroyObject(Object& obj)

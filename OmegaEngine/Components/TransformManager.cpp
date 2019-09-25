@@ -44,102 +44,65 @@ TransformManager::~TransformManager()
 	}
 }
 
-void TransformManager::addTransform(std::unique_ptr<ModelTransform>& trans, Object& obj)
+bool TransformManager::addNodeHierachy(ModelNode& node, Object& obj, ModelSkin* skin, size_t count)
 {
-	TransformData transform;
-
-	size_t index = 0;
-	if (trans->hasMatrix)
+	if (!node.rootNode)
 	{
-		transform.setLocalMatrix(trans->trsMatrix);
-	}
-	else
-	{
-		transform.setTranslation(trans->translation);
-		transform.setScale(trans->scale);
-		transform.setRotation(trans->rotation);
-	}
-
-	transforms.emplace_back(transform);
-
-	TransformComponent comp;
-	comp.setIndex(index);
-	obj.addComponent<TransformComponent>(comp);
-}
-
-bool TransformManager::addSkeleton(size_t index, bool isRoot, Object* object)
-{
-	if (skinBuffer.empty())
-	{
+		LOGGER_ERROR("Trying to add a root node that is null.\n");
 		return false;
 	}
 
-	assert(index < skinBuffer.size());
+	// add skins to the manager - these don't require a slot to be requested as there
+	// may be numerous skins per mesh. Instead, the starting index of this group
+	// will be used to offset the skin indices to point at the correct skin
+	size_t skinIdx = skins.size();
 
-	// check whether the skeleton root
-	if (isRoot)
+	for (size_t i = 0; i < count; ++i)
 	{
-		skinBuffer[index].skeleton = object;
+		skins.emplace_back(skin[i]);
 	}
 
-	// link skinning info with objects
-	skinBuffer[index].joints.emplace_back(object);
+	TransformInfo info{ std::move(node.rootNode), skinIdx };
 
-	return true;
+	// request a slot for this object
+	size_t idx = addObject(obj);
+
+	if (idx > nodes.size())
+	{
+		// We must take ownership here to stop dangling pointers.
+		// We have no idea when the model data will go out of scope
+		nodes.emplace_back(std::move(info));
+	}
 }
 
-void TransformManager::addSkin(std::unique_ptr<ModelSkin>& skin)
+void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale,
+                                    OEMaths::quatf& rot)
 {
-	SkinInfo skinInfo;
+	ModelNode::NodeInfo* newNode = new ModelNode::NodeInfo();
+	newNode->translation = translation;
+	newNode->scale = scale;
+	newNode->rotation = rot;
+	newNode->nodeTransform = local;
+	newNode->localTransform = local;
 
-	// inv bind matrices are just a straight copy
-	skinInfo.jointMatrices.resize(skin->jointMatrices.size());
-	memcpy(skinInfo.jointMatrices.data(), skin->jointMatrices.data(),
-	       skinInfo.jointMatrices.size() * sizeof(OEMaths::mat4f));
-
-	skinInfo.invBindMatrices.resize(skin->invBindMatrices.size());
-	memcpy(skinInfo.invBindMatrices.data(), skin->invBindMatrices.data(),
-	       skinInfo.invBindMatrices.size() * sizeof(OEMaths::mat4f));
-
-	// rest of the skin info will be added later
-	skinBuffer.emplace_back(skinInfo);
+	nodes.push_back({ newNode, 0 });
 }
 
-OEMaths::mat4f TransformManager::updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager)
+OEMaths::mat4f TransformManager::updateNodeLocalMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world)
 {
-	uint32_t objIndex = obj.getComponent<TransformComponent>().index;
-	OEMaths::mat4f mat = transforms[objIndex].getLocalMatrix();
-
-	Object* parentObject = &obj;
-	uint64_t parentId = parentObject->getParent();
-
-	// 0xfffff signifies that this is the root transform
-	while (parentId != UINT64_MAX)
+	OEMaths::mat4f mat = node->nodeTransform;
+	ModelNode::NodeInfo* parent = node->parent;
+	while (parent)
 	{
-		parentObject = objectManager->getObject(parentId);
-
-		if (parentObject->hasComponent<TransformComponent>())
-		{
-			uint32_t parentIndex = parentObject->getComponent<TransformComponent>().index;
-			mat = transforms[parentIndex].getLocalMatrix() * mat;
-		}
-		parentId = parentObject->getParent();
+		mat = parent->nodeTransform * mat;
+		parent = parent->parent;
 	}
 
-	// the root object should contain the world transform - though make sure
-	OEMaths::mat4f world;
-	if (parentObject->hasComponent<WorldTransformComponent>())
-	{
-		auto component = parentObject->getComponent<WorldTransformComponent>();
-		OEMaths::mat4f rot = OEMaths::mat4f(component.rotation);
-		world = OEMaths::mat4f::translate(component.translation) * rot * OEMaths::mat4f::scale(component.scale);
-	}
-
-	// all local matrices are transformed by the world matrix
 	return mat * world;
 }
 
-void TransformManager::updateTransformRecursive(std::unique_ptr<ObjectManager>& objectManager, Object& obj,
+
+void TransformManager::updateTransformRecursive(Object& obj,
                                                 uint32_t transformAlignment, uint32_t skinnedAlignment)
 {
 	OEMaths::mat4f mat;

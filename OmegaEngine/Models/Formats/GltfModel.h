@@ -67,8 +67,6 @@ private:
 private:
 	std::vector<ModelNode> nodes;
 
-	std::vector<ModelMesh> meshes;
-
 	// materials and image paths pulled out of the nodes.
 	std::vector<ModelMaterial> materials;
 

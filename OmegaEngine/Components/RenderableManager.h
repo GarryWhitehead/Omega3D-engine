@@ -108,6 +108,12 @@ public:
 	*/
 	void addMesh(ModelMesh& mesh, const size_t idx, const size_t offset);
 
+	/**
+	* @breif Adds a mesh - use this overload when you want to add multiple meshes
+	* linked with the same material group. 
+	*/
+	void addMesh(ModelMesh& mesh, Object& obj, const size_t offset);
+
 	RenderableInfo& getMesh(Object& obj);
 
 	// === material related functions ===

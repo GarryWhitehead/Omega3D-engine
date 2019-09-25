@@ -6,13 +6,12 @@ namespace OmegaEngine
 {
 struct ComponentBase;
 
+using ObjectId = uint64_t;
+
 class Object
 {
 
 public:
-
-	using ObjectId = uint64_t;
-
 	Object() = default;
 	~Object() = default;
 
@@ -21,16 +20,16 @@ public:
 		this->id = id;
 	}
 
-	// object are not copyable - could mess up ids
-	Object(const Object&) = delete;
-	Object& operator=(const Object&) = delete;
+	// object are copyable 
+	Object(const Object&) = default;
+	Object& operator=(const Object&) = default;
 
-	// but are moveable
+	// and moveable
 	Object(Object&&) = default;
 	Object& operator=(Object&&) = default;
 
 	// operator overloads
-	bool operator==(const Object &obj) const
+	bool operator==(const Object& obj) const
 	{
 		return this->id == obj.id;
 	}
@@ -41,10 +40,13 @@ public:
 		return this->id;
 	}
 
+	void setId(const ObjectId id)
+	{
+		this->id = id;
+	}
+
 private:
-
 	ObjectId id;
-
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

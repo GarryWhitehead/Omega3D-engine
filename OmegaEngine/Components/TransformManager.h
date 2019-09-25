@@ -1,6 +1,4 @@
 #pragma once
-#include "Types/Object.h"
-
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "OEMaths/OEMaths_transform.h"
@@ -9,6 +7,8 @@
 
 #include "Components/ComponentManager.h"
 
+#include "Models/ModelNode.h"
+
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -16,120 +16,25 @@
 namespace OmegaEngine
 {
 // forward decleartions
-class ObjectManager;
+class Object;
 struct TransformComponent;
 struct SkinnedComponent;
 struct ModelSkin;
 class ModelTransform;
 
+struct TransformInfo
+{
+	ModelNode::NodeInfo* root = nullptr;
+
+	// the offset all skin indices will be adjusted by within this
+	// node hierachy
+	size_t skinOffset = 0;
+};
+
 class TransformManager : public ComponentManager
 {
 
 public:
-	struct TransformData
-	{
-		/// static
-		struct DecompTransform
-		{
-			OEMaths::vec3f translation;
-			OEMaths::vec3f scale = OEMaths::vec3f{ 1.0f };
-			OEMaths::mat4f rotation;
-		};
-
-		/**
-		 * Sets the translation of the decomposed form. 
-		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
-		 */
-		void setTranslation(OEMaths::vec3f& trans)
-		{
-			decomp.translation = trans;
-			recalculateLocal = true;
-		}
-
-		/**
-		 * Sets the rotation of the decomposed form. 
-		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
-		 */
-		void setRotation(OEMaths::mat4f& rot)
-		{
-			decomp.rotation = rot;
-			recalculateLocal = true;
-		}
-
-		/**
-		 * Sets the translation of the decomposed form from a quaternoin. 
-		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
-		 * @param q: rotation as a quaternoin
-		 */
-		void setRotation(OEMaths::quatf& q)
-		{
-			decomp.rotation = OEMaths::mat4f(q);
-			recalculateLocal = true;
-		}
-
-		/**
-		 * Sets the scale of the decomposed form. 
-		 * The local matrix will be re-calculated on calling **getLocalMatrix** 
-		 */
-		void setScale(OEMaths::vec3f& scale)
-		{
-			decomp.scale = scale;
-			recalculateLocal = true;
-		}
-
-		/**
-		 * returns the local transform matrix. If any of the decomposed elements have changed,
-		 * the matrix will be re-calculated first.
-		 * @return A 4x4 transfrom matrix
-		 */
-		OEMaths::mat4f getLocalMatrix()
-		{
-			if (recalculateLocal)
-			{
-				calculateLocalMatrix();
-				recalculateLocal = false;
-			}
-			return local;
-		}
-
-		/**
-		 * Sets the local transform matrix.
-		 * @param A 4x4 transfrom matrix
-		 */
-		void setLocalMatrix(OEMaths::mat4f& local)
-		{
-			this->local = local;
-		}
-
-		/**
-		 * Sets the world transform matrix.
-		 * @param A 4x4 transfrom matrix
-		 */
-		void setWorldMatixrix(OEMaths::mat4f& world)
-		{
-			this->world = world;
-		}
-
-	private:
-		/**
-		 *  Calculates the local transform matrix based on the deomposed form
-		 */
-		void calculateLocalMatrix()
-		{
-			local = OEMaths::mat4f::translate(localTransform.translation) * localTransform.rotation *
-			        OEMaths::mat4f::scale(localTransform.scale);
-		}
-
-	private:
-		bool recalculateLocal = false;
-
-		/// decomposed form
-		DecompTransform decomp;
-
-		OEMaths::mat4f local;
-		OEMaths::mat4f world;
-	};
-
 	/// data that will be hosted on the gpu side
 	struct TransformBufferInfo
 	{
@@ -142,15 +47,6 @@ public:
 		float jointCount;
 	};
 
-	struct SkinInfo
-	{
-		const char* name;
-		Object* skeleton;
-		std::vector<Object*> joints;
-		std::vector<OEMaths::mat4f> invBindMatrices;
-		std::vector<OEMaths::mat4f> jointMatrices;
-	};
-
 	// the number of models to allocate mem space for - this will need optimising
 	// could also be dynamic and be altered to the archietecture being used
 	const uint32_t TransformBlockSize = 25;
@@ -159,36 +55,40 @@ public:
 	TransformManager();
 	~TransformManager();
 
-	void addTransform(std::unique_ptr<ModelTransform>& trans, Object& obj);
-	bool addSkeleton(size_t index, bool isRoot, Object* object);
-	void addSkin(std::unique_ptr<ModelSkin>& skin);
+	/**
+	* @brief Adds the node hierachy - reflects the layout obtained from 
+	* wherever this originate from to make sure bone transforms are correct
+	*/
+	bool addNodeHierachy(ModelNode& node, Object& obj, ModelSkin* skin, size_t skinCount);
+
+	/**
+	* @brief Creates a single node and adds the transform data to the root
+	*/
+	void addTransform(OEMaths::mat4f& loacl, OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rot);
 
 	// update per frame
-	void updateFrame(ObjectManager& objectManager);
+	void updateFrame();
 
-	// local transform and skinning update
-	OEMaths::mat4f updateMatrixFromTree(Object& obj, std::unique_ptr<ObjectManager>& objectManager);
-	void updateTransform(ObjectManager& objectManager);
-	void updateTransformRecursive(std::unique_ptr<ObjectManager>& objectManager, Object& obj, uint32_t alignment,
-	                              uint32_t skinnedAlignment);
+	/**
+	* @brief Updates the local matrix tree; returns the root node local matrix
+	*/
+	OEMaths::mat4f updateNodeLocalMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world);
+
+	void updateTransform();
+	void updateTransformRecursive(Object& obj, uint32_t alignment, uint32_t skinnedAlignment);
 
 	// object update functions
 	void updateObjectTranslation(Object* obj, OEMaths::vec4f trans);
 	void updateObjectScale(Object* obj, OEMaths::vec4f scale);
 	void updateObjectRotation(Object* obj, OEMaths::quatf rot);
 
-	size_t getSkinIndex() const
-	{
-		return skinBuffer.size();
-	}
-
 private:
+	// transform data preserved in the node hierachal format
+	// referenced by assoociated object
+	std::vector<TransformInfo> nodes;
 
-	// transform data for static meshes
-	std::vector<TransformData> transforms;
-
-	// skinned transform data
-	std::vector<SkinInfo> skinBuffer;
+	// skinned data - inverse bind matrices and bone info
+	std::vector<ModelSkin> skins;
 
 	// store locally the aligned buffer sizes
 	size_t transformAligned = 0;

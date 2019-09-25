@@ -1,6 +1,5 @@
 #include "ModelNode.h"
 
-#include "Models/ModelMesh.h"
 #include "Models/Formats/GltfModel.h"
 
 #include "OEMaths/OEMaths_transform.h"
@@ -25,7 +24,6 @@ bool ModelNode::prepare(cgltf_node* node, OEMaths::mat4f& parentTransform, GltfM
 	{
 		ModelMesh mesh;
 		mesh.prepare(*node->mesh, model);
-		model.addMesh(mesh);
 
 		if (node->skin)
 		{

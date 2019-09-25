@@ -18,20 +18,24 @@ Scene::~Scene()
 {
 }
 
-void Scene::buildRecursive(std::unique_ptr<GltfModel::ModelNode>& node, Object* parentObj, World& world)
-{
-	
-}
-
-
 void Scene::buildModel(GltfModel& model, World& world)
 {
-	// ** extract all the data from the gltf blob and add to the appropiate manager **
-	// materials 
 	auto& rendManager = world.getRendManager();
+	auto& transManager = world.getTransManager();
+
+	// first add the materials to the renderable manager. We need the buffer offset for the primitives
 	size_t matOffset = rendManager.addMaterial(model.materials.data(), model.materials.size());
 
-	
+	for (auto& node : model.nodes)
+	{
+		// create an object for each mesh
+		Object* obj = objManager.createObject();
+		rendManager.addMesh(node.mesh, *obj, matOffset);
+
+		// send the transforms and the node hierachy to the transform manager
+		transManager.addNodeHierachy(node, *obj);
+	}
+
 	// skins
 	auto& transManager = world.getTransManager();
 	for (auto& skin : model.skins)

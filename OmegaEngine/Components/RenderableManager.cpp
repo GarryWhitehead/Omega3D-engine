@@ -61,6 +61,12 @@ void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t 
 	}
 }
 
+void RenderableManager::addMesh(ModelMesh& mesh, Object& obj, const size_t offset)
+{
+	size_t idx = addObject(obj);
+	addMesh(mesh, idx, offset);
+}
+
 bool RenderableManager::prepareTexture(Util::String path, Texture* tex)
 {
 	if (!path.empty())
