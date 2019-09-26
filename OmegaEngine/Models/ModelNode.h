@@ -26,7 +26,9 @@ public:
 	*/
 	struct NodeInfo
 	{
-		NodeInfo() = default;
+		NodeInfo()
+		{
+		}
 		~NodeInfo()
 		{
 			for (auto& child : children)
@@ -45,8 +47,16 @@ public:
 		NodeInfo(NodeInfo&&) = default;
 		NodeInfo& operator=(NodeInfo&&) = default;
 
-		Util::String name;
-		size_t skinIndex;
+		// The id of the node is derived from the index - and is used to locate
+		// this node if it's a joint or animation target
+		size_t id;
+
+		// the index of the skin associated with this node
+		size_t skinIndex = -1;
+
+		// a flag indicating whether this node contains a mesh
+		// the mesh is actaully stored outside the hierachy
+		bool hasMesh = false;
 
 		// local decomposed node transfroms
 		OEMaths::vec3f translation;
@@ -59,7 +69,7 @@ public:
 		// the transform matrix for this node = T*R*S
 		OEMaths::mat4f nodeTransform;
 
-		// parent of this node
+		// parent of this node. Null signifies the root
 		NodeInfo* parent = nullptr;
 
 		// children of this node
@@ -71,8 +81,9 @@ public:
 	ModelNode();
 	~ModelNode();
 
-	bool prepare(cgltf_node* node, OEMaths::mat4f& parentTransform, GltfModel& model);
-	void prepareTranslation(cgltf_node* node);
+	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
+	void prepareTranslation(cgltf_node* node, NodeInfo* newNode);
+	bool prepare(cgltf_node* node, GltfModel& model);
 
 	friend class Scene;
 	friend class TransformManager;

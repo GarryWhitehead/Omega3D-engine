@@ -17,10 +17,7 @@ namespace OmegaEngine
 {
 // forward decleartions
 class Object;
-struct TransformComponent;
-struct SkinnedComponent;
 struct ModelSkin;
-class ModelTransform;
 
 struct TransformInfo
 {
@@ -29,6 +26,11 @@ struct TransformInfo
 	// the offset all skin indices will be adjusted by within this
 	// node hierachy
 	size_t skinOffset = 0;
+
+	// the offset within the transfrom buffer for the transform and joint matrices
+	// for this object
+	size_t dynamicOffset;
+	size_t skinDynamicOffset;
 };
 
 class TransformManager : public ComponentManager
@@ -36,12 +38,12 @@ class TransformManager : public ComponentManager
 
 public:
 	/// data that will be hosted on the gpu side
-	struct TransformBufferInfo
+	struct TransformUbo
 	{
 		OEMaths::mat4f modelMatrix;
 	};
 
-	struct SkinnedBufferInfo
+	struct SkinnedUbo
 	{
 		OEMaths::mat4f jointMatrices[6];
 		float jointCount;
@@ -72,10 +74,21 @@ public:
 	/**
 	* @brief Updates the local matrix tree; returns the root node local matrix
 	*/
-	OEMaths::mat4f updateNodeLocalMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world);
+	OEMaths::mat4f updateMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world);
 
-	void updateTransform();
-	void updateTransformRecursive(Object& obj, uint32_t alignment, uint32_t skinnedAlignment);
+	/**
+	* @brief Called after an update the transfom node hierachy, this function
+	* works through the node structure combining the matrix of the child and their parent
+	* starting from a mesh node. Updates the aligned buffer which will be used by the 
+	* renderer prior to rendering to the surface
+	*/
+	void updateLocalTransform(ModelNode::NodeInfo* parent, uint32_t alignment, uint32_t skinnedAlignment);
+
+	/**
+	* @brief Updates the skeleton (node) hierachy of all objects associated with this component manager 
+	* This should be called after any chnages - usually when updating animation transfroms
+	*/
+	void TransformManager::update();
 
 	// object update functions
 	void updateObjectTranslation(Object* obj, OEMaths::vec4f trans);
@@ -91,15 +104,15 @@ private:
 	std::vector<ModelSkin> skins;
 
 	// store locally the aligned buffer sizes
-	size_t transformAligned = 0;
-	size_t skinnedAligned = 0;
+	size_t transformUboAlign = 0;
+	size_t skinnedUboAlign = 0;
 
 	// transform data for each object which will be added to the GPU
-	TransformBufferInfo* transformBufferData = nullptr;
-	SkinnedBufferInfo* skinnedBufferData = nullptr;
+	TransformUbo* transformUbo = nullptr;
+	SkinnedUbo* skinnedUbo = nullptr;
 
-	size_t transformBufferSize = 0;
-	size_t skinnedBufferSize = 0;
+	size_t transUboSize = 0;
+	size_t skinnedUboSize = 0;
 
 	// flag which tells us whether we need to update the static data
 	bool isDirty = true;

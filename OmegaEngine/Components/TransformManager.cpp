@@ -88,7 +88,7 @@ void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& trans
 	nodes.push_back({ newNode, 0 });
 }
 
-OEMaths::mat4f TransformManager::updateNodeLocalMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world)
+OEMaths::mat4f TransformManager::updateMatrix(ModelNode::NodeInfo* node)
 {
 	OEMaths::mat4f mat = node->nodeTransform;
 	ModelNode::NodeInfo* parent = node->parent;
@@ -102,113 +102,92 @@ OEMaths::mat4f TransformManager::updateNodeLocalMatrix(ModelNode::NodeInfo* node
 }
 
 
-void TransformManager::updateTransformRecursive(Object& obj,
-                                                uint32_t transformAlignment, uint32_t skinnedAlignment)
+void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, TransformUbo* transformPtr,
+                                            SkinnedUbo* skinnedPtr)
 {
-	OEMaths::mat4f mat;
+	assert(transformPtr);	// there must be transform data!
 
-	// an object with a mesh component should always contain a transform, but better safe than sorry.
-	if (obj.hasComponent<MeshComponent>() && obj.hasComponent<TransformComponent>())
+	// we need to find the mesh node first - we will then update matrices working back
+	// towards the root node
+	if (parent.hasMesh)
 	{
-		auto& transformComponent = obj.getComponent<TransformComponent>();
-		uint32_t objIndex = transformComponent.index;
+		OEMaths::mat4f mat;
 
-		TransformBufferInfo* transformBuffer =
-		    (TransformBufferInfo*)((uint64_t)transformBufferData + (transformAlignment * transformBufferSize));
+		// update the matrices - child node transform * parent transform
+		mat = updateMatrix(parent);
 
-		transformComponent.dynamicUboOffset = transformBufferSize * transformAlignment;
+		// add updated local transfrom to the ubo buffer
+		transformPtr->modelMatrix = mat;
 
-		mat = updateMatrixFromTree(obj, objectManager);
-		transformBuffer->modelMatrix = mat;
-
-		++transformBufferSize;
-
-		// If the object has a skinned element, then deal with that now
-		if (obj.hasComponent<SkinnedComponent>())
+		// will be null if this model doesn't contain a skin
+		if (skinnedPtr)
 		{
-			auto& skinnedComponent = obj.getComponent<SkinnedComponent>();
-			SkinnedBufferInfo* skinnedBufferPtr =
-			    (SkinnedBufferInfo*)((uint64_t)skinnedBufferData + (skinnedAlignment * skinnedBufferSize));
-
-			// the dynamic offset index is stored on the transfrom component
-			skinnedComponent.dynamicUboOffset = skinnedBufferSize * skinnedAlignment;
-
 			// the transform data index for this object is stored on the component
-			uint32_t skinIndex = skinnedComponent.index;
+			uint32_t skinIndex = parent.skinIndex;
+			ModelSkin skin& = skinBuffer[skinIndex];
 
-			// prepare fianl output matrices buffer
-			uint64_t jointSize = static_cast<uint32_t>(skinBuffer[skinIndex].joints.size()) > 256 ?
-			                         256 :
-			                         skinBuffer[skinIndex].joints.size();
-			skinBuffer[skinIndex].jointMatrices.resize(jointSize);
+			// get the number of joints in the skeleton
+			size_t jointCount = skin.joints.size();
 
-			skinnedBufferPtr->jointCount = jointSize;
+			// the number of joints is needed on the shader
+			skinnedPtr->jointCount = jointSize;
 
 			// transform to local space
 			OEMaths::mat4f inverseMat = mat.inverse();
 
-			for (uint32_t i = 0; i < jointSize; ++i)
+			for (uint32_t i = 0; i < jointCount; ++i)
 			{
-				Object* joint_obj = skinBuffer[skinIndex].joints[i];
-				OEMaths::mat4f jointMatrix =
-				    updateMatrixFromTree(*joint_obj, objectManager) * skinBuffer[skinIndex].invBindMatrices[i];
+				// get a pointer to the joint a.k.a transform node
+				ModelNode::NodeInfo* jointNode = skin.joints[i];
+
+				// the joint matrix is the local matrix * inverse bin matrix
+				OEMaths::mat4f jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
 
 				// transform joint to local (joint) space
 				OEMaths::mat4f localMatrix = inverseMat * jointMatrix;
-				skinBuffer[skinIndex].jointMatrices[i] = localMatrix;
-				skinnedBufferPtr->jointMatrices[i] = localMatrix;
+				skinnedPtr->jointMatrices[i] = localMatrix;
 			}
+		}
 
+		// one mesh per node is required. So don't bother with the child nodes
+		return;
+	}
+
+	// now work up the child nodes - until we find a mesh
+	for (ModelNode::NodeInfo* child : parent.children)
+	{
+		updateLocalTransform(child, transformPtr, skinnedPtr);
+	}
+}
+
+void TransformManager::update()
+{
+	// reset both ubo to zero
+	this->transUboCount = 0;
+	this->skinnedUboCount = 0;
+
+	TransformUbo* currTransformPtr = nullptr;
+	SkinnedUbo* currSkinnedPtr = nullptr;
+
+	for (Object& obj : objects)
+	{
+		size_t nodeIdx = getObjectIdx(obj);
+		TransformInfo transInfo = nodes[nodeIdx];
+
+		// the transform and skinned buffers are mem aligned due to the requirement of dynamic descriptor sets
+		currTransformPtr = (TransformUbo*)((uint64_t)transformUbo + (transAlign * transUboCount));
+		transInfo.dynamicOffset = transUboCount * transAlign;
+		++transformBufferSize;
+
+		// only update the skinned pointer, if this node has a skin
+		if (transInfo.hasSkin)
+		{
+			currSkinnedPtr = (SkinneUbo*)((uint64_t)skinnedUbo + (skinnedAlign * skinUboSize));
+			transInfo.skinDynamicOffset = skinnedUboCount * skinAlign;
 			++skinnedBufferSize;
 		}
-	}
 
-	// now update all child nodes too - TODO: do this without recursion
-	auto children = obj.getChildren();
-
-	for (auto& child : children)
-	{
-		updateTransformRecursive(objectManager, child, transformAlignment, skinnedAlignment);
-	}
-}
-
-void TransformManager::updateTransform(ObjectManager& objectManager)
-{
-	// TODO: refactor this
-	auto objectList = objectManager->getObjectsList();
-
-	transformBufferSize = 0;
-	skinnedBufferSize = 0;
-
-	for (auto obj : objectList)
-	{
-		updateTransformRecursive(objectManager, obj.second, transformAligned, skinnedAligned);
-	}
-}
-
-void TransformManager::updateFrame(ObjectManager& objectManager)
-{
-	// check whether static data need updating
-	if (isDirty)
-	{
-		updateTransform(objectManager);
-
-		if (transformBufferSize)
-		{
-			VulkanAPI::BufferUpdateEvent event{ "Transform", (void*)transformBufferData,
-				                                transformAligned * transformBufferSize,
-				                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
-		}
-		if (skinnedBufferSize)
-		{
-			VulkanAPI::BufferUpdateEvent event{ "SkinnedTransform", (void*)skinnedBufferData,
-				                                skinnedAligned * skinnedBufferSize,
-				                                VulkanAPI::MemoryUsage::VK_BUFFER_DYNAMIC };
-			Global::eventManager()->addQueueEvent<VulkanAPI::BufferUpdateEvent>(event);
-		}
-
-		isDirty = false;
+		updateLocalTransform(transInfo.root, currTransformPtr, currSkinnedPtr);
 	}
 }
 

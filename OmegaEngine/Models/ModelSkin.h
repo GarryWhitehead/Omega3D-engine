@@ -15,7 +15,19 @@ class ModelSkin
 {
 public:
 
-	ModelSkin() = default;
+	ModelSkin() 
+	{
+	}
+
+	~ModelSkin()
+	{
+	}
+	 
+	// copying and moving allowed
+	ModelSkin(const ModelSkin&) = default;
+	ModelSkin& operator=(const ModelSkin&) = default;
+	ModelSkin(ModelSkin&&) = default;
+	ModelSkin& operator=(ModelSkin&&) = default;
 
 	bool prepare(cgltf_skin& skin);
 
