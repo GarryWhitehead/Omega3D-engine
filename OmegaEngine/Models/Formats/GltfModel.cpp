@@ -9,6 +9,20 @@
 namespace OmegaEngine
 {
 
+ModelNode* GltfModel::getNode(size_t id)
+{
+    ModelNode* foundNode = nullptr;
+    for (auto& node : nodes)
+    {
+        foundNode = node->findNode(id);
+        if (foundNode)
+        {
+            break;
+        }
+    }
+    return foundNode;
+}
+    
 size_t GltfModel::addMaterial(ModelMaterial& mat)
 {
 	// check for duplicate materials first. This is possible if there are lots of primitives
@@ -116,7 +130,12 @@ bool GltfModel::prepareExtensions(const cgltf_extras& extras, cgltf_data& data, 
 
 void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
 {
-	linearisedNodes.emplace(&node, index++);
+    // nodes a lot of the time don't possess a name, so we can't rely on this
+    // for identifying nodes. So. we will use a stringifyed id instead
+    Util::String indexStr(index);
+    node->name = indexStr.c_str();
+    
+    linearisedNodes.emplace(&node);
 
 	cgltf_node** childEnd = node.children + node.children_count;
 	for (cgltf_node* const* child = node.children; child < childEnd; ++child)
@@ -161,8 +180,11 @@ bool GltfModel::load(Util::String filename)
 		return false;
 	}
 
-	// start by linearising the nodes. This is ued for matching nodes with an index value
-	// in skeleton and animation
+    // joints and animation samplers point at nodes in the hierachy. To link our node hierachy
+    // the model nodes have there ids. We also linearise the cgltf nodes in a map, along with an
+    // id which matches the pattern of the model nodes. To find a model node from a cgltf node -
+    // find the id of the cgltf in the linear map, and then search for this id in the model node
+    // hierachy and return the pointer.
 	lineariseNodes(gltfData);
 
 	// for each scene, visit each node in that scene
@@ -179,6 +201,16 @@ bool GltfModel::load(Util::String filename)
 			}
 		}
 	}
+    
+    // now prepare the skins. This requires finding the nodes which are joints, and
+    // adding the index values to the nodes. We expect one skin per mesh (of which there
+    // can only be one per node!)
+    for (for index = 0; index < skins.size(); ++index)
+    {
+        ModelSkin newSkin;
+        newSkin.prepare(skin, linearisedNodes);
+        skins.emplace_back(skin);
+    }
 }
 
 

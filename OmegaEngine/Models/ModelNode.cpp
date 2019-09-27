@@ -1,6 +1,7 @@
 #include "ModelNode.h"
 
 #include "Models/Formats/GltfModel.h"
+#include "Models/ModelSkin.h"
 
 #include "OEMaths/OEMaths_transform.h"
 
@@ -8,7 +9,7 @@
 
 namespace OmegaEngine
 {
-ModelNode::ModelNode()
+ModelNode::ModelNode() noexcept
 {
 }
 
@@ -16,6 +17,28 @@ ModelNode::~ModelNode()
 {
 }
 
+ModelNode::NodeInfo* ModelNode::findNode(Util::String id, NodeInfo* node)
+{
+    NodeInfo* result = nullptr;
+    if (node->id.compare(id))
+    {
+        return node;
+    }
+    for (NodeInfo* child : node->children)
+    {
+        result = findNode(id, child);
+        if (result)
+        {
+            break;
+        }
+    }
+}
+
+ModelNode::NodeInfo* ModelNode::getNode(Util::String id)
+{
+   return findNode(id, rootNode);
+}
+    
 bool ModelNode::prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform,
                                     GltfModel& model, size_t& nodeIdx)
 {
@@ -25,15 +48,14 @@ bool ModelNode::prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths:
 
 	if (node->mesh)
 	{
-		ModelMesh mesh;
-		mesh.prepare(*node->mesh, model);
+		ModelMesh newMesh;
+		newMesh.prepare(*node->mesh, model);
 		newNode->hasMesh = true;
 
 		if (node->skin)
 		{
-			ModelSkin skin;
-			skin.prepare(*node->skin);
-			newNode->skinIndex = model.addSkin(skin);
+			// skins will be prepared later
+			skins.emplace_back(node->skin);
 		}
 
 		// propogate transforms through node list
@@ -59,7 +81,7 @@ void ModelNode::prepareTranslation(cgltf_node* node, NodeInfo* newNode)
 	// usually the gltf file will have a baked matrix or trs data
 	if (node->has_matrix)
 	{
-		newNode->localTransform = OEMaths::mat4f(node->matrix.data());
+        newNode->localTransform = OEMaths::mat4f(node->matrix);
 	}
 	else
 	{
@@ -84,11 +106,11 @@ void ModelNode::prepareTranslation(cgltf_node* node, NodeInfo* newNode)
 bool ModelNode::prepare(cgltf_node* node, GltfModel& model)
 {
 	size_t nodeId = 0;
-	if (!prepareNodeHierachy(node, nullptr, OEMaths::mat4f{}, model, nodeId))
+    if (!prepareNodeHierachy(node, nullptr, OEMaths::mat4f{}, model, nodeId))
 	{
 		return false;
 	}
-
+    
 	return true;
 }
 

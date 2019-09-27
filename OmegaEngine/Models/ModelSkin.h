@@ -1,5 +1,8 @@
 #pragma once
+
 #include "OEMaths/OEMaths.h"
+
+#include "Models/ModelNode.h"
 
 #include "utility/String.h"
 
@@ -10,7 +13,7 @@
 
 namespace OmegaEngine
 {
-
+    
 class ModelSkin
 {
 public:
@@ -28,20 +31,29 @@ public:
 	ModelSkin& operator=(const ModelSkin&) = default;
 	ModelSkin(ModelSkin&&) = default;
 	ModelSkin& operator=(ModelSkin&&) = default;
-
-	bool prepare(cgltf_skin& skin);
+    
+    /**
+     * @brief Prepare a skin from a cgltf skin struct. Links joints with nodes in the
+     * hierachy.
+     * @param skin The cgltf skin to extract data from
+     * @param A list of nodes were the 'name' variable has been updated to use a id
+     */
+	bool prepare(cgltf_skin& skin, ModelNode& node);
 
 private:
 
 	Util::String name;
 	
 	// links the bone node name with the inverse transform
-	std::unordered_map<Util::String, OEMaths::mat4f> invBindMatrices;
+	std::vector<OEMaths::mat4f> invBindMatrices;
 	
-	// the node name indicating the root of the skeleton
-	Util::String skeletonRoot;
+    // a list of joints - poiints to the node in the skeleon hierachy which will be transformed
+    std::vector<ModelNode::NodeInfo*> jointNodes;
+    
+	// a pointer to the the root of the skeleton. The spec states that
+    // the mdoel doesn't need to specify this - thus will be null if this is the case.
+    ModelNode::NodeInfo* skeletonRoot = nullptr;
 
-	std::vector<OEMaths::mat4f> jointMatrices;
 };
 
 } // namespace OmegaEngine

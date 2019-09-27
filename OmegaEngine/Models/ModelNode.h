@@ -49,7 +49,7 @@ public:
 
 		// The id of the node is derived from the index - and is used to locate
 		// this node if it's a joint or animation target
-		size_t id;
+        Util::String id;
 
 		// the index of the skin associated with this node
 		size_t skinIndex = -1;
@@ -76,23 +76,33 @@ public:
 		std::vector<NodeInfo*> children;
 	};
 
-	ModelNode() = default;
-
-	ModelNode();
+	ModelNode() noexcept;
 	~ModelNode();
 
 	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
 	void prepareTranslation(cgltf_node* node, NodeInfo* newNode);
 	bool prepare(cgltf_node* node, GltfModel& model);
-
+    
+    ModelNode::NodeInfo* ModelNode::getNode(Util::String id);
+    
 	friend class Scene;
 	friend class TransformManager;
 
 private:
+    
+    ModelNode::NodeInfo* findNode(Util::String id, NodeInfo* node);
+    
+private:
+    
 	// we expect one mesh per node hierachy!
 	ModelMesh mesh;
 
 	// the node hierachy
 	NodeInfo* rootNode = nullptr;
+    
+    // all cgltf from nodes will be stored here for processing
+    // after dealing with the nodes
+    std::vector<cgltf_skin> skins;
+    
 };
 }    // namespace OmegaEngine

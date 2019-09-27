@@ -56,7 +56,14 @@ public:
 	* @return index where the new skin has been added
 	*/
 	size_t addSkin(ModelSkin& skin);
-
+    
+    /**
+     * @brief Trys to find a node in a heirachy.
+     * @param id The id of the node to find.
+     * @return If successful, returns a pointer to the node. Otherwise returns nullptr.
+     */
+    ModelNode* getNode(size_t id);
+    
 	friend class Scene;
 
 private:
@@ -75,22 +82,11 @@ private:
 
 	std::vector<ModelAnimation> animations;
 
-	// linking nodes to index values
-	std::unordered_map<cgltf_node*, size_t> linearisedNodes;
+	// linearised nodes - with the name updated to store an id
+    // for linking to our own node hierachy
+	std::vector<cgltf_node*> linearisedNodes;
 
-	ModelNode* getNode(uint32_t index)
-	{
-		ModelNode* foundNode = nullptr;
-		for (auto& node : nodes)
-		{
-			foundNode = node->getNodeRecursive(index);
-			if (foundNode)
-			{
-				break;
-			}
-		}
-		return foundNode;
-	}
+	
 };
 
 }    // namespace OmegaEngine

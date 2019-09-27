@@ -109,7 +109,7 @@ void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, Transfo
 
 	// we need to find the mesh node first - we will then update matrices working back
 	// towards the root node
-	if (parent.hasMesh)
+	if (parent->hasMesh)
 	{
 		OEMaths::mat4f mat;
 
@@ -123,7 +123,7 @@ void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, Transfo
 		if (skinnedPtr)
 		{
 			// the transform data index for this object is stored on the component
-			uint32_t skinIndex = parent.skinIndex;
+			uint32_t skinIndex = parent->skinIndex;
 			ModelSkin skin& = skinBuffer[skinIndex];
 
 			// get the number of joints in the skeleton

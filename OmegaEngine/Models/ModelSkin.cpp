@@ -1,13 +1,15 @@
 #include "ModelSkin.h"
 
-#include "Gltf/GltfModel.h"
+#include "Models/Formats/GltfModel.h"
 
 #include "utility/Logger.h"
+
+#include <cstring>
 
 namespace OmegaEngine
 {
 
-bool ModelSkin::prepare(cgltf_skin & skin)
+bool ModelSkin::prepare(cgltf_skin & skin, ModelNode& node)
 {
 	// extract the inverse bind matrices
 	const cgltf_accessor* accessor = skin.inverse_bind_matrices;
@@ -22,8 +24,8 @@ bool ModelSkin::prepare(cgltf_skin & skin)
 	assert(stride);
 	assert(stride == 16);
 
-	std::vector<OEMaths::mat4f> matrices(accessor->count);
-	memcpy(matrices.data(), base, accessor->count * sizeof(OEMaths::mat4f));
+	invBindMatrices.reserve(accessor->count);
+	memcpy(invBindMatrices.data(), base, accessor->count * sizeof(OEMaths::mat4f));
 
 	if (invBindMatrices.size() != skin.joints_count)
 	{
@@ -35,12 +37,21 @@ bool ModelSkin::prepare(cgltf_skin & skin)
 	for (size_t i = 0; i < skin.joints_count; ++i)
 	{
 		cgltf_node* boneNode = skin.joints[i];
-
-		Util::String nodeName = getNodeName(boneNode);
-		invBindMatrices.emplace(nodeName, matrices[i]);
+        
+        // find the node in the list
+        ModelNode::NodeInfo* foundNode = node.getNode(Util::String(boneNode->name));
+        if (!foundNode)
+        {
+            LOGGER_ERROR("Unable to find bone in list of nodes\n");
+            return false;
+        }
 	}
-
-	skeletonRoot = getNodeName(skin.skeleton);
+    
+    // the model may not have a root for the skeleton. This isn't a requirement by the spec.
+    if (skin.skeleton)
+    {
+        skeletonRoot = node.getNode(Util::String(skin.skeleton->name));
+    }
 }
 
 }

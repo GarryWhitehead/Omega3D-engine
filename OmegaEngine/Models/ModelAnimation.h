@@ -28,7 +28,7 @@ public:
 		uint32_t samplerIndex;
 	};
 
-	bool prepare(cgltf_animation& anim);
+	bool prepare(cgltf_animation& anim, GltfModel& model);
 
 
 private:
