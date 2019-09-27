@@ -9,24 +9,30 @@ namespace OmegaEngine
 
 bool ModelAnimation::prepare(cgltf_animation& anim, GltfModel& model)
 {
-    name = anim.name;
+	name = anim.name;
 
 	// get channel data
-    std::vector<cgltf_animation_sampler*> animSamplers;
+	std::vector<cgltf_animation_sampler*> animSamplers;
 	uint32_t channelIndex = 0;
-    for (size_t i = 0; i < anim.channels_count; ++i)
+
+	for (size_t i = 0; i < anim.channels_count; ++i)
 	{
 		ModelAnimation::Channel channel;
-        
-		channel.pathType = anim.channels[i].target_path;
-        // process the samplers below.....
-        animSamplers.emplace_back(anim.channels[i].sampler);
-        
-		// set animation flag on relevant node
-	//	auto node = model->getNode(anim.channels[i].target_node->);
-	//	assert(node != nullptr);
-	//	node->setAnimationIndex(index, channelIndex++);
 
+		channel.pathType = anim.channels[i].target_path;
+		// process the samplers below.....
+		animSamplers.emplace_back(anim.channels[i].sampler);
+
+		// set animation flag on relevant node
+		cgltf_node* animNode = anim.channels[i].target_node;
+		ModelNode::NodeInfo* foundNode = model.getNode(Util::String(animNode->name));
+		if (!foundNode)
+		{
+			LOGGER_ERROR("Unable to find animation node %s within the node hierachy.\n", animNode->name);
+			return false;
+		}
+
+		node->setAnimationIndex(index, channelIndex++);
 		channels.emplace_back(channel);
 	}
 
@@ -35,102 +41,99 @@ bool ModelAnimation::prepare(cgltf_animation& anim, GltfModel& model)
 	{
 		ModelAnimation::Sampler samplerInfo;
 		samplerInfo.interpolation = animSampler->interpolation;
-        
-        // ====== inputs =====
-        {
-            const cgltf_accessor* accessor = animSampler->input;
-            uint8_t* base = static_cast<uint8_t*>(accessor->buffer_view->buffer->data);
-            
-            // use the stride as a sanity check to make sure we have a matrix
-            size_t stride = accessor->buffer_view->stride;
-            if (!stride)
-            {
-                stride = accessor->stride;
-            }
-            assert(stride);
-            assert(stride == 16);
 
-            // only supporting floats at the moment. This can be expaned on if the need arises...
-            switch (accessor->component_type)
-            {
-            case cgltf_component_type_r_32f:
-            {
-                float* buffer = new float[accessor->count];
-                memcpy((void*)buffer, base,
-                       accessor->count * sizeof(float));
+		// ====== inputs =====
+		{
+			const cgltf_accessor* accessor = animSampler->input;
+			uint8_t* base = static_cast<uint8_t*>(accessor->buffer_view->buffer->data);
 
-                for (uint32_t i = 0; i < accessor->count; ++i)
-                {
-                    samplerInfo.timeStamps.emplace_back(buffer[i]);
-                }
-                delete[] buffer;
-                break;
-            }
-            default:
-                LOGGER_ERROR("Unsupported component type used for time accessor.");
-            }
+			// use the stride as a sanity check to make sure we have a matrix
+			size_t stride = accessor->buffer_view->stride;
+			if (!stride)
+			{
+				stride = accessor->stride;
+			}
+			assert(stride);
+			assert(stride == 16);
 
-            // time and end points
-            for (auto input : samplerInfo.timeStamps)
-            {
-                if (input < modelAnim->start)
-                {
-                    modelAnim->start = input;
-                }
-                if (input > modelAnim->end)
-                {
-                    modelAnim->end = input;
-                }
-            }
-        }
+			// only supporting floats at the moment. This can be expaned on if the need arises...
+			switch (accessor->component_type)
+			{
+			case cgltf_component_type_r_32f:
+			{
+				float* buffer = new float[accessor->count];
+				memcpy((void*)buffer, base, accessor->count * sizeof(float));
+
+				for (uint32_t i = 0; i < accessor->count; ++i)
+				{
+					samplerInfo.timeStamps.emplace_back(buffer[i]);
+				}
+				delete[] buffer;
+				break;
+			}
+			default:
+				LOGGER_ERROR("Unsupported component type used for time accessor.");
+			}
+
+			// time and end points
+			for (auto input : samplerInfo.timeStamps)
+			{
+				if (input < start)
+				{
+					start = input;
+				}
+				if (input > end)
+				{
+					end = input;
+				}
+			}
+		}
 		// ====== outputs ========
-        {
-            const cgltf_accessor* accessor = animSampler->output;
-            uint8_t* base = static_cast<uint8_t*>(accessor->buffer_view->buffer->data);
-            
-            // use the stride as a sanity check to make sure we have a matrix
-            size_t stride = accessor->buffer_view->stride;
-            if (!stride)
-            {
-                stride = accessor->stride;
-            }
-            assert(stride);
-            assert(stride == 16);
+		{
+			const cgltf_accessor* accessor = animSampler->output;
+			uint8_t* base = static_cast<uint8_t*>(accessor->buffer_view->buffer->data);
 
-            // again, for now, only supporting floats
-            switch (accessor->component_type)
-            {
-            case cgltf_component_type_r_32f:
-            {
-                // all types will be converted to vec4 for ease of use
-                switch (trsAccessor.type)
-                {
-                case TINYGLTF_TYPE_VEC3:
-                {
-                    OEMaths::vec3f* buffer = reinterpret_cast<OEMaths::vec3f*>(
-                        &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset]);
-                    for (uint32_t i = 0; i < trsAccessor.count; ++i)
-                    {
-                        samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 0.0f));
-                    }
-                    break;
-                }
-                case TINYGLTF_TYPE_VEC4:
-                {
-                    samplerInfo.outputs.resize(trsAccessor.count);
-                    memcpy(samplerInfo.outputs.data(), &trsBuffer.data[trsAccessor.byteOffset + trsBufferView.byteOffset],
-                           trsAccessor.count * sizeof(OEMaths::vec4f));
-                    break;
-                }
-                default:
-                    LOGGER_ERROR("Unsupported component type used for TRS accessor.");
-                }
-            }
-            }
-        }
-        
-		modelAnim->samplers.emplace_back(samplerInfo);
+			// use the stride as a sanity check to make sure we have a matrix
+			size_t stride = accessor->buffer_view->stride;
+			if (!stride)
+			{
+				stride = accessor->stride;
+			}
+			assert(stride);
+			assert(stride == 16);
+
+			// again, for now, only supporting floats
+			switch (accessor->component_type)
+			{
+			case cgltf_component_type_r_32f:
+			{
+				// all types will be converted to vec4 for ease of use
+				switch (accessor->type)
+				{
+				case cgltf_type_vec3:
+				{
+					OEMaths::vec3f* buffer = reinterpret_cast<OEMaths::vec3f*>(base);
+					for (uint32_t i = 0; i < accessor->count; ++i)
+					{
+						samplerInfo.outputs.push_back(OEMaths::vec4f(buffer[i], 0.0f));
+					}
+					break;
+				}
+				case cgltf_type_vec4:
+				{
+					samplerInfo.outputs.resize(accessor->count);
+					memcpy(samplerInfo.outputs.data(), base, accessor->count * sizeof(OEMaths::vec4f));
+					break;
+				}
+				default:
+					LOGGER_ERROR("Unsupported component type used for animation output.");
+				}
+			}
+			}
+		}
+
+		samplers.emplace_back(samplerInfo);
 	}
 }
 
-}
+}    // namespace OmegaEngine

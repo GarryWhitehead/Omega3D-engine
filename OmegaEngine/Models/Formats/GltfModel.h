@@ -58,11 +58,11 @@ public:
 	size_t addSkin(ModelSkin& skin);
     
     /**
-     * @brief Trys to find a node in a heirachy.
+     * @brief Trys to find all node heirachies.
      * @param id The id of the node to find.
      * @return If successful, returns a pointer to the node. Otherwise returns nullptr.
      */
-    ModelNode* getNode(size_t id);
+	ModelNode::NodeInfo* getNode(Util::String id);
     
 	friend class Scene;
 

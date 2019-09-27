@@ -40,6 +40,8 @@ public:
      */
 	bool prepare(cgltf_skin& skin, ModelNode& node);
 
+	friend class TransformManager;
+
 private:
 
 	Util::String name;

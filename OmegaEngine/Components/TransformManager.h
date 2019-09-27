@@ -82,7 +82,7 @@ public:
 	* starting from a mesh node. Updates the aligned buffer which will be used by the 
 	* renderer prior to rendering to the surface
 	*/
-	void updateLocalTransform(ModelNode::NodeInfo* parent, uint32_t alignment, uint32_t skinnedAlignment);
+	void updateLocalTransform(ModelNode::NodeInfo* parent, TransformUbo* transformPtr, SkinnedUbo* skinnedPtr);
 
 	/**
 	* @brief Updates the skeleton (node) hierachy of all objects associated with this component manager 
@@ -104,15 +104,15 @@ private:
 	std::vector<ModelSkin> skins;
 
 	// store locally the aligned buffer sizes
-	size_t transformUboAlign = 0;
-	size_t skinnedUboAlign = 0;
+	size_t transUboAlign = 0;
+	size_t skinUboAlign = 0;
 
 	// transform data for each object which will be added to the GPU
 	TransformUbo* transformUbo = nullptr;
-	SkinnedUbo* skinnedUbo = nullptr;
+	SkinnedUbo* skinUbo = nullptr;
 
-	size_t transUboSize = 0;
-	size_t skinnedUboSize = 0;
+	size_t transUboCount = 0;
+	size_t skinUboCount = 0;
 
 	// flag which tells us whether we need to update the static data
 	bool isDirty = true;

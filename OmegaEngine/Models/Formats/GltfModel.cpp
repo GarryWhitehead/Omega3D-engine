@@ -9,12 +9,12 @@
 namespace OmegaEngine
 {
 
-ModelNode* GltfModel::getNode(size_t id)
+ModelNode::NodeInfo* GltfModel::getNode(Util::String id)
 {
-    ModelNode* foundNode = nullptr;
-    for (auto& node : nodes)
+    ModelNode::NodeInfo* foundNode = nullptr;
+    for (ModelNode node : nodes)
     {
-        foundNode = node->findNode(id);
+        foundNode = node.getNode(id);
         if (foundNode)
         {
             break;
