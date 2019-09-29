@@ -77,7 +77,8 @@ bool Shader::add(vk::Device device, const std::string& filename1, StageType type
 
 bool Shader::loadShaderBinary(const char* filename, StageType type)
 {
-	std::string shaderDir(OMEGA_ASSETS_DIR "shaders/");
+	std::string shaderDir(
+		"shaders/");
 	std::ifstream file(shaderDir + filename, std::ios_base::ate | std::ios_base::binary);
 	if (!file.is_open())
 	{

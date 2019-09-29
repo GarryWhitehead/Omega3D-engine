@@ -1,6 +1,6 @@
 #ifndef SPIRV_CROSS_GIT_VERSION_H_
 #define SPIRV_CROSS_GIT_VERSION_H_
 
-#define SPIRV_CROSS_GIT_REVISION "Git commit:  Timestamp: 2019-09-24T21:07:05"
+#define SPIRV_CROSS_GIT_REVISION "Git commit:  Timestamp: 2019-09-29T20:33:52"
 
 #endif

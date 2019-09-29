@@ -1,10 +1,26 @@
 
 
 # Generate as a static library (Should also allow dylib)	
-ADD_LIBRARY(OMEGA_ENGINE STATIC)
+ADD_LIBRARY(OMEGA_ENGINE STATIC "")
+
+# ================ compiler ============================
 TARGET_COMPILE_OPTIONS(OMEGA_ENGINE PRIVATE ${OMEGA_CXX_FLAGS})
 
-# include targets
+# =================== definitions ===================
+# flags for vulkan surface platform
+IF(WIN32)
+	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC VK_USE_PLATFORM_WIN32_KHR)
+	MESSAGE("Using window32 KHR surface...")
+ENDIF()
+
+IF(ASSETS_DIR)
+	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${ASSETS_DIR}/\")
+	INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
+ELSE()
+	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
+ENDIF()
+
+# ================= include targets ====================
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
@@ -35,6 +51,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}/stb
 )
 
+# =============== source files =============================
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	Core/engine.cpp Core/engine.h
@@ -70,7 +87,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Cube.cpp Misc/Primitives/Cube.h
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
-	Types/Object.cpp Types/Object.h
+	Types/Object.h
 	Types/Texture.cpp Types/Texture.h
 	Types/NativeWindowWrapper.h
 	Types/PBuildInfo.h
@@ -138,13 +155,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
 )
 
-IF(ASSETS_DIR)
-	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${ASSETS_DIR}/\")
-	INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
-ELSE()
-	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
-ENDIF()
-
+# ================= linking =======================
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
 	${Vulkan_LIBRARY} 
 	${RAPID_JSON} 

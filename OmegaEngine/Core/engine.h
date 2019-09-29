@@ -1,18 +1,16 @@
 #pragma once
 
 #include "Core/Omega_Config.h"
-#include "VulkanAPI/Device.h"
 
-#include <chrono>
+#include "VulkanAPI/SwapChain.h"
+#include "VulkanAPI/VkContext.h"
+
+#include "utility/String.h"
+
 #include <memory>
-#include <string>
-#include <unordered_map>
 #include <vector>
 
 // forward declerations
-struct GLFWwindow;
-struct GLFWmonitor;
-struct GLFWvidmode;
 struct NativeWindowWrapper;
 
 namespace OmegaEngine
@@ -59,7 +57,7 @@ public:
 
 	bool initDevice(NativeWindowWrapper& window);
 
-	World *createWorld(const std::string &name);
+	World* createWorld(Util::String name);
 
 	void loadConfigFile();
 
@@ -70,13 +68,19 @@ private:
 	EngineConfig engineConfig;
 
 	EngineState programState;
-	
+
 	// a collection of worlds registered with the engine
-	std::unordered_map<std::string, std::unique_ptr<World>> worlds;
-	std::string currentWorld;
+	std::vector<World*> worlds;
+	Util::String currentWorld;
 
 	// The vulkan devie. Only one device supported at present
-	VulkanAPI::Device device;
+	VulkanAPI::VkContext context;
+
+	// the swap chain to be used by all worlds.
+	// This could at some point become a user dedfined protocol
+	// and allow more than swapchain to be created - but for now
+	// will stick with just one
+	VulkanAPI::Swapchain swapchain;
 };
 
-} // namespace OmegaEngine
+}    // namespace OmegaEngine

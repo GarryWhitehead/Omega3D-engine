@@ -45,16 +45,17 @@
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Components;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\PostProcess;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Types;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Renderers;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Managers;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\spirv-cross;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>

@@ -3,17 +3,13 @@
 #include "Core/World.h"
 
 #include "Utility/FileUtil.h"
-#include "Utility/Timer.h"
 
-#include "VulkanAPI/Device.h"
-#include "VulkanAPI/SwapChain.h"
+#include "VulkanAPI/Platform/Surface.h"
 
 #include "utility/logger.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
-
-using namespace std::chrono_literals;
 
 namespace OmegaEngine
 {
@@ -26,30 +22,43 @@ Engine::Engine()
 
 Engine::~Engine()
 {
+	for (World* world : worlds)
+	{
+		if (world)
+		{
+			delete world;
+		}
+	}
 }
 
 bool Engine::initDevice(NativeWindowWrapper& window)
 {
-	Surface surafce = SwapChain::CreateSurface(window);
-
-	device.createInstance(instanceExt, instanceCount);
-
+	// create a new vulkan instance
+	const char** instanceExt;
+	uint32_t count;
+	std::tie(instanceExt, count) = window.extensions;
+	context.createInstance(instanceExt, count);
+	
 	// prepare the physical and abstract device including queues
-	device.prepareDevice();
+	context.prepareDevice();
+
+	// create a swapchain for surface rendering based on the platform specific window surface
+	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, instance);
+	swapchain.prepare(context, surface);
 }
 
-World* Engine::createWorld(const std::string& name)
+World* Engine::createWorld(Util::String name)
 {
 	// create an empty world
-	std::unique_ptr<World> world = std::make_unique<World>();
+	World* world = new World;
 
 	world->prepare(name);
 
-	worlds.emplace(name, std::move(world));
+	worlds.emplace_back(std::move(world));
 	this->currentWorld = name;
 
 	// not exactly unique - maybe use a raw pointer here
-	return worlds[name].get();
+	return world;
 }
 
 void Engine::loadConfigFile()

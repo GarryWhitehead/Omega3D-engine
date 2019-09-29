@@ -18,6 +18,24 @@ vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling
                                vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu);
 }
 
+/**
+* @brief A wrappeer for a vulkan instance
+*/
+class Instance
+{
+public:
+
+	// no copying allowed!
+	Instance(const Instance&) = delete;
+	Instance& operator=(const Instance&) = delete;
+	Instance(Instance&&) = default;
+	Instance& operator=(Instance&&) = default;
+
+private:
+	
+	vk::Instance instance;
+};
+
 class VkContext
 {
 

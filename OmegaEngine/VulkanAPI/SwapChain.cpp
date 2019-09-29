@@ -2,7 +2,7 @@
 
 #include "Utility/logger.h"
 
-#include "VulkanAPI/Device.h"
+#include "VulkanAPI/VkContext.h"
 
 #include "Types/NativeWindowWrapper.h"
 
@@ -14,16 +14,16 @@ Swapchain::Swapchain()
 {
 }
 
-SurfaceWrapper Swapchain::createSurface(NativeWindowWrapper& window)
+Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapper& window, Instance& instance)
 {
+	Platform::SurfaceWrapper wrapper(window, instance);
+	return wrapper;
 }
 
-void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::SurfaceKHR& surface,
-                       const uint32_t graphIndex, const uint32_t presentIndex, const uint32_t screenWidth,
-                       const uint32_t screenHeight)
+bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 {
-	this->device = dev;
-	this->gpu = physicalDevice;
+	vk::Device device = context.getDevice();
+	vk::PhysicalDevice gpu = context.getPhysicalDevice();
 
 	// Get the basic surface properties of the physical device
 	uint32_t surfaceCount = 0;
@@ -36,6 +36,7 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::S
 	if (surfaceFormats.empty() || presentModes.empty())
 	{
 		LOGGER_ERROR("Critcal error! Unable to locate suitable swap chains on device.");
+		return false;
 	}
 
 	// Next step is to determine the surface format. Ideally undefined format is preffered so we can set our own, otherwise
@@ -58,7 +59,7 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::S
 			}
 		}
 	}
-	surfaceFormat = requiredSurfaceFormats;
+	vk::SurfaceFormatKHR surfaceFormat = requiredSurfaceFormats;
 
 	// And then the presentation format - the preferred format is triple buffering
 	vk::PresentModeKHR requiredPresentMode;
@@ -85,9 +86,9 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::S
 	else
 	{
 		this->extent.width =
-		    std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, screenWidth));
+		    std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, surface.getWidth()));
 		this->extent.height =
-		    std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, screenHeight));
+		    std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, surface.getHeight()));
 	}
 
 	// Get the number of possible images we can send to the queue
@@ -102,15 +103,18 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::S
 	std::vector<uint32_t> queueFamilyIndicies;
 	vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-	if (graphIndex != presentIndex)
+	uint32_t graphFamilyIdx = context.getQueueIndex(VkContext::QueueType::Graphics);
+	uint32_t presentFamilyIdx = context.getQueueIndex(VkContext::QueueType::Present);
+
+	if (graphFamilyIdx != presentFamilyIdx)
 	{
 		sharingMode = vk::SharingMode::eConcurrent;
-		queueFamilyIndicies.push_back(graphIndex);
-		queueFamilyIndicies.push_back(presentIndex);
+		queueFamilyIndicies.push_back(graphFamilyIdx);
+		queueFamilyIndicies.push_back(presentFamilyIdx);
 	}
 
 	vk::SwapchainCreateInfoKHR createInfo(
-	    {}, surface, imageCount, requiredSurfaceFormats.format, requiredSurfaceFormats.colorSpace, extent, 1,
+	    {}, surface.get(), imageCount, requiredSurfaceFormats.format, requiredSurfaceFormats.colorSpace, extent, 1,
 	    vk::ImageUsageFlagBits::eColorAttachment, sharingMode, 0, nullptr, capabilities.currentTransform,
 	    vk::CompositeAlphaFlagBitsKHR::eOpaque, requiredPresentMode, VK_TRUE, {});
 
@@ -129,6 +133,8 @@ void Swapchain::create(vk::Device dev, vk::PhysicalDevice& physicalDevice, vk::S
 	}
 
 	prepareSwapchainPass();
+
+	return true;
 }
 
 Swapchain::~Swapchain()

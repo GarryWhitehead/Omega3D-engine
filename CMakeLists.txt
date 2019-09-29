@@ -1,14 +1,19 @@
 CMAKE_MINIMUM_REQUIRED(VERSION 3.5)
 CMAKE_POLICY(VERSION 3.5)
 
-PROJECT(OMEGA_ENGINE)
+PROJECT(OMEGA_ENGINE LANGUAGES CXX C)
 SET(CMAKE_CXX_STANDARD 17)
  
 # compiler specific flags
 IF(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang"))
-	SET(OMEGA_CXX_FLAGS -Wshadow -Wall -Wextra -Wno-missing-field-initializers)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wall -Wextra -Wno-missing-field-initializers")
 ELSEIF(MSVC)
-	SET(OMEGA_CXX_FLAGS /D_CRT_SECURE_NO_WARNINGS /DNOMINMAX /MP)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP")
+ENDIF()
+
+#platform specific compiler settings
+IF(WIN32)
+	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MATH_DEFINES=1")
 ENDIF()
 
 OPTION(OMEGA_BUILD_SCENE_EXAMPLE "Build scene example executable" ON)
@@ -60,7 +65,7 @@ IF(NOT FOUND_VULKAN)
 ELSE()
 	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
-	
+
 # libraries required for Omega Engine
 ADD_SUBDIRECTORY(external/Spirv-Cross)
 ADD_SUBDIRECTORY(external/glfw)
@@ -79,20 +84,20 @@ SET_TARGET_PROPERTIES(RAPID_JSON PROPERTIES LINKER_LANGUAGE CXX)
 # linking flags - sanitizers
 SET(LINK_FLAGS)
 IF(THREAD_SANITIZE)
-	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=thread)
+	SET(OMEGA_CXX_FLAGS "${OMEGA_CXX_FLAGS} -fsanitize=thread")
 	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=thread)
 ENDIF()
 
 IF(ADDRESS_SANITIZE)
-	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=address)
+	SET(OMEGA_CXX_FLAGS "${OMEGA_CXX_FLAGS} -fsanitize=address")
 	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=address)
 ENDIF()
 
 IF(MEMORY_SANITIZE)
-	SET(CXX_FLAGS ${CXX_FLAGS} -fsanitize=memory)
+	SET(OMEGA_CXX_FLAGS "${OMEGA_CXX_FLAGS} -fsanitize=memory")
 	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=memory)
 ENDIF()
-	
+
 # build the Omega Engine library
 ADD_SUBDIRECTORY(OmegaEngine)
 

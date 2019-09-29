@@ -43,16 +43,17 @@
       <DisableSpecificWarnings>4267</DisableSpecificWarnings>
       <ExceptionHandling>Sync</ExceptionHandling>
       <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <Optimization>Disabled</Optimization>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;HAVE_SPIRV_CROSS_GIT_VERSION;SPIRV_CROSS_C_API_GLSL=1;SPIRV_CROSS_C_API_HLSL=1;SPIRV_CROSS_C_API_MSL=1;SPIRV_CROSS_C_API_CPP=1;SPIRV_CROSS_C_API_REFLECT=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;HAVE_SPIRV_CROSS_GIT_VERSION;SPIRV_CROSS_C_API_GLSL=1;SPIRV_CROSS_C_API_HLSL=1;SPIRV_CROSS_C_API_MSL=1;SPIRV_CROSS_C_API_CPP=1;SPIRV_CROSS_C_API_REFLECT=1;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;HAVE_SPIRV_CROSS_GIT_VERSION;SPIRV_CROSS_C_API_GLSL=1;SPIRV_CROSS_C_API_HLSL=1;SPIRV_CROSS_C_API_MSL=1;SPIRV_CROSS_C_API_CPP=1;SPIRV_CROSS_C_API_REFLECT=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;HAVE_SPIRV_CROSS_GIT_VERSION;SPIRV_CROSS_C_API_GLSL=1;SPIRV_CROSS_C_API_HLSL=1;SPIRV_CROSS_C_API_MSL=1;SPIRV_CROSS_C_API_CPP=1;SPIRV_CROSS_C_API_REFLECT=1;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\external\spirv-cross;C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\spirv-cross;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>

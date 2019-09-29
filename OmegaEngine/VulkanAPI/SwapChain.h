@@ -1,9 +1,13 @@
 #pragma once
 
+#include "Types/NativeWindowWrapper.h"
+
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/DataTypes/Texture.h"
+#include "VulkanAPI/Types/VkTexture.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
+
+#include "VulkanAPI/Platform/Surface.h"
 
 #include <vector>
 
@@ -11,8 +15,7 @@ namespace VulkanAPI
 {
 
 // forward declerations
-class Device;
-struct NativeWindowWrapper;
+class VkContext;
 
 class Swapchain
 {
@@ -22,12 +25,22 @@ public:
 	~Swapchain();
 	
 	// static functions
-	// Create a vulkan surface object from a native window pointer
-	static SurfaceWrapper createSurface(NativeWindowWrapper& window);
+	/**
+	* @brief Creates a KHR surface object using a native window pointer.
+	* Note: The native window is obtained from a source such as glfw (used in the application for now)
+	* @param window A wrapper containg all the info needed to create a surface and swapchain
+	* @param instance A vulkan instance wrapper obtained from calling **createInstance**
+	*/
+	static Platform::SurfaceWrapper createSurface(OmegaEngine::NativeWindowWrapper& window, Instance& instance);
 
-	void create(vk::Device dev, vk::PhysicalDevice &physicalDevice, vk::SurfaceKHR &surface,
-	            const uint32_t graphIndex, const uint32_t presentIndex, const uint32_t screenWidth,
-	            const uint32_t screenHeight);
+	/**
+	* @brief Creates the swapchain using the supplied native window surface
+	* Note: The surface is obtained by calling **createSurface**.
+	* Note: This function must be called before using with a **Scene** object.
+	* @param context A prepared vulkan device object
+	* @param surface A surface object for the given platform
+	*/
+	bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
 
 	// frame submit and presentation to the swapchain
 	void begin_frame(vk::Semaphore &image_semaphore);
@@ -72,11 +85,8 @@ public:
 	}
 
 private:
-	vk::Device device;
-	vk::PhysicalDevice gpu;
 
 	vk::Extent2D extent;
-	vk::SurfaceFormatKHR surfaceFormat;
 	vk::SwapchainKHR swapchain;
 
 	std::vector<ImageView> imageViews;
