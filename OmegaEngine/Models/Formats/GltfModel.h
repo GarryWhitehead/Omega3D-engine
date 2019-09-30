@@ -35,11 +35,17 @@ public:
 	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
 
 	/**
-	* @ loads a specified gltf file and parses the data
+	* @ loads a specified gltf file
 	* @ param absolute path to the gltf model file. Binary data must also be present in the directory
-	* @ return Whether the file was succesfully loaded and parsed
+	* @ return Whether the file was succesfully loaded
 	*/
 	bool load(Util::String filename);
+
+	/**
+	* @brief Parses the file that was loaded in via **load**
+	* Note: You must call **load** before this function otherwise you will get an error.
+	*/
+	bool prepare();
 
 	// helper functions
 	/**
@@ -64,6 +70,21 @@ public:
      */
 	ModelNode::NodeInfo* getNode(Util::String id);
     
+	/**
+	* @brief Sets the world translation for this model
+	*/
+	void setWorldTrans(OEMaths::vec3f& trans);
+
+	/**
+	* @brief Sets the world scale for this model
+	*/
+	void setWorldScale(OEMaths::vec3f& scale);
+
+	/**
+	* @brief Sets the world rotation for this model
+	*/
+	void setWorldRotation(OEMaths::quatf& rot);
+
 	friend class Scene;
 
 private:
@@ -72,6 +93,9 @@ private:
 	void lineariseNodes(cgltf_data* data);
 
 private:
+
+	cgltf_data* gltfData = nullptr;
+
 	std::vector<ModelNode> nodes;
 
 	// materials and image paths pulled out of the nodes.
@@ -86,7 +110,10 @@ private:
     // for linking to our own node hierachy
 	std::vector<cgltf_node*> linearisedNodes;
 
-	
+	// world co-ords
+	OEMaths::vec3f wTrans;
+	OEMaths::vec3f wScale = OEMaths::vec3f{1.0f};
+	OEMaths::quatf wRotation;
 };
 
 }    // namespace OmegaEngine

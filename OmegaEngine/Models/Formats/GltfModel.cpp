@@ -163,7 +163,7 @@ bool GltfModel::load(Util::String filename)
 {
 	// no additional options required
 	cgltf_options options = {};
-	cgltf_data* gltfData;
+	
 
 	cgltf_result res = cgltf_parse_file(&options, filename.c_str(), &gltfData);
 	if (res != cgltf_result_success)
@@ -179,8 +179,17 @@ bool GltfModel::load(Util::String filename)
 		LOGGER_ERROR("Unable to open gltf file data for %s. Error code: %d\n", filename.c_str(), res);
 		return false;
 	}
+}
 
-    // joints and animation samplers point at nodes in the hierachy. To link our node hierachy
+bool GltfModel::prepare()
+{
+	if (!gltfData)
+	{
+		LOGGER_ERROR("Looks like you need to load a gltf file before calling this function!\n");
+		return false;
+	}
+
+	// joints and animation samplers point at nodes in the hierachy. To link our node hierachy
     // the model nodes have there ids. We also linearise the cgltf nodes in a map, along with an
     // id which matches the pattern of the model nodes. To find a model node from a cgltf node -
     // find the id of the cgltf in the linear map, and then search for this id in the model node
@@ -205,13 +214,30 @@ bool GltfModel::load(Util::String filename)
     // now prepare the skins. This requires finding the nodes which are joints, and
     // adding the index values to the nodes. We expect one skin per mesh (of which there
     // can only be one per node!)
-    for (for index = 0; index < skins.size(); ++index)
+    for (size_t index = 0; index < skins.size(); ++index)
     {
         ModelSkin newSkin;
         newSkin.prepare(skin, linearisedNodes);
         skins.emplace_back(skin);
     }
+
+	return true;
 }
 
+void GltfModel::setWorldTrans(OEMaths::vec3f& trans)
+{
+	wTrans = trans;
+}
+
+
+void GltfModel::setWorldScale(OEMaths::vec3f& scale)
+{
+	wScale = scale;
+}
+
+void GltfModel::setWorldRotation(OEMaths::quatf& rot)
+{
+	wRotation = rot;
+}
 
 }    // namespace OmegaEngine

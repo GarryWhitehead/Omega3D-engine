@@ -10,13 +10,11 @@
 #include <memory>
 #include <vector>
 
-// forward declerations
-struct NativeWindowWrapper;
-
 namespace OmegaEngine
 {
 // forward declerations
 class World;
+struct NativeWindowWrapper;
 
 // current state of the application
 class EngineState
@@ -55,8 +53,26 @@ public:
 	Engine();
 	~Engine();
 
-	bool initDevice(NativeWindowWrapper& window);
+	/**
+	* @brief Initialises a new vulkan context. This creates a new instance and 
+	* prepares the physical and abstract device and associated queues
+	* Note: Only one vulkan device is allowed. Multiple devices supporting multi-gpu
+	* setups is not yet supported
+	*/
+	bool init(NativeWindowWrapper& window);
 
+	/**
+	* @brief This creates a new swapchain instance based upon the platform-specific
+	* ntaive window pointer created by the application
+	*/
+	VulkanAPI::Swapchain createSwapchain(NativeWindowWrapper& window);
+
+	/**
+	* @ brief Creates a new world object. This object is stored by the engine allowing
+	* multiple worlds to created if desired.
+	* @param name A string name used as a identifier for this world
+	* @return Returns a pointer to the newly created world
+	*/
 	World* createWorld(Util::String name);
 
 	void loadConfigFile();
@@ -75,12 +91,6 @@ private:
 
 	// The vulkan devie. Only one device supported at present
 	VulkanAPI::VkContext context;
-
-	// the swap chain to be used by all worlds.
-	// This could at some point become a user dedfined protocol
-	// and allow more than swapchain to be created - but for now
-	// will stick with just one
-	VulkanAPI::Swapchain swapchain;
 };
 
 }    // namespace OmegaEngine

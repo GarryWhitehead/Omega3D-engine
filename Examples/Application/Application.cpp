@@ -1,6 +1,14 @@
 #include "Application.h"
 
- bool Application::init(const char* title, uint32_t width, uint32_t height, Application::NativeWindowWrapper& output)
+Application::Application()
+{
+}
+
+Application::~Application()
+{
+}
+
+ bool Application::init(const char* title, uint32_t width, uint32_t height, OmegaEngine::NativeWindowWrapper& output)
 {
     // init glfw
     if (!glfw.init())

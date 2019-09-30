@@ -5,14 +5,13 @@
 #include "Core/Scene.h"
 #include "Core/engine.h"
 #include "Core/world.h"
-#include "Managers/CameraManager.h"
-#include "Managers/LightManager.h"
-#include "Managers/TransformManager.h"
-#include "Models/Gltf/GltfModel.h"
-#include "Models/OEMaterials.h"
-#include "Models/OEModels.h"
-#include "Types/ComponentTypes.h"
+
+#include "Types/NativeWindowWrapper.h"
 #include "Types/Object.h"
+
+#include "VulkanAPI/SwapChain.h"
+
+#include "Models/Formats/GltfModel.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
@@ -23,7 +22,19 @@ int main(int argc, char* argv[])
 {
 	Application app;
 
+	NativeWindowWrapper window;
+	if (!app.init("Omega Engine Test", 1280, 800, window))
+	{
+		LOGGER_ERROR("Unable to initialise application. Exiting.....\n");
+		exit(1);
+	}
+
 	Engine engine;
+	if (!engine.init(window))
+	{
+		LOGGER_ERROR("Unable to initialise engine.\n");
+		exit(1);
+	}
 
 	// create a new empty world
 	World* world = engine.createWorld("SceneOne");
@@ -31,33 +42,23 @@ int main(int argc, char* argv[])
 	// add a scene
 	Scene* scene = world->createScene();
 
+	// create a swapchain for rendering
+	VulkanAPI::Swapchain swapchain = engine.createSwapchain(window);
+
 	// Use a gltf image as one of our scene objects
-	auto model = GltfModel::create("WaterBottle/WaterBottle.gltf");
-	model.worldTransform(4.0f, 3.0f, 5.0);
-	model.worldScale(15.0f);
-	model.worldRotation(0.5, 0.0f, 0.5f, 0.5f);
-	model.build(world, obj);
-	scene.addObject(obj);
+	GltfModel model;
+	if (!model.load("WaterBottle/WaterBottle.gltf"))
+	{
+		exit(1);
+	}
 
-	/*// Use a gltf image as one of our scene objects
-	auto model = GltfModel::load("DamagedHelmet/DamagedHelmet.gltf");
+	model.setWorldTrans({4.0f, 3.0f, 5.0});
+	model.setWorldScale({15.0f});
+	model.setWorldRotation({0.5, 0.0f, 0.5f, 0.5f});
+	model.prepare();
 
-		// create an object, using a gltf model for vertices, materials, etc.	
-		auto object = world->createGltfModelObject(model, OEMaths::vec3f{ 0.0f, 3.0f, 0.0f }, OEMaths::vec3f{ 2.0f },
-		                                           OEMaths::quatf{ 0.0f }, true);
-	}*/
-
-	// adding stock models to the scene - add a capsule
-	/*{
-		auto object =
-		    world->createObject(OEMaths::vec3f{ -2.0f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
-
-		object->addComponent<MeshComponent>(OEModels::generateCapsuleMesh(30, 5.0f, 0.5f));
-		object->addComponent<MaterialComponent>("DemoMaterial", OEMaterials::Specular::Gold, OEMaths::vec3f{ 0.3f },
-		                                        OEMaths::vec4f{ 0.8f, 0.2f, 0.0f, 1.0f }, 0.2f, 1.0f);
-		object->addComponent<TransformComponent>(
-		    TransformManager::transform(OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f }));
-	}*/
+	// create the renderer - using a deffered renderer (only one supported at the moment)
+	DeferredRenderer renderer = engine->createDefRenderer(swapchain);
 
 	// create a flat plane
 	{

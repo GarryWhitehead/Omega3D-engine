@@ -31,20 +31,27 @@ Engine::~Engine()
 	}
 }
 
-bool Engine::initDevice(NativeWindowWrapper& window)
+bool Engine::init(NativeWindowWrapper& window)
 {
 	// create a new vulkan instance
 	const char** instanceExt;
 	uint32_t count;
 	std::tie(instanceExt, count) = window.extensions;
 	context.createInstance(instanceExt, count);
-	
+
 	// prepare the physical and abstract device including queues
 	context.prepareDevice();
+}
 
+VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
+{
 	// create a swapchain for surface rendering based on the platform specific window surface
-	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, instance);
+	VulkanAPI::Swapchain swapchain;
+
+	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, context.getInstance());
 	swapchain.prepare(context, surface);
+
+	return swapchain;
 }
 
 World* Engine::createWorld(Util::String name)

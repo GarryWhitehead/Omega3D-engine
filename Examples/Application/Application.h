@@ -1,7 +1,5 @@
 #pragma once
 
-#include "VulkanAPI/Device.h"
-
 #include "Platforms/PlatformGlfw.h"
 
 #include "Types/NativeWindowWrapper.h"
@@ -30,7 +28,7 @@ public:
      * @return If everything is initialsied successfully, returns a native window pointer
     */
 	bool Application::init(const char* title, uint32_t width, uint32_t height,
-	                       Application::NativeWindowWrapper& output);
+	                       OmegaEngine::NativeWindowWrapper& output);
 
 private:
 

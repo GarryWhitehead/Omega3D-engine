@@ -3,9 +3,9 @@
 #include "Types/NativeWindowWrapper.h"
 
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Types/VkTexture.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
+#include "VulkanAPI/Types/VkTexture.h"
 
 #include "VulkanAPI/Platform/Surface.h"
 
@@ -23,7 +23,13 @@ class Swapchain
 public:
 	Swapchain();
 	~Swapchain();
-	
+
+	// both copyable and moveable
+	Swapchain(const Swapchain&) = default;
+	Swapchain& operator=(const Swapchain&) = default;
+	Swapchain(Swapchain&&) = default;
+	Swapchain& operator=(Swapchain&&) = default;
+
 	// static functions
 	/**
 	* @brief Creates a KHR surface object using a native window pointer.
@@ -43,18 +49,18 @@ public:
 	bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
 
 	// frame submit and presentation to the swapchain
-	void begin_frame(vk::Semaphore &image_semaphore);
-	void submitFrame(vk::Semaphore &presentSemaphore, vk::Queue &presentionQueue);
+	void begin_frame(vk::Semaphore& image_semaphore);
+	void submitFrame(vk::Semaphore& presentSemaphore, vk::Queue& presentionQueue);
 
 	// sets up the renderpass and framebuffers for the swapchain presentation
 	void prepareSwapchainPass();
 
-	vk::SwapchainKHR &get()
+	vk::SwapchainKHR& get()
 	{
 		return swapchain;
 	}
 
-	vk::Format &getSurfaceFormat()
+	vk::Format& getSurfaceFormat()
 	{
 		return surfaceFormat.format;
 	}
@@ -79,13 +85,12 @@ public:
 		return imageIndex;
 	}
 
-	RenderPass &getRenderpass()
+	RenderPass& getRenderpass()
 	{
 		return *renderpass;
 	}
 
 private:
-
 	vk::Extent2D extent;
 	vk::SwapchainKHR swapchain;
 
@@ -99,4 +104,4 @@ private:
 	std::unique_ptr<Texture> depthTexture;
 	std::array<vk::ClearValue, 2> clearValues = {};
 };
-} // namespace VulkanAPI
+}    // namespace VulkanAPI
