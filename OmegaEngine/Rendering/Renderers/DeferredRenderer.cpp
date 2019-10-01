@@ -95,15 +95,16 @@ void DeferredRenderer::createGbufferPass()
 {
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
-
-	firstRenderpass.init(device);
-	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // position
-	firstRenderpass.addAttachment(vk::Format::eR8G8B8A8Unorm, VulkanAPI::FinalLayoutType::Auto);         // colour
-	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // normal
-	firstRenderpass.addAttachment(vk::Format::eR16G16Sfloat, VulkanAPI::FinalLayoutType::Auto);          // pbr
-	firstRenderpass.addAttachment(vk::Format::eR16G16B16A16Sfloat, VulkanAPI::FinalLayoutType::Auto);    // emissive
-	firstRenderpass.addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);                        // depth
-	firstRenderpass.prepareRenderPass();
+    
+    RenderGraph::Attachment emissive, position, normal, pbr, depth;
+    auto& gbuffer = rGraph.addRenderPass("gbuffer", RenderGraph::Graphics);
+    
+	gbuffer.addAttachment("position", vk::Format::eR16G16B16A16Sfloat);    // position
+	gbuffer.addAttachment("colour", vk::Format::eR8G8B8A8Unorm);         // colour
+	gbuffer.addAttachment("normal", vk::Format::eR16G16B16A16Sfloat);    // normal
+	gbuffer.addAttachment("pbr", vk::Format::eR16G16Sfloat);          // pbr
+	gbuffer.addAttachment("emissive", vk::Format::eR16G16B16A16Sfloat);    // emissive
+	gbuffer.addAttachment("depth", depthFormat);                        // depth
 
 	const uint8_t attachmentCount = 6;
 
