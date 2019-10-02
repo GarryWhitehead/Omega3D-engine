@@ -1,108 +1,77 @@
 #pragma once
-#include "RendererBase.h"
-#include "VulkanAPI/Shader.h"
-#include "VulkanAPI/Sampler.h"
-#include "VulkanAPI/DataTypes/Texture.h"
-#include "VulkanAPI/RenderPass.h"
+
+#include "RenderGraph/RenderGraph.h"
+
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/CommandBufferManager.h"
-#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/Pipeline.h"
+
+#include "Rendering/RenderCommon.h"
 #include "Rendering/RenderConfig.h"
 #include "Rendering/RenderInterface.h"
-#include "Rendering/RenderCommon.h"
-#include "Rendering/ProgramStateManager.h"
+#include "VulkanAPI/Shader.h"
 
-#include <vector>
 #include <functional>
+#include <vector>
 
 namespace VulkanAPI
 {
-	// forward declearions
-	class Interface;
-	class RenderPass;
-	class Swapchain;
-	class BufferManager;
-	class Queue;
-}
+// forward declearions
+class Interface;
+class RenderPass;
+class Swapchain;
+class BufferManager;
+class Queue;
+}    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
-	// forward declerations
-	class RenderInterface;
-	class PostProcessInterface;
-	class IblInterface;
+// forward declerations
+class RenderInterface;
+class PostProcessInterface;
+class IblInterface;
 
-	class DeferredRenderer : public RendererBase
-	{
+class DeferredRenderer : public RendererBase
+{
 
-	public:
+public:
+	DeferredRenderer::DeferredRenderer();
+	~DeferredRenderer();
 
-		enum class gBufferImageIndex
-		{
-			Position,
-			BaseColour,
-			Normal,
-			Pbr,
-			Emssive,
-			Depth
-		};
+	void init();
 
-		// a lookup table to link the sampler name with the gbuffer image 
-		std::vector<std::pair<std::string, gBufferImageIndex> > gbufferShaderLayout
-		{
-			{"positionSampler", gBufferImageIndex::Position},
-			{"baseColourSampler", gBufferImageIndex::BaseColour},
-			{"normalSampler", gBufferImageIndex::Normal},
-			{"pbrSampler", gBufferImageIndex::Pbr},
-			{"emissiveSampler", gBufferImageIndex::Emssive}
-		};
+	// abstract override
+	void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType,
+	            std::unique_ptr<RenderQueue>& renderQueue) override;
 
-		DeferredRenderer::DeferredRenderer(VulkanAPI::Interface& vkInterface, RenderConfig& _renderConfig);
-		~DeferredRenderer();
+	void createGbufferPass();
+	void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
+	                            VulkanAPI::Swapchain& swapchain);
+	void createDeferredPass();
 
-		// abstract override
-		void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType, std::unique_ptr<RenderQueue>& renderQueue) override;
+	void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
 
-		void createGbufferPass();
-		void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager, VulkanAPI::Swapchain& swapchain);
-		void createDeferredPass();
+private:
+	vk::Device device;
+	vk::PhysicalDevice gpu;
 
-		void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
+	// Command buffer handles for all passes
+	VulkanAPI::CmdBufferHandle shadowCmdBufferHandle;
+	VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;
+	VulkanAPI::CmdBufferHandle forwardCmdBufferHandle;
 
-	private:
+	// IBL environment mapping handler
+	IblInterface iblInterface;
 
-		vk::Device device;
-		vk::PhysicalDevice gpu;
+	// the post-processing manager
+	PostProcessInterface postProcessInterface;
 
-		// images - for the gbuffer pass
-		std::array<VulkanAPI::Texture, 6> gBufferImages;
-		VulkanAPI::Texture shadowImage;
+	// keep a local copy of the render config
+	RenderConfig renderConfig;
 
-		// deferred pass
-		VulkanAPI::Texture deferredImage;
-		VulkanAPI::RenderPass deferredRenderPass;
-	
-		// Command buffer handles for all passes
-		VulkanAPI::CmdBufferHandle shadowCmdBufferHandle;
-		VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;
-		VulkanAPI::CmdBufferHandle forwardCmdBufferHandle;
+	RenderGraph rGraph;
+};
 
-		// for the deferred rendering pipeline
-		ProgramState state;
-
-		// IBL environment mapping handler
-		std::unique_ptr<IblInterface> iblInterface;
-
-		// the post-processing manager
-		std::unique_ptr<PostProcessInterface> postProcessInterface;
-
-		// the final render call
-		std::unique_ptr<PresentationPass> presentPass;
-
-		// keep a local copy of the render config
-		RenderConfig renderConfig;
-
-	};
-
-}
+}    // namespace OmegaEngine

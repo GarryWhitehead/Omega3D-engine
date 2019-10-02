@@ -1,38 +1,30 @@
 #include "DeferredRenderer.h"
-#include "Engine/Omega_Global.h"
-#include "Managers/CameraManager.h"
-#include "Managers/LightManager.h"
-#include "ObjectInterface/ComponentInterface.h"
+
+#include "Components/CameraManager.h"
+#include "Components/LightManager.h"
+
 #include "PostProcess/PostProcessInterface.h"
+
 #include "Rendering/IblInterface.h"
-#include "Rendering/RenderCommon.h"
-#include "Rendering/RenderInterface.h"
-#include "Rendering/RenderableTypes/Shadow.h"
-#include "Rendering/RenderableTypes/Skybox.h"
+
 #include "Utility/logger.h"
-#include "VulkanAPI/BufferManager.h"
-#include "VulkanAPI/Device.h"
+
+#include "VulkanAPI/Managers/BufferManager.h"
+#include "VulkanAPI/Managers/SemaphoreManager.h"
 #include "VulkanAPI/Queue.h"
 #include "VulkanAPI/Sampler.h"
-#include "VulkanAPI/SemaphoreManager.h"
 #include "VulkanAPI/Swapchain.h"
+#include "VulkanAPI/VkContext.h"
 
 namespace OmegaEngine
 {
 
-DeferredRenderer::DeferredRenderer(VulkanAPI::Interface& vkInterface, RenderConfig& _renderConfig)
-    : device(vkInterface.getDevice())
-    , gpu(vkInterface.getGpu())
-    , renderConfig(_renderConfig)
-    , RendererBase(RendererType::Deferred)
+DeferredRenderer::DeferredRenderer()
 {
-	postProcessInterface = std::make_unique<PostProcessInterface>(device);
-	presentPass = std::make_unique<PresentationPass>(renderConfig);
+}
 
-	// create the IBL interface - if no images are detected on disc then the interface will create the neseceray maps using the
-	// pipelines. These will be then saved to disk on program closure
-	iblInterface = std::make_unique<IblInterface>(vkInterface);
-
+void DeferredRenderer::init()
+{
 	// create instances of all the cmd buffers used by the deferred renderer
 	shadowCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
 	deferredCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
@@ -94,17 +86,40 @@ void DeferredRenderer::createDeferredPass()
 void DeferredRenderer::createGbufferPass()
 {
 	// a list of the formats required for each buffer
-	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
-    
-    RenderGraph::Attachment emissive, position, normal, pbr, depth;
-    auto& gbuffer = rGraph.addRenderPass("gbuffer", RenderGraph::Graphics);
-    
-	gbuffer.addAttachment("position", vk::Format::eR16G16B16A16Sfloat);    // position
-	gbuffer.addAttachment("colour", vk::Format::eR8G8B8A8Unorm);         // colour
-	gbuffer.addAttachment("normal", vk::Format::eR16G16B16A16Sfloat);    // normal
-	gbuffer.addAttachment("pbr", vk::Format::eR16G16Sfloat);          // pbr
-	gbuffer.addAttachment("emissive", vk::Format::eR16G16B16A16Sfloat);    // emissive
-	gbuffer.addAttachment("depth", depthFormat);                        // depth
+	vk::Format depthFormat = VulkanAPI::VkContext::getDepthFormat(gpu);
+
+	struct GBufferData
+	{
+		ResourceHandle position;
+		ResourceHandle colour;
+		ResourceHandle normal;
+		ResourceHandle emissive;
+		ResourceHandle pbr;
+		ResourceHandle depth;
+	};
+
+	auto& gbufferPass = rGraph.createRenderPass("GBuffer Pass", [depthFormat](RenderGraphBuilder& builder,
+	                                                                          GBufferData& data) {
+		// create the gbuffer textures
+		data.position = builder.createTexture(
+		    "position", { .width = 2048, .height = 2048, .format = vk::Format::eR16G16B16A16Sfloat });
+		data.colour = builder.createTexture("colour", { .width = 2048, .height = 2048, .format = vk::Format::eR8G8B8A8Unorm });
+		data.normal = builder.createTexture("normal", { .width = 2048, .height = 2048, .format = vk::Format::eR8G8B8A8Unorm });
+		data.pbr = builder.createTexture("pbr", { .width = 2048, .height = 2048, .format = vk::Format::eR16G16Sfloat });
+		data.emissive = builder.createTexture(
+		    "emissive", { .width = 2048, .height = 2048, .format = vk::Format::eR16G16B16A16Sfloat });
+		data.emissive = builder.createTexture("depth", { .width = 2048, .height = 2048, .format = depthFormat });
+
+		// create the inputs
+		data.position = builder.addInput(data.position);
+		data.position = builder.addInput(data.position);
+		data.position = builder.addInput(data.position);
+		data.position = builder.addInput(data.position);
+		data.position = builder.addInput(data.position);
+		data.position = builder.addInput(data.position);
+	});
+	
+
 
 	const uint8_t attachmentCount = 6;
 

@@ -30,6 +30,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Models/Formats
 	${CMAKE_CURRENT_SOURCE_DIR}/OEMaths
 	${CMAKE_CURRENT_SOURCE_DIR}/PostProcess
+	${CMAKE_CURRENT_SOURCE_DIR}/RenderGraph
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Renderers
@@ -106,6 +107,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
+	RenderGraph/RenderGraph.cpp RenderGraph/RenderGraph.h
+	RenderGraph/Resources.h
+
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
 	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
