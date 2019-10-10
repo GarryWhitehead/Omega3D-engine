@@ -10,6 +10,9 @@
 namespace OmegaEngine
 {
 
+// forward decleration
+class RenderGraph;
+
 class RTargetHandle
 {
 public:
@@ -34,6 +37,8 @@ public:
 
 private:
 
+    RenderGraph* rgraph = nullptr;
+    
 	std::vector<RTargetHandle> targetHandles;
 
 	std::vector<ResourceHandle> inputs;
@@ -76,12 +81,18 @@ public:
 	/**
 	* @brief Adds a input such as a texture resource to the render target
 	*/
-	RTargetHandle addInput(const ResourceHandle input);
+	ResourceHandle addInput(const ResourceHandle input);
 
 	/**
 	* @brief Adds a output such as a texture resource to the render target
 	*/
-	RTargetHandle addOutput(const ResourceHandle output);
+	ResourceHandle addOutput(const ResourceHandle output);
+    
+    /**
+     * @brief Adds the execution lamda to the renderpass - this will be executed each frame
+     *      on its own thread using secondary command buffers
+     */
+    void addThreadedExecute();
 
 private:
 	// a reference to the graph and pass we are building
@@ -92,16 +103,13 @@ private:
 class RenderGraph
 {
 public:
-	using SetupFunc = std::function<void(RenderGraphBuilder)>;
 	using ExecuteFunc = std::function<void(void*)>;
 
 	/**
 	* @brief Creates a new renderpass. 
 	* @param name The name of this pass
-	* @param setup A ref-capture lamda using the **RenderGraphBuilder** to setup the renderpass. 
-	* @param execute
 	*/
-	RenderPass& createRenderPass(Util::String name, SetupFunc& setup, ExecuteFunc&& execute);
+	RenderGraphBuilder& createRenderPass(Util::String name);
 
 	/**
 	* @brief Create a new instance of a render target based on the supplied descriptor

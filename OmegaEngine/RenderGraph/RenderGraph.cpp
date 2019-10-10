@@ -33,12 +33,12 @@ ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, BufferResourc
 	return rGraph->addResource(buffer);
 }
 
-RTargetHandle RenderGraphBuilder::addInput(const ResourceHandle input)
+ResourceHandle RenderGraphBuilder::addInput(const ResourceHandle input)
 {
 	return rPass.addInput(input);
 }
 
-RTargetHandle RenderGraphBuilder::addOutput(const ResourceHandle output)
+ResourceHandle RenderGraphBuilder::addOutput(const ResourceHandle output)
 {
 	return rPass.addOutput(output);
 }
