@@ -7,11 +7,23 @@
 #include <functional>
 #include <vector>
 
+// forward decleartion
+namespace VulkanAPI
+{
+class CommandBuffer;
+}
+
 namespace OmegaEngine
 {
 
 // forward decleration
 class RenderGraph;
+class RenderingInfo;
+
+struct RGraphContext
+{
+	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
+};
 
 class RTargetHandle
 {
@@ -25,6 +37,8 @@ private:
 	uint64_t handle;
 };
 
+using ExecuteFunc = std::function<void(RenderingInfo&, RGraphContext&)>;
+
 class RenderPass
 {
 public:
@@ -35,14 +49,24 @@ public:
 
 	ResourceHandle addOutput(ResourceHandle output);
 
+	void addExecute(ExecuteFunc&& func);
+
+	friend class RenderGraph;
+
 private:
 
     RenderGraph* rgraph = nullptr;
     
+	// a list of taergets associated with this pass.
 	std::vector<RTargetHandle> targetHandles;
 
+	// a list of handles of input and output attachments
 	std::vector<ResourceHandle> inputs;
 	std::vector<ResourceHandle> outputs;
+
+	// the eecute function to be used by this pass
+	ExecuteFunc executeFunc = nullptr;
+
 };
 
 struct RenderTarget
@@ -92,7 +116,7 @@ public:
      * @brief Adds the execution lamda to the renderpass - this will be executed each frame
      *      on its own thread using secondary command buffers
      */
-    void addThreadedExecute();
+    void addThreadedExecute(ExecuteFunc&& func);
 
 private:
 	// a reference to the graph and pass we are building
@@ -103,13 +127,13 @@ private:
 class RenderGraph
 {
 public:
-	using ExecuteFunc = std::function<void(void*)>;
+	
 
 	/**
 	* @brief Creates a new renderpass. 
 	* @param name The name of this pass
 	*/
-	RenderGraphBuilder& createRenderPass(Util::String name);
+	RenderGraphBuilder createRenderPass(Util::String name);
 
 	/**
 	* @brief Create a new instance of a render target based on the supplied descriptor
@@ -136,7 +160,7 @@ private:
 	std::vector<RenderPass> renderPasses;
 
 	// a virtual list of all the resources associated with this graph
-	std::vector<ResourceBase> resources;
+	std::vector<ResourceBase*> resources;
 };
 
 }    // namespace OmegaEngine

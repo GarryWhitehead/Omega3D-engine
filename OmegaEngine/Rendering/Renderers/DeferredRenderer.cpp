@@ -175,25 +175,7 @@ void DeferredRenderer::createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferM
 
 void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer)
 {
-	vk::RenderPassBeginInfo beginInfo =
-	    forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
-	cmdBuffer->beginRenderpass(beginInfo);
-
-	// viewport and scissor
-	cmdBuffer->setViewport();
-	cmdBuffer->setScissor();
-
-	// bind everything required to draw
-	cmdBuffer->bindPipeline(state.pipeline);
-	cmdBuffer->bindDescriptors(state.pipelineLayout, state.descriptorSet, VulkanAPI::PipelineType::Graphics);
-	cmdBuffer->bindPushBlock(state.pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(RenderConfig::IBLInfo),
-	                         &renderConfig.ibl);
-
-	// render full screen quad to screen
-	cmdBuffer->drawQuad();
-
-	// end this pass and cmd buffer
-	cmdBuffer->endRenderpass();
+	
 }
 
 void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType,

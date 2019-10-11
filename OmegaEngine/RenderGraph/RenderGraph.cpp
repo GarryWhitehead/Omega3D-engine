@@ -1,7 +1,7 @@
 #include "RenderGraph.h"
 
-#include <stdint.h>
 #include <algorithm>
+#include <stdint.h>
 
 namespace OmegaEngine
 {
@@ -35,14 +35,18 @@ ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, BufferResourc
 
 ResourceHandle RenderGraphBuilder::addInput(const ResourceHandle input)
 {
-	return rPass.addInput(input);
+	return rPass->addInput(input);
 }
 
 ResourceHandle RenderGraphBuilder::addOutput(const ResourceHandle output)
 {
-	return rPass.addOutput(output);
+	return rPass->addOutput(output);
 }
 
+void RenderGraphBuilder::addThreadedExecute(ExecuteFunc&& func)
+{
+	rPass->addExecute(std::move(func));
+}
 void RenderPass::addRenderTarget(RTargetHandle& handle)
 {
 }
@@ -73,15 +77,18 @@ ResourceHandle RenderPass::addOutput(const ResourceHandle output)
 	return output;
 }
 
-RenderPass& RenderGraph::createRenderPass(Util::String name, SetupFunc& setup, ExecuteFunc&& execute)
+void RenderGraph::addExecute(ExecuteFunc&& func)
+{
+	
+}
+
+RenderGraphBuilder RenderGraph::createRenderPass(Util::String name)
 {
 	// add the pass to the list
 	size_t index = renderPasses.size();
 	renderPasses.emplace_back(name, index, execute);
 
-	// call the setup function now to initialise this pass
-	RenderGraphBuilder builder(this, &renderPasses.back());
-	setup(builder);
+	return { this, &renderPasses.back() };
 }
 
 RenderTarget& RenderGraph::addRenderTarget(Util::String name, Attachment& descr)
@@ -96,6 +103,26 @@ ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 	size_t index = resources.size();
 	resources.emplace_back(resource);
 	return index;
+}
+
+void RenderGraph::compile()
+{
+	for (RenderPass& rpass : renderPasses)
+	{
+		// work out how many resources are inputs into this pass
+		for (ResourceHandle& handle : rpass.inputs)
+		{
+			ResourceBase* resource = resources[handle];
+			++resource->inputCount;
+		}
+
+		// and the outputs for this pass
+		for (ResourceHandle& handle : rpass.outputs)
+		{
+			ResourceBase* resource = resources[handle];
+			resource->outputRef = &rpass;
+		}
+	}
 }
 
 }    // namespace OmegaEngine

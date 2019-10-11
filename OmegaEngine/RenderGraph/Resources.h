@@ -47,6 +47,12 @@ struct ResourceBase
 	size_t index;
 	ResourceType type;
 
+	// ==== variables set by the compiler =====
+	// the number of passes this resource is being used as a input
+	size_t inputCount = 0;
+
+	// the renderpass that this resource is used as a output
+	RenderPass* outputRef = nullptr;
 };
 
 class AttachmentInfo
