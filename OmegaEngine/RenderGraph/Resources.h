@@ -52,7 +52,7 @@ struct ResourceBase
 	size_t inputCount = 0;
 
 	// the renderpass that this resource is used as a output
-	RenderPass* outputRef = nullptr;
+	RenderPass* outputPass = nullptr;
 };
 
 class AttachmentInfo

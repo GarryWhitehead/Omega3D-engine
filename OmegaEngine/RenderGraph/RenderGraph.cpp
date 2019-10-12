@@ -105,11 +105,40 @@ ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 	return index;
 }
 
+void RenderGraph::CullResourcsAndPasses(ResourceBase* resource)
+{
+    // the render pass that uses this resource as an output
+    RenderPass* rpass = resource->outputPass;
+    
+    if (rpass)
+    {
+        --rpass->outputRef;
+        
+        // this pass has no more ouput dependencies so can be culled
+        if (rpass->outputRef == 0)
+        {
+            for (ResourceHandle& handle : rpass->inputs)
+            {
+                ResourceBase* rsrc = resources[handle];
+                --resource->inputCount;
+                if (rsrc->inputCount == 0)
+                {
+                    // no input dependencies, so cull too
+                    CullResourcsAndPasses(rsrc);
+                }
+            }
+        }
+    }
+}
+
 void RenderGraph::compile()
 {
-	for (RenderPass& rpass : renderPasses)
+	
+    for (RenderPass& rpass : renderPasses)
 	{
-		// work out how many resources are inputs into this pass
+        rpass->outputCount = rpass->writes.size();
+        
+        // work out how many resources are inputs into this pass
 		for (ResourceHandle& handle : rpass.inputs)
 		{
 			ResourceBase* resource = resources[handle];
@@ -120,9 +149,40 @@ void RenderGraph::compile()
 		for (ResourceHandle& handle : rpass.outputs)
 		{
 			ResourceBase* resource = resources[handle];
-			resource->outputRef = &rpass;
+			resource->outputPass = &rpass;
 		}
 	}
+    
+    // cull passes and reources
+    for (ResourceBase* resource : resources)
+    {
+        // we can't cull resources which are used as inputs for passes
+        if (resource->inputCount == 0)
+        {
+            CullResourcesAndPasses(resource);
+        }
+    }
+    
+    // tidy up reference counts - total references, both inputs and outputs
+    for (ResourceBase* resource : resources)
+    {
+        resource->refCount += resource->inputCount;
+    }
+    
+    // bake the resources - this is carried out if this is a newly
+    // created resource or non-persistant
+    
+    
+    // Now work out the discard flags for each pass
+    
+    // And the dependencies
+    
+    // Finally create the renderpass and framebuffers
+    
+    // Create the command buffers that will be needed by the pass
+    // Command buffers are created each frame and destroyed at the end,
+    // whether re-using command buffers could give a performance advantage, this
+    // is something maybe to have as an option
 }
 
 }    // namespace OmegaEngine

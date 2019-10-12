@@ -66,6 +66,10 @@ private:
 
 	// the eecute function to be used by this pass
 	ExecuteFunc executeFunc = nullptr;
+    
+    // compiler set.....
+    // reference count for the number of outputs
+    size_t outputRef = 0;
 
 };
 
@@ -152,6 +156,10 @@ public:
 
 	void execute();
 
+private:
+    
+    void CullResourcsAndPasses(ResourceBase* resource);
+    
 private:
 	// all of the render targets accociated with this graph
 	std::vector<RenderTarget> renderTargets;
