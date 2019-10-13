@@ -12,69 +12,68 @@ RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderPass* rPass)
 	this->rPass = rPass;
 }
 
-RTargetHandle RenderGraphBuilder::createRenderTarget(Util::String name, Attachment& attach)
-{
-	RenderTarget rTarget = this->rGraph->addRenderTarget(name, attach);
-	rPass->addRenderTarget(rTarget.handle);
-	return RTargetHandle(rTarget.index);
-}
-
-ResourceHandle RenderGraphBuilder::createTexture(Util::String name, TextureResource* texture)
+ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture)
 {
 	texture->name = name;
 	texture->type = ResourceBase::ResourceType::Texture;
 	return rGraph->addResource(texture);
 }
 
-ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, BufferResource* buffer)
+ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer)
 {
 	buffer->name = name;
 	buffer->type = ResourceBase::ResourceType::Buffer;
 	return rGraph->addResource(buffer);
 }
 
-ResourceHandle RenderGraphBuilder::addInput(const ResourceHandle input)
+AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name, const ResourceHandle resource)
 {
-	return rPass->addInput(input);
+    AttachmentInfo info;
+    info.name = name;
+    info.resource = resource;
+    
+    AttachmentHandle handle = rgraph->addAttachment(info);
+    rPass->addInput(handle);
+    return handle;
 }
 
-ResourceHandle RenderGraphBuilder::addOutput(const ResourceHandle output)
+AttachmentHandle RenderGraphBuilder::addOutputAttachment(Util::String name, const ResourceHandle resource)
 {
-	return rPass->addOutput(output);
+    AttachmentInfo info;
+    info.name = name;
+    info.resource = resource;
+    
+    AttachmentHandle handle = rgraph->addAttachment(info);
+    rPass->addOutput(handle);
+    return handle;
 }
 
-void RenderGraphBuilder::addThreadedExecute(ExecuteFunc&& func)
-{
-	rPass->addExecute(std::move(func));
-}
-void RenderPass::addRenderTarget(RTargetHandle& handle)
-{
-}
 
-ResourceHandle RenderPass::addInput(const ResourceHandle input)
+
+ResourceHandle RenderPass::addRead(const ResourceHandle read)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(inputs.begin(), inputs.end());
+	auto iter = std::find_if(readers.begin(), readers.end());
 	if (iter != inputs.end())
 	{
 		return *iter;
 	}
-	inputs.emplace_back(input);
-	return input;
+	readers.emplace_back(read);
+	return read;
 }
 
-ResourceHandle RenderPass::addOutput(const ResourceHandle output)
+ResourceHandle RenderPass::addWrite(const ResourceHandle write)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(outputs.begin(), outputs.end());
-	if (iter != outputs.end())
+	auto iter = std::find_if(writers.begin(), writers.end());
+	if (iter != writers.end())
 	{
 		return *iter;
 	}
-	outputs.emplace_back(output);
-	return output;
+	writers.emplace_back(write);
+	return write;
 }
 
 void RenderGraph::addExecute(ExecuteFunc&& func)
@@ -112,16 +111,16 @@ void RenderGraph::CullResourcsAndPasses(ResourceBase* resource)
     
     if (rpass)
     {
-        --rpass->outputRef;
+        --rpass->writeRef;
         
-        // this pass has no more ouput dependencies so can be culled
-        if (rpass->outputRef == 0)
+        // this pass has no more write attahment dependencies so can be culled
+        if (rpass->writeRef == 0)
         {
-            for (ResourceHandle& handle : rpass->inputs)
+            for (ResourceHandle& handle : rpass->readers)
             {
                 ResourceBase* rsrc = resources[handle];
-                --resource->inputCount;
-                if (rsrc->inputCount == 0)
+                --resource->readCount;
+                if (rsrc->readCount == 0)
                 {
                     // no input dependencies, so cull too
                     CullResourcsAndPasses(rsrc);
@@ -136,17 +135,17 @@ void RenderGraph::compile()
 	
     for (RenderPass& rpass : renderPasses)
 	{
-        rpass->outputCount = rpass->writes.size();
+        rpass->outputCount = rpass->writers.size();
         
-        // work out how many resources are inputs into this pass
-		for (ResourceHandle& handle : rpass.inputs)
+        // work out how many resources are input attachments into this pass
+		for (ResourceHandle& handle : rpass.readers)
 		{
 			ResourceBase* resource = resources[handle];
-			++resource->inputCount;
+			++resource->readCount;
 		}
 
 		// and the outputs for this pass
-		for (ResourceHandle& handle : rpass.outputs)
+		for (ResourceHandle& handle : rpass.writers)
 		{
 			ResourceBase* resource = resources[handle];
 			resource->outputPass = &rpass;

@@ -45,10 +45,13 @@ public:
 
 	void addRenderTarget(RTargetHandle& handle);
 
-	ResourceHandle addInput(ResourceHandle input);
+    // adds a input attachment reader handle to the pass
+	ResourceHandle addRead(ResourceHandle input);
+    
+    // adds a colour/depth/stencil attachment writer to the pass
+	ResourceHandle addWrite(ResourceHandle output);
 
-	ResourceHandle addOutput(ResourceHandle output);
-
+    // A callback function which will be called each frame
 	void addExecute(ExecuteFunc&& func);
 
 	friend class RenderGraph;
@@ -58,11 +61,11 @@ private:
     RenderGraph* rgraph = nullptr;
     
 	// a list of taergets associated with this pass.
-	std::vector<RTargetHandle> targetHandles;
+	std::vector<RTargetHandle> targets;
 
 	// a list of handles of input and output attachments
-	std::vector<ResourceHandle> inputs;
-	std::vector<ResourceHandle> outputs;
+	std::vector<ResourceHandle> readers;    // input attachments
+	std::vector<ResourceHandle> writers;    // colour/depth/stencil attachments
 
 	// the eecute function to be used by this pass
 	ExecuteFunc executeFunc = nullptr;
@@ -92,29 +95,25 @@ public:
 	RenderGraphBuilder(RenderGraph* rGraph, RenderPass* rPass);
 
 	/**
-	* @ brief Creates a new render target and assigns the attachment
+	* @ creates a texture resource for using as a render target in a graphics  pass
 	*/
-	RTargetHandle createRenderTarget(Util::String name, Attachment& decsr);
+    ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture);
+    
+    /**
+    * @ creates a buffer resource for using as a render target in a compute pass
+    */
+    ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer);
 
 	/**
-	* @ creates a new virtual texture based on the user definitions
+	* @brief Adds a input attachment to the render pass. A resource must be created beforehand by callin either **createTexture**
+     * for a graphics pipeline or **createBuffer** for a compute pipeline
 	*/
-	ResourceHandle createTexture(Util::String name, TextureResource* descr);
+	AttachmentHandle addInputAttachment(Util::String name, const ResourceHandle resource);
 
 	/**
-	* @brief Creates a buffer resource target
+	* @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass
 	*/
-	ResourceHandle createBuffer(Util::String name, BufferResource* buffer);
-
-	/**
-	* @brief Adds a input such as a texture resource to the render target
-	*/
-	ResourceHandle addInput(const ResourceHandle input);
-
-	/**
-	* @brief Adds a output such as a texture resource to the render target
-	*/
-	ResourceHandle addOutput(const ResourceHandle output);
+    AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
     
     /**
      * @brief Adds the execution lamda to the renderpass - this will be executed each frame

@@ -7,6 +7,7 @@
 namespace OmegaEngine
 {
 
+using AttachmentHandle = uint64_t;
 using ResourceHandle = uint64_t;
 
 /**
@@ -14,12 +15,13 @@ using ResourceHandle = uint64_t;
 */
 struct TextureResource : public ResourceBase
 {
-	uint8_t level = 0;
-	uint32_t width = 0;
-	uint32_t height = 0;
-	uint8_t depth = 1;		//< 3d textures not supported at present
-	TextureFormat format = TextureFormat::FLOAT32;
-	
+    // the image information which will be used to create the image view
+    uint8_t level = 0;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint8_t depth = 1;        //< 3d textures not supported at present
+    uint8_t samples = 0;        //< For mult-sampling. Not used at present
+    TextureFormat format = TextureFormat::FLOAT32;  //< The format will determine the type of attachment
 };
 
 /**
@@ -33,11 +35,35 @@ struct BufferResource : public ResourceBase
 
 struct ResourceBase
 {
-	enum class ResourceType
+    uint32_t reference = 0;
+    
+    // ==== variables set by the compiler =====
+    // the number of passes this resource is being used as a input
+    size_t inputCount = 0;
+
+    // the renderpass that this resource is used as a output
+    RenderPass* outputPass = nullptr;
+}
+
+struct AttachmentInfo
+{
+	// The type of resource associated with this attachment
+    enum class ResourceType
 	{
 		Texture,
 		Buffer
 	};
+    
+    // At the moment, vulkan doesn't support compute subpasses. Thus,
+    // if a compute stage is required. Then the renderpass will end, and the
+    // compute pass will be deployed, and any remaining graphic passes will be
+    // started in another pass after the compute finishes. This isn't ideal performance wise, as switching
+    // between different pipelines is expensive, so compute calls should be batched, ideally before the the graphics renderpass
+    enum class RenderPassType
+    {
+        Graphics,
+        Compute
+    }
 
 	virtual ~ResourceBase() = default;
 	ResourceBase(const ResourceBase&) = delete;
@@ -46,30 +72,11 @@ struct ResourceBase
 	Util::String name;
 	size_t index;
 	ResourceType type;
-
-	// ==== variables set by the compiler =====
-	// the number of passes this resource is being used as a input
-	size_t inputCount = 0;
-
-	// the renderpass that this resource is used as a output
-	RenderPass* outputPass = nullptr;
+    
+    // a handle to the resource data which is held by the graph
+    ResourceHandle resource;
 };
 
-class AttachmentInfo
-{
-public:
 
-
-private:
-
-	ResourceBase* resource;
-};
-
-struct Attachment
-{
-	AttachmentInfo colour;
-	AttachmentInfo depth;
-	uint8_t samples = 0;		//< For mult-sampling. Not used at present
-};
 
 }    // namespace OmegaEngine
