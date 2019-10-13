@@ -25,6 +25,23 @@ enum class FinalLayoutType
 	PresentKHR
 };
 
+class FrameBuffer
+{
+public:
+
+	FrameBuffer() = default;
+
+	void prepare(RenderPass& rpass, std::vector<vk::ImageView>& imageViews, uint32_t width, uint32_t height,
+	             uint32_t layerCount = 1);
+
+private:
+	
+	uint32_t width = 0;
+	uint32_t height = 0;
+
+	vk::Framebuffer framebuffer;
+};
+
 class RenderPass
 {
 

@@ -1,6 +1,11 @@
 #include "RenderGraph.h"
 
+#include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/Image.h"
+#include "VulkanAPI/RenderPass.h"
+
 #include <algorithm>
+#include <assert.h>
 #include <stdint.h>
 
 namespace OmegaEngine
@@ -28,57 +33,97 @@ ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase*
 
 AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name, const ResourceHandle resource)
 {
-    AttachmentInfo info;
-    info.name = name;
-    info.resource = resource;
-    
-    AttachmentHandle handle = rgraph->addAttachment(info);
-    rPass->addInput(handle);
-    return handle;
+	AttachmentInfo info;
+	info.name = name;
+	info.resource = resource;
+
+	AttachmentHandle handle = rGraph->addAttachment(info);
+	rPass->addInput(handle);
+	return handle;
 }
 
 AttachmentHandle RenderGraphBuilder::addOutputAttachment(Util::String name, const ResourceHandle resource)
 {
-    AttachmentInfo info;
-    info.name = name;
-    info.resource = resource;
-    
-    AttachmentHandle handle = rgraph->addAttachment(info);
-    rPass->addOutput(handle);
-    return handle;
+	AttachmentInfo info;
+	info.name = name;
+	info.resource = resource;
+
+	AttachmentHandle handle = rGraph->addAttachment(info);
+	rPass->addOutput(handle);
+	return handle;
 }
 
+AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
+{
+}
 
-
-ResourceHandle RenderPass::addRead(const ResourceHandle read)
+ResourceHandle RenderPass::addInput(const ResourceHandle read)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(readers.begin(), readers.end());
+	auto iter = std::find_if(inputs.begin(), inputs.end());
 	if (iter != inputs.end())
 	{
 		return *iter;
 	}
-	readers.emplace_back(read);
+	inputs.emplace_back(read);
 	return read;
 }
 
-ResourceHandle RenderPass::addWrite(const ResourceHandle write)
+ResourceHandle RenderPass::addOutput(const ResourceHandle write)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(writers.begin(), writers.end());
-	if (iter != writers.end())
+	auto iter = std::find_if(outputs.begin(), outputs.end());
+	if (iter != outputs.end())
 	{
 		return *iter;
 	}
-	writers.emplace_back(write);
+	outputs.emplace_back(write);
 	return write;
+}
+
+void RenderPass::bake()
+{
+	switch (type)
+	{
+	case RenderPassType::Graphics:
+	{
+		// add the output attachments
+		for (AttachmentHandle handle : outputs)
+		{
+			AttachmentInfo attach = rgraph->attachments[handle];
+			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
+			renderpass->addOutputAttachment(tex->format, tex->reference, tex->clearFlags);
+		}
+
+		// input attachments
+		for (AttachmentHandle handle : inputs)
+		{
+			AttachmentInfo attach = rgraph->attachments[handle];
+			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
+			renderpass->addInputAttachment(tex->reference);
+		}
+
+		for (auto& subpass : subpasses)
+		{
+			renderpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
+			renderpass->addSubpassDependency(subpass.dependency);
+		}
+
+		// finally create the renderpass
+		renderpass->prepare();
+		break;
+	}
+	case RenderPassType::Compute:
+	{
+		break;
+	}
+	}
 }
 
 void RenderGraph::addExecute(ExecuteFunc&& func)
 {
-	
 }
 
 RenderGraphBuilder RenderGraph::createRenderPass(Util::String name)
@@ -90,13 +135,6 @@ RenderGraphBuilder RenderGraph::createRenderPass(Util::String name)
 	return { this, &renderPasses.back() };
 }
 
-RenderTarget& RenderGraph::addRenderTarget(Util::String name, Attachment& descr)
-{
-	size_t index = renderTargets.size();
-	renderTargets.emplace_back(name, descr, index);
-	return renderTargets.back();
-}
-
 ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 {
 	size_t index = resources.size();
@@ -104,41 +142,41 @@ ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 	return index;
 }
 
-void RenderGraph::CullResourcsAndPasses(ResourceBase* resource)
+void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 {
-    // the render pass that uses this resource as an output
-    RenderPass* rpass = resource->outputPass;
-    
-    if (rpass)
-    {
-        --rpass->writeRef;
-        
-        // this pass has no more write attahment dependencies so can be culled
-        if (rpass->writeRef == 0)
-        {
-            for (ResourceHandle& handle : rpass->readers)
-            {
-                ResourceBase* rsrc = resources[handle];
-                --resource->readCount;
-                if (rsrc->readCount == 0)
-                {
-                    // no input dependencies, so cull too
-                    CullResourcsAndPasses(rsrc);
-                }
-            }
-        }
-    }
+	// the render pass that uses this resource as an output
+	RenderPass* rpass = resource->outputPass;
+
+	if (rpass)
+	{
+		--rpass->writeRef;
+
+		// this pass has no more write attahment dependencies so can be culled
+		if (rpass->writeRef == 0)
+		{
+			for (ResourceHandle& handle : rpass->readers)
+			{
+				ResourceBase* rsrc = resources[handle];
+				--resource->readCount;
+				if (rsrc->readCount == 0)
+				{
+					// no input dependencies, so cull too
+					CullResourcesAndPasses(rsrc);
+				}
+			}
+		}
+	}
 }
 
 void RenderGraph::compile()
 {
-	
-    for (RenderPass& rpass : renderPasses)
+
+	for (RenderPass& rpass : renderPasses)
 	{
-        rpass->outputCount = rpass->writers.size();
-        
-        // work out how many resources are input attachments into this pass
-		for (ResourceHandle& handle : rpass.readers)
+		rpass.reference = rpass.outputs.size();
+
+		// work out how many resources are input attachments into this pass
+		for (ResourceHandle& handle : rpass.inputs)
 		{
 			ResourceBase* resource = resources[handle];
 			++resource->readCount;
@@ -151,37 +189,74 @@ void RenderGraph::compile()
 			resource->outputPass = &rpass;
 		}
 	}
-    
-    // cull passes and reources
-    for (ResourceBase* resource : resources)
-    {
-        // we can't cull resources which are used as inputs for passes
-        if (resource->inputCount == 0)
-        {
-            CullResourcesAndPasses(resource);
-        }
-    }
-    
-    // tidy up reference counts - total references, both inputs and outputs
-    for (ResourceBase* resource : resources)
-    {
-        resource->refCount += resource->inputCount;
-    }
-    
-    // bake the resources - this is carried out if this is a newly
-    // created resource or non-persistant
-    
-    
-    // Now work out the discard flags for each pass
-    
-    // And the dependencies
-    
-    // Finally create the renderpass and framebuffers
-    
-    // Create the command buffers that will be needed by the pass
-    // Command buffers are created each frame and destroyed at the end,
-    // whether re-using command buffers could give a performance advantage, this
-    // is something maybe to have as an option
+
+	// cull passes and reources
+	for (ResourceBase* resource : resources)
+	{
+		// we can't cull resources which are used as inputs for passes
+		if (resource->inputCount == 0)
+		{
+			CullResourcesAndPasses(resource);
+		}
+	}
+
+	// tidy up reference counts - total references, both inputs and outputs
+	for (ResourceBase* resource : resources)
+	{
+		resource->refCount += resource->inputCount;
+	}
+
+	// Now work out the discard flags for each pass
+
+	// And the dependencies
+}
+
+void RenderGraph::initRenderPass()
+{
+	for (RenderPass& rpass : renderPasses)
+	{
+		switch (rpass.type)
+		{
+		case RenderPass::RenderPassType::Graphics:
+		{
+			std::vector<VulkanAPI::ImageView> views(rpass.outputs.size());
+			for (size_t i = 0; rpass.outputs.size(); ++i)
+			{
+				AttachmentHandle handle = rpass.outputs[i];
+				assert(handle < attachments.size());
+				AttachmentInfo& attach = attachments[handle];
+
+				// bake the resources
+				views[i] = attach.bake();
+			}
+
+			// create the renderpass
+			rpass.bake();
+
+			// create the framebuffer - this is linked to the renderpass
+			rpass.framebuffer->prepare(rpass, views, rpass.width, rpass.height);
+
+			// and the command buffer - this is linked to both the pass and frame buffer
+			rpass.cmdBuffer->prepare(rpass, rpass.framebuffer, rpass.width, rpass.height);
+
+			break;
+		}
+
+		case RenderPass::RenderPassType::Compute:
+		{
+			break;
+		}
+		}
+	}
+}
+
+void RenderGraph::prepare()
+{
+	// start by optimising the graph and fillimng out the structure
+	compile();
+
+	// init the renderpass resources - command buffer, frame buffers, etc.
+	initRenderPass();
 }
 
 }    // namespace OmegaEngine

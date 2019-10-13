@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Managers/AssetManager.h"
-#include "Types/MappedTexture.h"
+#include "Types/Texture.h"
 
-#include "Managers/EventManager.h"
 #include "VulkanAPI/Common.h"
 
-#include "VulkanAPI/Types/Texture.h"
+#include "VulkanAPI/Types/VkTexture.h"
 
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"

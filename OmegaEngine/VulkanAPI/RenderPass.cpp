@@ -1,8 +1,25 @@
 #include "RenderPass.h"
-#include "VulkanAPI/Device.h"
+#include "VulkanAPI/VkContext.h"
 
 namespace VulkanAPI
 {
+
+// ========================= frame buffer =================================
+
+void FrameBuffer::prepare(RenderPass& rpass, std::vector<vk::ImageView>& imageViews, uint32_t width, uint32_t height,
+                                    uint32_t layerCount)
+{
+	assert(imageViews.size() > 0);
+
+	// store locally the screen extents for use later
+	this->width = width;
+	this->height = height;
+
+	vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
+	                                    layerCount);
+
+	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+}
 
 RenderPass::RenderPass()
 {
@@ -292,22 +309,7 @@ void RenderPass::prepareFramebuffer(const vk::ImageView imageView, uint32_t widt
 	framebuffers.emplace_back(std::move(frameBuffer));
 }
 
-void RenderPass::prepareFramebuffer(uint32_t size, vk::ImageView* imageView, uint32_t width, uint32_t height,
-                                    uint32_t layerCount)
-{
-	assert(imageView);
-	assert(renderpass);
 
-	// store locally the screen extents for use later
-	imageWidth = width;
-	imageHeight = height;
-
-	vk::FramebufferCreateInfo frameInfo({}, renderpass, size, imageView, width, height, layerCount);
-
-	vk::Framebuffer frameBuffer;
-	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &frameBuffer));
-	framebuffers.emplace_back(std::move(frameBuffer));
-}
 
 vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index)
 {

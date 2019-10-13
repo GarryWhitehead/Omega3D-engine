@@ -11,7 +11,9 @@
 namespace VulkanAPI
 {
 class CommandBuffer;
-}
+class FrameBuffer;
+class RenderPass;
+}    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
@@ -25,65 +27,63 @@ struct RGraphContext
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
 };
 
-class RTargetHandle
-{
-public:
-	RTargetHandle(const uint64_t h)
-	{
-		handle = h;
-	}
-
-private:
-	uint64_t handle;
-};
-
 using ExecuteFunc = std::function<void(RenderingInfo&, RGraphContext&)>;
 
 class RenderPass
 {
 public:
+	// At the moment, vulkan doesn't support compute subpasses. Thus,
+	// if a compute stage is required. Then the renderpass will end, and the
+	// compute pass will be deployed, and any remaining graphic passes will be
+	// started in another pass after the compute finishes. This isn't ideal performance wise, as switching
+	// between different pipelines is expensive, so compute calls should be batched, ideally before the the graphics renderpass
+	enum class RenderPassType
+	{
+		Graphics,
+		Compute
+	};
 
-	void addRenderTarget(RTargetHandle& handle);
+	// not copyable
+	RenderPass(const RenderPass&) = delete;
+	RenderPass& operator=(const RenderPass&) = delete;
 
-    // adds a input attachment reader handle to the pass
-	ResourceHandle addRead(ResourceHandle input);
-    
-    // adds a colour/depth/stencil attachment writer to the pass
-	ResourceHandle addWrite(ResourceHandle output);
+	// adds a input attachment reader handle to the pass
+	ResourceHandle addInput(ResourceHandle input);
 
-    // A callback function which will be called each frame
+	// adds a colour/depth/stencil attachment writer to the pass
+	ResourceHandle addOutput(ResourceHandle output);
+
+	// A callback function which will be called each frame
 	void addExecute(ExecuteFunc&& func);
+
+	// creates the vulkan renderpass
+	void bake();
 
 	friend class RenderGraph;
 
 private:
 
-    RenderGraph* rgraph = nullptr;
-    
-	// a list of taergets associated with this pass.
-	std::vector<RTargetHandle> targets;
+	RenderGraph* rgraph = nullptr;
+
+	RenderPassType type;
 
 	// a list of handles of input and output attachments
-	std::vector<ResourceHandle> readers;    // input attachments
-	std::vector<ResourceHandle> writers;    // colour/depth/stencil attachments
+	std::vector<ResourceHandle> inputs;     // input attachments
+	std::vector<ResourceHandle> outputs;    // colour/depth/stencil attachments
 
-	// the eecute function to be used by this pass
+	// the execute function to be used by this pass
 	ExecuteFunc executeFunc = nullptr;
-    
-    // compiler set.....
-    // reference count for the number of outputs
-    size_t outputRef = 0;
 
-};
+	// compiler set.....
+	// reference count for the number of outputs
+	size_t outputRef = 0;
 
-struct RenderTarget
-{
-	Util::String name;
+	// vulkan specific
+	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
+	VulkanAPI::RenderPass* renderpass = nullptr;
 
-	uint64_t rPassIndex = 0;
-
-	// the target descriptor
-	std::vector<Attachment> attachments;
+	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
+	std::vector<VulkanAPI::FrameBuffer*> framebuffer;
 };
 
 /**
@@ -97,12 +97,12 @@ public:
 	/**
 	* @ creates a texture resource for using as a render target in a graphics  pass
 	*/
-    ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture);
-    
-    /**
+	ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture);
+
+	/**
     * @ creates a buffer resource for using as a render target in a compute pass
     */
-    ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer);
+	ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer);
 
 	/**
 	* @brief Adds a input attachment to the render pass. A resource must be created beforehand by callin either **createTexture**
@@ -113,13 +113,13 @@ public:
 	/**
 	* @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass
 	*/
-    AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
-    
-    /**
+	AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
+
+	/**
      * @brief Adds the execution lamda to the renderpass - this will be executed each frame
      *      on its own thread using secondary command buffers
      */
-    void addThreadedExecute(ExecuteFunc&& func);
+	void addThreadedExecute(ExecuteFunc&& func);
 
 private:
 	// a reference to the graph and pass we are building
@@ -130,44 +130,54 @@ private:
 class RenderGraph
 {
 public:
-	
-
 	/**
 	* @brief Creates a new renderpass. 
 	* @param name The name of this pass
+	* @ return A convience render graph builder which is used by the user to create the defined pass
 	*/
 	RenderGraphBuilder createRenderPass(Util::String name);
 
 	/**
-	* @brief Create a new instance of a render target based on the supplied descriptor
-	* @param name The name of this target. Will be used to reference
-	* @param descr A descriptor to use for this target
-	* @return A reference to the newly created target
+	* @brief Takes the user-defined graph and builds the render pass.
+	* The following procedures are carried out:
+	* 1. optimisation of the graph and compilation
+	* 2. init render passes, framebuffers and command buffers for each pass
+	* 3. 
 	*/
-	RenderTarget& addRenderTarget(Util::String name, Attachment& descr);
+	void prepare();
+
 
 	/**
-	* @brief Creates a new target resource
+	* The execution of the render pass. You must build the pass and call **prepare** before this function
 	*/
-	ResourceHandle addResource(ResourceBase* resource);
-
-	void compile();
-
 	void execute();
 
-private:
-    
-    void CullResourcsAndPasses(ResourceBase* resource);
-    
-private:
-	// all of the render targets accociated with this graph
-	std::vector<RenderTarget> renderTargets;
+	friend class RenderGraphBuilder;
+	friend class RenderPass;
 
+private:
+	void CullResourcesAndPasses(ResourceBase* resource);
+
+	// Creates a new target resource
+	ResourceHandle addResource(ResourceBase* resource);
+
+	// adds a new attachment to the graph
+	AttachmentHandle addAttachment(AttachmentInfo& info);
+
+	void initRenderPass();
+
+	// optimises the render graph if possible and fills in all the blanks - i.e. referneces, flags, etc.
+	void compile();
+
+private:
 	// a list of all the render passes
 	std::vector<RenderPass> renderPasses;
 
 	// a virtual list of all the resources associated with this graph
 	std::vector<ResourceBase*> resources;
+
+	// The entirety of the attachments for this graph
+	std::vector<AttachmentInfo> attachments;
 };
 
 }    // namespace OmegaEngine
