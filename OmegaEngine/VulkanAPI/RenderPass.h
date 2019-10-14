@@ -55,9 +55,14 @@ public:
 		return renderpass;
 	}
     
-    // Adds a attahment, including reference for this pass. This can be a colour, input or depth attachment - what this will be used as will be deferred by **addSubpass**
-    // Note: if the format is a depth/stencil format, then this will be added as a depth attachment
+    // Adds a attahment for this pass. This can be a colour or depth attachment
 	void addAttachment(const vk::Format format, const vk::ImageLayout initialLayout, const vk::ImageLayout finalLayout, const size_t reference, ClearFlags clearFlags);
+    
+    // adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
+    void addInputRef(const uint32_t reference);
+    
+    // adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
+    void addOutputRef(const uint32_t reference);
     
     // Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
 	bool addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef = UINT32_MAX);
@@ -84,16 +89,22 @@ private:
         vk::AttachmentReference* depth = nullptr;
     };
     
+    struct OutputReferenceInfo
+    {
+        vk::AttachmentReference ref;
+        size_t index;   // points to the attachment description for this ref.
+    };
+    
 private:
     // keep a refernece of the device this pass was created on for destruction purposes
 	vk::Device device;
 
 	vk::RenderPass renderpass;
     
-    using Attachment = std::pair<vk::AttachmentDescription, vk::AttachmentReference>;
-    
     // the colour/input attachments
-	std::unordered_map<uint32_t, Attachment> attachments;
+	std::vector<vk::AttachmentDescription> attachments;
+    std::vector<OutputReferenceInfo> outputRefs;
+    std::vector<vk::AttachmentReference> inputRefs;
     
     // subpasses - could be a single or multipass
 	std::vector<vk::SubpassDescription> subpasses;
@@ -111,6 +122,8 @@ class FrameBuffer
 {
 public:
 
+    FrameBuffer() = default;
+    
     FrameBuffer(VkContext& context) :
         device(context.getDevice())
     {}

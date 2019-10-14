@@ -60,16 +60,6 @@ public:
 		return swapchain;
 	}
 
-	vk::Format& getSurfaceFormat()
-	{
-		return surfaceFormat.format;
-	}
-
-	uint32_t getImageCount() const
-	{
-		return static_cast<uint32_t>(imageViews.size());
-	}
-
 	uint32_t getExtentsHeight() const
 	{
 		return extent.height;
@@ -80,28 +70,15 @@ public:
 		return extent.width;
 	}
 
-	uint32_t getImageIndex() const
-	{
-		return imageIndex;
-	}
-
-	RenderPass& getRenderpass()
-	{
-		return *renderpass;
-	}
+    
 
 private:
+    
+    // the dimensions of the current swapchain
 	vk::Extent2D extent;
+    
+    // a swapchain based on the present surface type
 	vk::SwapchainKHR swapchain;
 
-	std::vector<ImageView> imageViews;
-
-	// current image
-	uint32_t imageIndex = 0;
-
-	// swapchain presentation renderpass data
-	std::unique_ptr<RenderPass> renderpass;
-	std::unique_ptr<Texture> depthTexture;
-	std::array<vk::ClearValue, 2> clearValues = {};
 };
 }    // namespace VulkanAPI

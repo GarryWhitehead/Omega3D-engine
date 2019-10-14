@@ -11,7 +11,7 @@
 namespace VulkanAPI
 {
 class CommandBuffer;
-class FrameBuffer;
+//class FrameBuffer;
 class RenderPass;
 }    // namespace VulkanAPI
 

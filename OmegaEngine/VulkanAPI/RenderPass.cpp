@@ -5,23 +5,6 @@
 namespace VulkanAPI
 {
 
-// ========================= frame buffer =================================
-
-void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
-                                    uint32_t layerCount)
-{
-	assert(imageViews.size() > 0);
-
-	// store locally the screen extents for use later
-	this->width = width;
-	this->height = height;
-
-	vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
-	                                    layerCount);
-
-	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
-}
-
 RenderPass::RenderPass(VkContext& context)
     : device(context.getDevice())
 {
@@ -61,25 +44,8 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 	return result;
 }
 
-void RenderPass::addAttachment(const vk::Format format, const vk::ImageLayout initialLayout, const vk::ImageLayout finalLayout, const size_t reference, RenderPass::ClearFlags& clearFlags)
+void RenderPass::addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout, const vk::ImageLayout finalLayout, const size_t reference, RenderPass::ClearFlags& clearFlags)
 {
-	vk::ImageLayout finalLayout;
-	switch (layoutType)
-	{
-	case FinalLayoutType::Auto:
-		finalLayout = getFinalTransitionLayout(format);
-		break;
-	case FinalLayoutType::PresentKHR:
-		finalLayout = vk::ImageLayout::ePresentSrcKHR;
-		break;
-	case FinalLayoutType::ColourAttach:
-		finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
-		break;
-	case FinalLayoutType::DepthAttach:
-		finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
-		break;
-	}
-    
     // the description of this attachment
     vk::AttachmentDescription attachDescr;
     attachDescr.format = foramt;
@@ -98,14 +64,26 @@ void RenderPass::addAttachment(const vk::Format format, const vk::ImageLayout in
 	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, finalLayout);
     
-    // and the reference
+    attachments.emplace_back(attachDescr);
+    
+    // reference to the attachment
+    OutputReferenceInfo info;
+    info.ref.attachment = reference;
+    info.ref.layout = finalLayout;
+    info.index = attachments.size() - 1;
+    
+    outputRefs.emplace_back(ref);
+}
+
+void RenderPass::addInputRef(const uint32_t reference)
+{
+    // obtain the layout from the output ref - this also acts as a sanity check that a reader
+    // has a writer
     vk::AttachmentReference ref;
     ref.attachment = reference;
     ref.layout = finalLayout;
     
-	attachment.push_back(attachDescr);
-    
-    
+    inputRefs.emplace_back(ref);
 }
 
 bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
@@ -309,5 +287,23 @@ vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t index)
 
 	return beginInfo;
 }
+
+// ========================= frame buffer =================================
+
+void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
+                                    uint32_t layerCount)
+{
+    assert(imageViews.size() > 0);
+
+    // store locally the screen extents for use later
+    this->width = width;
+    this->height = height;
+
+    vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
+                                        layerCount);
+
+    VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+}
+
 
 }    // namespace VulkanAPI

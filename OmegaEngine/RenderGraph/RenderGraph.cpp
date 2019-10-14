@@ -85,20 +85,26 @@ void RenderGraphPass::bake()
 	{
 	case RenderPassType::Graphics:
 	{
-		// add the output attachments
+    
+        // add the output attachments
 		for (AttachmentHandle handle : outputs)
 		{
 			AttachmentInfo attach = rgraph->attachments[handle];
-			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
-			renderpass->addOutputAttachment(tex->format, tex->reference, tex->clearFlags);
+            TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
+            
+            // add a colour attachment
+            renderpass->addAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
+            
+            // add the reference
+			renderpass->addInputRef(tex->referenceId);
 		}
 
 		// input attachments
 		for (AttachmentHandle handle : inputs)
 		{
 			AttachmentInfo attach = rgraph->attachments[handle];
-			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
-			renderpass->addInputAttachment(tex->reference);
+			BaseResource* tex = rgraph->resources[attach.resource];
+			renderpass->addOutputRef(tex->reference);
 		}
 
 		for (auto& subpass : subpasses)
@@ -257,6 +263,11 @@ void RenderGraph::prepare()
 
 	// init the renderpass resources - command buffer, frame buffers, etc.
 	initRenderPass();
+}
+
+void RenderGraph::execute()
+{
+    
 }
 
 }    // namespace OmegaEngine

@@ -133,10 +133,7 @@ private:
 	VulkanAPI::Queue presentQueue;
 	VulkanAPI::Queue computeQueue;
 
-	// the images views for rendering via the framebuffer
-	std::vector<VkImageView> imageViews;
-
-	// and syncig semaphores for the swapchain
+	// and syncing semaphores for the swapchain
 	vk::Semaphore imageSemaphore;
 	vk::Semaphore presentSemaphore;
 

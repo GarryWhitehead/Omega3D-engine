@@ -3,12 +3,30 @@
 #include "utility/String.h"
 
 #include <cstdint>
+#include <cstddef>
 
 namespace OmegaEngine
 {
 
+// forward declerations
+class RenderGraphPass;
+
 using AttachmentHandle = uint64_t;
 using ResourceHandle = uint64_t;
+
+struct ResourceBase
+{
+    Util::String name;
+
+    uint32_t referenceId = 0;
+
+    // ==== variables set by the compiler =====
+    // the number of passes this resource is being used as a input
+    size_t inputCount = 0;
+
+    // the renderpass that this resource is used as a output
+    RenderGraphPass* outputPass = nullptr;
+};
 
 /**
 * @brief All the information needed to build a vulkan texture
@@ -31,20 +49,6 @@ struct BufferResource : public ResourceBase
 {
 	size_t size;
 	VulkanAPI::BufferType type;
-};
-
-struct ResourceBase
-{
-	Util::String name;
-
-	uint32_t reference = 0;
-
-	// ==== variables set by the compiler =====
-	// the number of passes this resource is being used as a input
-	size_t inputCount = 0;
-
-	// the renderpass that this resource is used as a output
-	RenderPass* outputPass = nullptr;
 };
 
 struct AttachmentInfo
@@ -72,6 +76,7 @@ struct AttachmentInfo
 
 	// a handle to the resource data which is held by the graph
 	ResourceHandle resource;
+    
 };
 
 
