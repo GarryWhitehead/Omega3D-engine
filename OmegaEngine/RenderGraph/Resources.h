@@ -2,8 +2,8 @@
 
 #include "utility/String.h"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 namespace OmegaEngine
 {
@@ -16,16 +16,16 @@ using ResourceHandle = uint64_t;
 
 struct ResourceBase
 {
-    Util::String name;
+	Util::String name;
 
-    uint32_t referenceId = 0;
+	uint32_t referenceId = 0;
 
-    // ==== variables set by the compiler =====
-    // the number of passes this resource is being used as a input
-    size_t inputCount = 0;
+	// ==== variables set by the compiler =====
+	// the number of passes this resource is being used as a input
+	size_t inputCount = 0;
 
-    // the renderpass that this resource is used as a output
-    RenderGraphPass* outputPass = nullptr;
+	// the renderpass that this resource is used as a output
+	RenderGraphPass* outputPass = nullptr;
 };
 
 /**
@@ -70,13 +70,15 @@ struct AttachmentInfo
 	AttachmentInfo(const AttachmentInfo&) = delete;
 	AttachmentInfo& operator=(const AttachmentInfo&) = delete;
 
+	// creates the 'actual' vulkan resource associated with this attachment
+	void bake();
+
 	Util::String name;
 	size_t index;
 	ResourceType type;
 
 	// a handle to the resource data which is held by the graph
 	ResourceHandle resource;
-    
 };
 
 

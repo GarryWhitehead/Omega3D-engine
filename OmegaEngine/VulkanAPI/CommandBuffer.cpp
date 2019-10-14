@@ -28,22 +28,10 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 	return bindPoint;
 }
 
-CommandBuffer::CommandBuffer()
-{
-}
 
-CommandBuffer::CommandBuffer(vk::Device dev, uint32_t index)
-    : device(dev)
-    , queueFamilyIndex(index)
-    , usageType(UsageType::Single)
-{
-	// create a cmd pool for this buffer
-	createCmdPool();
-}
-
-CommandBuffer::CommandBuffer(vk::Device dev, uint32_t index, UsageType type)
-    : device(dev)
-    , queueFamilyIndex(index)
+CommandBuffer::CommandBuffer(VkContext& context, const UsageType type)
+    : device(context.getDevice())
+    , queueFamilyIndex(context.getFamilyIndex())
     , usageType(type)
 {
 	// create a cmd pool for this buffer
@@ -52,16 +40,7 @@ CommandBuffer::CommandBuffer(vk::Device dev, uint32_t index, UsageType type)
 
 CommandBuffer::~CommandBuffer()
 {
-}
-
-void CommandBuffer::init(vk::Device dev, uint32_t index)
-{
-	device = dev;
-	queueFamilyIndex = index;
-	usageType = UsageType::Single;
-
-	// create a cmd pool for this buffer
-	createCmdPool();
+	device.destroy(cmdPool);
 }
 
 void CommandBuffer::createPrimary()
@@ -257,9 +236,6 @@ void CommandBuffer::drawQuad()
 }
 
 // secondary command buffer functions ===========================
-SecondaryCommandBuffer::SecondaryCommandBuffer()
-{
-}
 
 SecondaryCommandBuffer::SecondaryCommandBuffer(vk::Device dev, uint32_t index, vk::RenderPass& rpass,
                                                vk::Framebuffer& fbuffer, vk::Viewport& view, vk::Rect2D& _scissor)

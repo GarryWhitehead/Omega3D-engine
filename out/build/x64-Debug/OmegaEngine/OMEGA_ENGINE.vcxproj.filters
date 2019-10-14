@@ -109,6 +109,9 @@
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\RenderGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

@@ -147,7 +147,7 @@ ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 {
 	// the render pass that uses this resource as an output
-	RenderPass* rpass = resource->outputPass;
+	RenderGraphPass* rpass = resource->outputPass;
 
 	if (rpass)
 	{
@@ -177,7 +177,7 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 void RenderGraph::compile()
 {
 
-	for (RenderPass& rpass : renderPasses)
+	for (RenderGraphPass& rpass : renderPasses)
 	{
 		rpass.reference = rpass.outputs.size();
 
@@ -219,11 +219,11 @@ void RenderGraph::compile()
 
 void RenderGraph::initRenderPass()
 {
-	for (RenderPass& rpass : renderPasses)
+	for (RenderGraphPass& rpass : renderPasses)
 	{
 		switch (rpass.type)
 		{
-		case RenderPass::RenderPassType::Graphics:
+		case RenderGraphPass::RenderPassType::Graphics:
 		{
 			std::vector<VulkanAPI::ImageView> views(rpass.outputs.size());
 			for (size_t i = 0; rpass.outputs.size(); ++i)
@@ -243,12 +243,14 @@ void RenderGraph::initRenderPass()
 			rpass.framebuffer->prepare(rpass, views, rpass.width, rpass.height);
 
 			// and the command buffer - this is linked to both the pass and frame buffer
-			rpass.cmdBuffer->prepare(rpass, rpass.framebuffer, rpass.width, rpass.height);
+			rpass.cmdBuffer->prepare();
+
+			// also setup secondary buffers if needed
 
 			break;
 		}
 
-		case RenderPass::RenderPassType::Compute:
+		case RenderGraphPass::RenderPassType::Compute:
 		{
 			break;
 		}

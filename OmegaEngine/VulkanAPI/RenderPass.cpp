@@ -2,6 +2,10 @@
 
 #include "VulkanAPI/VkContext.h"
 
+#include "utility/Logger.h"
+
+#include <assert.h>
+
 namespace VulkanAPI
 {
 
@@ -12,7 +16,26 @@ RenderPass::RenderPass(VkContext& context)
 
 RenderPass::~RenderPass()
 {
-    device.destroy(renderpass);
+	device.destroy(renderpass);
+}
+
+
+vk::AttachmentLoadOp RenderPass::clearFlagsToVk(const ClearType flags)
+{
+	vk::AttachmentLoadOp result;
+	switch(flags)
+	{
+	case ClearType::Clear: 
+		result = vk::AttachmentLoadOp::eClear;
+		break;
+	case ClearType::DontCare:
+		result = vk::AttachmentLoadOp::eDontCare;
+		break;
+	case ClearType::Store:
+		result = vk::AttachmentLoadOp::eLoad;
+		break;
+	}
+	return result;
 }
 
 bool RenderPass::isDepth(const vk::Format format)
@@ -44,94 +67,99 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 	return result;
 }
 
-void RenderPass::addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout, const vk::ImageLayout finalLayout, const size_t reference, RenderPass::ClearFlags& clearFlags)
+void RenderPass::addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout,
+                                     const vk::ImageLayout finalLayout, const size_t reference, ClearFlags& clearFlags, uint32_t sampleCount)
 {
-    // the description of this attachment
-    vk::AttachmentDescription attachDescr;
-    attachDescr.format = foramt;
-    attachDescr.initialLayout = initalLayout;
-    attachDescr.finalLayout = finalLayout;
-    
-    // clear flags
-    attachDescr.loadOp = clearFlagsToVk(clearFlags.attachLoad);               // pre image state
-    attachDescr.storeOp = clearFlagsToVk(clearFlags.attachStore);             // post image state
-    attachDescr.stencilLoadOp = clearFlagsToVk(clearFlags.stencilLoad);       // pre stencil state
-    attachDescr.stencilStoreOp = clearFlagsToVk(clearFlags.stencilStore);     // post stencil state
-    
+	// the description of this attachment
+	vk::AttachmentDescription attachDescr;
+	attachDescr.format = format;
+	attachDescr.initialLayout = initialLayout;
+	attachDescr.finalLayout = finalLayout;
+
+	// samples
+	attachDescr.samples = samplesToVk(sampleCount);
+
+	// clear flags
+	attachDescr.loadOp = clearFlagsToVk(clearFlags.attachLoad);              // pre image state
+	attachDescr.storeOp = clearFlagsToVk(clearFlags.attachStore);            // post image state
+	attachDescr.stencilLoadOp = clearFlagsToVk(clearFlags.stencilLoad);      // pre stencil state
+	attachDescr.stencilStoreOp = clearFlagsToVk(clearFlags.stencilStore);    // post stencil state
+
 	vk::AttachmentDescription attachDescr(
 	    {}, format, vk::SampleCountFlagBits::e1,
 	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
 	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
 	    vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, finalLayout);
-    
-    attachments.emplace_back(attachDescr);
-    
-    // reference to the attachment
-    OutputReferenceInfo info;
-    info.ref.attachment = reference;
-    info.ref.layout = finalLayout;
-    info.index = attachments.size() - 1;
-    
-    outputRefs.emplace_back(ref);
+
+	attachments.emplace_back(attachDescr);
+
+	// reference to the attachment
+	OutputReferenceInfo info;
+	info.ref.attachment = reference;
+	info.ref.layout = finalLayout;
+	info.index = attachments.size() - 1;
+
+	outputRefs.emplace_back(info);
 }
 
 void RenderPass::addInputRef(const uint32_t reference)
 {
-    // obtain the layout from the output ref - this also acts as a sanity check that a reader
-    // has a writer
-    vk::AttachmentReference ref;
-    ref.attachment = reference;
-    ref.layout = finalLayout;
-    
-    inputRefs.emplace_back(ref);
+	// obtain the layout from the output ref - this also acts as a sanity check that a reader
+	// has a writer
+	vk::AttachmentReference ref;
+	ref.attachment = reference;
+	ref.layout = finalLayout;
+
+	inputRefs.emplace_back(ref);
 }
 
 bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
 {
-    assert(!colorRef.empty() || !inputRef.empty());
+	assert(!colorRef.empty() || !inputRef.empty());
 
 	// override default subpass with user specified subpass
-    SubPassInfo subpass;
-	subpass.descr.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;  // only graphic renderpasses supported at present
-    
-    // sort out the colour refs
-    for (uint32_t& ref : outputRefs)
-    {
-        auto iter = attachments.find(ref);
-        if (iter == attachments.end())
-        {
-            LOGGER_ERROR("Inavlid colour attachment reference.");
-            return false;
-        }
-        
-        subpass.colourRefs.emplace_back(*iter.second);
-    }
-    
-    // and the input refs
-    for (uint32_t& ref : inputRefs)
-    {
-        auto iter = attachments.find(ref);
-        if (iter == attachments.end())
-        {
-            LOGGER_ERROR("Inavlid input attachment reference.");
-            return false;
-        }
-        
-        subpass.inputRefs.emplace_back(*iter.second);
-    }
-    
-    // and the dpeth if required
-    if (depthRef != UINT32_MAX)
-    {
-        auto iter = attachments.find(depthRef);
-        if (iter == attachments.end())
-        {
-            LOGGER_ERROR("Inavlid depth attachment reference.");
-            return false;
-        }
-        subpass.depth = &*iter.second;
-    }
-    
+	SubPassInfo subpass;
+	subpass.descr.pipelineBindPoint =
+	    vk::PipelineBindPoint::eGraphics;    // only graphic renderpasses supported at present
+
+	// sort out the colour refs
+	for (uint32_t& ref : outputRefs)
+	{
+		auto iter = attachments.find(ref);
+		if (iter == attachments.end())
+		{
+			LOGGER_ERROR("Inavlid colour attachment reference.");
+			return false;
+		}
+
+		subpass.colourRefs.emplace_back(*iter.second);
+	}
+
+	// and the input refs
+	for (uint32_t& ref : inputRefs)
+	{
+		auto iter = attachments.find(ref);
+		if (iter == attachments.end())
+		{
+			LOGGER_ERROR("Inavlid input attachment reference.");
+			return false;
+		}
+
+		subpass.inputRefs.emplace_back(*iter.second);
+	}
+
+	// and the dpeth if required
+	if (depthRef != UINT32_MAX)
+	{
+		auto iter = attachments.find(depthRef);
+		if (iter == attachments.end())
+		{
+			LOGGER_ERROR("Inavlid depth attachment reference.");
+			return false;
+		}
+		subpass.depth = &*iter.second;
+	}
+
 	subpass.descr.colorAttachmentCount = static_cast<uint32_t>(subpass.colourRefs.size());
 	subpass.descr.pColorAttachments = subpass.colourRefs.data();
 
@@ -228,17 +256,17 @@ void RenderPass::addSubpassDependency(DependencyTemplate dependencyTemplate, uin
 	dependency.push_back(depend);
 }
 
-void RenderPass::prepareRenderPass()
+void RenderPass::prepare()
 {
-    // copy all the subpass declerations into one container
-    std::vector<vk::SubpassDescription> descrs;
-    for (SubpassInfo& subpass : subpasses)
-    {
-        descrs.emplace_back(subpass.descr);
-    }
-    
-    assert(!descrs.empty);
-    
+	// copy all the subpass declerations into one container
+	std::vector<vk::SubpassDescription> descrs;
+	for (SubpassInfo& subpass : subpasses)
+	{
+		descrs.emplace_back(subpass.descr);
+	}
+
+	assert(!descrs.empty);
+
 	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachment.size()), attachment.data(),
 	                                    static_cast<uint32_t>(descrs.size()), descrs.data(),
 	                                    static_cast<uint32_t>(dependency.size()), dependency.data());
@@ -291,18 +319,18 @@ vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t index)
 // ========================= frame buffer =================================
 
 void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
-                                    uint32_t layerCount)
+                          uint32_t layerCount)
 {
-    assert(imageViews.size() > 0);
+	assert(imageViews.size() > 0);
 
-    // store locally the screen extents for use later
-    this->width = width;
-    this->height = height;
+	// store locally the screen extents for use later
+	this->width = width;
+	this->height = height;
 
-    vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
-                                        layerCount);
+	vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
+	                                    layerCount);
 
-    VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
 }
 
 

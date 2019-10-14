@@ -10,37 +10,34 @@ class PipelineLayout;
 struct Buffer;
 class DescriptorSet;
 enum class PipelineType;
+class VkContext;
 
 class SecondaryCommandBuffer
 {
 
 public:
-	SecondaryCommandBuffer();
-	SecondaryCommandBuffer(vk::Device dev, uint32_t index, vk::RenderPass &rpass,
-	                       vk::Framebuffer &fbuffer, vk::Viewport &view, vk::Rect2D &_scissor);
+	SecondaryCommandBuffer(vk::Device dev, uint32_t index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer,
+	                       vk::Viewport& view, vk::Rect2D& _scissor);
 	~SecondaryCommandBuffer();
 
-	void init(vk::Device dev, uint32_t index, vk::RenderPass &rpass, vk::Framebuffer &fbuffer,
-	          vk::Viewport &view, vk::Rect2D &_scissor);
+	void init(vk::Device dev, uint32_t index, vk::RenderPass& rpass, vk::Framebuffer& fbuffer, vk::Viewport& view,
+	          vk::Rect2D& _scissor);
 	void create();
 	void begin();
 	void end();
 
 	// secondary binding functions
-	void bindPipeline(Pipeline &pipeline);
-	void bindDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-	                     PipelineType type);
-	void bindDynamicDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-	                            PipelineType type, std::vector<uint32_t> &dynamicOffsets);
-	void bindDynamicDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-	                            PipelineType type, uint32_t &dynamicOffset);
-	void bindDynamicDescriptors(PipelineLayout &pipelineLayout,
-	                            std::vector<vk::DescriptorSet> &descriptorSet, PipelineType type,
-	                            std::vector<uint32_t> &dynamicOffsets);
-	void bindPushBlock(PipelineLayout &pipelineLayout, vk::ShaderStageFlags stage, uint32_t size,
-	                   void *data);
-	void bindVertexBuffer(vk::Buffer &buffer, vk::DeviceSize offset);
-	void bindIndexBuffer(vk::Buffer &buffer, uint32_t offset);
+	void bindPipeline(Pipeline& pipeline);
+	void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type);
+	void bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type,
+	                            std::vector<uint32_t>& dynamicOffsets);
+	void bindDynamicDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type,
+	                            uint32_t& dynamicOffset);
+	void bindDynamicDescriptors(PipelineLayout& pipelineLayout, std::vector<vk::DescriptorSet>& descriptorSet,
+	                            PipelineType type, std::vector<uint32_t>& dynamicOffsets);
+	void bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+	void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);
+	void bindIndexBuffer(vk::Buffer& buffer, uint32_t offset);
 
 	void setViewport();
 	void setScissor();
@@ -50,12 +47,12 @@ public:
 	void drawIndexed(const uint32_t indexCount, const uint32_t indexOffset);
 
 	// helper funcs
-	vk::CommandBuffer &get()
+	vk::CommandBuffer& get()
 	{
 		return cmdBuffer;
 	}
 
-	vk::CommandPool &getCmdPool()
+	vk::CommandPool& getCmdPool()
 	{
 		return cmdPool;
 	}
@@ -88,41 +85,36 @@ public:
 		Multi
 	};
 
-	CommandBuffer();
-	CommandBuffer(vk::Device dev, uint32_t index);
-	CommandBuffer(vk::Device dev, uint32_t index, UsageType type);
+	CommandBuffer(VkContext& context, const UsageType type);
 	~CommandBuffer();
 
-	void init(vk::Device dev, uint32_t index);
 	void createPrimary();
 
-	void beginRenderpass(vk::RenderPassBeginInfo &beginInfo, bool useSecondary = false);
-	void beginRenderpass(vk::RenderPassBeginInfo &beginInfo, vk::Viewport &viewPort);
+	void beginRenderpass(vk::RenderPassBeginInfo& beginInfo, bool useSecondary = false);
+	void beginRenderpass(vk::RenderPassBeginInfo& beginInfo, vk::Viewport& viewPort);
 	void endRenderpass();
 	void end();
 
 	// viewport, scissors, etc.
 	void setViewport();
 	void setScissor();
-	void setViewport(const vk::Viewport &viewPort);
-	void setScissor(const vk::Rect2D &scissor);
+	void setViewport(const vk::Viewport& viewPort);
+	void setScissor(const vk::Rect2D& scissor);
 
 	// primary binding functions
-	void bindPipeline(Pipeline &pipeline);
-	void bindDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-	                     PipelineType type);
-	void bindDescriptors(PipelineLayout &pipelineLayout, DescriptorSet &descriptorSet,
-	                     uint32_t offsetCount, uint32_t *offsets, PipelineType type);
-	void bindPushBlock(PipelineLayout &pipelineLayout, vk::ShaderStageFlags stage, uint32_t size,
-	                   void *data);
-	void bindVertexBuffer(vk::Buffer &buffer, vk::DeviceSize offset);
-	void bindIndexBuffer(vk::Buffer &buffer, uint32_t offset);
+	void bindPipeline(Pipeline& pipeline);
+	void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type);
+	void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, uint32_t offsetCount,
+	                     uint32_t* offsets, PipelineType type);
+	void bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+	void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);
+	void bindIndexBuffer(vk::Buffer& buffer, uint32_t offset);
 
 	// dynamic bindings
 	void setDepthBias(float biasConstant, float biasClamp, float biasSlope);
 
 	// secondary buffers
-	SecondaryCommandBuffer &createSecondary();
+	SecondaryCommandBuffer& createSecondary();
 	void createSecondary(uint32_t count);
 
 	// functions to execute all secondary buffers associated with this cmd buffer
@@ -137,12 +129,12 @@ public:
 	void createCmdPool();
 
 	// helper funcs
-	vk::CommandBuffer &get()
+	vk::CommandBuffer& get()
 	{
 		return cmdBuffer;
 	}
 
-	vk::CommandPool &getCmdPool()
+	vk::CommandPool& getCmdPool()
 	{
 		return cmdPool;
 	}
@@ -177,4 +169,4 @@ private:
 	vk::CommandPool cmdPool;
 };
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

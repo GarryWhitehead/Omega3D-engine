@@ -166,6 +166,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\PostProcess\PostProcessInterface.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\RenderGraph.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\RenderGraph.h" />
+    <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.h" />
     <ClCompile Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.cpp" />
     <ClInclude Include="C:\Users\GARRY\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.h" />

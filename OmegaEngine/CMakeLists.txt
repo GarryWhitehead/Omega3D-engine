@@ -108,7 +108,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
 	RenderGraph/RenderGraph.cpp RenderGraph/RenderGraph.h
-	RenderGraph/Resources.h
+	RenderGraph/Resources.cpp RenderGraph/Resources.h
 
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
 	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
