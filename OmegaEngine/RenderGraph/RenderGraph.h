@@ -29,7 +29,7 @@ struct RGraphContext
 
 using ExecuteFunc = std::function<void(RenderingInfo&, RGraphContext&)>;
 
-class RenderPass
+class RenderGraphPass
 {
 public:
 	// At the moment, vulkan doesn't support compute subpasses. Thus,
@@ -44,8 +44,8 @@ public:
 	};
 
 	// not copyable
-	RenderPass(const RenderPass&) = delete;
-	RenderPass& operator=(const RenderPass&) = delete;
+	RenderGraphPass(const RenderGraphPass&) = delete;
+	RenderGraphPass& operator=(const RenderGraphPass&) = delete;
 
 	// adds a input attachment reader handle to the pass
 	ResourceHandle addInput(ResourceHandle input);
@@ -80,7 +80,7 @@ private:
 
 	// vulkan specific
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
-	VulkanAPI::RenderPass* renderpass = nullptr;
+	VulkanAPI::RenderGraphPass* renderpass = nullptr;
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
 	std::vector<VulkanAPI::FrameBuffer*> framebuffer;
@@ -92,7 +92,7 @@ private:
 class RenderGraphBuilder
 {
 public:
-	RenderGraphBuilder(RenderGraph* rGraph, RenderPass* rPass);
+	RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass);
 
 	/**
 	* @ creates a texture resource for using as a render target in a graphics  pass
@@ -124,7 +124,7 @@ public:
 private:
 	// a reference to the graph and pass we are building
 	RenderGraph* rGraph = nullptr;
-	RenderPass* rPass = nullptr;
+	RenderGraphPass* rPass = nullptr;
 };
 
 class RenderGraph
@@ -153,7 +153,7 @@ public:
 	void execute();
 
 	friend class RenderGraphBuilder;
-	friend class RenderPass;
+	friend class RenderGraphPass;
 
 private:
 	void CullResourcesAndPasses(ResourceBase* resource);

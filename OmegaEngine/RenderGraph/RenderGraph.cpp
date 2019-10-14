@@ -11,7 +11,7 @@
 namespace OmegaEngine
 {
 
-RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderPass* rPass)
+RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass)
 {
 	this->rGraph = rGraph;
 	this->rPass = rPass;
@@ -53,11 +53,7 @@ AttachmentHandle RenderGraphBuilder::addOutputAttachment(Util::String name, cons
 	return handle;
 }
 
-AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
-{
-}
-
-ResourceHandle RenderPass::addInput(const ResourceHandle read)
+ResourceHandle RenderGraphPass::addInput(const ResourceHandle read)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
@@ -70,7 +66,7 @@ ResourceHandle RenderPass::addInput(const ResourceHandle read)
 	return read;
 }
 
-ResourceHandle RenderPass::addOutput(const ResourceHandle write)
+ResourceHandle RenderGraphPass::addOutput(const ResourceHandle write)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
@@ -83,7 +79,7 @@ ResourceHandle RenderPass::addOutput(const ResourceHandle write)
 	return write;
 }
 
-void RenderPass::bake()
+void RenderGraphPass::bake()
 {
 	switch (type)
 	{
@@ -166,6 +162,10 @@ void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 			}
 		}
 	}
+}
+
+AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
+{
 }
 
 void RenderGraph::compile()
