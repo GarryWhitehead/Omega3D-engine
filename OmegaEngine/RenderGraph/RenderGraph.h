@@ -105,10 +105,9 @@ public:
 	ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer);
 
 	/**
-	* @brief Adds a input attachment to the render pass. A resource must be created beforehand by callin either **createTexture**
-     * for a graphics pipeline or **createBuffer** for a compute pipeline
+	* @brief Adds a input attachment to the render pass. There must be a corresponding output attachment otherwise returns UINT64_MAX as error.
 	*/
-	AttachmentHandle addInputAttachment(Util::String name, const ResourceHandle resource);
+	AttachmentHandle addInputAttachment(Util::String name);
 
 	/**
 	* @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass

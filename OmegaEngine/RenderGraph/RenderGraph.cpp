@@ -4,6 +4,8 @@
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
 
+#include "utility/Logger.h"
+
 #include <algorithm>
 #include <assert.h>
 #include <stdint.h>
@@ -31,13 +33,16 @@ ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase*
 	return rGraph->addResource(buffer);
 }
 
-AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name, const ResourceHandle resource)
+AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name)
 {
-	AttachmentInfo info;
-	info.name = name;
-	info.resource = resource;
-
-	AttachmentHandle handle = rGraph->addAttachment(info);
+    // link the input with the outputted resource
+    AttachmentHandle handle = rGraph->findAttachment(name);
+    if (handle == UINT64_MAX)
+    {
+        LOGGER_ERROR("Unable to find corresponding output attachment.");
+        return UINT64_MAX;
+    }
+    
 	rPass->addInput(handle);
 	return handle;
 }
@@ -268,6 +273,11 @@ void RenderGraph::prepare()
 }
 
 void RenderGraph::execute()
+{
+    
+}
+
+AttachmentHandle RenderGraph::findAttachment(Util::String attach)
 {
     
 }
