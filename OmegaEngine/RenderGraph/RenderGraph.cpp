@@ -19,30 +19,29 @@ RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPa
 	this->rPass = rPass;
 }
 
-ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture)
+ResourceHandle RenderGraphBuilder::createTexture(const uint32_t width, const uint32_t height, const vk::Format format,
+                                                 uint32_t levels, uint32_t layers)
 {
-	texture->name = name;
-	texture->type = ResourceBase::ResourceType::Texture;
-	return rGraph->addResource(texture);
+	TextureResource* tex = new TextureResource(width, height, format, levels, layers);
+	return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 
-ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer)
+ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
 {
-	buffer->name = name;
 	buffer->type = ResourceBase::ResourceType::Buffer;
-	return rGraph->addResource(buffer);
+	return rGraph->addResource(reinterpret_cast<ResourceBase*>(buffer));
 }
 
 AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name)
 {
-    // link the input with the outputted resource
-    AttachmentHandle handle = rGraph->findAttachment(name);
-    if (handle == UINT64_MAX)
-    {
-        LOGGER_ERROR("Unable to find corresponding output attachment.");
-        return UINT64_MAX;
-    }
-    
+	// link the input with the outputted resource
+	AttachmentHandle handle = rGraph->findAttachment(name);
+	if (handle == UINT64_MAX)
+	{
+		LOGGER_ERROR("Unable to find corresponding output attachment.");
+		return UINT64_MAX;
+	}
+
 	rPass->addInput(handle);
 	return handle;
 }
@@ -56,6 +55,14 @@ AttachmentHandle RenderGraphBuilder::addOutputAttachment(Util::String name, cons
 	AttachmentHandle handle = rGraph->addAttachment(info);
 	rPass->addOutput(handle);
 	return handle;
+}
+
+void RenderGraphBuilder::addExecute(ExecuteFunc&& func, void* renderData, uint32_t secCmdBufferCount)
+{
+	assert(func);
+	assert(renderData);
+
+	rPass->addExecute(std::move(func), renderData, secCmdBufferCount);
 }
 
 ResourceHandle RenderGraphPass::addInput(const ResourceHandle read)
@@ -90,36 +97,36 @@ void RenderGraphPass::bake()
 	{
 	case RenderPassType::Graphics:
 	{
-    
-        // add the output attachments
+
+		// add the output attachments
 		for (AttachmentHandle handle : outputs)
 		{
 			AttachmentInfo attach = rgraph->attachments[handle];
-            TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
-            
-            // add a colour attachment
-            renderpass->addAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
-            
-            // add the reference
-			renderpass->addInputRef(tex->referenceId);
+			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
+
+			// add a colour attachment
+			rpass->addAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
+
+			// add the reference
+			rpass->addInputRef(tex->referenceId);
 		}
 
 		// input attachments
 		for (AttachmentHandle handle : inputs)
 		{
 			AttachmentInfo attach = rgraph->attachments[handle];
-			BaseResource* tex = rgraph->resources[attach.resource];
-			renderpass->addOutputRef(tex->reference);
+			ResourceBase* tex = rgraph->resources[attach.resource];
+			rpass->addOutputRef(tex->referenceId);
 		}
 
 		for (auto& subpass : subpasses)
 		{
-			renderpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
-			renderpass->addSubpassDependency(subpass.dependency);
+			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
+			rpass->addSubpassDependency(subpass.dependency);
 		}
 
 		// finally create the renderpass
-		renderpass->prepare();
+		rpass->prepare();
 		break;
 	}
 	case RenderPassType::Compute:
@@ -129,8 +136,9 @@ void RenderGraphPass::bake()
 	}
 }
 
-void RenderGraph::addExecute(ExecuteFunc&& func)
+void RenderGraphPass::addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount)
 {
+	execute = ExecuteInfo{ func, userData, threadCount };
 }
 
 RenderGraphBuilder RenderGraph::createRenderPass(Util::String name)
@@ -250,8 +258,6 @@ void RenderGraph::initRenderPass()
 			// and the command buffer - this is linked to both the pass and frame buffer
 			rpass.cmdBuffer->prepare();
 
-			// also setup secondary buffers if needed
-
 			break;
 		}
 
@@ -274,12 +280,20 @@ void RenderGraph::prepare()
 
 void RenderGraph::execute()
 {
-    
 }
 
-AttachmentHandle RenderGraph::findAttachment(Util::String attach)
+AttachmentHandle RenderGraph::findAttachment(Util::String req)
 {
-    
+	uint64_t index = 0;
+	for (AttachmentInfo& attach : attachments)
+	{
+		if (attach.name.compare(req))
+		{
+			return index;
+		}
+		++index;
+	}
+	return UINT64_MAX;
 }
 
 }    // namespace OmegaEngine

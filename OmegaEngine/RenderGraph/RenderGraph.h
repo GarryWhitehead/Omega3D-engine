@@ -11,7 +11,7 @@
 namespace VulkanAPI
 {
 class CommandBuffer;
-//class FrameBuffer;
+class FrameBuffer;
 class RenderPass;
 }    // namespace VulkanAPI
 
@@ -27,7 +27,7 @@ struct RGraphContext
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
 };
 
-using ExecuteFunc = std::function<void(RenderingInfo&, RGraphContext&)>;
+using ExecuteFunc = std::function<void(RGraphContext&)>;
 
 class RenderGraphPass
 {
@@ -54,7 +54,7 @@ public:
 	ResourceHandle addOutput(ResourceHandle output);
 
 	// A callback function which will be called each frame
-	void addExecute(ExecuteFunc&& func);
+	void addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount);
 
 	// creates the vulkan renderpass
 	void bake();
@@ -62,7 +62,14 @@ public:
 	friend class RenderGraph;
 
 private:
+	struct ExecuteInfo
+	{
+		ExecuteFunc func;
+		void* data = nullptr;
+		uint32_t threads = 0;
+	};
 
+private:
 	RenderGraph* rgraph = nullptr;
 
 	RenderPassType type;
@@ -72,7 +79,7 @@ private:
 	std::vector<ResourceHandle> outputs;    // colour/depth/stencil attachments
 
 	// the execute function to be used by this pass
-	ExecuteFunc executeFunc = nullptr;
+	ExecuteInfo execute;
 
 	// compiler set.....
 	// reference count for the number of outputs
@@ -80,7 +87,7 @@ private:
 
 	// vulkan specific
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
-	VulkanAPI::RenderGraphPass* renderpass = nullptr;
+	VulkanAPI::RenderPass* rpass = nullptr;
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
 	std::vector<VulkanAPI::FrameBuffer*> framebuffer;
@@ -97,12 +104,13 @@ public:
 	/**
 	* @ creates a texture resource for using as a render target in a graphics  pass
 	*/
-	ResourceHandle RenderGraphBuilder::createTexture(Util::String name, ResourceBase* texture);
+	ResourceHandle RenderGraphBuilder::createTexture(const uint32_t width, const uint32_t height,
+	                                                 const vk::Format format, uint32_t levels = 1, uint32_t layers = 1);
 
 	/**
     * @ creates a buffer resource for using as a render target in a compute pass
     */
-	ResourceHandle RenderGraphBuilder::createBuffer(Util::String name, ResourceBase* buffer);
+	ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer);
 
 	/**
 	* @brief Adds a input attachment to the render pass. There must be a corresponding output attachment otherwise returns UINT64_MAX as error.
@@ -115,10 +123,14 @@ public:
 	AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
 
 	/**
-     * @brief Adds the execution lamda to the renderpass - this will be executed each frame
-     *      on its own thread using secondary command buffers
+     * @brief Adds a function to execute each frame for this renderpass 
+	 * @param func The function to execute. Must be of the format (void*)(RenderPassContext&)
+	 * @param renderData The data for the execution function
+	 * @param secCmdBufferCount If this is greater than zero, then the data will be sliced into 
+	 * data chunks and executed on seperate threads
+     *  
      */
-	void addThreadedExecute(ExecuteFunc&& func);
+	void addExecute(ExecuteFunc&& func, void* renderData, uint32_t secCmdBufferCount = 0);
 
 private:
 	// a reference to the graph and pass we are building
@@ -163,6 +175,9 @@ private:
 	// adds a new attachment to the graph
 	AttachmentHandle addAttachment(AttachmentInfo& info);
 
+	// finds an attachment by name and returns its handle. Returns UNIT64_MAX if invalid name.
+	AttachmentHandle findAttachment(Util::String attach);
+
 	void initRenderPass();
 
 	// optimises the render graph if possible and fills in all the blanks - i.e. referneces, flags, etc.
@@ -170,7 +185,7 @@ private:
 
 private:
 	// a list of all the render passes
-	std::vector<RenderPass> renderPasses;
+	std::vector<RenderGraphPass> renderPasses;
 
 	// a virtual list of all the resources associated with this graph
 	std::vector<ResourceBase*> resources;

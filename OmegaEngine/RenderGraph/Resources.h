@@ -16,8 +16,20 @@ using ResourceHandle = uint64_t;
 
 struct ResourceBase
 {
-	Util::String name;
+	enum class ResourceType
+	{
+		Texture,
+		Buffer
+	};
 
+	virtual ~ResourceBase() = default;
+	ResourceBase(const ResourceType rtype)
+	    : type(rtype)
+	{
+	}
+
+	Util::String name;
+	ResourceType type;
 	uint32_t referenceId = 0;
 
 	// ==== variables set by the compiler =====
@@ -33,13 +45,22 @@ struct ResourceBase
 */
 struct TextureResource : public ResourceBase
 {
+	TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level,
+	                const uint8_t layers)
+	    : width(width)
+	    , height(height)
+	    , format(format)
+	    , level(level)
+	    , layers(layers)
+	    , ResourceBase(ResourceType::Texture)
+	{
+	}
 	// the image information which will be used to create the image view
-	uint8_t level = 0;
 	uint32_t width = 0;
 	uint32_t height = 0;
-	uint8_t depth = 1;                                //< 3d textures not supported at present
-	uint8_t samples = 0;                              //< For mult-sampling. Not used at present
-	TextureFormat format = TextureFormat::FLOAT32;    //< The format will determine the type of attachment
+	uint8_t layers = 1;                            //< 3d textures not supported at present
+	uint8_t level = 0;                             //< For mult-sampling. Not used at present
+	vk::Format format = vk::Format::eUndefined;    //< The format will determine the type of attachment
 };
 
 /**
@@ -53,13 +74,6 @@ struct BufferResource : public ResourceBase
 
 struct AttachmentInfo
 {
-	// The type of resource associated with this attachment
-	enum class ResourceType
-	{
-		Texture,
-		Buffer
-	};
-
 	AttachmentInfo()
 	{
 	}
@@ -75,7 +89,7 @@ struct AttachmentInfo
 
 	Util::String name;
 	size_t index;
-	ResourceType type;
+	uint8_t samples = 0;
 
 	// a handle to the resource data which is held by the graph
 	ResourceHandle resource;

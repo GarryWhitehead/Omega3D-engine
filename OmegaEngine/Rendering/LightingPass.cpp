@@ -11,6 +11,9 @@ void LightingPass::init()
 {
 	RenderGraphBuilder builder = rGraph->createRenderPass("Lighting Pass");
 
+	// inputs from the deferred pass
+
+
 	// create the gbuffer textures
 	passInfo.output =
 	    builder.createTexture("lighting", { .width = 2048, .height = 2048, .format = vk::Format::eR16G16B16A16Sfloat });
