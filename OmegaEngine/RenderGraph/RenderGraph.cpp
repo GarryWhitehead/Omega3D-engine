@@ -189,10 +189,33 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 
 void RenderGraph::compile()
 {
-
-	for (RenderGraphPass& rpass : renderPasses)
+    
+    size_t totalPasses = renderPasses.size();
+    for (size_t i = totalPasses - 1; i > 0; --i)
+    {
+        RenderGraphPass& rpass = renderPasses[i];
+        
+        if (rpass.type == RenderGraphPass::RenderPassType::Graphics)
+        {
+        // are there readers(inputs) in this pass?
+        if (rpass.inputs.size() > 0)
+        {
+            for (ResourceHandle& handle : rpass.inputs)
+            {
+                
+            }
+        }
+        
+        for (ResourceHandle& handle : rpass.outputs)
+        {
+            
+        }
+        }
+    }
+	
+    for (RenderGraphPass& rpass : renderPasses)
 	{
-		rpass.reference = rpass.outputs.size();
+        rpass.reference = rpass.outputs.size();
 
 		// work out how many resources are input attachments into this pass
 		for (ResourceHandle& handle : rpass.inputs)
