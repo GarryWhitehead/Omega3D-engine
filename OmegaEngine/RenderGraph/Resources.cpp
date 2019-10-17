@@ -3,7 +3,13 @@
 namespace OmegaEngine
 {
 
-AttachmentInfo::bake()
+
+void AttachmentInfo::prepare(e)
+{
+    
+}
+
+void AttachmentInfo::bake()
 {
 
 }

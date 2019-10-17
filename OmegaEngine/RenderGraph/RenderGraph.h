@@ -20,7 +20,7 @@ namespace OmegaEngine
 
 // forward decleration
 class RenderGraph;
-class RenderingInfo;
+class RenderGraphPass;
 
 struct RGraphContext
 {
@@ -81,10 +81,14 @@ private:
 	// the execute function to be used by this pass
 	ExecuteInfo execute;
 
-	// compiler set.....
+	// ====== compiler set =========
 	// reference count for the number of outputs
-	size_t outputRef = 0;
+	size_t refCount = 0;
 
+    // the max dimesnions of the resource this pass outputs too.
+    uint32_t maxWidth = 0;
+    uint32_t maxHeight = 0;
+    
 	// vulkan specific
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
 	VulkanAPI::RenderPass* rpass = nullptr;
@@ -126,8 +130,7 @@ public:
      * @brief Adds a function to execute each frame for this renderpass 
 	 * @param func The function to execute. Must be of the format (void*)(RenderPassContext&)
 	 * @param renderData The data for the execution function
-	 * @param secCmdBufferCount If this is greater than zero, then the data will be sliced into 
-	 * data chunks and executed on seperate threads
+	 * @param secCmdBufferCount If this is greater than zero, then the data will be sliced into data chunks and executed on seperate threads
      *  
      */
 	void addExecute(ExecuteFunc&& func, void* renderData, uint32_t secCmdBufferCount = 0);
