@@ -63,6 +63,9 @@ public:
 	// adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
 	void addInputRef(const uint32_t reference);
 
+	// adds an output reference to the pass
+	void addOutputRef(const uint32_t reference);
+
 	// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
 	bool addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef = UINT32_MAX);
 

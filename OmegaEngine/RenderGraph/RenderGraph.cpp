@@ -65,30 +65,30 @@ void RenderGraphBuilder::addExecute(ExecuteFunc&& func, void* renderData, uint32
 	rPass->addExecute(std::move(func), renderData, secCmdBufferCount);
 }
 
-ResourceHandle RenderGraphPass::addInput(const ResourceHandle read)
+ResourceHandle RenderGraphPass::addInput(const ResourceHandle input)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(inputs.begin(), inputs.end());
+	auto iter = std::find(inputs.begin(), inputs.end(), input);
 	if (iter != inputs.end())
 	{
 		return *iter;
 	}
-	inputs.emplace_back(read);
-	return read;
+	inputs.emplace_back(input);
+	return input;
 }
 
-ResourceHandle RenderGraphPass::addOutput(const ResourceHandle write)
+ResourceHandle RenderGraphPass::addOutput(const ResourceHandle output)
 {
 	// make sure that this handle doesn't already exsist in the list
 	// This is just a waste of memory having reduntant resources
-	auto iter = std::find_if(outputs.begin(), outputs.end());
+	auto iter = std::find_if(outputs.begin(), outputs.end(), output);
 	if (iter != outputs.end())
 	{
 		return *iter;
 	}
-	outputs.emplace_back(write);
-	return write;
+	outputs.emplace_back(output);
+	return output;
 }
 
 void RenderGraphPass::bake()
@@ -99,36 +99,40 @@ void RenderGraphPass::bake()
 	{
 
 		// add the output attachments
-		for (AttachmentHandle handle : outputs)
+		for (ResourceHandle handle : outputs)
 		{
-			AttachmentInfo attach = rgraph->attachments[handle];
-			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[attach.resource]);
-            
-            // bake the texture
-            if (tex->width != maxWidth || tex->height != maxHeight)
-            {
-                // not exactly a reason to fatal error maybe, but warn the user
-                tex->width = maxWidth;
-                tex->height = maxHeight;
-                LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
-            }
-            tex.bake();
-            
+			ResourceBase* base = rgraph->resources[handle];
+			assert(base->type == ResourceBase::ResourceType::Texture);
+			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[handle]);
+
+			// bake the texture
+			if (tex->width != maxWidth || tex->height != maxHeight)
+			{
+				// not exactly a reason to fatal error maybe, but warn the user
+				tex->width = maxWidth;
+				tex->height = maxHeight;
+				LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
+			}
+			tex.bake();
+
 			// add a attachment
 			rpass->addOutputAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
 
 			// add the reference
-			rpass->addInputRef(tex->referenceId);
+			rpass->addOutputRef(tex->referenceId);
 		}
 
 		// input attachments
-		for (AttachmentHandle handle : inputs)
+		for (ResourceHandle handle : inputs)
 		{
-			AttachmentInfo attach = rgraph->attachments[handle];
-			ResourceBase* tex = rgraph->resources[attach.resource];
+			ResourceBase* base = rgraph->resources[handle];
+			assert(base->type == ResourceBase::ResourceType::Texture);
+			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[handle]);
+
 			rpass->addInputRef(tex->referenceId);
 		}
 
+		// if a parent pass exsists, merge this pass with that one
 		for (auto& subpass : subpasses)
 		{
 			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
@@ -177,13 +181,13 @@ void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 		--rpass->refCount;
 
 		// this pass has no more write attahment dependencies so can be culled
-		if (rpass->writeRef == 0)
+		if (rpass->refCount == 0)
 		{
 			for (ResourceHandle& handle : rpass->inputs)
 			{
 				ResourceBase* rsrc = resources[handle];
 				--resource->inputCount;
-				if (rsrc->readCount == 0)
+				if (rsrc->inputCount == 0)
 				{
 					// no input dependencies, so see if we can cull this pass
 					CullResourcesAndPasses(rsrc);
@@ -197,30 +201,30 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
 }
 
-void RenderGraph::compile()
+bool RenderGraph::compile()
 {
-    
-    for (RenderGraphPass& rpass : renderPasses)
+
+	for (RenderGraphPass& rpass : renderPasses)
 	{
-        if (rpass.type == RenderGraphPass::RenderPassTyp::Graphics)
-        {
-            // the number of resources this pass references too
-            rpass.refCount = rpass.outputs.size();
+		if (rpass.type == RenderGraphPass::RenderPassType::Graphics)
+		{
+			// the number of resources this pass references too
+			rpass.refCount = rpass.outputs.size();
 
-            // work out how many resources read from this resource
-            for (ResourceHandle& handle : rpass.inputs)
-            {
-                ResourceBase* resource = resources[handle];
-                ++resource->inputCount;
-            }
+			// work out how many resources read from this resource
+			for (ResourceHandle& handle : rpass.inputs)
+			{
+				ResourceBase* resource = resources[handle];
+				++resource->inputCount;
+			}
 
-            // for the outputs, set the pass which writes to this resource
-            for (ResourceHandle& handle : rpass.outputs)
-            {
-                ResourceBase* resource = resources[handle];
-                resource->outputPass = &rpass;
-            }
-        }
+			// for the outputs, set the pass which writes to this resource
+			for (ResourceHandle& handle : rpass.outputs)
+			{
+				ResourceBase* resource = resources[handle];
+				resource->outputPass = &rpass;
+			}
+		}
 	}
 
 	// cull passes and reources
@@ -238,24 +242,63 @@ void RenderGraph::compile()
 	{
 		resource->refCount += resource->inputCount;
 	}
-    
-    // finialise the attachments
-    for (RenderGraphPass& rpass : renderPasses)
-    {
-        // use the resource with max dimensions - they should all be identical really
-        uint32_t maxWidth, maxHeight;
-        for (const ResourceHandle handle : rpass.outputs)
-        {
-            ResourceBase* base = resources[handle];
-            if (base->type == ResourceBase::ResourceType::Texture)
-            {
-                TextureResource* tex = reinterpret_cast<TextureResource*>(base);
-                maxWidth = std::max(maxWidth, tex->width);
-                maxHeight = std::max(maxHeight, tex->height);
-            }
-        }
-    }
-    
+
+	// finialise the attachments
+	size_t passCount = renderPasses.size();
+	for (size_t i = 0; i < passCount; ++i)
+	{
+		RenderGraphPass& rpass = renderPasses[i];
+
+		// passes with no refences are treated as culled
+		if (rpass.refCount == 0)
+		{
+			continue;
+		}
+
+		uint32_t refId = 0;
+		uint32_t maxWidth, maxHeight;
+		for (const ResourceHandle handle : rpass.outputs)
+		{
+			ResourceBase* base = resources[handle];
+			if (base->type == ResourceBase::ResourceType::Texture)
+			{
+				TextureResource* tex = reinterpret_cast<TextureResource*>(base);
+
+				// used by the attachment descriptor
+				tex->referenceId = refId++;
+
+				// use the resource with max dimensions - they should all be identical really
+				maxWidth = std::max(maxWidth, tex->width);
+				maxHeight = std::max(maxHeight, tex->height);
+			}
+		}
+
+		// if the outputs from this pass are used as inputs in another pass, we can probably merge
+		// we create a linked list of passes - wth the fact that the parent isn't nullptr denoting that 
+		// these are merged. The ref count of merged passes, except for the parent is set to zero
+		// to ensure that the passes that are merged aren't also created seperately
+		// TODO: check - there maybe other circumstances in which a pass can not be merged
+		if (i < passCount - 1)
+		{
+			RenderGraphPass& nextPass = renderPasses[i + 1];
+			if (!nextPass.inputs.empty())
+			{
+				rpass.childMergePass = &nextPass;
+				rpass.refCount = 0;
+			}
+			else
+			{
+				// if the previous pass was a merge - then this will be the final pass in the merge
+				RenderGraphPass& prevPass = renderPasses[i - 1];
+				if (prevPass.childMergePass)
+				{
+					rpass.refCount = 0;
+				}
+			}
+			
+		}
+	}
+
 	// Now work out the discard flags for each pass
 
 	// And the dependencies
@@ -265,6 +308,11 @@ void RenderGraph::initRenderPass()
 {
 	for (RenderGraphPass& rpass : renderPasses)
 	{
+		if (rpass.refCount == 0)
+		{
+			continue;
+		}
+
 		switch (rpass.type)
 		{
 		case RenderGraphPass::RenderPassType::Graphics:
@@ -280,8 +328,26 @@ void RenderGraph::initRenderPass()
 				views[i] = attach.bake();
 			}
 
-			// create the renderpass
-			rpass.bake();
+			// check if this is merged - will have child passes associated with it
+			if (rpass.childMergePass)
+			{
+				// prepare this pass first
+				rpass.prepare();
+
+				// add each child pass info to this parent - creating a multi-pass
+				RenderGraphPass* child = &rpass;
+				while (!child->childMergePass)
+				{
+					child.prepare(rpass);
+					child = child->childMergePass;
+				}
+				rpass.bake();
+			}
+			else
+			{
+				// create the renderpass
+				rpass.bake();
+			}
 
 			// create the framebuffer - this is linked to the renderpass
 			rpass.framebuffer->prepare(rpass, views, rpass.width, rpass.height);

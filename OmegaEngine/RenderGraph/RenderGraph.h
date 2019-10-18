@@ -77,7 +77,7 @@ private:
 	// a list of handles of input and output attachments
 	std::vector<ResourceHandle> inputs;     // input attachments
 	std::vector<ResourceHandle> outputs;    // colour/depth/stencil attachments
-
+	
 	// the execute function to be used by this pass
 	ExecuteInfo execute;
 
@@ -85,11 +85,14 @@ private:
 	// reference count for the number of outputs
 	size_t refCount = 0;
 
-    // the max dimesnions of the resource this pass outputs too.
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-    
-	// vulkan specific
+	// the max dimesnions of the resource this pass outputs too.
+	uint32_t maxWidth = 0;
+	uint32_t maxHeight = 0;
+
+	// If this pass is mergeable, then this will point to a linked list of mergable passes
+	RenderGraphPass* childMergePass = nullptr;
+
+	// ======= vulkan specific ================
 	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
 	VulkanAPI::RenderPass* rpass = nullptr;
 
@@ -184,7 +187,7 @@ private:
 	void initRenderPass();
 
 	// optimises the render graph if possible and fills in all the blanks - i.e. referneces, flags, etc.
-	void compile();
+	bool compile();
 
 private:
 	// a list of all the render passes

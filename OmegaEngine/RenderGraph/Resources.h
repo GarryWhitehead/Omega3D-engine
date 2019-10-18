@@ -32,15 +32,17 @@ struct ResourceBase
 
 	Util::String name;
 	ResourceType type;
-	uint32_t referenceId = 0;
 
 	// ==== set by the compiler =====
 	// the number of passes this resource is being used as a input
 	size_t inputCount = 0;
 
-    // the reference count after culling
-    size_t refCount = 0;
-    
+	// the reference count after culling
+	size_t refCount = 0;
+
+	// used by the attachment descriptor
+	uint32_t referenceId = 0;
+
 	// the renderpass that this resource is used as a output
 	RenderGraphPass* outputPass = nullptr;
 };
@@ -54,9 +56,9 @@ struct TextureResource : public ResourceBase
 	                const uint8_t layers)
 	    : width(width)
 	    , height(height)
-        , layers(layers)
+	    , layers(layers)
 	    , level(level)
-        , format(format)
+	    , format(format)
 	    , ResourceBase(ResourceType::Texture)
 	{
 	}
@@ -89,9 +91,9 @@ struct AttachmentInfo
 	AttachmentInfo(const AttachmentInfo&) = delete;
 	AttachmentInfo& operator=(const AttachmentInfo&) = delete;
 
-    // finialises the attachment
-    void prepare();
-    
+	// finialises the attachment
+	void prepare();
+
 	// creates the 'actual' vulkan resource associated with this attachment
 	void bake();
 

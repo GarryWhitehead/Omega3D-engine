@@ -21,7 +21,7 @@ void LightingPass::init()
 	// create the output taragets
 	passInfo.output = builder.addOutput(passInfo.output);
 
-	builder.addThreadedExecute([](RenderingInfo& rInfo, RGraphContext& context)
+	builder.addExecute([](RenderingInfo& rInfo, RGraphContext& context)
 	{
 		vk::RenderPassBeginInfo beginInfo =
 		    forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));

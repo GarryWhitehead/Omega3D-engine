@@ -113,6 +113,15 @@ void RenderPass::addInputRef(const uint32_t reference)
 	inputRefs.emplace_back(ref);
 }
 
+void RenderPass::addOutputRef(const uint32_t reference)
+{
+	vk::AttachmentReference ref;
+	ref.attachment = reference;
+	ref.layout = ;
+
+	outputRefs.emplace_back(ref);
+}
+
 bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
 {
 	assert(!colorRef.empty() || !inputRef.empty());
