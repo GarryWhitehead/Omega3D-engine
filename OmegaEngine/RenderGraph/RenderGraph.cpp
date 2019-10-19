@@ -113,7 +113,7 @@ void RenderGraphPass::bake()
 				tex->height = maxHeight;
 				LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
 			}
-			tex.bake();
+			tex->bake();
 
 			// add a attachment
 			rpass->addOutputAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
@@ -136,7 +136,7 @@ void RenderGraphPass::bake()
 		for (auto& subpass : subpasses)
 		{
 			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
-			rpass->addSubpassDependency(subpass.dependency);
+			rpass->addSubpassDependency(subpass.depFlags);
 		}
 
 		// finally create the renderpass

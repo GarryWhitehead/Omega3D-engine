@@ -135,6 +135,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/result.h
 	utility/String.cpp utility/String.h
 	utility/Timer.cpp utility/Timer.h
+    utility/BitSetEnum.h
 	
 	VulkanAPI/Types/VkTexture.cpp VulkanAPI/Types/VkTexture.h
 
