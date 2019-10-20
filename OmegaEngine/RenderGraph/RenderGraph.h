@@ -56,7 +56,11 @@ public:
 	// A callback function which will be called each frame
 	void addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount);
 
-	// creates the vulkan renderpass
+	// init the vulkan renderpass - attachments, ref, dependencies
+	// these are can be added to a parent merged pass if defined
+	void prepare(RenderGraphPass* parent = nullptr);
+
+	// creates the vulkan renderpass. You must call **prepare()** first
 	void bake();
 
 	friend class RenderGraph;

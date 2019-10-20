@@ -91,12 +91,22 @@ ResourceHandle RenderGraphPass::addOutput(const ResourceHandle output)
 	return output;
 }
 
-void RenderGraphPass::bake()
+void RenderGraphPass::prepare(RenderGraphPass* parent)
 {
 	switch (type)
 	{
 	case RenderPassType::Graphics:
 	{
+		// if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
+		if (!parent)
+		{
+			rpass = new VulkanAPI::RenderPass(Engine.getDevContext());
+		}
+		else
+		{
+			assert(parent->rpass);
+			rpass = parent->rpass;
+		}
 
 		// add the output attachments
 		for (ResourceHandle handle : outputs)
@@ -138,9 +148,6 @@ void RenderGraphPass::bake()
 			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
 			rpass->addSubpassDependency(subpass.dependency);
 		}
-
-		// finally create the renderpass
-		rpass->prepare();
 		break;
 	}
 	case RenderPassType::Compute:
@@ -148,6 +155,12 @@ void RenderGraphPass::bake()
 		break;
 	}
 	}
+}
+
+void RenderGraphPass::bake()
+{
+	// create the renderpass
+	rpass->prepare();
 }
 
 void RenderGraphPass::addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount)
