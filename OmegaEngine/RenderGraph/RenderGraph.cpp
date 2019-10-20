@@ -97,7 +97,9 @@ void RenderGraphPass::bake()
 	{
 	case RenderPassType::Graphics:
 	{
-
+        // used for signyfing to the subpass the reference ids associated with it
+        std::vector<uint32_t> inputRefs, outputRefs;
+        
 		// add the output attachments
 		for (ResourceHandle handle : outputs)
 		{
@@ -113,6 +115,8 @@ void RenderGraphPass::bake()
 				tex->height = maxHeight;
 				LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
 			}
+            
+            outputRefs.emplace_back(tex->referenceId);
 			tex->bake();
 
 			// add a attachment
@@ -128,13 +132,12 @@ void RenderGraphPass::bake()
 			ResourceBase* base = rgraph->resources[handle];
 			assert(base->type == ResourceBase::ResourceType::Texture);
 			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[handle]);
-
+            
+            inputRefs.emplace_back(tex->referenceId);
 			rpass->addInputRef(tex->referenceId);
 		}
 
-		// if a parent pass exsists, merge this pass with that one
-		for (auto& subpass : subpasses)
-		{
+		// Add a subpass. If this is a merged pass, then this will be added to the parent
 			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
 			rpass->addSubpassDependency(subpass.depFlags);
 		}
