@@ -149,9 +149,8 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 		}
 
 		// Add a subpass. If this is a merged pass, then this will be added to the parent
-			rpass->addSubPass(subpass.inputRefs, subpass.outputRefs);
-			rpass->addSubpassDependency(subpass.depFlags);
-		}
+		rpass->addSubPass(inputRefs, outputRefs);
+		rpass->addSubpassDependency(subpass.depFlags);
 		break;
 	}
 	case RenderPassType::Compute:
