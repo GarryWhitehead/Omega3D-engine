@@ -65,6 +65,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 
 	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
 	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h
+	ImageUtils/Image2D.cpp ImageUtils/Image2D.h
 
 	Components/ComponentManager.h
 	Components/AnimationManager.cpp Components/AnimationManager.h
