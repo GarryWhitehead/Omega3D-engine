@@ -58,11 +58,11 @@ void BdrfImage::integrate()
 void IrradianceImage::prepare()
 {
     // the thread worker lamda
-    auto worker = [=](const size_t row, const size_t workSize, Image2D& image)
+    auto worker = [&](const size_t workSize, Image2D* image, const uint32_t dim, const )
     {
-        for (size_t y = row; y < workSize; ++y)
+        for (size_t y = 0; y < dim; ++y)
         {
-            for (size_t x = 0; x < dimensions; ++x)
+            for (size_t x = 0; x < dim; ++x)
             {
                 OEMaths::vec3f N = inPos.normalise();
                 OEMaths::vec3f up = OEMaths::vec3f(0.0f, 1.0f, 0.0f);
@@ -106,23 +106,13 @@ void IrradianceImage::prepare()
         
     };
     
-    // work out the load per thread
-    uint32_t threadCount = std::thread::hardware_concurrency();
-    ThreadPool threadPool(threadCount);
-    
-    size_t workSize = dimensions / threadCount;
-    
-    for (size_t mip = 0; mip < level; ++mip)
+    // a thread for each face
+    ThreadPool threadPool(CubeImage::Face::Size);
+ 
+	for (size_t face = 0; face < 6; ++face)
     {
-        for (size_t face = 0; face < 6; ++face)
-        {
-            for (size_t y = 0; y < dimensions; y += workSize)
-            {
-                auto fut = threadPool.submitTask(
-            }
-        }
+		auto fut = threadPool.submitTask();
     }
-    
 }
 
 // ==================== Pre-filtered ===============================

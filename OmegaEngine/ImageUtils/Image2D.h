@@ -10,8 +10,8 @@ namespace OmegaEngine
 template <typename pixelType>
 struct Colour2
 {
-    pixelType r;
-    pixelType g;
+	pixelType r;
+	pixelType g;
 };
 
 template <typename pixelType>
@@ -35,9 +35,8 @@ template <typename pixelType>
 class Image2D
 {
 public:
-
 	Image2D(pixelType* image, uint32_t width, uint32_t height, uint8_t channels);
-	
+
 	Image2D(ImageType type)
 	{
 		if (type == ImageType::Cube2D)
@@ -81,11 +80,11 @@ public:
 		this->width = width;
 		this->height = height;
 		this->channels = channels;
-        this->size = width * height * channels;
-        
-        // allocate image memory
-        data = new pixelType[size];
-        assert(data);
+		this->size = width * height * channels;
+
+		// allocate image memory
+		data = new pixelType[size];
+		assert(data);
 	}
 
 	/**
@@ -112,44 +111,44 @@ public:
 		assert(y <= height);
 		assert(channel <= channels);
 
-        size_t pixelPos = (x * channels) + channel + (y * width);
+		size_t pixelPos = (x * channels) + channel + (y * width);
 		return data[pixelPos];
 	}
-    
-    /**
+
+	/**
     * Retrieves a rgb value from a specific area of the image.
     * @param x The x coord in pixels
     * @param y The y coord in pixels
     * @param The face which to extract data from. This must be a cube image to be used
     */
-    Colour3 getTexel(uint32_t x, uint32_t y)
-    {
-        assert(data);
-        assert(x <= width);
-        assert(y <= height);
-        assert(channels == 3);
-    
-        size_t pixelPos = x * channels + y * width;
-        return {data[pixelPos], data[pixelPos + 1], data[pixelPos + 2]};
-    }
-    
-    /**
+	Colour3 getTexel(uint32_t x, uint32_t y)
+	{
+		assert(data);
+		assert(x <= width);
+		assert(y <= height);
+		assert(channels == 3);
+
+		size_t pixelPos = x * channels + y * width;
+		return { data[pixelPos], data[pixelPos + 1], data[pixelPos + 2] };
+	}
+
+	/**
     * Retrieves a rgba value from a specific area of the image.
     * @param x The x coord in pixels
     * @param y The y coord in pixels
     * @param The face which to extract data from. This must be a cube image to be used
     */
-    Colour4 getTexel(uint32_t x, uint32_t y)
-    {
-        assert(data);
-        assert(x <= width);
-        assert(y <= height);
-        assert(channels == 3);
+	Colour4 getTexel(uint32_t x, uint32_t y)
+	{
+		assert(data);
+		assert(x <= width);
+		assert(y <= height);
+		assert(channels == 3);
 
-        size_t pixelPos = x * channels + y * width;
-        
-        return {data[pixelPos], data[pixelPos + 1], data[pixelPos + 2]};
-    }
+		size_t pixelPos = x * channels + y * width;
+
+		return { data[pixelPos], data[pixelPos + 1], data[pixelPos + 2] };
+	}
 
 	/**
 	* Sets a pixel to the specified value at the coord point indicated. 
@@ -163,8 +162,8 @@ public:
 		assert(y <= height);
 		assert(channel <= channels);
 
-        size_t pixelPos = (x * channels) + channel + (y * width);
-        assert(pixelPos < size);
+		size_t pixelPos = (x * channels) + channel + (y * width);
+		assert(pixelPos < size);
 		data[pixelPos] = pixel;
 	}
 
@@ -180,9 +179,9 @@ public:
 		assert(y <= height);
 		assert(channels == 3 || channels == 4);
 
-        size_t pixelPos = x * channels + y * width;
-        assert(pixelPos < size);
-        
+		size_t pixelPos = x * channels + y * width;
+		assert(pixelPos < size);
+
 		data[pixelPos] = pixels.r;
 		data[pixelPos + 1] = pixels.g;
 		data[pixelPos + 2] = pixels.b;
@@ -199,7 +198,7 @@ public:
 		assert(x <= width);
 		assert(y <= height);
 		assert(channels == 4);
-		size_t pos = (x * channels) + (y * width); 
+		size_t pos = (x * channels) + (y * width);
 		data[pos] = pixel.r;
 		data[pos + 1] = pixel.g;
 		data[pos + 2] = pixel.b;
@@ -213,34 +212,16 @@ protected:
 	uint32_t width = 0;
 	uint32_t height = 0;
 	uint8_t channels = 0;
-	
-    // total size of image
-    size_t size = 0;
-	
+
+	// total size of image
+	size_t size = 0;
 };
 
 // useful types
 using Image2DU8 = Image2D<uint8_t>;
 using Image2DU16 = Image2D<uint16_t>;
-using Image2DF32 = Image2DL<float>;
+using Image2DF32 = Image2D<float>;
 
-class CubeImage : public Image2D<float>
-{
-public:
-    
-    enum class FaceType
-    {
-        pX,     // left
-        nX,     // right
-        pY,     // top
-        nY,     // bottom
-        pZ,     // back,
-        nZ      // front
-    }
-    
-private:
-    
-    Image2D faces[6];
-}
+
 
 }    // namespace OmegaEngine
