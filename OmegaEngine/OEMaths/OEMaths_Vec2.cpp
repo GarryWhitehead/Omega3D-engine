@@ -40,4 +40,28 @@ vec2f vec2f::operator*(const float& other) const
 	result.y = this->y * other;
 	return result;
 }
+
+vec2f vec2f::operator/(const vec2f& other) const
+{
+    vec2f result;
+    result.x = this->x / other.x;
+    result.y = this->y / other.y;
+    return result;
+}
+
+vec2f vec2f::operator/(const float& other) const
+{
+    vec2f result;
+    result.x = this->x / other;
+    result.y = this->y / other;
+    return result;
+}
+
+vec2f& vec2f::operator+=(const vec2f& other)
+{
+    this->x = this->x + other.x;
+    this->y = this->y + other.y;
+    return *this;
+}
+
 }    // namespace OEMaths

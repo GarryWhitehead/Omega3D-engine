@@ -1,133 +1,131 @@
 #include "IblImage.h"
 
+#include "ImageUtils/IblUtils.h"
+
+#include "Threading/ThreadPool.h"
+
 #include <algorithm>
 
 namespace OmegaEngine
 {
-
+namespace Ibl
+{
+    
+    
 // ========= BDRF ===================
-OEMaths::vec2f IblImage::hammersley(uint64_t i, uint64_t N)
+
+void BdrfImage::integrate()
 {
-	uint64_t bits = (i << 16u) | (i >> 16u);
-	bits = ((bits & 0x55555555u) << 1u) | ((bits & 0xAAAAAAAAu) >> 1u);
-	bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
-	bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
-	bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-	float rad = float(bits) * 2.3283064365386963e-10;    // 0x100000000
-	return OEMaths::vec2f(float(i) / float(N), rad);
-}
+    for (float y = 0.0f; y < static_cast<float>(dimensions); ++y)
+    {
+        for (float x = 0.0f; x < static_cast<float>(dimensions); ++x)
+        {
+            OEMaths::vec3f N = OEMaths::vec3f(0.0f, 0.0f, 1.0f);
+            OEMaths::vec3f V = OEMaths::vec3f(std::sqrt(1.0f - x * x), 0.0f, x);
 
-OEMaths::vec3f IblImage::GGX_ImportanceSample(OEMaths::vec2f Xi, OEMaths::vec3f N, float roughness)
-{
-	float a = roughness * roughness;
+            OEMaths::vec2f lut;
+            for (int c = 0; c < sampleCount; c++)
+            {
+                OEMaths::vec2f Xi = hammersley(c, sampleCount);
+                OEMaths::vec3f H = GGX_ImportanceSample(Xi, N, y);
 
-	float phi = 2.0 * M_PI * Xi.getX();
-	float cosTheta = sqrt((1.0f - Xi.getY()) / (1.0f + (a * a - 1.0f) * Xi.getY()));
-	float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
+                OEMaths::vec3f L = (H * 2.0f * V.dot(H)) - V;
+                L.normalise();
 
-	// spherical to cartesian coordinates
-	OEMaths::vec3f H = OEMaths::vec3f(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
+                float NdotL = std::max(N.dot(L), 0.0f);
+                float NdotH = std::max(N.dot(H), 0.0f);
+                float NdotV = std::max(N.dot(V), 0.0f);
+                float HdotV = std::max(H.dot(V), 0.0f);
 
-	// from tangent-space vector to world-space sample vector
-	OEMaths::vec3f up = abs(N.getZ()) < 0.999 ? OEMaths::vec3f(0.0f, 0.0f, 1.0f) : OEMaths::vec3f(1.0f, 0.0f, 0.0f);
-	OEMaths::vec3f tanX = up.cross(N).normalise();
-	OEMaths::vec3f tanY = N.cross(tanX).normalise();
-	return OEMaths::vec3f::normalize(tanX * H.getX() + tanY * H.getY() + N * H.getZ());
-}
-
-float IblImage::geometryShlickGGX(float NdotV, float NdotL, float roughness)
-{
-	float k = (roughness * roughness) / 2.0f;
-	float GV = NdotV / (NdotV * (1.0f - k) + k);
-	float GL = NdotL / (NdotL * (1.0f - k) + k);
-	return GL * GV;
-}
-
-OEMaths::vec2f IblImage::integrateBRDF(float NdotV, float roughness, uint16_t sampleCount)
-{
-	float NoV = inUv.s;
-
-	OEMaths::vec3f N = OEMaths::vec3f(0.0f, 0.0f, 1.0f);
-	OEMaths::vec3f V = OEMaths::vec3f(std::sqrt(1.0f - NoV * NoV), 0.0f, NoV);
-
-	OEMaths::vec2f lut;
-	for (int c = 0; c < sampleCount; c++)
-	{
-
-		OEMaths::vec2f Xi = hammersley(c, sampleCount);
-		OEMaths::vec3f H = GGX_ImportanceSample(Xi, N, roughness);
-
-		OEMaths::vec3f L = (2.0f * V.dot(H) * H - V);
-		L.normalise();
-
-		float NdotL = std::max(N.dot(L), 0.0f);
-		float NdotH = std::max(N.dot(H), 0.0f);
-		float NdotV = std::max(N.dot(V), 0.0f);
-		float HdotV = std::max(H.dot(V), 0.0f);
-
-		if (NdotL > 0.0f)
-		{
-
-			// cook-torrance BDRF calculations
-			float G = geometryShlickGGX(NdotV, NdotL, roughness);
-			float Gvis = (G * HdotV) / (NdotH * NdotV);
-			float Fc = std::pow(1.0 - HdotV, 5.0);
-			lut += OEMaths::vec2f((1.0 - Fc) * Gvis, Fc * Gvis);
-		}
-	}
-	return lut / sampleCount;
+                if (NdotL > 0.0f)
+                {
+                    // cook-torrance BDRF calculations
+                    float G = geometryShlickGGX(NdotV, NdotL, y);
+                    float Gvis = (G * HdotV) / (NdotH * NdotV);
+                    float Fc = std::pow(1.0 - HdotV, 5.0);
+                    lut += OEMaths::vec2f((1.0 - Fc) * Gvis, Fc * Gvis);
+                }
+                
+                OEMaths::vec2f p = lut / (float)sampleCount;
+                image.setPixel({p.getX(), p.getY()}, static_cast<uint32_t>(x), static_cast<uint32_t>(y));
+            }
+        }
+    }
 }
 
 //========================== irradiance ==============================
 
-void IblImage::prepareIrradianceMap(float dPhi, float dTheta)
+void IrradianceImage::prepare()
 {
-	OEMaths::vec3f N = inPos.normalise();
-	OEMaths::vec3f up = OEMaths::vec3f(0.0f, 1.0f, 0.0f);
-	OEMaths::vec3f right = up.cross(N).normalise();
-	up = N.cross(right);
+    // the thread worker lamda
+    auto worker = [=](const size_t row, const size_t workSize, Image2D& image)
+    {
+        for (size_t y = row; y < workSize; ++y)
+        {
+            for (size_t x = 0; x < dimensions; ++x)
+            {
+                OEMaths::vec3f N = inPos.normalise();
+                OEMaths::vec3f up = OEMaths::vec3f(0.0f, 1.0f, 0.0f);
+                OEMaths::vec3f right = up.cross(N).normalise();
+                up = N.cross(right);
 
-	OEMaths::vec3f irrColour;
-	float sampleCount = 0.0f;
+                OEMaths::vec3f irrColour;
+                float sampleCount = 0.0f;
 
-	float doublePI = M_PI * 2;
-	float halfPI = M_PI * 0.5;
+                float doublePI = M_PI * 2;
+                float halfPI = M_PI * 0.5;
 
-	//const float dPhi = 0.035f;
-	//const float dTheta = 0.025f;
+                //const float dPhi = 0.035f;
+                //const float dTheta = 0.025f;
 
-	for (float phi = 0.0f; phi < doublePI; phi += dPhi)
-	{
-		for (float theta = 0.0f; theta < halfPI; theta += dTheta)
-		{
-			OEMaths::vec3f tempVec = right * std::cos(phi) + up * std::sin(phi);
-			OEMaths::vec3f sampleVector = N * std::cos(theta) + tempVec * std::sin(theta);
-			irrColour += texture(envSampler, sampleVector).rgb * std::cos(theta) * std::sin(theta);
+                for (float phi = 0.0f; phi < doublePI; phi += dPhi)
+                {
+                    for (float theta = 0.0f; theta < halfPI; theta += dTheta)
+                    {
+                        OEMaths::vec3f tempVec = right * std::cos(phi) + up * std::sin(phi);
+                        OEMaths::vec3f sampleVector = N * std::cos(theta) + tempVec * std::sin(theta);
+                        
+                        Colour3 texel = envImage.fetchTrilinear(sampleVector);
+                        texel *= std::cos(theta) * std::sin(theta);
+                        irrColour += texel;
 
-			// spherical to cartesian
-			//vec3 tanSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
+                        // spherical to cartesian
+                        //vec3 tanSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
 
-			// to world space
-			//vec3 wPos = tanSample.x * right + tanSample.y * up + tanSample.z * N;
+                        // to world space
+                        //vec3 wPos = tanSample.x * right + tanSample.y * up + tanSample.z * N;
 
-			//irrColour += texture(envSampler, wPos).rgb * cos(theta) * sin(theta);
-			sampleCount++;
-		}
-	}
-
-	outCol = vec4(PI * irrColour / float(sampleCount), 1.0);
+                        //irrColour += texture(envSampler, wPos).rgb * cos(theta) * sin(theta);
+                        ++sampleCount;
+                    }
+                }
+                finalColour = irrColour * PI / static_cast<float>(sampleCount);
+                image.setTexel(finalColour, x, y);
+            }
+        }
+        
+    };
+    
+    // work out the load per thread
+    uint32_t threadCount = std::thread::hardware_concurrency();
+    ThreadPool threadPool(threadCount);
+    
+    size_t workSize = dimensions / threadCount;
+    
+    for (size_t mip = 0; mip < level; ++mip)
+    {
+        for (size_t face = 0; face < 6; ++face)
+        {
+            for (size_t y = 0; y < dimensions; y += workSize)
+            {
+                auto fut = threadPool.submitTask(
+            }
+        }
+    }
+    
 }
 
 // ==================== Pre-filtered ===============================
-
-float IblImage::GGX_Distribution(float NdotH, float roughness)
-{
-	float a = roughness * roughness;
-	float a2 = a * a;
-	float denom = NdotH * NdotH * (a2 - 1.0f) + 1.0f;
-
-	return (a2) / (M_PI * denom * denom);
-}
 
 void IblImage::preparePreFiltered(const uint16_t roughnessFactor, const uint16_t sampleCount)
 {
@@ -168,4 +166,5 @@ void IblImage::preparePreFiltered(const uint16_t roughnessFactor, const uint16_t
 	outCol = vec4(preFilterCol / totalWeight, 1.0);
 }
 
+}
 }
