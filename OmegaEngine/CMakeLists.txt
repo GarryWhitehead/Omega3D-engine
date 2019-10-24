@@ -107,6 +107,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	OEMaths/OEMaths_Vec2.cpp OEMaths/OEMaths_Vec2.h
 	OEMaths/OEMaths_Vec3.cpp OEMaths/OEMaths_Vec3.h
 	OEMaths/OEMaths_Vec4.cpp OEMaths/OEMaths_Vec4.h
+    OEMaths/OEMaths_VecN.h
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	

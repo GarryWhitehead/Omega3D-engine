@@ -50,7 +50,8 @@ vec3f vec3f::operator+(const vec3f& other) const
 	return result;
 }
 
-vec3f vec3f::operator*(const vec3f& other) const
+constexpr
+vec3f vec3f::operator*(const vec3f& other)
 {
 	vec3f result;
 	result.x = this->x * other.x;
@@ -75,6 +76,15 @@ vec3f vec3f::operator*(const float& other) const
 	result.y = this->y * other;
 	result.z = this->z * other;
 	return result;
+}
+
+vec3f operator*(const float& n, vec3f& v)
+{
+    vec3f result;
+    result.x = n * v.x;
+    result.y = n * v.y;
+    result.z = n * v.z;
+    return result;
 }
 
 vec3f vec3f::operator*(const mat4f& other) const

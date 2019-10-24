@@ -1,16 +1,17 @@
 #pragma once
 
-#include "OEMaths/OEMaths_Vec2.h"
+#include "OEMaths/OEMaths_VecN"
 
 namespace OEMaths
 {
 class vec4f;
 class mat4f;
 
-class vec3f
+template<>
+class vecN<float, 3>
 {
 public:
-	vec3f()
+	vecN()
 	{
 		x = 0.0f;
 		y = 0.0f;
@@ -43,7 +44,7 @@ public:
 
 	vec3f operator-(const vec3f &other) const;
 	vec3f operator+(const vec3f &other) const;
-	vec3f operator*(const vec3f &other) const;
+	constexpr vec3f operator*(const vec3f &other);
 	vec3f operator*(vec4f &other) const;
 	vec3f operator*(const float &other) const;
 	vec3f operator*(const mat4f &other) const;
@@ -51,46 +52,35 @@ public:
 	vec3f &operator-=(const vec3f &other);
 	vec3f &operator+=(const vec3f &other);
 
-	float getX() const
-	{
-		return x;
-	}
-
-	float getY() const
-	{
-		return y;
-	}
-
-	float getZ() const
-	{
-		return z;
-	}
-
-	void setX(const float x)
-	{
-		this->x = x;
-	}
-
-	void setY(const float y)
-	{
-		this->y = y;
-	}
-
-	void setZ(const float z)
-	{
-		this->z = z;
-	}
-
+    friend vec3f operator*(const float& n, vec3f& v);
+    
 	float length();
 	void normalise();
 	vec3f cross(vec3f &v1);
 	float dot(vec3f &v1);
 	vec3f mix(vec3f &v1, float u);
 
-private:
-	// data
-	float x;
-	float y;
-	float z;
+public:
+    
+	 union
+       {
+           T v[vecSize];
+           
+           struct
+           {
+               T x;
+               T y;
+           };
+               
+           struct
+           {
+               T r;
+               T g;
+           };
+       };
+	
 };
+
+using vecN<float, 3> = vec3f;
+
 } // namespace OEMaths

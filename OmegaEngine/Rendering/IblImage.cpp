@@ -107,11 +107,11 @@ void IrradianceImage::prepare()
     };
     
     // a thread for each face
-    ThreadPool threadPool(CubeImage::Face::Size);
+    ThreadPool threadPool{CubeImage::Face::Size};
  
 	for (size_t face = 0; face < 6; ++face)
     {
-		auto fut = threadPool.submitTask();
+		auto fut = threadPool.submitTask(worker, );
     }
 }
 
