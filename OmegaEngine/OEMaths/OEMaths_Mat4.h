@@ -20,10 +20,8 @@ public:
 
 	void setCol(size_t col, const vecN<T, 4>& vec)
 	{
-		data[col * 4] = vec[0];
-		data[col * 4 + 1] = vec[1];
-		data[col * 4 + 2] = vec[2];
-		data[col * 4 + 3] = vec[3];
+        assert(col < 4);
+        data[col] = vec;
 	}
 
 	// init as identity matrix
@@ -76,15 +74,11 @@ public:
 
 private:
 	
-	union
-	{
-		T data[MAT_SIZE];
-	
-		struct
-		{
-			vecN<T, 4> col[NUM_COLS];
-		};
-	};
+    /**
+     * coloumn major - data can be accesed by [col][row] format.
+     */
+    vecN<T, 4> data[NUM_COLS];
+    
 };
 
 

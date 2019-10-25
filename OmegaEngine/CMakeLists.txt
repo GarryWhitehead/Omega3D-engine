@@ -102,11 +102,12 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h
 	OEMaths/OEMaths_Mat3.cpp OEMaths/OEMaths_Mat3.h
 	OEMaths/OEMaths_Mat4.cpp OEMaths/OEMaths_Mat4.h
+    OEMaths/OEMaths_MatN.h
 	OEMaths/OEMaths_quat.cpp OEMaths/OEMaths_quat.h
 	OEMaths/OEMaths_transform.cpp OEMaths/OEMaths_transform.h
-	OEMaths/OEMaths_Vec2.cpp OEMaths/OEMaths_Vec2.h
-	OEMaths/OEMaths_Vec3.cpp OEMaths/OEMaths_Vec3.h
-	OEMaths/OEMaths_Vec4.cpp OEMaths/OEMaths_Vec4.h
+    OEMaths/OEMaths_Vec2.h
+	OEMaths/OEMaths_Vec3.h
+	OEMaths/OEMaths_Vec4.h
     OEMaths/OEMaths_VecN.h
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
