@@ -86,48 +86,10 @@ mat4f& mat4f::operator()(const vec4f& vec, const uint8_t& col)
 	return *this;
 }
 
-mat4f& mat4f::operator/=(const float& div)
-{
-	const float invDiv = 1 / div;
-	data[0] /= div;
-	data[1] /= div;
-	data[2] /= div;
-	data[3] /= div;
 
-	data[4] /= div;
-	data[5] /= div;
-	data[6] /= div;
-	data[7] /= div;
 
-	data[8] /= div;
-	data[9] /= div;
-	data[10] /= div;
-	data[11] /= div;
 
-	data[12] /= div;
-	data[13] /= div;
-	data[14] /= div;
-	data[15] /= div;
-	return *this;
-}
 
-float& mat4f::operator[](const uint32_t& index)
-{
-	return data[index];
-}
-
-void mat4f::setCol(const uint8_t col, vec4f& v)
-{
-	assert(col < 4);
-	uint8_t row = 0;
-	data[col * 4 + row] = v.getX();
-	row++;
-	data[col * 4 + row] = v.getY();
-	row++;
-	data[col * 4 + row] = v.getZ();
-	row++;
-	data[col * 4 + row] = v.getW();
-}
 
 vec4f operator*(const mat4f& mat, const vec4f& vec)
 {
@@ -170,25 +132,6 @@ mat4f operator*(const mat4f& m1, const mat4f& m2)
 	return result;
 }
 
-mat4f mat4f::translate(vec3f& trans)
-{
-	mat4f result;
-	result[12] = trans.getX();
-	result[13] = trans.getY();
-	result[14] = trans.getX();
-	result[15] = 1.0f;
-	return result;
-}
-
-mat4f mat4f::scale(vec3f& scale)
-{
-	mat4f result;
-	result[0] = scale.getX();
-	result[5] = scale.getY();
-	result[10] = scale.getZ();
-	result[15] = 1.0f;
-	return result;
-}
 
 mat4f mat4f::rotate(float theta, vec3f& axis)
 {

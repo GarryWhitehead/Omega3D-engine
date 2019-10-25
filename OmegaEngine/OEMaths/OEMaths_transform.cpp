@@ -6,30 +6,27 @@ namespace OEMaths
 {
 mat4f lookAt(vec3f& position, vec3f& target, vec3f& upVec)
 {
-	vec3f dir = target - position;
-	dir.normalise();
-	vec3f right = upVec.cross(dir);
-	right.normalise();
-	vec3f camUp = dir.cross(right);
-	camUp.normalise();
+	vec3f dir = OEMaths::normalise(target - position);
+	vec3f right = OEMaths::normalise(OEMaths::cross(upVec, dir));
+	vec3f camUp = OEMaths::normalise(OEMaths::cross(dir, right));
 
 	// create the output lookat matrix
 	mat4f result;
-	result(0, 0) = right.getX();
-	result(0, 1) = right.getY();
-	result(0, 2) = right.getZ();
+	result(0, 0) = right.x;
+	result(0, 1) = right.y;
+	result(0, 2) = right.z;
 
-	result(1, 0) = camUp.getX();
-	result(1, 1) = camUp.getY();
-	result(1, 2) = camUp.getZ();
+	result(1, 0) = camUp.x;
+	result(1, 1) = camUp.y;
+	result(1, 2) = camUp.z;
 
-	result(2, 0) = dir.getX();
-	result(2, 1) = dir.getY();
-	result(2, 2) = dir.getZ();
+	result(2, 0) = dir.x;
+	result(2, 1) = dir.y;
+	result(2, 2) = dir.z;
 
-	result(3, 0) = -right.dot(position);
-	result(3, 1) = -camUp.dot(position);
-	result(3, 2) = -dir.dot(position);
+	result(3, 0) = -OEMaths::dot(right, position);
+	result(3, 1) = -OEMaths::dot(camUp, position);
+	result(3, 2) = -OEMaths::dot(dir, position);
 
 	return result;
 }

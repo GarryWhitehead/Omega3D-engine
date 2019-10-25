@@ -84,7 +84,6 @@ void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& trans
 	newNode->rotation = rot;
 	newNode->nodeTransform = local;
 	newNode->localTransform = local;
-
 	nodes.push_back({ newNode, 0 });
 }
 

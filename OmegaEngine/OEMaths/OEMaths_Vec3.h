@@ -1,86 +1,74 @@
 #pragma once
 
-#include "OEMaths/OEMaths_VecN"
+#include "OEMaths/OEMaths_VecN.h"
 
 namespace OEMaths
 {
-class vec4f;
-class mat4f;
 
-template<>
-class vecN<float, 3>
+template <typename T>
+class vecN<T, 3> : public MathOperators<vecN, T, 3>
 {
 public:
-	vecN()
-	{
-		x = 0.0f;
-		y = 0.0f;
-		z = 0.0f;
-	}
-
-	vec3f(vec2f &vec, float f)
-	    : x(vec.getX())
-	    , y(vec.getY())
-	    , z(f)
+	vecN() :
+		x(T(0)),
+		y(T(0)),
+		z(T(0))
 	{
 	}
 
-	vec3f(float n)
+	vecN(const T& n)
 	    : x(n)
 	    , y(n)
 	    , z(n)
 	{
 	}
 
-	vec3f(float in_x, float in_y, float in_z)
+	vecN(const T& in_x, const T& in_y, const T& in_z)
 	    : x(in_x)
 	    , y(in_y)
 	    , z(in_z)
 	{
 	}
 
-	vec3f(const float *data);
-	vec3f(const double *data);
+	vecN(vecN<T, 2>& vec, const T& value)
+	{
+		vecN{ vec.data[0], vec.data[1], value };
+	}
 
-	vec3f operator-(const vec3f &other) const;
-	vec3f operator+(const vec3f &other) const;
-	constexpr vec3f operator*(const vec3f &other);
-	vec3f operator*(vec4f &other) const;
-	vec3f operator*(const float &other) const;
-	vec3f operator*(const mat4f &other) const;
-	vec3f operator/(const vec3f &other) const;
-	vec3f &operator-=(const vec3f &other);
-	vec3f &operator+=(const vec3f &other);
-
-    friend vec3f operator*(const float& n, vec3f& v);
-    
-	float length();
-	void normalise();
-	vec3f cross(vec3f &v1);
-	float dot(vec3f &v1);
-	vec3f mix(vec3f &v1, float u);
+	
 
 public:
-    
-	 union
-       {
-           T v[vecSize];
-           
-           struct
-           {
-               T x;
-               T y;
-           };
-               
-           struct
-           {
-               T r;
-               T g;
-           };
-       };
-	
+	union
+	{
+		T data[3];
+
+		vecN<T, 2> xy;
+		vecN<T, 2> st;
+		vecN<T, 2> rg;
+
+		struct
+		{
+			T x;
+			T y;
+			T z;
+		};
+
+		struct
+		{
+			T r;
+			T g;
+			T b;
+		};
+	};
 };
 
-using vecN<float, 3> = vec3f;
+using vec3f = vecN<float, 3>;
+using vec3d = vecN<double, 3>;
+using vec3u16 = vecN<uint16_t, 3>;
+using vec3u32 = vecN<uint32_t, 3>;
+using vec3u64 = vecN<uint64_t, 3>;
+using vec3i16 = vecN<int16_t, 3>;
+using vec3i32 = vecN<int32_t, 3>;
+using vec3i64 = vecN<int64_t, 3>;
 
-} // namespace OEMaths
+}    // namespace OEMaths

@@ -1,40 +1,24 @@
 #pragma once
 
-#include "OEMaths/OEMaths_Vec2.h"
-#include "OEMaths/OEMaths_Vec3.h"
+#include "OEMaths/OEMaths_VecN.h"
 
 #include <cstdint>
 
 namespace OEMaths
 {
-class vec4f
+template <typename T>
+class vecN<T, 4> : public MathOperators<vecN, T, 4>
 {
 public:
-	vec4f()
-	{
-		x = 0.0f;
-		y = 0.0f;
-		z = 0.0f;
-		w = 0.0f;
-	}
-
-	vec4f(vec2f &vec, float _z, float _w)
-	    : x(vec.getX())
-	    , y(vec.getY())
-	    , z(_z)
-	    , w(_w)
+	vecN()
+	    : x(T(0))
+	    , y(T(0))
+	    , z(T(0))
+	    , w(T(0))
 	{
 	}
 
-	vec4f(vec3f vec, float _w)
-	    : x(vec.getX())
-	    , y(vec.getY())
-	    , z(vec.getZ())
-	    , w(_w)
-	{
-	}
-
-	vec4f(float n)
+	vecN(const T& n)
 	    : x(n)
 	    , y(n)
 	    , z(n)
@@ -42,7 +26,7 @@ public:
 	{
 	}
 
-	vec4f(float in_x, float in_y, float in_z, float in_w)
+	vecN(const T& in_x, const T& in_y, const T& in_z, const T& in_w)
 	    : x(in_x)
 	    , y(in_y)
 	    , z(in_z)
@@ -50,46 +34,53 @@ public:
 	{
 	}
 
-	vec4f(const float *data);
-	vec4f(const double *data);
-	vec4f(const uint16_t *data);
-
-	float getX() const
+	vecN(vecN<T, 3>& vec, const T& value)
 	{
-		return x;
+		vecN{ vec.data[0], vec.data[1], vec.data[3], value };
 	}
 
-	float getY() const
+	T& operator[](const size_t idx) 
 	{
-		return y;
+		assert(idx < 4);
+		return data[idx];
 	}
 
-	float getZ() const
-	{
-		return z;
-	}
+public:
+	union {
+		T data[4];
 
-	float getW() const
-	{
-		return w;
-	}
+		vecN<T, 3> xyz;
+		vecN<T, 3> stu;
+		vecN<T, 3> rgb;
+		vecN<T, 2> xy;
+		vecN<T, 2> st;
+		vecN<T, 2> rg;
 
-	vec4f operator*(const vec4f &other) const;
+		struct
+		{
+			T x;
+			T y;
+			T z;
+			T w;
+		};
 
-	friend mat4f operator*(const mat4f &m1, const mat4f &m2);
-	friend vec4f operator*(const vec4f &vec, const mat4f &mat);
-	friend vec4f operator*(const mat4f &mat, const vec4f &vec);
-
-	float length();
-	void normalise();
-	void mix(vec4f &v1, vec4f &v2, float u);
-
-private:
-	// data
-	float x;
-	float y;
-	float z;
-	float w;
+		struct
+		{
+			T r;
+			T g;
+			T b;
+			T a;
+		};
+	};
 };
 
-} // namespace OEMaths
+using vec4f = vecN<float, 4>;
+using vec4d = vecN<double, 4>;
+using vec4u16 = vecN<uint16_t, 4>;
+using vec4u32 = vecN<uint32_t, 4>;
+using vec4u64 = vecN<uint64_t, 4>;
+using vec4i16 = vecN<int16_t, 4>;
+using vec4i32 = vecN<int32_t, 4>;
+using vec4i64 = vecN<int64_t, 4>;
+
+}    // namespace OEMaths

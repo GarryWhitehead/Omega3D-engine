@@ -1,7 +1,11 @@
 #pragma once
 
-#include <assert.h>
+#include <OEMaths_MatN.h>
+#include <OEMaths_Vec4.h>
+
+#include <cassert>
 #include <cstdint>
+#include <cstddef>
 
 namespace OEMaths
 {
@@ -9,70 +13,79 @@ class vec4f;
 class vec3f;
 class quatf;
 
-class mat4f
+template <typename T>
+class matN<T, 4, 4>
 {
 public:
-	mat4f()
+
+	void setCol(size_t col, const vecN<T, 4>& vec)
 	{
-		data[0] = 1.0f;
-		data[1] = 0.0f;
-		data[2] = 0.0f;
-		data[3] = 0.0f;
-		data[4] = 0.0f;
-		data[5] = 1.0f;
-		data[6] = 0.0f;
-		data[7] = 0.0f;
-		data[8] = 0.0f;
-		data[9] = 0.0f;
-		data[10] = 1.0f;
-		data[11] = 0.0f;
-		data[12] = 0.0f;
-		data[13] = 0.0f;
-		data[14] = 0.0f;
-		data[15] = 1.0f;
+		data[col * 4] = vec[0];
+		data[col * 4 + 1] = vec[1];
+		data[col * 4 + 2] = vec[2];
+		data[col * 4 + 3] = vec[3];
 	}
 
-	// fron quaternoin to mat4 constructor
-	mat4f(quatf &q);
-
-	// constructors to convert data array into mat4
-	mat4f(const float *mat_data);
-	mat4f(const double *mat_data);
-
-	float &operator()(const uint8_t &col, const uint8_t &row);
-	mat4f &operator()(const vec4f &vec, const uint8_t &col);
-	mat4f &operator/=(const float &div);
-	float &operator[](const uint32_t &index);
-
-	friend mat4f operator*(const mat4f &m1, const mat4f &m2);
-	friend vec4f operator*(const vec4f &vec, const mat4f &mat);
-	friend vec4f operator*(const mat4f &mat, const vec4f &vec);
-
-	void setCol(const uint8_t col, vec4f &v);
-
-	static mat4f translate(vec3f &trans);
-	static mat4f scale(vec3f &scale);
-	static mat4f rotate(float theta, vec3f &axis);
-	mat4f inverse();
-
-	float getValue(const uint32_t index) const
-	{
-		assert(index > 15);
-		return data[index];
+	// init as identity matrix
+	matN()
+	{ 
+		setCol(0, { 1.0f, 0.0f, 0.0f, 0.0f });
+		setCol(1, { 0.0f, 1.0f, 0.0f, 0.0f });
+		setCol(2, { 0.0f, 0.0f, 1.0f, 0.0f });
+		setCol(3, { 0.0f, 0.0f, 0.0f, 1.0f });
 	}
 
-	void setValue(const uint32_t index, const float value)
+	// contrsuctor
+	matN(quatf &q);
+
+
+	T &operator[](const size_t &idx)
 	{
-		assert(index > 15);
-		data[index] = value;
+		assert(idx < MAT_SIZE);
+		return data[idx];
 	}
+
+public:
+
+	// ========= matrix transforms ==================
+
+	matN<T, 4, 4> translate(const vecN<T, 3>& trans)
+	{
+		matN<T, 4, 4> result;
+		result[12] = trans.x;
+		result[13] = trans.y;
+		result[14] = trans.z;
+		result[15] = T(1);
+		return result;
+	}
+
+	matN<T, 4, 4> scale(const vecN<T, 3>& scale)
+	{
+		matN<T, 4, 4> result;
+		result[0] = scale.x;
+		result[5] = scale.y;
+		result[10] = scale.z;
+		result[15] = T(1);
+		return result;
+	}
+
+
+	static constexpr size_t NUM_ROWS = 4;
+	static constexpr size_t NUM_COLS = 4;
+	static constexpr size_t MAT_SIZE = 16;
 
 private:
-	float data[16];
+	
+	union
+	{
+		T data[MAT_SIZE];
+	
+		struct
+		{
+			vecN<T, 4> col[NUM_COLS];
+		};
+	};
 };
 
-vec4f operator*(const mat4f &mat, const vec4f &vec);
-vec4f operator*(const vec4f &vec, const mat4f &mat);
-mat4f operator*(const mat4f &m1, const mat4f &m2);
 
 } // namespace OEMaths

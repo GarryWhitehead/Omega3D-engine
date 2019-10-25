@@ -142,20 +142,20 @@ void LightManager::updateLightPositions(double dt)
 			break;
 		case LightAnimateType::RotateX:
 		{
-			light->position.setY(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light->position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.y = std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.z = std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity;
 			break;
 		}
 		case LightAnimateType::RotateY:
 		{
-			light->position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light->position.setZ(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.x = std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.z = std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity;
 			break;
 		}
 		case LightAnimateType::RotateZ:
 		{
-			light->position.setX(std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity));
-			light->position.setY(std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.x = std::abs(std::sin(OEMaths::radians(timer * 360.0f)) * anim.velocity);
+			light->position.y = std::cos(OEMaths::radians(timer * 360.0f)) * anim.velocity;
 			break;
 		}
 		}
