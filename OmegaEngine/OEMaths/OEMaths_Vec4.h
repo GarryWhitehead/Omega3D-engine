@@ -7,10 +7,10 @@
 namespace OEMaths
 {
 template <typename T>
-class vecN<T, 4> : public MathOperators<vecN, T, 4>
+class VecN<T, 4> : public MathOperators<VecN, T, 4>
 {
 public:
-	vecN()
+	VecN()
 	    : x(T(0))
 	    , y(T(0))
 	    , z(T(0))
@@ -18,7 +18,7 @@ public:
 	{
 	}
 
-	vecN(const T& n)
+	VecN(const T& n)
 	    : x(n)
 	    , y(n)
 	    , z(n)
@@ -26,7 +26,7 @@ public:
 	{
 	}
 
-	vecN(const T& in_x, const T& in_y, const T& in_z, const T& in_w)
+	VecN(const T& in_x, const T& in_y, const T& in_z, const T& in_w)
 	    : x(in_x)
 	    , y(in_y)
 	    , z(in_z)
@@ -34,9 +34,9 @@ public:
 	{
 	}
 
-	vecN(vecN<T, 3>& vec, const T& value)
+	VecN(VecN<T, 3>& vec, const T& value)
 	{
-		vecN{ vec.data[0], vec.data[1], vec.data[3], value };
+		VecN{ vec.data[0], vec.data[1], vec.data[3], value };
 	}
 
 	T& operator[](const size_t idx) 
@@ -49,12 +49,12 @@ public:
 	union {
 		T data[4];
 
-		vecN<T, 3> xyz;
-		vecN<T, 3> stu;
-		vecN<T, 3> rgb;
-		vecN<T, 2> xy;
-		vecN<T, 2> st;
-		vecN<T, 2> rg;
+		VecN<T, 3> xyz;
+		VecN<T, 3> stu;
+		VecN<T, 3> rgb;
+		VecN<T, 2> xy;
+		VecN<T, 2> st;
+		VecN<T, 2> rg;
 
 		struct
 		{
@@ -74,13 +74,13 @@ public:
 	};
 };
 
-using vec4f = vecN<float, 4>;
-using vec4d = vecN<double, 4>;
-using vec4u16 = vecN<uint16_t, 4>;
-using vec4u32 = vecN<uint32_t, 4>;
-using vec4u64 = vecN<uint64_t, 4>;
-using vec4i16 = vecN<int16_t, 4>;
-using vec4i32 = vecN<int32_t, 4>;
-using vec4i64 = vecN<int64_t, 4>;
+using vec4f = VecN<float, 4>;
+using vec4d = VecN<double, 4>;
+using vec4u16 = VecN<uint16_t, 4>;
+using vec4u32 = VecN<uint32_t, 4>;
+using vec4u64 = VecN<uint64_t, 4>;
+using vec4i16 = VecN<int16_t, 4>;
+using vec4i32 = VecN<int32_t, 4>;
+using vec4i64 = VecN<int64_t, 4>;
 
 }    // namespace OEMaths

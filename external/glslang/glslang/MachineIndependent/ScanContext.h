@@ -72,7 +72,7 @@ protected:
     int es30ReservedFromGLSL(int version);
     int nonreservedKeyword(int esVersion, int nonEsVersion);
     int precisionKeyword();
-    int matNxM();
+    int MatNxM();
     int dMat();
     int firstGenerationImage(bool inEs310);
     int secondGenerationImage();

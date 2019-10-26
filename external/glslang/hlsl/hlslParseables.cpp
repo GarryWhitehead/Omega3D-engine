@@ -58,12 +58,12 @@ namespace {  // anonymous namespace functions
 
 const bool UseHlslTypes = true;
 
-const char* BaseTypeName(const char argOrder, const char* scalarName, const char* vecName, const char* matName)
+const char* BaseTypeName(const char argOrder, const char* scalarName, const char* VecName, const char* MatName)
 {
     switch (argOrder) {
     case 'S': return scalarName;
-    case 'V': return vecName;
-    case 'M': return matName;
+    case 'V': return VecName;
+    case 'M': return MatName;
     default:  return "UNKNOWN_TYPE";
     }
 }

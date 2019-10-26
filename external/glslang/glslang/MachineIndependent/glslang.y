@@ -3215,7 +3215,7 @@ type_specifier_nonarray
         $$.sampler.setSubpass(EbtUint, true);
     }
     | FCOOPMATNV {
-        parseContext.fcoopmatCheck($1.loc, "fcoopmatNV", parseContext.symbolTable.atBuiltInLevel());
+        parseContext.fcoopmatCheck($1.loc, "fcoopMatNV", parseContext.symbolTable.atBuiltInLevel());
         $$.init($1.loc, parseContext.symbolTable.atGlobalLevel());
         $$.basicType = EbtFloat;
         $$.coopmat = true;

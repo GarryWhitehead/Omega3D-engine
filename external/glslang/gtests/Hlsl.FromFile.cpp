@@ -281,7 +281,7 @@ INSTANTIATE_TEST_CASE_P(
         {"hlsl.mip.negative2.frag", "main"},
         {"hlsl.namespace.frag", "main"},
         {"hlsl.nonint-index.frag", "main"},
-        {"hlsl.matNx1.frag", "main"},
+        {"hlsl.MatNx1.frag", "main"},
         {"hlsl.matpack-1.frag", "main"},
         {"hlsl.matrixSwizzle.vert", "ShaderFunction"},
         {"hlsl.memberFunCall.frag", "main"},

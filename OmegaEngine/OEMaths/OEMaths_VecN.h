@@ -139,13 +139,13 @@ class MathOperators
 };
 
 template <typename T, size_t size>
-class vecN : public MathOperators<vecN, T, size>
+class VecN : public MathOperators<VecN, T, size>
 {
 public:
-	vecN() {}
+	VecN() {}
 
 	// copy
-	vecN(const vecN<T, size>& other)
+	VecN(const VecN<T, size>& other)
 	{
 		for (size_t i = 0; i < size; ++i)
 		{
@@ -154,7 +154,7 @@ public:
 	}
 
 	// assignment
-	vecN<T, size>& operator=(const vecN<T, size>& other)
+	VecN<T, size>& operator=(const VecN<T, size>& other)
 	{
 		if (this != &other)
 		{
@@ -166,7 +166,7 @@ public:
 		return *this;
 	}
 
-	vecN<T, size>& operator[](const size_t idx)
+	VecN<T, size>& operator[](const size_t idx)
 	{
 		assert(idx < size);
 		return data[idx];
@@ -180,15 +180,15 @@ public:
 // =========== helpers =====================
 
 template <typename T, size_t size, typename U>
-vecN<T, size> make_vec(U* data)
+VecN<T, size> makeVector(U* data)
 {
 	assert(data != nullptr);
-	double* ptr = static_cast<U*>(data);
+	U* ptr = static_cast<U*>(data);
 
-	vecN<T, size> result;
+	VecN<T, size> result;
 	for (size_t i = 0; i < size; ++i)
 	{
-		result.data[i] = (T)*ptr;
+		result[i] = (T)*ptr;
 		++ptr;
 	}
 	return result;
@@ -197,7 +197,7 @@ vecN<T, size> make_vec(U* data)
 // =========== vector transforms ====================
 
 template <typename T, size_t size>
-inline constexpr T length(vecN<T, size>& vec)
+inline constexpr T length(VecN<T, size>& vec)
 {
 	T result;
 	for (size_t i = 0; i < size; ++i)
@@ -208,9 +208,9 @@ inline constexpr T length(vecN<T, size>& vec)
 }
 
 template <typename T, size_t size>
-inline constexpr vecN<T, size>& normalise(vecN<T, size>& vec)
+inline constexpr VecN<T, size>& normalise(VecN<T, size>& vec)
 {
-	vecN<T, size> result;
+	VecN<T, size> result;
 
 	T len = length(vec);
 
@@ -222,16 +222,7 @@ inline constexpr vecN<T, size>& normalise(vecN<T, size>& vec)
 }
 
 template <typename T, size_t size>
-inline constexpr vecN<T, size> cross(vecN<T, size>& vec)
-{
-	vecN<T, size> result;
-	result.x = this->y * v1.getZ() - this->z * v1.getY();
-	result.y = this->z * v1.getX() - this->x * v1.getZ();
-	result.z = this->x * v1.getY() - this->y * v1.getX();
-}
-
-template <typename T, size_t size>
-inline constexpr T dot(vecN<T, size>& vec1, vecN<T, size>& vec2)
+inline constexpr T dot(VecN<T, size>& vec1, VecN<T, size>& vec2)
 {
 	T result;
 	for (size_t i = 0; i < size; ++i)
@@ -242,9 +233,9 @@ inline constexpr T dot(vecN<T, size>& vec1, vecN<T, size>& vec2)
 }
 
 template <typename T, size_t size>
-inline constexpr vecN<T, size>& mix(vecN<T, size>& vec1, vecN<T, size>& vec2, T u)
+inline constexpr VecN<T, size>& mix(VecN<T, size>& vec1, VecN<T, size>& vec2, T u)
 {
-	vecN<T, size> result;
+	VecN<T, size> result;
 	for (size_t i = 0; i < size; ++i)
 	{
 		result.data[i] = vec1.data[i] * (1.0f - u) + vec2.data[i] * u;

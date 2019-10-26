@@ -1,7 +1,7 @@
 
 #include "Omega_Global.h"
 
-#include "Managers/EventManager.h"
+#include "utility/EventManager.h"
 
 #include <assert.h>
 

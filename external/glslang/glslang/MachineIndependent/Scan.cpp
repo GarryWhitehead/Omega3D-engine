@@ -715,7 +715,7 @@ void TScanContext::fillInKeywordMap()
     (*KeywordMap)["taskNV"] =                  PERTASKNV;
 #endif
 
-    (*KeywordMap)["fcoopmatNV"] =              FCOOPMATNV;
+    (*KeywordMap)["fcoopMatNV"] =              FCOOPMATNV;
 
     ReservedSet = new std::unordered_set<const char*, str_hash, str_eq>;
 
@@ -1048,7 +1048,7 @@ int TScanContext::tokenizeIdentifier()
     case MAT4X2:
     case MAT4X3:
     case MAT4X4:
-        return matNxM();
+        return MatNxM();
 
     case DMAT2:
     case DMAT3:
@@ -1726,7 +1726,7 @@ int TScanContext::precisionKeyword()
     return identifierOrType();
 }
 
-int TScanContext::matNxM()
+int TScanContext::MatNxM()
 {
     afterType = true;
 

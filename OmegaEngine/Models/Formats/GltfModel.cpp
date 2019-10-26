@@ -26,12 +26,12 @@ ModelNode::NodeInfo* GltfModel::getNode(Util::String id)
 size_t GltfModel::addMaterial(ModelMaterial& mat)
 {
 	// check for duplicate materials first. This is possible if there are lots of primitives
-	Util::String matName = mat.getName();
+	Util::String MatName = mat.getName();
 
 	size_t index = 0;
 	for (ModelMaterial& modelMat : materials)
 	{
-		if (matName.compare(modelMat.getName()))
+		if (MatName.compare(modelMat.getName()))
 		{
 			return index;
 		}

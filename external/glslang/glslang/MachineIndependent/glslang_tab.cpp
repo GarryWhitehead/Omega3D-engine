@@ -9306,7 +9306,7 @@ yyreduce:
   case 484:
 #line 3217 "MachineIndependent/glslang.y" /* yacc.c:1646  */
     {
-        parseContext.fcoopmatCheck((yyvsp[0].lex).loc, "fcoopmatNV", parseContext.symbolTable.atBuiltInLevel());
+        parseContext.fcoopmatCheck((yyvsp[0].lex).loc, "fcoopMatNV", parseContext.symbolTable.atBuiltInLevel());
         (yyval.interm.type).init((yyvsp[0].lex).loc, parseContext.symbolTable.atGlobalLevel());
         (yyval.interm.type).basicType = EbtFloat;
         (yyval.interm.type).coopmat = true;
