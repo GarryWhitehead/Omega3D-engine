@@ -13,14 +13,14 @@ class MatMathOperators
 {
 	// muliplication
 	Mat<T, cols, rows>& operator*=(const T& div)
-    {
-        Mat<T, cols, rows>& lhs = static_cast<Mat<T, cols, rows>&>(&this);
-        for (size_t i = 0; i < cols; ++i)
-        {
-            lhs[i] *= div;
-        }
-        return lhs;
-    }
+	{
+		Mat<T, cols, rows>& lhs = static_cast<Mat<T, cols, rows>&>(&this);
+		for (size_t i = 0; i < cols; ++i)
+		{
+			lhs[i] *= div;
+		}
+		return lhs;
+	}
 
 	Mat<T, cols, rows> operator*(const Mat<T, cols, rows>& m1, const Mat<T, cols, rows>& m2)
 	{
@@ -45,10 +45,10 @@ class MatMathOperators
 	inline friend VecN<T, rows> operator*(const Mat<T, cols, rows>& mat, const VecN<T, cols>& vec)
 	{
 		VecN<T, rows> result{ T(0) };
-        for (size_t i = 0; i < cols; ++i)
-        {
-            result[j] += mat[i] * vec;
-        }
+		for (size_t i = 0; i < cols; ++i)
+		{
+			result[j] += mat[i] * vec;
+		}
 		return result;
 	}
 
@@ -69,10 +69,10 @@ class MatMathOperators
 	Mat<T, cols, rows>& operator/=(const T& div)
 	{
 		Mat<T, cols, rows>& lhs = static_cast<Mat<T, cols, rows>&>(&this);
-        for (size_t i = 0; i < cols; ++i)
-        {
-            lhs[i] /= div;
-        }
+		for (size_t i = 0; i < cols; ++i)
+		{
+			lhs[i] /= div;
+		}
 		return lhs;
 	}
 };
@@ -81,7 +81,6 @@ template <typename T, size_t cols, size_t rows>
 class MatN : public MatMathOperators<MatN, T, cols, rows>
 {
 public:
-    
 	// initialise to identity
 	MatN()
 	{
@@ -90,10 +89,10 @@ public:
 	// copy
 	MatN(const MatN<T, cols, rows>& other)
 	{
-        for (size_t i = 0; i < cols; ++i)
-        {
-            data[i] = other[i];
-        }
+		for (size_t i = 0; i < cols; ++i)
+		{
+			data[i] = other[i];
+		}
 	}
 
 	// assignment
@@ -112,12 +111,11 @@ public:
 		return data[idx];
 	}
 
-    static constexpr size_t ROW_SIZE = rows;
-    static constexpr size_t COL_SIZE = cols;
+	static constexpr size_t ROW_SIZE = rows;
+	static constexpr size_t COL_SIZE = cols;
 	static constexpr size_t MAT_SIZE = rows * cols;
 
 public:
-
 	VecN<T, ROW_SIZE> data[COL_SIZE];
 };
 
@@ -126,81 +124,85 @@ public:
 template <typename T, size_t cols, size_t rows, typename U>
 MatN<T, cols, rows> makeMatrix(U* data)
 {
-    assert(data != nullptr);
-    MatN<T, cols, rows> result;
-    U* ptr = static_cast<U*>(data);
+	assert(data != nullptr);
+	MatN<T, cols, rows> result;
+	U* ptr = static_cast<U*>(data);
 
-    for (size_t i = 0; i < cols; ++i)
-    {
-        result[i] = makeVector(*ptr);
-        ++ptr;
-    }
+	for (size_t i = 0; i < cols; ++i)
+	{
+		result[i] = makeVector(*ptr);
+		++ptr;
+	}
 }
 
 template <typename T, size_t cols, size_t rows>
 MatN<T, cols, rows> transpose(MatN<T, cols, rows>& mat)
 {
-    MatN<T, cols, rows> result;
-    for (size_t i = 0; i < cols; ++i)
-    {
-        for (size_t j = 0; j < rows; ++j)
-        {
-            result[i][j] = mat[j][i];
-        }
-    }
+	MatN<T, cols, rows> result;
+	for (size_t i = 0; i < cols; ++i)
+	{
+		for (size_t j = 0; j < rows; ++j)
+		{
+			result[i][j] = mat[j][i];
+		}
+	}
 }
+
+// ================= inverse functions ====================
 
 /**
- * Extracts a quaternin from a matrix type. This code is identical to the code in Eigen.
- */
+  * guass-jordan inverse function for matrices of any size
+  * Use the faster versions below for 2x2 or 3x3 matrices
+  */
 template <typename T, size_t cols, size_t rows>
-Quaternion<T> matToQuat(MatN<T, cols, rows>& mat)
+MatN<T, cols, rows> inverse(MatN<T, cols, rows>& mat)
 {
-    Quaternion<T> quat;
+	MatN<T, cols, rows> result;
 
-    // Compute the trace to see if it is positive or not.
-    const T trace = mat[0][0] + mat[1][1] + mat[2][2];
+	for (size_t i = 0; i < rows; ++i)
+	{
+		// look for largest element in i'th column
+		size_t swap = i;
+		T element = mat[i][i] < 0 ? -mat[i][i] : mat[i][i];
+		for (size_t j = i + 1; j < rows; ++j)
+		{
+			const T element2 = mat[j][i] < 0 ? -mat[j][i] : mat[j][i];
+			if (element2 > element)
+			{
+				swap = j;
+				element = element2;
+			}
+		}
 
-    // check the sign of the trace
-    if (trace > 0)
-    {
-        // trace is positive
-        T s = std::sqrt(trace + 1);
-        quat.w = T(0.5) * s;
-        s = T(0.5) / s;
-        quat.x = (mat[1][2] - mat[2][1]) * s;
-        quat.y = (mat[2][0] - mat[0][2]) * s;
-        quat.z = (mat[0][1] - mat[1][0]) * s;
-    }
-    else
-    {
-        // trace is negative
-        // Find the index of the greatest diagonal
-        size_t i = 0;
-        if (mat[1][1] > mat[0][0])
-        {
-            i = 1;
-            
-        }
-        if (mat[2][2] > mat[i][i])
-        {
-            i = 2;
-        }
+		if (swap != i)
+		{
+			// swap columns.
+			std::swap(mat[i], mat[swap]);
+			std::swap(result[i], result[swap]);
+		}
 
-        // Get the next indices: (n+1)%3
-        static constexpr size_t next_ijk[3] = { 1, 2, 0 };
-        size_t j = next_ijk[i];
-        size_t k = next_ijk[j];
-        T s = std::sqrt((mat[i][i] - (mat[j][j] + mat[k][k])) + 1);
-        quat[i] = T(0.5) * s;
-        if (s != 0) {
-            s = T(0.5) / s;
-        }
-        quat.w  = (mat[j][k] - mat[k][j]) * s;
-        quat[j] = (mat[i][j] + mat[j][i]) * s;
-        quat[k] = (mat[i][k] + mat[k][i]) * s;
-    }
-    return quat;
+		const T denom(mat[i][i]);
+		for (size_t k = 0; k < rows; ++k)
+		{
+			mat[i][k] /= denom;
+			result[i][k] /= denom;
+		}
+
+		// Factor out the lower triangle
+		for (size_t j = 0; j < rows; ++j)
+		{
+			if (j != i)
+			{
+				const T t = mat[j][i];
+				for (size_t k = 0; k < rows; ++k)
+				{
+					mat[j][k] -= mat[i][k] * element;
+					result[j][k] -= result[i][k] * element;
+				}
+			}
+		}
+	}
+
+	return result;
 }
-}
- 
+}    // namespace OEMaths

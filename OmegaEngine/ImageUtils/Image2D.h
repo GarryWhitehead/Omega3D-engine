@@ -1,5 +1,7 @@
 #pragma once
 
+#include "OEMaths/OEMaths.h"
+
 #include <cassert>
 #include <cstdint>
 #include <utility>
@@ -8,42 +10,15 @@ namespace OmegaEngine
 {
 
 template <typename pixelType>
-struct Colour2
-{
-	pixelType r;
-	pixelType g;
-};
-
-template <typename pixelType>
-struct Colour3
-{
-	pixelType r;
-	pixelType g;
-	pixelType b;
-};
-
-template <typename pixelType>
-struct Colour4
-{
-	pixelType r;
-	pixelType g;
-	pixelType b;
-	pixelType a;
-};
-
-template <typename pixelType>
 class Image2D
 {
 public:
-	Image2D(pixelType* image, uint32_t width, uint32_t height, uint8_t channels);
 
-	Image2D(ImageType type)
-	{
-		if (type == ImageType::Cube2D)
-		{
-			this->faces = 6;
-		}
-	}
+	using Colour2 = OEMaths::VecN<pixelType, 2>;
+	using Colour3 = OEMaths::VecN<pixelType, 3>;
+	using Colour4 = OEMaths::VecN<pixelType, 4>;
+
+	Image2D(pixelType* image, uint32_t width, uint32_t height, uint8_t channels);
 
 	// move contructor
 	Image2D(Image2D&& other) noexcept
@@ -143,11 +118,11 @@ public:
 		assert(data);
 		assert(x <= width);
 		assert(y <= height);
-		assert(channels == 3);
+		assert(channels == 4);
 
 		size_t pixelPos = x * channels + y * width;
 
-		return { data[pixelPos], data[pixelPos + 1], data[pixelPos + 2] };
+		return { data[pixelPos], data[pixelPos + 1], data[pixelPos + 2], data[pixelPos + 3] };
 	}
 
 	/**
@@ -173,7 +148,7 @@ public:
 	* @param y The y coord in pixels
 	* @param pixels A rgb definition of the pixel values
 	*/
-	void setTexel(pixelType pixel, uint32_t x, uint32_t y, Colour3& pixels)
+	void setTexel( uint32_t x, uint32_t y, Colour3& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);
@@ -193,16 +168,16 @@ public:
 	* @param y The y coord in pixels
 	* @param channel The channel to retrive (0 = red; 1 = green; 2 = blue; 3 = alpha)
 	*/
-	void setTexel(pixelType pixel, uint32_t x, uint32_t y, Colour4& pixels)
+	void setTexel(uint32_t x, uint32_t y, Colour4& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);
 		assert(channels == 4);
 		size_t pos = (x * channels) + (y * width);
-		data[pos] = pixel.r;
-		data[pos + 1] = pixel.g;
-		data[pos + 2] = pixel.b;
-		data[pos + 3] = pixel.a;
+		data[pos] = pixels.r;
+		data[pos + 1] = pixels.g;
+		data[pos + 2] = pixels.b;
+		data[pos + 3] = pixels.a;
 	}
 
 protected:
