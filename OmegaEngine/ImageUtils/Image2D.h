@@ -13,7 +13,6 @@ template <typename pixelType>
 class Image2D
 {
 public:
-
 	using Colour2 = OEMaths::VecN<pixelType, 2>;
 	using Colour3 = OEMaths::VecN<pixelType, 3>;
 	using Colour4 = OEMaths::VecN<pixelType, 4>;
@@ -131,7 +130,7 @@ public:
 	* @param y The y coord in pixels
 	* @param channel The channel to retrive (0 = red; 1 = green; 2 = blue; 3 = alpha)
 	*/
-	void setTexel(pixelType pixel, uint32_t x, uint32_t y, uint8_t channel)
+	void writeTexel(pixelType pixel, uint32_t x, uint32_t y, uint8_t channel)
 	{
 		assert(x <= width);
 		assert(y <= height);
@@ -148,7 +147,7 @@ public:
 	* @param y The y coord in pixels
 	* @param pixels A rgb definition of the pixel values
 	*/
-	void setTexel( uint32_t x, uint32_t y, Colour3& pixels)
+	void writeTexel(uint32_t x, uint32_t y, Colour3& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);
@@ -168,7 +167,7 @@ public:
 	* @param y The y coord in pixels
 	* @param channel The channel to retrive (0 = red; 1 = green; 2 = blue; 3 = alpha)
 	*/
-	void setTexel(uint32_t x, uint32_t y, Colour4& pixels)
+	void writeTexel(uint32_t x, uint32_t y, Colour4& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);
@@ -178,6 +177,26 @@ public:
 		data[pos + 1] = pixels.g;
 		data[pos + 2] = pixels.b;
 		data[pos + 3] = pixels.a;
+	}
+
+	/**
+	* @brief Returns the dimensions of the image. Only use this if your expecting both the width and height
+	* dimensions to be the same.
+	*/
+	uint32_t getDimensions() const
+	{
+		assert(width == height);
+		return width;
+	}
+
+	uint32_t getWidth() const 
+	{
+		return width;
+	}
+
+	uint32_t getHeight() const
+	{
+		return height;
 	}
 
 protected:
@@ -196,7 +215,6 @@ protected:
 using Image2DU8 = Image2D<uint8_t>;
 using Image2DU16 = Image2D<uint16_t>;
 using Image2DF32 = Image2D<float>;
-
 
 
 }    // namespace OmegaEngine

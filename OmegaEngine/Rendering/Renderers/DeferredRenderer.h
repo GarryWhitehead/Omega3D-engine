@@ -2,16 +2,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 
-#include "VulkanAPI/Managers/CommandBufferManager.h"
-
-#include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Descriptors.h"
-#include "VulkanAPI/Pipeline.h"
-
-#include "Rendering/RenderCommon.h"
-#include "Rendering/RenderConfig.h"
-#include "Rendering/RenderInterface.h"
-#include "VulkanAPI/Shader.h"
+#include "Rendering/IblImage.h"
 
 #include <functional>
 #include <vector>
@@ -19,32 +10,27 @@
 namespace VulkanAPI
 {
 // forward declearions
-class Interface;
-class RenderPass;
 class Swapchain;
-class BufferManager;
-class Queue;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
 // forward declerations
-class RenderInterface;
+class Scene;
 class PostProcessInterface;
-class IblInterface;
+class Engine;
 
-class DeferredRenderer : public RendererBase
+class Renderer
 {
 
 public:
-	DeferredRenderer::DeferredRenderer();
-	~DeferredRenderer();
+	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain);
+	~Renderer();
 
 	void init();
 
 	// abstract override
-	void render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType,
-	            std::unique_ptr<RenderQueue>& renderQueue) override;
+	void render(std::unique_ptr<RenderQueue>& renderQueue) override;
 
 	void createGbufferPass();
 	void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
@@ -54,16 +40,10 @@ public:
 	void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
 
 private:
-	vk::Device device;
-	vk::PhysicalDevice gpu;
-
-	// Command buffer handles for all passes
-	VulkanAPI::CmdBufferHandle shadowCmdBufferHandle;
-	VulkanAPI::CmdBufferHandle deferredCmdBufferHandle;
-	VulkanAPI::CmdBufferHandle forwardCmdBufferHandle;
+	VkContext context;
 
 	// IBL environment mapping handler
-	IblInterface iblInterface;
+	Ibl::IblImage ibl;
 
 	// the post-processing manager
 	PostProcessInterface postProcessInterface;
@@ -72,6 +52,14 @@ private:
 	RenderConfig renderConfig;
 
 	RenderGraph rGraph;
+
+	// swap chain used for rendering to surface
+	VulkanAPI::Swapchain& swapchain;
+	
+	// locally stored
+	Engine& engine;
+	Scene& scene;
+	
 };
 
 }    // namespace OmegaEngine

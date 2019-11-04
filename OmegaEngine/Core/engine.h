@@ -75,6 +75,9 @@ public:
 	*/
 	World* createWorld(Util::String name);
 
+	/// returns the current vulkan context
+	VulkanAPI::VkContext& getContext();
+
 	void loadConfigFile();
 
 	void startLoop();
