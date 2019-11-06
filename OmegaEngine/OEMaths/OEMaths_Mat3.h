@@ -1,7 +1,9 @@
 #pragma once
 
 #include "OEMaths_MatN.h"
+#include "OEMaths_VecN.h"
 #include "OEMaths_Vec3.h"
+#include "OEMaths_Quat.h"
 
 #include <cstdint>
 
@@ -9,7 +11,7 @@ namespace OEMaths
 {
 
 template <typename T>
-class MatN<T, 3, 3>
+class MatN<T, 3, 3> : public MatMathOperators<MatN, T,3, 3>
 {
 public:
 
@@ -28,7 +30,7 @@ public:
     }
 
     // contrsuctor - converts a quaternion to a 3x3 matrix
-    MatN(Quaternion<T>& q)
+    MatN(Quarternion<T>& q)
     {
         float twoX = 2.0f * q.x;
         float twoY = 2.0f * q.y;
@@ -51,14 +53,16 @@ public:
         setCol(2, { twoXZ - twoYW, twoYZ + twoXW, 1.0f - (twoXX + twoYY) });
     }
 
-
-    T &operator[](const size_t &idx)
-    {
-        assert(idx < NUM_COLS);
-        return data[idx];
-    }
-
 public:
+
+	// ========= operator overloads =========================
+
+	VecN<T, 3>& operator[](const size_t& idx) const
+	{
+		assert(idx < NUM_COLS);
+		return data[idx];
+	}
+
 
     // ========= matrix transforms ==================
 
@@ -84,12 +88,11 @@ public:
         return *this;
     }
 
-
     static constexpr size_t NUM_ROWS = 3;
     static constexpr size_t NUM_COLS = 3;
     static constexpr size_t MAT_SIZE = 9;
 
-private:
+public:
     
     /**
      * coloumn major - data can be accesed by [col][row] format.

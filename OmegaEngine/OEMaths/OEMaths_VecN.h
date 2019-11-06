@@ -11,6 +11,7 @@ namespace OEMaths
 template <template <typename T, size_t size> typename Vec, typename T, size_t size>
 class MathOperators
 {
+public:
 	// addition
 	friend inline Vec<T, size>& operator+(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
 	{

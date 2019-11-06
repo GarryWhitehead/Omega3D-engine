@@ -2,7 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include <math>
+#include <cmath>
 
 namespace OmegaEngine
 {
@@ -20,22 +20,22 @@ inline OEMaths::vec2f hammersley(uint64_t i, uint64_t N)
     return OEMaths::vec2f(float(i) / float(N), rad);
 }
 
-inline OEMaths::vec3f GGX_ImportanceSample(OEMaths::vec2f Xi, OEMaths::vec3f N, float roughness)
+inline OEMaths::vec3f importanceSampleGGX(OEMaths::vec2f Xi, OEMaths::vec3f N, float roughness)
 {
     float a = roughness * roughness;
 
-    float phi = 2.0 * M_PI * Xi.getX();
-    float cosTheta = sqrt((1.0f - Xi.getY()) / (1.0f + (a * a - 1.0f) * Xi.getY()));
+    float phi = 2.0 * M_PI * Xi.x;
+    float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
     float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 
     // spherical to cartesian coordinates
     OEMaths::vec3f H = OEMaths::vec3f(cos(phi) * sinTheta, sin(phi) * sinTheta, cosTheta);
 
     // from tangent-space vector to world-space sample vector
-    OEMaths::vec3f up = abs(N.getZ()) < 0.999 ? OEMaths::vec3f(0.0f, 0.0f, 1.0f) : OEMaths::vec3f(1.0f, 0.0f, 0.0f);
-    OEMaths::vec3f tanX = up.cross(N).normalise();
-    OEMaths::vec3f tanY = N.cross(tanX).normalise();
-    return OEMaths::vec3f::normalize(tanX * H.getX() + tanY * H.getY() + N * H.getZ());
+    OEMaths::vec3f up = abs(N.z) < 0.999 ? OEMaths::vec3f(0.0f, 0.0f, 1.0f) : OEMaths::vec3f(1.0f, 0.0f, 0.0f);
+    OEMaths::vec3f tanX = OEMaths::normalise(OEMaths::vec3f::cross(up, N));
+	OEMaths::vec3f tanY = OEMaths::normalise(OEMaths::vec3f::cross(N, tanX));
+	return OEMaths::normalise(tanX * H.x + tanY * H.y + N * H.z);
 }
 
 inline float geometryShlickGGX(float NdotV, float NdotL, float roughness)
@@ -46,7 +46,7 @@ inline float geometryShlickGGX(float NdotV, float NdotL, float roughness)
     return GL * GV;
 }
 
-inline float IblImage::GGX_Distribution(float NdotH, float roughness)
+inline float distributionGGX(float NdotH, float roughness)
 {
     float a = roughness * roughness;
     float a2 = a * a;

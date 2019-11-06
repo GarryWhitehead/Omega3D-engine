@@ -1,14 +1,33 @@
 #include "ThreadPool.h"
 
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
 
 ThreadPool::ThreadPool(const uint8_t numThreads)
 {
-	for (uint8_t i = 0; i < numThreads; ++i)
+	uint8_t threadCount;
+	if (!numThreads)
 	{
-		threads.emplace_back(&ThreadPool::worker, this);
+		// one less thread as we are on the main one.
+		threadCount = std::thread::hardware_concurrency() - 1;
+
+		// Best warn if there are no other threads, performace will be hit!
+		if (!threadCount)
+		{
+			LOGGER_INFO("No extra threads were found for the current hardware setup.");
+		}
+	}
+	else
+	{
+		threadCount = numThreads;
+	}
+
+	threads.resize(numThreads);
+	for (uint8_t i = 0; i < threadCount; ++i)
+	{
+		threads[i] = std::thread(&ThreadPool::worker, this);
 	}
 }
 
@@ -36,5 +55,8 @@ void ThreadPool::worker()
 		}
 	}
 }
+
+
+
 
 }    // namespace OmegaEngine

@@ -1,5 +1,7 @@
 #include "DeferredRenderer.h"
 
+#include "Core/engine.h"
+
 #include "Components/CameraManager.h"
 #include "Components/LightManager.h"
 
@@ -19,16 +21,20 @@
 namespace OmegaEngine
 {
 
-DeferredRenderer::DeferredRenderer()
+Renderer::Renderer(Engine& eng, Scene& scene, VulkanAPI::Swapchain& swapchain) :
+	engine(eng), 
+	scene(scene), 
+	swapchain(swapchain)
 {
+	context = engine.getContext();
+
+	// setup ibl if required
+	ibl.prepare();
 }
 
-void DeferredRenderer::init()
+void Renderer::init()
 {
-	// create instances of all the cmd buffers used by the deferred renderer
-	shadowCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
-	deferredCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
-	forwardCmdBufferHandle = vkInterface.getCmdBufferManager()->createInstance();
+	
 
 	// set up the deferred passes and shadow stuff
 	// 1. render all objects into the gbuffer pass - seperate images for pos, base-colour, normal, pbr and emissive
@@ -56,7 +62,7 @@ void DeferredRenderer::init()
 }
 
 
-DeferredRenderer::~DeferredRenderer()
+Renderer::~Renderer()
 {
 }
 
@@ -173,12 +179,12 @@ void DeferredRenderer::createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferM
 	                      VulkanAPI::PipelineType::Graphics);
 }
 
-void DeferredRenderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer)
+void Renderer::renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer)
 {
 	
 }
 
-void DeferredRenderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType,
+void Renderer::render(std::unique_ptr<VulkanAPI::Interface>& vkInterface, SceneType sceneType,
                               std::unique_ptr<RenderQueue>& renderQueue)
 {
 	auto& cmdBufferManager = vkInterface->getCmdBufferManager();

@@ -1,8 +1,5 @@
 #include "FileUtil.h"
 
-namespace OmegaEngine
-{
-
 namespace FileUtil
 {
 
@@ -43,4 +40,4 @@ bool readFileIntoBuffer(std::string filename, std::string& buffer)
 }
 
 }    // namespace FileUtil
-}    // namespace OmegaEngine
+

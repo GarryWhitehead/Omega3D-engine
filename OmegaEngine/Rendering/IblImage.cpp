@@ -10,151 +10,155 @@ namespace OmegaEngine
 {
 namespace Ibl
 {
-    
-    
-// ========= BDRF ===================
 
-void BdrfImage::integrate()
+void IblImage::prepareBdrf()
 {
-    for (float y = 0.0f; y < static_cast<float>(dimensions); ++y)
-    {
-        for (float x = 0.0f; x < static_cast<float>(dimensions); ++x)
-        {
-            OEMaths::vec3f N = OEMaths::vec3f(0.0f, 0.0f, 1.0f);
-            OEMaths::vec3f V = OEMaths::vec3f(std::sqrt(1.0f - x * x), 0.0f, x);
-
-            OEMaths::vec2f lut;
-            for (int c = 0; c < sampleCount; c++)
-            {
-                OEMaths::vec2f Xi = hammersley(c, sampleCount);
-                OEMaths::vec3f H = GGX_ImportanceSample(Xi, N, y);
-
-                OEMaths::vec3f L = (H * 2.0f * V.dot(H)) - V;
-                L.normalise();
-
-                float NdotL = std::max(N.dot(L), 0.0f);
-                float NdotH = std::max(N.dot(H), 0.0f);
-                float NdotV = std::max(N.dot(V), 0.0f);
-                float HdotV = std::max(H.dot(V), 0.0f);
-
-                if (NdotL > 0.0f)
-                {
-                    // cook-torrance BDRF calculations
-                    float G = geometryShlickGGX(NdotV, NdotL, y);
-                    float Gvis = (G * HdotV) / (NdotH * NdotV);
-                    float Fc = std::pow(1.0 - HdotV, 5.0);
-                    lut += OEMaths::vec2f((1.0 - Fc) * Gvis, Fc * Gvis);
-                }
-                
-                OEMaths::vec2f p = lut / (float)sampleCount;
-                image.setPixel({p.getX(), p.getY()}, static_cast<uint32_t>(x), static_cast<uint32_t>(y));
-            }
-        }
-    }
-}
-
-//========================== irradiance ==============================
-
-void IrradianceImage::prepare()
-{
-    // the thread worker lamda
-    auto worker = [&](const size_t workSize, Image2D* image, const uint32_t dim, const )
-    {
-        for (size_t y = 0; y < dim; ++y)
-        {
-            for (size_t x = 0; x < dim; ++x)
-            {
-                OEMaths::vec3f N = inPos.normalise();
-                OEMaths::vec3f up = OEMaths::vec3f(0.0f, 1.0f, 0.0f);
-                OEMaths::vec3f right = up.cross(N).normalise();
-                up = N.cross(right);
-
-                OEMaths::vec3f irrColour;
-                float sampleCount = 0.0f;
-
-                float doublePI = M_PI * 2;
-                float halfPI = M_PI * 0.5;
-
-                //const float dPhi = 0.035f;
-                //const float dTheta = 0.025f;
-
-                for (float phi = 0.0f; phi < doublePI; phi += dPhi)
-                {
-                    for (float theta = 0.0f; theta < halfPI; theta += dTheta)
-                    {
-                        OEMaths::vec3f tempVec = right * std::cos(phi) + up * std::sin(phi);
-                        OEMaths::vec3f sampleVector = N * std::cos(theta) + tempVec * std::sin(theta);
-                        
-                        Colour3 texel = envImage.fetchTrilinear(sampleVector);
-                        texel *= std::cos(theta) * std::sin(theta);
-                        irrColour += texel;
-
-                        // spherical to cartesian
-                        //vec3 tanSample = vec3(sin(theta) * cos(phi), sin(theta) * sin(phi), cos(theta));
-
-                        // to world space
-                        //vec3 wPos = tanSample.x * right + tanSample.y * up + tanSample.z * N;
-
-                        //irrColour += texture(envSampler, wPos).rgb * cos(theta) * sin(theta);
-                        ++sampleCount;
-                    }
-                }
-                finalColour = irrColour * PI / static_cast<float>(sampleCount);
-                image.setTexel(finalColour, x, y);
-            }
-        }
-        
-    };
-    
-    // a thread for each face
-    ThreadPool threadPool{CubeImage::Face::Size};
- 
-	for (size_t face = 0; face < 6; ++face)
-    {
-		auto fut = threadPool.submitTask(worker, );
-    }
-}
-
-// ==================== Pre-filtered ===============================
-
-void IblImage::preparePreFiltered(const uint16_t roughnessFactor, const uint16_t sampleCount)
-{
-	OEMaths::vec3f N = normalize(inPos);
-	OEMaths::vec3f  V = N;
-
-	float totalWeight = 0.0f;
-	OEMaths::vec3f preFilterCol;
-
-	for (uint16_t c = 0; c < sampleCount; ++c)
-	{
-		OEMaths::vec2f Xi = hammersley(c, sampleCount);
-		OEMaths::vec3f H = GGX_ImportanceSample(Xi, N, roughnessFactor);
-
-		OEMaths::vec3f L = V - H * 2.0f * V.dot(H);	// CHECK!
-
-		float NdotL = std::clamp(N.dot(L), 0.0f, 1.0f);
-		float NdotH = std::clamp(N.dot(H), 0.0f, 1.0f);
-		float HdotV = std::clamp(H.dot(V), 0.0f, 1.0f);
-
-		if (NdotL > 0.0f)
+	// ========= BDRF ===================
+	auto bdrfThread = [&](Image2DF32::Colour2* dataPtr, uint32_t dim, const size_t row) {
+		for (float x = 0.0f; x < static_cast<float>(bdrf->dimensions); ++x)
 		{
+			OEMaths::vec3f N = OEMaths::vec3f(0.0f, 0.0f, 1.0f);
+			OEMaths::vec3f V = OEMaths::vec3f(std::sqrt(1.0f - x * x), 0.0f, x);
 
-			float D = GGX_Distribution(NdotH, roughnessFactor);
-			float pdf = (D * NdotH / (4.0f * HdotV)) + 0.0001f;
+			OEMaths::vec2f lut;
+			for (int c = 0; c < bdrf->sampleCount; c++)
+			{
+				OEMaths::vec2f Xi = hammersley(c, bdrf->sampleCount);
+				OEMaths::vec3f H = importanceSampleGGX(Xi, N, row);
 
-			float resolution = float(textureSize(envSampler, 0).s);
-			float saTex = 4.0f * M_PI / (6.0f * resolution * resolution);
-			float saSample = 1.0f / (static_cast<float>(sampleCount) * pdf + 0.0001f);
+				OEMaths::vec3f L = OEMaths::normalise(2.0f * OEMaths::dot(H, V) * H - V);
 
-			float mipLevel = roughnessFactor == 0.0 ? 0.0 : std::max(0.5f * std::log2(saSample / saTex) + 1.0f, 0.0f);
+				float NdotL = std::max(OEMaths::dot(N, L), 0.0f);
+				float NdotH = std::max(OEMaths::dot(N, H), 0.0f);
+				float NdotV = std::max(OEMaths::dot(N, V), 0.0f);
+				float HdotV = std::max(OEMaths::dot(H, V), 0.0f);
 
-			preFilterCol += textureLod(envSampler, L, mipLevel).rgb * NdotL;
-			totalWeight += NdotL;
+				if (NdotL > 0.0f)
+				{
+					// cook-torrance BDRF calculations
+					float G = geometryShlickGGX(NdotV, NdotL, y);
+					float Gvis = (G * HdotV) / (NdotH * NdotV);
+					float Fc = std::pow(1.0 - HdotV, 5.0);
+					lut += OEMaths::vec2f((1.0 - Fc) * Gvis, Fc * Gvis);
+				}
+
+				OEMaths::vec2f p = lut / (float)bdrf->sampleCount;
+				Image2DF32::writeTexel(dataPtr, Image2DF32::Colour2{ p.x, p.y });
+			}
 		}
+	};
+}
+
+void IblImage::prepare()
+{
+	//========================== irradiance ==============================
+
+	auto irradianceThread = [&](Image2DF32::Colour3* dataPtr, uint32_t dim, const size_t row) {
+		for (size_t x = 0; x < dim; ++x)
+		{
+			OEMaths::vec3f N = CubeImage::calculateNormal(static_cast<float>(x), static_cast<float>(row), face,
+			                                              static_cast<float>(dim));
+			OEMaths::vec3f up = OEMaths::vec3f(0.0f, 1.0f, 0.0f);
+			OEMaths::vec3f right = OEMaths::normalise(OEMaths::vec3f::cross(up, N));
+			up = OEMaths::vec3f::cross(N, right);
+
+			OEMaths::vec3f irrColour = { 0.0f };
+			float sampleCount = 0.0f;
+
+			for (float phi = 0.0f; phi < M_DBL_PI; phi += irradiance->dPhi)
+			{
+				for (float theta = 0.0f; theta < M_HALF_PI; theta += irradiance->dTheta)
+				{
+					// spherical to cartesian
+					OEMaths::vec3f tanSample = OEMaths::vec3f(std::sin(theta) * std::cos(phi),
+					                                          std::sin(theta) * std::sin(phi), std::cos(theta));
+
+					// to world space
+					OEMaths::vec3f wPos = tanSample.x * right + tanSample.y * up + tanSample.z * N;
+
+					Image2DF32::Colour3 tex = CubeImage::fetchBilinear(wPos, envImage);
+					irrColour += tex * cos(theta) * sin(theta);
+					++sampleCount;
+				}
+			}
+
+			Image2DF32::Colour3 finalColour = irrColour * M_PI / static_cast<float>(sampleCount);
+			Image2DF32::writeTexel(dataPtr, finalColour);
+		}
+	};
+
+
+	// ==================== Pre-filtered ===============================
+
+	auto preFilterThread = [&](Image2DF32::Colour3* dataPtr, const uint32_t dim, const uint32_t row) {
+		for (size_t x = 0; x < dim; ++x)
+		{
+			float maxLevel = static_cast<float>(prefilter->levels.size());
+			OEMaths::vec3f N = CubeImage::calculateNormal(static_cast<float>(x), static_cast<float>(row), face,
+			                                              static_cast<float>(dim));
+			OEMaths::vec3f V = N;
+
+			float totalWeight = 0.0f;
+			OEMaths::vec3f preFilterCol;
+
+			for (uint16_t c = 0; c < prefilter->sampleCount; ++c, ++dataPtr)
+			{
+				OEMaths::vec2f Xi = hammersley(c, prefilter->sampleCount);
+				OEMaths::vec3f H = importanceSampleGGX(Xi, N, roughness);
+
+				OEMaths::vec3f L = OEMaths::normalise(2.0f * OEMaths::dot(H, V) * H - V);
+
+				float NdotL = std::max(OEMaths::dot(N, L), 0.0f);
+				float NdotH = std::max(OEMaths::dot(N, H), 0.0f);
+				float HdotV = std::max(OEMaths::dot(H, V), 0.0f);
+
+				if (NdotL > 0.0f)
+				{
+
+					float D = distributionGGX(NdotH, roughness);
+					float pdf = (D * NdotH / (4.0f * HdotV)) + 0.0001f;
+
+					float resolution = float(textureSize(envSampler, 0).s);
+					float saTex = 4.0f * M_PI / (6.0f * resolution * resolution);
+					float saSample = 1.0f / (static_cast<float>(prefilter->sampleCount) * pdf + 0.0001f);
+
+					float mipLevel0 =
+					    roughness == 0.0f ? 0.0f : std::max(0.5f * std::log2(saSample / saTex) + 1.0f, 0.0f);
+					float mipLevel0 = std::min(mipLevel0, maxLevel);
+					float mipLevel1 = std::min(mipLevel0 + 1, maxLevel);
+
+					CubeImage* cubeImageL0 = [mipLevel0];
+					CubeImage* cubeImageL1 = [mipLevel1];
+
+					preFilterCol += cubeImageL0->fetchTrilinear(L, cubeImageL1, mipLevel0) * NdotL;
+					totalWeight += NdotL;
+				}
+
+				Image2DF32::Colour3 avgCol{ preFilterCol / totalWeight };
+				Image2DF32::writeTexel(dataPtr, avgCol);
+			}
+		}
+	};
+
+	// pre-filter
+	for (size_t face = 0; face < 6; ++face)
+	{
+		Image2DF32* image = prefilter->levels[0]->getFace(face);
+		uint32_t dim = image->getDimensions();
+
+		auto filterSplitTask = [&preFilterThread, &image, &dim](size_t curr_y, size_t chunkSize) 
+		{
+			for (size_t y = curr_y; y < curr_y + chunkSize; ++y)
+			{
+				Image2DF32::Colour3* dataPtr = image->getDataPtr(0, y);
+				preFilterThread(dataPtr, dim, y);
+			}
+			
+		};
+
+		ThreadTaskSplitter split{ 0, dim, filterSplitTask };
+		split.run();
 	}
-
-	outCol = vec4(preFilterCol / totalWeight, 1.0);
 }
-
-}
-}
+}    // namespace Ibl
+}    // namespace OmegaEngine

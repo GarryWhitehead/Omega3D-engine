@@ -1,9 +1,10 @@
 #pragma once
 
-#include <OEMaths_MatN.h>
-#include <OEMaths_VecN.h>
-#include <OEMaths_Vec4.h>
-#include <OEMaths_Vec3.h>
+#include "OEMaths_MatN.h"
+#include "OEMaths_VecN.h"
+#include "OEMaths_Vec4.h"
+#include "OEMaths_Vec3.h"
+#include "OEMaths_Quat.h"
 
 #include <cassert>
 #include <cstdint>
@@ -13,7 +14,7 @@ namespace OEMaths
 {
 
 template <typename T>
-class MatN<T, 4, 4>
+class MatN<T, 4, 4> : public MatMathOperators<MatN, T, 4, 4>
 {
 public:
     
@@ -39,7 +40,7 @@ public:
 	// contrsuctor - converts a queternion to a 3x3 rotation matrix, fitted into a 4x4
     // This is nearly identical to the mat3x3 version with padding - should try and
     // alter this so both matrices use the same function
-	MatN(Quaternion<T>& q)
+	MatN(Quarternion<T>& q)
     {
         float twoX = 2.0f * q.x;
         float twoY = 2.0f * q.y;
@@ -63,18 +64,11 @@ public:
         setCol(3, { 0.0f, 0.0f, 0.0f, 1.0f });
     }
 
-
-	T &operator[](const size_t &idx)
-	{
-		assert(idx < NUM_COLS);
-		return data[idx];
-	}
-
 public:
 
 	// ========= matrix transforms ==================
     
-    MatN<T, 4, 4> setDiag(const VecN<T, 4>& vec)
+    MatN<T, 4, 4>& setDiag(const VecN<T, 4>& vec)
     {
         data[0][0] = vec.x;
         data[1][1] = vec.y;
@@ -83,7 +77,7 @@ public:
         return *this;
     }
     
-    MatN<T, 4, 4> translate(const VecN<T, 3>& trans)
+    MatN<T, 4, 4>& translate(const VecN<T, 3>& trans)
 	{
 		data[3][0] = trans.x;
 		data[3][1] = trans.y;
@@ -92,9 +86,9 @@ public:
 		return *this;
 	}
 
-	MatN<T, 4, 4> scale(const VecN<T, 3>& scale)
+	MatN<T, 4, 4>& scale(const VecN<T, 3>& scale)
 	{
-        setDiag(scale, T(1));
+        setDiag({scale, 1.0f});
 		return *this;
 	}
     
@@ -102,7 +96,7 @@ public:
     {
         for (size_t i = 0; i < 3; ++i)
         {
-            data[i].xyz = mat.data[i];
+			data[i].xyz = mat.data[i];
         }
     }
     
@@ -116,7 +110,15 @@ public:
         return result;
     }
     
-private:
+	// operator overloads
+	VecN<T, 4>& operator[](const size_t& idx)
+	{
+		assert(idx < NUM_COLS);
+		return data[idx];
+	}
+
+
+public:
 	
     /**
      * coloumn major - data can be accesed by [col][row] format.

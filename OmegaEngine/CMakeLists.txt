@@ -98,17 +98,17 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/UBufferInfo.h
 	Types/TextureInfo.h
 	
-	OEMaths/OEMaths.cpp OEMaths/OEMaths.h
-	OEMaths/OEMaths_Mat2.cpp OEMaths/OEMaths_Mat2.h
-	OEMaths/OEMaths_Mat3.cpp OEMaths/OEMaths_Mat3.h
-	OEMaths/OEMaths_Mat4.cpp OEMaths/OEMaths_Mat4.h
+	OEMaths/OEMaths.h
+	OEMaths/OEMaths_Mat2.h
+	OEMaths/OEMaths_Mat3.h
+	OEMaths/OEMaths_Mat4.h
     OEMaths/OEMaths_MatN.h
-	OEMaths/OEMaths_quat.cpp OEMaths/OEMaths_quat.h
-	OEMaths/OEMaths_transform.cpp OEMaths/OEMaths_transform.h
+	OEMaths/OEMaths_quat.h
     OEMaths/OEMaths_Vec2.h
 	OEMaths/OEMaths_Vec3.h
 	OEMaths/OEMaths_Vec4.h
     OEMaths/OEMaths_VecN.h
+	OEMaths/OEMaths_transform.cpp OEMaths/OEMaths_transform.h
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
@@ -166,6 +166,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Sampler.cpp VulkanAPI/Sampler.h
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
+
+	VulkanAPI/VkUtils/StringToVk.cpp VulkanAPI/VkUtils/StringToVk.h
+	VulkanAPI/VkUtils/VkToString.cpp VulkanAPI/VkUtils/VkToString.h
 )
 
 # ================= linking =======================

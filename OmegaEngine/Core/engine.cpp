@@ -142,4 +142,9 @@ void Engine::startLoop()
 	}
 }
 
+VulkanAPI::VkContext& Engine::getContext()
+{
+	return context;
+}
+
 }    // namespace OmegaEngine
