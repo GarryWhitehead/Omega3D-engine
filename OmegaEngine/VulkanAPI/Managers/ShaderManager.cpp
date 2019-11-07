@@ -3,75 +3,16 @@
 #include "Utility/logger.h"
 #include "utility/FileUtil.h"
 
+#include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
+#include "VulkanAPI/VkUtils/VkToString.h"
 
 namespace VulkanAPI
 {
 
-shaderc_shader_kind getShaderKind(const StageType type)
-{
-	shaderc_shader_kind result;
-	switch (type)
-	{
-	case StageType::Vertex:
-		result = shaderc_shader_kind::shaderc_vertex_shader;
-		break;
-	case StageType::Fragment:
-		result = shaderc_shader_kind::shaderc_fragment_shader;
-		break;
-	case StageType::Geometry:
-		result = shaderc_shader_kind::shaderc_geometry_shader;
-		break;
-	case StageType::Compute:
-		result = shaderc_shader_kind::shaderc_compute_shader;
-		break;
-	}
-
-	return result;
-}
-
-GlslCompiler::GlslCompiler(std::string filename, const StageType type)
-{
-	bool success = FileUtil::readFileIntoBuffer(filename, this->source);
-
-	this->kind = getShaderKind(type);
-}
-
-GlslCompiler::~GlslCompiler()
-{
-}
-
-bool GlslCompiler::compile(bool optimise)
-{
-	shaderc::Compiler compiler;
-	shaderc::CompileOptions options;
-
-	for (auto define : defines)
-	{
-		options.AddMacroDefinition(define.first.c_str(), std::to_string(define.second).c_str());
-	}
-
-	if (optimise)
-	{
-		options.SetOptimizationLevel(shaderc_optimization_level_size);
-	}
-
-	auto result = compiler.CompileGlslToSpv(source, kind, sourceName.c_str(), options);
-	if (result.GetCompilationStatus() != shaderc_compilation_status_success)
-	{
-		LOGGER_INFO("%s", result.GetErrorMessage().c_str());
-		return false;
-	}
-
-	std::copy(result.cbegin(), result.cend(), output.begin());
-
-	return true;
-}
-
-// =============================== ShaderManager ===========================================
-
-ShaderManager::ShaderManager()
+ShaderManager::ShaderManager(VkContext& context) :
+    context(context)
 {
 }
 
@@ -79,32 +20,164 @@ ShaderManager::~ShaderManager()
 {
 }
 
-bool ShaderManager::compile(ShaderCompilerInfo& compilerInfo)
+void ShaderManager::prepareBindings(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo, uint16_t& bind, uint16_t& setCount)
 {
-	// first we need to append the input data to each shader text files
-	if (!compilerInfo.vertShader)
-	{
-		LOGGER_ERROR("The shader doesn't contain a vertex stage. This mandatory.");
-		return false;
-	}
-
-	std::vector<std::string> inputBlock;
-	if (!compilerInfo.vertShader->inputs.empty())
-	{
-		size_t setCount = 0;
-		for (uint16_t i = 0, bind = 0; i < compilerInfo.vertShader->inputs.size(); ++i, ++bind)
-		{
-			// first = name; second = type
-			std::string inputLine;
-			createVkShaderInput(input.first, input.second, bind, setCount, inputLine);
-		}
-	}
+    // add the glsl version number
+    shader->appendBlock += "#version 450\n";
+    
+    // texture samplers
+    if (!shader->samplers.empty())
+    {
+        for (auto& sampler : shader->samplers)
+        {
+            std::string inputLine;
+            VkUtils::createVkShaderInput(sampler.name, sampler.type, bind, setCount, inputLine);
+            shader->appendBlock += inputLine + "\n";
+            
+            // store the binding data for vk descriptor creation
+            shaderInfo.descrLayout.add(setCount, bind, vk::DescriptorType::eCombinedImageSampler,
+            Shader::getStageFlags(shader->type);
+        }
+    }
+    
+    // uniform buffers
+    if (!shader->ubos.empty())
+    {
+        for (auto& buffer : shader->ubos)
+        {
+            std::string inputLine;
+            uint32_t bufferSize;
+            VkUtils::createVkShaderBuffer(buffer.name, buffer.type, buffer.data, bind, setCount, inputLine, bufferSize);
+            shader->appendBlock += inputLine + "\n";
+            
+            // add the layout to the descriptors
+            shaderInfo.descrLayout.add(setCount, bind, vk::DescriptorType::eUniformBuffer,
+                                       Shader::getStageFlags(shader->type);
+        }
+    }
+    
+    // push blocks
+    
+    // specialisation constants
 }
 
-bool ShaderManager::readShader(rapidjson::Document& doc, ShaderCompilerInfo::Shader& shader, std::string id)
+void ShaderManager::writeInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderCompilerInfo::ShaderDescriptor* nextShader)
+{
+    uint16_t loc = 0;
+    
+    for (auto& output : shader->outputs)
+    {
+        std::string inputLine = "layout (location = " + std::to_string(loc) + ") out " + output.type;
+        std::string outputLine = "layout (location = " + std::to_string(loc) + ") in " + output.type;
+        shader->appendBlock += outputLine + "\n";
+        nextShader->appendBlock += inputLine + "\n";
+    }
+}
+
+void ShaderManager::prepareInputs(ShaderCompilerInfo::ShaderDescriptor* vertShader, ShaderInfo& shaderInfo)
+{
+    if (vertShader->inputs.empty())
+    {
+        return;
+    }
+    
+    uint16_t loc = 0;
+    for (auto& input : vertShader->inputs)
+    {
+        std::string inputLine = "layout (location = " + std::to_string(loc) + ") in " + input.type;
+        
+        vertShader->appendBlock += inputLine + "\n";
+        
+        uint32_t stride = Shader::getStrideFromType(input.type);
+        vk::Format format = Shader::getVkFormatFromType(input.type, input.width);
+        shaderInfo.inputs.emplace_back(loc++, stride, format);
+    }
+}
+   
+void ShaderManager::prepareOutputs(ShaderCompilerInfo& compilerInfo, ShaderInfo& shaderInfo)
+{
+    ShaderCompilerInfo::ShaderDescriptor* currShader = compilerInfo.vertShader;
+    // link the output semantics from one shader stage with the inputs to the next
+    // shader stage
+    do
+    {
+        if (!currShader->outputs.empty())
+        {
+            writeInputs(currShader, currShader->nextStage);
+        }
+        currShader = currShader->nextStage;
+    } while(currShader->nextStage);
+    
+    // finish by writing the fragment shader render targets, if declared
+    ShaderCompilerInfo::ShaderDescriptor* fragShader = compilerInfo.vertShader;
+    if (fragShader && !fragShader->outputs.empty())
+    {
+        uint16_t loc = 0;
+        for (auto& output : fragShader->outputs)
+        {
+            std::string inputLine = "layout (location = " + std::to_string(loc) + ") out " + output.type;
+            fragShader->appendBlock += inputLine + "\n";
+            
+            vk::Format format = Shader::getVkFormatFromType(output.type, output.width);
+            ShaderInfo::RenderTarget binding {loc++, format};
+            shaderInfo.renderTargets.emplace_back(binding);
+        }
+    }
+}
+
+bool ShaderManager::compile(ShaderCompilerInfo& compilerInfo)
+{
+	// sanity check first - must have a vertex shader at least
+	if (!compilerInfo.vertShader)
+	{
+		LOGGER_ERROR("The shader doesn't contain a vertex stage. This is mandatory.");
+		return false;
+	}
+    
+    uint16_t setCount = 0;
+    uint16_t bind = 0;
+    ShaderInfo shaderInfo;
+    
+    // prepare the bindings for each stage
+    ShaderCompilerInfo::ShaderDescriptor* currShader = compilerInfo.vertShader;
+    do
+    {
+        prepareBindings(compilerInfo.vertShader, shaderInfo, bind, setCount);
+        currShader = currShader->nextStage;
+    } while(currShader->nextStage);
+    
+    // prepare the input semantics, this is only required for the vertex shader
+    prepareInputs(compilerInfo.vertShader, shaderInfo);
+    
+    // and link the output from each shader stage, with the input of the next
+    prepareOutputs(compilerInfo, shaderInfo);
+    
+    // finalise the shder code blocks and compile into glsl byte code
+    Shader shader(context);
+    
+    currShader = compilerInfo.vertShader;
+    do
+    {
+        currShader->appendBlock += currShader->code;
+        shader.add(currShader->appendBlock, currShader->type);
+        currShader = currShader->nextStage;
+        
+    } while(currShader->nextStage);
+    
+    // now we have all the data required from the shader, create some of the vulkan
+    // resources now to save time later
+    // Create the descriptor layout
+    shaderInfo.descrLayout.prepare(context);
+    
+    // create the pipeline layout - as we know the descriptor layout and
+}
+
+bool ShaderManager::readShader(rapidjson::Document& doc, ShaderCompilerInfo::ShaderDescriptor& shader, std::string id)
 {
 	const rapidjson::Value& vert = doc["VertexShader"];
-	if (vert.HasMember("Inputs"))
+	
+    // input semantics - glsl code: layout (location = 0) in [TYPE] [NAME]
+    if (vert.HasMember("Inputs"))
 	{
 		const auto& inputs = vert["Inputs"].GetArray();
 		for (auto& input : inputs)
@@ -114,6 +187,7 @@ bool ShaderManager::readShader(rapidjson::Document& doc, ShaderCompilerInfo::Sha
 			shader.inputs.emplace(name, type);
 		}
 	}
+    // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
 	if (vert.HasMember("Outputs"))
 	{
 		const auto& outputs = vert["Outputs"].GetArray();
@@ -124,6 +198,42 @@ bool ShaderManager::readShader(rapidjson::Document& doc, ShaderCompilerInfo::Sha
 			shader.outputs.emplace(name, type);
 		}
 	}
+    
+    // all samplers, ubos, constant values to import
+    if (doc.HasMember("Import"))
+    {
+        const auto& imports = doc["Import"].GetArray();
+        if (!imports.Empty())
+        {
+            for (auto& import : imports)
+            {
+                std::string name = import["name"].GetString();
+                std::string type = import["type"].GetString();
+                
+                if (VkUtils::isSamplerType(name))
+                {
+                    compilerInfo.samplers.emplace_back(name, type);
+                }
+                else if (VkUtils::isBufferType(name))
+                {
+                    // extra data for a buffer: the types and names of the buffer
+                    ShaderCompilerInfo::Shader::BufferDescriptor buffer;
+                    buffer.descr {name, type};
+                    
+                    const auto& items = import["Items"].GetArray();
+                    
+                    for (auto& item : items)
+                    {
+                        std::string itemName = items["name"].GetString();
+                        std::string itemType = items["type"].GetString();
+                        
+                        descr.data.emplace_back(itemName, itemType);
+                    }
+                    compilerInfo.buffers.emplace_back(buffer);
+                }
+            }
+        }
+    }
 
 	// a code block is not optional
 	if (!vert.HasMember("Code"))
@@ -139,9 +249,17 @@ bool ShaderManager::readShader(rapidjson::Document& doc, ShaderCompilerInfo::Sha
 	}
 }
 
-bool ShaderManager::parseShaderJson(rapidjson::Document& doc, ShaderCompilerInfo& compilerInfo)
+bool ShaderManager::parseShaderJson(std::string inputJson, ShaderCompilerInfo& compilerInfo)
 {
-	if (doc.HasMember("DepthStencilState"))
+	rapidjson::Document document;
+    
+    if (document.Parse(inputJson.c_str()).HasParseError())
+    {
+        LOGGER_ERROR("Unable to load shader file: %s.", filename.c_str());
+        return false;
+    }
+    
+    if (doc.HasMember("DepthStencilState"))
 	{
 		const rapidjson::Value& dsState = doc["DepthStencilState"];
 		if (dsState.HasMember("DepthTestEnable"))
@@ -199,62 +317,81 @@ bool ShaderManager::parseShaderJson(rapidjson::Document& doc, ShaderCompilerInfo
 			compilerInfo.sampler.addrModeW = VkUtils::vkAddressModeToString(sampler["AddressModeW"].GetString());
 		}
 	}
+    
+    if (doc.HasMember("ComputeShader"))
+    {
+        compilerInfo.compShader = std::make_unique<ShaderCompilerInfo::Shader>();
+        if (!readShader(doc, *compilerInfo.compShader, "ComputeShader"))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        // used for creating a linked list of shaders - which will be required for
+        // creating the input/output semantics of each stage
+        ShaderCompilerInfo::Shader* prevStage = nullptr;
+        
+        // definition must have at least a vertex shader stage
+        // all other stages are optional
+        compilerInfo.vertShader = std::make_unique<ShaderCompilerInfo::Shader>();
+        if (!readShader(doc, *compilerInfo.vertShader, "VertexShader"))
+        {
+            return false;
+        }
+        prevStage = compilerInfo.vertShader.get();
+        
+        // this encompasses the control and evaluation stages
+        if (doc.HasMember("TesselationShader"))
+        {
+            compilerInfo.tessShader = std::make_unique<ShaderCompilerInfo::Shader>();
+            if (!readShader(doc, *compilerInfo.tessShader, "TesselationShader"))
+            {
+                return false;
+            }
+            compilerInfo.prevShader->nextStage = compilerInfo.tessShader.get();
+            prevStage = compilerInfo.tessShader.get();
+        }
+        
+        if (doc.HasMember("GeometryShader"))
+        {
+            compilerInfo.geomShader = std::make_unique<ShaderCompilerInfo::Shader>();
+            if (!readShader(doc, *compilerInfo.geomShader, "GeometryShader"))
+            {
+                return false;
+            }
+            compilerInfo.prevShader->nextStage = compilerInfo.geomShader.get();
+            prevStage = compilerInfo.geomShader.get();
+        }
 
-	if (doc.HasMember("Import"))
-	{
-		const rapidjson::Value& imports = doc["Import"].GetArray();
-		if (!imports.Empty())
-		{
-			for (auto& import : imports)
-			{
-				std::string name = import["name"].GetString();
-				std::string type = import["type"].GetString();
-				compilerInfo.imports.emplace(name, type);
-			}
-		}
-	}
-
-	if (doc.HasMember("VertexShader"))
-	{
-		compilerInfo.vertShader = std::make_unique<ShaderCompilerInfo::Shader>();
-		if (!readShader(doc, *compilerInfo.vertShader, "VertexShader"))
-		{
-			return false;
-		}
-	}
-
-	if (doc.HasMember("FragmentShader"))
-	{
-		compilerInfo.fragShader = std::make_unique<ShaderCompilerInfo::Shader>();
-		if (!readShader(doc, *compilerInfo.fragShader, "FragmentShader"))
-		{
-			return false;
-		}
-	}
+        if (doc.HasMember("FragmentShader"))
+        {
+            compilerInfo.fragShader = std::make_unique<ShaderCompilerInfo::Shader>();
+            if (!readShader(doc, *compilerInfo.fragShader, "FragmentShader"))
+            {
+                return false;
+            }
+            compilerInfo.prevShader->nextStage = compilerInfo.fragShader.get();
+            prevStage = compilerInfo.fragShader.get();
+        }
+    }
 }
 
-bool ShaderManager::load(Util::String filename)
+bool ShaderManager::load(Util::String filename, std::string output)
 {
-	rapidjson::Document document;
-	std::string json;
-
-	if (!FileUtil::readFileIntoBuffer(filename.c_str(), json))
+	if (!FileUtil::readFileIntoBuffer(filename.c_str(), output))
 	{
 		return false;
-	}
+    }
+}
 
-	if (document.Parse(json.c_str()).HasParseError())
-	{
-		LOGGER_ERROR("Unable to load shader file: %s.", filename.c_str());
-		return false;
-	}
-
-	// first extract all the raw string data from the json file
-	ShaderCompilerInfo compilerInfo;
-	if (!parseShaderJson(document, compilerInfo))
-	{
-		return false;
-	}
+bool ShaderManager::prepare(std::string inputJson)
+{
+    ShaderCompilerInfo compilerInfo;
+    if (!parseShaderJson(inputJson, compilerInfo))
+    {
+        return false;
+    }
 
 	// now compile into shader bytecode and the assoicated rendering state data
 	if (!compile(compilerInfo))
@@ -263,6 +400,11 @@ bool ShaderManager::load(Util::String filename)
 	}
 
 	return true;
+}
+
+void ShaderManager::addVariation(Util::CString definition, uint8_t value)
+{
+    
 }
 
 }    // namespace VulkanAPI

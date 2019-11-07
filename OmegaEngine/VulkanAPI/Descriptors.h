@@ -30,10 +30,10 @@ public:
 	DescriptorLayout();
 	~DescriptorLayout();
 
-	void addLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
+	void add(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
 	               vk::ShaderStageFlags flags);
 
-	void create(vk::Device device, const uint32_t imageSets = 1);
+	void prepare(vk::Device device, const uint32_t imageSets = 1);
 
 	std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>> &getLayout()
 	{
