@@ -3,7 +3,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/Descriptor.h"
-#include "VulkanAPI/Pipeline.h"
+#include "VulkanAPI/VkContext.h"
 
 #include "utility/String.h"
 
@@ -59,6 +59,7 @@ public:
             {
                 std::string name;
                 std::string type;
+                uint16_t groupId;
             };
             
             struct BufferDescriptor
@@ -98,7 +99,10 @@ public:
             // used by the compiler to prepare the code block for inputs, etc.
             std::string appendBlock;
 		};
-
+        
+        // used to work out the maximum set number across all stages
+        uint16_t groupSize = 0;
+        
 		DepthStencilState dsState;
 		RasterState rasterState;
 		Sampler sampler;
@@ -110,15 +114,6 @@ public:
     
     struct ShaderInfo
     {
-        enum class ShaderType
-        {
-            Vertex,
-            Fragment,
-            Tesselation,
-            Geometry,
-            Compute
-        };
-        
         /**
          * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
          */
@@ -164,16 +159,18 @@ public:
         
         std::vector<BufferBinding> bufferBindings;
         std::vector<SamplerBinding> samplerBindings
-        std::vector<InputBinding> inputs;
         std::vector<RenderTarget> renderTargets;
         
-        DescriptorLayout descrLayout;
+        // We need a layout for each group
+        std::vector<DescriptorLayout> descrLayouts;
+        PipelineLayout pLineLayout;
+        Pipeline pipeline;
     };
     
 	ShaderManager(VkContext& context);
 	~ShaderManager();
     
-	bool load(Util::String filename);
+	bool load(Util::String filename, std::string output);
 
 	bool parseShaderJson(rapidjson::Document& doc, ShaderCompilerInfo& compilerInfo);
 
@@ -181,13 +178,13 @@ public:
 
 private:
     
-    void prepareBindings(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo, uint16_t& bind, uint16_t& setCount);
+    void prepareBindings(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo, uint16_t& bind);
     
     void writeInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderCompilerInfo::ShaderDescriptor* nextShader);
     void prepareInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo);
     void ShaderManager::prepareOutputs(ShaderCompilerInfo& compilerInfo, ShaderInfo& shaderInfo);
     
-    bool readShader(rapidjson::Document& doc, ShaderCompilerInfo::ShaderDescriptor& shader, std::string id);
+    bool readShader(rapidjson::Document& doc, ShaderCompilerInfo::ShaderDescriptor& shader, std::string id, uint16_t& maxGroup);
     
 private:
     

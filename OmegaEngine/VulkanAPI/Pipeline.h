@@ -1,5 +1,5 @@
 #pragma once
-#include "Rendering/RenderableTypes/RenderableBase.h"
+
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/Shader.h"
@@ -13,8 +13,8 @@ namespace VulkanAPI
 {
 // forward declearions
 class Shader;
-class RenderPass;
 class PipelineLayout;
+class VkContext;
 
 enum class PipelineType
 {
@@ -56,8 +56,6 @@ public:
 	void create(vk::Device dev, RenderPass &renderpass, Shader &shader, PipelineType _type);
 	void create(vk::Device dev, PipelineType _type);
 
-	static void reflect(uint32_t* data, size_t dataSize, Pipeline& pipeline);
-	
 	PipelineType getPipelineType() const
 	{
 		return type;
@@ -85,38 +83,54 @@ private:
 	std::vector<vk::DynamicState> dynamicStates;
 	vk::PipelineDynamicStateCreateInfo dynamicCreateState;
 
-	Shader shader;
-	RenderPass renderpass;
-	vk::PipelineLayout pipelineLayout;
+    // a reference to the shader associated with this pipline
+	Shader& shader;
+    
+    // a reference to the renderpass associated with this pipeline
+	RenderPass& renderpass;
+    
+    // a reference to the layout associated with this pipeline
+	vk::PipelineLayout& pipelineLayout;
+    
 	vk::Pipeline pipeline;
 
 	PipelineType type;
 };
 
-// all the data required to create a pipeline layout
+/**
+* @brief all the data required to create a pipeline layout
+*/
 class PipelineLayout
 {
 public:
 	PipelineLayout();
-
-	void create(vk::Device &device,
-	            std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>> &descriptorLayout);
-
+    
+    /**
+     * @brief Creates a pipleine layout based on the push constants and descriptor layout which must be
+     * created before calling this function.
+     * Note: The layouts must be in the correct order as depicted by the set number
+     */
+	void prepare(VkContext& context, std::vector<DescriptorLayout> &descrLayouts);
+    
+    /// returns the vulkan pipeline layout
 	vk::PipelineLayout &get()
 	{
 		return layout;
 	}
-
-	void add_push_constant(StageType stage, uint32_t size)
+    
+    /**
+     * Adds a push constant reference to this layout. Only the size must be known at this stage; The data will be
+     * associated with this push constant at draw time.
+     */
+	void addPushConstant(Shader::StageType stage, uint32_t size)
 	{
-		pushConstantSizes[(int)stage] = size;
+        pConstantSizes.emplace(stage, size);
 	}
 
-	static void reflect(uint32_t* data, size_t dataSize, PipelineLayout& layout);
-
 private:
-	// usually set through shader reflection
-	std::array<uint32_t, (int)StageType::Count> pushConstantSizes = {};
+    
+	/// the shader stage the push constant refers to and its size
+	std::vector<std::pair<Shader::StageType, size_t> pConstantSizes = {};
 
 	vk::PipelineLayout layout;
 };

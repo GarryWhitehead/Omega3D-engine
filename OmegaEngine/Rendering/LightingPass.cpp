@@ -1,15 +1,33 @@
 #include "LightingPass.h"
 
+#include "utility/Logger.h"
+
 #include "RenderGraph/RenderGraph.h"
 
 #include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/Managers/ShaderManager.h"
+#include "VulkanAPI/Shader.h"
 
 namespace OmegaEngine
 {
 
-void LightingPass::init()
+bool LightingPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager)
 {
-	RenderGraphBuilder builder = rGraph->createRenderPass("Lighting Pass");
+    // load the shaders
+   std::string outputBuffer;
+   if (!manager->load("renderer/deferred/lighting.glsl", outputBuffer))
+   {
+       LOGGER_ERROR("Unable to load deferred renderer shaders.");
+       return false;
+   }
+   ShaderHandle handle = manager->parse(outputBuffer);
+   if (handle == UINT32_MAX)
+   {
+       LOGGER_ERROR("Unable to parse shader.");
+       return false;
+   }
+    
+    RenderGraphBuilder builder = rGraph.createRenderPass("Lighting Pass");
 
 	// inputs from the deferred pass
 

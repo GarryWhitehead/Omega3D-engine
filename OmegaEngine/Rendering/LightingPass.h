@@ -2,13 +2,21 @@
 
 #include "RenderGraph/Resources.h"
 
+#include "Rendering/Renderer.h"
+
+// forward declerations
+namespace VulkanAPI
+{
+class ShaderManager;
+};
+
 namespace OmegaEngine
 {
 
 // forward declerations
 class RenderGraph;
 
-class LightingPass
+class LightingPass : public RenderStageBase
 {
 public:
 
@@ -25,7 +33,7 @@ public:
 	LightingPass(const LightingPass&) = delete;
 	LightingPass& operator=(const LightingPass&) = delete;
 
-	void init();
+	bool prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager) override;
 
 private:
 

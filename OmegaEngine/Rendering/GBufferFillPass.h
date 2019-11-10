@@ -1,11 +1,17 @@
 #pragma once
 
+#include "Rendering/Renderers/DeferredRenderer.h"
 #include "RenderGraph/RenderGraph.h"
+
+namespace VulkanAPI
+{
+    class ShaderManager;
+};
 
 namespace OmegaEngine
 {
 
-class GBufferFillPass
+class GBufferFillPass : public RenderStageBase
 {
 public:
 	struct GBufferInfo
@@ -39,10 +45,9 @@ public:
 	GBufferFillPass(const GBufferFillPass&) = delete;
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
 
-	void init();
+	bool prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager) override;
 
 private:
-	RenderGraph* rGraph = nullptr;
 
 	GBufferInfo gbufferInfo;
 };

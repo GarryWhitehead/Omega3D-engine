@@ -120,8 +120,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderInterface.cpp Rendering/RenderInterface.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
-	Rendering/Renderers/DeferredRenderer.cpp Rendering/Renderers/DeferredRenderer.h
-	Rendering/Renderers/RendererBase.h
+	Rendering/Renderer.cpp Rendering/Renderer.h
     Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h
 	Rendering/LightingPass.cpp Rendering/LightingPass.h
 	Rendering/IblImage.cpp Rendering/IblImage.h

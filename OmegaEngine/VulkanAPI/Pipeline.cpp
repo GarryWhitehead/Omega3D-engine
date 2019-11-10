@@ -3,6 +3,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/VkContext.h"
 
 #include "spirv_cross.hpp"
 
@@ -13,60 +14,36 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::create(vk::Device& device,
-                            std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& descriptorLayout)
+void PipelineLayout::prepare(VkContext& device,
+                            std::vector<DescriptorLayout>& descrLayouts)
 {
 	// create push constants
 	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
 	// - maybe this is OK, but if so, no need for a vector anymore
-	std::vector<vk::PushConstantRange> pushConstants;
+	std::vector<vk::PushConstantRange> pConstants;
 	vk::ShaderStageFlags flags;
 	uint32_t totalSize = 0;
 
-	for (uint16_t stage = 0; stage < (uint16_t)VulkanAPI::StageType::Count; ++stage)
+	for (size_t i = 0; i < pConstantSizes.size(); ++i)
 	{
-		if (pushConstantSizes[stage])
-		{
-			flags |= Shader::getStageFlags((StageType)stage);
-			totalSize += pushConstantSizes[stage];
-		}
+        size_t size = pConstantSizes[i].first;
+        Shader::StageType type = pConstantSizes[i].second;
+        
+        flags |= Shader::getStageFlags(type);
+        totalSize += size;
 	}
+    
 	if (totalSize > 0)
 	{
 		vk::PushConstantRange push(flags, 0, totalSize);
-		pushConstants.push_back(push);
+		pConstants.push_back(push);
 	}
 
-	// the descriptor layout also contains the set number for this layout as derived from the pipelinelayout. The set number number will depict the order which is important
-	// as Vulkan will complain otherwise.
-	std::vector<vk::DescriptorSetLayout> layouts(descriptorLayout.size());
+	// create the layout - the descriptor layouts must be sorted in the correct order
+	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(descrLayouts.size()), descrLayouts.data(),
+	                                          static_cast<uint32_t>(pConstants.size()), pConstants.data());
 
-	for (auto& layout : descriptorLayout)
-	{
-		layouts[std::get<0>(layout)] = std::get<1>(layout);
-	}
-
-	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(layouts.size()), layouts.data(),
-	                                          static_cast<uint32_t>(pushConstants.size()), pushConstants.data());
-
-	VK_CHECK_RESULT(device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
-}
-
-// ================== static functions ==============================
-void PipelineLayout::reflect(uint32_t* data, size_t dataSize, PipelineLayout& layout)
-{
-
-
-	spirv_cross::Compiler compiler(data[i].data(), data[i].size() / sizeof(uint32_t));
-
-	auto shaderResources = compiler.get_shader_resources();
-
-	// get push constants struct sizes if any
-	if (!shaderResources.push_constant_buffers.empty())
-	{
-		layout.add_push_constant((StageType)i, (uint32_t)compiler.get_declared_struct_size(compiler.get_type(
-		                                           shaderResources.push_constant_buffers.front().base_type_id)));
-	}
+	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&pipelineInfo, nullptr, &layout));
 }
 
 // ================== pipeline =======================

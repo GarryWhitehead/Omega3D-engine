@@ -8,50 +8,16 @@
 namespace VulkanAPI
 {
 
-CommandBufferManager::CommandBufferManager()
-{
-	// set up the command buffers for swapchain presentaion now
-	presentionCmdBuffers.resize(swapchain.getImageCount());
-	for (uint32_t i = 0; i < presentionCmdBuffers.size(); ++i)
-	{
-
-		// single use cmd buffers if static or new uffers each frame, otherwise multi-use
-		if (mode == NewFrameMode::New)
-		{
-			presentionCmdBuffers[i].cmdBuffer = std::make_unique<CommandBuffer>(VkContext, graphicsQueue.getIndex());
-		}
-		else
-		{
-			// static and reset cmd buffers will be submitted multiple times
-			presentionCmdBuffers[i].cmdBuffer =
-			    std::make_unique<CommandBuffer>(VkContext, graphicsQueue.getIndex(), CommandBuffer::UsageType::Multi);
-		}
-
-		vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-		VK_CHECK_RESULT(device.createFence(&fence_info, nullptr, &presentionCmdBuffers[i].fence));
-		VK_CHECK_RESULT(device.resetFences(1, &presentionCmdBuffers[i].fence));
-	}
-
-	semaphoreManager = std::make_unique<SemaphoreManager>(VkContext);
-
-	// initialise semaphores required to sync frame begin and end queues
-	beginSemaphore = semaphoreManager->getSemaphore();
-	finalSemaphore = semaphoreManager->getSemaphore();
-}
-
-CommandBufferManager::~CommandBufferManager()
+CmdBufferManager::CmdBufferManager() : 
+	context(context)
 {
 }
 
-void CommandBufferManager::init(VkContext* con, const NewFrameMode mode)
+CmdBufferManager::~CmdBufferManager()
 {
-	assert(context);
-
-	context = con;
-	this->mode = mode;
 }
 
-CmdBufferHandle CommandBufferManager::createInstance()
+CmdBufferHandle CmdBufferManager::newInstance()
 {
 	CommandBufferInfo buffer_info;
 
@@ -68,13 +34,13 @@ CmdBufferHandle CommandBufferManager::createInstance()
 	return cmdBuffers.size() - 1;
 }
 
-std::unique_ptr<CommandBuffer>& CommandBufferManager::getCmdBuffer(CmdBufferHandle handle)
+std::unique_ptr<CommandBuffer>& CmdBufferManager::getCmdBuffer(CmdBufferHandle handle)
 {
 	assert(handle < cmdBuffers.size());
 	return cmdBuffers[handle].cmdBuffer;
 }
 
-std::unique_ptr<VulkanAPI::CommandBuffer>& CommandBufferManager::beginNewFame(CmdBufferHandle handle)
+std::unique_ptr<VulkanAPI::CommandBuffer>& CmdBufferManager::beginNewFame(CmdBufferHandle handle)
 {
 
 	// if it's static then only create a new instance if it's null
@@ -123,11 +89,8 @@ std::unique_ptr<VulkanAPI::CommandBuffer>& CommandBufferManager::beginNewFame(Cm
 	return cmdBuffers[handle].cmdBuffer;
 }
 
-void CommandBufferManager::submitOnce(CmdBufferHandle handle)
-{
-}
 
-void CommandBufferManager::submitFrame(Swapchain& swapchain)
+void CmdBufferManager::submitFrame(Swapchain& swapchain)
 {
 	vk::Semaphore waitSync;
 	vk::Semaphore signalSync;
@@ -174,20 +137,5 @@ void CommandBufferManager::submitFrame(Swapchain& swapchain)
 	swapchain.submitFrame(finalSemaphore, context->getQueue(VkContext::QueueType::Present).get());
 }
 
-std::unique_ptr<CommandBuffer>& CommandBufferManager::beginPresentCmdBuffer(RenderPass& renderpass,
-                                                                            vk::ClearColorValue clear_colour,
-                                                                            uint32_t index)
-{
-	auto& cmdBuffer = presentionCmdBuffers[index].cmdBuffer;
-
-	// setup the command buffer
-	cmdBuffer->createPrimary();
-
-	// begin the render pass
-	auto& beginInfo = renderpass.getBeginInfo(clear_colour, index);
-	cmdBuffer->beginRenderpass(beginInfo, false);
-
-	return cmdBuffer;
-}
 
 }    // namespace VulkanAPI

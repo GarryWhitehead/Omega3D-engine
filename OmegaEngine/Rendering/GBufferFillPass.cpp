@@ -2,14 +2,18 @@
 
 #include "RenderGraph/RenderGraph.h"
 
+#include "VulkanAPI/Managers/ShaderManager.h"
 #include "VulkanAPI/common.h"
+
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
 
-void GBufferFillPass::init()
+bool GBufferFillPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager)
 {
-
+   
+    
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkContext::getDepthFormat(gpu);
 

@@ -17,6 +17,8 @@ namespace VulkanAPI
 // forward decleartions
 class VkContext;
 
+using ShaderHandle = uint64_t;
+
 class Shader
 {
 
