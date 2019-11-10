@@ -166,6 +166,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Sampler.cpp VulkanAPI/Sampler.h
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
+
+	VulkanAPI/VkUtils/StringToVk.cpp VulkanAPI/VkUtils/StringToVk.h
+	VulkanAPI/VkUtils/VkToString.cpp VulkanAPI/VkUtils/VkToString.h
 )
 
 # ================= linking =======================

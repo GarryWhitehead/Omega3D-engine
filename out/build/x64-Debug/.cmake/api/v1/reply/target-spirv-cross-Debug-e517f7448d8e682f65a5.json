@@ -1,0 +1,192 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "external/spirv-cross/Debug/spirv-cross.exe"
+		},
+		{
+			"path" : "external/spirv-cross/Debug/spirv-cross.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_executable",
+			"install",
+			"target_link_libraries",
+			"target_include_directories",
+			"target_compile_definitions"
+		],
+		"files" : 
+		[
+			"external/spirv-cross/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 393,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 398,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 399,
+				"parent" : 0
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 395,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 396,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /MTd /Zi /Ob0 /Od /RTC1   /wd4267"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 5,
+					"define" : "HAVE_SPIRV_CROSS_GIT_VERSION"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 4,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/spirv-cross"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/spirv-cross"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-msl::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-reflect::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-util::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-core::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-glsl::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-hlsl::@6da46b9a303f95fb92d4"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "spirv-cross-cpp::@6da46b9a303f95fb92d4"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "spirv-cross::@6da46b9a303f95fb92d4",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "bin"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/install/x64-Debug"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /MTd /Zi /Ob0 /Od /RTC1",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "Debug\\spirv-cross-glsl.lib Debug\\spirv-cross-hlsl.lib Debug\\spirv-cross-cpp.lib Debug\\spirv-cross-reflect.lib Debug\\spirv-cross-msl.lib Debug\\spirv-cross-util.lib Debug\\spirv-cross-core.lib Debug\\spirv-cross-glsl.lib Debug\\spirv-cross-core.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "spirv-cross",
+	"nameOnDisk" : "spirv-cross.exe",
+	"paths" : 
+	{
+		"build" : "external/spirv-cross",
+		"source" : "external/spirv-cross"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/spirv-cross/main.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

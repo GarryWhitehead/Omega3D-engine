@@ -1,0 +1,195 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{C1642772-8361-30D9-AFB7-619E02B25838}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>Scene</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Scene.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Scene</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Components;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\PostProcess;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Renderers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Managers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\spirv-cross;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Components;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\PostProcess;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Renderers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Managers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\spirv-cross;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Components;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\PostProcess;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Renderers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Misc\Primitives;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Types;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Managers;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glfw\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\spirv-cross;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>..\OmegaEngine\Debug\OMEGA_ENGINEd.lib;C:\VulkanSDK\1.1.121.2\Lib\vulkan-1.lib;..\external\glfw\src\Debug\glfw3.lib;..\external\spirv-cross\Debug\spirv-cross-core.lib;..\external\shaderc\libshaderc\Debug\shaderc.lib;..\external\shaderc\libshaderc_util\Debug\shaderc_util.lib;..\external\shaderc\third_party\glslang\SPIRV\Debug\SPIRVd.lib;..\external\shaderc\third_party\glslang\glslang\Debug\glslangd.lib;..\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\Debug\OSDependentd.lib;..\external\shaderc\third_party\glslang\OGLCompilersDLL\Debug\OGLCompilerd.lib;..\external\shaderc\third_party\glslang\hlsl\Debug\HLSLd.lib;..\external\SPIRV-Tools\source\opt\Debug\SPIRV-Tools-opt.lib;..\external\SPIRV-Tools\source\Debug\SPIRV-Tools.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/Examples/Debug/Scene.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/Examples/Debug/Scene.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Examples/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/Examples/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Scene\main.cpp" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Application.cpp" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Application.h" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms\PlatformGlfw.cpp" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples\Application\Platforms\PlatformGlfw.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\ZERO_CHECK.vcxproj">
+      <Project>{0C61801E-A871-36A9-8E10-FBCB73BD3382}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
+      <Project>{13B2173B-CF1E-3578-A8DA-0F1514329722}</Project>
+      <Name>HLSL</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
+      <Project>{BA27FA8F-1125-3732-928A-C5661BE85FAF}</Project>
+      <Name>OGLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\OmegaEngine\OMEGA_ENGINE.vcxproj">
+      <Project>{41346764-D7A0-309C-AC7A-76EC0F6671F2}</Project>
+      <Name>OMEGA_ENGINE</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
+      <Project>{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}</Project>
+      <Name>OSDependent</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
+      <Project>{7606B6F7-5933-3A49-BB93-71C68AF76D00}</Project>
+      <Name>SPIRV</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
+      <Project>{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}</Project>
+      <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
+      <Project>{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}</Project>
+      <Name>SPIRV-Tools-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src\glfw.vcxproj">
+      <Project>{D39CEE3C-1F01-3082-B101-6C4A2DA85399}</Project>
+      <Name>glfw</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\glslang.vcxproj">
+      <Project>{B4284582-40A1-3D87-AEE7-651C2594453B}</Project>
+      <Name>glslang</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc.vcxproj">
+      <Project>{4F4C7D7F-A013-320B-AAA5-B96C448E007D}</Project>
+      <Name>shaderc</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util.vcxproj">
+      <Project>{AEF46BF8-8521-32B8-9281-93918F129841}</Project>
+      <Name>shaderc_util</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\spirv-cross\spirv-cross-core.vcxproj">
+      <Project>{CFD74FEC-39F4-372B-92B1-018A3A284776}</Project>
+      <Name>spirv-cross-core</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
