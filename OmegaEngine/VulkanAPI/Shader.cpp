@@ -1,14 +1,80 @@
 #include "Shader.h"
+
+#include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
+
 #include "utility/logger.h"
 
 #include <fstream>
 
 namespace VulkanAPI
 {
-Shader::Shader()
+
+shaderc_shader_kind getShaderKind(const Shader::StageType type)
+{
+    shaderc_shader_kind result;
+    switch (type)
+    {
+    case Shader::StageType::Vertex:
+        result = shaderc_shader_kind::shaderc_vertex_shader;
+        break;
+    case Shader::StageType::Fragment:
+        result = shaderc_shader_kind::shaderc_fragment_shader;
+        break;
+    case Shader::StageType::Geometry:
+        result = shaderc_shader_kind::shaderc_geometry_shader;
+        break;
+    case Shader::StageType::Compute:
+        result = shaderc_shader_kind::shaderc_compute_shader;
+        break;
+    }
+
+    return result;
+}
+
+GlslCompiler::GlslCompiler(std::string shaderCode, const Shader::StageType type) :
+    source(shaderCode),
+    kind(getShaderKind(type))
+{
+}
+
+GlslCompiler::~GlslCompiler()
+{
+}
+
+bool GlslCompiler::compile(bool optimise)
+{
+    shaderc::Compiler compiler;
+    shaderc::CompileOptions options;
+
+    for (auto define : defines)
+    {
+        options.AddMacroDefinition(define.first.c_str(), std::to_string(define.second).c_str());
+    }
+
+    if (optimise)
+    {
+        options.SetOptimizationLevel(shaderc_optimization_level_size);
+    }
+
+    auto result = compiler.CompileGlslToSpv(source, kind, sourceName.c_str(), options);
+    if (result.GetCompilationStatus() != shaderc_compilation_status_success)
+    {
+        LOGGER_INFO("%s", result.GetErrorMessage().c_str());
+        return false;
+    }
+
+    std::copy(result.cbegin(), result.cend(), output.begin());
+
+    return true;
+}
+
+// ==================== Shader =========================
+
+Shader::Shader(VkContext& context) :
+    context(context)
 {
 }
 
@@ -16,101 +82,64 @@ Shader::~Shader()
 {
 }
 
-vk::ShaderStageFlagBits Shader::getStageFlags(StageType type)
+vk::ShaderStageFlagBits Shader::getStageFlags(Shader::StageType type)
 {
 	vk::ShaderStageFlagBits ret;
 	switch (type)
 	{
-	case StageType::Vertex:
+    case Shader::StageType::Vertex:
 		ret = vk::ShaderStageFlagBits::eVertex;
 		break;
-	case StageType::Fragment:
+    case Shader::StageType::Fragment:
 		ret = vk::ShaderStageFlagBits::eFragment;
 		break;
-	case StageType::Geometry:
+    case Shader::StageType::TesselationCon:
+        ret = vk::ShaderStageFlagBits::eTessellationControl;
+        break;
+    case Shader::StageType::TesselationEval:
+        ret = vk::ShaderStageFlagBits::eTessellationEvaluation;
+        break;
+    case Shader::StageType::Geometry:
 		ret = vk::ShaderStageFlagBits::eGeometry;
 		break;
-	case StageType::Compute:
+    case Shader::StageType::Compute:
 		ret = vk::ShaderStageFlagBits::eCompute;
 		break;
 	}
 	return ret;
 }
 
-bool Shader::add(vk::Device device, const std::string& filename, StageType type)
+bool Shader::add(std::string shaderCode, const Shader::StageType type)
 {
-	this->device = device;
+    if (shaderCode.empty())
+    {
+        LOGGER_ERROR("There is no shader code to process!");
+        return false;
+    }
+    
+    ShaderModuleInfo moduleInfo;
+    
+    // compile into bytecode
+    GlslCompiler compiler(shaderCode, type);
+    compiler.addDefinition();
+    compiler.compile(true);
+    
+    // create the shader module
+    vk::ShaderModuleCreateInfo shaderInfo({}, compiler.getSize() ,compiler.getData());
 
-	if (!loadShaderBinary(filename.c_str(), type))
-	{
-		return false;
-	}
-
-	createModule(device, type);
-	createWrapper(type);
-
-	// keep track of which shaders we have added
-	currentStages[(int)type] = true;
-
-	return true;
+    VK_CHECK_RESULT(context.getDevice().createShaderModule(&shaderInfo, nullptr, &moduleInfo.module));
+    
+    // create the wrapper - this will be used by the pipeline
+    vk::ShaderStageFlagBits stage = getStageFlags(type);
+    moduleInfo.createInfo = vk::PipelineShaderStageCreateInfo({}, stage, moduleInfo.module, "main", nullptr);
+    shaders.push_back(moduleInfo);
 }
-
-bool Shader::add(vk::Device device, const std::string& filename1, StageType type1, const std::string& filename2,
-                 StageType type2)
-{
-	this->device = device;
-
-	if (!add(device, filename1.c_str(), type1))
-	{
-		return false;
-	}
-	if (!add(device, filename2.c_str(), type2))
-	{
-		return false;
-	}
-
-	currentStages[(int)type1] = true;
-	currentStages[(int)type2] = true;
-
-	return true;
-}
-
-bool Shader::loadShaderBinary(const char* filename, StageType type)
-{
-	std::string shaderDir(
-		"shaders/");
-	std::ifstream file(shaderDir + filename, std::ios_base::ate | std::ios_base::binary);
-	if (!file.is_open())
-	{
-		return false;
-	}
-
-	std::ifstream::pos_type filePos = file.tellg();
-	data[(int)type].resize(filePos);
-	file.seekg(0, std::ios_base::beg);
-	file.read((char*)data[(int)type].data(), filePos);
-	return true;
-}
-
-void Shader::createModule(vk::Device device, StageType type)
-{
-	vk::ShaderModuleCreateInfo shaderInfo({}, static_cast<uint32_t>(data[(int)type].size()), data[(int)type].data());
-
-	VK_CHECK_RESULT(device.createShaderModule(&shaderInfo, nullptr, &modules[(int)type]));
-}
-
-void Shader::createWrapper(StageType type)
-{
-	vk::ShaderStageFlagBits stage = getStageFlags(type);
-	vk::PipelineShaderStageCreateInfo createInfo({}, stage, modules[(int)type], "main", nullptr);
-	wrappers.push_back(createInfo);
-}
-
 
 Sampler Shader::getSamplerType(std::string name)
 {
 	Sampler sampler;
-
+    vk::Device device = context.getDevice();
+    
 	// if no sampler declared then will use stock linear sampler
 	if (name.find("Clamp_") != std::string::npos)
 	{
@@ -169,69 +198,76 @@ vk::ImageLayout Shader::getImageLayout(std::string& name)
 	return layout;
 }
 
-std::tuple<vk::Format, uint32_t> Shader::getTypeFormat(uint32_t width, uint32_t vecSize,
-                                                       spirv_cross::SPIRType::BaseType type)
+vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width)
 {
 	// TODO: add other base types and widths
 	vk::Format format;
-	uint32_t size = 0;
 
 	// floats
-	if (type == spirv_cross::SPIRType::Float)
-	{
-		if (width == 32)
-		{
-			if (vecSize == 1)
-			{
-				format = vk::Format::eR32Sfloat;
-				size = 4;
-			}
-			if (vecSize == 2)
-			{
-				format = vk::Format::eR32G32Sfloat;
-				size = 8;
-			}
-			if (vecSize == 3)
-			{
-				format = vk::Format::eR32G32B32Sfloat;
-				size = 12;
-			}
-			if (vecSize == 4)
-			{
-				format = vk::Format::eR32G32B32A32Sfloat;
-				size = 16;
-			}
-		}
-	}
+    if (width == 32)
+    {
+        if (type == "float")
+        {
+            format = vk::Format::eR32Sfloat;
+        }
+        else if (type == "vec2")
+        {
+            format = vk::Format::eR32G32Sfloat;
+        }
+        else if (type == "vec3")
+        {
+            format = vk::Format::eR32G32B32Sfloat;
+        }
+        else if (type == "vec4")
+        {
+            format = vk::Format::eR32G32B32A32Sfloat;
+        }
+        // signed integers
+        else if (type == "int")
+        {
+            format = vk::Format::eR32Sint;
+        }
+        else if (type == "ivec2")
+        {
+            format = vk::Format::eR32G32Sint;
+        }
+        else if (type == "ivec3")
+        {
+            format = vk::Format::eR32G32B32Sint;
+        }
+        else if (type == "ivec4")
+        {
+            format = vk::Format::eR32G32B32A32Sint;
+        }
+    }
 
-	// signed integers
-	else if (type == spirv_cross::SPIRType::Int)
-	{
-		if (width == 32)
-		{
-			if (vecSize == 1)
-			{
-				format = vk::Format::eR32Sint;
-				size = 4;
-			}
-			if (vecSize == 2)
-			{
-				format = vk::Format::eR32G32Sint;
-				size = 8;
-			}
-			if (vecSize == 3)
-			{
-				format = vk::Format::eR32G32B32Sint;
-				size = 12;
-			}
-			if (vecSize == 4)
-			{
-				format = vk::Format::eR32G32B32A32Sint;
-				size = 16;
-			}
-		}
-	}
-
-	return std::make_tuple(format, size);
+	return format;
 }
+
+uint32_t Shader::getStrideFromType(std::string type)
+{
+    // TODO: add other base types and widths
+    uint32_t size;
+
+    // floats
+    if (type == "float" || type == "int")
+    {
+        size = 4;
+    }
+    if (type == "vec2" || type == "ivec2")
+    {
+        size = 8;
+    }
+    if (type == "vec3" || type == "ivec3")
+    {
+        size = 12;
+    }
+    if (type == "vec4" || type == "ivec4")
+    {
+        size = 16;
+    }
+
+    return size;
+}
+
 }    // namespace VulkanAPI

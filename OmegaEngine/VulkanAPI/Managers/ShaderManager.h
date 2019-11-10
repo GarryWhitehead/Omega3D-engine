@@ -1,7 +1,9 @@
 #pragma once
-#include <shaderc/shaderc.hpp>
 
 #include "VulkanAPI/Common.h"
+#include "VulkanAPI/Shader.h"
+#include "VulkanAPI/Descriptor.h"
+#include "VulkanAPI/Pipeline.h"
 
 #include "utility/String.h"
 
@@ -16,39 +18,8 @@
 namespace VulkanAPI
 {
 
-enum class StageType;
-
-class GlslCompiler
-{
-public:
-	GlslCompiler(std::string filename, const StageType type);
-	~GlslCompiler();
-
-	bool compile(bool optimise);
-
-	void addDefinition(Util::String define, uint8_t value)
-	{
-		defines.insert(define, value);
-	}
-
-	uint32_t* getData()
-	{
-		return output.data();
-	}
-
-	size_t getSize() const
-	{
-		return output.size();
-	}
-
-private:
-	std::vector<uint32_t> output;
-
-	shaderc_shader_kind kind;
-	std::string source;
-	std::string sourceName;
-	std::unordered_map<Util::String, uint8_t> defines;
-};
+// forward declerations
+class VkContext;
 
 class ShaderManager
 {
@@ -78,28 +49,130 @@ public:
 			vk::SamplerAddressMode addrModeW;
 		};
 
-		struct Shader
+		struct ShaderDescriptor
 		{
-			std::unordered_map<std::string, std::string> inputs;
-			std::unordered_map<std::string, std::string> outputs;
+			ShaderDescriptor(Shader::StageType type) :
+                type(type)
+            {}
+            
+            struct Descriptor
+            {
+                std::string name;
+                std::string type;
+            };
+            
+            struct BufferDescriptor
+            {
+                Descriptor descr;
+                std::vector<Descriptor> data;
+            };
+            
+            struct ConstantDescriptor
+            {
+                Descriptor descr;
+                std::string value;
+            };
+            
+            // points to the next shader stage
+            ShaderDescriptor* nextStage = nullptr;
+            
+            // shader stage
+            Shader::StageType type;
+            
+            // sementic inputs and outputs
+            std::vector<Descriptor> inputs;
+			std::vector<Descriptor> outputs;
+            
+            // texture samplers to import; first: name, second: sampler type
+            std::vector<Descriptor> samplers;
+            
+            // uniform buffers to import; first: name, second: buffer type
+            std::vector<BufferDescriptor> ubos;
+            
+            // first: name, second: type, third: value
+            std::vector<ConstantDescriptor> constants;
+            
+            // the glsl code in text format
 			std::vector<std::string> code;
+            
+            // used by the compiler to prepare the code block for inputs, etc.
+            std::string appendBlock;
 		};
 
 		DepthStencilState dsState;
 		RasterState rasterState;
 		Sampler sampler;
 
-		std::unique_ptr<Shader> vertShader;
-		std::unique_ptr<Shader> fragShader;
+		std::unique_ptr<ShaderDescriptor> vertShader;
+		std::unique_ptr<ShaderDescriptor> fragShader;
 
-		std::unordered_map<std::string, std::string> imports;
 	};
-
-	ShaderManager();
+    
+    struct ShaderInfo
+    {
+        enum class ShaderType
+        {
+            Vertex,
+            Fragment,
+            Tesselation,
+            Geometry,
+            Compute
+        };
+        
+        /**
+         * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
+         */
+        struct BufferBinding
+        {
+            Util::String name;
+            int16_t bind = 0;
+            uint16_t set = 0;
+            uint32_t size = 0;
+            ShaderType shader;
+            
+        };
+        
+        /**
+         * The sampler bindings for the shder stage. These can be sampler2D, sampler3D and samplerCube
+         */
+        struct SamplerBinding
+        {
+            Util::String name;
+            int16_t bind = 0;
+            uint16_t set = 0;
+            ShaderType shader;
+        };
+        
+        /**
+         * Input semenatics of the shader stage. Used by the pipeline attributes
+         */
+        struct InputBinding
+        {
+            uint16_t location = 0;
+            uint32_t stride = 0;
+            vk::Format format;
+        };
+        
+        /**
+         * States the ouput from the fragment shader - into a buffer specified by the render pass
+         */
+        struct RenderTarget
+        {
+            uint16_t location = 0;
+            vk::Format format;
+        };
+        
+        std::vector<BufferBinding> bufferBindings;
+        std::vector<SamplerBinding> samplerBindings
+        std::vector<InputBinding> inputs;
+        std::vector<RenderTarget> renderTargets;
+        
+        DescriptorLayout descrLayout;
+    };
+    
+	ShaderManager(VkContext& context);
 	~ShaderManager();
-
-	bool readShader(rapidjson::Document& doc, ShaderCompilerInfo::Shader& shader, std::string id);
-
+    
 	bool load(Util::String filename);
 
 	bool parseShaderJson(rapidjson::Document& doc, ShaderCompilerInfo& compilerInfo);
@@ -107,6 +180,18 @@ public:
 	bool compile(ShaderCompilerInfo& info);
 
 private:
+    
+    void prepareBindings(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo, uint16_t& bind, uint16_t& setCount);
+    
+    void writeInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderCompilerInfo::ShaderDescriptor* nextShader);
+    void prepareInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo);
+    void ShaderManager::prepareOutputs(ShaderCompilerInfo& compilerInfo, ShaderInfo& shaderInfo);
+    
+    bool readShader(rapidjson::Document& doc, ShaderCompilerInfo::ShaderDescriptor& shader, std::string id);
+    
+private:
+    
+    VkContext& context;
 };
 
 }    // namespace VulkanAPI

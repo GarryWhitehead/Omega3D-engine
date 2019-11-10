@@ -11,7 +11,7 @@ DescriptorLayout::~DescriptorLayout()
 {
 }
 
-void DescriptorLayout::addLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
+void DescriptorLayout::add(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
                                  vk::ShaderStageFlags flags)
 {
 	vk::DescriptorSetLayoutBinding layout(binding, bindType, 1, flags, nullptr);
@@ -114,14 +114,9 @@ DescriptorSet::~DescriptorSet()
 {
 }
 
-DescriptorSet::DescriptorSet(vk::Device device, DescriptorLayout descriptorLayout)
+DescriptorSet::DescriptorSet(vk::Device device, DescriptorLayout& descriptorLayout)
 {
 	init(device, descriptorLayout);
-}
-
-DescriptorSet::DescriptorSet(vk::Device device, DescriptorLayout descriptorLayout, uint32_t set)
-{
-	init(device, descriptorLayout, set);
 }
 
 void DescriptorSet::init(vk::Device& device, DescriptorLayout& descriptorLayout)

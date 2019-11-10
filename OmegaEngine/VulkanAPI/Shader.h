@@ -1,73 +1,132 @@
 #pragma once
+
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Sampler.h"
 
+#include "utility/String.h"
 
+#include <shaderc/shaderc.hpp>
 
 #include <optional>
+#include <cstdint>
+#include <string>
+#include <vector>
+#include <unordered_map>
 
 namespace VulkanAPI
 {
 // forward decleartions
-class DescriptorLayout;
-class PipelineLayout;
-class Pipeline;
-class Sampler;
-enum class StageType;
-
-enum class StageType
-{
-	Vertex,
-	Fragment,
-	Geometry,
-	Compute,
-	Count
-};
+class VkContext;
 
 class Shader
 {
 
 public:
-	Shader();
-	~Shader();
+    
+    enum class StageType
+    {
+        Vertex,
+        TesselationCon,
+        TesselationEval,
+        Geometry,
+        Fragment,
+        Compute,
+    };
 
-	uint32_t size() const
+	Shader(VkContext& context);
+	~Shader();
+    
+    // not copyable
+    Shader(const Shader&) = delete;
+    Shader& operator=(const Shader&) = delete;
+    
+    /**
+     * @brief The number of shaders
+     */
+	uint32_t shaderCount() const
 	{
 		return static_cast<uint32_t>(wrappers.size());
 	}
-
-	vk::PipelineShaderStageCreateInfo *getPipelineData()
+    
+    /**
+    * Gathers the createInfo for all shaders into one blob in a format needed by the pipeline
+     */
+	vk::PipelineShaderStageCreateInfo *getData()
 	{
-		return (vk::PipelineShaderStageCreateInfo *)wrappers.data();
+		return wrappers.data();
 	}
-
+    
 	Sampler getSamplerType(std::string name);
 	vk::ImageLayout getImageLayout(std::string& name);
-	std::tuple<vk::Format, uint32_t> getTypeFormat(uint32_t width, uint32_t vecSize,
-	                                               spirv_cross::SPIRType::BaseType type);
-
-	static vk::ShaderStageFlagBits getStageFlags(StageType type);
-
-	bool add(vk::Device device, const std::string &filename, StageType type);
-	bool add(vk::Device device, const std::string &filename1, StageType type1,
-	         const std::string &filename2, StageType type2);
-
-	std::vector<uint32_t> getData(StageType type)
-	{
-		return data[(int)type];
-	}
+    
+    /**
+     * @brief Takes a string of certain type and if valid, returns as a vulkan recognisible type.
+       @param type A string of a valid type i.e. 'float', 'int', 'vec2', 'vec3', 'vec4'
+       @param width The size of the type in bits - e.g. 32 for a float
+     */
+    static vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width);
+    
+    /**
+     * @brief Converts the StageType enum into a vulkan recognisible format
+     */
+	static vk::ShaderStageFlagBits getStageFlags(Shader::StageType type);
+    
+    /**
+     * @brief Derieves from the type specified, the stride in bytes
+     */
+    static uint32_t Shader::getStrideFromType(std::string type);
+    
+    /**
+     * @brief Adds a shader module. This will compile the code into glsl bytecode, and then create
+     * a shader module and createInfo ready for using with a vulkan pipeline
+     */
+    bool add(std::string shaderCode, const Shader::StageType type);
+    
+private:
+    
+    struct ShaderModuleInfo
+    {
+        vk::ShaderModule module;
+        ShaderStageType type;
+        vk::PipelineShaderStageCreateInfo createInfo;
+    }
 
 private:
-	bool loadShaderBinary(const char *filename, StageType type);
-	void createModule(vk::Device device, StageType type);
-	void createWrapper(StageType type);
+    
+	VkContext& context;
+    
+    std::vector<ShaderModuleInfo> shaders;
+};
 
-	vk::Device device;
-	std::vector<vk::PipelineShaderStageCreateInfo> wrappers;
+class GlslCompiler
+{
+public:
+    GlslCompiler(std::string shaderCode, const Shader::StageType type);
+    ~GlslCompiler();
 
-	std::array<vk::ShaderModule, (int)StageType::Count> modules;
-	std::array<std::vector<uint32_t>, (int)StageType::Count> data;
-	std::array<bool, (int)StageType::Count> currentStages = { false };
+    bool compile(bool optimise);
+
+    void addDefinition(Util::String define, uint8_t value)
+    {
+        defines.insert(define, value);
+    }
+
+    uint32_t* getData()
+    {
+        return output.data();
+    }
+
+    size_t getSize() const
+    {
+        return output.size();
+    }
+
+private:
+    std::vector<uint32_t> output;
+
+    shaderc_shader_kind kind;
+    std::string source;
+    std::string sourceName;
+    std::unordered_map<Util::String, uint8_t> defines;
 };
 
 } // namespace VulkanAPI
