@@ -1,7 +1,9 @@
 #pragma once
 
-#include "Rendering/Renderers/DeferredRenderer.h"
+#include "Rendering/Renderer.h"
 #include "RenderGraph/RenderGraph.h"
+
+#include "VulkanAPI/Shader.h"
 
 namespace VulkanAPI
 {
@@ -37,17 +39,26 @@ public:
 		} attach;
 	};
 
-	GBufferFillPass()
-	{
-	}
+	GBufferFillPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id);
 
 	// no copying
 	GBufferFillPass(const GBufferFillPass&) = delete;
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
 
-	bool prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager) override;
+	bool create() override;
+
+	bool preparePass(RGraphContext& context);
 
 private:
+
+	// reference to the render graph associated with this pass
+	RenderGraph& rGraph;
+
+	// and the shader manager as this is contains a large element of the render data
+	VulkanAPI::ShaderManager& shaderMan;
+
+	// a pass must have a shader
+	VulkanAPI::ShaderHandle handle;
 
 	GBufferInfo gbufferInfo;
 };

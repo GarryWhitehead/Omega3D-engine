@@ -2,6 +2,11 @@
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
+#include "VulkanAPI/Shader.h"
+
+#include <cstdint>
+#include <unordered_map>
+#include <vector>
 
 namespace VulkanAPI
 {
@@ -14,19 +19,24 @@ using CmdBufferHandle = uint64_t;
 
 struct CommandBufferInfo
 {
-	std::unique_ptr<CommandBuffer> cmdBuffer;
+	std::unique_ptr<CmdBuffer> cmdBuffer;
 
 	// sync buffer destruction
 	vk::Fence fence;
 
 	// sync between queues
 	vk::Semaphore semaphore;
+
+	// the queue to use for this cmdbuffer
+	uint32_t queueIndex;
+
+	// primary cmd pool for this buffer
+	vk::CommandPool cmdPool;
 };
 
 class CmdBufferManager
 {
 public:
-
 	CmdBufferManager();
 	~CmdBufferManager();
 
@@ -34,11 +44,17 @@ public:
 	CmdBufferManager(const CmdBufferManager&) = delete;
 	CmdBufferManager& operator=(const CmdBufferManager) = delete;
 
-	CmdBufferHandle newInstance();
-	std::unique_ptr<CommandBuffer> &getCmdBuffer(CmdBufferHandle handle);
-	std::unique_ptr<VulkanAPI::CommandBuffer> &beginNewFame(CmdBufferHandle handle);
+	/**
+	* @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to the pipeline if
+	* this it does, otherwise nullptr
+	*/
+	Pipeline* findPipeline(const ShaderHandle handle, RenderPass* rPass);
 
-	void submitFrame(Swapchain &swapchain);
+	CmdBufferHandle newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex);
+	std::unique_ptr<CmdBuffer>& getCmdBuffer(CmdBufferHandle handle);
+	std::unique_ptr<VulkanAPI::CmdBuffer>& beginNewFame(CmdBufferHandle handle);
+
+	void submitFrame(Swapchain& swapchain);
 
 	bool isRecorded(CmdBufferHandle handle)
 	{
@@ -46,9 +62,9 @@ public:
 	}
 
 	// =============== pipeline hasher ======================
-	struct PlineId
+	struct PLineHash
 	{
-		StateId() = default;
+		PLineHash() = default;
 
 		ShaderHandle shader;
 		vk::PrimitiveTopology topology;
@@ -56,9 +72,9 @@ public:
 		vk::PolygonMode polygonMode;
 	};
 
-	struct PlineHash
+	struct PLineHasher
 	{
-		size_t operator()(StateId const& id) const noexcept
+		size_t operator()(PLineHash const& id) const noexcept
 		{
 			size_t h1 = std::hash<ShaderHandle>{}(id.shader);
 			size_t h2 = std::hash<vk::PrimitiveTopology>{}(id.topology);
@@ -68,17 +84,18 @@ public:
 		}
 	};
 
-	struct PlineEqual
+	struct PLineEqual
 	{
-		bool operator()(const StateId& lhs, const StateId& rhs) const
+		bool operator()(const PLineHash& lhs, const PLineHash& rhs) const
 		{
-			return lhs.shader == rhs.shader && lhs.topology == rhs.topology &&
-			       lhs.alpha == rhs.alpha && lhs.polygonMode == rhs.polygonMode;
+			return lhs.shader == rhs.shader && lhs.topology == rhs.topology && lhs.alpha == rhs.alpha &&
+			       lhs.polygonMode == rhs.polygonMode;
 		}
 	};
 
+	friend class CmdBuffer;
+
 private:
-	
 	// The current vulkan context
 	VkContext& context;
 
@@ -89,6 +106,6 @@ private:
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being
 	// exclusively tied to a renderpass, we can only create the pipeline once these have been created.
 	// Note: Compute pipleines are created by the shader manager.
-	std::unordered_map<PlineId, Pipeline, PlineHash, PlineEqual> states;
+	std::unordered_map<PLineHash, Pipeline, PLineHasher, PLineEqual> pipelines;
 };
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

@@ -8,6 +8,7 @@
 namespace VulkanAPI
 {
 class ShaderManager;
+class VkContext;
 };
 
 namespace OmegaEngine
@@ -25,19 +26,22 @@ public:
 		ResourceHandle output;
 	};
 
-	LightingPass()
-	{
-	}
+	LightingPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id);
 
 	// no copying
 	LightingPass(const LightingPass&) = delete;
 	LightingPass& operator=(const LightingPass&) = delete;
 
-	bool prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager) override;
+	bool create() override;
+	bool preparePass(RGraphContext& context);
 
 private:
+	
+	// points to the render graph associated with this pass
+	RenderGraph& rGraph;
 
-	RenderGraph* rGraph = nullptr;
+	// a pass must have a shader
+	VulkanAPI::ShaderHandle handle;
 
 	LPassInfo passInfo;
 };

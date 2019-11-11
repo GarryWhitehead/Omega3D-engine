@@ -7,27 +7,40 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ShaderManager.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/VkContext.h"
 
 namespace OmegaEngine
 {
 
-bool LightingPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager)
+LightingPass::LightingPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id)
+    : rGraph(rGraph)
+    , RenderStageBase(manager, id)
 {
-    // load the shaders
-   std::string outputBuffer;
-   if (!manager->load("renderer/deferred/lighting.glsl", outputBuffer))
-   {
-       LOGGER_ERROR("Unable to load deferred renderer shaders.");
-       return false;
-   }
-   ShaderHandle handle = manager->parse(outputBuffer);
-   if (handle == UINT32_MAX)
-   {
-       LOGGER_ERROR("Unable to parse shader.");
-       return false;
-   }
-    
-    RenderGraphBuilder builder = rGraph.createRenderPass("Lighting Pass");
+}
+
+bool LightingPass::create()
+{
+	// load the shaders
+	std::string outputBuffer;
+	if (!shaderMan.load("renderer/deferred/lighting.glsl", outputBuffer))
+	{
+		LOGGER_ERROR("Unable to load deferred renderer shaders.");
+		return false;
+	}
+	handle = shaderMan.parse(outputBuffer);
+	if (handle == UINT32_MAX)
+	{
+		LOGGER_ERROR("Unable to parse shader.");
+		return false;
+	}
+
+	return true;
+}
+
+bool LightingPass::preparePass(RGraphContext& context)
+{
+
+	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
 	// inputs from the deferred pass
 
@@ -39,11 +52,7 @@ bool LightingPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manage
 	// create the output taragets
 	passInfo.output = builder.addOutput(passInfo.output);
 
-	builder.addExecute([](RenderingInfo& rInfo, RGraphContext& context)
-	{
-		vk::RenderPassBeginInfo beginInfo =
-		    forwardRenderpass.getBeginInfo(vk::ClearColorValue(renderConfig.general.backgroundColour));
-		context.cmdBuffer->beginRenderpass(beginInfo);
+	builder.addExecute([&context](RenderInfo& rInfo) {
 
 		// viewport and scissor
 		context.cmdBuffer->setViewport();
@@ -53,14 +62,13 @@ bool LightingPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manage
 		context.cmdBuffer->bindPipeline(rInfo.pipeline);
 		context.cmdBuffer->bindDescriptors(rInfo.pipelineLayout, rInfo.descriptorSet,
 		                                   VulkanAPI::PipelineType::Graphics);
+
 		context.cmdBuffer->bindPushBlock(rInfo.pipelineLayout, vk::ShaderStageFlagBits::eFragment,
-		                         sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
+		                                 sizeof(RenderConfig::IBLInfo), &renderConfig.ibl);
 
 		// render full screen quad to screen
 		context.cmdBuffer->drawQuad();
 
-		// end this pass and cmd buffer
-		context.cmdBuffer->endRenderpass();
 	});
 }
 

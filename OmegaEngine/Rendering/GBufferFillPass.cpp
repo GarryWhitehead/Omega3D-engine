@@ -2,6 +2,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 
+#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ShaderManager.h"
 #include "VulkanAPI/common.h"
 
@@ -10,60 +11,88 @@
 namespace OmegaEngine
 {
 
-bool GBufferFillPass::prepare(RenderGraph& rGraph, VulkanAPI::ShaderManager* manager)
+GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id)
+    : rGraph(rGraph)
+    , RenderStageBase(manager, id)
 {
-   
-    
+}
+
+bool GBufferFillPass::create()
+{
+	// load the shaders
+	std::string outputBuffer;
+	if (!shaderMan.load("renderer/deferred/gbuffer.glsl", outputBuffer))
+	{
+		LOGGER_ERROR("Unable to load deferred renderer shaders.");
+		return false;
+	}
+	handle = shaderMan.parse(outputBuffer);
+	if (handle == UINT32_MAX)
+	{
+		LOGGER_ERROR("Unable to parse shader.");
+		return false;
+	}
+
+	return true;
+}
+
+bool GBufferFillPass::preparePass(RGraphContext& context)
+{
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkContext::getDepthFormat(gpu);
 
-	RenderGraphBuilder builder = rGraph->createRenderPass("GBuffer Pass");
+	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
-	// create the gbuffer textures
-	gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-	gbufferInfo.tex.colour = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-	gbufferInfo.tex.normal = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-	gbufferInfo.tex.pbr = builder.createTexture(2048, 2048, vk::Format::eR16G16Sfloat);
-	gbufferInfo.tex.emissive = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-	gbufferInfo.tex.depth = builder.createTexture(2048, 2048, depthFormat);
-
-	// create the output taragets
-	gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
-	gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
-	gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
-	gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
-	gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
-	gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
-
-
-	// create a empty texture for each state - these will be filled by the shader
-	for (uint8_t i = 0; i < attachmentCount; ++i)
-	{
-		if (i == (int)gBufferImageIndex::Depth)
+	builder.addSetup([&gbufferInfo, &builder, &depthFormat]() 
 		{
-			gBufferImages[i].createEmptyImage(depthFormat, renderConfig.deferred.gBufferWidth,
-			                                  renderConfig.deferred.gBufferHeight, 1,
-			                                  vk::ImageUsageFlagBits::eDepthStencilAttachment);
-		}
-		else
+
+		// create the gbuffer textures
+		gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+		gbufferInfo.tex.colour = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+		gbufferInfo.tex.normal = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+		gbufferInfo.tex.pbr = builder.createTexture(2048, 2048, vk::Format::eR16G16Sfloat);
+		gbufferInfo.tex.emissive = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+		gbufferInfo.tex.depth = builder.createTexture(2048, 2048, depthFormat);
+
+		// create the output taragets
+		gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
+		gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
+		gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
+		gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
+		gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
+		gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
+		});
+
+	builder.addExecute([&context](RenderInfo& rInfo) {
+		MeshInstance* instanceData = (MeshInstance*)instance;
+
+		std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
+		if (instanceData->type == StateMesh::Skinned)
 		{
-			gBufferImages[i].createEmptyImage(
-			    firstRenderpass.get_attachment_format(i), renderConfig.deferred.gBufferWidth,
-			    renderConfig.deferred.gBufferHeight, 1,
-			    vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eSampled);
+			dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
 		}
-	}
 
-	// tie the image-views to the frame buffer
-	std::vector<vk::ImageView> imageViews(attachmentCount);
+		// merge the material set with the mesh ubo sets
+		std::vector<vk::DescriptorSet> materialSet = instanceData->descriptorSet.get();
+		std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
+		meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
-	for (uint8_t i = 0; i < attachmentCount; ++i)
-	{
-		imageViews[i] = gBufferImages[i].getImageView();
-	}
+		context.cmdBuffer->setViewport();
+		context.cmdBuffer->setScissor();
+		context.cmdBuffer->bindPipeline(state->pipeline);
 
-	firstRenderpass.prepareFramebuffer(static_cast<uint32_t>(imageViews.size()), imageViews.data(),
-	                                   renderConfig.deferred.gBufferWidth, renderConfig.deferred.gBufferHeight);
+		context.cmdBuffer->bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
+		                                          dynamicOffsets);
+		context.cmdBuffer->bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
+		                                 sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
+
+		vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
+		context.cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+		context.cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer,
+		                                   instanceData->indexBuffer.offset +
+		                                       (instanceData->indexOffset * sizeof(uint32_t)));
+		context.cmdBuffer->drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
+	});
 }
 
 

@@ -4,9 +4,9 @@
 
 #include "Rendering/IblImage.h"
 
+#include <array>
 #include <functional>
 #include <vector>
-#include <array>
 
 namespace VulkanAPI
 {
@@ -25,20 +25,28 @@ class Engine;
 class RenderStageBase
 {
 public:
-    
-    // ====== abstract functions ========
-    virtual bool prepare(RenderGraph& rGraph) = 0;
-    
+	RenderStageBase(VulkanAPI::ShaderManager& manager, Util::String id)
+	    : shaderMan(manager)
+	{
+		passId = id;
+	}
+
+	// ====== abstract functions ========
+	virtual bool create() = 0;
+
 protected:
-    
+
+	// locally stored reference as contains a huge bulk of render data
+	VulkanAPI::ShaderManager& shaderMan;
+
+	static Util::String passId;
 };
 
 class Renderer
 {
 
 public:
-    
-    /**
+	/**
      * All of the stages supported by the renderer. All have an input and output which can be linked to the next stage
      * Stages can be removed except were stated. At the moment, only a deferred staged renderer is supported but
      * could easily add forward renderers, etc.
@@ -51,20 +59,16 @@ public:
 		PreProcessPass,
 		Count
 	};
-    
-    /**
+
+	/**
      * Each stage required for a deferred renderer. Some of these stages can be switched off.
      */
-    const std::array<RenderStage, 2> deferredStages =
-    {
-        RenderStage::GBufferFill,
-        RenderStage::LightingPass
-    };
-    
+	const std::array<RenderStage, 2> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass };
+
 	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain);
 	~Renderer();
 
-    /**
+	/**
      * Creates all render stages needed for the rendering pipeline
      */
 	void prepare();
@@ -80,8 +84,7 @@ public:
 	void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
 
 private:
-    
-    // The current vulkan instance
+	// The current vulkan instance
 	VkContext& context;
 
 	// IBL environment mapping handler
@@ -92,19 +95,18 @@ private:
 
 	// keep a local copy of the render config
 	RenderConfig renderConfig;
-    
-    // Each rendering stage of this renderer
-    std::vector<std::unique_ptr<RenderStageBase>> rStages;
-    
+
+	// Each rendering stage of this renderer
+	std::vector<std::unique_ptr<RenderStageBase>> rStages;
+
 	RenderGraph rGraph;
 
 	// swap chain used for rendering to surface
 	VulkanAPI::Swapchain& swapchain;
-	
+
 	// locally stored
 	Engine& engine;
 	Scene& scene;
-	
 };
 
 }    // namespace OmegaEngine

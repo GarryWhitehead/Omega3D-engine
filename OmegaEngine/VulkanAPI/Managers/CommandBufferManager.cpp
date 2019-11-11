@@ -8,8 +8,8 @@
 namespace VulkanAPI
 {
 
-CmdBufferManager::CmdBufferManager() : 
-	context(context)
+CmdBufferManager::CmdBufferManager()
+    : context(context)
 {
 }
 
@@ -17,30 +17,48 @@ CmdBufferManager::~CmdBufferManager()
 {
 }
 
-CmdBufferHandle CmdBufferManager::newInstance()
+Pipeline* CmdBufferManager::findPipeline(const ShaderHandle handle, RenderPass* rPass)
 {
-	CommandBufferInfo buffer_info;
+	if (pipelines.empty())
+	{
+		return nullptr;
+	}
+
+	auto iter = pipelines.find({ handle, rPass });
+	if (iter == pipelines.end())
+	{
+		return nullptr;
+	}
+	return &(*iter);
+}
+
+CmdBufferHandle CmdBufferManager::newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex)
+{
+	CommandBufferInfo bufferInfo;
+
+	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(context, type, queueIndex, *this);
+	bufferInfo.queueIndex = queueIndex;
 
 	// create a fence which will be used to sync things
 	vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-	VK_CHECK_RESULT(context->getDevice().createFence(&fence_info, nullptr, &buffer_info.fence));
-	VK_CHECK_RESULT(context->getDevice().resetFences(1, &buffer_info.fence));
+	VK_CHECK_RESULT(context.getDevice().createFence(&fence_info, nullptr, &bufferInfo.fence));
+	VK_CHECK_RESULT(context.getDevice().resetFences(1, &bufferInfo.fence));
 
 	// and the semaphore used to sync between queues
-	buffer_info.semaphore = semaphoreManager->getSemaphore();
+	bufferInfo.semaphore = semaphoreManager->getSemaphore();
 
-	cmdBuffers.emplace_back(std::move(buffer_info));
+	cmdBuffers.emplace_back(std::move(bufferInfo));
 
 	return cmdBuffers.size() - 1;
 }
 
-std::unique_ptr<CommandBuffer>& CmdBufferManager::getCmdBuffer(CmdBufferHandle handle)
+std::unique_ptr<CmdBuffer>& CmdBufferManager::getCmdBuffer(CmdBufferHandle handle)
 {
 	assert(handle < cmdBuffers.size());
 	return cmdBuffers[handle].cmdBuffer;
 }
 
-std::unique_ptr<VulkanAPI::CommandBuffer>& CmdBufferManager::beginNewFame(CmdBufferHandle handle)
+std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferHandle handle)
 {
 
 	// if it's static then only create a new instance if it's null

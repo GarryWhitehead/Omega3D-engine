@@ -10,22 +10,26 @@ namespace VulkanAPI
 // forward decleartions
 class Pipeline;
 class PipelineLayout;
-struct Buffer;
 class DescriptorSet;
-enum class PipelineType;
 class VkContext;
 
 class CmdBuffer
 {
 
 public:
+	enum class CmdBufferType
+	{
+		Primary,
+		Secondary
+	};
+
 	enum class UsageType
 	{
 		Single,
 		Multi
 	};
 
-	CmdBuffer(VkContext& context);
+	CmdBuffer(VkContext& context, const CmdBufferType type, const uint32_t queueIndex, CmdBufferManager& cbManager);
 	~CmdBuffer();
 
 	void createPrimary();
@@ -62,24 +66,16 @@ public:
 	* Note: Will segfault if secondaries are empty or invalid count
 	* @param count If non-zero, the number of buffers to execute. Otherwise if zero, all buffers will be executed
 	*/
-	void executeSecondaryCommands(size_t count = 0);
+	void executeSecondary(size_t count = 0);
 
 	// drawing functions
 	void drawIndexed(uint32_t indexCount);
 	void drawQuad();
 
-	// command pool
-	void createCmdPool();
-
 	// helper funcs
 	vk::CommandBuffer& get()
 	{
 		return cmdBuffer;
-	}
-
-	vk::CommandPool& getCmdPool()
-	{
-		return cmdPool;
 	}
 
 	CmdBuffer getSecondary(uint32_t index)
@@ -89,8 +85,14 @@ public:
 	}
 
 private:
+	
+	CmdBufferManager& cbManager;
+
+	// local vulkan context 
 	vk::Device device;
 	uint32_t queueFamilyIndex;
+
+	CmdBufferType type;
 
 	// the type of cmd buffer, single or multi use, will decide the types of cmd pool, etc. to use
 	UsageType usageType;
@@ -101,15 +103,8 @@ private:
 	vk::Viewport viewPort;
 	vk::Rect2D scissor;
 
-	// store locally the framebuffer and renderpass associated with this cmd buffer
-	vk::RenderPass renderpass;
-	vk::Framebuffer framebuffer;
-
 	// if were using, then store all secondary command buffers for dispatching on each thread
 	std::vector<CmdBuffer> secondarys;
-
-	// primary cmd pool for this buffer
-	vk::CommandPool cmdPool;
 };
 
 }    // namespace VulkanAPI

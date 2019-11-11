@@ -29,18 +29,17 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 }
 
 
-CmdBuffer::CmdBuffer(VkContext& context)
+CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, const uint32_t queueIndex,
+                     CmdBufferManager& cbManager)
     : device(context.getDevice())
-    , queueFamilyIndex(context.getFamilyIndex())
-    , usageType(type)
+    , queueFamilyIndex(queueIndex)
+    , type(type)
+	, cbManager(cbManager)
 {
-	// create a cmd pool for this buffer
-	createCmdPool();
 }
 
 CmdBuffer::~CmdBuffer()
 {
-	device.destroy(cmdPool);
 }
 
 void CmdBuffer::createPrimary()
@@ -178,7 +177,7 @@ void CmdBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
 	cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 }
 
-void CmdBuffer::executeSecondaryCommands(uint32_t count)
+void CmdBuffer::executeSecondary(size_t count)
 {
 	assert(!secondarys.empty());
 
@@ -209,11 +208,11 @@ CmdBuffer& CmdBuffer::createSecondary()
 
 void CmdBuffer::createSecondary(uint32_t count)
 {
-	secondaryCmdBuffers.resize(count);
+	secondarys.resize(count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		secondaryCmdBuffers[i] = { device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor };
-		secondaryCmdBuffers[i].create();
+		secondarys[i] = { device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor,  };
+		secondarys[i].create();
 	}
 }
 

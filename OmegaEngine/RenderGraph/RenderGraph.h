@@ -10,7 +10,7 @@
 // forward decleartion
 namespace VulkanAPI
 {
-class CommandBuffer;
+class CmdBuffer;
 class FrameBuffer;
 class RenderPass;
 }    // namespace VulkanAPI
@@ -22,12 +22,21 @@ namespace OmegaEngine
 class RenderGraph;
 class RenderGraphPass;
 
-struct RGraphContext
+struct RenderInfo
 {
-	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
+	// each render stage has to have a shader program
+	ShaderHandle handle;
+
+	// optional - extra data to describe the pass
+	void* renderableData = nullptr;
 };
 
-using ExecuteFunc = std::function<void(RGraphContext&)>;
+struct RGraphContext
+{
+	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
+};
+
+using ExecuteFunc = std::function<void(RenderInfo&)>;
 
 class RenderGraphPass
 {
@@ -81,7 +90,7 @@ private:
 	// a list of handles of input and output attachments
 	std::vector<ResourceHandle> inputs;     // input attachments
 	std::vector<ResourceHandle> outputs;    // colour/depth/stencil attachments
-	
+
 	// the execute function to be used by this pass
 	ExecuteInfo execute;
 
