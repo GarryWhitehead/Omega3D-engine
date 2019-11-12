@@ -6,8 +6,10 @@
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ShaderManager.h"
+#include "VulkanAPI/Managers/CommandBufferManager.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/Pipeline.h"
 
 namespace OmegaEngine
 {
@@ -51,16 +53,19 @@ bool LightingPass::preparePass(RGraphContext& context)
 
 	// create the output taragets
 	passInfo.output = builder.addOutput(passInfo.output);
-
-	builder.addExecute([&context](RenderInfo& rInfo) {
-
+    
+	builder.addExecute([context, handle, cbManager](RenderInfo& rInfo) {
 		// viewport and scissor
 		context.cmdBuffer->setViewport();
 		context.cmdBuffer->setScissor();
 
-		// bind everything required to draw
-		context.cmdBuffer->bindPipeline(rInfo.pipeline);
-		context.cmdBuffer->bindDescriptors(rInfo.pipelineLayout, rInfo.descriptorSet,
+		// bind the pipeline
+        VulkanAPI::Pipeline* pline = cbManager->findOrCreatePipeline(handle, context.pass);
+		context.cmdBuffer->bindPipeline(pline);
+        
+        // bind the descriptor
+        VulkanAPI::DescriptorSet descrSet = cbManager->findOrCreateDescrSet(handle);
+		context.cmdBuffer->bindDescriptors(rInfo.descriptorSet,
 		                                   VulkanAPI::PipelineType::Graphics);
 
 		context.cmdBuffer->bindPushBlock(rInfo.pipelineLayout, vk::ShaderStageFlagBits::eFragment,

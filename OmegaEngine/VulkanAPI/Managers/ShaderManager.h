@@ -112,7 +112,7 @@ public:
 
 	};
     
-    struct ShaderInfo
+    struct ShaderProgram
     {
         /**
          * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
@@ -160,6 +160,7 @@ public:
         std::vector<BufferBinding> bufferBindings;
         std::vector<SamplerBinding> samplerBindings
         std::vector<RenderTarget> renderTargets;
+        std::vector<InputBindings> inputs;
         
         // We need a layout for each group
         std::vector<DescriptorLayout> descrLayouts;
@@ -189,6 +190,9 @@ private:
 private:
     
     VkContext& context;
+    
+    std::vector<ShaderProgram> programs;
+    
 };
 
 }    // namespace VulkanAPI

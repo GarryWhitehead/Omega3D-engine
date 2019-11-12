@@ -9,6 +9,7 @@ namespace VulkanAPI
 {
 class ShaderManager;
 class VkContext;
+class CmdBufferManager;
 };
 
 namespace OmegaEngine
@@ -39,7 +40,9 @@ private:
 	
 	// points to the render graph associated with this pass
 	RenderGraph& rGraph;
-
+    
+    VulkanAPI::CmdBufferManager& cbManager;
+    
 	// a pass must have a shader
 	VulkanAPI::ShaderHandle handle;
 

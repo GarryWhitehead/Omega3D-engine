@@ -4,11 +4,6 @@
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/Shader.h"
 
-namespace OmegaEngine
-{
-enum class StateTopology;
-}
-
 namespace VulkanAPI
 {
 // forward declearions
@@ -25,38 +20,24 @@ enum class PipelineType
 class Pipeline
 {
 public:
+    
 	Pipeline();
 	~Pipeline();
 
-	void addVertexInput(uint32_t location, vk::Format format, uint32_t size);
+    // not copyable
+    Pipeline(const Pipeline&) = delete;
+    Pipeline& operator=(const Pipeline&) = delete;
+    
 	void updateVertexInput();
 
-	void setRasterCullMode(vk::CullModeFlags cull_mode);
-	void setRasterFrontFace(vk::FrontFace front_face);
-	void setRasterDepthClamp(bool state);
-
-	void setTopology(const OmegaEngine::StateTopology &topology);
-
-	void addColourAttachment(bool blend_factor, RenderPass &renderpass);
-	void addDynamicState(vk::DynamicState state);
-
-	void setStencilStateFrontAndBack(vk::CompareOp compareOp, vk::StencilOp failOp,
-	                                 vk::StencilOp depthFailOp, vk::StencilOp passOp,
-	                                 uint32_t compareMask, uint32_t writeMask, uint32_t ref);
-
-	void setDepthState(bool test_state, bool write_state,
-	                   vk::CompareOp compare = vk::CompareOp::eLessOrEqual);
-	void setRenderpass(RenderPass &pass);
-	void addShader(Shader &shader);
-	void addLayout(vk::PipelineLayout &layout);
 	void addEmptyLayout();
-
-	void create(vk::Device dev, RenderPass &renderpass, Shader &shader, PipelineLayout &layout,
-	            PipelineType _type);
-	void create(vk::Device dev, RenderPass &renderpass, Shader &shader, PipelineType _type);
-	void create(vk::Device dev, PipelineType _type);
-
-	PipelineType getPipelineType() const
+    
+    /**
+     * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
+     */
+	void create(vk::Device dev, RenderPass &renderpass, ShaderProgram &shader);
+	
+	PipelineType getType() const
 	{
 		return type;
 	}
@@ -67,22 +48,15 @@ public:
 	}
 
 private:
+    
 	vk::Device device;
 
 	// everything needeed to build the pipeline
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
 	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
-	vk::PipelineVertexInputStateCreateInfo vertexInputState;
-	vk::PipelineInputAssemblyStateCreateInfo assemblyState;
-	vk::PipelineViewportStateCreateInfo viewportState;
-	vk::PipelineRasterizationStateCreateInfo rasterState;
-	vk::PipelineMultisampleStateCreateInfo multiSampleState;
-	std::vector<vk::PipelineColorBlendAttachmentState> colorAttachState;
-	vk::PipelineColorBlendStateCreateInfo colorBlendState;
-	vk::PipelineDepthStencilStateCreateInfo depthStencilState;
-	std::vector<vk::DynamicState> dynamicStates;
-	vk::PipelineDynamicStateCreateInfo dynamicCreateState;
 
+    PipelineType type;
+    
     // a reference to the shader associated with this pipline
 	Shader& shader;
     
@@ -90,11 +64,9 @@ private:
 	RenderPass& renderpass;
     
     // a reference to the layout associated with this pipeline
-	vk::PipelineLayout& pipelineLayout;
+	PipelineLayout& pipelineLayout;
     
 	vk::Pipeline pipeline;
-
-	PipelineType type;
 };
 
 /**

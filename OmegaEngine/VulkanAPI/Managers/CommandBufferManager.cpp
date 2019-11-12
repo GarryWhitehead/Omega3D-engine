@@ -17,19 +17,29 @@ CmdBufferManager::~CmdBufferManager()
 {
 }
 
-Pipeline* CmdBufferManager::findPipeline(const ShaderHandle handle, RenderPass* rPass)
+Pipeline* CmdBufferManager::findOrCreatePipeline(const ShaderHandle handle, RenderPass* rPass)
 {
-	if (pipelines.empty())
-	{
-		return nullptr;
-	}
+    Pipeline* pline = nullptr;
 
 	auto iter = pipelines.find({ handle, rPass });
-	if (iter == pipelines.end())
+	
+    // if the pipeline has already has an instance return this
+    if (iter != pipelines.end())
 	{
-		return nullptr;
+		pline = &(*iter);
 	}
-	return &(*iter);
+	else
+    {
+        // else create a new pipeline - If we are in a threaded environemt then we can't add to the list until we are out of the thread
+        pline->build(handle, rPass);
+    }
+    
+    return pline;
+}
+
+DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle)
+{
+    
 }
 
 CmdBufferHandle CmdBufferManager::newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex)

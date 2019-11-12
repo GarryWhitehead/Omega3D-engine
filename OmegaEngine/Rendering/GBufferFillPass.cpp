@@ -43,25 +43,22 @@ bool GBufferFillPass::preparePass(RGraphContext& context)
 
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
-	builder.addSetup([&gbufferInfo, &builder, &depthFormat]() 
-		{
+    // create the gbuffer textures
+    gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.colour = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.normal = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.pbr = builder.createTexture(2048, 2048, vk::Format::eR16G16Sfloat);
+    gbufferInfo.tex.emissive = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.depth = builder.createTexture(2048, 2048, depthFormat);
 
-		// create the gbuffer textures
-		gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-		gbufferInfo.tex.colour = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-		gbufferInfo.tex.normal = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-		gbufferInfo.tex.pbr = builder.createTexture(2048, 2048, vk::Format::eR16G16Sfloat);
-		gbufferInfo.tex.emissive = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-		gbufferInfo.tex.depth = builder.createTexture(2048, 2048, depthFormat);
+    // create the output taragets
+    gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
+    gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
+    gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
+    gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
+    gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
+    gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
-		// create the output taragets
-		gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
-		gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
-		gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
-		gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
-		gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
-		gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
-		});
 
 	builder.addExecute([&context](RenderInfo& rInfo) {
 		MeshInstance* instanceData = (MeshInstance*)instance;

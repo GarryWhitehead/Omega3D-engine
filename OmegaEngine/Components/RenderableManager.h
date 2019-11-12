@@ -46,13 +46,9 @@ struct TextureGroup
 		}
 	}
 
-	// ensure not copyable
+	// not copyable
 	TextureGroup(const TextureGroup&) = delete;
 	TextureGroup& operator=(const TextureGroup&) = delete;
-
-	// but moveable
-	TextureGroup(TextureGroup&&) = default;
-	TextureGroup& operator=(TextureGroup&&) = default;
 
 	Texture* textures[TextureType::Count];
 };
