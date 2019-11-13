@@ -48,6 +48,9 @@ public:
 
     bool prepare(VulkanAPI::ShaderManager* manager) override;
 
+	// draw callback function used in the render queue
+	void drawCallback();
+
 private:
 
 	// reference to the render graph associated with this pass

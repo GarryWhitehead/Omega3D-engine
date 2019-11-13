@@ -3,6 +3,7 @@
 #include "RenderGraph/RenderGraph.h"
 
 #include "Rendering/IblImage.h"
+#include "Rendering/RenderQueue.h"
 
 #include <array>
 #include <functional>
@@ -35,8 +36,17 @@ public:
 	virtual bool prepare(VulkanAPI::ShaderManager* manager) = 0;
 
 protected:
-
 	static Util::String passId;
+};
+
+/**
+* The current render context. This is primarily used for passing to the each render pass
+*/
+struct RenderContext
+{
+	// the render queue - passed from the scene to the renderer after visibility checks (TODO: add visibility checks!!)
+	RenderQueue renderQueue;
+
 };
 
 class Renderer
@@ -71,21 +81,18 @@ public:
 	void prepare();
 
 	// abstract override
-	void render(std::unique_ptr<RenderQueue>& renderQueue);
+	void render();
 
-	void createGbufferPass();
-	void createDeferredPipeline(std::unique_ptr<VulkanAPI::BufferManager>& bufferManager,
-	                            VulkanAPI::Swapchain& swapchain);
-	void createDeferredPass();
-
-	void renderDeferredPass(std::unique_ptr<VulkanAPI::CommandBuffer>& cmdBuffer);
 
 private:
 	// The current vulkan instance
-	VkContext& context;
+	VulkanAPI::VkContext& context;
 
 	// IBL environment mapping handler
 	Ibl::IblImage ibl;
+
+	// current render context
+	RenderContext rContext;
 
 	// the post-processing manager
 	PostProcessInterface postProcessInterface;

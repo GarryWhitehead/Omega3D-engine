@@ -39,26 +39,11 @@ struct SortKey
 	float depth; // for transparency;
 };
 
-enum class RenderStage
-{
-	First,
-	Light,
-	Post
-};
-
-enum class QueueType
-{
-	Shadow,
-	Opaque,
-	Transparent,
-	Forward
-};
-
 // all the information required to render
-struct RenderQueueInfo
+struct RenderableQueueInfo
 {
 	// render callback function
-	void (*renderFunction)(void *, VulkanAPI::SecondaryCommandBuffer &, void *renderableData);
+	void (*renderFunction)(void *, void *renderableData);
 	void *renderableHandle;
 
 	// data specific to the renderable - mainly drawing information
@@ -66,8 +51,6 @@ struct RenderQueueInfo
 
 	// the point in the render this will be drawn
 	SortKey sortingKey;
-
-	QueueType queueType;
 };
 
 class RenderQueue
@@ -76,22 +59,34 @@ public:
 	RenderQueue();
 	~RenderQueue();
 
-	void addRenderableToQueue(RenderQueueInfo &renderInfo)
+	void addRenderableToQueue(RenderableQueueInfo &renderInfo)
 	{
-		renderQueues[renderInfo.queueType].push_back(renderInfo);
+		renderables.emplace_back(renderInfo);
 	}
 
 	static SortKey createSortKey(RenderStage layer, uint32_t materialId, RenderTypes shaderId);
+	
 	void sortAll();
 
-	void submit(VulkanAPI::SecondaryCommandBuffer cmdBuffer, QueueType type, uint32_t start,
-	            uint32_t end, uint32_t threadGroupSize);
+	/**
+	* @brief Returns all renderables present in the queue
+	* @param sort Specifies whether the queue should be sorted before fetching
+	* @return A vector containing all renderables present in the queue
+	*/
+	std::vector<RenderableQueueInfo> getAll(bool sort);
 
-	void dispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer, QueueType type);
-	void threadedDispatch(std::unique_ptr<VulkanAPI::CommandBuffer> &cmdBuffer, QueueType type);
+	/**
+	* @brief Returns all renderables between the specified range
+	* @param start The starting index in the range
+	* @param end The end index in the range
+	* @param sort Specifies whether the queue should be sorted before fetching
+	* @return A vector containing the renderables in the specified range
+	*/
+	std::vector<RenderableQueueInfo> getRange(const size_t start, const size_t end);
 
 private:
 	// ordered by queue type
-	std::unordered_map<QueueType, std::vector<RenderQueueInfo>> renderQueues;
+	std::vector<RenderableQueueInfo> renderables;
+
 };
 } // namespace OmegaEngine

@@ -8,7 +8,7 @@
 namespace VulkanAPI
 {
 class VkContext;
-class CmdBufferManager;
+class CommandBufferManager;
 class ShaderManager;
 };
 
@@ -40,7 +40,7 @@ private:
 	// points to the render graph associated with this pass
 	RenderGraph& rGraph;
     
-    VulkanAPI::CmdBufferManager& cbManager;
+    VulkanAPI::CommandBufferManager& cbManager;
 
 	LPassInfo passInfo;
 };

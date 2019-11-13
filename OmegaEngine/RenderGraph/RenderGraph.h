@@ -21,22 +21,14 @@ namespace OmegaEngine
 // forward decleration
 class RenderGraph;
 class RenderGraphPass;
-
-struct RenderInfo
-{
-	// each render stage has to have a shader program
-	ShaderHandle handle;
-
-	// optional - extra data to describe the pass
-	void* renderableData = nullptr;
-};
+class RenderContext;
 
 struct RGraphContext
 {
 	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
 };
 
-using ExecuteFunc = std::function<void(RenderInfo&)>;
+using ExecuteFunc = std::function<void(RGraphContext&, RenderContext&)>;
 
 class RenderGraphPass
 {
@@ -106,7 +98,7 @@ private:
 	RenderGraphPass* childMergePass = nullptr;
 
 	// ======= vulkan specific ================
-	VulkanAPI::CommandBuffer* cmdBuffer = nullptr;
+	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
 	VulkanAPI::RenderPass* rpass = nullptr;
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
