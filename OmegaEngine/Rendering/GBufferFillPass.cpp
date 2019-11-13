@@ -11,33 +11,23 @@
 namespace OmegaEngine
 {
 
-GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id)
+GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, Util::String id)
     : rGraph(rGraph)
-    , RenderStageBase(manager, id)
+    , RenderStageBase(id)
 {
 }
 
-bool GBufferFillPass::create()
+bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 {
 	// load the shaders
-	std::string outputBuffer;
-	if (!shaderMan.load("renderer/deferred/gbuffer.glsl", outputBuffer))
-	{
-		LOGGER_ERROR("Unable to load deferred renderer shaders.");
-		return false;
-	}
-	handle = shaderMan.parse(outputBuffer);
-	if (handle == UINT32_MAX)
-	{
-		LOGGER_ERROR("Unable to parse shader.");
-		return false;
-	}
+	// load the shaders
+    VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("renderer/deferred/lighting.glsl", nullptr, 0);
+    if (!program)
+    {
+        LOGGER_ERROR("Fatal error whilst trying to compile shader for renderpass: %s.", passId.c_str());
+        return false;
+    }
 
-	return true;
-}
-
-bool GBufferFillPass::preparePass(RGraphContext& context)
-{
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkContext::getDepthFormat(gpu);
 
@@ -60,7 +50,7 @@ bool GBufferFillPass::preparePass(RGraphContext& context)
     gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
 
-	builder.addExecute([&context](RenderInfo& rInfo) {
+	builder.addExecute([](RenderInfo& rInfo, RGraphContext& context) {
 		MeshInstance* instanceData = (MeshInstance*)instance;
 
 		std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };

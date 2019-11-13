@@ -7,9 +7,9 @@
 // forward declerations
 namespace VulkanAPI
 {
-class ShaderManager;
 class VkContext;
 class CmdBufferManager;
+class ShaderManager;
 };
 
 namespace OmegaEngine
@@ -27,14 +27,13 @@ public:
 		ResourceHandle output;
 	};
 
-	LightingPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id);
+	LightingPass(RenderGraph& rGraph, Util::String id);
 
 	// no copying
 	LightingPass(const LightingPass&) = delete;
 	LightingPass& operator=(const LightingPass&) = delete;
 
-	bool create() override;
-	bool preparePass(RGraphContext& context);
+    bool prepare(VulkanAPI::ShaderManager* manager) override;
 
 private:
 	
@@ -42,9 +41,6 @@ private:
 	RenderGraph& rGraph;
     
     VulkanAPI::CmdBufferManager& cbManager;
-    
-	// a pass must have a shader
-	VulkanAPI::ShaderHandle handle;
 
 	LPassInfo passInfo;
 };

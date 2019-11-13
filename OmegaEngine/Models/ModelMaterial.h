@@ -28,7 +28,7 @@ enum TextureType : size_t
 class ModelMaterial
 {
 public:
-
+    
 	ModelMaterial();
 	~ModelMaterial();
 

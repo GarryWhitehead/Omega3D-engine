@@ -60,7 +60,7 @@ public:
 	// a user-defined size for the vertex and index gpu mem blocks - this should maybe made more dynamic? Also needs checking for overspill....
 	static constexpr float VertexBlockSize = 1e+5;
 	static constexpr float IndexBlockSize = 1e+5;
-
+    
 	/**
 	* @brief A basic struct pointing to the vertex and indices data within#
 	* the larger buffer. Meshes are made up of sub-meshes or primitives

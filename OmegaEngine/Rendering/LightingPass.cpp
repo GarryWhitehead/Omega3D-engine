@@ -14,38 +14,25 @@
 namespace OmegaEngine
 {
 
-LightingPass::LightingPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id)
+LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
     : rGraph(rGraph)
-    , RenderStageBase(manager, id)
+    , RenderStageBase(id.c_str())
 {
 }
 
-bool LightingPass::create()
+bool LightingPass::prepare(VulkanAPI::ShaderManager* manager)
 {
-	// load the shaders
-	std::string outputBuffer;
-	if (!shaderMan.load("renderer/deferred/lighting.glsl", outputBuffer))
-	{
-		LOGGER_ERROR("Unable to load deferred renderer shaders.");
+    // load the shaders
+    VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("renderer/deferred/lighting.glsl", nullptr, 0);
+	if (!program)
+    {
+		LOGGER_ERROR("Fatal error whilst trying to compile shader for renderpass: %s.", passId);
 		return false;
 	}
-	handle = shaderMan.parse(outputBuffer);
-	if (handle == UINT32_MAX)
-	{
-		LOGGER_ERROR("Unable to parse shader.");
-		return false;
-	}
-
-	return true;
-}
-
-bool LightingPass::preparePass(RGraphContext& context)
-{
 
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
-
+    
 	// inputs from the deferred pass
-
 
 	// create the gbuffer textures
 	passInfo.output =
@@ -54,7 +41,7 @@ bool LightingPass::preparePass(RGraphContext& context)
 	// create the output taragets
 	passInfo.output = builder.addOutput(passInfo.output);
     
-	builder.addExecute([context, handle, cbManager](RenderInfo& rInfo) {
+	builder.addExecute([program, cbManager](RenderInfo& rInfo, RGraphContext& context) {
 		// viewport and scissor
 		context.cmdBuffer->setViewport();
 		context.cmdBuffer->setScissor();

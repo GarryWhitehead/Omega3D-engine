@@ -13,6 +13,7 @@ namespace VulkanAPI
 // forward declearions
 class Swapchain;
 class VkContext;
+class ShaderManager;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -25,19 +26,15 @@ class Engine;
 class RenderStageBase
 {
 public:
-	RenderStageBase(VulkanAPI::ShaderManager& manager, Util::String id)
-	    : shaderMan(manager)
+	RenderStageBase(Util::String id)
 	{
 		passId = id;
 	}
 
 	// ====== abstract functions ========
-	virtual bool create() = 0;
+	virtual bool prepare(VulkanAPI::ShaderManager* manager) = 0;
 
 protected:
-
-	// locally stored reference as contains a huge bulk of render data
-	VulkanAPI::ShaderManager& shaderMan;
 
 	static Util::String passId;
 };

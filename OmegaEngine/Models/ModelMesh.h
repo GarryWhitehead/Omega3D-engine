@@ -6,6 +6,8 @@
 
 #include "assimp/include/assimp/scene.h"
 
+#include "utility/BitSetEnum.h"
+
 #include "cgltf/cgltf.h"
 
 #include <vector>
@@ -20,6 +22,17 @@ enum class StateTopology;
 class ModelMesh
 {
 public:
+    
+    /**
+     * Specifies a variant to use when compiling the shader
+     */
+    enum class Variants : uint64_t
+    {
+        Skinning,
+        TangentInput,
+        BiTangentInput,
+    };
+    
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -36,6 +49,8 @@ public:
 		OEMaths::vec4f position;
 		OEMaths::vec2f uv;
 		OEMaths::vec3f normal;
+        OEMaths::vec3f tangent;
+        OEMaths::vec3f bitangent;
 		OEMaths::vec4f weight;
 		OEMaths::vec4f joint;
 	};
@@ -62,16 +77,23 @@ public:
 
 private:
 
-	// defines the topology to use in the program state
+	/// defines the topology to use in the program state
 	StateTopology topology;
-
+    
+    /// the overall dimensions of this model. Sub-meshses contain their own dimension data
 	Dimensions totalDimensions;
-
+    
+    /// this is used for shader variants
+    BitSetEnum<Variants> variants;
+    
+    /// sub-meshes
 	std::vector<Primitive> primitives;
+    
+    /// All vertivces associated with the particular model
 	std::vector<Vertex> vertices;
+    
+    /// All indices associated with this particular model
 	std::vector<uint32_t> indices;
-
-	bool skinned = false;
 };
 
 }    // namespace OmegaEngine

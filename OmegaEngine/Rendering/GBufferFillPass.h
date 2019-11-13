@@ -5,10 +5,11 @@
 
 #include "VulkanAPI/Shader.h"
 
+// forward decleartions
 namespace VulkanAPI
 {
-    class ShaderManager;
-};
+class ShaderManager;
+}
 
 namespace OmegaEngine
 {
@@ -39,26 +40,18 @@ public:
 		} attach;
 	};
 
-	GBufferFillPass(RenderGraph& rGraph, VulkanAPI::ShaderManager& manager, Util::String id);
+	GBufferFillPass(RenderGraph& rGraph, Util::String id);
 
 	// no copying
 	GBufferFillPass(const GBufferFillPass&) = delete;
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
 
-	bool create() override;
-
-	bool preparePass(RGraphContext& context);
+    bool prepare(VulkanAPI::ShaderManager* manager) override;
 
 private:
 
 	// reference to the render graph associated with this pass
 	RenderGraph& rGraph;
-
-	// and the shader manager as this is contains a large element of the render data
-	VulkanAPI::ShaderManager& shaderMan;
-
-	// a pass must have a shader
-	VulkanAPI::ShaderHandle handle;
 
 	GBufferInfo gbufferInfo;
 };

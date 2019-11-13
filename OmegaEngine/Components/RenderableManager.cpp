@@ -93,12 +93,12 @@ size_t RenderableManager::addMaterial(ModelMaterial* mat, size_t count)
 		// sort out the textures
 		TextureGroup group;
 
-		for (size_t i = 0; i < TextureType::Count; ++i)
+		for (size_t j = 0; j < TextureType::Count; ++j)
 		{
 			// this function does return an error value but unsure yet
 			// whether just to continue (it will be obvious that somethings gone
 			// wrong when rendered) or return an error
-			prepareTexture(mat->texturePaths[i], group.textures[i]);
+			prepareTexture(mat->texturePaths[i], group.textures[j]);
 		}
 
 		textures.emplace_back(std::move(group));
