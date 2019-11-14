@@ -1,7 +1,7 @@
 #include "BufferManager.h"
 
 #include "VulkanAPI/Descriptors.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "VulkanAPI/Types/BufferReflect.h"
 
@@ -36,7 +36,7 @@ uint32_t findMemoryType(const uint32_t type, const vk::MemoryPropertyFlags flags
 	return UINT32_MAX;
 }
 
-void createBuffer(VkContext* context, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props,
+void createBuffer(VkDriver* context, const uint32_t size, vk::BufferUsageFlags flags, vk::MemoryPropertyFlags props,
                   vk::DeviceMemory& memory, vk::Buffer& buffer)
 {
 	vk::BufferCreateInfo createInfo({}, size, flags, vk::SharingMode::eExclusive);
@@ -63,12 +63,12 @@ BufferManager::~BufferManager()
 {
 }
 
-void BufferManager::init(VkContext* con)
+void BufferManager::init(VkDriver* con)
 {
 	this->context = con;
 
 	memoryAllocator = std::make_unique<MemoryAllocator>(context->getDevice(), context->getGpu(),
-	                                                    context->getQueue(VkContext::QueueType::Graphics));
+	                                                    context->getQueue(VkDriver::QueueType::Graphics));
 }
 
 bool BufferManager::updateBuffers(std::vector<OmegaEngine::UBufferUpdateInfo>& updates)

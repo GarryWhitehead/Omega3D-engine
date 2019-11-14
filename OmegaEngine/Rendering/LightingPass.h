@@ -7,7 +7,7 @@
 // forward declerations
 namespace VulkanAPI
 {
-class VkContext;
+class VkDriver;
 class CommandBufferManager;
 class ShaderManager;
 };

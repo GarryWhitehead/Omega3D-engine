@@ -1,6 +1,6 @@
 #include "RenderPass.h"
 
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "utility/Logger.h"
 
@@ -9,8 +9,8 @@
 namespace VulkanAPI
 {
 
-RenderPass::RenderPass(VkContext& context)
-    : device(context.getDevice())
+RenderPass::RenderPass(VkDriver& driver)
+    : device(driver.getDevice())
 {
 }
 

@@ -24,6 +24,7 @@ class Texture;
 class ModelMesh;
 class World;
 class Object;
+class Engine;
 
 
 /**
@@ -82,11 +83,12 @@ public:
 		size_t idxOffset = 0;
 	};
 
-	RenderableManager();
+	RenderableManager(Engine& engine);
 	~RenderableManager();
 
-	/// called on a per-frame basis 
-	void updateFrame();
+	/// called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
+    /// This isn't so expensive as these are persistent resources
+	void update();
 
 	/**
 	* @brief The main call here - adds a renderable consisting of mesh, and not
@@ -128,6 +130,8 @@ private:
 
 private:
 	
+    Engine& engine;
+    
 	// the buffers containing all the model data
 	std::vector<RenderableInfo> renderables;
 

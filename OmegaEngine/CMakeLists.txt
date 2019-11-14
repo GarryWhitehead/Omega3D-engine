@@ -157,7 +157,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
 	VulkanAPI/Common.h
 	VulkanAPI/Descriptors.cpp VulkanAPI/Descriptors.h
-	VulkanAPI/VkContext.cpp VulkanAPI/VkContext.h
+	VulkanAPI/VkDriver.cpp VulkanAPI/VkDriver.h
 	VulkanAPI/Image.cpp VulkanAPI/Image.h
 	VulkanAPI/Pipeline.cpp VulkanAPI/Pipeline.h
 	VulkanAPI/Queue.cpp VulkanAPI/Queue.h

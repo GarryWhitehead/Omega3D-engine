@@ -15,7 +15,7 @@ namespace VulkanAPI
 {
 
 // forward declerations
-class VkContext;
+class VkDriver;
 
 class Swapchain
 {
@@ -46,7 +46,7 @@ public:
 	* @param context A prepared vulkan device object
 	* @param surface A surface object for the given platform
 	*/
-	bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
+	bool prepare(VkDriver& context, Platform::SurfaceWrapper& surface);
 
 	// frame submit and presentation to the swapchain
 	void begin_frame(vk::Semaphore& image_semaphore);

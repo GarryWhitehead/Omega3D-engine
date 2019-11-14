@@ -28,7 +28,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 	}
 
 	// a list of the formats required for each buffer
-	vk::Format depthFormat = VulkanAPI::VkContext::getDepthFormat(gpu);
+	vk::Format depthFormat = VulkanAPI::VkDriver::getDepthFormat(gpu);
 
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
@@ -54,9 +54,9 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 	});
 }
 
-void GBufferFillPass::drawCallback()
+void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* instance)
 {
-	MeshInstance* instanceData = (MeshInstance*)instance;
+	MeshInstance* instanceData = static_cast<MeshInstance*>(instance);
 
 	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
 	if (instanceData->type == StateMesh::Skinned)
@@ -69,21 +69,21 @@ void GBufferFillPass::drawCallback()
 	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
 	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
-	context.cmdBuffer->setViewport();
-	context.cmdBuffer->setScissor();
-	context.cmdBuffer->bindPipeline(state->pipeline);
+	cmdBuffer->setViewport();
+	cmdBuffer->setScissor();
+	cmdBuffer->bindPipeline(state->pipeline);
 
-	context.cmdBuffer->bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
+	cmdBuffer->bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
 	                                          dynamicOffsets);
-	context.cmdBuffer->bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
+	cmdBuffer->bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
 	                                 sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	context.cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-	context.cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer,
+	cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+	cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer,
 	                                   instanceData->indexBuffer.offset +
 	                                       (instanceData->indexOffset * sizeof(uint32_t)));
-	context.cmdBuffer->drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
+	cmdBuffer->drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 }
 
 

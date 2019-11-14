@@ -9,6 +9,7 @@
 namespace VulkanAPI
 {
 class ShaderManager;
+class CmdBuffer;
 }
 
 namespace OmegaEngine
@@ -49,7 +50,7 @@ public:
     bool prepare(VulkanAPI::ShaderManager* manager) override;
 
 	// draw callback function used in the render queue
-	void drawCallback();
+	void drawCallback(VulkanAPI::CmdBuffer* cmdBuffer,void* instance);
 
 private:
 

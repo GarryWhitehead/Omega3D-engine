@@ -1,4 +1,4 @@
-#include "VkContext.h"
+#include "VkDriver.h"
 
 #include "Utility/logger.h"
 #include <assert.h>
@@ -8,11 +8,11 @@
 namespace VulkanAPI
 {
 
-VkContext::VkContext()
+VkDriver::VkDriver()
 {
 }
 
-VkContext::~VkContext()
+VkDriver::~VkDriver()
 {
 }
 
@@ -131,7 +131,7 @@ static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::Imag
 }
 }    // namespace VulkanUtil
 
-bool VkContext::findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties)
+bool VkDriver::findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties)
 {
 	for (auto& ext : properties)
 	{
@@ -143,7 +143,7 @@ bool VkContext::findExtensionProperties(const char* name, std::vector<vk::Extens
 	return false;
 };
 
-vk::Format VkContext::getDepthFormat(vk::PhysicalDevice& gpu)
+vk::Format VkDriver::getDepthFormat(vk::PhysicalDevice& gpu)
 {
 	// in order of preference - TODO: allow user to define whether stencil format is required or not
 	std::vector<vk::Format> formats = { vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
@@ -153,7 +153,7 @@ vk::Format VkContext::getDepthFormat(vk::PhysicalDevice& gpu)
 	                                       vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
 }
 
-void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
+void VkDriver::createInstance(const char** glfwExtension, uint32_t extCount)
 {
 	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "", VK_MAKE_VERSION(1, 1, 0),
 	                            VK_API_VERSION_1_1);
@@ -259,7 +259,7 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 #endif
 }
 
-void VkContext::prepareDevice()
+void VkDriver::prepareDevice()
 {
 	if (!instance)
 	{
@@ -398,7 +398,7 @@ void VkContext::prepareDevice()
 	computeQueue.create(vkComputeQueue, device, queueFamilyIndex.compute);
 }
 
-uint32_t VkContext::getQueueIndex(QueueType type) const
+uint32_t VkDriver::getQueueIndex(QueueType type) const
 {
 	switch (type)
 	{
@@ -416,7 +416,7 @@ uint32_t VkContext::getQueueIndex(QueueType type) const
 	}
 }
 
-VulkanAPI::Queue VkContext::getQueue(QueueType type)
+VulkanAPI::Queue VkDriver::getQueue(QueueType type)
 {
 	VulkanAPI::Queue ret_queue;
 

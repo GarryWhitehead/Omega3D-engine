@@ -3,7 +3,7 @@
 #include "Core/Omega_Config.h"
 
 #include "VulkanAPI/SwapChain.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "utility/String.h"
 
@@ -76,7 +76,7 @@ public:
 	World* createWorld(Util::String name);
 
 	/// returns the current vulkan context
-	VulkanAPI::VkContext& getContext();
+	VulkanAPI::VkDriver& getVkDriver();
 
 	void loadConfigFile();
 
@@ -93,7 +93,7 @@ private:
 	Util::String currentWorld;
 
 	// The vulkan devie. Only one device supported at present
-	VulkanAPI::VkContext context;
+	VulkanAPI::VkDriver vkDriver;
 };
 
 }    // namespace OmegaEngine

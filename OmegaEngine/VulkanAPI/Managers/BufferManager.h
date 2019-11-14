@@ -28,7 +28,7 @@ uint32_t alignmentSize(const uint32_t size);
 
 // forward decleartions
 class DescriptorSet;
-class VkContext;
+class VkDriver;
 class BufferReflect;
 
 class BufferManager
@@ -52,7 +52,7 @@ public:
 	BufferManager();
 	~BufferManager();
 
-	void init(VkContext* con);
+	void init(VkDriver* con);
 
 	void BufferManager::prepareDescrSet(BufferReflect& reflected, DescriptorSet& descrSet);
 
@@ -64,7 +64,7 @@ public:
 
 private:
 	// local vulkan instance
-	VkContext* context;
+	VkDriver* context;
 
 	std::unique_ptr<MemoryAllocator> memoryAllocator;
 

@@ -4,6 +4,8 @@
 
 #include "Types/Texture.h"
 
+#include "Core/Engine.h"
+
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
 
@@ -11,7 +13,8 @@
 namespace OmegaEngine
 {
 
-RenderableManager::RenderableManager()
+RenderableManager::RenderableManager(Engine& engine) :
+    engine(engine)
 {
 	// for performance purposes
 	renderables.reserve(MESH_INIT_CONTAINER_SIZE);
@@ -139,13 +142,21 @@ RenderableManager::RenderableInfo& RenderableManager::getMesh(Object& obj)
 	return renderables[index];
 }
 
-void RenderableManager::updateFrame()
+void RenderableManager::update()
 {
-	if (isDirty)
-	{
-		
-		isDirty = false;
-	}
+    VulkanAPI::VkDriver& driver = engine.getVkDriver();
+    
+    // upload the textures
+    for (const TextureGroup& tex : textures)
+    {
+        driver->addTexture(tex);
+    }
+    
+    // upload ubos
+    for (const ModelMaterial& mat : materials)
+    {
+        driver->addUbo(mat.ubo);
+    }
 }
 
 }    // namespace OmegaEngine
