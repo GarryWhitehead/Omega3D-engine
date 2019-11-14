@@ -3,13 +3,13 @@
 #include "VulkanAPI/Managers/SemaphoreManager.h"
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/SwapChain.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 namespace VulkanAPI
 {
 
-CmdBufferManager::CmdBufferManager()
-    : context(context)
+CmdBufferManager::CmdBufferManager(VkDriver& driver)
+    : driver(driver)
 {
 }
 
@@ -46,13 +46,13 @@ CmdBufferHandle CmdBufferManager::newInstance(const CmdBuffer::CmdBufferType typ
 {
 	CommandBufferInfo bufferInfo;
 
-	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(context, type, queueIndex, *this);
+	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(driver, type, queueIndex, *this);
 	bufferInfo.queueIndex = queueIndex;
 
 	// create a fence which will be used to sync things
 	vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-	VK_CHECK_RESULT(context.getDevice().createFence(&fence_info, nullptr, &bufferInfo.fence));
-	VK_CHECK_RESULT(context.getDevice().resetFences(1, &bufferInfo.fence));
+	VK_CHECK_RESULT(driver.getDevice().createFence(&fence_info, nullptr, &bufferInfo.fence));
+	VK_CHECK_RESULT(driver.getDevice().resetFences(1, &bufferInfo.fence));
 
 	// and the semaphore used to sync between queues
 	bufferInfo.semaphore = semaphoreManager->getSemaphore();
@@ -81,8 +81,8 @@ std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferH
 		}
 		else
 		{
-			VK_CHECK_RESULT(context->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
-			VK_CHECK_RESULT(context->getDevice().resetFences(1, &cmdBuffers[handle].fence));
+			VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
+			VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
 		}
 	}
 	else
@@ -90,21 +90,21 @@ std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferH
 		// ensure that the cmd buffer is finished with before creating a new one
 		// TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
 		// continuing so instead have two or three buffers per handle and switch between them
-		VK_CHECK_RESULT(context->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
-		VK_CHECK_RESULT(context->getDevice().resetFences(1, &cmdBuffers[handle].fence));
+		VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
+		VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
 
 		// create a new buffer - the detructors will worry about destroying everything
 		// or just reset?
 		if (mode == NewFrameMode::New)
 		{
-			cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(context);
+			cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(driver);
 		}
 		else
 		{
 			if (cmdBuffers[handle].cmdBuffer == nullptr)
 			{
 				cmdBuffers[handle].cmdBuffer =
-				    std::make_unique<CommandBuffer>(context, CommandBuffer::UsageType::Multi);
+				    std::make_unique<CommandBuffer>(driver, CommandBuffer::UsageType::Multi);
 				cmdBuffers[handle].cmdBuffer->createPrimary();
 			}
 			else
@@ -157,12 +157,12 @@ void CmdBufferManager::submitFrame(Swapchain& swapchain)
 			fence = cmdBuffers[i].fence;
 		}
 
-		VK_CHECK_RESULT(context->getDevice().resetFences(1, &fence));
-		context->getQueue(VkContext::QueueType::Graphics).submitCmdBuffer(cmdBuffer, waitSync, signalSync, fence);
+		VK_CHECK_RESULT(driver->getDevice().resetFences(1, &fence));
+		driver->getQueue(VkDriver::QueueType::Graphics).submitCmdBuffer(cmdBuffer, waitSync, signalSync, fence);
 	}
 
 	// then the presentation part.....
-	swapchain.submitFrame(finalSemaphore, context->getQueue(VkContext::QueueType::Present).get());
+	swapchain.submitFrame(finalSemaphore, driver->getQueue(VkDriver::QueueType::Present).get());
 }
 
 

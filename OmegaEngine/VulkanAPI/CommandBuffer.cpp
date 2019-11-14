@@ -5,7 +5,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 namespace VulkanAPI
 {
@@ -29,7 +29,7 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 }
 
 
-CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, const uint32_t queueIndex,
+CmdBuffer::CmdBuffer(VkDriver& context, const CmdBufferType type, const uint32_t queueIndex,
                      CmdBufferManager& cbManager)
     : device(context.getDevice())
     , queueFamilyIndex(queueIndex)

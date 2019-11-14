@@ -4,7 +4,7 @@
 #include "utility/FileUtil.h"
 
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
 
@@ -441,7 +441,7 @@ bool ShaderCompiler::readShader(rapidjson::Document& doc, ShaderCompilerInfo::Sh
 }
 
 // =================== Shader Manager ==================
-ShaderManager::ShaderManager(VkContext& context)
+ShaderManager::ShaderManager(VkDriver& context)
     : context(context)
 {
 }

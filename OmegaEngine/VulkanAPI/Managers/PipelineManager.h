@@ -16,7 +16,7 @@ class PBuildInfo;
 namespace VulkanAPI
 {
 // forward declerations;
-class VkContext;
+class VkDriver;
 
 
 
@@ -39,7 +39,7 @@ public:
 	bool build(OmegaEngine::PBuildInfo& pInfo, PStateInfo& state);
 
 private:
-	VkContext* context;
+	VkDriver* context;
 
 	std::unordered_map<StateId, std::unique_ptr<PStateInfo>, StateHash, StateEqual> states;
 };

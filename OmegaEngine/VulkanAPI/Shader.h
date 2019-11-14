@@ -15,7 +15,7 @@
 namespace VulkanAPI
 {
 // forward decleartions
-class VkContext;
+class VkDriver;
 
 class Shader
 {
@@ -32,7 +32,7 @@ public:
         Compute,
     };
 
-	Shader(VkContext& context);
+	Shader(VkDriver& context);
 	~Shader();
     
     // not copyable
@@ -92,7 +92,7 @@ private:
 
 private:
     
-	VkContext& context;
+	VkDriver& context;
     
     std::vector<ShaderModuleInfo> shaders;
 };

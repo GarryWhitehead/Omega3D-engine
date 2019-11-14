@@ -3,7 +3,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/Descriptor.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "utility/String.h"
 #include "utility/BitSetEnum.h"
@@ -20,7 +20,7 @@ namespace VulkanAPI
 {
 
 // forward declerations
-class VkContext;
+class VkDriver;
 
 /**
  * @brief All the data obtained when compiling the glsl shader json file
@@ -248,7 +248,7 @@ class ShaderManager
 {
 public:
     
-	ShaderManager(VkContext& context);
+	ShaderManager(VkDriver& context);
 	~ShaderManager();
     
     /**
@@ -302,7 +302,7 @@ private:
     
 private:
     
-    VkContext& context;
+    VkDriver& context;
     
     std::unordered_map<ShaderHash, ShaderProgram, ShaderHasher, ShaderEqual> programs;
     

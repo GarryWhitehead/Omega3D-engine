@@ -11,7 +11,7 @@ namespace VulkanAPI
 class Pipeline;
 class PipelineLayout;
 class DescriptorSet;
-class VkContext;
+class VkDriver;
 
 class CmdBuffer
 {
@@ -29,7 +29,7 @@ public:
 		Multi
 	};
 
-	CmdBuffer(VkContext& context, const CmdBufferType type, const uint32_t queueIndex, CmdBufferManager& cbManager);
+	CmdBuffer(VkDriver& context, const CmdBufferType type, const uint32_t queueIndex, CmdBufferManager& cbManager);
 	~CmdBuffer();
 
 	void createPrimary();

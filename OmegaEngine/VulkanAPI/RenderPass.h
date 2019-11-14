@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include <assert.h>
 #include <cstdint>
@@ -37,7 +37,7 @@ public:
 		ClearType stencilStore = ClearType::DontCare;
 	};
 
-	RenderPass(VkContext& context);
+	RenderPass(VkDriver& driver);
 	~RenderPass();
 
 	// no copying
@@ -118,8 +118,8 @@ class FrameBuffer
 public:
 	FrameBuffer() = default;
 
-	FrameBuffer(VkContext& context)
-	    : device(context.getDevice())
+	FrameBuffer(VkDriver& driver)
+	    : device(driver.getDevice())
 	{
 	}
 

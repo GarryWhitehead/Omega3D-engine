@@ -2,7 +2,7 @@
 
 #include "Utility/logger.h"
 
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "Types/NativeWindowWrapper.h"
 
@@ -20,7 +20,7 @@ Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapp
 	return wrapper;
 }
 
-bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
+bool Swapchain::prepare(VkDriver& context, Platform::SurfaceWrapper& surface)
 {
 	vk::Device device = context.getDevice();
 	vk::PhysicalDevice gpu = context.getPhysicalDevice();
@@ -103,8 +103,8 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 	std::vector<uint32_t> queueFamilyIndicies;
 	vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-	uint32_t graphFamilyIdx = context.getQueueIndex(VkContext::QueueType::Graphics);
-	uint32_t presentFamilyIdx = context.getQueueIndex(VkContext::QueueType::Present);
+	uint32_t graphFamilyIdx = context.getQueueIndex(VkDriver::QueueType::Graphics);
+	uint32_t presentFamilyIdx = context.getQueueIndex(VkDriver::QueueType::Present);
 
 	if (graphFamilyIdx != presentFamilyIdx)
 	{

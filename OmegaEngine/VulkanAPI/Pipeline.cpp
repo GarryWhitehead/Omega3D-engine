@@ -3,7 +3,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "spirv_cross.hpp"
 
@@ -14,7 +14,7 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::prepare(VkContext& device,
+void PipelineLayout::prepare(VkDriver& device,
                             std::vector<DescriptorLayout>& descrLayouts)
 {
 	// create push constants
@@ -109,7 +109,7 @@ void Pipeline::addEmptyLayout()
 	VK_CHECK_RESULT(device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
 }
 
-void Pipeline::create(VkContext& dev, RenderPass& rPass, ShaderProgram& shader)
+void Pipeline::create(VkDriver& dev, RenderPass& rPass, ShaderProgram& shader)
 {
 	
 	type = type;

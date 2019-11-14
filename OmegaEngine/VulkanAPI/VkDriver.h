@@ -36,7 +36,42 @@ private:
 	vk::Instance instance;
 };
 
-class VkContext
+/**
+ * The current vulkan instance. Encapsulates all information extracted from the device
+ * and physical device. Makes passing vulkan information around easier.
+ *
+ */
+struct VkContext
+{
+    vk::Instance instance;
+
+    vk::Device device;
+    vk::PhysicalDevice physical;
+    vk::PhysicalDeviceFeatures features;
+
+    struct QueueInfo
+    {
+        int compute = VK_QUEUE_FAMILY_IGNORED;
+        int present = VK_QUEUE_FAMILY_IGNORED;
+        int graphics = VK_QUEUE_FAMILY_IGNORED;
+    } queueFamilyIndex;
+
+    VulkanAPI::Queue graphicsQueue;
+    VulkanAPI::Queue presentQueue;
+    VulkanAPI::Queue computeQueue;
+
+    // and syncing semaphores for the swapchain
+    vk::Semaphore imageSemaphore;
+    vk::Semaphore presentSemaphore;
+
+    // supported extensions
+    Extensions deviceExtensions;
+
+    // validation layers
+    std::vector<const char*> requiredLayers;
+};
+
+class VkDriver
 {
 
 public:
@@ -61,8 +96,8 @@ public:
 		bool hasDebugUtils = false;
 	};
 
-	VkContext();
-	~VkContext();
+	VkDriver();
+	~VkDriver();
 
 	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
 	static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
@@ -70,79 +105,36 @@ public:
 	static void createInstance(const char** glfwExtension, uint32_t extCount);
 	void prepareDevice();
 
-	vk::Instance& getInstance()
-	{
-		return instance;
-	}
+    VkContext& getContext()
+    {
+        return context;
+    }
 
-	vk::Device& getDevice()
-	{
-		return device;
-	}
-
-	vk::PhysicalDevice& getPhysicalDevice()
-	{
-		return physical;
-	}
-
-	uint32_t getQueueIndex(QueueType type) const;
-	VulkanAPI::Queue getQueue(QueueType type);
 
 	// ====== manager helper functions =========
-	PipelineManager& getPLineManager()
-	{
-		return plineManager;
-	}
-
-	BufferManager& getBufManager()
-	{
-		return bufManager;
-	}
-
 	CommandBufferManager& getCmdBufManager()
 	{
 		return cmdBufManager;
 	}
 
-	VkTextureManager& getTexManager()
-	{
-		return texManager;
-	}
+    ProgramManager& getProgManager()
+    {
+        return progManager;
+    }
 
 private:
+    
 	// managers
-	PipelineManager plineManager;
-	CommandBufferManager cmdBufManager;
-	BufferManager bufManager;
-	VkTextureManager texManager;
-
-	vk::Instance instance;
-
-	vk::Device device;
-	vk::PhysicalDevice physical;
-	vk::PhysicalDeviceFeatures features;
-
-	struct QueueInfo
-	{
-		int compute = VK_QUEUE_FAMILY_IGNORED;
-		int present = VK_QUEUE_FAMILY_IGNORED;
-		int graphics = VK_QUEUE_FAMILY_IGNORED;
-	} queueFamilyIndex;
-
-	VulkanAPI::Queue graphicsQueue;
-	VulkanAPI::Queue presentQueue;
-	VulkanAPI::Queue computeQueue;
-
-	// and syncing semaphores for the swapchain
-	vk::Semaphore imageSemaphore;
-	vk::Semaphore presentSemaphore;
-
-	// supported extensions
-	Extensions deviceExtensions;
-
-	// validation layers
-	std::vector<const char*> requiredLayers;
-
+    ProgamManager progManager;
+	CommandBufferManager cbManager;
+    
+    // the current device context
+    VkContext context;
+    
+    // resources associated with this device
+    std::unordered_map<VkHandle, VkTexture>;
+    std::unordered_map<VkHandle, VkBuffer>;
+    
 #ifdef VULKAN_VALIDATION_DEBUG
 
 	vk::DebugReportCallbackEXT debugCallback;

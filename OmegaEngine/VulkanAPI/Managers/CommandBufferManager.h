@@ -13,7 +13,7 @@ namespace VulkanAPI
 {
 // forward declerations
 class RenderPass;
-class VkContext;
+class VkDriver;
 class Pipeline;
 
 using CmdBufferHandle = uint64_t;
@@ -22,7 +22,7 @@ class CmdBufferManager
 {
 public:
     
-	CmdBufferManager();
+	CmdBufferManager(VkDriver& driver);
 	~CmdBufferManager();
 
 	// not copyable
@@ -128,7 +128,7 @@ private:
 
 private:
 	// The current vulkan context
-	VkContext& context;
+	VkDriver& driver;
 
 	// all the cmd buffers currently active
 	std::vector<CommandBufferInfo> cmdBuffers;

@@ -9,7 +9,7 @@ namespace VulkanAPI
 // forward declearions
 class Shader;
 class PipelineLayout;
-class VkContext;
+class VkDriver;
 
 enum class PipelineType
 {
@@ -82,7 +82,7 @@ public:
      * created before calling this function.
      * Note: The layouts must be in the correct order as depicted by the set number
      */
-	void prepare(VkContext& context, std::vector<DescriptorLayout> &descrLayouts);
+	void prepare(VkDriver& context, std::vector<DescriptorLayout> &descrLayouts);
     
     /// returns the vulkan pipeline layout
 	vk::PipelineLayout &get()

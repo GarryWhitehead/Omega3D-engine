@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
@@ -73,7 +73,7 @@ bool GlslCompiler::compile(bool optimise)
 
 // ==================== Shader =========================
 
-Shader::Shader(VkContext& context) :
+Shader::Shader(VkDriver& context) :
     context(context)
 {
 }

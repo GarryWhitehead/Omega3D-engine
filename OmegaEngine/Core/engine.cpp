@@ -142,9 +142,9 @@ void Engine::startLoop()
 	}
 }
 
-VulkanAPI::VkContext& Engine::getContext()
+VulkanAPI::VkDriver& Engine::getVkDriver()
 {
-	return context;
+	return vkDriver;
 }
 
 }    // namespace OmegaEngine

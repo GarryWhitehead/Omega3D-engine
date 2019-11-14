@@ -13,7 +13,7 @@ namespace VulkanAPI
 {
 // forward declearions
 class Swapchain;
-class VkContext;
+class VkDriver;
 class ShaderManager;
 }    // namespace VulkanAPI
 
@@ -86,7 +86,7 @@ public:
 
 private:
 	// The current vulkan instance
-	VulkanAPI::VkContext& context;
+	VulkanAPI::VkDriver& context;
 
 	// IBL environment mapping handler
 	Ibl::IblImage ibl;

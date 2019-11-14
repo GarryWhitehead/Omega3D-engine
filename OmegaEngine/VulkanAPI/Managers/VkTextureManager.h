@@ -7,7 +7,7 @@
 #include "VulkanAPI/Types/VkTexture.h"
 
 #include "VulkanAPI/Sampler.h"
-#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 
 #include "Utility/String.h"
 
@@ -79,7 +79,7 @@ public:
 	vk::ImageView& getTextureImageView(const char* name);
 
 private:
-	VkContext* context;
+	VkDriver* context;
 
 	// dedicated container for material textures i.e. grouped
 	std::unordered_map<Util::String, std::vector<MaterialTextureInfo>> groupedTextures;
