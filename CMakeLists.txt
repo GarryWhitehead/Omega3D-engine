@@ -67,7 +67,6 @@ ELSE()
 ENDIF()
 
 # libraries required for Omega Engine
-ADD_SUBDIRECTORY(external/Spirv-Cross)
 ADD_SUBDIRECTORY(external/glfw)
 # needed for shaderc 
 ADD_SUBDIRECTORY(external/SPIRV-Tools)

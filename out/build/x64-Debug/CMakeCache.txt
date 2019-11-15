@@ -435,9 +435,6 @@ EXECUTABLE_OUTPUT_PATH:PATH=
 //Path to a program.
 GITCOMMAND:FILEPATH=C:/Program Files/Git/cmd/git.exe
 
-//Git command line client
-GIT_EXECUTABLE:FILEPATH=C:/Program Files/Git/cmd/git.exe
-
 //Value Computed by CMake
 GLFW_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/glfw
 
@@ -626,12 +623,6 @@ SLURM_SBATCH_COMMAND:FILEPATH=SLURM_SBATCH_COMMAND-NOTFOUND
 SLURM_SRUN_COMMAND:FILEPATH=SLURM_SRUN_COMMAND-NOTFOUND
 
 //Value Computed by CMake
-SPIRV-Cross_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/spirv-cross
-
-//Value Computed by CMake
-SPIRV-Cross_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/spirv-cross
-
-//Value Computed by CMake
 SPIRV-Headers_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/spirv-headers
 
 //Value Computed by CMake
@@ -657,60 +648,6 @@ SPIRV_CHECK_CONTEXT:BOOL=ON
 
 //Enable color terminal output
 SPIRV_COLOR_TERMINAL:BOOL=ON
-
-//Build the CLI binary. Requires SPIRV_CROSS_STATIC.
-SPIRV_CROSS_CLI:BOOL=ON
-
-//Enable C++ target support.
-SPIRV_CROSS_ENABLE_CPP:BOOL=ON
-
-//Enable C API wrapper support in static library.
-SPIRV_CROSS_ENABLE_C_API:BOOL=ON
-
-//Enable GLSL support.
-SPIRV_CROSS_ENABLE_GLSL:BOOL=ON
-
-//Enable HLSL target support.
-SPIRV_CROSS_ENABLE_HLSL:BOOL=ON
-
-//Enable MSL target support.
-SPIRV_CROSS_ENABLE_MSL:BOOL=ON
-
-//Enable JSON reflection target support.
-SPIRV_CROSS_ENABLE_REFLECT:BOOL=ON
-
-//Enable SPIRV-Cross tests.
-SPIRV_CROSS_ENABLE_TESTS:BOOL=ON
-
-//Enable util module support.
-SPIRV_CROSS_ENABLE_UTIL:BOOL=ON
-
-//Instead of throwing exceptions assert
-SPIRV_CROSS_EXCEPTIONS_TO_ASSERTIONS:BOOL=OFF
-
-//Force use of STL types instead of STL replacements in certain
-// places. Might reduce performance.
-SPIRV_CROSS_FORCE_STL_TYPES:BOOL=OFF
-
-SPIRV_CROSS_NAMESPACE_OVERRIDE:BOOL=OFF
-
-//Sanitize address
-SPIRV_CROSS_SANITIZE_ADDRESS:BOOL=OFF
-
-//Sanitize memory
-SPIRV_CROSS_SANITIZE_MEMORY:BOOL=OFF
-
-//Sanitize threads
-SPIRV_CROSS_SANITIZE_THREADS:BOOL=OFF
-
-//Sanitize undefined
-SPIRV_CROSS_SANITIZE_UNDEFINED:BOOL=OFF
-
-//Build the C API as a single shared library.
-SPIRV_CROSS_SHARED:BOOL=OFF
-
-//Build the C and C++ API as static libraries.
-SPIRV_CROSS_STATIC:BOOL=ON
 
 //Skip building examples
 SPIRV_HEADERS_SKIP_EXAMPLES:BOOL=ON
@@ -848,36 +785,6 @@ shaderc_shared_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OG
 
 //Dependencies for the target
 shaderc_util_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OGLCompiler;general;HLSL;general;glslang;general;SPIRV;general;SPIRV-Tools-opt;
-
-//Dependencies for the target
-spirv-cross-c_LIB_DEPENDS:STATIC=general;spirv-cross-glsl;general;spirv-cross-hlsl;general;spirv-cross-msl;general;spirv-cross-cpp;general;spirv-cross-reflect;
-
-//Dependencies for the target
-spirv-cross-cpp_LIB_DEPENDS:STATIC=general;spirv-cross-glsl;
-
-//Dependencies for the target
-spirv-cross-glsl_LIB_DEPENDS:STATIC=general;spirv-cross-core;
-
-//Path to a program.
-spirv-cross-glslang:FILEPATH=spirv-cross-glslang-NOTFOUND
-
-//Dependencies for the target
-spirv-cross-hlsl_LIB_DEPENDS:STATIC=general;spirv-cross-glsl;
-
-//Dependencies for the target
-spirv-cross-msl_LIB_DEPENDS:STATIC=general;spirv-cross-glsl;
-
-//Path to a program.
-spirv-cross-spirv-as:FILEPATH=spirv-cross-spirv-as-NOTFOUND
-
-//Path to a program.
-spirv-cross-spirv-opt:FILEPATH=spirv-cross-spirv-opt-NOTFOUND
-
-//Path to a program.
-spirv-cross-spirv-val:FILEPATH=spirv-cross-spirv-val-NOTFOUND
-
-//Dependencies for the target
-spirv-cross-util_LIB_DEPENDS:STATIC=general;spirv-cross-core;
 
 //Value Computed by CMake
 spirv-tools_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools
@@ -1018,7 +925,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=59
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=58
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RC_COMPILER
@@ -1098,8 +1005,6 @@ DirectX_INCLUDE_DIR-ADVANCED:INTERNAL=1
 DirectX_LIBRARY-ADVANCED:INTERNAL=1
 //x
 DirectX_PREFIX_PATH_INT_CHECK:INTERNAL=C:/apps_x86/Microsoft DirectX SDK*;C:/Program Files (x86)/Microsoft DirectX SDK*;C:/apps/Microsoft DirectX SDK*;C:/Program Files/Microsoft DirectX SDK*;C:/Program Files (x86)/Windows Kits/8.1;C:\Program Files (x86)/Microsoft DirectX SDK*
-//Details about finding Git
-FIND_PACKAGE_MESSAGE_DETAILS_Git:INTERNAL=[C:/Program Files/Git/cmd/git.exe][v2.23.0.windows.1()]
 //Details about finding PythonInterp
 FIND_PACKAGE_MESSAGE_DETAILS_PythonInterp:INTERNAL=[C:/Users/THEGM/AppData/Local/Programs/Python/Python38-32/python.exe][v3.8(3)]
 //Details about finding Threads
@@ -1108,8 +1013,6 @@ FIND_PACKAGE_MESSAGE_DETAILS_Threads:INTERNAL=[TRUE][v()]
 FIND_PACKAGE_MESSAGE_DETAILS_Vulkan:INTERNAL=[C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib][C:/VulkanSDK/1.1.121.2/Include][v()]
 //ADVANCED property for variable: GITCOMMAND
 GITCOMMAND-ADVANCED:INTERNAL=1
-//ADVANCED property for variable: GIT_EXECUTABLE
-GIT_EXECUTABLE-ADVANCED:INTERNAL=1
 //Have function fseeko
 HAVE_FSEEKO:INTERNAL=
 //Result of TRY_COMPILE

@@ -1,0 +1,2064 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						3,
+						26,
+						47,
+						56,
+						57
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						2,
+						23,
+						33
+					]
+				},
+				{
+					"build" : "external/glfw",
+					"childIndexes" : 
+					[
+						2
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "external/glfw",
+					"targetIndexes" : 
+					[
+						5,
+						104
+					]
+				},
+				{
+					"build" : "external/glfw/src",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 1,
+					"projectIndex" : 1,
+					"source" : "external/glfw/src",
+					"targetIndexes" : 
+					[
+						43
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools",
+					"childIndexes" : 
+					[
+						4,
+						5,
+						10,
+						13,
+						24
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools",
+					"targetIndexes" : 
+					[
+						1,
+						94,
+						95
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/external",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/external"
+				},
+				{
+					"build" : "external/SPIRV-Tools/source",
+					"childIndexes" : 
+					[
+						6,
+						7,
+						8,
+						9
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/source",
+					"targetIndexes" : 
+					[
+						25,
+						29,
+						40,
+						41,
+						42,
+						91,
+						93,
+						96,
+						98,
+						99,
+						100,
+						101,
+						102
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/source/opt",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/source/opt",
+					"targetIndexes" : 
+					[
+						27
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/source/reduce",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/source/reduce",
+					"targetIndexes" : 
+					[
+						28
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/source/fuzz",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/source/fuzz"
+				},
+				{
+					"build" : "external/SPIRV-Tools/source/link",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 5,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/source/link",
+					"targetIndexes" : 
+					[
+						26
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/tools",
+					"childIndexes" : 
+					[
+						11,
+						12
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/tools",
+					"targetIndexes" : 
+					[
+						84,
+						85,
+						86,
+						87,
+						88,
+						89,
+						97
+					]
+				},
+				{
+					"build" : "external/SPIRV-Tools/tools/lesspipe",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 10,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/tools/lesspipe"
+				},
+				{
+					"build" : "external/SPIRV-Tools/tools/emacs",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 10,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/tools/emacs"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test",
+					"childIndexes" : 
+					[
+						14,
+						15,
+						18,
+						19,
+						20,
+						22,
+						23
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/link",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/link"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/opt",
+					"childIndexes" : 
+					[
+						16,
+						17
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/opt"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/opt/dominator_tree",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 15,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/opt/dominator_tree"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/opt/loop_optimizations",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 15,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/opt/loop_optimizations"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/reduce",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/reduce"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/fuzz",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/fuzz"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/tools",
+					"childIndexes" : 
+					[
+						21
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/tools"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/tools/opt",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 20,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/tools/opt"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/util",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/util"
+				},
+				{
+					"build" : "external/SPIRV-Tools/test/val",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 13,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/test/val"
+				},
+				{
+					"build" : "external/SPIRV-Tools/examples",
+					"childIndexes" : 
+					[
+						25
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 3,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/examples"
+				},
+				{
+					"build" : "external/SPIRV-Tools/examples/cpp-interface",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 24,
+					"projectIndex" : 2,
+					"source" : "external/SPIRV-Tools/examples/cpp-interface",
+					"targetIndexes" : 
+					[
+						92
+					]
+				},
+				{
+					"build" : "external/shaderc",
+					"childIndexes" : 
+					[
+						27,
+						41,
+						42,
+						43,
+						45
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 3,
+					"source" : "external/shaderc",
+					"targetIndexes" : 
+					[
+						10,
+						34,
+						37,
+						38,
+						60,
+						62,
+						73
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party",
+					"childIndexes" : 
+					[
+						28,
+						31,
+						32
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 26,
+					"projectIndex" : 3,
+					"source" : "external/shaderc/third_party",
+					"targetIndexes" : 
+					[
+						39
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/googletest",
+					"childIndexes" : 
+					[
+						29
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.8"
+					},
+					"parentIndex" : 27,
+					"projectIndex" : 4,
+					"source" : "external/googletest",
+					"targetIndexes" : 
+					[
+						11
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/googletest/googlemock",
+					"childIndexes" : 
+					[
+						30
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.6.4"
+					},
+					"parentIndex" : 28,
+					"projectIndex" : 5,
+					"source" : "external/googletest/googlemock",
+					"targetIndexes" : 
+					[
+						13,
+						53,
+						54
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/googletest/googletest",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.6.4"
+					},
+					"parentIndex" : 29,
+					"projectIndex" : 6,
+					"source" : "external/googletest/googletest",
+					"targetIndexes" : 
+					[
+						3,
+						55,
+						56
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/spirv-headers",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 27,
+					"projectIndex" : 7,
+					"source" : "external/SPIRV-Headers",
+					"targetIndexes" : 
+					[
+						8,
+						57
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang",
+					"childIndexes" : 
+					[
+						33,
+						34,
+						36,
+						37,
+						38,
+						39,
+						40
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 27,
+					"projectIndex" : 8,
+					"source" : "external/glslang",
+					"targetIndexes" : 
+					[
+						12,
+						14,
+						15,
+						18,
+						19
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/External",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/External"
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/glslang",
+					"childIndexes" : 
+					[
+						35
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/glslang",
+					"targetIndexes" : 
+					[
+						44
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/glslang/OSDependent/Windows",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 34,
+					"projectIndex" : 8,
+					"source" : "external/glslang/glslang/OSDependent/Windows",
+					"targetIndexes" : 
+					[
+						22
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/OGLCompilersDLL",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/OGLCompilersDLL",
+					"targetIndexes" : 
+					[
+						20
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/StandAlone",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/StandAlone",
+					"targetIndexes" : 
+					[
+						45,
+						46,
+						90
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/SPIRV",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/SPIRV",
+					"targetIndexes" : 
+					[
+						24,
+						30
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/hlsl",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/hlsl",
+					"targetIndexes" : 
+					[
+						16
+					]
+				},
+				{
+					"build" : "external/shaderc/third_party/glslang/gtests",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 32,
+					"projectIndex" : 8,
+					"source" : "external/glslang/gtests",
+					"targetIndexes" : 
+					[
+						47
+					]
+				},
+				{
+					"build" : "external/shaderc/libshaderc_util",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 26,
+					"projectIndex" : 9,
+					"source" : "external/shaderc/libshaderc_util",
+					"targetIndexes" : 
+					[
+						9,
+						74,
+						75,
+						76,
+						77,
+						78,
+						79,
+						80,
+						81,
+						82,
+						83,
+						103
+					]
+				},
+				{
+					"build" : "external/shaderc/libshaderc",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 26,
+					"projectIndex" : 10,
+					"source" : "external/shaderc/libshaderc",
+					"targetIndexes" : 
+					[
+						6,
+						58,
+						61,
+						63,
+						64,
+						65,
+						66,
+						67,
+						68,
+						69,
+						70,
+						71,
+						72
+					]
+				},
+				{
+					"build" : "external/shaderc/glslc",
+					"childIndexes" : 
+					[
+						44
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 26,
+					"projectIndex" : 3,
+					"source" : "external/shaderc/glslc",
+					"targetIndexes" : 
+					[
+						48,
+						49,
+						50,
+						51,
+						52
+					]
+				},
+				{
+					"build" : "external/shaderc/glslc/test",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 43,
+					"projectIndex" : 3,
+					"source" : "external/shaderc/glslc/test"
+				},
+				{
+					"build" : "external/shaderc/examples",
+					"childIndexes" : 
+					[
+						46
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 26,
+					"projectIndex" : 3,
+					"source" : "external/shaderc/examples"
+				},
+				{
+					"build" : "external/shaderc/examples/online-compile",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.8.12"
+					},
+					"parentIndex" : 45,
+					"projectIndex" : 3,
+					"source" : "external/shaderc/examples/online-compile",
+					"targetIndexes" : 
+					[
+						59
+					]
+				},
+				{
+					"build" : "external/assimp",
+					"childIndexes" : 
+					[
+						48,
+						49,
+						51,
+						52,
+						53,
+						54
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 11,
+					"source" : "external/assimp",
+					"targetIndexes" : 
+					[
+						0,
+						32
+					]
+				},
+				{
+					"build" : "external/assimp/contrib/zlib",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.4.4"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 12,
+					"source" : "external/assimp/contrib/zlib",
+					"targetIndexes" : 
+					[
+						7,
+						106,
+						107
+					]
+				},
+				{
+					"build" : "external/assimp/contrib",
+					"childIndexes" : 
+					[
+						50
+					],
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 11,
+					"source" : "external/assimp/contrib"
+				},
+				{
+					"build" : "external/assimp/contrib/irrXML",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 49,
+					"projectIndex" : 11,
+					"source" : "external/assimp/contrib/irrXML",
+					"targetIndexes" : 
+					[
+						17
+					]
+				},
+				{
+					"build" : "external/assimp/code",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 11,
+					"source" : "external/assimp/code",
+					"targetIndexes" : 
+					[
+						35
+					]
+				},
+				{
+					"build" : "external/assimp/tools/assimp_cmd",
+					"hasInstallRule" : true,
+					"minimumCMakeVersion" : 
+					{
+						"string" : "2.6"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 11,
+					"source" : "external/assimp/tools/assimp_cmd",
+					"targetIndexes" : 
+					[
+						36
+					]
+				},
+				{
+					"build" : "external/assimp/tools/assimp_qt_viewer",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.1"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 13,
+					"source" : "external/assimp/tools/assimp_qt_viewer",
+					"targetIndexes" : 
+					[
+						4
+					]
+				},
+				{
+					"build" : "external/assimp/test",
+					"childIndexes" : 
+					[
+						55
+					],
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 47,
+					"projectIndex" : 11,
+					"source" : "external/assimp/test",
+					"targetIndexes" : 
+					[
+						105
+					]
+				},
+				{
+					"build" : "external/assimp/test/headercheck",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.0"
+					},
+					"parentIndex" : 54,
+					"projectIndex" : 11,
+					"source" : "external/assimp/test/headercheck"
+				},
+				{
+					"build" : "OmegaEngine",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "OmegaEngine",
+					"targetIndexes" : 
+					[
+						21
+					]
+				},
+				{
+					"build" : "Examples",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.5"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "Examples",
+					"targetIndexes" : 
+					[
+						31
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2,
+						3,
+						11
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						56,
+						57
+					],
+					"name" : "OMEGA_ENGINE",
+					"targetIndexes" : 
+					[
+						2,
+						21,
+						23,
+						31,
+						33
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1,
+						2
+					],
+					"name" : "GLFW",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						5,
+						43,
+						104
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						3,
+						4,
+						5,
+						6,
+						7,
+						8,
+						9,
+						10,
+						11,
+						12,
+						13,
+						14,
+						15,
+						16,
+						17,
+						18,
+						19,
+						20,
+						21,
+						22,
+						23,
+						24,
+						25
+					],
+					"name" : "spirv-tools",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						1,
+						25,
+						26,
+						27,
+						28,
+						29,
+						40,
+						41,
+						42,
+						84,
+						85,
+						86,
+						87,
+						88,
+						89,
+						91,
+						92,
+						93,
+						94,
+						95,
+						96,
+						97,
+						98,
+						99,
+						100,
+						101,
+						102
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						4,
+						7,
+						8,
+						9,
+						10
+					],
+					"directoryIndexes" : 
+					[
+						26,
+						27,
+						43,
+						44,
+						45,
+						46
+					],
+					"name" : "shaderc",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						10,
+						34,
+						37,
+						38,
+						39,
+						48,
+						49,
+						50,
+						51,
+						52,
+						59,
+						60,
+						62,
+						73
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						5
+					],
+					"directoryIndexes" : 
+					[
+						28
+					],
+					"name" : "googletest-distribution",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						11
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						6
+					],
+					"directoryIndexes" : 
+					[
+						29
+					],
+					"name" : "gmock",
+					"parentIndex" : 4,
+					"targetIndexes" : 
+					[
+						13,
+						53,
+						54
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						30
+					],
+					"name" : "gtest",
+					"parentIndex" : 5,
+					"targetIndexes" : 
+					[
+						3,
+						55,
+						56
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						31
+					],
+					"name" : "SPIRV-Headers",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						8,
+						57
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						32,
+						33,
+						34,
+						35,
+						36,
+						37,
+						38,
+						39,
+						40
+					],
+					"name" : "glslang",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						12,
+						14,
+						15,
+						16,
+						18,
+						19,
+						20,
+						22,
+						24,
+						30,
+						44,
+						45,
+						46,
+						47,
+						90
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						41
+					],
+					"name" : "libshaderc_util",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						9,
+						74,
+						75,
+						76,
+						77,
+						78,
+						79,
+						80,
+						81,
+						82,
+						83,
+						103
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						42
+					],
+					"name" : "libshaderc",
+					"parentIndex" : 3,
+					"targetIndexes" : 
+					[
+						6,
+						58,
+						61,
+						63,
+						64,
+						65,
+						66,
+						67,
+						68,
+						69,
+						70,
+						71,
+						72
+					]
+				},
+				{
+					"childIndexes" : 
+					[
+						12,
+						13
+					],
+					"directoryIndexes" : 
+					[
+						47,
+						49,
+						50,
+						51,
+						52,
+						54,
+						55
+					],
+					"name" : "Assimp",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						17,
+						32,
+						35,
+						36,
+						105
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						48
+					],
+					"name" : "zlib",
+					"parentIndex" : 11,
+					"targetIndexes" : 
+					[
+						7,
+						106,
+						107
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						53
+					],
+					"name" : "assimp_qt_viewer",
+					"parentIndex" : 11,
+					"targetIndexes" : 
+					[
+						4
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 47,
+					"id" : "ALL_BUILD::@3253ab71256c6811a023",
+					"jsonFile" : "target-ALL_BUILD-Debug-9c7043f5d9cf99c3567a.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "ALL_BUILD::@5639889913c69d5ff99e",
+					"jsonFile" : "target-ALL_BUILD-Debug-2380a994faea69c07de4.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ALL_BUILD-Debug-69619ca9913577defab6.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 30,
+					"id" : "ALL_BUILD::@6c765ddfebc77c90c810",
+					"jsonFile" : "target-ALL_BUILD-Debug-9b80323cb9637d9cf34f.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 53,
+					"id" : "ALL_BUILD::@03051b822defa53589b3",
+					"jsonFile" : "target-ALL_BUILD-Debug-09b8a4b9e996291274bc.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 13
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "ALL_BUILD::@691b517da5fa0f694cd4",
+					"jsonFile" : "target-ALL_BUILD-Debug-ae69f57f17f8ad5b25d0.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "ALL_BUILD::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-ALL_BUILD-Debug-974594b9f8ecacc9ab5e.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 48,
+					"id" : "ALL_BUILD::@20be5c410eca5ac1f929",
+					"jsonFile" : "target-ALL_BUILD-Debug-df76dd098d1e2b121d61.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 12
+				},
+				{
+					"directoryIndex" : 31,
+					"id" : "ALL_BUILD::@5daf6f1871604b18ebdb",
+					"jsonFile" : "target-ALL_BUILD-Debug-a2690cadff7f121ac2c3.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 7
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "ALL_BUILD::@30387d052571abe8a72b",
+					"jsonFile" : "target-ALL_BUILD-Debug-3d02f21fddf7a1f4ec01.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "ALL_BUILD::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-ALL_BUILD-Debug-355d61830853384d6256.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 28,
+					"id" : "ALL_BUILD::@873226dd70672065e0a5",
+					"jsonFile" : "target-ALL_BUILD-Debug-6462a2bc122214cc10d2.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 4
+				},
+				{
+					"directoryIndex" : 32,
+					"id" : "ALL_BUILD::@19b340e03f3df37e9326",
+					"jsonFile" : "target-ALL_BUILD-Debug-8a22c469ceb0acf1b447.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 29,
+					"id" : "ALL_BUILD::@72019f8cb54e7fe6fb10",
+					"jsonFile" : "target-ALL_BUILD-Debug-e3aae195286a787af805.json",
+					"name" : "ALL_BUILD",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 32,
+					"id" : "Continuous::@19b340e03f3df37e9326",
+					"jsonFile" : "target-Continuous-Debug-849e5d0008124c71099b.json",
+					"name" : "Continuous",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 32,
+					"id" : "Experimental::@19b340e03f3df37e9326",
+					"jsonFile" : "target-Experimental-Debug-acf01e6f4b8762705733.json",
+					"name" : "Experimental",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 39,
+					"id" : "HLSL::@0e7876ffd8e3ab600843",
+					"jsonFile" : "target-HLSL-Debug-28d329f9c545aca0cd94.json",
+					"name" : "HLSL",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 50,
+					"id" : "IrrXML::@c2b876941448ac7c55ff",
+					"jsonFile" : "target-IrrXML-Debug-28ac20150aec5be3225e.json",
+					"name" : "IrrXML",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 32,
+					"id" : "Nightly::@19b340e03f3df37e9326",
+					"jsonFile" : "target-Nightly-Debug-9a761c9411be7e105715.json",
+					"name" : "Nightly",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 32,
+					"id" : "NightlyMemoryCheck::@19b340e03f3df37e9326",
+					"jsonFile" : "target-NightlyMemoryCheck-Debug-ef246076ba645328b5ea.json",
+					"name" : "NightlyMemoryCheck",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 36,
+					"id" : "OGLCompiler::@8f7d58e83e0518817cb6",
+					"jsonFile" : "target-OGLCompiler-Debug-9420db13e7f5424b4a75.json",
+					"name" : "OGLCompiler",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 56,
+					"id" : "OMEGA_ENGINE::@497b31f2a0b3fb3e80fb",
+					"jsonFile" : "target-OMEGA_ENGINE-Debug-1444431fa68d807399c7.json",
+					"name" : "OMEGA_ENGINE",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 35,
+					"id" : "OSDependent::@b36f23ecf94a537a8520",
+					"jsonFile" : "target-OSDependent-Debug-913bc7b0a63c018bc2de.json",
+					"name" : "OSDependent",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "RAPID_JSON::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-RAPID_JSON-Debug-90de56273783419f3f21.json",
+					"name" : "RAPID_JSON",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 38,
+					"id" : "SPIRV::@50781fd55c5da1a73fb4",
+					"jsonFile" : "target-SPIRV-Debug-59c1c9fb2278f16285fd.json",
+					"name" : "SPIRV",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "SPIRV-Tools::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-SPIRV-Tools-Debug-b196c5b8b2f703dbfb95.json",
+					"name" : "SPIRV-Tools",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 9,
+					"id" : "SPIRV-Tools-link::@22bb1f78f2e1495d61fe",
+					"jsonFile" : "target-SPIRV-Tools-link-Debug-826a5cd4abe89b8f4e0a.json",
+					"name" : "SPIRV-Tools-link",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 6,
+					"id" : "SPIRV-Tools-opt::@b20417be42203b59e848",
+					"jsonFile" : "target-SPIRV-Tools-opt-Debug-16a203f65b55e3780eeb.json",
+					"name" : "SPIRV-Tools-opt",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 7,
+					"id" : "SPIRV-Tools-reduce::@9283aa6f095013631c5c",
+					"jsonFile" : "target-SPIRV-Tools-reduce-Debug-230a93e09d144c23b99e.json",
+					"name" : "SPIRV-Tools-reduce",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "SPIRV-Tools-shared::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-SPIRV-Tools-shared-Debug-c1010c43de3c274e82ca.json",
+					"name" : "SPIRV-Tools-shared",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 38,
+					"id" : "SPVRemapper::@50781fd55c5da1a73fb4",
+					"jsonFile" : "target-SPVRemapper-Debug-312b8f1fa32ff783bf5f.json",
+					"name" : "SPVRemapper",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 57,
+					"id" : "Scene::@e67388b41b83090ac410",
+					"jsonFile" : "target-Scene-Debug-6d74a94508dea63ae9b4.json",
+					"name" : "Scene",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 47,
+					"id" : "UpdateAssimpLibsDebugSymbolsAndDLLs::@3253ab71256c6811a023",
+					"jsonFile" : "target-UpdateAssimpLibsDebugSymbolsAndDLLs-Debug-464f7562ec02b26b980a.json",
+					"name" : "UpdateAssimpLibsDebugSymbolsAndDLLs",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-ZERO_CHECK-Debug-4965a89add65a49b4f66.json",
+					"name" : "ZERO_CHECK",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "add-copyright::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-add-copyright-Debug-928b16af94c9775251a7.json",
+					"name" : "add-copyright",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 51,
+					"id" : "assimp::@f3a6284ec5dbac1d6aa0",
+					"jsonFile" : "target-assimp-Debug-da11cc4660f42793f0ae.json",
+					"name" : "assimp",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 52,
+					"id" : "assimp_cmd::@ec87d121041e35265af4",
+					"jsonFile" : "target-assimp_cmd-Debug-7abe28928e66b1248bf6.json",
+					"name" : "assimp_cmd",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "build-version::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-build-version-Debug-3f6e60ee9e59fd40c3ad.json",
+					"name" : "build-version",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "check-copyright::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-check-copyright-Debug-0c7b983a716f7072feab.json",
+					"name" : "check-copyright",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 27,
+					"id" : "copy-tests-if-necessary::@d068c1731d303e41c193",
+					"jsonFile" : "target-copy-tests-if-necessary-Debug-6e928fbbcd25af65091a.json",
+					"name" : "copy-tests-if-necessary",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "core_tables::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-core_tables-Debug-f10612343a652cb67310.json",
+					"name" : "core_tables",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "enum_string_mapping::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-enum_string_mapping-Debug-b71696f9ef3d198bf242.json",
+					"name" : "enum_string_mapping",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "extinst_tables::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-extinst_tables-Debug-5362d4b51e995866a714.json",
+					"name" : "extinst_tables",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "glfw::@ca12bac854c2ac6b2230",
+					"jsonFile" : "target-glfw-Debug-63489ad3afd2d35d75df.json",
+					"name" : "glfw",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 34,
+					"id" : "glslang::@eda8e825d6f67a92af23",
+					"jsonFile" : "target-glslang-Debug-7b0c5aac71e2629eafb3.json",
+					"name" : "glslang",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 37,
+					"id" : "glslang-default-resource-limits::@f131dad0c2343968ce8d",
+					"jsonFile" : "target-glslang-default-resource-limits-Debug-e6224ab711c829986390.json",
+					"name" : "glslang-default-resource-limits",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 37,
+					"id" : "glslangValidator::@f131dad0c2343968ce8d",
+					"jsonFile" : "target-glslangValidator-Debug-733d98ffd51699591692.json",
+					"name" : "glslangValidator",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 40,
+					"id" : "glslangtests::@46be1f7a98d2f1d62b60",
+					"jsonFile" : "target-glslangtests-Debug-d14602349e97aa885fbd.json",
+					"name" : "glslangtests",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 43,
+					"id" : "glslc::@f8530773be02fee52b3c",
+					"jsonFile" : "target-glslc-Debug-54ad5a60919fa07705ee.json",
+					"name" : "glslc",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 43,
+					"id" : "glslc_exe::@f8530773be02fee52b3c",
+					"jsonFile" : "target-glslc_exe-Debug-a73467d15d2da3889d1a.json",
+					"name" : "glslc_exe",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 43,
+					"id" : "glslc_file_test::@f8530773be02fee52b3c",
+					"jsonFile" : "target-glslc_file_test-Debug-2744d0e713d6caf06dfc.json",
+					"name" : "glslc_file_test",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 43,
+					"id" : "glslc_resource_parse_test::@f8530773be02fee52b3c",
+					"jsonFile" : "target-glslc_resource_parse_test-Debug-6d99d11758fe5aedf37d.json",
+					"name" : "glslc_resource_parse_test",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 43,
+					"id" : "glslc_stage_test::@f8530773be02fee52b3c",
+					"jsonFile" : "target-glslc_stage_test-Debug-858350f8630e87d58058.json",
+					"name" : "glslc_stage_test",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 29,
+					"id" : "gmock::@72019f8cb54e7fe6fb10",
+					"jsonFile" : "target-gmock-Debug-591feb63ba4273f7bacc.json",
+					"name" : "gmock",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 29,
+					"id" : "gmock_main::@72019f8cb54e7fe6fb10",
+					"jsonFile" : "target-gmock_main-Debug-ca379abbd201bea73aaa.json",
+					"name" : "gmock_main",
+					"projectIndex" : 5
+				},
+				{
+					"directoryIndex" : 30,
+					"id" : "gtest::@6c765ddfebc77c90c810",
+					"jsonFile" : "target-gtest-Debug-d2e922de60970e711134.json",
+					"name" : "gtest",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 30,
+					"id" : "gtest_main::@6c765ddfebc77c90c810",
+					"jsonFile" : "target-gtest_main-Debug-0e306734a59d2f76b264.json",
+					"name" : "gtest_main",
+					"projectIndex" : 6
+				},
+				{
+					"directoryIndex" : 31,
+					"id" : "install-headers::@5daf6f1871604b18ebdb",
+					"jsonFile" : "target-install-headers-Debug-3735fd65603146447616.json",
+					"name" : "install-headers",
+					"projectIndex" : 7
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc-Debug-8c7f98a93a7c593e22cd.json",
+					"name" : "shaderc",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 46,
+					"id" : "shaderc-online-compile::@7980a2d305646203fe64",
+					"jsonFile" : "target-shaderc-online-compile-Debug-36384fbe43091f6d08d6.json",
+					"name" : "shaderc-online-compile",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "shaderc-pkg-config::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-shaderc-pkg-config-Debug-8264cb04bf4c55f0d78b.json",
+					"name" : "shaderc-pkg-config",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_c_smoke_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_c_smoke_test-Debug-37962a25ea33ae88964d.json",
+					"name" : "shaderc_c_smoke_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "shaderc_combined-pkg-config::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-shaderc_combined-pkg-config-Debug-1ce22e4ae6a1d636ee88.json",
+					"name" : "shaderc_combined-pkg-config",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_combined_genfile::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_combined_genfile-Debug-9a4e34852899219b0d67.json",
+					"name" : "shaderc_combined_genfile",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_combined_shaderc_cpp_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_combined_shaderc_cpp_test-Debug-0dd15549a9408ec20318.json",
+					"name" : "shaderc_combined_shaderc_cpp_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_combined_shaderc_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_combined_shaderc_test-Debug-6991edc09de40e1501f4.json",
+					"name" : "shaderc_combined_shaderc_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shaderc_cpp_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shaderc_cpp_test-Debug-a27727b0481198e7c5da.json",
+					"name" : "shaderc_shaderc_cpp_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shaderc_private_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shaderc_private_test-Debug-bb50bf0154fed95ebd65.json",
+					"name" : "shaderc_shaderc_private_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shaderc_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shaderc_test-Debug-077647a9bd35277733f4.json",
+					"name" : "shaderc_shaderc_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shared::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shared-Debug-faa6726c1c3fcc8dcc2d.json",
+					"name" : "shaderc_shared",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shared_shaderc_cpp_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shared_shaderc_cpp_test-Debug-60028c360ec5419dce10.json",
+					"name" : "shaderc_shared_shaderc_cpp_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shared_shaderc_private_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shared_shaderc_private_test-Debug-43091a34efd64f48111e.json",
+					"name" : "shaderc_shared_shaderc_private_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 42,
+					"id" : "shaderc_shared_shaderc_test::@2d60bf8b3d5dffec3683",
+					"jsonFile" : "target-shaderc_shared_shaderc_test-Debug-98bea31e97f93c7cce18.json",
+					"name" : "shaderc_shared_shaderc_test",
+					"projectIndex" : 10
+				},
+				{
+					"directoryIndex" : 26,
+					"id" : "shaderc_static-pkg-config::@4ca3c72d0d502d8e8b2b",
+					"jsonFile" : "target-shaderc_static-pkg-config-Debug-c603ccaa3f50fbae198f.json",
+					"name" : "shaderc_static-pkg-config",
+					"projectIndex" : 3
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util-Debug-e6c00ff51f629c1ea326.json",
+					"name" : "shaderc_util",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_compiler_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_compiler_test-Debug-6aab92abb8b5ea318b0c.json",
+					"name" : "shaderc_util_compiler_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_counting_includer_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_counting_includer_test-Debug-50e386ca3858c3801e24.json",
+					"name" : "shaderc_util_counting_includer_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_file_finder_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_file_finder_test-Debug-e4c5247ad607af34268f.json",
+					"name" : "shaderc_util_file_finder_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_format_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_format_test-Debug-dc737944b0aee059659b.json",
+					"name" : "shaderc_util_format_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_io_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_io_test-Debug-6a835bd65eb3fb5b0bea.json",
+					"name" : "shaderc_util_io_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_message_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_message_test-Debug-21120c7232537060bda0.json",
+					"name" : "shaderc_util_message_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_mutex_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_mutex_test-Debug-c7605efc743d47f05425.json",
+					"name" : "shaderc_util_mutex_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_string_piece_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_string_piece_test-Debug-843f4ad3685e40b9df2a.json",
+					"name" : "shaderc_util_string_piece_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "shaderc_util_version_profile_test::@30387d052571abe8a72b",
+					"jsonFile" : "target-shaderc_util_version_profile_test-Debug-58937aff2d638ebe92cd.json",
+					"name" : "shaderc_util_version_profile_test",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-as::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-as-Debug-ffe40542f323be081b38.json",
+					"name" : "spirv-as",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-cfg::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-cfg-Debug-e1735aad9e6a00ea2f68.json",
+					"name" : "spirv-cfg",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-dis::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-dis-Debug-79c2e8c51f1797de5aff.json",
+					"name" : "spirv-dis",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-link::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-link-Debug-a31a2040632a2eb0fcc3.json",
+					"name" : "spirv-link",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-opt::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-opt-Debug-4d50f73190538f063058.json",
+					"name" : "spirv-opt",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-reduce::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-reduce-Debug-e63f222c12dd1640d1ad.json",
+					"name" : "spirv-reduce",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 37,
+					"id" : "spirv-remap::@f131dad0c2343968ce8d",
+					"jsonFile" : "target-spirv-remap-Debug-edc1f638de946821a53c.json",
+					"name" : "spirv-remap",
+					"projectIndex" : 8
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spirv-tools-build-version::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spirv-tools-build-version-Debug-e666d56b4d1bc86a33ca.json",
+					"name" : "spirv-tools-build-version",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 25,
+					"id" : "spirv-tools-cpp-example::@5ab4dfd5b699c46b72cf",
+					"jsonFile" : "target-spirv-tools-cpp-example-Debug-45173cb3f31dd22b518e.json",
+					"name" : "spirv-tools-cpp-example",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spirv-tools-header-DebugInfo::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spirv-tools-header-DebugInfo-Debug-547d3a9b423cebf86b10.json",
+					"name" : "spirv-tools-header-DebugInfo",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "spirv-tools-pkg-config::@5639889913c69d5ff99e",
+					"jsonFile" : "target-spirv-tools-pkg-config-Debug-b876f7642ca0c44f0c47.json",
+					"name" : "spirv-tools-pkg-config",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 3,
+					"id" : "spirv-tools-shared-pkg-config::@5639889913c69d5ff99e",
+					"jsonFile" : "target-spirv-tools-shared-pkg-config-Debug-30ab7b12ff8f2b031bd5.json",
+					"name" : "spirv-tools-shared-pkg-config",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spirv-tools-vimsyntax::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spirv-tools-vimsyntax-Debug-fe8a375d025ed1d19823.json",
+					"name" : "spirv-tools-vimsyntax",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 10,
+					"id" : "spirv-val::@0d48aa6451d35b4d2c5b",
+					"jsonFile" : "target-spirv-val-Debug-4ee3e17c92b3c224a363.json",
+					"name" : "spirv-val",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spv-tools-debuginfo::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spv-tools-debuginfo-Debug-cef6bc26873e68caf48a.json",
+					"name" : "spv-tools-debuginfo",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spv-tools-spv-amd-gs::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spv-tools-spv-amd-gs-Debug-89b4c82855e9becf76b4.json",
+					"name" : "spv-tools-spv-amd-gs",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spv-tools-spv-amd-sb::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spv-tools-spv-amd-sb-Debug-465c1badea3f7720705c.json",
+					"name" : "spv-tools-spv-amd-sb",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spv-tools-spv-amd-sevp::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spv-tools-spv-amd-sevp-Debug-57ea3102f811940b4845.json",
+					"name" : "spv-tools-spv-amd-sevp",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 5,
+					"id" : "spv-tools-spv-amd-stm::@1ff997bb6f27c61d214b",
+					"jsonFile" : "target-spv-tools-spv-amd-stm-Debug-aa6f6538d1e0e094e156.json",
+					"name" : "spv-tools-spv-amd-stm",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 41,
+					"id" : "testdata::@30387d052571abe8a72b",
+					"jsonFile" : "target-testdata-Debug-f1e73430a92072fdaceb.json",
+					"name" : "testdata",
+					"projectIndex" : 9
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "uninstall::@691b517da5fa0f694cd4",
+					"jsonFile" : "target-uninstall-Debug-7d926f66d19eb4582dfc.json",
+					"name" : "uninstall",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 54,
+					"id" : "unit::@fef23bd2ce31f13f63ea",
+					"jsonFile" : "target-unit-Debug-6142f7d191fbc3a11605.json",
+					"name" : "unit",
+					"projectIndex" : 11
+				},
+				{
+					"directoryIndex" : 48,
+					"id" : "zlib::@20be5c410eca5ac1f929",
+					"jsonFile" : "target-zlib-Debug-6c12173fa2de0bb6ef1d.json",
+					"name" : "zlib",
+					"projectIndex" : 12
+				},
+				{
+					"directoryIndex" : 48,
+					"id" : "zlibstatic::@20be5c410eca5ac1f929",
+					"jsonFile" : "target-zlibstatic-Debug-428b34b9d94fa48504a8.json",
+					"name" : "zlibstatic",
+					"projectIndex" : 12
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug",
+		"source" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 0
+	}
+}

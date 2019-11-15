@@ -49,6 +49,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}/tiny-gltf
 	${EXTERNAL_DIR}/assimp/include
 	${EXTERNAL_DIR}/rapidjson/include
+	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
 	${EXTERNAL_DIR}/stb
 )
 
@@ -92,11 +93,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
 	Types/Object.h
-	Types/Texture.cpp Types/Texture.h
+	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
-	Types/PBuildInfo.h
-	Types/UBufferInfo.h
-	Types/TextureInfo.h
+	Types/GpuResources.h
 	
 	OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.h
@@ -142,18 +141,15 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/Timer.cpp utility/Timer.h
     utility/BitSetEnum.h
 	
-	VulkanAPI/Types/VkTexture.cpp VulkanAPI/Types/VkTexture.h
-
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 
-	VulkanAPI/Managers/BufferManager.cpp VulkanAPI/Managers/BufferManager.h
-	VulkanAPI/Managers/PipelineManager.cpp VulkanAPI/Managers/PipelineManager.h
 	VulkanAPI/Managers/MemoryAllocator.cpp VulkanAPI/Managers/MemoryAllocator.h
 	VulkanAPI/Managers/CommandBufferManager.cpp VulkanAPI/Managers/CommandBufferManager.h
-	VulkanAPI/Managers/VkTextureManager.cpp VulkanAPI/Managers/VkTextureManager.h
 	VulkanAPI/Managers/SemaphoreManager.cpp VulkanAPI/Managers/SemaphoreManager.h
-	VulkanAPI/Managers/ShaderManager.cpp VulkanAPI/Managers/ShaderManager.h
+	VulkanAPI/Managers/ProgramManager.cpp VulkanAPI/Managers/ProgramManager.h
 
+	VulkanAPI/VkContext.cpp VulkanAPI/VkContext.h
+	VulkanAPI/VkTexture.cpp VulkanAPI/VkTexture.h
 	VulkanAPI/CommandBuffer.cpp VulkanAPI/CommandBuffer.h
 	VulkanAPI/Common.h
 	VulkanAPI/Descriptors.cpp VulkanAPI/Descriptors.h
@@ -165,6 +161,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Sampler.cpp VulkanAPI/Sampler.h
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
+	VulkanAPI/Buffer.cpp VulkanAPI/Buffer.h
 
 	VulkanAPI/VkUtils/StringToVk.cpp VulkanAPI/VkUtils/StringToVk.h
 	VulkanAPI/VkUtils/VkToString.cpp VulkanAPI/VkUtils/VkToString.h

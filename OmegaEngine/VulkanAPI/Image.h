@@ -7,8 +7,8 @@ namespace VulkanAPI
 {
 // forward decleartions
 class Image;
-class Queue;
 class Texture;
+class TextureContext;
 
 class ImageView
 {
@@ -59,28 +59,14 @@ public:
 		return format;
 	}
 
-	uint32_t getFaceCount() const
-	{
-		return faceCount;
-	}
-
-	uint32_t getArrayCount() const
-	{
-		return arrays;
-	}
-
 private:
 	vk::Device device;
+
+	TextureContext& texContext;
 
 	vk::Image image;
 	vk::Format format;
 	vk::DeviceMemory imageMemory;
-
-	uint32_t width;
-	uint32_t height;
-	uint32_t faceCount = 1;
-	uint32_t arrays = 1;
-	uint32_t mipLevels = 1;
 };
 
 } // namespace VulkanAPI

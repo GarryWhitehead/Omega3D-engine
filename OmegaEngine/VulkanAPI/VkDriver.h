@@ -1,146 +1,93 @@
 #pragma once
+
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Queue.h"
 
-#include "VulkanAPI/Managers/BufferManager.h"
-#include "VulkanAPI/Managers/CommandBufferManager.h"
-#include "VulkanAPI/Managers/PipelineManager.h"
-#include "VulkanAPI/Managers/VkTextureManager.h"
+#include "VulkanAPI/VkContext.h"
 
-#include <set>
+#include <unordered_map>
 #include <vector>
 
 namespace VulkanAPI
 {
-namespace VulkanUtil
-{
-vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
-                               vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu);
-}
+
+// forward declerations
+class ProgramManager;
+class CommandBufferManager;
+class Buffer;
+class Texture;
 
 /**
-* @brief A wrappeer for a vulkan instance
+* @brief A wrapper for a vulkan instance
 */
 class Instance
 {
 public:
-
 	// no copying allowed!
 	Instance(const Instance&) = delete;
 	Instance& operator=(const Instance&) = delete;
-	Instance(Instance&&) = default;
-	Instance& operator=(Instance&&) = default;
 
 private:
-	
+
 	vk::Instance instance;
-};
-
-/**
- * The current vulkan instance. Encapsulates all information extracted from the device
- * and physical device. Makes passing vulkan information around easier.
- *
- */
-struct VkContext
-{
-    vk::Instance instance;
-
-    vk::Device device;
-    vk::PhysicalDevice physical;
-    vk::PhysicalDeviceFeatures features;
-
-    struct QueueInfo
-    {
-        int compute = VK_QUEUE_FAMILY_IGNORED;
-        int present = VK_QUEUE_FAMILY_IGNORED;
-        int graphics = VK_QUEUE_FAMILY_IGNORED;
-    } queueFamilyIndex;
-
-    VulkanAPI::Queue graphicsQueue;
-    VulkanAPI::Queue presentQueue;
-    VulkanAPI::Queue computeQueue;
-
-    // and syncing semaphores for the swapchain
-    vk::Semaphore imageSemaphore;
-    vk::Semaphore presentSemaphore;
-
-    // supported extensions
-    Extensions deviceExtensions;
-
-    // validation layers
-    std::vector<const char*> requiredLayers;
 };
 
 class VkDriver
 {
 
 public:
-	enum class QueueType
-	{
-		Graphics,
-		Present,
-		Compute,
-		Count
-	};
-
-	enum class SurfaceType
-	{
-		SurfaceKHR,
-		None
-	};
-
-	struct Extensions
-	{
-		bool hasPhysicalDeviceProps2 = false;
-		bool hasExternalCapabilities = false;
-		bool hasDebugUtils = false;
-	};
 
 	VkDriver();
 	~VkDriver();
 
-	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
-	static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
+	void init();
+	void shutdown();
 
-	static void createInstance(const char** glfwExtension, uint32_t extCount);
-	void prepareDevice();
+	VkContext& getContext()
+	{
+		return context;
+	}
 
-    VkContext& getContext()
-    {
-        return context;
-    }
+	void addBuffer(size_t size, VkBufferUsageFlags usage);
 
+	void addVertexBuffer(size_t size, uint8_t attribCount);
+
+	void addIndexBuffer(size_t size);
+
+	void addImage2D(uint32_t width, uint32_t height, uint8_t mipLevels, void* data);
 
 	// ====== manager helper functions =========
 	CommandBufferManager& getCmdBufManager()
 	{
-		return cmdBufManager;
+		return *cbManager;
 	}
 
-    ProgramManager& getProgManager()
-    {
-        return progManager;
-    }
+	ProgramManager& getProgManager()
+	{
+		return *progManager;
+	}
 
 private:
-    
 	// managers
-    ProgamManager progManager;
-	CommandBufferManager cbManager;
-    
-    // the current device context
-    VkContext context;
-    
-    // resources associated with this device
-    std::unordered_map<VkHandle, VkTexture>;
-    std::unordered_map<VkHandle, VkBuffer>;
-    
+	std::unique_ptr<ProgramManager> progManager;
+	std::unique_ptr<CommandBufferManager> cbManager;
+
+	// the current device context
+	VkContext context;
+
+	// external mem allocator
+	VmaAllocator vmaAlloc;
+
+	// resources associated with this device
+	std::unordered_map<VkHandle, Texture> textures;
+	std::unordered_map<VkHandle, Buffer> buffers;
+
 #ifdef VULKAN_VALIDATION_DEBUG
 
 	vk::DebugReportCallbackEXT debugCallback;
 	vk::DebugUtilsMessengerEXT debugMessenger;
 
 #endif
+
 };
 
 }    // namespace VulkanAPI

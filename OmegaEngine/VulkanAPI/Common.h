@@ -1,9 +1,10 @@
 #pragma once
 
-#include <string>
-
 #define VULKAN_HPP_TYPESAFE_CONVERSION
 #include "vulkan/vulkan.hpp"
+
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
 
 // sets whether we should use validation layers for debugging
 #define VULKAN_VALIDATION_DEBUG 1
