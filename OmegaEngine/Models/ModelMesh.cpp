@@ -39,7 +39,8 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		// get the number of vertices to process
 		size_t vertCount = primitive->attributes[0].data->count;
 		vertices.reserve(vertCount);
-
+        
+        // ================ vertices =====================
 		// somewhere to store the base pointers and stride for each attribute
 		uint8_t* posBase = nullptr;
 		uint8_t* normBase = nullptr;
@@ -48,36 +49,53 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		uint8_t* jointsBase = nullptr;
 
 		size_t posStride, normStride, uvStride, weightsStride, jointsStride;
-
-		cgltf_attribute* attribEnd = primitive->attributes + primitive->attributes_count;
+        uint8_t attribCount =  primitive->attributes_count;
+        uint8_t byteSize = 0;
+        VertexBuffer vertBuffer;
+        
+		cgltf_attribute* attribEnd = primitive->attributes + attribCount;
 		for (const cgltf_attribute* attrib = primitive->attributes; attrib < attribEnd; ++attrib)
 		{
 			if (attrib->type == cgltf_attribute_type_position)
 			{
 				GltfModel::getAttributeData(attrib, posBase, posStride);
-				assert(posStride == 3);
+                assert(posStride == 3);
+                byteSize += 3;
+                vertBuffer.attributes.emplace_back(VertexBuffer::AttributeType::vec3);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_normal)
 			{
 				GltfModel::getAttributeData(attrib, normBase, normStride);
-				assert(posStride == 3);
+                assert(posStride == 3);
+                byteSize += 3;
+                vertBuffer.variants |= VertexBuffer::Variant::HasNormal;
+				vertBuffer.attributes.emplace_back(VertexBuffer::AttributeType::vec3);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_texcoord)
 			{
 				GltfModel::getAttributeData(attrib, uvBase, uvStride);
-				assert(posStride == 2);
+                assert(posStride == 2);
+                byteSize += 2;
+                vertBuffer.variants |= VertexBuffer::Variant::HasUv;
+				vertBuffer.attributes.emplace_back(VertexBuffer::AttributeType::vec2);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_joints)
 			{
-				GltfModel::getAttributeData(attrib, jointsBase, jointsStride);
+                GltfModel::getAttributeData(attrib, jointsBase, jointsStride);
+                byteSize += jointsStride;
+                vertBuffer.variants |= VertexBuffer::Variant::HasJoint;
+                vertBuffer.attributes.emplace_back(VertexBuffer::AttributeType::float);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_weights)
 			{
 				GltfModel::getAttributeData(attrib, weightsBase, weightsStride);
+                byteSize += weightsStride;
+                vertBuffer.variants |= VertexBuffer::Variant::HasWeight;
+                vertBuffer.attributes.emplace_back(VertexBuffer::AttributeType::vec4);
 			}
 			else
 			{
@@ -91,40 +109,50 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh, GltfModel& model)
 			LOGGER_ERROR("Gltf file contains no vertex position data. Unable to continue.\n");
 			return false;
 		}
-
+        
+        // store vertex as a blob of data
+        size_t attribStride = attribCount * byteSize;
+        vertBuffer.data = new uint8_t[attribStride * vertCount];
+        
 		// now contruct the vertex data
 		for (size_t i = 0; i < vertCount; ++i)
 		{
-			Vertex vertex;
-
-			// we know the positional data exsists
-			vertex.position = OEMaths::vec3f((float*)posBase);
+            uint8_t* dataPtr = vertBuffer.data + (i * attribStride);
+            
+            // we know the positional data exsists - it's mandatory
+            *dataPtr = *posBase;
 			posBase += posStride;
+            dataPtr += posStride;
 
 			if (normBase)
 			{
-				vertex.normal = OEMaths::vec3f((float*)normBase);
-				normBase += normStride;
+				*dataPtr = *normBase;
+                normBase += normStride;
+                dataPtr += normStride;
 			}
 			if (uvBase)
 			{
-				vertex.uv0 = OEMaths::vec2f((float*)uvBase);
-				uvBase += uvStride;
+				*dataPtr = *uvBase;
+                uvBase += uvStride;
+                dataPtr += uvStride;
 			}
 			if (weightsBase)
 			{
-				vertex.weight = OEMaths::vec4f((float*)weightsBase);
-				weightsBase += weightsStride;
+                *dataPtr = *weightsBase;
+                weightsBase += weightsStride;
+                dataPtr += weightsStride;
 			}
 			if (jointsBase)
 			{
-				vertex.joint = OEMaths::vec4f((uint16_t*)jointsBase);
-				jointsBase += jointsStride;
+				*dataPtr = *jointsBase;
+                jointsBase += jointsStride;
+                dataPtr += jointsStride;
 			}
-
-			vertices.emplace_back(vertex);
 		}
 		
+        vertices.emplace_back(vertBuffer);
+        
+        // ================= indices ===================
 		size_t indicesCount = primitive->indices->count;
 		newPrimitive.indexBase = indices.size();
 		newPrimitive.indexCount = indicesCount;

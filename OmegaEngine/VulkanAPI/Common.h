@@ -22,3 +22,14 @@
 			assert(res == vk::Result::eSuccess);                                                    \
 		}                                                                                           \
 	}
+
+// VMA doesn't use the c++ bindings, so this is specifically for dealing with VMA functions
+#define VMA_CHECK_RESULT(f)                                                                          \
+{                                                                                               \
+    VkResult res = (f);                                                                       \
+    if (res != VK_SUCCESS)                                                            \
+    {                                                                                           \
+        printf("Fatal : VkResult returned error code at %s at line %i.\n", __FILE__, __LINE__); \
+        assert(res == VK_SUCCESS);                                                    \
+    }                                                                                           \
+}

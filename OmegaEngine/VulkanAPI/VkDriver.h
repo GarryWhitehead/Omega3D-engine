@@ -1,7 +1,7 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
-
+#include "VulkanAPI/Buffer.h"
 #include "VulkanAPI/VkContext.h"
 
 #include <unordered_map>
@@ -31,6 +31,11 @@ private:
 	vk::Instance instance;
 };
 
+using VkBufferHandle = uint64_t;
+using VkVertexHandle = uint64_t;
+using VkIndexHandle = uint64_t;
+using VkTex2dHandle = uint64_t;
+
 class VkDriver
 {
 
@@ -47,13 +52,13 @@ public:
 		return context;
 	}
 
-	void addBuffer(size_t size, VkBufferUsageFlags usage);
+	VkBufferHandle addBuffer(const size_t size, VkBufferUsageFlags usage) const;
 
-	void addVertexBuffer(size_t size, uint8_t attribCount);
+	VkVertexHandle addVertexBuffer(const size_t size, const uint8_t attribCount, void *data) const;
 
-	void addIndexBuffer(size_t size);
+	VkIndexHandle addIndexBuffer(const size_t size, void* data) const ;
 
-	void addImage2D(uint32_t width, uint32_t height, uint8_t mipLevels, void* data);
+	VkTex2dHandle add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data) const;
 
 	// ====== manager helper functions =========
 	CommandBufferManager& getCmdBufManager()
@@ -76,10 +81,15 @@ private:
 
 	// external mem allocator
 	VmaAllocator vmaAlloc;
-
+    
+    // staging pool used for managing CPU stages
+    StagingPool stagingPool;
+    
 	// resources associated with this device
-	std::unordered_map<VkHandle, Texture> textures;
-	std::unordered_map<VkHandle, Buffer> buffers;
+	std::vector<Texture> textures;
+	std::vector<Buffer> buffers;
+    std::vector<VertexBuffer> vertBuffers;
+    std::vector<IndexBuffer> indexBuffers;
 
 #ifdef VULKAN_VALIDATION_DEBUG
 

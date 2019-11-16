@@ -23,7 +23,7 @@ StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 	allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-	vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &stage.buffer, &stage.mem, nullptr);
+	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &stage.buffer, &stage.mem, nullptr));
 
 	return stage;
 }
@@ -44,7 +44,7 @@ StagingPool::StageInfo& StagingPool::getStage(const VkDeviceSize reqSize)
 
 	StageInfo stage = create(reqSize);
 	freeStages.emplace(reqSize, stage);
-	return stage;
+	return freeStages.back();
 }
 
 // ==================== Buffer ==========================
@@ -61,7 +61,7 @@ void Buffer::prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize size, const Vk
 	allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
 	allocInfo.memoryTypeBits = memIndex;
 
-	vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr);
+	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
 }
 
 void Buffer::map(void* data, size_t size)
@@ -96,7 +96,7 @@ void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data,
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr);
+    VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
 
 	// copy from the staging area to the allocated GPU memory
 	VkBufferCopy copyRegion = {};
@@ -128,7 +128,7 @@ void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, 
 
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr);
+	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
 
 	// copy from the staging area to the allocated GPU memory
 	VkBufferCopy copyRegion = {};

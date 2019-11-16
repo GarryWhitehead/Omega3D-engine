@@ -23,16 +23,6 @@ class ModelMesh
 {
 public:
     
-    /**
-     * Specifies a variant to use when compiling the shader
-     */
-    enum class Variants : uint64_t
-    {
-        Skinning,
-        TangentInput,
-        BiTangentInput,
-    };
-    
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -43,16 +33,47 @@ public:
 
 		//void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
 	};
-
-	struct Vertex
+    
+    /**
+     * @brief A abstract vertex buffer. Vertices are stored as blobs of data as the shader system allows
+     * numerous variants in the vertex inputs. The blob is described by the **VertexDescriptor*
+     */
+	struct VertexBuffer
 	{
-		OEMaths::vec4f position;
-		OEMaths::vec2f uv;
-		OEMaths::vec3f normal;
-        OEMaths::vec3f tangent;
-        OEMaths::vec3f bitangent;
-		OEMaths::vec4f weight;
-		OEMaths::vec4f joint;
+        /**
+         * Specifies a variant to use when compiling the shader
+         */
+        enum class Variant : uint64_t
+        {
+            HasSkin,
+            TangentInput,
+            BiTangentInput,
+            HasUv,
+            HasNormal,
+            HasWeight,
+            HasJoint
+        };
+        
+        enum class AttributeType
+        {
+            float,
+            vec2,
+            vec3,
+            vec4,
+            mat2,
+            mat3,
+            mat4,
+            int
+        };
+        
+        struct Attribute
+        {
+            AttributeType type;
+        };
+        
+        uint8_t* data = nullptr;
+        std::vector<Attribute> attributes;
+        BitSetEnum<Variant> variants;
 	};
 
 	struct Primitive
@@ -90,7 +111,7 @@ private:
 	std::vector<Primitive> primitives;
     
     /// All vertivces associated with the particular model
-	std::vector<Vertex> vertices;
+	std::vector<VertexBufferr> vertices;
     
     /// All indices associated with this particular model
 	std::vector<uint32_t> indices;

@@ -1,14 +1,24 @@
 #include "Image.h"
+
 #include "Utility/logger.h"
-#include "VulkanAPI/BufferManager.h"
+
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/DataTypes/Texture.h"
-#include "VulkanAPI/Queue.h"
+#include "VulkanAPI/VkTexture.h"
+#include "VulkanAPI/VkContext.h"
 
 namespace VulkanAPI
 {
-ImageView::ImageView()
+
+// ================ ImageView =============================
+
+ImageView::ImageView(VkContext& context) :
+    device(context.getDevice())
 {
+}
+
+ImageView::~ImageView()
+{
+    device.destroy(imageView, nullptr);
 }
 
 vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
@@ -84,12 +94,17 @@ void ImageView::create(vk::Device dev, Image& image)
 	VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &imageView));
 }
 
-Image::Image()
+// ==================== Image ===================
+
+Image::Image(VkContext& context, Texture& tex) :
+    device(context.getDevice()),
+    tex(tex.getContext())
 {
 }
 
 Image::~Image()
 {
+    device.destroy(image, nullptr);
 }
 
 vk::Filter Image::getFilterType(vk::Format format)
@@ -108,43 +123,29 @@ vk::Filter Image::getFilterType(vk::Format format)
 	return filter;
 }
 
-void Image::create(vk::Device dev, vk::PhysicalDevice& gpu, Texture& texture, vk::ImageUsageFlags usageFlags)
+void Image::create(VmaAllocator& vmaAlloc, VkContext& context, vk::ImageUsageFlags usageFlags)
 {
-	device = dev;
+    // no c++ bindings here as using VMA
+    VkImageCreateInfo imageInfo = {};
+    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageInfo.format = tex.format;
+    imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst | usageFlags;
+    imageInfo.extent.depth = 1;
+    imageInfo.extent.width = tex.width;
+    imageInfo.extent.height = tex.height;
+    imageInfo.mipLevels = tex.mipLevels;
+    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-	format = texture.getFormat();
-	faceCount = texture.getFaceCount();
-	arrays = texture.getArrayCount();
-	mipLevels = texture.getMipLevels();
-	width = texture.getWidth();
-	height = texture.getHeight();
-
-	vk::ImageCreateInfo image_info(
-	    {}, vk::ImageType::e2D, format, { width, height, 1 }, mipLevels,
-	    faceCount * arrays,    // remeber that faceCount are also considered to be array layers
-	    vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | usageFlags,
-	    vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined);
-
-	if (faceCount == 6)
+	if (tex.faceCount == 6)
 	{
 		image_info.flags = vk::ImageCreateFlagBits::eCubeCompatible;
-	}
-
-	VK_CHECK_RESULT(device.createImage(&image_info, nullptr, &image));
-
-	// allocate memory for this image
-	vk::MemoryRequirements requiredMemory = device.getImageMemoryRequirements(image);
-
-	uint32_t memoryType =
-	    Util::findMemoryType(requiredMemory.memoryTypeBits, vk::MemoryPropertyFlagBits::eDeviceLocal, gpu);
-	if (memoryType == UINT32_MAX)
-	{
-		LOGGER_ERROR("Unable to find required gpu memory type.");
-	}
-	vk::MemoryAllocateInfo allocateInfo(requiredMemory.size, memoryType);
-
-	VK_CHECK_RESULT(device.allocateMemory(&allocateInfo, nullptr, &imageMemory));
-	device.bindImageMemory(image, imageMemory, 0);
+    }
+    
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    VMA_CHECK_RESULT(vmaCreateImage(vmaAlloc, &imageInfo, &allocInfo, &image, imageAlloc, nullptr));
 }
 
 void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff,
@@ -210,17 +211,19 @@ void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk:
 }
 
 // image-based functions =======
-void Image::generateMipMap(vk::CommandBuffer cmdBuffer)
+void Image::generateMipMap(Image& image, vk::CommandBuffer cmdBuffer)
 {
-	for (uint8_t i = 1; i < mipLevels; ++i)
+    TextureContext& tex = image.getTexContext();
+    
+    for (uint8_t i = 1; i < mipLevels; ++i)
 	{
 		// source
 		vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
-		vk::Offset3D srcOffset(width >> (i - 1), height >> (i - 1), 1);
+		vk::Offset3D srcOffset(tex.width >> (i - 1), tex.height >> (i - 1), 1);
 
 		// destination
 		vk::ImageSubresourceLayers dst(vk::ImageAspectFlagBits::eColor, i, 0, 1);
-		vk::Offset3D dstOffset(width >> i, height >> i, 1);
+		vk::Offset3D dstOffset(tex.width >> i, tex.height >> i, 1);
 
 		vk::ImageBlit imageBlit;
 		imageBlit.srcSubresource = src;
@@ -232,8 +235,9 @@ void Image::generateMipMap(vk::CommandBuffer cmdBuffer)
 		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
 
 		// blit the image
-		cmdBuffer.blitImage(image, vk::ImageLayout::eTransferSrcOptimal, image, vk::ImageLayout::eTransferDstOptimal, 1,
+		cmdBuffer.blitImage(image.get(), vk::ImageLayout::eTransferSrcOptimal, image.get(), vk::ImageLayout::eTransferDstOptimal, 1,
 		                    &imageBlit, vk::Filter::eLinear);
+        
 		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer, i);
 	}
 
@@ -241,17 +245,18 @@ void Image::generateMipMap(vk::CommandBuffer cmdBuffer)
 	transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
 }
 
-void Image::blit(VulkanAPI::Image& otherImage, VulkanAPI::Queue& graphicsQueue)
+void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
 {
 	// source
-	vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(format);
+    TextureContext& tex = srcImage.getTexContext();
+	vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(tex.format);
 
 	vk::ImageSubresourceLayers src(imageAspect, 0, 0, 1);
-	vk::Offset3D srcOffset(width, height, 1);
+	vk::Offset3D srcOffset(tex.width, tex.height, 1);
 
 	// destination
 	vk::ImageSubresourceLayers dst(imageAspect, 0, 0, 1);
-	vk::Offset3D dstOffset(width, height, 1);
+	vk::Offset3D dstOffset(tex.width, tex.height, 1);
 
 	vk::ImageBlit imageBlit;
 	imageBlit.srcSubresource = src;
@@ -267,9 +272,8 @@ void Image::blit(VulkanAPI::Image& otherImage, VulkanAPI::Queue& graphicsQueue)
 	otherImage.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
 
 	// blit the image
-	vk::Filter filter = getFilterType(format);
-	blitCmdBuffer.get().blitImage(otherImage.get(), vk::ImageLayout::eTransferSrcOptimal, image,
-	                              vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
+	vk::Filter filter = getFilterType(tex.format);
+	blitCmdBuffer.get().blitImage(dstImage.get(), vk::ImageLayout::eTransferSrcOptimal, srcImage.get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
 
 	transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
 	otherImage.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,

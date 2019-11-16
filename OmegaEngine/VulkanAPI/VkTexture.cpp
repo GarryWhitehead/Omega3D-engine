@@ -1,17 +1,17 @@
 #include "VulkanAPI/VkTexture.h"
 
 #include "VulkanAPI/CommandBuffer.h"
-
 #include "VulkanAPI/Image.h"
-
-#include "VulkanAPI/RenderPass.h"
+#include "VulkanAPI/Buffer.h"
 
 #include "utility/Logger.h"
 
 namespace VulkanAPI
 {
 
-Texture::Texture()
+Texture::Texture() noexcept :
+    image(std::make_unique<Image>()),
+    imageView(std::make_unique<ImageView>())
 {
 }
 
@@ -19,76 +19,27 @@ Texture::~Texture()
 {
 }
 
-void Texture::init(VkContext& context) 
+void Texture::create2dTex(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags)
 {
-}
-
-vk::Format Texture::convertTextureFormatToVulkan(OmegaEngine::TextureFormat format)
-{
-	vk::Format outputFormat;
-
-	switch (format)
-	{
-	case OmegaEngine::TextureFormat::Image8UC4:
-		outputFormat = vk::Format::eR8G8B8A8Unorm;
-		break;
-	case OmegaEngine::TextureFormat::Image16UC4:
-		outputFormat = vk::Format::eR16G16B16A16Unorm;
-		break;
-	case OmegaEngine::TextureFormat::ImageBC3:
-		outputFormat = vk::Format::eBc3UnormBlock;
-		break;
-	default:
-		LOGGER_INFO("Unsupported texture format type - no conversion to vulkan type possible.");
-	}
-
-	return outputFormat;
-}
-
-void Texture::create(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels,
-                               vk::ImageUsageFlags usageFlags, uint32_t faces)
-{
-	assert(device);
-
-	this->format = format;
-	this->width = width;
-	this->height = height;
-	this->mipLevels = mipLevels;
-	this->faceCount = faces;
+    texContext = TextureContext{format, width, height, mipLevels, 1, 1};
 
 	// create an empty image
-	image.create(device, gpu, *this, usageFlags);
+	image.create(vkContext, *this, usageFlags);
 
 	// and a image view of the empty image
-	imageView.create(device, image);
+	imageView.create(vkContext, image);
 }
 
-void Texture::map(OmegaEngine::MappedTexture& tex)
+void Texture::map(StagingPool& stagePool, void* data)
 {
-	assert(device);
-
-	// store some of the texture attributes locally
-	format = convertTextureFormatToVulkan(tex.getFormat());
-
 	// using VMA here, hence no c++ bindings and left in a verbose format
 	vk::DeviceMemory stagingMemory;
 	vk::Buffer stagingBuffer;
-
-	void* mappedData;
-	device.mapMemory(stagingMemory, 0, tex.getSize(), {}, &mappedData);
-	memcpy(mappedData, tex.data(), tex.getSize());
-	device.unmapMemory(stagingMemory);
-
-	// if generating mip maps, then we need to set the transfer and destination usage flags too
-	vk::ImageUsageFlags usageFlags = vk::ImageUsageFlagBits::eSampled;
-	vk::ImageLayout finalTransitionLayout = RenderPass::getFinalTransitionLayout(format);
-
-	if (mipLevels > 1)
-	{
-		usageFlags |= vk::ImageUsageFlagBits::eTransferSrc | vk::ImageUsageFlagBits::eTransferDst;
-	}
-
-	image.create(device, gpu, *this, usageFlags);
+    
+    size_t size = texContext.width * texContext.height * texContext.mipLevels;
+    
+    StagingPool::StageInfo stage = stagePool.create(size);
+    memcpy(stage.mem->GetMappedData(), data, size);
 
 	// create the info required for the copy
 	std::vector<vk::BufferImageCopy> copyBuffers;
@@ -101,7 +52,7 @@ void Texture::map(OmegaEngine::MappedTexture& tex)
 		createArrayCopyBuffer(copyBuffers);
 	}
 
-	// noew copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
+	// now copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
 	CommandBuffer copyCmdBuffer(device, graphicsQueue.getIndex());
 	copyCmdBuffer.createPrimary();
 
@@ -112,24 +63,9 @@ void Texture::map(OmegaEngine::MappedTexture& tex)
 
 	copyCmdBuffer.end();
 	graphicsQueue.flushCmdBuffer(copyCmdBuffer.get());
-
-	// generate mip maps if required
-	if (mipLevels > 1)
-	{
-		CommandBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
-		blitCmdBuffer.createPrimary();
-
-		image.generateMipMap(blitCmdBuffer.get());
-
-		blitCmdBuffer.end();
-		graphicsQueue.flushCmdBuffer(blitCmdBuffer.get());
-	}
-
-	// create an image view of the texture image
-	imageView.create(device, image);
-
-	device.destroyBuffer(stagingBuffer, nullptr);
-	device.freeMemory(stagingMemory, nullptr);
+    
+    // clean up the staging area
+    stagePool.release(stage);
 }
 
 void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers)

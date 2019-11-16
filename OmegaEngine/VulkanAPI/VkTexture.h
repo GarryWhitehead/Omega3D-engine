@@ -4,58 +4,75 @@
 
 #include <memory>
 
-namespace OmegaEngine
-{
-enum class TextureFormat;
-class MappedTexture;
-}    // namespace OmegaEngine
-
 namespace VulkanAPI
 {
 // forward declerations
 class Image;
 class ImageView;
+class StagingPool;
+
+/**
+* A simple struct for storing all texture info and ease of passing around
+*/
+struct TextureContext
+{
+    vk::Format format;
+    uint32_t width = 0;
+    uint32_t height = 0;
+    uint32_t mipLevels = 1;
+    uint32_t faceCount = 1;
+    uint32_t arrays = 1;
+};
 
 class Texture
 {
 
 public:
-	/**
-	* A simple struct for storing all texture info and ease of passing around 
-	*/
-	struct TextureContext
-	{
-		vk::Format format;
-		uint32_t width = 0;
-		uint32_t height = 0;
-		uint32_t faceCount = 1;
-		uint32_t arrays = 1;
-		uint32_t mipLevels = 1;
-	};
 
-	Texture() = default;
+	Texture() noexcept;
 	~Texture();
-
-	void init(VkContext& context);
-
-	static vk::Format convertTextureFormatToVulkan(OmegaEngine::TextureFormat format);
-
-	void createEmptyImage(vk::Format, uint32_t width, uint32_t height, uint8_t mipLevels,
-	                      vk::ImageUsageFlags usageFlags, uint32_t faces = 1);
-	void map(OmegaEngine::MappedTexture& tex);
+    
+    // copying not allowed
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+    
+    /**
+     * @brief Creates a image and image view for a 2d texture
+     * @param format The format of the texture - see **vk::Format**
+     * @param width The width of the texture in pixels
+     * @param height The height of the texture in pixels
+     * @param mipLevels The number of levels this texture contains
+     * @param usageFlags The intended usage for this image.
+     */
+	void create2dTex(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
+    
+    /**
+     * @brief Maps a image in the format specified when the texture as created, to the GPU.
+     */
+	void map(StagingPool& stagePool, void* data);
+    
+    /**
+     * @brief Retuens the image view for this texture
+     */
+    vk::ImageView& getImageView();
+    
+    /**
+     * @brief Returns a struct containing all user relevant info for this texture
+     */
+    TextureContext& getContext();
+    
+private:
+    
 	void createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
+    
 	void createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers);
-
-	vk::ImageView& getImageView();
-
-	TextureContext& getContext();
 
 private:
 
-	VkContext& context;
+	VkContext& vkContext;
 
 	// texture info
-	TextureContext context;
+	TextureContext texContext;
 
 	std::unique_ptr<Image> image;
 	std::unique_ptr<ImageView> imageView;

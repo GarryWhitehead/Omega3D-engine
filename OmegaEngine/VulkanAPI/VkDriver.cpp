@@ -2,6 +2,7 @@
 
 #include "VulkanAPI/Managers/CommandBufferManager.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
+#include "VulkanAPI/VkTexture.h"
 
 #include "Utility/logger.h"
 
@@ -34,6 +35,47 @@ void VkDriver::init()
 void VkDriver::shutdown()
 {
 	vmaDestroyAllocator(vmaAlloc);
+}
+
+// =========== functions for buffer/texture creation ================
+
+VkBufferHandle VkDriver::addBuffer(const size_t size, VkBufferUsageFlags usage) const
+{
+    Buffer buffer;
+    buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
+    buffers.emplace_back(buffer);
+    return buffers.size() - 1;
+}
+
+VkVertexHandle VkDriver::addVertexBuffer(const size_t size, const uint8_t attribCount, void* data) const
+{
+    assert(data);
+    VertexBuffer buffer;
+    buffer.create(vmaAlloc, stagingPool, data, size);
+    vertBuffers.emplace_back(buffer);
+    return vertBuffers.size() - 1;
+}
+
+VkIndexHandle VkDriver::addIndexBuffer(const size_t size, void* data) const
+{
+    assert(data);
+    IndexBuffer buffer;
+    buffer.create(vmaAlloc, stagingPool, data, size);
+    indexBuffers.emplace_back(buffer);
+    return indexBuffers.size() - 1;
+}
+
+VkTex2dHandle VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data) const
+{
+    Texture tex;
+    tex.create2dTex(format, width, height, mipLevels, usage);
+    // map if data has passed through
+    if (data)
+    {
+        tex.map(stagingPool, data);
+    }
+    textures.emplace_back(tex);
+    return textures.size() - 1;
 }
 
 }    // namespace VulkanAPI
