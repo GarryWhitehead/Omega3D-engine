@@ -1,5 +1,5 @@
 #pragma once
-#include "Utility/GeneralUtil.h"
+#include "utility/GeneralUtil.h"
 
 #include <functional>
 #include <memory>

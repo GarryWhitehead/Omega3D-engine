@@ -14,15 +14,14 @@ public:
 	MappedTexture() = default;
 	~MappedTexture();
 
-	// textures are not copyable but moveable
+	// textures are not copyable 
 	MappedTexture(const MappedTexture &other) = delete;
 	MappedTexture &operator=(const MappedTexture &other) = delete;
 
 	/**
 	* @brief We can just copy a already mapped image to here.
 	*/
-	bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips,
-	                uint32_t size, TextureFormat format);
+	bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, TextureFormat format);
 
 	/**
 	* @brief Loads a image file and grabs all the required elements.
@@ -30,7 +29,9 @@ public:
 	* At present .ktx, .png and .jpg images are supported.
 	*/
 	bool load(Util::String filename);
-
+    
+    friend class RenderableManager;
+    
 private:
 
 	// dimensions of the image

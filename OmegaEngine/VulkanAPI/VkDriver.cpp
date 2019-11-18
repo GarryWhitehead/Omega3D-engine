@@ -39,7 +39,7 @@ void VkDriver::shutdown()
 
 // =========== functions for buffer/texture creation ================
 
-VkBufferHandle VkDriver::addBuffer(const size_t size, VkBufferUsageFlags usage) const
+VkBufferHandle VkDriver::addBuffer(const size_t size, VkBufferUsageFlags usage)
 {
     Buffer buffer;
     buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
@@ -47,7 +47,7 @@ VkBufferHandle VkDriver::addBuffer(const size_t size, VkBufferUsageFlags usage) 
     return buffers.size() - 1;
 }
 
-VkVertexHandle VkDriver::addVertexBuffer(const size_t size, const uint8_t attribCount, void* data) const
+void VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
 {
     assert(data);
     VertexBuffer buffer;
@@ -56,7 +56,7 @@ VkVertexHandle VkDriver::addVertexBuffer(const size_t size, const uint8_t attrib
     return vertBuffers.size() - 1;
 }
 
-VkIndexHandle VkDriver::addIndexBuffer(const size_t size, void* data) const
+void VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
 {
     assert(data);
     IndexBuffer buffer;
@@ -65,7 +65,7 @@ VkIndexHandle VkDriver::addIndexBuffer(const size_t size, void* data) const
     return indexBuffers.size() - 1;
 }
 
-VkTex2dHandle VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data) const
+void VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data)
 {
     Texture tex;
     tex.create2dTex(format, width, height, mipLevels, usage);

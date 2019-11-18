@@ -17,7 +17,7 @@ class ImageView
 public:
     
     /// no default contructor
-    ImageView() = delete;
+    //ImageView() = delete;
     
 	ImageView(VkContext& context);
     ~ImageView();
@@ -49,7 +49,7 @@ public:
     /**
      * @brief Return the vulkan image view handle
      */
-	vk::ImageView &getImageView()
+	vk::ImageView &get()
 	{
 		return imageView;
 	}
@@ -87,7 +87,7 @@ public:
     /**
      *@brief Tansitions the image from one layout to another.
      */
-	void transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
+	static void transition(Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout,
 	                vk::CommandBuffer &cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
     
     // =========== static functions ===================

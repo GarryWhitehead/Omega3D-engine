@@ -9,9 +9,7 @@
 namespace VulkanAPI
 {
 
-Texture::Texture() noexcept :
-    image(std::make_unique<Image>()),
-    imageView(std::make_unique<ImageView>())
+Texture::Texture() noexcept
 {
 }
 
@@ -24,9 +22,11 @@ void Texture::create2dTex(vk::Format format, uint32_t width, uint32_t height, ui
     texContext = TextureContext{format, width, height, mipLevels, 1, 1};
 
 	// create an empty image
+    image = std::make_unique<Image>(vkContext);
 	image.create(vkContext, *this, usageFlags);
 
 	// and a image view of the empty image
+    imageView = std::make_unique<ImageView>(vkContext);
 	imageView.create(vkContext, image);
 }
 
@@ -39,11 +39,11 @@ void Texture::map(StagingPool& stagePool, void* data)
     size_t size = texContext.width * texContext.height * texContext.mipLevels;
     
     StagingPool::StageInfo stage = stagePool.create(size);
-    memcpy(stage.mem->GetMappedData(), data, size);
+    memcpy(stage.allocInfo.pMappedData, data, size);
 
 	// create the info required for the copy
 	std::vector<vk::BufferImageCopy> copyBuffers;
-	if (faceCount == 1 && arrays == 1)
+	if (texContext.faceCount == 1 && texContext.arrays == 1)
 	{
 		createCopyBuffer(copyBuffers);
 	}
@@ -53,7 +53,7 @@ void Texture::map(StagingPool& stagePool, void* data)
 	}
 
 	// now copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
-	CommandBuffer copyCmdBuffer(device, graphicsQueue.getIndex());
+	CmdBuffer copyCmdBuffer(vkContext.getDevice(), vkContext.getGraphQueue());
 	copyCmdBuffer.createPrimary();
 
 	image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copyCmdBuffer.get());

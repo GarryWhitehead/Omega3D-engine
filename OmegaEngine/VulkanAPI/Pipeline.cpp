@@ -78,24 +78,7 @@ void Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& input
 		          return lhs.loc < rhs.loc;
 	          });
 
-	// calculate the offset for each location - the size of each location is stored temporarily in the offset elemnt of the struct
-	uint32_t nextOffset = 0;
-	uint32_t currentOffset = 0;
-	uint32_t totalSize = 0;
-	uint32_t attributeCount = static_cast<uint32_t>(vertexAttrDescr.size());
 
-	for (uint32_t i = 0; i < attributeCount; ++i)
-	{
-		nextOffset = vertexAttrDescr[i].offset;
-		vertexAttrDescr[i].offset = currentOffset;
-		currentOffset += nextOffset;
-		totalSize += nextOffset;
-	}
-
-	// assuming just one binding at the moment
-	vk::VertexInputBindingDescription bind_descr(0, totalSize,
-	                                             vk::VertexInputRate::eVertex);    // should also support instancing
-	vertexBindDescr.push_back(bind_descr);
 
 	vertexInputState.vertexAttributeDescriptionCount = attributeCount;
 	vertexInputState.pVertexAttributeDescriptions = vertexAttrDescr.data();

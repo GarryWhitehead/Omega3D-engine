@@ -1,5 +1,8 @@
 #include "VkContext.h"
 
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/Queue.h"
+
 #include "utility/Logger.h"
 
 
@@ -88,6 +91,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(VkDebugUtilsMessageSeverity
 
 namespace VulkanAPI
 {
+
 static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
                                       vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu)
 {
@@ -158,6 +162,7 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 		if (!findExtensionProperties(extensions[i], extensionProps))
 		{
 			LOGGER_ERROR("Unable to find required extension properties for GLFW.");
+            return false;
 		}
 	}
 
@@ -203,6 +208,7 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	else
 	{
 		LOGGER_INFO("Unable to find validation standard layers.");
+        return false;
 	}
 
 	// if debug utils isn't supported, try debug report
@@ -244,11 +250,12 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 #endif
 }
 
-void VkContext::prepareDevice()
+bool VkContext::prepareDevice()
 {
 	if (!instance)
 	{
 		LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
+        return false;
 	}
 
 	// find a suitable gpu - at the moment this is pretty basic - find a gpu and that will do. In the future, find the best match
@@ -265,6 +272,7 @@ void VkContext::prepareDevice()
 	if (!physical)
 	{
 		LOGGER_ERROR("Critcal error! No Vulkan supported GPU devices were found.");
+        return false;
 	}
 
 	// Also get all the device extensions for querying later
@@ -310,6 +318,7 @@ void VkContext::prepareDevice()
 	if (queueFamilyIndex.present == VK_QUEUE_FAMILY_IGNORED)
 	{
 		LOGGER_ERROR("Critcal error! Required queues not found.");
+        return false;
 	}
 
 	// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
@@ -361,6 +370,7 @@ void VkContext::prepareDevice()
 	if (!findExtensionProperties(swapChainExtension[0], extensions))
 	{
 		LOGGER_ERROR("Critical error! Swap chain extension not found.");
+        return false;
 	}
 
 	vk::DeviceCreateInfo createInfo(
@@ -383,42 +393,29 @@ void VkContext::prepareDevice()
 	computeQueue.create(vkComputeQueue, device, queueFamilyIndex.compute);
 }
 
-uint32_t VkContext::getQueueIndex(QueueType type) const
+vk::Device& VkContext::getDevice()
 {
-	switch (type)
-	{
-	case QueueType::Graphics:
-		return queueFamilyIndex.graphics;
-		break;
-	case QueueType::Present:
-		return queueFamilyIndex.present;
-		break;
-	case QueueType::Compute:
-		return queueFamilyIndex.compute;
-		break;
-	default:
-		return -1;
-	}
+    return device;
 }
 
-VulkanAPI::Queue VkContext::getQueue(QueueType type)
+vk::PhysicalDevice& VkContext::getGpu()
 {
-	VulkanAPI::Queue ret_queue;
+    return physical;
+}
 
-	switch (type)
-	{
-	case QueueType::Graphics:
-		ret_queue = graphicsQueue;
-		break;
-	case QueueType::Present:
-		ret_queue = presentQueue;
-		break;
-	case QueueType::Compute:
-		ret_queue = computeQueue;
-		break;
-	}
+Queue& VkContext::getGraphQueue()
+{
+    return graphicsQueue;
+}
 
-	return ret_queue;
+Queue& VkContext::getPresentQueue()
+{
+    return presentQueue;
+}
+
+Queue& VkContext::getCompQueue()
+{
+    return computeQueue;
 }
 
 }    // namespace VulkanAPI

@@ -3,6 +3,9 @@
 
 namespace VulkanAPI
 {
+// forward declerations
+class VkContext;
+
 enum class SamplerType
 {
 	Clamp,
@@ -25,7 +28,7 @@ public:
 	static SamplerType getSamplerType(const vk::SamplerAddressMode mode, const vk::Filter filter);
 	static SamplerType getDefaultSampler();
 
-	void create(vk::Device dev, SamplerType type);
+	void create(VkContext& context, SamplerType type);
 
 	vk::Sampler &getSampler()
 	{
@@ -33,10 +36,12 @@ public:
 	}
 
 private:
-	void createSampler(vk::SamplerAddressMode addressMode, vk::Filter filter,
+    
+	void createSampler(VkContext& context, vk::SamplerAddressMode addressMode, vk::Filter filter,
 	                   vk::SamplerMipmapMode mipMapMode, bool compare_op);
 
-	vk::Device device;
+private:
+    
 	vk::Sampler sampler;
 };
 

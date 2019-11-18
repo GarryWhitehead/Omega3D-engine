@@ -2,9 +2,11 @@
 
 #include "OEMaths/OEMaths_transform.h"
 
-#include "Types/Texture.h"
+#include "Types/GpuResources.h"
 
 #include "Core/Engine.h"
+
+#include "VulkanAPI/VkDriver.h"
 
 #include "Utility/GeneralUtil.h"
 #include "Utility/logger.h"
@@ -28,7 +30,7 @@ RenderableManager::~RenderableManager()
 
 void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t offset)
 {
-	RenderableInfo rend;
+	RenderableInstance rend;
 
 	rend.vertOffset = vertices.size();
 	rend.idxOffset = indices.size();
@@ -70,12 +72,12 @@ void RenderableManager::addMesh(ModelMesh& mesh, Object& obj, const size_t offse
 	addMesh(mesh, idx, offset);
 }
 
-bool RenderableManager::prepareTexture(Util::String path, Texture* tex)
+bool RenderableManager::prepareTexture(Util::String path, GpuTextureInfo* tex)
 {
 	if (!path.empty())
 	{
-		tex = new Texture;
-		if (!tex->load(path))
+        tex->texture = new MappedTexture;
+		if (!tex->texture->load(path))
 		{
 			return false;
 		}
@@ -146,16 +148,36 @@ void RenderableManager::update()
 {
     VulkanAPI::VkDriver& driver = engine.getVkDriver();
     
-    // upload the textures
-    for (const TextureGroup& tex : textures)
+    // upload the textures if something has changed
+    if (materialDirty)
     {
-        driver->addTexture(tex);
+        for (const TextureGroup& group : textures)
+        {
+            for (uint8_t i = 0; i < TextureType::Count; ++i)
+            {
+               if (group.textures[i])
+               {
+                   MappedTexture* tex = group.textures[i]->texture;
+                   group.textures[i]->handle = driver.add2DTexture(tex->format, tex->width, tex->height, tex->mipLevels, tex->data);
+               }
+            }
+        }
+        
+        // upload ubos
+        for (const ModelMaterial& mat : materials)
+        {
+            driver->addUbo(mat.ubo);
+        }
     }
     
-    // upload ubos
-    for (const ModelMaterial& mat : materials)
+    // upload meshes to the vulkan backend
+    if (meshDirty)
     {
-        driver->addUbo(mat.ubo);
+        for (const ModelMesh::VertexBuffer& vert : vertices)
+        {
+            driver.addVertexBuffer(vert.size, vert.data, vert.attributes);
+        }
+        for (const )
     }
 }
 

@@ -15,7 +15,7 @@ bool ModelMesh::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		Primitive newPrimitive;
 
 		// used as an offset for indices
-		size_t vertexStart = modelMesh->vertices.size();
+		size_t vertexStart = model.vertices.size();
 
 		// must have indices otherwise got to the next primitive
 		if (!primitive->indices || primitive->indices->count == 0)

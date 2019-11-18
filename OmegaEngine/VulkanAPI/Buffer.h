@@ -2,6 +2,8 @@
 
 #include "VulkanAPI/Common.h"
 
+#include <vector>
+
 namespace VulkanAPI
 {
 
@@ -18,6 +20,7 @@ public:
 		VkBuffer buffer;
 		VkDeviceSize size;
 		VmaAllocation mem;
+        VmaAllocationInfo allocInfo;
 	};
 
 	StageInfo create(const VkDeviceSize size);
@@ -52,6 +55,8 @@ public:
 	void map(void* data, size_t size);
 
 private:
+    
+    VmaAllocationInfo allocInfo;
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
@@ -64,14 +69,25 @@ private:
 class VertexBuffer
 {
 public:
+    
+    struct Attribute
+    {
+        uint8_t stride;
+        uint8_t width;
+    };
+    
 	VertexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
+	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size, std::vector<Attribute>& attributes);
 
 private:
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
+    
+    // vulkan pipeline atrribute and binding descriptors that describe the data blob
+    std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
+    std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
 };
 
 /**
@@ -86,9 +102,16 @@ public:
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
 private:
+    
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
 };
+
+/**
+ * @brief Creates a transient CPU staging buffer, copys that specified data to that, creates a GPU buffer and copies the
+ * staging pool data to that.
+ */
+static void createGpuBufferAndCopy(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize);
 
 }    // namespace VulkanAPI

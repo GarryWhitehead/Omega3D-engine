@@ -1,7 +1,43 @@
 #include "Buffer.h"
 
+#include "VulkanAPI/CommandBuffer.h"
+
+#include <cstring>
+
 namespace VulkanAPI
 {
+
+
+void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize)
+{
+    // get a staging pool for hosting on the CPU side
+    StagingPool::StageInfo stage = pool.getStage(dataSize);
+
+    // copy data to staging area
+    memcpy(stage.allocInfo.pMappedData, data, dataSize);
+
+    // create GPU memory
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = dataSize;
+
+    VmaAllocationCreateInfo allocInfo = {};
+    allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
+
+    // copy from the staging area to the allocated GPU memory
+    CmdBuffer cmdBuffer;
+    
+    VkBufferCopy copyRegion = {};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = dataSize;
+    vkCmdCopyBuffer(cmdBuffer.get(), stage.buffer, buffer, 1, &copyRegion);
+
+    // clean-up
+    pool.release(stage);
+}
 
 // ================== StagingPool =======================
 void StagingPool::release(StageInfo& stage)
@@ -23,7 +59,7 @@ StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
 	VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 	allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &stage.buffer, &stage.mem, nullptr));
+	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &stage.buffer, &stage.mem, &stage.allocInfo));
 
 	return stage;
 }
@@ -57,17 +93,17 @@ void Buffer::prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize size, const Vk
 	bufferInfo.size = size;
 	bufferInfo.usage = usage;
 
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-	allocInfo.memoryTypeBits = memIndex;
+	VmaAllocationCreateInfo allocCreateInfo = {};
+	allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+	allocCreateInfo.memoryTypeBits = memIndex;
 
-	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
+	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer, &mem, &allocInfo));
 }
 
-void Buffer::map(void* data, size_t size)
+void Buffer::map(void* data, size_t dataSize)
 {
 	assert(data);
-	memcpy(mem.pMappedData, data, size);
+    memcpy(allocInfo.pMappedData, data, dataSize);
 }
 
 void Buffer::destroy()
@@ -79,66 +115,50 @@ void Buffer::destroy()
 // Note: The following functions use VMA hence don't use the vulkan hpp C++ style vulkan bindings
 // Hence, the code has been left in this verbose format - as it doesn't follow the format of the resdt of the codebase
 
-void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size)
+void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize, std::vector<Attribute>& attributes)
 {
 	assert(data);
-	// get a staging pool for hosting on the CPU side
-	StagingPool::StageInfo stage = pool.getStage(size);
+    
+    // create the buffer and copy the data
+    createBuffer(vmaAlloc, pool, buffer, mem, data, dataSize);
+    
+    // create the attibutes for the vertex which will be added to the pipeline
+    // calculate the offset for each location - the size of each location is store temporarily in the offset elemnt of the struct
+    size_t nextOffset = 0;
+    size_t currentOffset = 0;
+    size_t totalSize = 0;
+    size_t attributeCount = attributes.size();
+    
+    // finialise the attribute definitions except for the offsets
+    uint8_t loc = 0;
+    for (const Attribute& attr : attributes)
+    {
+        vertexAttrDescr.push_back({ loc++, 0, attr.format, atrr.stride });
+    }
+    
+    // calculate the offset for each attribute based on the size of the last
+    for (size_t i = 0; i < attributeCount; ++i)
+    {
+        nextOffset = attributes[i].offset;
+        vertexAttrDescr[i].offset = currentOffset;
+        currentOffset += nextOffset;
+        totalSize += nextOffset;
+    }
 
-	// copy data to staging area
-	memcpy(stage.mem.pMappedData, data, size);
-
-	// create GPU memory
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = size;
-
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
-
-	// copy from the staging area to the allocated GPU memory
-	VkBufferCopy copyRegion = {};
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	copyRegion.size = size;
-	vkCmdCopyBuffer(cmdBuffer, stage.buffer, buffer, 1, &copyRegion);
-
-	// clean-up
-	pool.release(stage);
+    // assuming just one binding at the moment - TODO: should also support instancing
+    vk::VertexInputBindingDescription bindDescr(0, totalSize,
+                                                 vk::VertexInputRate::eVertex);
+    vertexBindDescr.push_back(bindDescr);
 }
 
 // ======================= IndexBuffer ================================
 
-void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size)
+void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize)
 {
 	assert(data);
-	// get a staging pool for hosting on the CPU side
-	StagingPool::StageInfo stage = pool.getStage(size);
-
-	// copy data to staging area
-	memcpy(stage.mem.pMappedData, data, size);
-
-	// create GPU memory
-	VkBufferCreateInfo bufferInfo = {};
-	bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = size;
-
-	VmaAllocationCreateInfo allocInfo = {};
-	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-	VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
-
-	// copy from the staging area to the allocated GPU memory
-	VkBufferCopy copyRegion = {};
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	copyRegion.size = size;
-	vkCmdCopyBuffer(cmdBuffer, stage.buffer, buffer, 1, &copyRegion);
-
-	// clean-up
-	pool.release(stage);
+    
+    // create the buffer and copy the data
+	createBuffer(vmaAlloc, pool, buffer, mem, data, dataSize);
 }
 
 }    // namespace VulkanAPI

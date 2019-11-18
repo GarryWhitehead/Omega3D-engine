@@ -54,24 +54,8 @@ public:
             HasJoint
         };
         
-        enum class AttributeType
-        {
-            float,
-            vec2,
-            vec3,
-            vec4,
-            mat2,
-            mat3,
-            mat4,
-            int
-        };
-        
-        struct Attribute
-        {
-            AttributeType type;
-        };
-        
         uint8_t* data = nullptr;
+        size_t size = 0;
         std::vector<Attribute> attributes;
         BitSetEnum<Variant> variants;
 	};

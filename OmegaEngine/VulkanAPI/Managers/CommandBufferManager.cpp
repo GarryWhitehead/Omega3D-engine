@@ -165,5 +165,20 @@ void CmdBufferManager::submitFrame(Swapchain& swapchain)
 	swapchain.submitFrame(finalSemaphore, driver->getQueue(VkDriver::QueueType::Present).get());
 }
 
+void CommandBufferManager::submitAll(std::vector<vk::Semaphore>& waitSemaphores,
+                            std::vector<vk::Semaphore>& signalSemaphores, vk::PipelineStageFlags* stageFlags)
+{
+    assert(!waitSemaphores.empty() && !signalSemaphores.empty());
+
+    vk::PipelineStageFlags defaultFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+    vk::SubmitInfo submitInfo(static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.data(),
+                               stageFlags == nullptr ? &defaultFlag : stageFlags,
+                               static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data(),
+                               static_cast<uint32_t>(signalSemaphores.size()), signalSemaphores.data());
+
+    VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
+    queue.waitIdle();
+}
 
 }    // namespace VulkanAPI

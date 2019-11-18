@@ -29,12 +29,13 @@ vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
 	{
 	// depth/stencil image formats
 	case vk::Format::eD32SfloatS8Uint:
-		[[__fallthrough]] case vk::Format::eD24UnormS8Uint
-		    : aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
+    case vk::Format::eD24UnormS8Uint:
+        aspect = vk::ImageAspectFlagBits::eDepth | vk::ImageAspectFlagBits::eStencil;
 		break;
 		// depth only formats
 	case vk::Format::eD32Sfloat:
-		[[__fallthrough]] case vk::Format::eD16Unorm : aspect = vk::ImageAspectFlagBits::eDepth;
+    case vk::Format::eD16Unorm:
+        aspect = vk::ImageAspectFlagBits::eDepth;
 		break;
 		// otherwist must be a colour format
 	default:
@@ -80,13 +81,13 @@ void ImageView::create(vk::Device dev, vk::Image& image, vk::Format format, vk::
 void ImageView::create(vk::Device dev, Image& image)
 {
 	device = dev;
-
-	vk::ImageViewType type = getTextureType(image.getFaceCount(), image.getArrayCount());
+    
+	vk::ImageViewType type = getTextureType(image.getContext().faceCount, image.getContext().arrays);
 
 	// making assumptions here based on the image format used
-	vk::ImageAspectFlags aspect = getImageAspect(image.getFormat());
+	vk::ImageAspectFlags aspect = getImageAspect(image.getContext().format);
 
-	vk::ImageViewCreateInfo createInfo({}, image.get(), type, image.getFormat(),
+	vk::ImageViewCreateInfo createInfo({}, image.get(), type, image.getContext().format,
 	                                   { vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity,
 	                                     vk::ComponentSwizzle::eIdentity, vk::ComponentSwizzle::eIdentity },
 	                                   vk::ImageSubresourceRange(aspect, 0, 1, 0, 1));
@@ -148,11 +149,12 @@ void Image::create(VmaAllocator& vmaAlloc, VkContext& context, vk::ImageUsageFla
     VMA_CHECK_RESULT(vmaCreateImage(vmaAlloc, &imageInfo, &allocInfo, &image, imageAlloc, nullptr));
 }
 
-void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff,
+void Image::transition(Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff,
                        uint32_t baseMipMapLevel)
 {
-
-	vk::ImageAspectFlags mask = ImageView::getImageAspect(format);
+    TextureContext& tex = image.getContext();
+    
+	vk::ImageAspectFlags mask = ImageView::getImageAspect(tex.format);
 
 	vk::AccessFlags srcBarrier, dstBarrier;
 
@@ -195,7 +197,7 @@ void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk:
 		dstBarrier = (vk::AccessFlagBits)0;
 	}
 
-	vk::ImageSubresourceRange subresourceRange(mask, 0, mipLevels, 0, arrays * faceCount);
+	vk::ImageSubresourceRange subresourceRange(mask, 0, tex.mipLevels, 0, tex.arrays * tex.faceCount);
 
 	if (baseMipMapLevel != UINT32_MAX)
 	{
@@ -203,8 +205,7 @@ void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk:
 		subresourceRange.levelCount = 1;
 	}
 
-	vk::ImageMemoryBarrier memoryBarrier(srcBarrier, dstBarrier, oldLayout, newLayout, VK_QUEUE_FAMILY_IGNORED,
-	                                     VK_QUEUE_FAMILY_IGNORED, image, subresourceRange);
+	vk::ImageMemoryBarrier memoryBarrier(srcBarrier, dstBarrier, oldLayout, newLayout, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, image.get(), subresourceRange);
 
 	cmdBuff.pipelineBarrier(vk::PipelineStageFlagBits::eAllCommands, vk::PipelineStageFlagBits::eAllCommands,
 	                        (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &memoryBarrier);
@@ -213,9 +214,9 @@ void Image::transition(vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk:
 // image-based functions =======
 void Image::generateMipMap(Image& image, vk::CommandBuffer cmdBuffer)
 {
-    TextureContext& tex = image.getTexContext();
+    TextureContext& tex = image.getContext();
     
-    for (uint8_t i = 1; i < mipLevels; ++i)
+    for (uint8_t i = 1; i < tex.mipLevels; ++i)
 	{
 		// source
 		vk::ImageSubresourceLayers src(vk::ImageAspectFlagBits::eColor, i - 1, 0, 1);
@@ -232,23 +233,23 @@ void Image::generateMipMap(Image& image, vk::CommandBuffer cmdBuffer)
 		imageBlit.dstOffsets[1] = dstOffset;
 
 		// create image barrier - transition image to transfer
-		transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
+		transition(image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
 
 		// blit the image
 		cmdBuffer.blitImage(image.get(), vk::ImageLayout::eTransferSrcOptimal, image.get(), vk::ImageLayout::eTransferDstOptimal, 1,
 		                    &imageBlit, vk::Filter::eLinear);
         
-		transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer, i);
+		transition(image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer, i);
 	}
 
 	// prepare for shader read
-	transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
+	transition(image, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
 }
 
 void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
 {
 	// source
-    TextureContext& tex = srcImage.getTexContext();
+    TextureContext& tex = srcImage.getContext();
 	vk::ImageAspectFlags imageAspect = ImageView::getImageAspect(tex.format);
 
 	vk::ImageSubresourceLayers src(imageAspect, 0, 0, 1);
@@ -265,18 +266,18 @@ void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
 	imageBlit.dstOffsets[1] = dstOffset;
 
 	// cmd buffer required for the image blit
-	CommandBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
+	CmdBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
 	blitCmdBuffer.createPrimary();
 
-	transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blitCmdBuffer.get());
-	otherImage.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
+	transition(srcImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blitCmdBuffer.get());
+	transition(dstImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
 
 	// blit the image
 	vk::Filter filter = getFilterType(tex.format);
 	blitCmdBuffer.get().blitImage(dstImage.get(), vk::ImageLayout::eTransferSrcOptimal, srcImage.get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
 
-	transition(vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
-	otherImage.transition(vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
+	transition(srcImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
+	transition(dstImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
 	                      blitCmdBuffer.get());
 
 	// flush the cmd buffer

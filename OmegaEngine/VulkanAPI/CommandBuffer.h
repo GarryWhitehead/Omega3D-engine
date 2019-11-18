@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
+#include "VulkanAPI/Queue.h"
 
 #include <cstdint>
 
@@ -11,7 +12,8 @@ namespace VulkanAPI
 class Pipeline;
 class PipelineLayout;
 class DescriptorSet;
-class VkDriver;
+class VkContext;
+class CommandBufferManager;
 
 class CmdBuffer
 {
@@ -29,7 +31,7 @@ public:
 		Multi
 	};
 
-	CmdBuffer(VkDriver& context, const CmdBufferType type, const uint32_t queueIndex, CmdBufferManager& cbManager);
+	CmdBuffer(VkContext& context, const CmdBufferType type, CommandBufferManager& cbManager);
 	~CmdBuffer();
 
 	void createPrimary();
@@ -67,9 +69,20 @@ public:
 	* @param count If non-zero, the number of buffers to execute. Otherwise if zero, all buffers will be executed
 	*/
 	void executeSecondary(size_t count = 0);
-
+    
+    /**
+     * @brief Flushes the queue that this cmd buffer is associated with.
+     */
+    void flush();
+    
+    /**
+     * @brief Submits this cmd buffer to the specified queue
+     */
+    void submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore,
+                       vk::Fence& fence);
+    
 	// drawing functions
-	void drawIndexed(uint32_t indexCount);
+	void drawIndexed(size_t indexCount);
 	void drawQuad();
 
 	// helper funcs
@@ -78,7 +91,7 @@ public:
 		return cmdBuffer;
 	}
 
-	CmdBuffer getSecondary(uint32_t index)
+	CmdBuffer getSecondary(size_t index)
 	{
 		assert(index < secondarys.size());
 		return secondarys[index];
@@ -89,9 +102,8 @@ private:
 	CmdBufferManager& cbManager;
 
 	// local vulkan context 
-	vk::Device device;
-	uint32_t queueFamilyIndex;
-
+    VkContext& context;
+    
 	CmdBufferType type;
 
 	// the type of cmd buffer, single or multi use, will decide the types of cmd pool, etc. to use
@@ -99,12 +111,14 @@ private:
 
 	// primary command buffer
 	vk::CommandBuffer cmdBuffer;
-
+    
+    // view port / scissor info
 	vk::Viewport viewPort;
 	vk::Rect2D scissor;
 
 	// if were using, then store all secondary command buffers for dispatching on each thread
 	std::vector<CmdBuffer> secondarys;
+    
 };
 
 }    // namespace VulkanAPI

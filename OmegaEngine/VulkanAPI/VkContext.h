@@ -39,7 +39,14 @@ public:
 
 	static void createInstance(const char** glfwExtension, uint32_t extCount);
 	void prepareDevice();
-
+    
+    // ============= getters =================
+    vk::Device& getDevice();
+    vk::PhysicalDevice& getGpu();
+    Queue& getGraphQueue();
+    Queue& getPresentQueue();
+    Queue& getCompQueue();
+    
 	friend class VkDriver;
 
 private:
@@ -48,7 +55,7 @@ private:
 	vk::Device device;
 	vk::PhysicalDevice physical;
 	vk::PhysicalDeviceFeatures features;
-
+    
 	struct QueueInfo
 	{
 		int compute = VK_QUEUE_FAMILY_IGNORED;
@@ -56,13 +63,9 @@ private:
 		int graphics = VK_QUEUE_FAMILY_IGNORED;
 	} queueFamilyIndex;
 
-	VulkanAPI::Queue graphicsQueue;
-	VulkanAPI::Queue presentQueue;
-	VulkanAPI::Queue computeQueue;
-
-	// and syncing semaphores for the swapchain
-	vk::Semaphore imageSemaphore;
-	vk::Semaphore presentSemaphore;
+	Queue graphicsQueue;
+	Queue presentQueue;
+	Queue computeQueue;
 
 	// supported extensions
 	Extensions deviceExtensions;

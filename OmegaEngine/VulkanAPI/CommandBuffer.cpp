@@ -4,8 +4,8 @@
 
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
-
-#include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/VkContext.h"
 
 namespace VulkanAPI
 {
@@ -29,10 +29,8 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 }
 
 
-CmdBuffer::CmdBuffer(VkDriver& context, const CmdBufferType type, const uint32_t queueIndex,
-                     CmdBufferManager& cbManager)
-    : device(context.getDevice())
-    , queueFamilyIndex(queueIndex)
+CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, CommmandBufferManager& cbManager)
+    : context(context),
     , type(type)
 	, cbManager(cbManager)
 {
@@ -206,7 +204,7 @@ CmdBuffer& CmdBuffer::createSecondary()
 	return secondarys.back();
 }
 
-void CmdBuffer::createSecondary(uint32_t count)
+void CmdBuffer::createSecondary(size_t count)
 {
 	secondarys.resize(count);
 	for (uint32_t i = 0; i < count; ++i)
@@ -216,8 +214,8 @@ void CmdBuffer::createSecondary(uint32_t count)
 	}
 }
 
-// drawing functions
-void CmdBuffer::drawIndexed(uint32_t indexCount)
+// ================= drawing functions =========================
+void CmdBuffer::drawIndexed(size_t indexCount)
 {
 	cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
@@ -227,6 +225,27 @@ void CmdBuffer::drawQuad()
 	cmdBuffer.draw(3, 1, 0, 0);
 }
 
+// ================= queue functions ============================
+void CmdBuffer::flush()
+{
+    vk::Queue queue = context.getGraphQueue();
+    vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
+
+    VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
+    queue.waitIdle();
+}
+
+void CmdBuffer::submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore,
+                            vk::Fence& fence)
+{
+    vk::Queue queue = context.getGraphQueue();
+    vk::PipelineStageFlags stageFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+
+    vk::SubmitInfo submitInfo(1, &waitSemaphore, &stageFlag, 1, &cmdBuffer, 1, &signalSemaphore);
+
+    VK_CHECK_RESULT(queue.submit(1, &submitInfo, fence));
+    queue.waitIdle();
+}
 
 // command pool functions =====================================================================
 

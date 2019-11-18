@@ -1,4 +1,7 @@
 #include "Sampler.h"
+
+#include "VulkanAPI/VkContext.h"
+
 #include "Utility/Logger.h"
 
 namespace VulkanAPI
@@ -7,10 +10,9 @@ Sampler::Sampler()
 {
 }
 
-Sampler::Sampler(vk::Device dev, SamplerType type)
-    : device(dev)
+Sampler::Sampler(VkContext& context, SamplerType type)
 {
-	create(dev, type);
+	create(context, type);
 }
 
 Sampler::~Sampler()
@@ -49,36 +51,34 @@ SamplerType Sampler::getDefaultSampler()
 	return SamplerType::LinearClamp;
 }
 
-void Sampler::create(vk::Device dev, SamplerType type)
+void Sampler::create(VkContext& context, SamplerType type)
 {
-	device = dev;
-
 	switch (type)
 	{
 	case SamplerType::Clamp:
-		createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest,
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest,
 		              false);
 		break;
 	case SamplerType::Wrap:
-		createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
 		break;
 	case SamplerType::LinearClamp:
-		createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
 		              false);
 		break;
 	case SamplerType::TriLinearClamp:
-		createSampler(vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
 		break;
 	case SamplerType::LinearWrap:
-		createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
 		break;
 	case SamplerType::TrilinearWrap:
-		createSampler(vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
 		break;
 	}
 }
 
-void Sampler::createSampler(vk::SamplerAddressMode addressMode, vk::Filter filter, vk::SamplerMipmapMode mipMapMode,
+void Sampler::createSampler(VkContext& context, vk::SamplerAddressMode addressMode, vk::Filter filter, vk::SamplerMipmapMode mipMapMode,
                             bool compareOp)
 {
 	vk::SamplerCreateInfo samplerInfo({}, filter, filter, mipMapMode, addressMode, addressMode, addressMode, 0.0f,
@@ -88,6 +88,6 @@ void Sampler::createSampler(vk::SamplerAddressMode addressMode, vk::Filter filte
 	                                  VK_LOD_CLAMP_NONE,    // maxLod should equal the mip-map count?
 	                                  vk::BorderColor::eFloatTransparentBlack, VK_FALSE);
 
-	VK_CHECK_RESULT(device.createSampler(&samplerInfo, nullptr, &sampler));
+	VK_CHECK_RESULT(context.getDevice().createSampler(&samplerInfo, nullptr, &sampler));
 }
 }    // namespace VulkanAPI

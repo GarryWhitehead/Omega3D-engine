@@ -18,22 +18,27 @@ namespace OmegaEngine
 class GpuTextureInfo
 {
 public:
-	GpuTextureInfo(Util::String id, uint32_t binding, MappedTexture* mapped, SamplerType sampler)
+	GpuTextureInfo(Util::String id, uint32_t binding, MappedTexture* mapped)
 	    : id(id)
 	    , binding(binding)
 	    , texture(mapped)
-	    , sampler(sampler)
 	{
 	}
 
 	// no copy
 	GpuTextureInfo(GpuTextureInfo&) = delete;
 	GpuTextureInfo& operator=(GpuTextureInfo&) = delete;
-
+    
+    friend class RenderableManager;
+    
 private:
+    
 	Util::String id;
 	uint32_t binding = 0;
 	MappedTexture* texture = nullptr;
+    
+    // handle to where this is located in the vulkan backend
+    Tex2dHandle handle;
 };
 
 /**
@@ -57,7 +62,7 @@ public:
 	// no copy or assignmet
 	GpuBufferInfo(const GpuBufferInfo&) = delete;
 	GpuBufferInfo& operator=(const GpuBufferInfo&) = delete;
-
+    
 private:
 	// buffer id - see brief above regards naming convention
 	Util::String id;
@@ -68,17 +73,8 @@ private:
 	// size of the data
 	size_t size = 0;
 
-	// Determines the type of memory that this buffer will be stored in
-	// Static memory is hosted on the GPU dedicated mem, and should be used
-	// for buffers which will not chnange. Alternatively, dynamic memory is
-	// CPU-visible memory and should be used for buffers were data may change
-	// often.
-	MemoryUsage memoryType;
-
-	// ensures that non-chorent memory is flushed from host caches
-	// note - should not be used with coherent memory as there may
-	// be a perfomance penalty
-	bool flushMem = false;
+	// handle to where this is located in the vulkan backend
+    BufferHandle handle;
 };
 
 }    // namespace OmegaEngine

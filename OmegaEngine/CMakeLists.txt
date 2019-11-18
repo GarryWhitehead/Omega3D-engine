@@ -156,7 +156,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/VkDriver.cpp VulkanAPI/VkDriver.h
 	VulkanAPI/Image.cpp VulkanAPI/Image.h
 	VulkanAPI/Pipeline.cpp VulkanAPI/Pipeline.h
-	VulkanAPI/Queue.cpp VulkanAPI/Queue.h
 	VulkanAPI/RenderPass.cpp VulkanAPI/RenderPass.h
 	VulkanAPI/Sampler.cpp VulkanAPI/Sampler.h
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h

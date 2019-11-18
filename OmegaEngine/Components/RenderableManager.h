@@ -1,4 +1,5 @@
 #pragma once
+
 #include "Types/Object.h"
 
 #include "OEMaths/OEMaths.h"
@@ -9,10 +10,7 @@
 #include "Models/ModelMaterial.h"
 #include "Models/ModelMesh.h"
 
-#include "Components/ComponentManager.h"
-
 #include <memory>
-#include <tuple>
 #include <unordered_map>
 
 #define MESH_INIT_CONTAINER_SIZE 50
@@ -20,7 +18,7 @@
 namespace OmegaEngine
 {
 // forard decleartions
-class Texture;
+class GpuTextureInfo;
 class ModelMesh;
 class World;
 class Object;
@@ -51,7 +49,7 @@ struct TextureGroup
 	TextureGroup(const TextureGroup&) = delete;
 	TextureGroup& operator=(const TextureGroup&) = delete;
 
-	Texture* textures[TextureType::Count];
+	GpuTextureInfo* textures[TextureType::Count];
 };
 
 class RenderableManager : public ComponentManager
@@ -68,7 +66,7 @@ public:
 	* which reference the mesh data. They also contain an index to the material data
 	* which is set when a renderable is added
 	*/
-	struct RenderableInfo
+	struct RenderableInstance
 	{
 		StateMesh type;
 
@@ -79,8 +77,8 @@ public:
 		StateTopology topology;
 
 		// offset into mega buffer
-		size_t vertOffset = 0;
-		size_t idxOffset = 0;
+		std::vector<ModelMesh::Vertex> vertices;
+        std::vector<uint32_t> indices;
 	};
 
 	RenderableManager(Engine& engine);
@@ -111,8 +109,11 @@ public:
 	* linked with the same material group. 
 	*/
 	void addMesh(ModelMesh& mesh, Object& obj, const size_t offset);
-
-	RenderableInfo& getMesh(Object& obj);
+    
+    /**
+     * @brief Returns a instance of a mesh based on the specified object
+     */
+	RenderableInstance& getMesh(Object& obj);
 
 	// === material related functions ===
 	/**
@@ -126,18 +127,14 @@ public:
 	
 private:
 
-	bool prepareTexture(Util::String path, Texture* tex);
+	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
 
 private:
 	
     Engine& engine;
     
 	// the buffers containing all the model data
-	std::vector<RenderableInfo> renderables;
-
-	// all vertices and indices held in one large buffer
-	std::vector<ModelMesh::Vertex> vertices;
-	std::vector<uint32_t> indices;
+	std::vector<RenderableIstance> renderables;
 
 	// all the materials
 	std::vector<ModelMaterial> materials;
@@ -145,7 +142,9 @@ private:
 	// and all the textures
 	std::vector<TextureGroup> textures;
 
-	bool isDirty = true;
+    // Dirty flags - state whether anything has been added or altered and needs updating on the backend
+	bool meshDirty = true;
+    bool materialDirty = true;
 };
 
 }    // namespace OmegaEngie
