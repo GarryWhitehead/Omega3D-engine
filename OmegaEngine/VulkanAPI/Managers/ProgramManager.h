@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/Descriptor.h"
+#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/VkDriver.h"
 
 #include "utility/String.h"
@@ -88,9 +88,9 @@ private:
     
 };
 
- */
+ 
 /**
- * Raw daa obtained from a json sampler file.
+ * Raw data obtained from a json sampler file.
  */
 class ShaderParser
 {
@@ -216,33 +216,30 @@ private:
 class ShaderCompiler
 {
 public:
-    
-    void addVariant(Util::CString definition, uint8_t value);
-                
-    void addRenderData();
-    
-    bool compile(ShaderParser& parser);
-        
+	void addVariant(Util::CString definition, uint8_t value);
+
+	void addRenderData();
+
+	bool compile(ShaderParser& parser);
+
 private:
-        
-    void prepareBindings(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo, uint16_t& bind);
+	void prepareBindings(ShaderParser::ShaderDescriptor* shader, ShaderProgram& shaderInfo, uint16_t& bind);
 
-    void writeInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderCompilerInfo::ShaderDescriptor* nextShader);
+	void writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader);
 
-    void prepareInputs(ShaderCompilerInfo::ShaderDescriptor* shader, ShaderInfo& shaderInfo);
+	void prepareInputs(ShaderParser::ShaderDescriptor* shader, ShaderProgram& shaderInfo);
 
-    void prepareOutputs(ShaderCompilerInfo& compilerInfo, ShaderInfo& shaderInfo);
-    
+	void prepareOutputs(ShaderParser& compilerInfo, ShaderProgram& shaderInfo);
+
 private:
-    
-    /// variants to use when compiling the shader
-    std::unordered_map<std::string, uint8_t> variants;
-    
-    /// Overide the render data with the user defined version
-    ShaderProgram::RenderInfo overrideRData;
-    
-    ShaderProgram program;
-}
+	/// variants to use when compiling the shader
+	std::unordered_map<std::string, uint8_t> variants;
+
+	/// Overide the render data with the user defined version
+	ShaderProgram::RenderInfo overrideRData;
+
+	ShaderProgram program;
+};
 
 class ShaderManager
 {
@@ -269,15 +266,13 @@ public:
      * @param variantBits The variant flags used by this shader
      * @return A boolean set to true if the shader exsists, otherwise false
      */
-    bool hasShader(til::String name, ShaderProgram::RenderInfo* renderBlock, uint64_t variantBits);
+    bool hasShader(Util::String name, ShaderProgram::RenderInfo* renderBlock, uint64_t variantBits);
     
 private:
     
     // =============== shader hasher ======================
     struct ShaderHash
     {
-        PLineHash() = default;
-
         const char* name;
         BitSetEnum<ShaderProgram::Variants> variants;
     };

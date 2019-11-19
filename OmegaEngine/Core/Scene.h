@@ -4,6 +4,8 @@
 
 #include "Models/Formats/GltfModel.h"
 
+#include "Rendering/RenderQueue.h"
+
 #include <vector>
 
 namespace OmegaEngine
@@ -23,29 +25,11 @@ public:
 	Scene(World& world);
 	~Scene();
 
-	// as scene isn't copyable
+	// a scene isn't copyable
 	Scene(Scene&) = delete;
 	Scene& operator=(Scene&) = delete;
 
-	// but is moveable
-	Scene(Scene&&) = default;
-	Scene& operator=(Scene&&) = default;
-
-	void buildModel(GltfModel& model, World& world);
-
-	void buildRenderableMeshTree(Object& obj);
 	void update();
-
-	/**
-	* Gets a renderable type from the list
-	* @param index the index of the renderable type
-	* @return A renderable type - this will be as the base class
-	*/
-	RenderableInfo& getRenderable(uint32_t index)
-	{
-		assert(index < renderables.size());
-		return renderables[index];
-	}
 
 	/**
 	* Return an instance of the object manager
@@ -71,15 +55,15 @@ private:
 		renderables.push_back({ renderable });
 	}
 
+	friend class Scene;
+
 private:
-	/// objects assoicated with this scene dealt with by the object manager
-	ObjectManager objManager;
 
 	/// contains all the renderable objects associated with this scene.
 	/// These have gone through visibilty checks and basically wrap the 
 	/// data stored by the renderable manager which will be exposed to
 	/// the renderer.
-	std::vector<RenderableBase*> renderables;
+	RenderQueue renderQueue;
 
 	/// The world this scene is assocaited with
 	/// Should be safe, as the scene will be deleted before the world

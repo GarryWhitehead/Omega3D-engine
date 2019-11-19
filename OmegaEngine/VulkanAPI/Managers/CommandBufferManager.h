@@ -13,7 +13,7 @@ namespace VulkanAPI
 {
 // forward declerations
 class RenderPass;
-class VkDriver;
+class VkContext;
 class Pipeline;
 
 using CmdBufferHandle = uint64_t;
@@ -53,7 +53,7 @@ private:
     /**
      * @brief Everything needed for running and syncing a command buffer
      */
-    struct CommandBufferInfo
+    struct CmdBufferInfo
     {
         std::unique_ptr<CmdBuffer> cmdBuffer;
 
@@ -128,10 +128,10 @@ private:
 
 private:
 	// The current vulkan context
-	VkDriver& driver;
+	VkContext& context;
 
 	// all the cmd buffers currently active
-	std::vector<CommandBufferInfo> cmdBuffers;
+	std::vector<CmdBufferInfo> cmdBuffers;
 
 	// graphic pipelines are stored in the cmd buffer for the reason that they are inextricably linked to the cmd
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being

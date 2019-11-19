@@ -6,7 +6,7 @@
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/CommandBufferManager.h"
-#include "VulkanAPI/Managers/ShaderManager.h"
+#include "VulkanAPI/Managers/ProgramManager.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
@@ -40,29 +40,28 @@ bool LightingPass::prepare(VulkanAPI::ShaderManager* manager)
 	builder.addInputAttachment("pbr");
 
 	// create the gbuffer textures
-	passInfo.output =
-	    builder.createTexture({ .width = 2048, .height = 2048, .format = vk::Format::eR16G16B16A16Sfloat });
+	passInfo.output = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
 	// create the output taragets
 	passInfo.output = builder.addOutputAttachment("lighting", passInfo.output);
 
 	builder.addExecute([=](RGraphContext& rgContext, RenderContext& rContext) {
 		// viewport and scissor
-		context.cmdBuffer->setViewport();
-		context.cmdBuffer->setScissor();
+		rgContext.cmdBuffer->setViewport();
+		rgContext.cmdBuffer->setScissor();
 
 		// bind the pipeline
-		VulkanAPI::Pipeline* pline = cbManager->findOrCreatePipeline(program, context.pass);
-		context.cmdBuffer->bindPipeline(pline);
+		VulkanAPI::Pipeline* pline = cbManager->findOrCreatePipeline(program, rgContext.pass);
+		rgContext.cmdBuffer->bindPipeline(pline);
 
 		// bind the descriptor
 		VulkanAPI::DescriptorSet descrSet = cbManager->findOrCreateDescrSet(program);
-		context.cmdBuffer->bindDescriptors(descrSet, VulkanAPI::PipelineType::Graphics);
+		rgContext.cmdBuffer->bindDescriptors(descrSet, VulkanAPI::PipelineType::Graphics);
 
-		context.cmdBuffer->bindPushBlock(program, &renderConfig.ibl);
+		rgContext.cmdBuffer->bindPushBlock(program, &renderConfig.ibl);
 
 		// render full screen quad to screen
-		context.cmdBuffer->drawQuad();
+		rgContext.cmdBuffer->drawQuad();
 	});
 }
 

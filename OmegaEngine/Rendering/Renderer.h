@@ -46,7 +46,6 @@ struct RenderContext
 {
 	// the render queue - passed from the scene to the renderer after visibility checks (TODO: add visibility checks!!)
 	RenderQueue renderQueue;
-
 };
 
 class Renderer
@@ -63,6 +62,7 @@ public:
 		GBufferFill,
 		LightingPass,
 		ForwardPass,
+		Skybox,
 		PreProcessPass,
 		Count
 	};
@@ -70,39 +70,42 @@ public:
 	/**
      * Each stage required for a deferred renderer. Some of these stages can be switched off.
      */
-	const std::array<RenderStage, 2> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass };
+	const std::array<RenderStage, 3> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass,
+		                                                RenderStage::Skybox };
 
 	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain);
 	~Renderer();
 
 	/**
-     * Creates all render stages needed for the rendering pipeline
+     * @brief Creates all render stages needed for the rendering pipeline
      */
 	void prepare();
 
-	// abstract override
-	void render();
+	/**
+	* @brief Draws into the cmd buffers all the data that is currently held by the scene
+	*/
+	void draw();
 
+	using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 
 private:
-	// The current vulkan instance
-	VulkanAPI::VkDriver& context;
 
-	// IBL environment mapping handler
+	/// The current vulkan instance
+	VulkanAPI::VkDriver& vkDriver;
+
+	/// IBL environment mapping handler
 	Ibl::IblImage ibl;
 
-	// current render context
+	/// current render context
 	RenderContext rContext;
 
-	// the post-processing manager
-	PostProcessInterface postProcessInterface;
+	/// keep a local copy of the render config
+	//RenderConfig renderConfig;
 
-	// keep a local copy of the render config
-	RenderConfig renderConfig;
+	/// Each rendering stage of this renderer
+	std::vector<RenderStagePtr> rStages;
 
-	// Each rendering stage of this renderer
-	std::vector<std::unique_ptr<RenderStageBase>> rStages;
-
+	/// Contains the layout of the rendering stages
 	RenderGraph rGraph;
 
 	// swap chain used for rendering to surface

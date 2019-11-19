@@ -95,8 +95,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\engine.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Global.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Global.cpp" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_SceneParser.cpp" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_SceneParser.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\ObjectManager.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\ObjectManager.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\World.cpp" />
@@ -188,6 +186,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\LightingPass.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblImage.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblImage.h" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.cpp" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderTypes\RenderableObject.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderTypes\RenderableObject.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading\ThreadedQueue.h" />
@@ -237,8 +237,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Image.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Pipeline.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Pipeline.h" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Queue.cpp" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Queue.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\RenderPass.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\RenderPass.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Sampler.cpp" />

@@ -71,8 +71,7 @@ public:
 
 
 private:
-
 	Image2D* faceImages[6];
-}
+};
 
 }    // namespace OmegaEngine

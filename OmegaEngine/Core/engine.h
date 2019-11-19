@@ -10,42 +10,23 @@
 #include <memory>
 #include <vector>
 
+// forward declerations
+namespace VulkanAPI
+{
+class Swapchain;
+}
+
 namespace OmegaEngine
 {
 // forward declerations
 class World;
+class AnimationManager;
+class CameraManager;
+class LightManager;
+class RenderableManager;
+class TransformManager;
+
 struct NativeWindowWrapper;
-
-// current state of the application
-class EngineState
-{
-public:
-	EngineState() = default;
-	~EngineState()
-	{
-	}
-
-	bool getIsRunning() const
-	{
-		return isRunning;
-	}
-
-	void setRunning()
-	{
-		isRunning = true;
-	}
-
-	void stop()
-	{
-		isRunning = false;
-	}
-
-private:
-	std::chrono::high_resolution_clock::time_point startTime;
-
-	bool isRunning = true;
-	bool isPaused = false;
-};
 
 class Engine
 {
@@ -68,6 +49,11 @@ public:
 	VulkanAPI::Swapchain createSwapchain(NativeWindowWrapper& window);
 
 	/**
+	* @brief Creates a new renderer instance based on the user specified swapchain and scene
+	*/
+	Renderer* createRenderer(Swapchain& swapchain, Scene* scene);
+
+	/**
 	* @ brief Creates a new world object. This object is stored by the engine allowing
 	* multiple worlds to created if desired.
 	* @param name A string name used as a identifier for this world
@@ -82,11 +68,16 @@ public:
 
 	void startLoop();
 
+	// =========== manager getters ===================
+	AnimationManager& getAnimManager();
+	CameraManager& getCameraManager();
+	LightManager& getLightManager();
+	RenderableManager& getRendManager();
+	TransformManager& getTransManager();
+
 private:
 	// configuration for the omega engine
 	EngineConfig engineConfig;
-
-	EngineState programState;
 
 	// a collection of worlds registered with the engine
 	std::vector<World*> worlds;
@@ -94,6 +85,15 @@ private:
 
 	// The vulkan devie. Only one device supported at present
 	VulkanAPI::VkDriver vkDriver;
+
+	// All the managers that are required to deal with each of the component types
+	// managers are under control of the engine as this allows multiple worlds to use the same 
+	// resources from the managers
+	AnimationManager* animManager = nullptr;
+	CameraManager* cameraManager = nullptr;
+	LightManager* lightManager = nullptr;
+	RenderableManager* rendManager = nullptr;
+	TransformManager* transManager = nullptr;
 };
 
 }    // namespace OmegaEngine

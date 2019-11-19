@@ -20,8 +20,6 @@ RenderableManager::RenderableManager(Engine& engine) :
 {
 	// for performance purposes
 	renderables.reserve(MESH_INIT_CONTAINER_SIZE);
-	vertices.reserve(1000000);    // these numbers need evaluating
-	indices.reserve(1000000);
 }
 
 RenderableManager::~RenderableManager()
@@ -133,7 +131,7 @@ void RenderableManager::addRenderable(ModelMesh& mesh, ModelMaterial* mat, const
 	addMesh(mesh, idx, matOffset);
 }
 
-RenderableManager::RenderableInfo& RenderableManager::getMesh(Object& obj)
+RenderableManager::RenderableInstance& RenderableManager::getMesh(Object& obj)
 {
 	size_t index = getObjIndex(obj);
 	if (!index)
@@ -173,11 +171,11 @@ void RenderableManager::update()
     // upload meshes to the vulkan backend
     if (meshDirty)
     {
-        for (const ModelMesh::VertexBuffer& vert : vertices)
+        for (const RenderableInstance& rend : renderables)
         {
-            driver.addVertexBuffer(vert.size, vert.data, vert.attributes);
+            driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
+			driver.addIndexBuffer(rend.indices.size(), rend.indices.data());
         }
-        for (const )
     }
 }
 

@@ -3,7 +3,7 @@
 #include "RenderGraph/RenderGraph.h"
 
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Managers/ShaderManager.h"
+#include "VulkanAPI/Managers/ProgramManager.h"
 #include "VulkanAPI/common.h"
 
 #include "utility/Logger.h"
@@ -49,7 +49,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 	gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
 
-	builder.addExecute([](RenderInfo& rInfo, RGraphContext& context) {
+	builder.addExecute([](RenderContext& rInfo, RGraphContext& context) {
 
 	});
 }

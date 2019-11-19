@@ -54,30 +54,4 @@ void World::update(double time, double dt)
 	Global::eventManager()->notifyQueued();
 }
 
-// ** manager helper functions **
-AnimationManager& World::getAnimManager()
-{
-	return *animManager;
-}
-
-CameraManager& World::getCameraManager()
-{
-	return *cameraManager;
-}
-
-LightManager& World::getLightManager()
-{
-	return *lightManager;
-}
-
-RenderableManager& World::getRendManager()
-{
-	return *rendManager;
-}
-
-TransformManager& World::getTransManager()
-{
-	return *transManager;
-}
-
 }    // namespace OmegaEngine

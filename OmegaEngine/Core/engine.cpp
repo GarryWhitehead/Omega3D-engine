@@ -1,10 +1,15 @@
 #include "Core/engine.h"
+
 #include "Core/Omega_Global.h"
 #include "Core/World.h"
+#include "Core/Scene.h"
 
 #include "Utility/FileUtil.h"
 
 #include "VulkanAPI/Platform/Surface.h"
+#include "VulkanAPI/SwapChain.h"
+
+#include "Rendering/Renderer.h"
 
 #include "utility/logger.h"
 
@@ -33,14 +38,7 @@ Engine::~Engine()
 
 bool Engine::init(NativeWindowWrapper& window)
 {
-	// create a new vulkan instance
-	const char** instanceExt;
-	uint32_t count;
-	std::tie(instanceExt, count) = window.extensions;
-	context.createInstance(instanceExt, count);
-
-	// prepare the physical and abstract device including queues
-	context.prepareDevice();
+	vkDriver.init(window.extensions.first, window.extensions.second);
 }
 
 VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
@@ -66,6 +64,11 @@ World* Engine::createWorld(Util::String name)
 
 	// not exactly unique - maybe use a raw pointer here
 	return world;
+}
+
+Renderer* Engine::createRenderer(Swapchain& swapchain, Scene* scene)
+{
+
 }
 
 void Engine::loadConfigFile()
@@ -145,6 +148,32 @@ void Engine::startLoop()
 VulkanAPI::VkDriver& Engine::getVkDriver()
 {
 	return vkDriver;
+}
+
+// ** manager helper functions **
+AnimationManager& Engine::getAnimManager()
+{
+	return *animManager;
+}
+
+CameraManager& Engine::getCameraManager()
+{
+	return *cameraManager;
+}
+
+LightManager& Engine::getLightManager()
+{
+	return *lightManager;
+}
+
+RenderableManager& Engine::getRendManager()
+{
+	return *rendManager;
+}
+
+TransformManager& Engine::getTransManager()
+{
+	return *transManager;
 }
 
 }    // namespace OmegaEngine

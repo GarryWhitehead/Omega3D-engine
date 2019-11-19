@@ -22,7 +22,7 @@ class MatMathOperators
 		return lhs;
 	}
 
-	Mat<T, cols, rows> operator*(const Mat<T, cols, rows>& m1, const Mat<T, cols, rows>& m2)
+	inline friend Mat<T, cols, rows> operator*(const Mat<T, cols, rows>& m1, const Mat<T, cols, rows>& m2)
 	{
 		Mat<T, cols, rows> result;
 

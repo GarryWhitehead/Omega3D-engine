@@ -15,6 +15,8 @@ class StagingPool
 {
 public:
 	
+	StagingPool() = default;
+
 	struct StageInfo
 	{
 		VkBuffer buffer;

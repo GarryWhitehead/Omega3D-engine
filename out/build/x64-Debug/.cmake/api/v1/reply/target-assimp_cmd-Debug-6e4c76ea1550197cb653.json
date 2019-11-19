@@ -1,0 +1,391 @@
+{
+	"artifacts" : 
+	[
+		{
+			"path" : "external/assimp/tools/assimp_cmd/Debug/assimpd.exe"
+		},
+		{
+			"path" : "external/assimp/tools/assimp_cmd/Debug/assimpd.pdb"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"ADD_EXECUTABLE",
+			"INSTALL",
+			"TARGET_LINK_LIBRARIES",
+			"INCLUDE_DIRECTORIES",
+			"ADD_DEFINITIONS"
+		],
+		"files" : 
+		[
+			"external/assimp/tools/assimp_cmd/CMakeLists.txt",
+			"external/assimp/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 50,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 76,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 71,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 219,
+				"parent" : 4
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 470,
+				"parent" : 4
+			},
+			{
+				"command" : 3,
+				"file" : 0,
+				"line" : 42,
+				"parent" : 0
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 553,
+				"parent" : 4
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 152,
+				"parent" : 4
+			},
+			{
+				"command" : 4,
+				"file" : 1,
+				"line" : 142,
+				"parent" : 4
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "-DWIN32 -D_DEBUG  "
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 8,
+					"define" : "ASSIMP_BUILD_NO_C4D_IMPORTER"
+				},
+				{
+					"backtrace" : 9,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 10,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 9,
+					"define" : "_UNICODE"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/code"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/."
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/contrib/zlib"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/contrib/zlib"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/tools/assimp_cmd"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/code/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/code/../include"
+				}
+			],
+			"language" : "RC",
+			"sourceIndexes" : 
+			[
+				0
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /D_DEBUG /MDd /Ob2 /DEBUG:FULL /Zi   /MP /bigobj -std:c++17"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"backtrace" : 8,
+					"define" : "ASSIMP_BUILD_NO_C4D_IMPORTER"
+				},
+				{
+					"backtrace" : 9,
+					"define" : "UNICODE"
+				},
+				{
+					"backtrace" : 10,
+					"define" : "WIN32_LEAN_AND_MEAN"
+				},
+				{
+					"backtrace" : 9,
+					"define" : "_UNICODE"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/include"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/code"
+				},
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/."
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/contrib/zlib"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/contrib/zlib"
+				},
+				{
+					"backtrace" : 7,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/tools/assimp_cmd"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/code/../include"
+				},
+				{
+					"backtrace" : 3,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/assimp/code/../include"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				1,
+				2,
+				3,
+				6,
+				7,
+				8
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "zlibstatic::@20be5c410eca5ac1f929"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "IrrXML::@c2b876941448ac7c55ff"
+		},
+		{
+			"id" : "assimp::@f3a6284ec5dbac1d6aa0"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"id" : "assimp_cmd::@ec87d121041e35265af4",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "bin"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/install/x64-Debug"
+		}
+	},
+	"link" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /D_DEBUG /MDd /Ob2 /DEBUG:FULL /Zi",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "/machine:x64 /debug /INCREMENTAL /subsystem:console",
+				"role" : "flags"
+			},
+			{
+				"fragment" : "-LIBPATH:C:\\Users\\THEGM\\DOCUME~1\\VISUAL~2\\Projects\\Omega3D\\out\\build\\X64-DE~1\\external\\assimp  -LIBPATH:\"C:\\Users\\THEGM\\Documents\\Visual Studio 2017\\Projects\\Omega3D\\out\\build\\x64-Debug\\external\\assimp\\lib\"",
+				"role" : "libraryPath"
+			},
+			{
+				"fragment" : "..\\..\\code\\Debug\\assimp-vc142-mtd.lib ..\\..\\contrib\\zlib\\Debug\\zlibstaticd.lib ..\\..\\contrib\\irrXML\\Debug\\IrrXMLd.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib",
+				"role" : "libraries"
+			}
+		],
+		"language" : "CXX"
+	},
+	"name" : "assimp_cmd",
+	"nameOnDisk" : "assimpd.exe",
+	"paths" : 
+	{
+		"build" : "external/assimp/tools/assimp_cmd",
+		"source" : "external/assimp/tools/assimp_cmd"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				6,
+				7,
+				8
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				4,
+				5
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/assimp/tools/assimp_cmd/assimp_cmd.rc",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/CompareDump.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/ImageExtractor.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/Main.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/Main.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/resource.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/WriteDumb.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/Info.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/assimp/tools/assimp_cmd/Export.cpp",
+			"sourceGroupIndex" : 0
+		}
+	],
+	"type" : "EXECUTABLE"
+}

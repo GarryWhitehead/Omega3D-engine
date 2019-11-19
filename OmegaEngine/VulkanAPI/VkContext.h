@@ -63,9 +63,9 @@ private:
 		int graphics = VK_QUEUE_FAMILY_IGNORED;
 	} queueFamilyIndex;
 
-	Queue graphicsQueue;
-	Queue presentQueue;
-	Queue computeQueue;
+	vk::Queue graphicsQueue;
+	vk::Queue presentQueue;
+	vk::Queue computeQueue;
 
 	// supported extensions
 	Extensions deviceExtensions;

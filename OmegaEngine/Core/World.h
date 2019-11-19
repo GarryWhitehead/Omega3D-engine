@@ -21,12 +21,6 @@ namespace OmegaEngine
 // forward declerartions
 class Scene;
 class Object;
-class BVH;
-class AnimationManager;
-class CameraManager;
-class LightManager;
-class RenderableManager;
-class TransformManager;
 
 class World
 {
@@ -48,23 +42,12 @@ public:
 	*/
 	Scene* createScene();
 
-	// pointers to each manager
-	AnimationManager& getAnimManager();
-	CameraManager& getCameraManager();
-	LightManager& getLightManager();
-	RenderableManager& getRendManager();
-	TransformManager& getTransManager();
-
 private:
 	// name used to identify this world
 	Util::String name;
 
-	// and all the managers that are required to deal with each of the component types
-	AnimationManager* animManager = nullptr;
-	CameraManager* cameraManager = nullptr;
-	LightManager* lightManager = nullptr;
-	RenderableManager* rendManager = nullptr;
-	TransformManager* transManager = nullptr;
+	/// objects assoicated with this scene dealt with by the object manager
+	ObjectManager objManager;
 
 	// scenes associated with this world
 	std::vector<Scene> scenes;

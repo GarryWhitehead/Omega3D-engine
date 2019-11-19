@@ -1,7 +1,6 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Queue.h"
 
 #include <cstdint>
 
@@ -13,7 +12,7 @@ class Pipeline;
 class PipelineLayout;
 class DescriptorSet;
 class VkContext;
-class CommandBufferManager;
+class CmdBufferManager;
 
 class CmdBuffer
 {

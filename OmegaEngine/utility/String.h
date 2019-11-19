@@ -7,6 +7,8 @@ namespace Util
 class String
 {
 public:
+
+	String() = default;
 	String(const char* str);
 
 	String(const String& str);

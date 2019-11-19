@@ -6,6 +6,8 @@
 #include "Core/engine.h"
 #include "Core/world.h"
 
+#include "Rendering/Renderer.h"
+
 #include "Types/NativeWindowWrapper.h"
 #include "Types/Object.h"
 
@@ -56,33 +58,26 @@ int main(int argc, char* argv[])
 	model.setWorldScale({15.0f});
 	model.setWorldRotation({0.5, 0.0f, 0.5f, 0.5f});
 	model.prepare();
+	scene->addObject(model);
+
+	// load a material json
+	Material mat;
+	mat.load("demo_rough.mat");
+
+	// use this material with a stock primitive
+	auto prim = Model::BuildStock();
+	model.transform(-0.2f, 0.0f, 0.0f);
+	model.type(Model::Stock::Plane);
+	model.material(mat);
+	scene->addObject(prim);
 
 	// create the renderer - using a deffered renderer (only one supported at the moment)
-	DeferredRenderer renderer = engine->createDefRenderer(swapchain);
-
-	// create a flat plane
-	{
-		Object obj =
-		    ObjectManager::create(OEMaths::vec3f{ -0.2f, 0.0f, 0.0f }, OEMaths::vec3f{ 1.0f }, OEMaths::quatf{ 0.0f });
-
-		auto model = Model::BuildStock();
-		model.transform(-0.2f, 0.0f, 0.0f);
-		model.type(Model::Stock::Plane);
-		model.material("DemoRough", OEMaterials::Specular::Titanium, OEMaths::vec3f{ 0.3f },
-												 OEMaths::vec4f{ 0.0f, 0.6f, 0.8f, 1.0f }, 0.8f, 0.2f));
-
-		auto mat = MatManager::create();
-		object2->addComponent<MeshComponent>(OEModels::generateQuadMesh(0.5f));
-		object2->addComponent<MaterialComponent>(;
-		object2->addComponent<TransformComponent>(TransformManager::transform(
-			OEMaths::vec3f{ 0.0f }, OEMaths::vec3f{ 25.0f }, OEMaths::quatf{ 0.5f, -0.5f, 0.5f, -0.5f }));
-	}
-
-	// add a skybox
-	world->addSkybox("skybox/cubemap.ktx", 0.5f);
+	Renderer* renderer = engine.createRenderer(swapchain, scene);
+	
+	renderer->addSkybox("skybox/cubemap.ktx", 0.5f);
 
 	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
-	world->addCameraToWorld();
+	renderer->addCameraToWorld();
 
 	// add different lights
 	world->addSpotLightToWorld({ 0.0f, 3.0f, 1.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f,

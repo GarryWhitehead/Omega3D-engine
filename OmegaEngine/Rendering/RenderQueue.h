@@ -1,24 +1,11 @@
 #pragma once
 
-#include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Common.h"
 
 #include <unordered_map>
 #include <vector>
 
 namespace OmegaEngine
 {
-// forward declerations
-class ThreadPool;
-struct ProgramState;
-class ComponentInterface;
-enum class RenderTypes;
-
-enum class RenderQueueType
-{
-	Graphics,
-	Present
-};
 
 struct SortKey
 {
@@ -59,7 +46,7 @@ public:
 	RenderQueue();
 	~RenderQueue();
 
-	void addRenderableToQueue(RenderableQueueInfo &renderInfo)
+	void push(RenderableQueueInfo &renderInfo)
 	{
 		renderables.emplace_back(renderInfo);
 	}

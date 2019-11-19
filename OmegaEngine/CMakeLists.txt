@@ -58,7 +58,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	Core/engine.cpp Core/engine.h
 	Core/Omega_Global.h Core/Omega_Global.cpp
-	Core/Omega_SceneParser.cpp Core/Omega_SceneParser.h
 	Core/ObjectManager.cpp Core/ObjectManager.h
 	Core/World.cpp Core/World.h
 	Core/Scene.cpp Core/Scene.h
@@ -117,12 +116,12 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
 	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
-	Rendering/RenderInterface.cpp Rendering/RenderInterface.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
 	Rendering/Renderer.cpp Rendering/Renderer.h
     Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h
 	Rendering/LightingPass.cpp Rendering/LightingPass.h
 	Rendering/IblImage.cpp Rendering/IblImage.h
+	Rendering/Skybox.cpp Rendering/Skybox.h
 
 	Rendering/RenderTypes/RenderableObject.cpp Rendering/RenderTypes/RenderableObject.h
 	

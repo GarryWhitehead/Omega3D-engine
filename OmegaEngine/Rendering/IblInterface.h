@@ -1,8 +1,9 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
+
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/DataTypes/Texture.h"
+#include "VulkanAPI/VkTexture.h"
 
 #include <vector>
 

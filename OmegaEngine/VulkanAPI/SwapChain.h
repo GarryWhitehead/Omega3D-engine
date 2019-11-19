@@ -5,7 +5,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
-#include "VulkanAPI/Types/VkTexture.h"
+#include "VulkanAPI/VkTexture.h"
 
 #include "VulkanAPI/Platform/Surface.h"
 

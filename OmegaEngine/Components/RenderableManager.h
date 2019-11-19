@@ -10,6 +10,8 @@
 #include "Models/ModelMaterial.h"
 #include "Models/ModelMesh.h"
 
+#include "Components/ComponentManager.h"
+
 #include <memory>
 #include <unordered_map>
 
@@ -77,7 +79,7 @@ public:
 		StateTopology topology;
 
 		// offset into mega buffer
-		std::vector<ModelMesh::Vertex> vertices;
+		std::vector<ModelMesh::VertexBuffer> vertices;
         std::vector<uint32_t> indices;
 	};
 
@@ -134,7 +136,7 @@ private:
     Engine& engine;
     
 	// the buffers containing all the model data
-	std::vector<RenderableIstance> renderables;
+	std::vector<RenderableInstance> renderables;
 
 	// all the materials
 	std::vector<ModelMaterial> materials;
