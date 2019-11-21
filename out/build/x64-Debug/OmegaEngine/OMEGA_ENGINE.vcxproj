@@ -174,8 +174,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderCommon.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.h" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderInterface.cpp" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderInterface.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderQueue.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderQueue.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Renderer.cpp" />
@@ -188,6 +186,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblImage.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.h" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\CompositionPass.cpp" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\CompositionPass.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderTypes\RenderableObject.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderTypes\RenderableObject.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Threading\ThreadedQueue.h" />

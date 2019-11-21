@@ -369,7 +369,7 @@ void RenderGraph::initRenderPass()
 			rpass.framebuffer->prepare(rpass, views, rpass.width, rpass.height);
 
 			// and the command buffer - this is linked to both the pass and frame buffer
-			rpass.cmdBuffer->prepare();
+			cbManager->newInstance(QueueType::Graphics);
 
 			break;
 		}

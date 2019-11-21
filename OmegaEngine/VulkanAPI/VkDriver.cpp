@@ -4,6 +4,7 @@
 #include "VulkanAPI/Managers/ProgramManager.h"
 #include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/SwapChain.h"
 
 #include "Utility/logger.h"
 
@@ -80,6 +81,26 @@ void VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const
         tex.map(stagingPool, data);
     }
     textures.emplace(data, tex);
+}
+
+// ============ begin/end frame functions ======================
+void VkDriver::beginFrame()
+{
+	// TODO: need to reset some stuff here!
+
+	// get the next image index which will be the framebuffer we draw to
+	context.getDevice().acquireNextImageKHR(swapchain.get(), std::numeric_limits<uint64_t>::max(), swapchain.imageWait, {}, &swapchain.imageIndex);
+}
+
+void VkDriver::endFrame()
+{
+	// submit all of the cmd buffers - it's supposedly a good idea to keep the number of cmd buffers to a min, as this can impact on performance(?)
+	cbManager->submitAll();
+
+	// finally, submit the final composaition to the present queue
+	vk::PresentInfoKHR presentInfo{ 1, &swapchain.renderComplete, 1, &swapchain, &swapchain.imageIndex, nullptr };
+
+	VK_CHECK_RESULT(context.getPresentQueue().presentKHR(&presentInfo));
 }
 
 }    // namespace VulkanAPI

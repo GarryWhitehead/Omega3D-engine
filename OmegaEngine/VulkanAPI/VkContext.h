@@ -43,9 +43,9 @@ public:
     // ============= getters =================
     vk::Device& getDevice();
     vk::PhysicalDevice& getGpu();
-    Queue& getGraphQueue();
-    Queue& getPresentQueue();
-    Queue& getCompQueue();
+    vk::Queue& getGraphQueue();
+    vk::Queue& getPresentQueue();
+    vk::Queue& getCompQueue();
     
 	friend class VkDriver;
 

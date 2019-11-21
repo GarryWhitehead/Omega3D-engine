@@ -118,7 +118,7 @@ std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferH
 }
 
 
-void CmdBufferManager::submitFrame(Swapchain& swapchain)
+void CmdBufferManager::submitAll(Swapchain& swapchain)
 {
 	vk::Semaphore waitSync;
 	vk::Semaphore signalSync;

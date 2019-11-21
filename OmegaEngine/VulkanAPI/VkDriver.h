@@ -17,11 +17,12 @@ class Buffer;
 class Texture;
 class VertexBuffer;
 class IndexBuffer;
+class Swapchain;
 
-/**
+    /**
 * @brief A wrapper for a vulkan instance
 */
-class Instance
+    class Instance
 {
 public:
 	// no copying allowed!
@@ -69,7 +70,6 @@ class VkDriver
 {
 
 public:
-
 	VkDriver();
 	~VkDriver();
 
@@ -111,6 +111,11 @@ public:
 	void add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels,
 	                  void* data);
 
+	// ======== begin/end frame functions ====================
+	void beginFrame();
+
+	void endFrame();
+
 	// ====== manager helper functions =========
 	CommandBufferManager& getCmdBufManager()
 	{
@@ -146,6 +151,10 @@ private:
 	VkHash::BufferMap buffers;
 	VkHash::VertexMap vertBuffers;
 	VkHash::IndexMap indexBuffers;
+
+	// Keep local track of the swapchain
+	// TODO: This may need chnaging if multiple swapchains are used!
+	Swapchain& swapchain;
 
 #ifdef VULKAN_VALIDATION_DEBUG
 

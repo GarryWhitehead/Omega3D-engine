@@ -35,13 +35,35 @@ public:
 	*/
 	Pipeline* findOrCreatePipeline(const ShaderHandle handle, RenderPass* rPass);
 
+	/**
+	* @brief Checks whether a decsriptor set exsists and returns that if so, otherwise creates a new instance
+	* The hash requires descriptor layout and pool (Vulkan handles)
+	*/
     DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle);
     
-	CmdBufferHandle newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex);
-	std::unique_ptr<CmdBuffer>& getCmdBuffer(CmdBufferHandle handle);
+	/**
+	* @brief Creates a new instance of a cmd buffer, including reseting fences.
+	* @param queueType The queue which this cmd buffer will be submitted to.
+	*/
+	CmdBufferHandle newInstance(const uint32_t queueIndex);
+
 	std::unique_ptr<VulkanAPI::CmdBuffer>& beginNewFame(CmdBufferHandle handle);
 
-	void submitFrame(Swapchain& swapchain);
+	/**
+	* @brief Submits all the command buffers registered with the manager to the appropiate queue
+	* Note: It might affect performance having too many cmd buffers - something that needs to be considered (maybe?)
+	*/
+	void submitAll(Swapchain& swapchain);
+
+	/**
+	* @brief Resets all command buffers, ensuring that they have finished before doing so
+	*/
+	void resetAll();
+
+	/**
+	* returns a cmdbuffer based on the specified handle 
+	*/
+	std::unique_ptr<CmdBuffer>& getCmdBuffer(CmdBufferHandle handle);
 
 	bool isRecorded(CmdBufferHandle handle)
 	{

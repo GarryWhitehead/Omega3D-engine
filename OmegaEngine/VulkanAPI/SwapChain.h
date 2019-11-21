@@ -48,13 +48,6 @@ public:
 	*/
 	bool prepare(VkDriver& context, Platform::SurfaceWrapper& surface);
 
-	// frame submit and presentation to the swapchain
-	void begin_frame(vk::Semaphore& image_semaphore);
-	void submitFrame(vk::Semaphore& presentSemaphore, vk::Queue& presentionQueue);
-
-	// sets up the renderpass and framebuffers for the swapchain presentation
-	void prepareSwapchainPass();
-
 	vk::SwapchainKHR& get()
 	{
 		return swapchain;
@@ -70,7 +63,7 @@ public:
 		return extent.width;
 	}
 
-    
+    friend class VkDriver;
 
 private:
     
@@ -80,5 +73,15 @@ private:
     // a swapchain based on the present surface type
 	vk::SwapchainKHR swapchain;
 
+	// Use for syncing the end of the last frame submit, with the beginning of the next
+	// This stops data being submitted to the buffer when it hasn't yet been displayed, stopping artifacts
+	vk::Semaphore imageWait;
+
+	// Used for syncing the rendering part with the final present, to enure we don't try and present work that
+	// hasn't completed
+	vk::Semaphore renderComplete;
+
+	// The current frame image index
+	uint32_t imageIndex;
 };
 }    // namespace VulkanAPI

@@ -147,18 +147,7 @@ Swapchain::~Swapchain()
 	device.destroySwapchainKHR(swapchain, nullptr);
 }
 
-void Swapchain::begin_frame(vk::Semaphore& semaphore)
-{
-	device.acquireNextImageKHR(swapchain, std::numeric_limits<uint64_t>::max(), semaphore, {}, &imageIndex);
-}
 
-void Swapchain::submitFrame(vk::Semaphore& presentSemaphore, vk::Queue& presentionQueue)
-{
-	vk::PresentInfoKHR present_info(1, &presentSemaphore, 1, &swapchain, &imageIndex, nullptr);
-
-	VK_CHECK_RESULT(presentionQueue.presentKHR(&present_info));
-	presentionQueue.waitIdle();
-}
 
 void Swapchain::prepareSwapchainPass()
 {

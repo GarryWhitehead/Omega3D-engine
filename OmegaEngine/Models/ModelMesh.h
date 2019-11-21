@@ -12,7 +12,6 @@
 
 #include <vector>
 
-
 namespace OmegaEngine
 {
 
@@ -89,13 +88,13 @@ private:
 	Dimensions totalDimensions;
     
     /// this is used for shader variants
-    BitSetEnum<Variants> variants;
+    BitSetEnum<VertexBuffer::Variant> variants;
     
     /// sub-meshes
 	std::vector<Primitive> primitives;
     
     /// All vertivces associated with the particular model
-	std::vector<VertexBufferr> vertices;
+	std::vector<VertexBuffer> vertices;
     
     /// All indices associated with this particular model
 	std::vector<uint32_t> indices;

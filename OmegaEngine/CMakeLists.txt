@@ -122,6 +122,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/LightingPass.cpp Rendering/LightingPass.h
 	Rendering/IblImage.cpp Rendering/IblImage.h
 	Rendering/Skybox.cpp Rendering/Skybox.h
+	Rendering/CompositionPass.cpp Rendering/CompositionPass.h
 
 	Rendering/RenderTypes/RenderableObject.cpp Rendering/RenderTypes/RenderableObject.h
 	
