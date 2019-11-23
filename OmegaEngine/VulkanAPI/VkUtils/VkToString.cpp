@@ -103,6 +103,10 @@ void createVkShaderBuffer(const std::string name, const std::string type, std::v
         bufferTemplate = "layout (std140, binding = " + std::to_string(bind) +
         ") buffer " + name + "\nstruct\n{\n";
     }
+    else if (type == "PushConstant")
+    {
+        bufferTemplate = "layout (push_constant) uniform " + name + "\nstruct\n{\n";
+    }
     
     // keep a tally of the buffer size which will be used for creaing the descriptor set
     uint32_t bufferSize = 0;

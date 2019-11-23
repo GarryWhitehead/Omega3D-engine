@@ -61,6 +61,12 @@ public:
 		uint32_t stride = 0;
 		vk::Format format;
 	};
+    
+    struct SpecConstantBinding
+    {
+        Util::String name;
+        uint8_t id = 0;
+    };
 
 	/**
      * States the ouput from the fragment shader - into a buffer specified by the render pass
@@ -80,11 +86,13 @@ private:
 	std::vector<SamplerBinding> samplerBindings;
 	std::vector<RenderTarget> renderTargets;
 	std::vector<InputBinding> inputs;
+    
+    // Specialisation constant are finalised at the pipeline creation stage
+    std::vector<SpecConstantBinding> constants;
 
 	// We need a layout for each group
 	std::vector<DescriptorLayout> descrLayouts;
 	PipelineLayout pLineLayout;
-	Pipeline pipeline;
 };
 
 /**
@@ -192,7 +200,10 @@ public:
 
 		// the glsl code in text format
 		std::vector<std::string> code;
-
+        
+        // variants for this stage
+        GlslCompiler::VariantMap variants;
+        
 		// used by the compiler to prepare the code block for inputs, etc.
 		std::string appendBlock;
 	};
@@ -265,6 +276,47 @@ private:
 	ShaderProgram program;
 };
 
+/**
+ * @brief Wrapped for a shader json string buffer and user defined info such as variants and constants
+ * This is passed to the **findOrCreateShader** function
+ */
+class ShaderProgInstance
+{
+public:
+    
+    ShaderProgInstance();
+    ~ShaderProgInstance();
+    
+    /**
+     * @brief Prepares the new shader program instance.
+     */
+    bool init(Util::String filename);
+    
+    /**
+     * @brief Adds a shader variant for a specifed stage to the list
+     */
+    void addVariant(Util::String definition, uint8_t value, Shader::StageType stage);
+    
+    /**
+     * @brief Updates a spec constant which must have been stated in the shader json with a new value which will
+     * set at pipeline generation time. If the spec constant isn't uodated, then the const value stated in the json will be used
+     * Note: only integers and floats supported at present
+     */
+    void updateConstant(Util::String name, size_t value, Shader::StageType stage);
+    void updateConstant(Util::String name, float value, Shader::StageType stage);
+    
+private:
+    
+    using ConstantPairInt = std::pair<Util::String, size_t>;
+    using ConstantPairFlt = std::pair<Util::String, float>;
+    
+    std::unordered_map<Shader::ShaderType, Shader::VariantMap> variants;
+    
+    // probably find a better, more generic way of doing this
+    std::unordered_map<Shader::ShaderType, ConstantPairInt> constantsInt;
+    std::unordered_map<Shader::ShaderType, ConstantPairFlt> constantsFlt;
+};
+
 class ShaderManager
 {
 public:
@@ -280,8 +332,7 @@ public:
      * @param variantData A optional pointer to an array of variant data
      * @param variantSize A optional size parameter indicating the number of variants contained in **variantData**
      */
-	ShaderProgram* findOrCreateShader(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits,
-	                                  VariantInfo* variantData = nullptr, uint32_t variantSize = 0);
+	ShaderProgram* findOrCreateShader(RenderStateBlock* renderBlock, uint64_t variantBits, ShaderProgInstance& instance);
 
 	/**
      * @brief Checks whether a shader has been created based on the hash

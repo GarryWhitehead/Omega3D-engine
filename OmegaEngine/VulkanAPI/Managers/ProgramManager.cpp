@@ -15,7 +15,7 @@ namespace VulkanAPI
 bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader, std::string id, uint16_t& maxGroup)
 {
 	maxGroup = 0;
-	const auto& shaderBlock = doc[id.c_str];
+	const auto& shaderBlock = doc[id.c_str()];
 
 	// input semantics - glsl code: layout (location = 0) in [TYPE] [NAME]
 	if (shaderBlock.HasMember("Inputs"))
@@ -84,9 +84,9 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 	}
 
 	// all samplers, ubos to import
-	if (doc.HasMember("Import"))
+	if (shaderBlock.HasMember("Import"))
 	{
-		const auto& imports = doc["Import"].GetArray();
+		const auto& imports = shaderBlock["Import"].GetArray();
 		if (!imports.Empty())
 		{
 			for (auto& import : imports)
@@ -303,11 +303,6 @@ bool ShaderParser::parseShaderJson()
 
 bool ShaderParser::parse(Util::String filename)
 {
-	if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
-	{
-		return false;
-	}
-
 	if (!parseShaderJson())
 	{
 		return false;
@@ -317,12 +312,10 @@ bool ShaderParser::parse(Util::String filename)
 }
 
 // =================== ShaderCompiler ===================
-void ShaderCompiler::addVariant(Util::String definition, uint8_t value)
-{
-}
 
 void ShaderCompiler::overrideRenderState(RenderStateBlock& rState)
 {
+    
 }
 
 void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uint16_t& bind)
@@ -330,6 +323,16 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 	// add the glsl version number
 	shader->appendBlock += "#version 450\n";
 
+    // include files
+    if (!shader->includeFiles.empty())
+    {
+        for (const auto& file : includeFiles)
+        {
+            // Note: I think the glsl compiler might need the absolute path - need to check
+            shader->appendBlock += "#include " + file + "\n";
+        }
+    }
+    
 	// texture samplers
 	if (!shader->samplers.empty())
 	{
@@ -368,8 +371,33 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 	}
 
 	// push blocks
-
+    if (!shader->pConstants.empty())
+    {
+        for (const auto& constant : shader->pConstants)
+        {
+            std::string inputLine;
+            uint32_t bufferSize;
+            
+            // inject pipeline text into temp string block
+            VkUtils::createVkShaderBuffer(constant.name, constant.type, constant.data, 0, 0, inputLine, bufferSize);
+            // append to main shader text
+            shader->appendBlock += inputLine + "\n";
+            pLineLayout.addPushConstant(shader->type, bufferSize);
+        }
+    }
+    
 	// specialisation constants
+   if (!shader->constants.empty())
+   {
+        uint16_t constantId = 0;
+        for (const auto& constant : shader->constants)
+       {
+           // inject constant text into temp shader text block
+           shader->appendBlock += "layout (constant_id = " + constantId + ") const " + constType + " " + constant.name + " = " + constant.value + "\n";
+
+           constants.emplace_back(constant.name, constantId);
+       }
+   }
 }
 
 void ShaderCompiler::writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader)
@@ -462,6 +490,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	prepareInputs(compilerInfo.vertShader.get());
 
 	// and link the output from each shader stage, with the input of the next
+    // inputs for other shader stages will be determined by the output from the previous stage
 	prepareOutputs(compilerInfo);
 
 	// finalise the shder code blocks and compile into glsl byte code
@@ -488,7 +517,34 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	program.pLineLayout.prepare(context, shaderInfo.descrLayouts);
 }
 
+// =================== ShaderProgInstance ====================
+ShaderProgInstance::ShaderProgInstance()
+{
+}
+                       
+ShaderProgInstance::~ShaderProgInstance()
+{
+}
+ 
+void ShaderCompiler::addVariant(Util::String definition, uint8_t value, Shader::StageType stage)
+{
+   
+}
 
+void ShaderCompiler::addConstant(Util::String name, size_t value, Shader::StageType stage)
+{
+   
+}
+                       
+bool ShaderProgInstance::init(Util::String filename)
+{
+    if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
+    {
+        return false;
+    }
+    return true;
+}
+                
 // =================== Shader Manager ==================
 ShaderManager::ShaderManager(VkDriver& context)
     : context(context)
@@ -500,7 +556,7 @@ ShaderManager::~ShaderManager()
 }
 
 ShaderProgram* ShaderManager::findOrCreateShader(Util::String name, RenderStateBlock* renderBlock,
-                                                 uint64_t variantBits, VariantInfo* variantData, uint32_t variantSize)
+                                                 uint64_t variantBits, Shader::VariantMap& variants)
 {
 	ShaderProgram* result = nullptr;
 
