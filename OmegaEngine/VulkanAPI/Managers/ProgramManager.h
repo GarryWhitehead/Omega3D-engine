@@ -2,9 +2,9 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
-#include "VulkanAPI/Pipeline.h"
 
 #include "utility/BitSetEnum.h"
 #include "utility/String.h"
@@ -134,23 +134,40 @@ public:
 		{
 		}
 
+		/// generic descriptor for different shader types
 		struct Descriptor
 		{
 			std::string name;
 			std::string type;
-			uint16_t groupId;
+			std::string id;						//< Buffers only - optional sub-name for a struct  
+			uint16_t groupId;					//< specifies an explicit set number
+			std::string variant;				//< if set, specifies to inject a #ifdef statemnet
+			std::string arrayConst;				//< if set, specifies that this type is an array set by a constant value
+			uint32_t arraySize = UINT32_MAX;	//< if not uint32_max, indicates the type is an array 
 		};
 
+		/// uniform buffers
 		struct BufferDescriptor
 		{
 			Descriptor descr;
 			std::vector<Descriptor> data;
 		};
 
+		/// Specialisation constants
 		struct ConstantDescriptor
 		{
-			Descriptor descr;
+			std::string name;
+			std::string type;
 			std::string value;
+		};
+
+		/// push constants
+		struct PConstantDescriptor
+		{
+			std::string name;
+			std::string type;
+			std::string id;		
+			std::vector<Descriptor> data;
 		};
 
 		// points to the next shader stage
@@ -171,6 +188,7 @@ public:
 
 		// first: name, second: type, third: value
 		std::vector<ConstantDescriptor> constants;
+		std::vector<PConstantDescriptor> pConstants;
 
 		// the glsl code in text format
 		std::vector<std::string> code;
