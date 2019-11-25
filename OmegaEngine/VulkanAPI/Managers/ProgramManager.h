@@ -24,78 +24,6 @@ namespace VulkanAPI
 class VkDriver;
 
 /**
- * @brief All the data obtained when compiling the glsl shader json file
- */
-class ShaderProgram
-{
-public:
-	/**
-     * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
-     */
-	struct BufferBinding
-	{
-		Util::String name;
-		int16_t bind = 0;
-		uint16_t set = 0;
-		uint32_t size = 0;
-		ShaderType shader;
-	};
-
-	/**
-     * The sampler bindings for the shder stage. These can be sampler2D, sampler3D and samplerCube
-     */
-	struct SamplerBinding
-	{
-		Util::String name;
-		int16_t bind = 0;
-		uint16_t set = 0;
-		ShaderType shader;
-	};
-
-	/**
-     * Input semenatics of the shader stage. Used by the pipeline attributes
-     */
-	struct InputBinding
-	{
-		uint16_t location = 0;
-		uint32_t stride = 0;
-		vk::Format format;
-	};
-    
-    struct SpecConstantBinding
-    {
-        Util::String name;
-        uint8_t id = 0;
-    };
-
-	/**
-     * States the ouput from the fragment shader - into a buffer specified by the render pass
-     */
-	struct RenderTarget
-	{
-		uint16_t location = 0;
-		vk::Format format;
-	};
-
-	ShaderProgram() = default;
-
-	friend class ShaderCompiler;
-
-private:
-	std::vector<BufferBinding> bufferBindings;
-	std::vector<SamplerBinding> samplerBindings;
-	std::vector<RenderTarget> renderTargets;
-	std::vector<InputBinding> inputs;
-    
-    // Specialisation constant are finalised at the pipeline creation stage
-    std::vector<SpecConstantBinding> constants;
-
-	// We need a layout for each group
-	std::vector<DescriptorLayout> descrLayouts;
-	PipelineLayout pLineLayout;
-};
-
-/**
 * @brief Specifies the render pipeline state of the shader program
 * Can also be passed explicitly to override pre-exsisting data
 */
@@ -251,13 +179,14 @@ private:
 class ShaderCompiler
 {
 public:
-	void addVariant(Util::String definition, uint8_t value);
-
-	void overrideRenderState(RenderStateBlock& rState);
+	
+	ShaderCompiler(ShaderProgram& program);
+	~ShaderCompiler();
 
 	bool compile(ShaderParser& parser);
 
 private:
+
 	void prepareBindings(ShaderParser::ShaderDescriptor* shader, uint16_t& bind);
 
 	void writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader);
@@ -270,52 +199,108 @@ private:
 	/// variants to use when compiling the shader
 	std::unordered_map<std::string, uint8_t> variants;
 
-	/// Overide the render data with the user defined version
-	std::unique_ptr<RenderStateBlock> renderState;
-
-	ShaderProgram program;
+	/// the program which will be compiled too
+	ShaderProgram& program;
 };
 
 /**
- * @brief Wrapped for a shader json string buffer and user defined info such as variants and constants
- * This is passed to the **findOrCreateShader** function
+ * @brief All the data obtained when compiling the glsl shader json file
  */
-class ShaderProgInstance
+class ShaderProgram
 {
 public:
-    
-    ShaderProgInstance();
-    ~ShaderProgInstance();
-    
-    /**
-     * @brief Prepares the new shader program instance.
+	/**
+     * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
      */
-    bool init(Util::String filename);
-    
-    /**
+	struct BufferBinding
+	{
+		Util::String name;
+		int16_t bind = 0;
+		uint16_t set = 0;
+		uint32_t size = 0;
+		ShaderType shader;
+	};
+
+	/**
+     * The sampler bindings for the shder stage. These can be sampler2D, sampler3D and samplerCube
+     */
+	struct SamplerBinding
+	{
+		Util::String name;
+		int16_t bind = 0;
+		uint16_t set = 0;
+		ShaderType shader;
+	};
+
+	/**
+     * Input semenatics of the shader stage. Used by the pipeline attributes
+     */
+	struct InputBinding
+	{
+		uint16_t location = 0;
+		uint32_t stride = 0;
+		vk::Format format;
+	};
+
+	struct SpecConstantBinding
+	{
+		Util::String name;
+		uint8_t id = 0;
+	};
+
+	/**
+     * States the ouput from the fragment shader - into a buffer specified by the render pass
+     */
+	struct RenderTarget
+	{
+		uint16_t location = 0;
+		vk::Format format;
+	};
+
+	ShaderProgram() = default;
+
+	/**
+	* @brief Compiles the parsed json file into data that can be used by the vulkan backend
+	* Note: You must have parsed the json file by calling **parse** before calling this function
+	* otherwise it will return an error
+	*/
+	bool prepare(ShaderParser& parser);
+
+	/**
      * @brief Adds a shader variant for a specifed stage to the list
      */
-    void addVariant(Util::String definition, uint8_t value, Shader::StageType stage);
-    
-    /**
+	void addVariant(Util::String definition, uint8_t value, Shader::StageType stage);
+
+	void overrideRenderState(RenderStateBlock* renderState);
+
+	/**
      * @brief Updates a spec constant which must have been stated in the shader json with a new value which will
      * set at pipeline generation time. If the spec constant isn't uodated, then the const value stated in the json will be used
      * Note: only integers and floats supported at present
      */
-    void updateConstant(Util::String name, size_t value, Shader::StageType stage);
-    void updateConstant(Util::String name, float value, Shader::StageType stage);
-    
+	void updateConstant(Util::String name, uint32_t value, Shader::StageType stage);
+	void updateConstant(Util::String name, int32_t value, Shader::StageType stage);
+	void updateConstant(Util::String name, float value, Shader::StageType stage);
+
+	friend class ShaderCompiler;
+
 private:
-    
-    using ConstantPairInt = std::pair<Util::String, size_t>;
-    using ConstantPairFlt = std::pair<Util::String, float>;
-    
-    std::unordered_map<Shader::ShaderType, Shader::VariantMap> variants;
-    
-    // probably find a better, more generic way of doing this
-    std::unordered_map<Shader::ShaderType, ConstantPairInt> constantsInt;
-    std::unordered_map<Shader::ShaderType, ConstantPairFlt> constantsFlt;
+	std::vector<BufferBinding> bufferBindings;
+	std::vector<SamplerBinding> samplerBindings;
+	std::vector<RenderTarget> renderTargets;
+	std::vector<InputBinding> inputs;
+
+	// Specialisation constant are finalised at the pipeline creation stage
+	std::vector<SpecConstantBinding> constants;
+
+	// this block overrides all render state for this shader. 
+	std::unique_ptr<RenderStateBlock> renderState;
+
+	// We need a layout for each group
+	std::vector<DescriptorLayout> descrLayouts;
+	PipelineLayout pLineLayout;
 };
+
 
 class ShaderManager
 {
@@ -324,24 +309,22 @@ public:
 	~ShaderManager();
 
 	/**
-     * @brief If a shader already exsists with a identical hash then that shder will be returned
-     * @param name The filename of the shader json - also used for the hash
-     * @param renderBlock optional render override block which will be used as rendering data for the shader
-     * instead of the data extracted from the json file - also used for the hash
-     * @param variantBits The varaiant flags - used for the hash
-     * @param variantData A optional pointer to an array of variant data
-     * @param variantSize A optional size parameter indicating the number of variants contained in **variantData**
+     * @brief Creates a new shader program instance. This will be inserted into the map.
+	 * @param name The name of the shader to find - the filename
+     * @param renderBlock Whether this shader has a render override block
+     * @param variantBits The variant flags used by this shader
+	 * @return A pointer to the newly created shader program
      */
-	ShaderProgram* findOrCreateShader(RenderStateBlock* renderBlock, uint64_t variantBits, ShaderProgInstance& instance);
+	ShaderProgram* createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
 
 	/**
      * @brief Checks whether a shader has been created based on the hash
      * @param name The name of the shader to find - the filename
-     * @param renderBlock Wether this shader has a render override block
+     * @param renderBlock Whether this shader has a render override block
      * @param variantBits The variant flags used by this shader
      * @return A boolean set to true if the shader exsists, otherwise false
      */
-	bool hasShader(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+	bool hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
 
 private:
 	// =============== shader hasher ======================
@@ -349,6 +332,7 @@ private:
 	{
 		const char* name;
 		uint64_t variantBits;
+		RenderStateBlock* block;
 	};
 
 	struct ShaderHasher
@@ -357,7 +341,8 @@ private:
 		{
 			size_t h1 = std::hash<const char*>{}(id.name);
 			size_t h2 = std::hash<uint64_t>{}(id.variantBits);
-			return h1 ^ (h2 << 1);
+			size_t h3 = std::hash<RenderStateBlock*>{}(id.block);
+			return h1 ^ (h2 << 1) ^ (h3 << 1); 
 		}
 	};
 
@@ -365,14 +350,14 @@ private:
 	{
 		bool operator()(const ShaderHash& lhs, const ShaderHash& rhs) const
 		{
-			return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits;
+			return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits && lhs.block == rhs.block;
 		}
 	};
 
 private:
 	VkDriver& context;
 
-	std::unordered_map<ShaderHash, ShaderProgram, ShaderHasher, ShaderEqual> programs;
+	std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
 };
 
 }    // namespace VulkanAPI

@@ -303,6 +303,11 @@ bool ShaderParser::parseShaderJson()
 
 bool ShaderParser::parse(Util::String filename)
 {
+	if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
+	{
+		return false;
+	}
+
 	if (!parseShaderJson())
 	{
 		return false;
@@ -312,10 +317,13 @@ bool ShaderParser::parse(Util::String filename)
 }
 
 // =================== ShaderCompiler ===================
-
-void ShaderCompiler::overrideRenderState(RenderStateBlock& rState)
+ShaderCompiler::ShaderCompiler(ShaderProgram& program)
+    : program(program)
 {
-    
+}
+
+ShaderCompiler::~ShaderCompiler()
+{
 }
 
 void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uint16_t& bind)
@@ -323,23 +331,23 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 	// add the glsl version number
 	shader->appendBlock += "#version 450\n";
 
-    // include files
-    if (!shader->includeFiles.empty())
-    {
-        for (const auto& file : includeFiles)
-        {
-            // Note: I think the glsl compiler might need the absolute path - need to check
-            shader->appendBlock += "#include " + file + "\n";
-        }
-    }
-    
+	// include files
+	if (!shader->includeFiles.empty())
+	{
+		for (const auto& file : includeFiles)
+		{
+			// Note: I think the glsl compiler might need the absolute path - need to check
+			shader->appendBlock += "#include " + file + "\n";
+		}
+	}
+
 	// texture samplers
 	if (!shader->samplers.empty())
 	{
 		for (auto& sampler : shader->samplers)
 		{
 			std::string inputLine;
-			DescriptorLayout& layout = shaderInfo.descrLayouts[sampler.groupId];
+			DescriptorLayout& layout = program.descrLayouts[sampler.groupId];
 
 			VkUtils::createVkShaderInput(sampler.name, sampler.type, bind, setId, inputLine);
 			shader->appendBlock += inputLine + "\n";
@@ -357,7 +365,7 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 		{
 			std::string inputLine;
 			uint32_t bufferSize;
-			DescriptorLayout& layout = shaderInfo.descrLayouts[buffer.groupId];
+			DescriptorLayout& layout = program.descrLayouts[buffer.groupId];
 
 			VkUtils::createVkShaderBuffer(buffer.name, buffer.type, buffer.data, bind, setId, inputLine, bufferSize);
 			shader->appendBlock += inputLine + "\n";
@@ -371,33 +379,34 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 	}
 
 	// push blocks
-    if (!shader->pConstants.empty())
-    {
-        for (const auto& constant : shader->pConstants)
-        {
-            std::string inputLine;
-            uint32_t bufferSize;
-            
-            // inject pipeline text into temp string block
-            VkUtils::createVkShaderBuffer(constant.name, constant.type, constant.data, 0, 0, inputLine, bufferSize);
-            // append to main shader text
-            shader->appendBlock += inputLine + "\n";
-            pLineLayout.addPushConstant(shader->type, bufferSize);
-        }
-    }
-    
-	// specialisation constants
-   if (!shader->constants.empty())
-   {
-        uint16_t constantId = 0;
-        for (const auto& constant : shader->constants)
-       {
-           // inject constant text into temp shader text block
-           shader->appendBlock += "layout (constant_id = " + constantId + ") const " + constType + " " + constant.name + " = " + constant.value + "\n";
+	if (!shader->pConstants.empty())
+	{
+		for (const auto& constant : shader->pConstants)
+		{
+			std::string inputLine;
+			uint32_t bufferSize;
 
-           constants.emplace_back(constant.name, constantId);
-       }
-   }
+			// inject pipeline text into temp string block
+			VkUtils::createVkShaderBuffer(constant.name, constant.type, constant.data, 0, 0, inputLine, bufferSize);
+			// append to main shader text
+			shader->appendBlock += inputLine + "\n";
+			program.pLineLayout.addPushConstant(shader->type, bufferSize);
+		}
+	}
+
+	// specialisation constants
+	if (!shader->constants.empty())
+	{
+		uint16_t constantId = 0;
+		for (const auto& constant : shader->constants)
+		{
+			// inject constant text into temp shader text block
+			shader->appendBlock += "layout (constant_id = " + constantId + ") const " + constType + " " +
+			                       constant.name + " = " + constant.value + "\n";
+
+			program.constants.emplace_back(constant.name, constantId);
+		}
+	}
 }
 
 void ShaderCompiler::writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader)
@@ -426,10 +435,6 @@ void ShaderCompiler::prepareInputs(ShaderParser::ShaderDescriptor* vertShader)
 		std::string inputLine = "layout (location = " + std::to_string(loc) + ") in " + input.type;
 
 		vertShader->appendBlock += inputLine + "\n";
-
-		uint32_t stride = Shader::getStrideFromType(input.type);
-		vk::Format format = Shader::getVkFormatFromType(input.type, input.width);
-		shaderInfo.pipeline.addVertexInput(loc++, format, stride);
 	}
 }
 
@@ -490,7 +495,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	prepareInputs(compilerInfo.vertShader.get());
 
 	// and link the output from each shader stage, with the input of the next
-    // inputs for other shader stages will be determined by the output from the previous stage
+	// inputs for other shader stages will be determined by the output from the previous stage
 	prepareOutputs(compilerInfo);
 
 	// finalise the shder code blocks and compile into glsl byte code
@@ -510,41 +515,52 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	// Create the descriptor layouts for each set
 	for (const DescriptorLayout& layout : program.descrLayouts)
 	{
-		layout.prepare(context);
+		program.pLineLayout.prepare(context);
 	}
 
 	// create the pipeline layout - as we know the descriptor layout and any push blocks
-	program.pLineLayout.prepare(context, shaderInfo.descrLayouts);
+	program.pLineLayout.prepare(context, program.descrLayouts);
 }
 
-// =================== ShaderProgInstance ====================
-ShaderProgInstance::ShaderProgInstance()
+// =================== ShaderProgram ======================
+
+void ShaderProgram::addVariant(Util::String definition, uint8_t value, Shader::StageType stage)
 {
-}
-                       
-ShaderProgInstance::~ShaderProgInstance()
-{
-}
- 
-void ShaderCompiler::addVariant(Util::String definition, uint8_t value, Shader::StageType stage)
-{
-   
 }
 
-void ShaderCompiler::addConstant(Util::String name, size_t value, Shader::StageType stage)
+void ShaderProgram::overrideRenderState(RenderStateBlock* renderState)
 {
-   
 }
-                       
-bool ShaderProgInstance::init(Util::String filename)
+
+void ShaderProgram::updateConstant(Util::String name, uint32_t value, Shader::StageType stage)
 {
-    if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
-    {
-        return false;
-    }
-    return true;
 }
-                
+
+void ShaderProgram::updateConstant(Util::String name, int32_t value, Shader::StageType stage)
+{
+}
+
+void ShaderProgram::updateConstant(Util::String name, float value, Shader::StageType stage)
+{
+}
+
+bool ShaderProgram::prepare(ShaderParser& parser)
+{
+	ShaderCompiler compiler(*this);
+
+	// create a variation of the shader if variants are specfied
+	if (!variants.empty())
+	{
+		compiler.addVariant(variants);
+	}
+
+	if (!compiler.compile(parser))
+	{
+		return false;
+	}
+	return true;
+}
+
 // =================== Shader Manager ==================
 ShaderManager::ShaderManager(VkDriver& context)
     : context(context)
@@ -553,60 +569,28 @@ ShaderManager::ShaderManager(VkDriver& context)
 
 ShaderManager::~ShaderManager()
 {
+	for (auto& program : programs)
+	{
+		if (program.second)
+		{
+			delete program.second;
+		}
+	}
 }
 
-ShaderProgram* ShaderManager::findOrCreateShader(Util::String name, RenderStateBlock* renderBlock,
-                                                 uint64_t variantBits, Shader::VariantMap& variants)
+ShaderProgram* ShaderManager::createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
 {
-	ShaderProgram* result = nullptr;
+	ShaderProgram* instance = new ShaderProgram();
 
-	// check if a shader with this has already exsists. If it doesn't, then create one.
-	auto iter = programs.find({ name, variants, render });
-	if (iter != programs.end())
-	{
-		result = &(*iter->second);
-	}
-	else
-	{
-		// load the json from file and extract the raw data
-		ShaderParser parser;
-		if (!parser.parse(name))
-		{
-			return nullptr;
-		}
-
-		ShaderCompiler compiler;
-
-		// create a variation of the shader if variants are specfied
-		if (!variants.empty())
-		{
-			compiler.addVariant(variants);
-		}
-
-		// it some instances the user may want to either overwrite the render data that is
-		// present in the shader, or explicly specify the data here. One main reason is in
-		// the case of materails where the rendering information is obtained from external
-		// sources
-		if (renderBlock)
-		{
-			compiler.addRenderData(*renderBlock);
-		}
-
-		if (!compiler.compile(parser))
-		{
-			return nullptr;
-		}
-		ShaderHash hash{ name, variants, renderBlock };
-		programs.insert(hash, compiler.getProgram());
-		result = &programs[hash];
-	}
-
-	return result;
+	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
+	programs.emplace(hash, instance);
+	return instance;
 }
 
-bool ShaderManager::hasShader(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+bool ShaderManager::hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
 {
-	auto iter = programs.find({ name, renderBlock, variants });
+	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
+	auto iter = programs.find(hash);
 	if (iter == programs.end())
 	{
 		return false;

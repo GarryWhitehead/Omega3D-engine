@@ -8,7 +8,6 @@
 #include "VulkanAPI/Managers/CommandBufferManager.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
 #include "VulkanAPI/Pipeline.h"
-#include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
 
 namespace OmegaEngine
@@ -23,13 +22,26 @@ LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
 bool LightingPass::prepare(VulkanAPI::ShaderManager* manager)
 {
 	// load the shaders
-	VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("renderer/deferred/lighting.glsl", nullptr, 0);
-	if (!program)
+	const Util::String filename = "lighting.glsl";
+	if (!manager->hasShaderVariant(filename, nullptr, variantBits))
 	{
-		LOGGER_ERROR("Fatal error whilst trying to compile shader for renderpass: %s.", passId);
-		return false;
+		VulkanAPI::ShaderParser parser;
+		if (!parser.parse(filename))
+		{
+			return false;
+		}
+		VulkanAPI::ShaderProgram* prog = manager->createNewInstance(filename, nullptr, varinatBits);
+
+		// add variants and constant values
+
+		assert(prog);
+		if (!prog->prepare(parser))
+		{
+			return false;
+		}
 	}
 
+	// build the lighting render pass
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
 	// inputs from the deferred pass
