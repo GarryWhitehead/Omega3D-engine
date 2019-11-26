@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/GarryWhitehead/Omega3D-engine.svg?branch=master)](https://travis-ci.org/GarryWhitehead/Omega3D-engine)
+
 # Omega3D-engine
 A 3D-engine that utilises the Vulkan garphics API and entity component mechanics. 
 
