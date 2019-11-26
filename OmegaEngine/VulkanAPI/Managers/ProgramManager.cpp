@@ -65,7 +65,7 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 			descr.name = constant["name"].GetString();
 			descr.type = constant["type"].GetString();
 
-			if (constant.hasMember("id"))
+			if (constant.HasMember("id"))
 			{
 				descr.id = constant["id"].GetString();
 			}
@@ -164,6 +164,32 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 	for (auto& c : codeBlock)
 	{
 		shader.code.push_back(c.GetString());
+	}
+}
+
+bool ShaderParser::prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::StageType type)
+{
+	std::string shaderBuffer;
+	if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
+	{
+		return false;
+	}
+
+	rapidjson::Document doc;
+
+	if (doc.Parse(buffer.c_str()).HasParseError())
+	{
+		LOGGER_ERROR("Error whilst trying to parse shader json file.");
+		return false;
+	}
+
+	Util::String vertexId = Shader::ShaderTypeToString(type);
+	uint16_t maxGroup = 0;
+
+	if (!readShader(doc, *shader, id, maxGroup))
+	{
+		LOGGER_ERROR("Unable to read shader block from json file; filename = %s.", filename);
+		return false;
 	}
 }
 
@@ -409,7 +435,7 @@ void ShaderCompiler::prepareBindings(ShaderParser::ShaderDescriptor* shader, uin
 	}
 }
 
-void ShaderCompiler::writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader)
+void ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader)
 {
 	uint16_t loc = 0;
 
@@ -422,7 +448,7 @@ void ShaderCompiler::writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderP
 	}
 }
 
-void ShaderCompiler::prepareInputs(ShaderParser::ShaderDescriptor* vertShader)
+void ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
 {
 	if (vertShader->inputs.empty())
 	{
@@ -522,6 +548,11 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	program.pLineLayout.prepare(context, program.descrLayouts);
 }
 
+bool ShaderCompiler::compileStage(ShaderDescriptor* shader)
+{
+
+}
+
 // =================== ShaderProgram ======================
 
 void ShaderProgram::addVariant(Util::String definition, uint8_t value, Shader::StageType stage)
@@ -561,6 +592,22 @@ bool ShaderProgram::prepare(ShaderParser& parser)
 	return true;
 }
 
+void ShaderProgram::prepareStage(ShaderDescriptor* shader, VariantMap& variantDefines)
+{
+	ShaderCompiler compiler(*this);
+
+	if (!variantDefines.empty())
+	{
+		compiler.addVariant(variantDefines);
+	}
+
+	if (!compiler.compileStage(shader))
+	{
+		return false;
+	}
+	return true;
+}
+
 // =================== Shader Manager ==================
 ShaderManager::ShaderManager(VkDriver& context)
     : context(context)
@@ -592,6 +639,27 @@ bool ShaderManager::hasShaderVariant(Util::String name, RenderStateBlock* render
 	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
 	auto iter = programs.find(hash);
 	if (iter == programs.end())
+	{
+		return false;
+	}
+	return true;
+}
+
+ShaderDescriptor* ShaderManager::createCachedInstance(Util::String name, RenderStateBlock* renderBlock,
+                                                      uint64_t variantBits)
+{
+	ShaderDescriptor* instance = new ShaderDescriptor();
+
+	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
+	cached.emplace(hash, instance);
+	return instance;
+}
+
+bool ShaderManager::hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+{
+	ShaderHash hash{ name.c_str(), variantBits, renderBlock->rastState };
+	auto iter = cached.find(hash);
+	if (iter == cached.end())
 	{
 		return false;
 	}

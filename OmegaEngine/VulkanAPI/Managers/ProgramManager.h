@@ -29,13 +29,6 @@ class VkDriver;
 */
 struct RenderStateBlock
 {
-	struct DepthStencilState
-	{
-		bool testEnable = false;
-		bool writeEnable = false;
-		vk::CompareOp compareOp = vk::CompareOp::eLessOrEqual;
-	};
-
 	struct RasterState
 	{
 		vk::CullModeFlagBits cullMode = vk::CullModeFlagBits::eNone;
@@ -52,9 +45,89 @@ struct RenderStateBlock
 		vk::SamplerAddressMode addrModeW;
 	};
 
-	DepthStencilState dsState;
 	RasterState rastState;
 	Sampler sampler;
+};
+
+class ShaderDescriptor
+{
+public:
+	ShaderDescriptor() = default;
+
+	ShaderDescriptor(Shader::StageType type)
+	    : type(type)
+	{
+	}
+
+	// not copyable
+	ShaderDescriptor(const ShaderDescriptor&) = delete;
+	ShaderDescriptor& operator=(const ShaderDescriptor&) = delete;
+
+	/// generic descriptor for different shader types
+	struct Descriptor
+	{
+		std::string name;
+		std::string type;
+		std::string id;                     //< Buffers only - optional sub-name for a struct
+		uint16_t groupId;                   //< specifies an explicit set number
+		std::string variant;                //< if set, specifies to inject a #ifdef statemnet
+		std::string arrayConst;             //< if set, specifies that this type is an array set by a constant value
+		uint32_t arraySize = UINT32_MAX;    //< if not uint32_max, indicates the type is an array
+	};
+
+	/// uniform buffers
+	struct BufferDescriptor
+	{
+		Descriptor descr;
+		std::vector<Descriptor> data;
+	};
+
+	/// Specialisation constants
+	struct ConstantDescriptor
+	{
+		std::string name;
+		std::string type;
+		std::string value;
+	};
+
+	/// push constants
+	struct PConstantDescriptor
+	{
+		std::string name;
+		std::string type;
+		std::string id;
+		std::vector<Descriptor> data;
+	};
+
+private:
+	// points to the next shader stage
+	ShaderDescriptor* nextStage = nullptr;
+
+	// shader stage
+	Shader::StageType type;
+
+	// sementic inputs and outputs
+	std::vector<Descriptor> inputs;
+	std::vector<Descriptor> outputs;
+
+	// texture samplers to import; first: name, second: sampler type
+	std::vector<Descriptor> samplers;
+
+	// uniform buffers to import; first: name, second: buffer type
+	std::vector<BufferDescriptor> ubos;
+
+	// first: name, second: type, third: value
+	std::vector<ConstantDescriptor> constants;
+	std::vector<PConstantDescriptor> pConstants;
+
+	// the glsl code in text format
+	std::vector<std::string> code;
+
+	// variants for this stage
+	GlslCompiler::VariantMap variants;
+
+	// used by the compiler to prepare the code block for inputs, etc.
+	std::string appendBlock;
 };
 
 /**
@@ -63,81 +136,9 @@ struct RenderStateBlock
 class ShaderParser
 {
 public:
-	struct ShaderDescriptor
+	ShaderParser()
 	{
-		ShaderDescriptor(Shader::StageType type)
-		    : type(type)
-		{
-		}
-
-		/// generic descriptor for different shader types
-		struct Descriptor
-		{
-			std::string name;
-			std::string type;
-			std::string id;						//< Buffers only - optional sub-name for a struct  
-			uint16_t groupId;					//< specifies an explicit set number
-			std::string variant;				//< if set, specifies to inject a #ifdef statemnet
-			std::string arrayConst;				//< if set, specifies that this type is an array set by a constant value
-			uint32_t arraySize = UINT32_MAX;	//< if not uint32_max, indicates the type is an array 
-		};
-
-		/// uniform buffers
-		struct BufferDescriptor
-		{
-			Descriptor descr;
-			std::vector<Descriptor> data;
-		};
-
-		/// Specialisation constants
-		struct ConstantDescriptor
-		{
-			std::string name;
-			std::string type;
-			std::string value;
-		};
-
-		/// push constants
-		struct PConstantDescriptor
-		{
-			std::string name;
-			std::string type;
-			std::string id;		
-			std::vector<Descriptor> data;
-		};
-
-		// points to the next shader stage
-		ShaderDescriptor* nextStage = nullptr;
-
-		// shader stage
-		Shader::StageType type;
-
-		// sementic inputs and outputs
-		std::vector<Descriptor> inputs;
-		std::vector<Descriptor> outputs;
-
-		// texture samplers to import; first: name, second: sampler type
-		std::vector<Descriptor> samplers;
-
-		// uniform buffers to import; first: name, second: buffer type
-		std::vector<BufferDescriptor> ubos;
-
-		// first: name, second: type, third: value
-		std::vector<ConstantDescriptor> constants;
-		std::vector<PConstantDescriptor> pConstants;
-
-		// the glsl code in text format
-		std::vector<std::string> code;
-        
-        // variants for this stage
-        GlslCompiler::VariantMap variants;
-        
-		// used by the compiler to prepare the code block for inputs, etc.
-		std::string appendBlock;
-	};
-
-
-	ShaderParser() = default;
+	}
 
 	/**
      * @brief Loads a shader json file into a string buffer and parses the json file to extract all data ready for compiling
@@ -146,6 +147,13 @@ public:
      */
 	bool parse(Util::String filename);
 
+	/**
+	* @brief Takes a empty shader descriptor and parses form the specified json file and shader type, the relevant data
+	* This function is solely used when using wanting to merge different shader stages from different files.
+	* Usually this will be cached with the shader manager.
+	*/
+	bool prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::StageType type);
+
 private:
 	bool parseShaderJson();
 	bool readShader(rapidjson::Document& doc, ShaderDescriptor& shader, std::string id, uint16_t& maxGroup);
@@ -153,6 +161,8 @@ private:
 	friend class ShaderCompiler;
 
 private:
+	rapidjson::Document& doc;
+
 	// used to work out the maximum set number across all stages
 	uint16_t groupSize = 0;
 
@@ -179,19 +189,19 @@ private:
 class ShaderCompiler
 {
 public:
-	
 	ShaderCompiler(ShaderProgram& program);
 	~ShaderCompiler();
 
 	bool compile(ShaderParser& parser);
 
+	bool compileStage(ShaderDescriptor* shader);
+
 private:
+	void prepareBindings(ShaderDescriptor* shader, uint16_t& bind);
 
-	void prepareBindings(ShaderParser::ShaderDescriptor* shader, uint16_t& bind);
+	void writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
-	void writeInputs(ShaderParser::ShaderDescriptor* shader, ShaderParser::ShaderDescriptor* nextShader);
-
-	void prepareInputs(ShaderParser::ShaderDescriptor* vertShader);
+	void prepareInputs(ShaderDescriptor* vertShader);
 
 	void prepareOutputs(ShaderParser& compilerInfo);
 
@@ -218,7 +228,7 @@ public:
 		int16_t bind = 0;
 		uint16_t set = 0;
 		uint32_t size = 0;
-		ShaderType shader;
+		Shader::StageType shader;
 	};
 
 	/**
@@ -229,7 +239,7 @@ public:
 		Util::String name;
 		int16_t bind = 0;
 		uint16_t set = 0;
-		ShaderType shader;
+		Shader::StageType shader;
 	};
 
 	/**
@@ -267,6 +277,12 @@ public:
 	bool prepare(ShaderParser& parser);
 
 	/**
+	* @brief Compiles a specific shader stage.This is usually useful when taking stages from different files and merging into
+	* shader program.
+	*/
+	void prepareStage(ShaderDescriptor* descriptor);
+
+	/**
      * @brief Adds a shader variant for a specifed stage to the list
      */
 	void addVariant(Util::String definition, uint8_t value, Shader::StageType stage);
@@ -282,6 +298,7 @@ public:
 	void updateConstant(Util::String name, int32_t value, Shader::StageType stage);
 	void updateConstant(Util::String name, float value, Shader::StageType stage);
 
+
 	friend class ShaderCompiler;
 
 private:
@@ -293,7 +310,7 @@ private:
 	// Specialisation constant are finalised at the pipeline creation stage
 	std::vector<SpecConstantBinding> constants;
 
-	// this block overrides all render state for this shader. 
+	// this block overrides all render state for this shader.
 	std::unique_ptr<RenderStateBlock> renderState;
 
 	// We need a layout for each group
@@ -326,13 +343,24 @@ public:
      */
 	bool hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
 
+	/**
+	* @brief Creates a shader fragment that will be cached until ready for use
+	*/
+	ShaderDescriptor* createCachedInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+
+	/**
+	* @brief Checks whether a shader fragment has been cached as specified by the hash
+	*/
+	bool hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+
+
 private:
 	// =============== shader hasher ======================
 	struct ShaderHash
 	{
 		const char* name;
 		uint64_t variantBits;
-		RenderStateBlock* block;
+		vk::PrimitiveTopology* topology;    //< optional (leave null if not needed)
 	};
 
 	struct ShaderHasher
@@ -341,8 +369,8 @@ private:
 		{
 			size_t h1 = std::hash<const char*>{}(id.name);
 			size_t h2 = std::hash<uint64_t>{}(id.variantBits);
-			size_t h3 = std::hash<RenderStateBlock*>{}(id.block);
-			return h1 ^ (h2 << 1) ^ (h3 << 1); 
+			size_t h3 = std::hash<vk::PrimitiveTopology*>{}(id.topology);
+			return h1 ^ (h2 << 1) ^ (h3 << 1);
 		}
 	};
 
@@ -350,14 +378,18 @@ private:
 	{
 		bool operator()(const ShaderHash& lhs, const ShaderHash& rhs) const
 		{
-			return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits && lhs.block == rhs.block;
+			return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits && lhs.topology == rhs.topology;
 		}
 	};
 
 private:
 	VkDriver& context;
 
+	// fully compiled, complete shader programs
 	std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
+
+	// this is where individual shaders are cached until required to assemble into a shader program
+	std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
 };
 
 }    // namespace VulkanAPI

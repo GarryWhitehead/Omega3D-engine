@@ -79,11 +79,11 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Models/Formats/GltfModel.cpp Models/Formats/GltfModel.h
 	Models/Formats/AssimpModel.cpp Models/Formats/AssimpModel.h
 
-	Models/ModelAnimation.cpp Models/ModelAnimation.h
-	Models/ModelMaterial.cpp Models/ModelMaterial.h 
-	Models/ModelMesh.cpp Models/ModelMesh.h
-	Models/ModelSkin.cpp Models/ModelSkin.h
-	Models/ModelNode.cpp Models/ModelNode.h
+	Models/AnimInstance.cpp Models/AnimInstance.h
+	Models/MaterialInstance.cpp Models/MaterialInstance.h 
+	Models/MeshInstance.cpp Models/MeshInstance.h
+	Models/SkinInstance.cpp Models/SkinInstance.h
+	Models/NodeInstance.cpp Models/NodeInstance.h
 
 	Misc/OEMaterials.h
 	Misc/Primitives/Sphere.cpp Misc/Primitives/Sphere.h

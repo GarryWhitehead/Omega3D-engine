@@ -1,0 +1,32 @@
+language:
+  - cpp
+
+matrix:
+  include:
+    - os: linux
+      dist: xenial
+      compiler: gcc
+      before_install:
+        - sudo apt-get install xorg-dev
+      env:
+        - GENERATOR="Unix Makefiles"
+    - os: linux
+      dist: xenial
+      compiler: clang
+      env:
+        - GENERATOR="Unix Makefiles"
+    - os: windows
+      env:
+        - GENERATOR="Visual Studio 15 2019"
+    - os: windows
+      env:
+        - GENERATOR="Visual Studio 15 2017 Win64"
+
+before_script:
+  - git submodule update --init
+
+script:
+  - mkdir build
+  - cd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -G "${GENERATOR}" 
+  - cmake --build . --config Release

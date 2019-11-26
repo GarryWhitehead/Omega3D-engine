@@ -2,6 +2,8 @@
 
 #include "RenderGraph/RenderGraph.h"
 
+#include "Components/RenderableManager.h"
+
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
 #include "VulkanAPI/common.h"
@@ -11,19 +13,23 @@
 namespace OmegaEngine
 {
 
-GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, Util::String id)
+GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, Util::String id, RenderableManager& rendManager)
     : rGraph(rGraph)
+    , rendManager(rendManager)
     , RenderStageBase(id)
 {
 }
 
+bool GBufferFillPass::update(VulkanAPI::ShaderManager* manager)
+{
+	
+}
+
 bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 {
-	// load the shaders
-	VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("renderer/deferred/lighting.glsl", nullptr, 0);
-	if (!program)
+	// create shaders for all material variants
+	if (!update(manager))
 	{
-		LOGGER_ERROR("Fatal error whilst trying to compile shader for renderpass: %s.", passId.c_str());
 		return false;
 	}
 
@@ -74,15 +80,14 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* instan
 	cmdBuffer->bindPipeline(state->pipeline);
 
 	cmdBuffer->bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
-	                                          dynamicOffsets);
+	                                  dynamicOffsets);
 	cmdBuffer->bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
-	                                 sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
+	                         sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 	cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
 	cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer,
-	                                   instanceData->indexBuffer.offset +
-	                                       (instanceData->indexOffset * sizeof(uint32_t)));
+	                           instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
 	cmdBuffer->drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 }
 

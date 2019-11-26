@@ -6,6 +6,7 @@
 
 #include "Core/Engine.h"
 
+#include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
 
 #include "Utility/GeneralUtil.h"
@@ -15,8 +16,8 @@
 namespace OmegaEngine
 {
 
-RenderableManager::RenderableManager(Engine& engine) :
-    engine(engine)
+RenderableManager::RenderableManager(Engine& engine)
+    : engine(engine)
 {
 	// for performance purposes
 	renderables.reserve(MESH_INIT_CONTAINER_SIZE);
@@ -26,9 +27,9 @@ RenderableManager::~RenderableManager()
 {
 }
 
-void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t offset)
+void RenderableManager::addMesh(MeshInstance& mesh, const size_t idx, const size_t offset)
 {
-	RenderableInstance rend;
+	Renderable rend;
 
 	rend.vertOffset = vertices.size();
 	rend.idxOffset = indices.size();
@@ -44,7 +45,7 @@ void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t 
 
 	// now adjust the material index values of each primitive to take into account
 	// the offset
-	if (offset >= 0)	//< a value of -1 indicate no materials for this renderable
+	if (offset >= 0)    //< a value of -1 indicate no materials for this renderable
 	{
 		for (auto& prim : rend.primitives)
 		{
@@ -64,7 +65,7 @@ void RenderableManager::addMesh(ModelMesh& mesh, const size_t idx, const size_t 
 	}
 }
 
-void RenderableManager::addMesh(ModelMesh& mesh, Object& obj, const size_t offset)
+void RenderableManager::addMesh(MeshInstance& mesh, Object& obj, const size_t offset)
 {
 	size_t idx = addObject(obj);
 	addMesh(mesh, idx, offset);
@@ -74,7 +75,7 @@ bool RenderableManager::prepareTexture(Util::String path, GpuTextureInfo* tex)
 {
 	if (!path.empty())
 	{
-        tex->texture = new MappedTexture;
+		tex->texture = new MappedTexture;
 		if (!tex->texture->load(path))
 		{
 			return false;
@@ -84,7 +85,7 @@ bool RenderableManager::prepareTexture(Util::String path, GpuTextureInfo* tex)
 	return true;
 }
 
-size_t RenderableManager::addMaterial(ModelMaterial* mat, size_t count)
+size_t RenderableManager::addMaterial(MaterialInstance* mat, size_t count)
 {
 	assert(mat);
 	assert(count > 0);
@@ -113,7 +114,7 @@ size_t RenderableManager::addMaterial(ModelMaterial* mat, size_t count)
 	return startOffset;
 }
 
-void RenderableManager::addRenderable(ModelMesh& mesh, ModelMaterial* mat, const size_t matCount, Object& obj)
+void RenderableManager::addRenderable(MeshInstance& mesh, MaterialInstance* mat, const size_t matCount, Object& obj)
 {
 	// first add the object which will give us a free slot
 	size_t idx = addObject(obj);
@@ -131,7 +132,7 @@ void RenderableManager::addRenderable(ModelMesh& mesh, ModelMaterial* mat, const
 	addMesh(mesh, idx, matOffset);
 }
 
-RenderableManager::RenderableInstance& RenderableManager::getMesh(Object& obj)
+Renderable& RenderableManager::getMesh(Object& obj)
 {
 	size_t index = getObjIndex(obj);
 	if (!index)
@@ -142,41 +143,132 @@ RenderableManager::RenderableInstance& RenderableManager::getMesh(Object& obj)
 	return renderables[index];
 }
 
+bool RenderableManager::updateVariants()
+{
+	// parse the shader json file - this will be used by all variants
+	const Util::String mesh_filename = "gbuffer_vert.glsl";
+	VulkanAPI::ShaderParser mesh_parser;
+
+	if (!mesh_parser.parse(mesh_filename))
+	{
+		LOGGER_ERROR("Unable to parse mesh vertex shader stage: %s", mesh_filename.c_str());
+		return false;
+	}
+
+	VulkanAPI::ShaderManager* manager = engine.getVkDriver().getShaderManager();
+
+	// Note - we try and create as many shader variants as possible for vertex and material shaders as
+	// creating them whilst the engine is actually rendering will be costly in terms of performance
+	// create variants for all vertices associated with this manager
+	for (const Renderable& rend : renderables)
+	{
+
+		if (!manager->hasShaderVariantCached(mesh_filename, rend.renderState, rend.variantBits.getUint64()))
+		{
+			VulkanAPI::ShaderDescriptor* descr =
+			    manager->createCachedInstance(mesh_filename, rend.renderState, rend.variantBits.getUint64());
+
+			mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::StageType::Vertex);
+		}
+	}
+
+	// ======== create variants required for all materials currently associated with the manager =========
+
+	// parse the shader json file - this will be used by all variants
+	const Util::String mat_filename = "gbuffer_frag.glsl";
+	VulkanAPI::ShaderParser mat_parser;
+
+	if (!mat_parser.parse(mat_filename))
+	{
+		return false;
+	}
+
+	for (const Material& mat : materials)
+	{
+		if (!manager->hasShaderVariantCached(mat_filename, mat.renderState, mat.variantBits.getUint64()))
+		{
+			VulkanAPI::ShaderDescriptor* descr =
+			    manager->createCachedInstance(mat_filename, rend.renderState, mat.variantBits.getUint64());
+
+			mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::StageType::Fragment);
+		}
+	}
+
+	// now assemble into complete shader programs using the cached shader parts
+	for (const Renderable& rend : renderables)
+	{
+		// each primitive can have its own material
+		for (MeshInstance::Primitive& prim : rend.instance.primitives)
+		{
+			assert(prim.materialId >= 0);
+			Material& mat = materials[prim.materialId];
+
+			// first check that we don't already have a variant within the list
+			// combine the material and mesh varaints to give us a unique id
+			prim.mergedVariant = mat.variantBits.getUint64() + rend.variantBits.getUint64();
+
+			if (manager->hasShaderVariant(mesh_filename, rend.renderState, prim.mergedVariant))
+			{
+				continue;
+			}
+
+			VulkanAPI::ShaderProgram* program = manager->createNewInstance(mesh_filename, rend.renderState, mergedVariant);
+
+			// get the cached vertex stage and add to program
+			VulkanAPI::ShaderDescriptor* descr =
+			    manager->getCachedStage(mesh_filename, rend.renderBlockState, rend.variantBits);
+			assert(descr);
+			program->prepareStage(descr);
+
+			// and get the cached fragment stage and add to program
+			VulkanAPI::ShaderDescriptor* descr =
+			    manager->getCachedStage(mesh_filename, rend.renderBlockState, rend.variantBits);
+			assert(descr);
+			program->prepareStage(descr);
+		}
+	}
+}
+
 void RenderableManager::update()
 {
-    VulkanAPI::VkDriver& driver = engine.getVkDriver();
-    
-    // upload the textures if something has changed
-    if (materialDirty)
-    {
-        for (const TextureGroup& group : textures)
-        {
-            for (uint8_t i = 0; i < TextureType::Count; ++i)
-            {
-               if (group.textures[i])
-               {
-                   MappedTexture* tex = group.textures[i]->texture;
-                   group.textures[i]->handle = driver.add2DTexture(tex->format, tex->width, tex->height, tex->mipLevels, tex->data);
-               }
-            }
-        }
-        
-        // upload ubos
-        for (const ModelMaterial& mat : materials)
-        {
-            driver->addUbo(mat.ubo);
-        }
-    }
-    
-    // upload meshes to the vulkan backend
-    if (meshDirty)
-    {
-        for (const RenderableInstance& rend : renderables)
-        {
-            driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
+	VulkanAPI::VkDriver& driver = engine.getVkDriver();
+
+	// upload the textures if something has changed
+	if (materialDirty)
+	{
+		// create material shader varinats if needed
+		updateVariants();
+
+		// upload textures if required
+		for (const TextureGroup& group : textures)
+		{
+			for (uint8_t i = 0; i < TextureType::Count; ++i)
+			{
+				if (group.textures[i])
+				{
+					MappedTexture* tex = group.textures[i]->texture;
+					group.textures[i]->handle =
+					    driver.add2DTexture(tex->format, tex->width, tex->height, tex->mipLevels, tex->data);
+				}
+			}
+		}
+
+		// upload ubos
+		for (const Material& mat : materials)
+		{
+			driver->addUbo(mat.ubo);
+		}
+	}
+
+	// upload meshes to the vulkan backend
+	if (meshDirty)
+	{
+		for (const Renderable& rend : renderables)
+		{
+			driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
 			driver.addIndexBuffer(rend.indices.size(), rend.indices.data());
-        }
-    }
+		}
+	}
 }
 
 }    // namespace OmegaEngine

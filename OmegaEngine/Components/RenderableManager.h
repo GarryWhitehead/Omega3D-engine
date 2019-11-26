@@ -6,9 +6,10 @@
 #include "OEMaths/OEMaths_Quat.h"
 
 #include "Utility/logger.h"
+#include "utility/BitsetEnum.h"
 
-#include "Models/ModelMaterial.h"
-#include "Models/ModelMesh.h"
+#include "Models/MaterialInstance.h"
+#include "Models/MeshInstance.h"
 
 #include "Components/ComponentManager.h"
 
@@ -21,10 +22,11 @@ namespace OmegaEngine
 {
 // forard decleartions
 class GpuTextureInfo;
-class ModelMesh;
+class MeshInstance;
 class World;
 class Object;
 class Engine;
+class RenderStateBlock;
 
 
 /**
@@ -54,6 +56,59 @@ struct TextureGroup
 	GpuTextureInfo* textures[TextureType::Count];
 };
 
+struct Material
+{
+	enum class TextureVariants : uint64_t
+	{
+		HasBaseColour,
+		HasNormal,
+		HasMetallicRoughness,
+		HasOcclusion,
+		HasEmissive
+	};
+
+	// The material attributes
+	MaterialInstance instance;
+
+	// shader variants associated with this material
+	Util::BitSetEnum<TextureVariants> variantBits;
+
+	// the render state of this material
+	RenderStateBlock* renderState;
+};
+
+/**
+	* @brief A basic struct pointing to the vertex and indices data within
+	* the larger buffer. Meshes are made up of sub-meshes or primitives
+	* which reference the mesh data. They also contain an index to the material data
+	* which is set when a renderable is added
+	*/
+struct Renderable
+{
+	/**
+         * Specifies a variant to use when compiling the shader
+         */
+	enum class MeshVariant : uint64_t
+	{
+		HasSkin,
+		TangentInput,
+		BiTangentInput,
+		HasUv,
+		HasNormal,
+		HasWeight,
+		HasJoint
+	};
+
+	// all the model data
+	MeshInstance instance;
+
+	// variation of the mesh shader
+	Util::BitSetEnum<MeshVariant> variantBits;
+
+	// topology
+	vk::PrimitiveTopology topology;
+};
+
 class RenderableManager : public ComponentManager
 {
 
@@ -61,40 +116,19 @@ public:
 	// a user-defined size for the vertex and index gpu mem blocks - this should maybe made more dynamic? Also needs checking for overspill....
 	static constexpr float VertexBlockSize = 1e+5;
 	static constexpr float IndexBlockSize = 1e+5;
-    
-	/**
-	* @brief A basic struct pointing to the vertex and indices data within#
-	* the larger buffer. Meshes are made up of sub-meshes or primitives
-	* which reference the mesh data. They also contain an index to the material data
-	* which is set when a renderable is added
-	*/
-	struct RenderableInstance
-	{
-		StateMesh type;
-
-		// primitives assoicated with this mesh
-		std::vector<ModelMesh::Primitive> primitives;
-
-		// states
-		StateTopology topology;
-
-		// offset into mega buffer
-		std::vector<ModelMesh::VertexBuffer> vertices;
-        std::vector<uint32_t> indices;
-	};
 
 	RenderableManager(Engine& engine);
 	~RenderableManager();
 
 	/// called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
-    /// This isn't so expensive as these are persistent resources
+	/// This isn't so expensive as these are persistent resources
 	void update();
 
 	/**
 	* @brief The main call here - adds a renderable consisting of mesh, and not
 	* always, material and texture data. This function adds a number of materials if required
 	*/
-	void addRenderable(ModelMesh& mesh, ModelMaterial* mat, const size_t matCount, Object& obj);
+	void addRenderable(MeshInstance& mesh, MaterialInstance* mat, const size_t matCount, Object& obj);
 
 	// === mesh related functions ===
 	/**
@@ -104,18 +138,18 @@ public:
 	* @param offset The material buffer offset which will be added to the 
 	* primitive ids. This value is obtained from **addMaterial**
 	*/
-	void addMesh(ModelMesh& mesh, const size_t idx, const size_t offset);
+	void addMesh(MeshInstance& mesh, const size_t idx, const size_t offset);
 
 	/**
 	* @breif Adds a mesh - use this overload when you want to add multiple meshes
 	* linked with the same material group. 
 	*/
-	void addMesh(ModelMesh& mesh, Object& obj, const size_t offset);
-    
-    /**
+	void addMesh(MeshInstance& mesh, Object& obj, const size_t offset);
+
+	/**
      * @brief Returns a instance of a mesh based on the specified object
      */
-	RenderableInstance& getMesh(Object& obj);
+	Renderable& getMesh(Object& obj);
 
 	// === material related functions ===
 	/**
@@ -125,28 +159,30 @@ public:
 	* @return The starting index in which this group of materials is found at 
 	* within the managers larger container
 	*/
-	size_t addMaterial(ModelMaterial* mat, const size_t count);
-	
-private:
+	size_t addMaterial(MaterialInstance* mat, const size_t count);
 
+	friend class GBufferFillPass;
+
+private:
 	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
 
+	bool updateVariants();
+
 private:
-	
-    Engine& engine;
-    
+	Engine& engine;
+
 	// the buffers containing all the model data
-	std::vector<RenderableInstance> renderables;
+	std::vector<Renderable> renderables;
 
 	// all the materials
-	std::vector<ModelMaterial> materials;
+	std::vector<Material> materials;
 
 	// and all the textures
 	std::vector<TextureGroup> textures;
 
-    // Dirty flags - state whether anything has been added or altered and needs updating on the backend
+	// Dirty flags - state whether anything has been added or altered and needs updating on the backend
 	bool meshDirty = true;
-    bool materialDirty = true;
+	bool materialDirty = true;
 };
 
-}    // namespace OmegaEngie
+}    // namespace OmegaEngine
