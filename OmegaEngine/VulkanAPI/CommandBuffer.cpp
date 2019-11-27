@@ -29,18 +29,22 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 }
 
 
-CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, CommmandBufferManager& cbManager)
+CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, CmdBufferManager* cbManager)
     : context(context),
     , type(type)
 	, cbManager(cbManager)
 {
+    if (type == CmdBufferType::Primary)
+    {
+        prepare();
+    }
 }
 
 CmdBuffer::~CmdBuffer()
 {
 }
 
-void CmdBuffer::createPrimary()
+void CmdBuffer::prepare()
 {
 	vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::ePrimary, 1);
 
@@ -58,61 +62,6 @@ void CmdBuffer::createPrimary()
 
 	vk::CommandBufferBeginInfo beginInfo(usageFlags, 0);
 	VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
-}
-
-void CmdBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, bool useSecondary)
-{
-	// stor the renderpass and framebuffer locally
-	renderpass = beginInfo.renderPass;
-	framebuffer = beginInfo.framebuffer;
-
-	assert(renderpass);
-	assert(framebuffer);
-
-	// set viewport and scissor using values from renderpass. Shoule be overridable too
-	viewPort =
-	    vk::Viewport((float)beginInfo.renderArea.offset.x, (float)beginInfo.renderArea.offset.y,
-	                 (float)beginInfo.renderArea.extent.width, (float)beginInfo.renderArea.extent.height, 0.0f, 1.0f);
-
-	scissor = vk::Rect2D({ { beginInfo.renderArea.offset.x, beginInfo.renderArea.offset.y },
-	                       { beginInfo.renderArea.extent.width, beginInfo.renderArea.extent.height } });
-
-	if (!useSecondary)
-	{
-		cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
-	}
-	else
-	{
-		cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eSecondaryCommandBuffers);
-	}
-}
-
-void CmdBuffer::beginRenderpass(vk::RenderPassBeginInfo& beginInfo, vk::Viewport& viewPort)
-{
-	// stor the renderpass and framebuffer locally
-	renderpass = beginInfo.renderPass;
-	framebuffer = beginInfo.framebuffer;
-
-	assert(renderpass);
-	assert(framebuffer);
-
-	this->viewPort = viewPort;
-
-	// use custom defined viewport
-	scissor = vk::Rect2D{ { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
-		                  { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
-
-	cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
-}
-
-void CmdBuffer::endRenderpass()
-{
-	cmdBuffer.endRenderPass();
-}
-
-void CmdBuffer::end()
-{
-	cmdBuffer.end();
 }
 
 void CmdBuffer::setViewport()
@@ -198,10 +147,10 @@ void CmdBuffer::executeSecondary(size_t count)
 
 CmdBuffer& CmdBuffer::createSecondary()
 {
-	CmdBuffer secondary = *this;
-	secondary.create();
-	secondarys.emplace_back(secondary);
-	return secondarys.back();
+	CmdBuffer secBuffer = *this;
+	secBuffer.create();
+	secondary.emplace_back(secBuffer);
+	return secondary.back();
 }
 
 void CmdBuffer::createSecondary(size_t count)

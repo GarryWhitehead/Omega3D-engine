@@ -44,7 +44,7 @@ DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle)
 
 CmdBufferHandle CmdBufferManager::newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex)
 {
-	CommandBufferInfo bufferInfo;
+    CmdBufferInfo bufferInfo;
 
 	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(driver, type, queueIndex, *this);
 	bufferInfo.queueIndex = queueIndex;
@@ -71,52 +71,78 @@ std::unique_ptr<CmdBuffer>& CmdBufferManager::getCmdBuffer(CmdBufferHandle handl
 std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferHandle handle)
 {
 
-	// if it's static then only create a new instance if it's null
-	if (mode == NewFrameMode::Static)
-	{
-		if (cmdBuffers[handle].cmdBuffer == nullptr)
-		{
-			cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(dev, CommandBuffer::UsageType::Multi);
-			cmdBuffers[handle].cmdBuffer->createPrimary();
-		}
-		else
-		{
-			VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
-			VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
-		}
-	}
-	else
-	{
-		// ensure that the cmd buffer is finished with before creating a new one
-		// TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
-		// continuing so instead have two or three buffers per handle and switch between them
-		VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
-		VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
+    // ensure that the cmd buffer is finished with before creating a new one
+    // TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
+    // continuing so instead have two or three buffers per handle and switch between them
+    VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
+    VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
 
-		// create a new buffer - the detructors will worry about destroying everything
-		// or just reset?
-		if (mode == NewFrameMode::New)
-		{
-			cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(driver);
-		}
-		else
-		{
-			if (cmdBuffers[handle].cmdBuffer == nullptr)
-			{
-				cmdBuffers[handle].cmdBuffer =
-				    std::make_unique<CommandBuffer>(driver, CommandBuffer::UsageType::Multi);
-				cmdBuffers[handle].cmdBuffer->createPrimary();
-			}
-			else
-			{
-				cmdBuffers[handle].cmdBuffer.reset({});
-			}
-		}
-	}
+    // create a new buffer - the detructors will worry about destroying everything
+    // or just reset?
+    if (mode == NewFrameMode::New)
+    {
+        cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(driver);
+    }
+    else
+    {
+        if (cmdBuffers[handle].cmdBuffer == nullptr)
+        {
+            cmdBuffers[handle].cmdBuffer =
+                std::make_unique<CommandBuffer>(driver, CommandBuffer::UsageType::Multi);
+            cmdBuffers[handle].cmdBuffer->createPrimary();
+        }
+        else
+        {
+            cmdBuffers[handle].cmdBuffer.reset({});
+        }
+    }
+	
 
 	return cmdBuffers[handle].cmdBuffer;
 }
 
+void CmdBufferManager::beginRenderpass(const CmdBufferHandle handle, RenderPass& rpass, FrameBuffer& fbuffer)
+{
+    vk::CommandBuffer cmdBuffer = cmdBuffers[rpass.cmdBufferHandle]->get();
+    
+    // setup the clear values for this pass - need one for each attachment
+    vk::ClearValue clearValues[2];
+    
+    if (renderpass.hasColourAttach())
+    {
+        clearValue[0].color.float32[0] = rpass.clearCol.r;
+        clearValue[0].color.float32[1] = rpass.clearCol.g;
+        clearValue[0].color.float32[2] = rpass.clearCol.b;
+        clearValue[0].color.float32[3] = rpass.clearCol.a;
+    }
+    if (renderpass.hasDepthAttach())
+    {
+        clearValue[1].depthStencil = { rpass.depthClear, 0 };
+    }
+    
+    // extents of the frame buffer
+    vk::Extent2D extents { fbuffer.width, fbuffer.height };
+    
+    vk::RenderPassBeginInfo beginInfo { renderpass.get(), frameBuffer.get(), extents, 1, &clearValue };
+    cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
+
+    // use custom defined viewing area
+    vk::Rect2D viewPort { { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
+    { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
+    
+    cmdBuffer.setViewPort(0, 1 &viewport);
+    
+    vk::Rect2D scissor { { static_cast<int32_t>(viewPort.x), static_cast<int32_t>(viewPort.y) },
+                          { static_cast<uint32_t>(viewPort.width), static_cast<uint32_t>(viewPort.height) } };
+    
+    cmdBuffer.setScissor(0, 1, & scissor);
+}
+
+void CmdBufferManager::endRenderpass(const CmdBufferHandle handle)
+{
+    vk::CommandBuffer cmdBuffer = cmdBuffers[rpass.cmdBufferHandle]->get();
+    cmdBuffer.endRenderPass();
+}
 
 void CmdBufferManager::submitAll(Swapchain& swapchain)
 {

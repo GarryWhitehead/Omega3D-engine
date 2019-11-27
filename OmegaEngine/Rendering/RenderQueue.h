@@ -43,9 +43,24 @@ struct RenderableQueueInfo
 class RenderQueue
 {
 public:
-	RenderQueue();
+	
+    /**
+     * @brief The type of queue to use when drawing
+     */
+    enum class Type
+    {
+        Colour,
+        EarlyDepth,
+        Lighting
+    };
+    
+    RenderQueue();
 	~RenderQueue();
-
+    
+    // not copyable
+    RenderQueue(const RenderQueue&) = delete;
+    RenderQueue& operator=(const RenderQueue&) = delete;
+    
 	void push(RenderableQueueInfo &renderInfo)
 	{
 		renderables.emplace_back(renderInfo);
@@ -72,6 +87,7 @@ public:
 	std::vector<RenderableQueueInfo> getRange(const size_t start, const size_t end);
 
 private:
+    
 	// ordered by queue type
 	std::vector<RenderableQueueInfo> renderables;
 

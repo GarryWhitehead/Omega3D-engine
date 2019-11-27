@@ -2,12 +2,14 @@
 
 #include "RenderGraph/RenderGraph.h"
 
-#include "Rendering/IblImage.h"
 #include "Rendering/RenderQueue.h"
+
+#include "Rendering/IblImage.h"
 
 #include <array>
 #include <functional>
 #include <vector>
+#include <memory>
 
 namespace VulkanAPI
 {
@@ -36,16 +38,8 @@ public:
 	virtual bool prepare(VulkanAPI::ShaderManager* manager) = 0;
 
 protected:
+    
 	static Util::String passId;
-};
-
-/**
-* The current render context. This is primarily used for passing to the each render pass
-*/
-struct RenderContext
-{
-	// the render queue - passed from the scene to the renderer after visibility checks (TODO: add visibility checks!!)
-	RenderQueue renderQueue;
 };
 
 class Renderer
@@ -85,7 +79,9 @@ public:
 	* @brief Draws into the cmd buffers all the data that is currently held by the scene
 	*/
 	void draw();
-
+    
+    void drawQueue(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type);
+    
 	using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 
 private:
@@ -98,7 +94,10 @@ private:
 
 	/// current render context
 	RenderContext rContext;
-
+    
+    /// Filled by visible renderables obtained from the scene
+    RenderQueue renderQueue;
+    
 	/// keep a local copy of the render config
 	//RenderConfig renderConfig;
 

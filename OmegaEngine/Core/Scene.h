@@ -55,8 +55,8 @@ private:
 		renderables.push_back({ renderable });
 	}
 
-	friend class Scene;
-
+	friend class Renderer;
+    
 private:
 
 	/// contains all the renderable objects associated with this scene.

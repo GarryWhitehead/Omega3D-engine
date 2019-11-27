@@ -15,6 +15,7 @@ class CmdBuffer;
 namespace OmegaEngine
 {
 //forward declerations
+class Renderer;
 class RenderableManager;
 
 class GBufferFillPass : public RenderStageBase
@@ -60,7 +61,9 @@ public:
 	void drawCallback(VulkanAPI::CmdBuffer* cmdBuffer,void* instance);
 
 private:
-
+    
+    Renderer* renderer = nullptr;
+    
 	// reference to the render graph associated with this pass
 	RenderGraph& rGraph;
 

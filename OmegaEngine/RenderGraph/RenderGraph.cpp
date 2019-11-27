@@ -3,6 +3,8 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
+#include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Managers/CommandBufferManager.h"
 
 #include "utility/Logger.h"
 
@@ -169,6 +171,17 @@ void RenderGraphPass::bake()
 void RenderGraphPass::addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount)
 {
 	execute = ExecuteInfo{ func, userData, threadCount };
+}
+
+// =========================== RenderGraph ===============================
+
+RenderGraph::RenderGraph(VkDriver& driver) :
+    vkDriver(driver)
+{
+}
+
+RenderGraph::~RenderGarph()
+{
 }
 
 RenderGraphBuilder RenderGraph::createRenderPass(Util::String name)
@@ -384,7 +397,7 @@ void RenderGraph::initRenderPass()
 
 void RenderGraph::prepare()
 {
-	// start by optimising the graph and fillimng out the structure
+	// start by optimising the graph and filling out the structure
 	compile();
 
 	// init the renderpass resources - command buffer, frame buffers, etc.
@@ -393,6 +406,16 @@ void RenderGraph::prepare()
 
 void RenderGraph::execute()
 {
+    // iterate over all passes and execute the registered callback function
+    for (const RenderGraphPass& rpass: renderPasses)
+    {
+        // start the render pass
+        VulkanAPI::CmdBufferManager& manager = vkDriver.getCbManager();
+        manager->beginRenderpass(rpass.cmdBufferHandle, rpass.renderPass, rpass.frameBuffer);
+        
+        ExecuteInfo& exec = rpass.execute;
+        exec.func(rpass.context, exec.data);
+    }
 }
 
 AttachmentHandle RenderGraph::findAttachment(Util::String req)

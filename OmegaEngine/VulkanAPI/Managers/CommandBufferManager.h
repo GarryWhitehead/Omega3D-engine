@@ -15,6 +15,7 @@ namespace VulkanAPI
 class RenderPass;
 class VkContext;
 class Pipeline;
+class CmdBuffer;
 
 using CmdBufferHandle = uint64_t;
 
@@ -47,7 +48,7 @@ public:
 	*/
 	CmdBufferHandle newInstance(const uint32_t queueIndex);
 
-	std::unique_ptr<VulkanAPI::CmdBuffer>& beginNewFame(CmdBufferHandle handle);
+	std::unique_ptr<CmdBuffer>& beginNewFame(CmdBufferHandle handle);
 
 	/**
 	* @brief Submits all the command buffers registered with the manager to the appropiate queue

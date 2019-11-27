@@ -1,18 +1,19 @@
 #include "Renderer.h"
 
+#include "Core/scene.h"
 #include "Core/engine.h"
-
-#include "Components/CameraManager.h"
-#include "Components/LightManager.h"
-
-#include "PostProcess/PostProcessInterface.h"
 
 #include "Rendering/IblInterface.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Rendering/LightingPass.h"
 #include "Rendering/Skybox.h"
+#include "Rendering/RenderQueue.h"
 
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/CmdBuffer.h"
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+
+#include "Threading/ThreadPool.h"
 
 #include "Utility/logger.h"
 
@@ -48,7 +49,7 @@ void Renderer::prepare()
                 rStages.emplace_back(std::make_unique<LightingPass>());
                 break;
 		    case RenderStage::Skybox:
-			    rStages.emplace_back(std::make_unique<Skybox>());
+                rStages.emplace_back(std::make_unique<Skybox>());
 			    break;
         }
     }
@@ -59,7 +60,7 @@ void Renderer::prepare()
 void Renderer::draw()
 {
 	// update the unifom buffers on the backend
-	vkDriver.updateUbo();
+	scene.updateUbo();
 
 	// optimisation and compilation of the render graph. If nothing has changed since the last frame then this 
 	// call will just return.
@@ -70,6 +71,29 @@ void Renderer::draw()
 
 	// finally send to the swap-chain presentation
 	cmdBufferManager->submitFrame(vkInterface->getSwapchain());
+}
+
+void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type)
+{
+    VulkanAPI::CmdBuffer cbSecondary = cmdBuffer.createSecondary();
+    RenderQueue& queue = renderQueue.renderables;
+    
+    auto thread_draw = [&cbSecondary, &queue, &type](size_t start, size_t end)
+    {
+        auto& toDraw = queue.getRange(start, end, type);
+        for (size_t idx = start; idx < end; ++idx)
+        {
+            RenderableQueueInfo& info = toDraw[idx];
+            info.renderFunction(cbSecondary, info.renderableData);
+        }
+    };
+    
+    // split task up equally per thtread - using a new secondary cmd buffer per thread
+    size_t workSize = scene.renderQueue.size();
+    ThreadTaskSplitter split{ 0, workSize, thread_draw };
+    split.run();
+    
+    // check all task have finished here?
 }
 
 }    // namespace OmegaEngine

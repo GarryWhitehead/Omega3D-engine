@@ -1,6 +1,6 @@
 #include "RenderPass.h"
 
-#include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/VkContext.h"
 
 #include "utility/Logger.h"
 
@@ -9,14 +9,14 @@
 namespace VulkanAPI
 {
 
-RenderPass::RenderPass(VkDriver& driver)
-    : device(driver.getDevice())
+RenderPass::RenderPass(VkContext& cntext)
+    : device(context.getDevice())
 {
 }
 
 RenderPass::~RenderPass()
 {
-	device.destroy(renderpass);
+	device.destroy(renderpass, nullptr);
 }
 
 
@@ -283,46 +283,24 @@ void RenderPass::prepare()
 	VK_CHECK_RESULT(device.createRenderPass(&createInfo, nullptr, &renderpass));
 }
 
-vk::RenderPassBeginInfo RenderPass::getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index)
+void RenderPass::setClearColour(OEMaths::colour4& col)
 {
-	// set up clear colour for each colour attachment
-	clearValues.resize(attachment.size());
-	for (uint32_t i = 0; i < attachment.size(); ++i)
-	{
-		if (attachment[i].finalLayout == vk::ImageLayout::eDepthStencilAttachmentOptimal ||
-		    attachment[i].finalLayout == vk::ImageLayout::eDepthStencilReadOnlyOptimal)
-		{
-			clearValues[i].depthStencil = { 1.0f, 0 };
-		}
-		else
-		{
-			clearValues[i].color = backgroundColour;
-		}
-	}
-
-	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } },
-	                                  static_cast<uint32_t>(clearValues.size()), clearValues.data());
-
-	return beginInfo;
+    clearCol = col;
 }
 
-vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t size, vk::ClearValue* colour, uint32_t index)
+void RenderPass::setDepthClear(float col)
 {
-
-	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } }, size,
-	                                  colour);
-
-	return beginInfo;
+    depthClear = col;
 }
 
-vk::RenderPassBeginInfo RenderPass::getBeginInfo(uint32_t index)
+bool RenderPass::hasColourAttach()
 {
-	// Don't clear - retain the attachments from the last pass
+    
+}
 
-	vk::RenderPassBeginInfo beginInfo(renderpass, framebuffers[index], { { 0, 0 }, { imageWidth, imageHeight } }, 0,
-	                                  nullptr);
-
-	return beginInfo;
+bool RenderPass::hasDepthAttach()
+{
+    
 }
 
 // ========================= frame buffer =================================

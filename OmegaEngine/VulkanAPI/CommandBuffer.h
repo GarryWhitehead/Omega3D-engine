@@ -30,15 +30,10 @@ public:
 		Multi
 	};
 
-	CmdBuffer(VkContext& context, const CmdBufferType type, CommandBufferManager& cbManager);
+	CmdBuffer(VkContext& context, const CmdBufferType type, CmdBufferManager* cbManager = nullptr);
 	~CmdBuffer();
 
-	void createPrimary();
-
-	void beginRenderpass(vk::RenderPassBeginInfo& beginInfo, bool useSecondary = false);
-	void beginRenderpass(vk::RenderPassBeginInfo& beginInfo, vk::Viewport& viewPort);
-	void endRenderpass();
-	void end();
+	void prepare();
 
 	// viewport, scissors, etc.
 	void setViewport();
@@ -98,7 +93,7 @@ public:
 
 private:
 	
-	CmdBufferManager& cbManager;
+	CmdBufferManager* cbManager = nullptr;
 
 	// local vulkan context 
     VkContext& context;
@@ -116,7 +111,7 @@ private:
 	vk::Rect2D scissor;
 
 	// if were using, then store all secondary command buffers for dispatching on each thread
-	std::vector<CmdBuffer> secondarys;
+	std::vector<CmdBuffer> secondary;
     
 };
 

@@ -83,4 +83,7 @@ using vec4i16 = VecN<int16_t, 4>;
 using vec4i32 = VecN<int32_t, 4>;
 using vec4i64 = VecN<int64_t, 4>;
 
+// colour storage
+using colour4 = VecN<float, 4>;
+
 }    // namespace OEMaths

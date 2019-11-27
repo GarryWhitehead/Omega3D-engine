@@ -81,4 +81,7 @@ using vec3i16 = VecN<int16_t, 3>;
 using vec3i32 = VecN<int32_t, 3>;
 using vec3i64 = VecN<int64_t, 3>;
 
+// colour storage
+using colour3 = VecN<float, 3>;
+
 }    // namespace OEMaths

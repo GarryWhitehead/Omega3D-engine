@@ -12,7 +12,7 @@ namespace VulkanAPI
 
 // forward declerations
 class ProgramManager;
-class CommandBufferManager;
+class CmdBufferManager;
 class Buffer;
 class Texture;
 class VertexBuffer;
@@ -117,7 +117,7 @@ public:
 	void endFrame();
 
 	// ====== manager helper functions =========
-	CommandBufferManager& getCmdBufManager()
+	CmdBufferManager& getCmdBufManager()
 	{
 		return *cbManager;
 	}

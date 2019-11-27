@@ -20,18 +20,9 @@ GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, Util::String id, Renderabl
 {
 }
 
-bool GBufferFillPass::update(VulkanAPI::ShaderManager* manager)
-{
-	
-}
-
 bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 {
-	// create shaders for all material variants
-	if (!update(manager))
-	{
-		return false;
-	}
+	// shaders are prepared within the renderable manager for this pass
 
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkDriver::getDepthFormat(gpu);
@@ -54,13 +45,19 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 	gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
 	gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
-
-	builder.addExecute([](RenderContext& rInfo, RGraphContext& context) {
-
+    builder.setClearColour();
+    builder.setDepthClear();
+    
+	builder.addExecute([renderer](RenderContext& rInfo, RGraphContext& context)
+    {
+        VulkanAPI::CmdBuffer cmdBuffer = cbManager.getCmdBuffer(context.cbHandle);
+        
+        // draw the contents of the renderable rendder queue
+        renderer->drawQueue(cmdBuffer, RenderQueue::Type::GBuffer);
 	});
 }
 
-void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* instance)
+void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance)
 {
 	MeshInstance* instanceData = static_cast<MeshInstance*>(instance);
 
@@ -75,20 +72,18 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* instan
 	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
 	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
-	cmdBuffer->setViewport();
-	cmdBuffer->setScissor();
-	cmdBuffer->bindPipeline(state->pipeline);
+	cmdBuffer.bindPipeline(state->pipeline);
 
-	cmdBuffer->bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
+	cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
 	                                  dynamicOffsets);
-	cmdBuffer->bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
+	cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
 	                         sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-	cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer,
+	cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer,
 	                           instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
-	cmdBuffer->drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
+	cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 }
 
 

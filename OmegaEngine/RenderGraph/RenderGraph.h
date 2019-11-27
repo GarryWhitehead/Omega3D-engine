@@ -13,6 +13,7 @@ namespace VulkanAPI
 class CmdBuffer;
 class FrameBuffer;
 class RenderPass;
+class VkDriver;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -70,7 +71,11 @@ private:
 	struct ExecuteInfo
 	{
 		ExecuteFunc func;
+        
+        // a blob of data containing info relevant for the execute function
+        // Must be re-interpreted only within this context.
 		void* data = nullptr;
+        
 		uint32_t threads = 0;
 	};
 
@@ -98,11 +103,11 @@ private:
 	RenderGraphPass* childMergePass = nullptr;
 
 	// ======= vulkan specific ================
-	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
+	VulkanAPI::CmdBufferHanle cmdBuffer;
 	VulkanAPI::RenderPass* rpass = nullptr;
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
-	std::vector<VulkanAPI::FrameBuffer*> framebuffer;
+	std::vector<VulkanAPI::FrameBuffer> framebuffer;
 };
 
 /**
@@ -111,6 +116,7 @@ private:
 class RenderGraphBuilder
 {
 public:
+
 	RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass);
 
 	/**
@@ -152,6 +158,16 @@ private:
 class RenderGraph
 {
 public:
+    
+    RenderGraph(VkDriver& driver);
+    ~RenderGarph();
+    
+    // not copyable or moveable
+    RenderGraph(const RenderGraph&) = delete;
+    RenderGraph& operator=(const RenderGraph&) = delete;
+    RenderGraph(RenderGraph&&) = delete;
+    RenderGraph& operator=(RenderGraph&&) = delete;
+    
 	/**
 	* @brief Creates a new renderpass. 
 	* @param name The name of this pass
@@ -167,7 +183,6 @@ public:
 	* 3. 
 	*/
 	void prepare();
-
 
 	/**
 	* The execution of the render pass. You must build the pass and call **prepare** before this function
@@ -195,6 +210,9 @@ private:
 	bool compile();
 
 private:
+    
+    VkDriver& vkDriver;
+    
 	// a list of all the render passes
 	std::vector<RenderGraphPass> renderPasses;
 

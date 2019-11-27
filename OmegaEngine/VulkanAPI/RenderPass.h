@@ -4,6 +4,8 @@
 
 #include "VulkanAPI/VkDriver.h"
 
+#include "OEMaths/OEMaths.h"
+
 #include <assert.h>
 #include <cstdint>
 #include <unordered_map>
@@ -74,12 +76,15 @@ public:
 
 	// Actually creates the renderpass based on the above definitions
 	void prepare();
-
-	// for generating cmd buffer
-	vk::RenderPassBeginInfo getBeginInfo(vk::ClearColorValue& backgroundColour, uint32_t index = 0);
-	vk::RenderPassBeginInfo getBeginInfo(uint32_t size, vk::ClearValue* backgroundColour, uint32_t index = 0);
-	vk::RenderPassBeginInfo getBeginInfo(uint32_t index = 0);
-
+    
+    // sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
+    void setClearColour(OEMaths::colour4& col);
+    void setDepthClear(float col);
+    
+    // functions that return the state of various aspects of this pass
+    bool hasColourAttach();
+    bool hasDepthAttach();
+    
 private:
 	struct SubpassInfo
 	{
@@ -111,6 +116,10 @@ private:
 
 	// the dependencies between renderpasses and external sources
 	std::vector<vk::SubpassDependency> dependencies;
+    
+    // the clear colour for this pass - for each attachment
+    OEMaths::colour3 clearCol;
+    float depthClear = 0.0f;
 };
 
 class FrameBuffer
@@ -134,7 +143,8 @@ public:
 private:
 	// references
 	vk::Device device;
-
+    
+    // extents of this buffer
 	uint32_t width = 0;
 	uint32_t height = 0;
 
