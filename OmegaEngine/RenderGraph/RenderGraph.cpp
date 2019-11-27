@@ -180,7 +180,7 @@ RenderGraph::RenderGraph(VkDriver& driver) :
 {
 }
 
-RenderGraph::~RenderGarph()
+RenderGraph::~RenderGraph()
 {
 }
 

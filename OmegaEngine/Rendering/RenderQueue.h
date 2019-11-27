@@ -26,7 +26,9 @@ struct SortKey
 	float depth; // for transparency;
 };
 
-// all the information required to render
+/**
+* @brief All the information required to render the item to a cmd buffer
+*/
 struct RenderableQueueInfo
 {
 	// render callback function
@@ -45,7 +47,7 @@ class RenderQueue
 public:
 	
     /**
-     * @brief The type of queue to use when drawing
+     * @brief The type of queue to use when drawing. Only one at the moment!!
      */
     enum class Type
     {
@@ -84,7 +86,9 @@ public:
 	* @param sort Specifies whether the queue should be sorted before fetching
 	* @return A vector containing the renderables in the specified range
 	*/
-	std::vector<RenderableQueueInfo> getRange(const size_t start, const size_t end);
+	std::vector<RenderableQueueInfo> getRange(const size_t start, const size_t end, Type type);
+
+	friend class Renderer;
 
 private:
     

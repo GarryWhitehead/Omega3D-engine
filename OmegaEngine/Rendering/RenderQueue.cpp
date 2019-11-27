@@ -1,6 +1,8 @@
 #include "RenderQueue.h"
-#include "Rendering/RenderInterface.h"
+
 #include "Threading/ThreadPool.h"
+
+#include <cassert>
 
 namespace OmegaEngine
 {
@@ -27,8 +29,10 @@ std::vector<RenderableQueueInfo> RenderQueue::getAll(bool sort)
 	return getRange(0, renderables.size() - 1);
 }
 
-std::vector<RenderableQueueInfo> RenderQueue::getRange(const size_t start, const size_t end)
+std::vector<RenderableQueueInfo> RenderQueue::getRange(const size_t start, const size_t end, Type type)
 {
+	// Note:: type not used at present as only one queue type - for future use
+	
 	assert(end < renderables.size());
 	assert(start < end);
 

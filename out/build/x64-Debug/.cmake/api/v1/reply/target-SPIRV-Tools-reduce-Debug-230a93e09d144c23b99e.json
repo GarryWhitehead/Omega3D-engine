@@ -1,0 +1,606 @@
+{
+	"archive" : 
+	{
+		"commandFragments" : 
+		[
+			{
+				"fragment" : "/machine:x64",
+				"role" : "flags"
+			}
+		]
+	},
+	"artifacts" : 
+	[
+		{
+			"path" : "external/SPIRV-Tools/source/reduce/Debug/SPIRV-Tools-reduce.lib"
+		}
+	],
+	"backtrace" : 1,
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"add_library",
+			"install",
+			"target_link_libraries",
+			"include_directories",
+			"target_include_directories"
+		],
+		"files" : 
+		[
+			"external/SPIRV-Tools/source/reduce/CMakeLists.txt",
+			"external/SPIRV-Tools/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 78,
+				"parent" : 0
+			},
+			{
+				"command" : 1,
+				"file" : 0,
+				"line" : 95,
+				"parent" : 0
+			},
+			{
+				"command" : 2,
+				"file" : 0,
+				"line" : 87,
+				"parent" : 0
+			},
+			{
+				"file" : 1
+			},
+			{
+				"command" : 3,
+				"file" : 1,
+				"line" : 112,
+				"parent" : 4
+			},
+			{
+				"command" : 4,
+				"file" : 0,
+				"line" : 81,
+				"parent" : 0
+			}
+		]
+	},
+	"compileGroups" : 
+	[
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /MTd /Zi /Ob0 /Od /RTC1   /MP4 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /wd4800 /WX /EHs"
+				},
+				{
+					"fragment" : "/Yupch_source_reduce.h /FIpch_source_reduce.h /Fp$(IntDir)\\pch_source_reduce.pch /Zm300"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "SPIRV_CHECK_CONTEXT"
+				},
+				{
+					"define" : "SPIRV_COLOR_TERMINAL"
+				},
+				{
+					"define" : "SPIRV_WINDOWS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-headers/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52
+			]
+		},
+		{
+			"compileCommandFragments" : 
+			[
+				{
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -D_CRT_NONSTDC_NO_DEPRECATE -MP -D_USE_MATH_DEFINES=1 /MTd /Zi /Ob0 /Od /RTC1   /MP4 -D_CRT_SECURE_NO_WARNINGS -D_SCL_SECURE_NO_WARNINGS /wd4800 /WX /EHs"
+				},
+				{
+					"fragment" : "/Ycpch_source_reduce.h /Fp$(IntDir)\\pch_source_reduce.pch /Zm300"
+				}
+			],
+			"defines" : 
+			[
+				{
+					"define" : "SPIRV_CHECK_CONTEXT"
+				},
+				{
+					"define" : "SPIRV_COLOR_TERMINAL"
+				},
+				{
+					"define" : "SPIRV_WINDOWS"
+				}
+			],
+			"includes" : 
+			[
+				{
+					"backtrace" : 5,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-headers/include"
+				},
+				{
+					"backtrace" : 6,
+					"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools"
+				}
+			],
+			"language" : "CXX",
+			"sourceIndexes" : 
+			[
+				53
+			]
+		}
+	],
+	"dependencies" : 
+	[
+		{
+			"backtrace" : 3,
+			"id" : "SPIRV-Tools::@1ff997bb6f27c61d214b"
+		},
+		{
+			"backtrace" : 3,
+			"id" : "SPIRV-Tools-opt::@b20417be42203b59e848"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "SPIRV-Tools libraries"
+	},
+	"id" : "SPIRV-Tools-reduce::@9283aa6f095013631c5c",
+	"install" : 
+	{
+		"destinations" : 
+		[
+			{
+				"backtrace" : 2,
+				"path" : "lib"
+			}
+		],
+		"prefix" : 
+		{
+			"path" : "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/install/x64-Debug"
+		}
+	},
+	"name" : "SPIRV-Tools-reduce",
+	"nameOnDisk" : "SPIRV-Tools-reduce.lib",
+	"paths" : 
+	{
+		"build" : "external/SPIRV-Tools/source/reduce",
+		"source" : "external/SPIRV-Tools/source/reduce"
+	},
+	"sourceGroups" : 
+	[
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				0,
+				1,
+				2,
+				3,
+				4,
+				5,
+				6,
+				7,
+				8,
+				9,
+				10,
+				11,
+				12,
+				13,
+				14,
+				15,
+				16,
+				17,
+				18,
+				19,
+				20,
+				21,
+				22,
+				23,
+				24,
+				25,
+				26
+			]
+		},
+		{
+			"name" : "Source Files",
+			"sourceIndexes" : 
+			[
+				27,
+				28,
+				29,
+				30,
+				31,
+				32,
+				33,
+				34,
+				35,
+				36,
+				37,
+				38,
+				39,
+				40,
+				41,
+				42,
+				43,
+				44,
+				45,
+				46,
+				47,
+				48,
+				49,
+				50,
+				51,
+				52,
+				53
+			]
+		}
+	],
+	"sources" : 
+	[
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/change_operand_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/change_operand_to_undef_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/merge_blocks_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/merge_blocks_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_const_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_undef_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_dominating_id_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/reducer.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_pass.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_util.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_block_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_block_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_instruction_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_function_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_function_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_opname_instruction_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_selection_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_selection_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_unreferenced_instruction_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/structured_loop_to_selection_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/structured_loop_to_selection_reduction_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/conditional_branch_to_simple_conditional_branch_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/conditional_branch_to_simple_conditional_branch_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/simple_conditional_branch_to_branch_opportunity_finder.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/simple_conditional_branch_to_branch_reduction_opportunity.h",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/change_operand_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/change_operand_to_undef_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/merge_blocks_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/merge_blocks_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_const_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_undef_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/operand_to_dominating_id_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/reducer.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_pass.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/reduction_util.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_block_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_block_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_function_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_function_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_instruction_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_selection_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_selection_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_unreferenced_instruction_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/remove_opname_instruction_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/structured_loop_to_selection_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/structured_loop_to_selection_reduction_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/conditional_branch_to_simple_conditional_branch_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/conditional_branch_to_simple_conditional_branch_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/simple_conditional_branch_to_branch_opportunity_finder.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "external/SPIRV-Tools/source/reduce/simple_conditional_branch_to_branch_reduction_opportunity.cpp",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 1,
+			"path" : "external/SPIRV-Tools/source/reduce/pch_source_reduce.cpp",
+			"sourceGroupIndex" : 1
+		}
+	],
+	"type" : "STATIC_LIBRARY"
+}

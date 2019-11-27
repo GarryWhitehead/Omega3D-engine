@@ -17,6 +17,7 @@ namespace VulkanAPI
 class Swapchain;
 class VkDriver;
 class ShaderManager;
+class CmdBuffer;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -80,7 +81,7 @@ public:
 	*/
 	void draw();
     
-    void drawQueue(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type);
+    void drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type);
     
 	using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 
@@ -91,9 +92,6 @@ private:
 
 	/// IBL environment mapping handler
 	Ibl::IblImage ibl;
-
-	/// current render context
-	RenderContext rContext;
     
     /// Filled by visible renderables obtained from the scene
     RenderQueue renderQueue;

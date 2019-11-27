@@ -2,6 +2,8 @@
 
 #include "RenderGraph/Resources.h"
 
+#include "VulkanAPI/Managers/CommandBufferManager.h"
+
 #include "utility/String.h"
 
 #include <functional>
@@ -10,6 +12,8 @@
 // forward decleartion
 namespace VulkanAPI
 {
+class ShaderManager;
+class CmdBufferManager;
 class CmdBuffer;
 class FrameBuffer;
 class RenderPass;
@@ -22,14 +26,25 @@ namespace OmegaEngine
 // forward decleration
 class RenderGraph;
 class RenderGraphPass;
-class RenderContext;
+class Renderer;
 
+/**
+* @brief A useful container for grouping together render graph variables for use externally
+*/
 struct RGraphContext
 {
-	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
+	VulkanAPI::CmdBufferHandle cmdBuffer;
+	VulkanAPI::RenderPass* rpass = nullptr;
+
+	// useful vulkan managers
+	VulkanAPI::ShaderManager* shaderManager = nullptr;
+	VulkanAPI::CmdBufferManager* cbManager = nullptr;
+
+	// keep track of the renderer
+	Renderer* renderer = nullptr;
 };
 
-using ExecuteFunc = std::function<void(RGraphContext&, RenderContext&)>;
+using ExecuteFunc = std::function<void(RGraphContext&)>;
 
 class RenderGraphPass
 {
@@ -71,11 +86,11 @@ private:
 	struct ExecuteInfo
 	{
 		ExecuteFunc func;
-        
-        // a blob of data containing info relevant for the execute function
-        // Must be re-interpreted only within this context.
+
+		// a blob of data containing info relevant for the execute function
+		// Must be re-interpreted only within this context.
 		void* data = nullptr;
-        
+
 		uint32_t threads = 0;
 	};
 
@@ -103,8 +118,8 @@ private:
 	RenderGraphPass* childMergePass = nullptr;
 
 	// ======= vulkan specific ================
-	VulkanAPI::CmdBufferHanle cmdBuffer;
-	VulkanAPI::RenderPass* rpass = nullptr;
+	// Kept in a struct as this will be passed around when rendering passes
+	RGraphContext context;
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
 	std::vector<VulkanAPI::FrameBuffer> framebuffer;
@@ -116,7 +131,6 @@ private:
 class RenderGraphBuilder
 {
 public:
-
 	RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass);
 
 	/**
@@ -158,16 +172,15 @@ private:
 class RenderGraph
 {
 public:
-    
-    RenderGraph(VkDriver& driver);
-    ~RenderGarph();
-    
-    // not copyable or moveable
-    RenderGraph(const RenderGraph&) = delete;
-    RenderGraph& operator=(const RenderGraph&) = delete;
-    RenderGraph(RenderGraph&&) = delete;
-    RenderGraph& operator=(RenderGraph&&) = delete;
-    
+	RenderGraph(VkContext& context);
+	~RenderGraph();
+
+	// not copyable or moveable
+	RenderGraph(const RenderGraph&) = delete;
+	RenderGraph& operator=(const RenderGraph&) = delete;
+	RenderGraph(RenderGraph&&) = delete;
+	RenderGraph& operator=(RenderGraph&&) = delete;
+
 	/**
 	* @brief Creates a new renderpass. 
 	* @param name The name of this pass
@@ -210,9 +223,8 @@ private:
 	bool compile();
 
 private:
-    
-    VkDriver& vkDriver;
-    
+	VulkanAPI::VkDriver& vkDriver;
+
 	// a list of all the render passes
 	std::vector<RenderGraphPass> renderPasses;
 

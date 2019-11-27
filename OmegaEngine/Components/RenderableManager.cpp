@@ -31,9 +31,6 @@ void RenderableManager::addMesh(MeshInstance& mesh, const size_t idx, const size
 {
 	Renderable rend;
 
-	rend.vertOffset = vertices.size();
-	rend.idxOffset = indices.size();
-
 	// copy the meshes into the main buffer
 	std::copy(mesh.vertices.begin(), mesh.vertices.end(), vertices.end());
 
@@ -47,7 +44,7 @@ void RenderableManager::addMesh(MeshInstance& mesh, const size_t idx, const size
 	// the offset
 	if (offset >= 0)    //< a value of -1 indicate no materials for this renderable
 	{
-		for (auto& prim : rend.primitives)
+		for (auto& prim : rend.instance.primitives)
 		{
 			assert(prim.materialId >= 0);
 			prim.materialId += offset;

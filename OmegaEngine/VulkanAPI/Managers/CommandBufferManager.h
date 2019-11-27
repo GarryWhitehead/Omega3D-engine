@@ -16,6 +16,7 @@ class RenderPass;
 class VkContext;
 class Pipeline;
 class CmdBuffer;
+class ShaderProgram;
 
 using CmdBufferHandle = uint64_t;
 
@@ -23,7 +24,7 @@ class CmdBufferManager
 {
 public:
     
-	CmdBufferManager(VkDriver& driver);
+	CmdBufferManager(VkContext& context);
 	~CmdBufferManager();
 
 	// not copyable
@@ -32,7 +33,7 @@ public:
 
 	/**
 	* @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to the pipeline if
-	* this it does, otherwise nullptr
+	* it does, otherwise nullptr
 	*/
 	Pipeline* findOrCreatePipeline(const ShaderHandle handle, RenderPass* rPass);
 
@@ -46,7 +47,7 @@ public:
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
 	* @param queueType The queue which this cmd buffer will be submitted to.
 	*/
-	CmdBufferHandle newInstance(const uint32_t queueIndex);
+	CmdBufferHandle newInstance();
 
 	std::unique_ptr<CmdBuffer>& beginNewFame(CmdBufferHandle handle);
 
@@ -65,6 +66,11 @@ public:
 	* returns a cmdbuffer based on the specified handle 
 	*/
 	std::unique_ptr<CmdBuffer>& getCmdBuffer(CmdBufferHandle handle);
+
+
+	// =============== renderpass functions ================================
+
+	void beginRenderpass(const CmdBufferHandle handle, RenderPass& rpass, FrameBuffer& fbuffer);
 
 	bool isRecorded(CmdBufferHandle handle)
 	{
@@ -96,9 +102,8 @@ private:
 	// =============== pipeline hasher ======================
 	struct PLineHash
 	{
-		PLineHash() = default;
-
-		ShaderHandle shader;
+		// first three comprise the shader hash
+		ShaderProgram* prog;
         RenderPass* pass;
 	};
 
@@ -106,7 +111,7 @@ private:
 	{
 		size_t operator()(PLineHash const& id) const noexcept
 		{
-			size_t h1 = std::hash<ShaderHandle>{}(id.shader);
+			size_t h1 = std::hash<const char*>{}(id.prog);
 			size_t h2 = std::hash<RenderPass*>{}(id.pass);
 			return h1 ^ (h2 << 1);
 		}
@@ -116,7 +121,7 @@ private:
 	{
 		bool operator()(const PLineHash& lhs, const PLineHash& rhs) const
 		{
-            return lhs.shader == rhs.shader && lhs.pass == rhs.pass;
+            return lhs.prog == rhs.prog && lhs.pass == rhs.pass;
 		}
 	};
     

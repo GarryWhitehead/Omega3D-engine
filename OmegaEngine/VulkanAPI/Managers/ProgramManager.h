@@ -353,6 +353,7 @@ public:
 	*/
 	bool hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
 
+	friend class CmdBufferManager;
 
 private:
 	// =============== shader hasher ======================

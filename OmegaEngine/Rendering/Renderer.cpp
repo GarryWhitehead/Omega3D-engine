@@ -59,8 +59,10 @@ void Renderer::prepare()
 
 void Renderer::draw()
 {
+	auto& vkDriver = engine.getVkDriver();
+	
 	// update the unifom buffers on the backend
-	scene.updateUbo();
+	vkDriver.updateUbo();
 
 	// optimisation and compilation of the render graph. If nothing has changed since the last frame then this 
 	// call will just return.
@@ -70,30 +72,32 @@ void Renderer::draw()
 	rGraph.execute();
 
 	// finally send to the swap-chain presentation
-	cmdBufferManager->submitFrame(vkInterface->getSwapchain());
+	vkDriver.submitFrame(swapchain);
 }
 
-void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type)
+void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type, RGraphContext& context)
 {
     VulkanAPI::CmdBuffer cbSecondary = cmdBuffer.createSecondary();
-    RenderQueue& queue = renderQueue.renderables;
-    
-    auto thread_draw = [&cbSecondary, &queue, &type](size_t start, size_t end)
+	auto& queue = renderQueue.renderables;
+
+    auto thread_draw = [&cbSecondary, &queue, &type, &context](size_t start, size_t end)
     {
-        auto& toDraw = queue.getRange(start, end, type);
-        for (size_t idx = start; idx < end; ++idx)
+		assert(end < queue.size());
+		assert(start < end);
+		for (size_t idx = start; idx < end; ++idx)
         {
-            RenderableQueueInfo& info = toDraw[idx];
-            info.renderFunction(cbSecondary, info.renderableData);
+            RenderableQueueInfo& info = queue[idx];
+            info.renderFunction(cbSecondary, info.renderableData, context);
         }
     };
     
     // split task up equally per thtread - using a new secondary cmd buffer per thread
-    size_t workSize = scene.renderQueue.size();
+    size_t workSize = renderQueue.renderables.size();
     ThreadTaskSplitter split{ 0, workSize, thread_draw };
     split.run();
     
-    // check all task have finished here?
+	// check all task have finished here before execute?
+	cmdBuffer.executeSecondary();
 }
 
 }    // namespace OmegaEngine

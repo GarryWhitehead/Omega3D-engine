@@ -8,8 +8,8 @@
 namespace VulkanAPI
 {
 
-CmdBufferManager::CmdBufferManager(VkDriver& driver)
-    : driver(driver)
+CmdBufferManager::CmdBufferManager(VkContext& context)
+    : context(context)
 {
 }
 
@@ -42,20 +42,27 @@ DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle)
     
 }
 
-CmdBufferHandle CmdBufferManager::newInstance(const CmdBuffer::CmdBufferType type, const uint32_t queueIndex)
+CmdBufferHandle CmdBufferManager::newInstance()
 {
     CmdBufferInfo bufferInfo;
+	vk::Device dev = context.getDevice();
 
-	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(driver, type, queueIndex, *this);
 	bufferInfo.queueIndex = queueIndex;
 
 	// create a fence which will be used to sync things
 	vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-	VK_CHECK_RESULT(driver.getDevice().createFence(&fence_info, nullptr, &bufferInfo.fence));
-	VK_CHECK_RESULT(driver.getDevice().resetFences(1, &bufferInfo.fence));
+	VK_CHECK_RESULT(dev.createFence(&fence_info, nullptr, &bufferInfo.fence));
+	VK_CHECK_RESULT(dev.resetFences(1, &bufferInfo.fence));
 
 	// and the semaphore used to sync between queues
 	bufferInfo.semaphore = semaphoreManager->getSemaphore();
+
+	// create the cmd pool - one per cmd buffer
+	vk::CommandPoolCreateInfo createInfo{ vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queueFamilyIndx };
+	dev.createCommandPool(&createInfo, nullptr, &bufferInfo.cmdPool);
+
+	// and create the cmd buffer
+	bufferInfo.cmdBuffer = std::make_unique<CmdBuffer>(context, type, queueIndex, *this);
 
 	cmdBuffers.emplace_back(std::move(bufferInfo));
 
@@ -70,12 +77,13 @@ std::unique_ptr<CmdBuffer>& CmdBufferManager::getCmdBuffer(CmdBufferHandle handl
 
 std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferHandle handle)
 {
+	vk::Device dev = context.getDevice();
 
     // ensure that the cmd buffer is finished with before creating a new one
     // TODO: this could slow things down if we have to wait for cmd bufefrs to finish before
     // continuing so instead have two or three buffers per handle and switch between them
-    VK_CHECK_RESULT(driver->getDevice().waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
-    VK_CHECK_RESULT(driver->getDevice().resetFences(1, &cmdBuffers[handle].fence));
+    VK_CHECK_RESULT(dev.waitForFences(1, &cmdBuffers[handle].fence, VK_TRUE, UINT64_MAX));
+    VK_CHECK_RESULT(dev.resetFences(1, &cmdBuffers[handle].fence));
 
     // create a new buffer - the detructors will worry about destroying everything
     // or just reset?

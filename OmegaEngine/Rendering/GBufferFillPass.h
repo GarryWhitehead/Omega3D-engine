@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Rendering/Renderer.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Rendering/Renderer.h"
 
 #include "VulkanAPI/Shader.h"
 
@@ -10,7 +10,7 @@ namespace VulkanAPI
 {
 class ShaderManager;
 class CmdBuffer;
-}
+}    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
@@ -50,20 +50,16 @@ public:
 	GBufferFillPass(const GBufferFillPass&) = delete;
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
 
-	/**
-	* @brief This should be called if the materials list held by the renderable manager has been updated.
-	*/
-	bool update(VulkanAPI::ShaderManager* manager);
-
-    bool prepare(VulkanAPI::ShaderManager* manager) override;
-
-	// draw callback function used in the render queue
-	void drawCallback(VulkanAPI::CmdBuffer* cmdBuffer,void* instance);
+	/// creates a new renderpass with the required inputs/outputs and prepares the render func
+	bool prepare(VulkanAPI::ShaderManager* manager) override;
 
 private:
-    
-    Renderer* renderer = nullptr;
-    
+
+	// draw callback function used in the render queue
+	void drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance, RGraphContext& context);
+
+private:
+
 	// reference to the render graph associated with this pass
 	RenderGraph& rGraph;
 

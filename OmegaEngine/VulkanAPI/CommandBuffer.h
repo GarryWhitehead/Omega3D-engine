@@ -18,19 +18,20 @@ class CmdBuffer
 {
 
 public:
-	enum class CmdBufferType
+	enum class Type
 	{
 		Primary,
 		Secondary
 	};
 
-	enum class UsageType
+	enum class Usage
 	{
 		Single,
 		Multi
 	};
 
-	CmdBuffer(VkContext& context, const CmdBufferType type, CmdBufferManager* cbManager = nullptr);
+	CmdBuffer(VkContext& context, const Type type, vk::CommandPool* cmdPool = nullptr,
+	          CmdBufferManager* cbManager = nullptr);
 	~CmdBuffer();
 
 	void prepare();
@@ -93,15 +94,13 @@ public:
 
 private:
 	
-	CmdBufferManager* cbManager = nullptr;
-
 	// local vulkan context 
     VkContext& context;
-    
-	CmdBufferType type;
+	vk::CommandPool* cmdPool = nullptr;
+	CmdBufferManager* cbManager = nullptr;
 
-	// the type of cmd buffer, single or multi use, will decide the types of cmd pool, etc. to use
-	UsageType usageType;
+	// primary or secondary buffer
+	CmdBufferType type;
 
 	// primary command buffer
 	vk::CommandBuffer cmdBuffer;

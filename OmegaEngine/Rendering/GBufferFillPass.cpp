@@ -4,9 +4,9 @@
 
 #include "Components/RenderableManager.h"
 
+#include "VulkanAPI/common.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
-#include "VulkanAPI/common.h"
 
 #include "utility/Logger.h"
 
@@ -45,21 +45,24 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 	gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
 	gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
-    builder.setClearColour();
-    builder.setDepthClear();
-    
-	builder.addExecute([renderer](RenderContext& rInfo, RGraphContext& context)
-    {
-        VulkanAPI::CmdBuffer cmdBuffer = cbManager.getCmdBuffer(context.cbHandle);
-        
-        // draw the contents of the renderable rendder queue
-        renderer->drawQueue(cmdBuffer, RenderQueue::Type::GBuffer);
+	builder.setClearColour();
+	builder.setDepthClear();
+
+	builder.addExecute([](RGraphContext& context) {
+		// for me old sanity!
+		assert(context.cbManager);
+		assert(context.renderer);
+		auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
+
+		// draw the contents of the renderable rendder queue
+		Renderer* renderer = context.renderer;
+		renderer->drawQueueThreaded(*cmdBuffer, RenderQueue::Type::Colour);
 	});
 }
 
-void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance)
+void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, RGraphContext& context)
 {
-	MeshInstance* instanceData = static_cast<MeshInstance*>(instance);
+	MeshInstance* instance = static_cast<MeshInstance*>(data);
 
 	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
 	if (instanceData->type == StateMesh::Skinned)
@@ -72,17 +75,38 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instan
 	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
 	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
-	cmdBuffer.bindPipeline(state->pipeline);
+	VulkanAPI::ShaderManager* pgManager = context.shaderManager;
+	VulkanAPI::CmdBufferManager* cbManager = context.cbManager;
 
-	cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics,
-	                                  dynamicOffsets);
+	// ================= create shader variant if needed ===============================
+	uint64_t mergedVariant = instance.mesh.variantBits.getUint64() + instance.mat.variantBits.getUint64();
+
+	VulkanAPI::ShaderProgram* prog = pgManager->findProgram(Renderable::name, instance.renderState, mergedVariant);
+	if (!prog)
+	{
+		// vertex
+		VulkanAPI::ShaderDescriptor* mesh_descr =
+		    manager->getCachedStage(Renderable::name, instance.renderState, rend.variantBits);
+		// fragment
+		VulkanAPI::ShaderDescriptor* mat_descr =
+		    manager->getCachedStage(Material::name, rend.renderBlockState, rend.variantBits);
+		// create new program
+		prog = pgManager->create(mesh_descr, mat_descr);
+
+	}
+
+	// ==================== bindings ==========================
+
+	cmdBuffer.bindPipeline(prog, context.renderpass);
+
+	cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
 	cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
-	                         sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
+	                        sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
 	cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
 	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer,
-	                           instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
+	                          instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
 	cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 }
 

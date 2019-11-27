@@ -510,7 +510,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	program.descrLayouts.resize(compilerInfo.groupSize + 1);
 
 	// prepare the bindings for each stage
-	ShaderParser::ShaderDescriptor* currShader = compilerInfo.vertShader.get();
+	ShaderDescriptor* currShader = compilerInfo.vertShader.get();
 	do
 	{
 		prepareBindings(compilerInfo.vertShader.get(), bind);

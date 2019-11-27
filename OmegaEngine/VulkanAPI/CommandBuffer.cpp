@@ -3,9 +3,11 @@
 #include "OEMaths/OEMaths.h"
 
 #include "VulkanAPI/Descriptors.h"
-#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/VkContext.h"
+
+#include <cassert>
 
 namespace VulkanAPI
 {
@@ -29,15 +31,16 @@ vk::PipelineBindPoint createBindPoint(PipelineType type)
 }
 
 
-CmdBuffer::CmdBuffer(VkContext& context, const CmdBufferType type, CmdBufferManager* cbManager)
-    : context(context),
+CmdBuffer::CmdBuffer(VkContext& context, const Type type, vk::CommandPool* cmdPool, CmdBufferManager* cbManager)
+    : context(context)
     , type(type)
-	, cbManager(cbManager)
+    , cmdPool(cmdPool)
+    , cbManager(cbManager)
 {
-    if (type == CmdBufferType::Primary)
-    {
-        prepare();
-    }
+	if (type == Type::Primary)
+	{
+		prepare();
+	}
 }
 
 CmdBuffer::~CmdBuffer()
@@ -46,20 +49,11 @@ CmdBuffer::~CmdBuffer()
 
 void CmdBuffer::prepare()
 {
-	vk::CommandBufferAllocateInfo allocInfo(cmdPool, vk::CommandBufferLevel::ePrimary, 1);
+	vk::CommandBufferAllocateInfo allocInfo(*cmdPool, vk::CommandBufferLevel::ePrimary, 1);
 
-	VK_CHECK_RESULT(device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
+	VK_CHECK_RESULT(context.getDevice().allocateCommandBuffers(&allocInfo, &cmdBuffer));
 
-	vk::CommandBufferUsageFlags usageFlags;
-	if (usageType == UsageType::Single)
-	{
-		usageFlags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
-	}
-	else
-	{
-		usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
-	}
-
+	vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 	vk::CommandBufferBeginInfo beginInfo(usageFlags, 0);
 	VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
@@ -126,20 +120,20 @@ void CmdBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
 
 void CmdBuffer::executeSecondary(size_t count)
 {
-	assert(!secondarys.empty());
+	assert(!secondary.empty());
 
 	// zero value indicates to execute all cmd buffers
 	if (count == 0)
 	{
-		count = secondarys.size();
+		count = secondary.size();
 	}
-	assert(count < secondarys.size());
+	assert(count < secondary.size());
 
 	// trasnfer all the secondary cmd buffers into a container for execution
-	std::vector<vk::CommandBuffer> executeCmdBuffers(secondarys.size());
-	for (uint32_t i = 0; i < secondarys.size(); ++i)
+	std::vector<vk::CommandBuffer> executeCmdBuffers(secondary.size());
+	for (uint32_t i = 0; i < secondary.size(); ++i)
 	{
-		executeCmdBuffers[i] = secondarys[i].get();
+		executeCmdBuffers[i] = secondary[i].get();
 	}
 
 	cmdBuffer.executeCommands(static_cast<uint32_t>(executeCmdBuffers.size()), executeCmdBuffers.data());
@@ -148,17 +142,19 @@ void CmdBuffer::executeSecondary(size_t count)
 CmdBuffer& CmdBuffer::createSecondary()
 {
 	CmdBuffer secBuffer = *this;
-	secBuffer.create();
+	secBuffer.prepare();
 	secondary.emplace_back(secBuffer);
 	return secondary.back();
 }
 
 void CmdBuffer::createSecondary(size_t count)
 {
-	secondarys.resize(count);
+	secondary.resize(count);
 	for (uint32_t i = 0; i < count; ++i)
 	{
-		secondarys[i] = { device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor,  };
+		secondary[i] = {
+			device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor,
+		};
 		secondarys[i].create();
 	}
 }
@@ -177,35 +173,23 @@ void CmdBuffer::drawQuad()
 // ================= queue functions ============================
 void CmdBuffer::flush()
 {
-    vk::Queue queue = context.getGraphQueue();
-    vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
+	vk::Queue queue = context.getGraphQueue();
+	vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
 
-    VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
-    queue.waitIdle();
+	VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
+	queue.waitIdle();
 }
 
-void CmdBuffer::submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore,
-                            vk::Fence& fence)
+void CmdBuffer::submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence)
 {
-    vk::Queue queue = context.getGraphQueue();
-    vk::PipelineStageFlags stageFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+	vk::Queue queue = context.getGraphQueue();
+	vk::PipelineStageFlags stageFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
-    vk::SubmitInfo submitInfo(1, &waitSemaphore, &stageFlag, 1, &cmdBuffer, 1, &signalSemaphore);
+	vk::SubmitInfo submitInfo(1, &waitSemaphore, &stageFlag, 1, &cmdBuffer, 1, &signalSemaphore);
 
-    VK_CHECK_RESULT(queue.submit(1, &submitInfo, fence));
-    queue.waitIdle();
+	VK_CHECK_RESULT(queue.submit(1, &submitInfo, fence));
+	queue.waitIdle();
 }
 
-// command pool functions =====================================================================
-
-void CommandBuffer::createCmdPool()
-{
-	vk::CommandPoolCreateInfo createInfo(usageType == UsageType::Single ?
-	                                         vk::CommandPoolCreateFlagBits::eTransient :
-	                                         vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-	                                     queueFamilyIndex);
-
-	device.createCommandPool(&createInfo, nullptr, &cmdPool);
-}
 
 }    // namespace VulkanAPI
