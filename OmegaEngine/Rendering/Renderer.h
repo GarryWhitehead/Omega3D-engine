@@ -16,7 +16,7 @@ namespace VulkanAPI
 // forward declearions
 class Swapchain;
 class VkDriver;
-class ShaderManager;
+class ProgramManager;
 class CmdBuffer;
 }    // namespace VulkanAPI
 
@@ -36,7 +36,7 @@ public:
 	}
 
 	// ====== abstract functions ========
-	virtual bool prepare(VulkanAPI::ShaderManager* manager) = 0;
+	virtual bool prepare(VulkanAPI::ProgramManager* manager) = 0;
 
 protected:
     
@@ -70,12 +70,19 @@ public:
 
 	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain);
 	~Renderer();
-
+    
 	/**
      * @brief Creates all render stages needed for the rendering pipeline
      */
 	void prepare();
-
+    
+    void beginFrame();
+    
+    /**
+     * @brief Priimarily iterates over all visible renderable data within the scene and ceates the render queue.
+     */
+    void update();
+    
 	/**
 	* @brief Draws into the cmd buffers all the data that is currently held by the scene
 	*/

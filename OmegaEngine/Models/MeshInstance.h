@@ -45,12 +45,16 @@ public:
 		Primitive() = default;
 
 		Dimensions dimensions;
-		int32_t materialId = -1;  ///< set once added to the renderable manager
 
 		// index offsets
 		uint32_t indexBase = 0;
 		uint32_t indexCount = 0;
-
+        
+        // ============ vulakn backend ==========================
+        // set by calling **update**
+        uint32_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
+        uint32_t indexPrimitiveCount;
+        
 		// this is set by the renderable manager as is the mesh + material merged variants
 		uint64_t mergedVariant = 0;
 	};

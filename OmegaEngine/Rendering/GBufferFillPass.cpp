@@ -4,6 +4,8 @@
 
 #include "Components/RenderableManager.h"
 
+#include "Models/MaterialInstance.h"
+
 #include "VulkanAPI/common.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
@@ -20,7 +22,7 @@ GBufferFillPass::GBufferFillPass(RenderGraph& rGraph, Util::String id, Renderabl
 {
 }
 
-bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
+bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// shaders are prepared within the renderable manager for this pass
 
@@ -62,7 +64,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ShaderManager* manager)
 
 void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, RGraphContext& context)
 {
-	MeshInstance* instance = static_cast<MeshInstance*>(data);
+	Renderable* render = static_cast<Renderable*>(data);
 
 	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
 	if (instanceData->type == StateMesh::Skinned)
@@ -75,21 +77,21 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
 	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
 
-	VulkanAPI::ShaderManager* pgManager = context.shaderManager;
+	VulkanAPI::ProgramManager* pgManager = context.ProgramManager;
 	VulkanAPI::CmdBufferManager* cbManager = context.cbManager;
 
 	// ================= create shader variant if needed ===============================
-	uint64_t mergedVariant = instance.mesh.variantBits.getUint64() + instance.mat.variantBits.getUint64();
+	uint64_t mergedVariant = instance.mesh.variantBits.getUint64() + render->mat.variantBits.getUint64();
 
-	VulkanAPI::ShaderProgram* prog = pgManager->findProgram(Renderable::name, instance.renderState, mergedVariant);
+	VulkanAPI::ShaderProgram* prog = pgManager->findProgram(Renderable::name, render->renderState, render->mergedVariant);
 	if (!prog)
 	{
 		// vertex
 		VulkanAPI::ShaderDescriptor* mesh_descr =
-		    manager->getCachedStage(Renderable::name, instance.renderState, rend.variantBits);
+		    manager->getCachedStage(Renderable::name, render->renderState, render->variantBits);
 		// fragment
 		VulkanAPI::ShaderDescriptor* mat_descr =
-		    manager->getCachedStage(Material::name, rend.renderBlockState, rend.variantBits);
+		    manager->getCachedStage(Material::name, render->renderState, render->variantBits);
 		// create new program
 		prog = pgManager->create(mesh_descr, mat_descr);
 
@@ -99,15 +101,16 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 
 	cmdBuffer.bindPipeline(prog, context.renderpass);
 
-	cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
-	cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
-	                        sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
+	cmdBuffer.bindDynamicDescriptors(prog, dynamicOffsets, VulkanAPI::Pipeline::Type::Graphics);
+    
+	cmdBuffer.bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment,
+	                        sizeof(MaterialInstance::MaterialBlock), &render->material->instance.block);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer,
-	                          instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
-	cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
+	cmdBuffer.bindVertexBuffer(render->vertexBuffer.buffer, offset);
+	cmdBuffer.bindIndexBuffer(render->indexBuffer.buffer,
+	                          render->indexBuffer.offset + (render->indexOffset * sizeof(uint32_t)));
+	cmdBuffer.drawIndexed(render->indexPrimitiveCount, render->indexPrimitiveOffset);
 }
 
 

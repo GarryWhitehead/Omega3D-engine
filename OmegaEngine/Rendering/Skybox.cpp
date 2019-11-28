@@ -17,7 +17,7 @@ Skybox::~Skybox()
 {
 }
 
-bool Skybox::prepare(VulkanAPI::ShaderManager* manager)
+bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 {
 	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 

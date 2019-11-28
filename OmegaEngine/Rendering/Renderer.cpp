@@ -3,6 +3,8 @@
 #include "Core/scene.h"
 #include "Core/engine.h"
 
+#include "Components/RenderableManger.h"
+
 #include "Rendering/IblInterface.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Rendering/LightingPass.h"
@@ -57,10 +59,34 @@ void Renderer::prepare()
 	iblInterface->renderMaps(*vkInterface);
 }
 
+void Renderer::beginFrame()
+{
+    // render queues are built each frame
+    renderQueue.reset();
+}
+
+void Renderer::update()
+{
+    // uopdate the render queue with visible renderables derived from the scene
+    // NOTE: makes sure that you have updated the scene before calling this!
+    RenderableManager& manager = engine.getRendManager();
+    
+    for (const Renderable& rend : manager.renderables)
+    {
+        RenderableQueueInfo queueInfo;
+        // we use the renderable data as it is, rather than waste time copying everything into another struct.
+        // This method does mean that it is imperative that the data isnt destroyed until the beginning of the next
+        // frame ad that the data isn't written too - we aren't using guards though this might be required.
+        queueInfo.renderableData = &rend;
+        queueInfo.renderableHandle = this;
+        queueInfo.renderFunction = GBufferFillPass::drawCallback;
+        queueInfo.sortingKey = RenderQueue::createSortKey(Layer::Default, rend.materialId, rend.variant);
+        renderQueue.push(queueInfo);
+    }
+}
+
 void Renderer::draw()
 {
-	auto& vkDriver = engine.getVkDriver();
-	
 	// update the unifom buffers on the backend
 	vkDriver.updateUbo();
 

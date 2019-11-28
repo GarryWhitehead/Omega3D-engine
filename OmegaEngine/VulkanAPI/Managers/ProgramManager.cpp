@@ -609,12 +609,12 @@ void ShaderProgram::prepareStage(ShaderDescriptor* shader, VariantMap& variantDe
 }
 
 // =================== Shader Manager ==================
-ShaderManager::ShaderManager(VkDriver& context)
+ProgramManager::ProgramManager(VkDriver& context)
     : context(context)
 {
 }
 
-ShaderManager::~ShaderManager()
+ProgramManager::~ProgramManager()
 {
 	for (auto& program : programs)
 	{
@@ -625,7 +625,7 @@ ShaderManager::~ShaderManager()
 	}
 }
 
-ShaderProgram* ShaderManager::createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+ShaderProgram* ProgramManager::createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
 {
 	ShaderProgram* instance = new ShaderProgram();
 
@@ -634,7 +634,7 @@ ShaderProgram* ShaderManager::createNewInstance(Util::String name, RenderStateBl
 	return instance;
 }
 
-bool ShaderManager::hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+bool ProgramManager::hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
 {
 	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
 	auto iter = programs.find(hash);
@@ -645,7 +645,7 @@ bool ShaderManager::hasShaderVariant(Util::String name, RenderStateBlock* render
 	return true;
 }
 
-ShaderDescriptor* ShaderManager::createCachedInstance(Util::String name, RenderStateBlock* renderBlock,
+ShaderDescriptor* ProgramManager::createCachedInstance(Util::String name, RenderStateBlock* renderBlock,
                                                       uint64_t variantBits)
 {
 	ShaderDescriptor* instance = new ShaderDescriptor();
@@ -655,7 +655,7 @@ ShaderDescriptor* ShaderManager::createCachedInstance(Util::String name, RenderS
 	return instance;
 }
 
-bool ShaderManager::hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+bool ProgramManager::hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
 {
 	ShaderHash hash{ name.c_str(), variantBits, renderBlock->rastState };
 	auto iter = cached.find(hash);

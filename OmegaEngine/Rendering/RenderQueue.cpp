@@ -53,13 +53,13 @@ void RenderQueue::sortAll()
 	});
 }
 
-SortKey RenderQueue::createSortKey(RenderStage layer, uint32_t materialId, RenderTypes shaderId)
+SortKey RenderQueue::createSortKey(Layer layer, size_t materialId, uint64_t variantId)
 {
 	SortKey key;
 
 	key.u.s.layerId = (uint64_t)layer;        // layer is the highest priority to group
 	key.u.s.textureId = materialId;           // then materials
-	key.u.s.shaderId = (uint64_t)shaderId;    // then shader
+	key.u.s.shaderId = variantId;             // then shader variant
 	key.u.s.depthId = 0;                      // TODO - this is camera-view . mesh_centre - camera-pos
 
 	return key;

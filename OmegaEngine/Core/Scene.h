@@ -15,7 +15,6 @@ namespace OmegaEngine
 class World;
 class GltfModel;
 class Object;
-class MaterialInfo;
 
 class Scene
 {
@@ -59,12 +58,9 @@ private:
     
 private:
 
-	/// contains all the renderable objects associated with this scene.
-	/// These have gone through visibilty checks and basically wrap the 
-	/// data stored by the renderable manager which will be exposed to
-	/// the renderer.
-	RenderQueue renderQueue;
-
+	/// Current camera associated with this scene. Updated by the camera manager
+    Camera camera;
+    
 	/// The world this scene is assocaited with
 	/// Should be safe, as the scene will be deleted before the world
 	World& world;

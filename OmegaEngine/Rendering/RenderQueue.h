@@ -4,6 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
+// forward decleration
+namespace VulkanAPI
+{
+class CmdBuffer;
+}
+
 namespace OmegaEngine
 {
 
@@ -27,16 +33,16 @@ struct SortKey
 };
 
 /**
-* @brief All the information required to render the item to a cmd buffer
+* @brief All the information required to render the item to a cmd buffer. This is set by the renderer update function.
 */
 struct RenderableQueueInfo
 {
 	// render callback function
-	void (*renderFunction)(void *, void *renderableData);
-	void *renderableHandle;
+	void (*renderFunction)(void *, VulaknAPI::CmdBuffer&, void *renderableData);
+	void* renderableHandle;
 
 	// data specific to the renderable - mainly drawing information
-	void *renderableData;
+	void* renderableData;
 
 	// the point in the render this will be drawn
 	SortKey sortingKey;
@@ -56,6 +62,13 @@ public:
         Lighting
     };
     
+    enum class Layer
+    {
+        Default,
+        Front,
+        Back
+    };
+    
     RenderQueue();
 	~RenderQueue();
     
@@ -68,7 +81,7 @@ public:
 		renderables.emplace_back(renderInfo);
 	}
 
-	static SortKey createSortKey(RenderStage layer, uint32_t materialId, RenderTypes shaderId);
+	static SortKey createSortKey(Layer layer, size_t materialId, uint64_t variantId);
 	
 	void sortAll();
 

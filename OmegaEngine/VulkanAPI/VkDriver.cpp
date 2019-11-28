@@ -55,20 +55,22 @@ void VkDriver::addStaticBuffer(const size_t size, VkBufferUsageFlags usage)
 	buffers.emplace(data, buffer);
 }
 
-void VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
+VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
 {
     assert(data);
     VertexBuffer buffer;
     buffer.create(vmaAlloc, stagingPool, data, size);
 	vertBuffers.emplace(data, buffer);
+    return &vertBuffers[data];
 }
 
-void VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
+IndexBuffer* VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
 {
     assert(data);
     IndexBuffer buffer;
     buffer.create(vmaAlloc, stagingPool, data, size);
 	indexBuffers.emplace(data, buffer);
+    return &indexBuffers[data];
 }
 
 void VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data)

@@ -101,12 +101,12 @@ public:
      * this won't be added - note: there is no indication of this - the reason being that no dirty flag state is used to state
      * whether the textures have changed. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline
      */
-	void addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes);
+	VertexBuffer* addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes);
 
 	/**
      @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend. Note: it is presumed to be of the type uint32_t.
     */
-	void addIndexBuffer(const size_t size, uint32_t* data);
+	IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
 	void add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels,
 	                  void* data);

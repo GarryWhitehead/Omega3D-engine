@@ -35,13 +35,13 @@ public:
 	* @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to the pipeline if
 	* it does, otherwise nullptr
 	*/
-	Pipeline* findOrCreatePipeline(const ShaderHandle handle, RenderPass* rPass);
+	Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
 
 	/**
 	* @brief Checks whether a decsriptor set exsists and returns that if so, otherwise creates a new instance
 	* The hash requires descriptor layout and pool (Vulkan handles)
 	*/
-    DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle);
+    DescriptorSet* findOrCreateDescrSet(DescriptorLayout& layout);
     
 	/**
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
@@ -86,16 +86,16 @@ private:
     {
         std::unique_ptr<CmdBuffer> cmdBuffer;
 
-        // sync buffer destruction
+        /// sync buffer destruction
         vk::Fence fence;
 
-        // sync between queues
+        /// sync between queues
         vk::Semaphore semaphore;
 
-        // the queue to use for this cmdbuffer
+        /// the queue to use for this cmdbuffer
         uint32_t queueIndex;
 
-        // primary cmd pool for this buffer
+        /// primary cmd pool for this buffer
         vk::CommandPool cmdPool;
     };
     
@@ -128,19 +128,14 @@ private:
     // ============== Descriptor set hasher ==================
     struct DescrHash
     {
-        DescrHash() = default;
-
         vk::DescriptorSetLayout layout;
-        vk::DescriptorPool pool;
     };
 
     struct DescrHasher
     {
         size_t operator()(DescrHash const& id) const noexcept
         {
-            size_t h1 = std::hash<vk::DescriptorSetLayout>{}(id.layout);
-            size_t h2 = std::hash<vk::DescriptorPool>{}(id.pool);
-            return h1 ^ (h2 << 1);
+            return std::hash<vk::DescriptorSetLayout>{}(id.layout);
         }
     };
 
@@ -148,7 +143,7 @@ private:
     {
         bool operator()(const DescrHash& lhs, const DescrHash& rhs) const
         {
-            return lhs.layout == rhs.layout && lhs.pool == rhs.pool;
+            return lhs.layout == rhs.layout;
         }
     };
     

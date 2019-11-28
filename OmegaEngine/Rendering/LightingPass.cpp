@@ -19,7 +19,7 @@ LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
 {
 }
 
-bool LightingPass::prepare(VulkanAPI::ShaderManager* manager)
+bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
 	const Util::String filename = "lighting.glsl";

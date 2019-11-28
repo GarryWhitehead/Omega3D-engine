@@ -21,6 +21,14 @@ Scene::~Scene()
 void Scene::update()
 {
 	
+    // ============ visibility checks and culling ===================
+    // first renderables - create a new list, we will use pointers to the renderables
+    // contained within the manager though to save needless copies
+    
+    
+    // and prepare the visible lighting list
+    
 }
+
 
 }    // namespace OmegaEngine

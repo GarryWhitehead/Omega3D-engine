@@ -1,18 +1,21 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
+#include "VulkanAPI/Pipeline.h"
 
 #include <cstdint>
+#include <vector>
 
 namespace VulkanAPI
 {
 
 // forward decleartions
-class Pipeline;
 class PipelineLayout;
 class DescriptorSet;
 class VkContext;
 class CmdBufferManager;
+class ShaderProgram;
+class RenderPass;
 
 class CmdBuffer
 {
@@ -37,17 +40,14 @@ public:
 	void prepare();
 
 	// viewport, scissors, etc.
-	void setViewport();
-	void setScissor();
 	void setViewport(const vk::Viewport& viewPort);
 	void setScissor(const vk::Rect2D& scissor);
 
 	// primary binding functions
-	void bindPipeline(Pipeline& pipeline);
-	void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, PipelineType type);
-	void bindDescriptors(PipelineLayout& pipelineLayout, DescriptorSet& descriptorSet, uint32_t offsetCount,
-	                     uint32_t* offsets, PipelineType type);
-	void bindPushBlock(PipelineLayout& pipelineLayout, vk::ShaderStageFlags stage, uint32_t size, void* data);
+	void bindPipeline(RenderPass* renderpass, ShaderProgram* program);
+	void bindDescriptors(ShaderProgram* prog, const Pipeline::Type type);
+    void bindDynamicDescriptors(ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
+	void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
 	void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);
 	void bindIndexBuffer(vk::Buffer& buffer, uint32_t offset);
 

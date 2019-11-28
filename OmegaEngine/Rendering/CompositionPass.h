@@ -12,7 +12,7 @@ public:
 	CompositionPass(RenderGraph& rGraph, Util::String id);
 	~CompositionPass();
 
-	bool prepare(VulkanAPI::ShaderManager* manager) override;
+	bool prepare(VulkanAPI::ProgramManager* manager) override;
 
 private:
 

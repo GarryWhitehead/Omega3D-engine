@@ -58,33 +58,36 @@ public:
 	friend class GBufferFillPass;
 
 private:
+    
+    /**
+     * @brief The main attributes for this material. The data layout reflects the push block used by the
+     * shader - so any changes must be adopted in both places.
+     */
+    struct MaterialBlock
+    {
+        OEMaths::vec3f emissive = OEMaths::vec3f{ 1.0f };
+        OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f };
+        OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f };
+        OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f };
 
+        float specularGlossiness = 1.0f;
+        float roughness = 1.0f;
+        float metallic = 1.0f;
+        
+        Util::String mask;
+        float alphaMaskCutOff = 1.0f;
+    };
+    
+private:
+    
 	// used to identify this material. 
 	Util::String name;
 
 	// used to find the texture group in the list
 	size_t bufferIndex;
 
-	struct Factors
-	{
-		OEMaths::vec3f emissive = OEMaths::vec3f{ 1.0f };
-		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f };
-		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f };
-		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f };
-
-		float specularGlossiness = 1.0f;
-		float roughness = 1.0f;
-		float metallic = 1.0f;
-
-	} factors;
-
-	struct AlphaBlending
-	{
-		Util::String mask;
-		float alphaMaskCutOff = 1.0f;
-
-	} blending;
-
+    MaterialBlock block;
+    
 	// the paths for all textures. Empty paths signify that this texture isn't used
 	Util::String texturePaths[TextureType::Count];
 

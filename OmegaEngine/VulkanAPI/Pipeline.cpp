@@ -55,6 +55,23 @@ Pipeline::~Pipeline()
 {
 }
 
+vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
+{
+    vk::PipelineBindPoint bindPoint;
+
+    switch (type)
+    {
+    case PipelineType::Graphics:
+        bindPoint = vk::PipelineBindPoint::eGraphics;
+        break;
+    case PipelineType::Compute:
+        bindPoint = vk::PipelineBindPoint::eCompute;
+        break;
+    }
+
+    return bindPoint;
+}
+
 void Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
 {
 	// check for empty vertex input

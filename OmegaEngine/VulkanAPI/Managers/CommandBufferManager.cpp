@@ -4,6 +4,7 @@
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Pipeline.h"
 
 namespace VulkanAPI
 {
@@ -17,11 +18,12 @@ CmdBufferManager::~CmdBufferManager()
 {
 }
 
-Pipeline* CmdBufferManager::findOrCreatePipeline(const ShaderHandle handle, RenderPass* rPass)
+Pipeline* CmdBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass)
 {
     Pipeline* pline = nullptr;
 
-	auto iter = pipelines.find({ handle, rPass });
+    PLineHash key { prog, rPass };
+	auto iter = pipelines.find(key);
 	
     // if the pipeline has already has an instance return this
     if (iter != pipelines.end())
@@ -31,15 +33,18 @@ Pipeline* CmdBufferManager::findOrCreatePipeline(const ShaderHandle handle, Rend
 	else
     {
         // else create a new pipeline - If we are in a threaded environemt then we can't add to the list until we are out of the thread
-        pline->build(handle, rPass);
+        pline->create(context.getDevice(), *rPass, *prog);
     }
     
     return pline;
 }
 
-DescriptorSet* findOrCreateDescrSer(const ShaderHandle handle)
+DescriptorSet* CmdBufferManager::findOrCreateDescrSer(DescriptorLayout& layout)
 {
+    DescriptorSet* set = nullptr;
     
+    DescrHash key { layout.get() };
+    auto iter = descrSets.find(key);
 }
 
 CmdBufferHandle CmdBufferManager::newInstance()

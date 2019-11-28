@@ -22,6 +22,7 @@ namespace VulkanAPI
 
 // forward declerations
 class VkDriver;
+class CmdBuffer;
 
 /**
 * @brief Specifies the render pipeline state of the shader program
@@ -300,6 +301,7 @@ public:
 
 
 	friend class ShaderCompiler;
+    friend class CmdBuffer;
 
 private:
 	std::vector<BufferBinding> bufferBindings;
@@ -313,17 +315,17 @@ private:
 	// this block overrides all render state for this shader.
 	std::unique_ptr<RenderStateBlock> renderState;
 
-	// We need a layout for each group
-	std::vector<DescriptorLayout> descrLayouts;
+	// used by the vulkan backend
+	DescriptorLayout descrLayout;
 	PipelineLayout pLineLayout;
 };
 
 
-class ShaderManager
+class ProgramManager
 {
 public:
-	ShaderManager(VkDriver& context);
-	~ShaderManager();
+	ProgramManager(VkDriver& context);
+	~ProgramManager();
 
 	/**
      * @brief Creates a new shader program instance. This will be inserted into the map.

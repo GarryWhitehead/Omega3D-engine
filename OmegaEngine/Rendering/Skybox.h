@@ -7,7 +7,7 @@
 //forward declerations
 namespace VulkanAPI
 {
-class ShaderManager;
+class ProgramManager;
 }
 
 namespace OmegaEngine
@@ -40,7 +40,7 @@ public:
 	Skybox(const Skybox&) = delete;
 	Skybox& operator=(const Skybox&) = delete;
 
-	bool prepare(VulkanAPI::ShaderManager* manager) override;
+	bool prepare(VulkanAPI::ProgramManager* manager) override;
 
 
 	// used to get the address of this instance

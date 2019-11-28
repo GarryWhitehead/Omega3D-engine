@@ -17,7 +17,7 @@ CompositionPass::~CompositionPass()
 {
 }
 
-bool CompositionPass::prepare(VulkanAPI::ShaderManager* manager)
+bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
 	VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("composition.glsl", nullptr, 0);

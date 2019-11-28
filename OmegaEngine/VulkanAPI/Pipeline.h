@@ -11,15 +11,15 @@ class Shader;
 class PipelineLayout;
 class VkDriver;
 
-enum class PipelineType
-{
-	Graphics,
-	Compute
-};
-
 class Pipeline
 {
 public:
+    
+    enum class Type
+    {
+        Graphics,
+        Compute
+    };
     
 	Pipeline();
 	~Pipeline();
@@ -27,6 +27,8 @@ public:
     // not copyable
     Pipeline(const Pipeline&) = delete;
     Pipeline& operator=(const Pipeline&) = delete;
+    
+    static vk::PipelineBindPoint createBindPoint(Pipeline::Type type)
     
 	void updateVertexInput();
 
@@ -55,7 +57,7 @@ private:
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
 	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
 
-    PipelineType type;
+    Type type;
     
     // a reference to the shader associated with this pipline
 	Shader& shader;

@@ -36,16 +36,6 @@ struct MaterialPushBlock
 		// alpha blending
 		alphaMask = (float)mat.alphaMask;
 		alphaMaskCutoff = mat.alphaMaskCutOff;
-
-		// whether this material has a particular property
-		haveBaseColourMap = mat.hasTexture[(int)ModelMaterial::TextureId::BaseColour] ? 1 : 0;
-		haveMrMap = mat.hasTexture[(int)ModelMaterial::TextureId::MetallicRoughness] ? 1 : 0;
-		haveNormalMap = mat.hasTexture[(int)ModelMaterial::TextureId::Normal] ? 1 : 0;
-		haveAoMap = mat.hasTexture[(int)ModelMaterial::TextureId::Occlusion] ? 1 : 0;
-		haveEmissiveMap = mat.hasTexture[(int)ModelMaterial::TextureId::Emissive] ? 1 : 0;
-		usingSpecularGlossiness = mat.usingSpecularGlossiness ? 1 : 0;
-
-		// if using specular glossiness property, overright roughness and colour with gloss props
 	}
 
 	// colour factors
@@ -119,23 +109,9 @@ private:
 	/// determines sort order of renderable
 	SortKey sortKey;
 
-	/// how to render this renderable
-	QueueType queueType;
-
-	/// pipeline
-	ProgramState* state = nullptr;
-
-	/// per primitive index data
-	uint32_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
-	uint32_t indexPrimitiveCount;
-
 	/// the starting offsets within the main vertices/indices buffer
 	uint32_t indexOffset;    // index into large buffer
 	uint32_t vertexOffset;
-
-	/// vertex and index buffer memory info
-	VulkanAPI::Buffer vertexBuffer;
-	VulkanAPI::Buffer indexBuffer;
 
 	/// material data - in a format ready to be pushed to the shader
 	/// this is null if the renderable is for shadows or the mesh has no material
@@ -150,8 +126,5 @@ private:
 	/// offset into transform buffer for this mesh
 	uint32_t transformDynamicOffset = 0;
 	uint32_t skinnedDynamicOffset = 0;
-
-	/// defines how to build the pipeline for this renderable
-	PBuildInfo info;
 };
 }    // namespace OmegaEngine

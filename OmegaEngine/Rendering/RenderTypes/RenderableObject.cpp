@@ -33,26 +33,8 @@ RenderableObject::~RenderableObject()
 {
 }
 
-void RenderableObject::prepareMaterial(ModelMaterial& mat)
-{
-	// queue and state type - opaque or transparent texture
-	StateAlpha stateAlpha;
-	if (mat.alphaMask == MaterialInfo::AlphaMode::Opaque)
-	{
-		queueType = QueueType::Opaque;
-		stateAlpha = StateAlpha::Opaque;
-	}
-	else if (mat.alphaMask == MaterialInfo::AlphaMode::Blend)
-	{
-		queueType = QueueType::Transparent;
-		stateAlpha = StateAlpha::Transparent;
-	}
-}
-
 void RenderableObject::prepare(World& world, Object& obj)
 {
-	VulkanAPI::VkTextureManager::TextureLayoutInfo layoutInfo;
-
 	// shadows don't have materials.
 	if (type != RenderableType::Shadow)
 	{
@@ -75,8 +57,6 @@ void RenderableObject::prepare(World& world, Object& obj)
 
 	// skinned ior non-skinned mesh?
 	meshInstance->type = mesh.type;
-
-	
 
 	meshInstance->transformDynamicOffset = obj.getComponent<TransformComponent>().dynamicUboOffset;
 
@@ -110,48 +90,6 @@ void RenderableObject::prepare(World& world, Object& obj)
 
 	// prepare the material data
 	meshInstance->pushBlock.prepare(mat);
-}
-
-void RenderableMesh::preparePStateInfo(StateId::StateFlags& flags)
-{
-
-	info.addShaderPath(PStateInfo::ShaderTarget::Vertex, "model/model.vert");
-	info.addShaderDefinition("");
-	info.setMaxSets(MAX_MATERIAL_SETS);
-	info.setInitSetOnly(true);
-	info.addUboTargets("CameraUbo", "Dynamic_StaticMeshUbo", "Dynamic_SkinnedUbo");
-
-	info.setTopology(flags.topology);
-}
-
-void RenderableMesh::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* instance)
-{
-	MeshInstance* instanceData = (MeshInstance*)instance;
-
-	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
-	if (instanceData->type == StateMesh::Skinned)
-	{
-		dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
-	}
-
-	// merge the material set with the mesh ubo sets
-	ProgramState* state = instanceData->state;
-	std::vector<vk::DescriptorSet> materialSet = instanceData->descriptorSet.get();
-	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
-	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
-
-	cmdBuffer.setViewport();
-	cmdBuffer.setScissor();
-	cmdBuffer.bindPipeline(state->pipeline);
-	cmdBuffer.bindDynamicDescriptors(state->pipelineLayout, meshSet, VulkanAPI::PipelineType::Graphics, dynamicOffsets);
-	cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment,
-	                        sizeof(MeshInstance::MaterialPushBlock), &instanceData->materialPushBlock);
-
-	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer,
-	                          instanceData->indexBuffer.offset + (instanceData->indexOffset * sizeof(uint32_t)));
-	cmdBuffer.drawIndexed(instanceData->indexPrimitiveCount, instanceData->indexPrimitiveOffset);
 }
 
 }    // namespace OmegaEngine

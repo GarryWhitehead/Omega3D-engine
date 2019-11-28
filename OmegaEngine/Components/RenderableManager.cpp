@@ -152,7 +152,7 @@ bool RenderableManager::updateVariants()
 		return false;
 	}
 
-	VulkanAPI::ShaderManager* manager = engine.getVkDriver().getShaderManager();
+	VulkanAPI::ProgramManager* manager = engine.getVkDriver().getProgManager();
 
 	// Note - we try and create as many shader variants as possible for vertex and material shaders as
 	// creating them whilst the engine is actually rendering will be costly in terms of performance
@@ -190,40 +190,6 @@ bool RenderableManager::updateVariants()
 			mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::StageType::Fragment);
 		}
 	}
-
-	// now assemble into complete shader programs using the cached shader parts
-	for (const Renderable& rend : renderables)
-	{
-		// each primitive can have its own material
-		for (MeshInstance::Primitive& prim : rend.instance.primitives)
-		{
-			assert(prim.materialId >= 0);
-			Material& mat = materials[prim.materialId];
-
-			// first check that we don't already have a variant within the list
-			// combine the material and mesh varaints to give us a unique id
-			prim.mergedVariant = mat.variantBits.getUint64() + rend.variantBits.getUint64();
-
-			if (manager->hasShaderVariant(mesh_filename, rend.renderState, prim.mergedVariant))
-			{
-				continue;
-			}
-
-			VulkanAPI::ShaderProgram* program = manager->createNewInstance(mesh_filename, rend.renderState, mergedVariant);
-
-			// get the cached vertex stage and add to program
-			VulkanAPI::ShaderDescriptor* descr =
-			    manager->getCachedStage(mesh_filename, rend.renderBlockState, rend.variantBits);
-			assert(descr);
-			program->prepareStage(descr);
-
-			// and get the cached fragment stage and add to program
-			VulkanAPI::ShaderDescriptor* descr =
-			    manager->getCachedStage(mesh_filename, rend.renderBlockState, rend.variantBits);
-			assert(descr);
-			program->prepareStage(descr);
-		}
-	}
 }
 
 void RenderableManager::update()
@@ -249,12 +215,6 @@ void RenderableManager::update()
 				}
 			}
 		}
-
-		// upload ubos
-		for (const Material& mat : materials)
-		{
-			driver->addUbo(mat.ubo);
-		}
 	}
 
 	// upload meshes to the vulkan backend
@@ -262,8 +222,8 @@ void RenderableManager::update()
 	{
 		for (const Renderable& rend : renderables)
 		{
-			driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
-			driver.addIndexBuffer(rend.indices.size(), rend.indices.data());
+			rend.vertexBuffer = driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
+			rend.indexBuffer = driver.addIndexBuffer(rend.indices.size(), rend.indices.data());
 		}
 	}
 }

@@ -12,7 +12,7 @@
 // forward decleartion
 namespace VulkanAPI
 {
-class ShaderManager;
+class ProgramManager;
 class CmdBufferManager;
 class CmdBuffer;
 class FrameBuffer;
@@ -37,7 +37,7 @@ struct RGraphContext
 	VulkanAPI::RenderPass* rpass = nullptr;
 
 	// useful vulkan managers
-	VulkanAPI::ShaderManager* shaderManager = nullptr;
+	VulkanAPI::ProgramManager* ProgramManager = nullptr;
 	VulkanAPI::CmdBufferManager* cbManager = nullptr;
 
 	// keep track of the renderer

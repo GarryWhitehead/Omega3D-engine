@@ -41,116 +41,115 @@ struct MouseMoveEvent : public Event
 	double ypos = 0.0;
 };
 
+class Camera
+{
+public:
+
+    enum class CameraType
+    {
+        FirstPerson,
+        ThirdPerson
+    };
+
+    /**
+     * Calculates the perspective projection matrix. Note: only perspective cameras supported at the moment
+     * @return A 4x4 projection matrix
+     */
+    OEMaths::mat4f getPerspectiveMat()
+    {
+        return OEMaths::perspective(fov, aspect, zNear, zFar);
+    }
+
+    /**
+     * Set the feild of view for this camera. Default value is 40.0degrees.
+     * @param fov: the field of view in degrees
+    */
+    void setFov(const float fov)
+    {
+        this->fov = fov;
+    }
+
+    /**
+     * Sets the near plane of the view fustrum
+     * @param zn: the near plane
+     */
+    void setZNear(const float zn)
+    {
+        this->zNear = zn;
+    }
+
+    /**
+     * Sets the far plane of the view fustrum
+     * @param zf: the far plane
+     */
+    void setZFar(const float zf)
+    {
+        this->zFar = zf;
+    }
+
+    /**
+     * Sets the aspect ratio of the view fustrum
+     * @param asp: the aspect ratio.
+     */
+    void setAspect(const float asp)
+    {
+        this->aspect = asp;
+    }
+
+    /**
+     * Sets the velocity of camera movements
+     * @param vel: the velocity
+     */
+    void setVelocity(const float vel)
+    {
+        this->velocity = vel;
+    }
+
+    /**
+     * Sets the camera type. Can either be first-person or third-persion view
+     * Note: Only first-person camera supported at present
+     * @param type: enum depicting this camera type
+     */
+    void setType(const CameraType type)
+    {
+        this->type = type;
+    }
+
+    /**
+     * Sets the start position of the camera
+     * @param pos: a 3d vector depicting the starting location of the camera
+     */
+    void setPosition(const OEMaths::vec3f& pos)
+    {
+        this->startPosition = pos;
+    }
+
+    // makes sense that the camera manager would be friends with the camera!
+    friend class CameraManager;
+
+private:
+
+    /// default values
+    float fov = 40.0f;
+    float zNear = 0.5f;
+    float zFar = 1000.0f;
+    float aspect = 16.0f / 9.0f;
+    float velocity = 0.1f;
+
+    CameraType type = CameraType::FirstPerson;
+
+    OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
+    OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
+};
+
 class CameraManager : public ComponentManager
 {
 
 public:
 	
-	class Camera
-	{
-	public:
-
-		enum class CameraType
-		{
-			FirstPerson,
-			ThirdPerson
-		};
-
-		/**
-		 * Calculates the perspective projection matrix. Note: only perspective cameras supported at the moment
-		 * @return A 4x4 projection matrix 
-		 */
-		OEMaths::mat4f getPerspectiveMat()
-		{
-			return OEMaths::perspective(fov, aspect, zNear, zFar);
-		}
-
-		/**
-		 * Set the feild of view for this camera. Default value is 40.0degrees.
-		 * @param fov: the field of view in degrees
-		*/
-		void setFov(const float fov)
-		{
-			this->fov = fov;
-		}
-
-		/**
-		 * Sets the near plane of the view fustrum
-		 * @param zn: the near plane 
-		 */
-		void setZNear(const float zn)
-		{
-			this->zNear = zn;
-		}
-
-		/**
-		 * Sets the far plane of the view fustrum
-		 * @param zf: the far plane 
-		 */
-		void setZFar(const float zf)
-		{
-			this->zFar = zf;
-		}
-
-		/**
-		 * Sets the aspect ratio of the view fustrum
-		 * @param asp: the aspect ratio.
-		 */
-		void setAspect(const float asp)
-		{
-			this->aspect = asp;
-		}
-
-		/**
-		 * Sets the velocity of camera movements
-		 * @param vel: the velocity 
-		 */
-		void setVelocity(const float vel)
-		{
-			this->velocity = vel;
-		}
-
-		/**
-		 * Sets the camera type. Can either be first-person or third-persion view
-		 * Note: Only first-person camera supported at present
-		 * @param type: enum depicting this camera type
-		 */
-		void setType(const CameraType type)
-		{
-			this->type = type;
-		}
-
-		/**
-		 * Sets the start position of the camera 
-		 * @param pos: a 3d vector depicting the starting location of the camera
-		 */
-		void setPosition(const OEMaths::vec3f& pos)
-		{
-			this->startPosition = pos;
-		}
-
-		// makes sense that the camera manager would be friends with the camera!
-		friend class CameraManager;
-
-	private:
-
-		/// default values
-		float fov = 40.0f;
-		float zNear = 0.5f;
-		float zFar = 1000.0f;
-		float aspect = 16.0f / 9.0f;
-		float velocity = 0.1f;
-
-		CameraType type = CameraType::FirstPerson;
-
-		OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
-		OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
-	};
-
-
 	CameraManager();
 	~CameraManager();
-
+    
 	/**
 	 * Updates the camera with the current data if has changed. Also updates on the GPU side
 	 * @param time: elapsed time (not used)

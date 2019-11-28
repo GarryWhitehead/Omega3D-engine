@@ -8,7 +8,7 @@
 // forward decleartions
 namespace VulkanAPI
 {
-class ShaderManager;
+class ProgramManager;
 class CmdBuffer;
 }    // namespace VulkanAPI
 
@@ -51,7 +51,7 @@ public:
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
 
 	/// creates a new renderpass with the required inputs/outputs and prepares the render func
-	bool prepare(VulkanAPI::ShaderManager* manager) override;
+	bool prepare(VulkanAPI::ProgramManager* manager) override;
 
 private:
 

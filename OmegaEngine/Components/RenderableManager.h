@@ -67,14 +67,17 @@ struct Material
 		HasEmissive
 	};
 
-	// The material attributes
+	/// The material attributes
 	MaterialInstance instance;
 
-	// shader variants associated with this material
+	/// shader variants associated with this material
 	Util::BitSetEnum<TextureVariants> variantBits;
 
-	// the render state of this material
+	/// the render state of this material
 	RenderStateBlock* renderState;
+    
+    /// each material has its own descriptor set
+    VulkanAPI::DescriptorSet descriptorSet;
 };
 
 /**
@@ -99,23 +102,36 @@ struct Renderable
 		HasJoint
 	};
 
-	// all the model data
+	/// all the model data
 	MeshInstance instance;
-
-	// variation of the mesh shader
+    
+    /// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot harder and in 99% of cases,
+    /// all primitives share the same material. So we only allow one material per mesh - this can be reviewed and changed if the need arises
+    int32_t materialId = -1;  ///< set once added to the renderable manager
+    Material* material = nullptr;
+    
+	/// variation of the mesh shader
 	Util::BitSetEnum<MeshVariant> variantBits;
 
-	// topology
+	/// topology
 	vk::PrimitiveTopology topology;
+    
+    /// ============ vulkan backend ========================
+    /// This is info is set by calling **update**
+    /// vertex and index buffers
+    VulkanAPI::Buffer* vertexBuffer = nullptr;
+    VulkanAPI::Buffer* indexBuffer = nullptr;
+    
+    /// offset into transform buffer for this mesh
+    /// A renderable can either be static or skinned - maybe this should be a abstract inherited class
+    size_t transformDynamicOffset = 0;
+    size_t skinnedDynamicOffset = 0;
 };
 
 class RenderableManager : public ComponentManager
 {
 
 public:
-	// a user-defined size for the vertex and index gpu mem blocks - this should maybe made more dynamic? Also needs checking for overspill....
-	static constexpr float VertexBlockSize = 1e+5;
-	static constexpr float IndexBlockSize = 1e+5;
 
 	RenderableManager(Engine& engine);
 	~RenderableManager();
@@ -162,8 +178,10 @@ public:
 	size_t addMaterial(MaterialInstance* mat, const size_t count);
 
 	friend class GBufferFillPass;
-
+    friend class Renderer;
+    
 private:
+    
 	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
 
 	bool updateVariants();
