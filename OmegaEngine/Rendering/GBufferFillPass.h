@@ -53,10 +53,12 @@ public:
 	/// creates a new renderpass with the required inputs/outputs and prepares the render func
 	bool prepare(VulkanAPI::ProgramManager* manager) override;
 
+	friend class Renderer;
+
 private:
 
 	// draw callback function used in the render queue
-	void drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance, RGraphContext& context);
+	static void drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance, RGraphContext& context);
 
 private:
 

@@ -23,11 +23,11 @@ void Texture::create2dTex(vk::Format format, uint32_t width, uint32_t height, ui
 
 	// create an empty image
     image = std::make_unique<Image>(vkContext);
-	image.create(vkContext, *this, usageFlags);
+	image->create(vmaAlloc, vkContext, usageFlags);
 
 	// and a image view of the empty image
     imageView = std::make_unique<ImageView>(vkContext);
-	imageView.create(vkContext, image);
+	imageView->create(vkContext.getDevice(), *image);
 }
 
 void Texture::map(StagingPool& stagePool, void* data)
@@ -53,16 +53,15 @@ void Texture::map(StagingPool& stagePool, void* data)
 	}
 
 	// now copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
-	CmdBuffer copyCmdBuffer(vkContext.getDevice(), vkContext.getGraphQueue());
+	CmdBuffer copyCmdBuffer(vkContext, vkContext.getGraphQueue());
 	copyCmdBuffer.createPrimary();
 
-	image.transition(vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copyCmdBuffer.get());
+	Image::transition(*image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copyCmdBuffer.get());
 	copyCmdBuffer.get().copyBufferToImage(stagingBuffer, image.get(), vk::ImageLayout::eTransferDstOptimal,
 	                                      static_cast<uint32_t>(copyBuffers.size()), copyBuffers.data());
-	image.transition(vk::ImageLayout::eTransferDstOptimal, finalTransitionLayout, copyCmdBuffer.get());
+	Image::transition(*image, vk::ImageLayout::eTransferDstOptimal, finalTransitionLayout, copyCmdBuffer.get());
 
-	copyCmdBuffer.end();
-	graphicsQueue.flushCmdBuffer(copyCmdBuffer.get());
+	copyCmdBuffer.flush();
     
     // clean up the staging area
     stagePool.release(stage);
@@ -71,14 +70,14 @@ void Texture::map(StagingPool& stagePool, void* data)
 void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers)
 {
 	uint32_t offset = 0;
-	for (uint32_t level = 0; level < mipLevels; ++level)
+	for (uint32_t level = 0; level < texContext.mipLevels; ++level)
 	{
 		vk::BufferImageCopy imageCopy(offset, 0, 0,
 		                              vk::ImageSubresourceLayers(vk::ImageAspectFlagBits::eColor, level, 0, 1),
-		                              vk::Offset3D(0, 0, 0), vk::Extent3D(width >> level, height >> level, 1));
+		    vk::Offset3D(0, 0, 0), vk::Extent3D(texContext.width >> level, texContext.height >> level, 1));
 		copyBuffers.emplace_back(imageCopy);
 
-		offset += (width >> level) * (height >> level);
+		offset += (texContext.width >> level) * (texContext.height >> level);
 	}
 }
 
@@ -86,23 +85,23 @@ void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffer
 {
 	uint32_t offset = 0;
 
-	for (uint32_t face = 0; face < faceCount; ++face)
+	for (uint32_t face = 0; face < texContext.faceCount; ++face)
 	{
-		for (uint32_t level = 0; level < mipLevels; ++level)
+		for (uint32_t level = 0; level < texContext.mipLevels; ++level)
 		{
 
 			vk::BufferImageCopy imageCopy(offset, 0, 0, { vk::ImageAspectFlagBits::eColor, level, face, 1 },
-			                              { 0, 0, 0 }, { width >> level, height >> level, 1 });
+			                              { 0, 0, 0 }, { texContext.width >> level, texContext.height >> level, 1 });
 			copyBuffers.emplace_back(imageCopy);
 
-			offset += (width >> level) * (height >> level) * 4;
+			offset += (texContext.width >> level) * (texContext.height >> level) * 4;
 		}
 	}
 }
 
 vk::ImageView& Texture::getImageView()
 {
-	return imageView.getImageView();
+	return imageView.get();
 }
 
 }    // namespace VulkanAPI

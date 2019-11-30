@@ -3,7 +3,7 @@
 #include "Core/scene.h"
 #include "Core/engine.h"
 
-#include "Components/RenderableManger.h"
+#include "Components/RenderableManager.h"
 
 #include "Rendering/IblInterface.h"
 #include "Rendering/GBufferFillPass.h"
@@ -12,7 +12,7 @@
 #include "Rendering/RenderQueue.h"
 
 #include "VulkanAPI/VkDriver.h"
-#include "VulkanAPI/CmdBuffer.h"
+#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/CommandBufferManager.h"
 
 #include "Threading/ThreadPool.h"
@@ -77,10 +77,10 @@ void Renderer::update()
         // we use the renderable data as it is, rather than waste time copying everything into another struct.
         // This method does mean that it is imperative that the data isnt destroyed until the beginning of the next
         // frame ad that the data isn't written too - we aren't using guards though this might be required.
-        queueInfo.renderableData = &rend;
+        queueInfo.renderableData = (void*)&rend;
         queueInfo.renderableHandle = this;
         queueInfo.renderFunction = GBufferFillPass::drawCallback;
-        queueInfo.sortingKey = RenderQueue::createSortKey(Layer::Default, rend.materialId, rend.variant);
+        queueInfo.sortingKey = RenderQueue::createSortKey(RenderQueue::Layer::Default, rend.materialId, rend.variant);
         renderQueue.push(queueInfo);
     }
 }

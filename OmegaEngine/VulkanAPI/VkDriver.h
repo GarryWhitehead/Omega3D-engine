@@ -39,28 +39,26 @@ private:
 namespace VkHash
 {
 
-void* ptr;
+void* key;
 
 struct ResourceHasher
 {
-	size_t operator()(void* ptr) const noexcept
+	size_t operator()(const char* key) const noexcept
 	{
-		return std::hash<void*>{}(ptr);
+		return std::hash<const char*>{}(key);
 	}
 };
 
 struct ResourceEqualTo
 {
-	bool operator()(void* lhs, const void* rhs) const
+	bool operator()(const char* lhs, const char* rhs) const
 	{
 		return lhs == rhs;
 	}
 };
 
-using TextureMap = std::unordered_map<void*, Texture, ResourceHasher, ResourceEqualTo>;
-using BufferMap = std::unordered_map<void*, Buffer, ResourceHasher, ResourceEqualTo>;
-using VertexMap = std::unordered_map<void*, VertexBuffer, ResourceHasher, ResourceEqualTo>;
-using IndexMap = std::unordered_map<void*, IndexBuffer, ResourceHasher, ResourceEqualTo>;
+using TextureMap = std::unordered_map<const char*, Texture, ResourceHasher, ResourceEqualTo>;
+using BufferMap = std::unordered_map<const char*, Buffer, ResourceHasher, ResourceEqualTo>;
 
 };    // namespace VkHash
 
@@ -79,27 +77,18 @@ public:
 	/// Make sure you call this before closing down the engine!
 	void shutdown();
 
-	// Functions for creating buffers and adding resource data to the backend
-	/**
-     * @brief This is for adding dynamic buffers which will be destroyed each frame - such as camera ubos, etc.
-     * @param size The size of the buffer in bytes
-     * @param usage Vulkan usage flags depict what this buffer will be used for
-     * @param data (optional) A pointer to the buffer data which will be mapped to the newly created buffer
-     */
-	DynBufferHandle addDynamicUbo(const size_t size, VkBufferUsageFlags usage, void* data = nullptr);
+	//  ================ Functions for creating buffers and adding resource data to the backend =================================
 
 	/**
      * @brief This is for adding persistant uniform buffers to the backend. These will remain in the backend until the user calls the appropiate destroy function.
-     * @param size The size of the buffer in bytes
+     * @param id This is a string id used to hash and retrieve this buffer
+	 * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
-     * @param data (optional) A pointer to the buffer data which will be mapped to the newly created buffer
      */
-	void addStaticUbo(const size_t size, VkBufferUsageFlags usage, void* data = nullptr);
+	void addUbo(Util::String id, const size_t size, VkBufferUsageFlags usage);
 
 	/**
-     * @brief Adds a vertex buffer to the vulkan back end. If the vertex buffer is already present in the map, then
-     * this won't be added - note: there is no indication of this - the reason being that no dirty flag state is used to state
-     * whether the textures have changed. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline
+     * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline
      */
 	VertexBuffer* addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes);
 
@@ -108,8 +97,11 @@ public:
     */
 	IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
-	void add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels,
-	                  void* data);
+	void add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels);
+
+	// ============== buffer update functions ===============================
+
+	void update2DTexture(Util::String id, size_t size, void* data);
 
 	// ======== begin/end frame functions ====================
 	void beginFrame();
@@ -135,7 +127,7 @@ public:
 private:
 	// managers
 	std::unique_ptr<ProgramManager> progManager;
-	std::unique_ptr<CommandBufferManager> cbManager;
+	std::unique_ptr<CmdBufferManager> cbManager;
 
 	// the current device context
 	VkContext context;
@@ -146,11 +138,12 @@ private:
 	// staging pool used for managing CPU stages
 	StagingPool stagingPool;
 
-	// resources associated with this device
+	// resources associated with this device - hashed by the string id 
 	VkHash::TextureMap textures;
 	VkHash::BufferMap buffers;
-	VkHash::VertexMap vertBuffers;
-	VkHash::IndexMap indexBuffers;
+
+	std::vector<VertexBuffer> vertBuffers;
+	std::vector<IndexBuffer> indexBuffers;
 
 	// Keep local track of the swapchain
 	// TODO: This may need chnaging if multiple swapchains are used!

@@ -15,14 +15,14 @@
 namespace VulkanAPI
 {
 // forward decleartions
-class VkDriver;
+class VkContext;
 
 class Shader
 {
 
 public:
     
-    enum class StageType
+    enum Type
     {
         Vertex,
         TesselationCon,
@@ -30,9 +30,10 @@ public:
         Geometry,
         Fragment,
         Compute,
+		Count
     };
 
-	Shader(VkDriver& context);
+	Shader();
 	~Shader();
     
     // not copyable
@@ -40,23 +41,14 @@ public:
     Shader& operator=(const Shader&) = delete;
     
     /**
-     * @brief The number of shaders
-     */
-	uint32_t shaderCount() const
-	{
-		return static_cast<uint32_t>(wrappers.size());
-	}
-    
-    /**
     * Gathers the createInfo for all shaders into one blob in a format needed by the pipeline
      */
-	vk::PipelineShaderStageCreateInfo *getData()
+	vk::PipelineShaderStageCreateInfo& get()
 	{
-		return wrappers.data();
+		return createInfo;
 	}
     
 	Sampler getSamplerType(std::string name);
-	vk::ImageLayout getImageLayout(std::string& name);
     
     /**
      * @brief Takes a string of certain type and if valid, returns as a vulkan recognisible type.
@@ -68,7 +60,7 @@ public:
     /**
      * @brief Converts the StageType enum into a vulkan recognisible format
      */
-	static vk::ShaderStageFlagBits getStageFlags(Shader::StageType type);
+	static vk::ShaderStageFlagBits getStageFlags(Shader::Type type);
     
     /**
      * @brief Derieves from the type specified, the stride in bytes
@@ -76,31 +68,23 @@ public:
     static uint32_t Shader::getStrideFromType(std::string type);
     
     /**
-     * @brief Adds a shader module. This will compile the code into glsl bytecode, and then create
+     * @brief compiles the specified code into glsl bytecode, and then creates
      * a shader module and createInfo ready for using with a vulkan pipeline
      */
-    bool add(std::string shaderCode, const Shader::StageType type);
+	bool compile(VkContext& context, std::string shaderCode, const Shader::Type type);
     
 private:
     
-    struct ShaderModuleInfo
-    {
-        vk::ShaderModule module;
-        ShaderStageType type;
-        vk::PipelineShaderStageCreateInfo createInfo;
-    }
+    vk::ShaderModule module;
+	Shader::Type type;
+	vk::PipelineShaderStageCreateInfo createInfo;
 
-private:
-    
-	VkDriver& context;
-    
-    std::vector<ShaderModuleInfo> shaders;
 };
 
 class GlslCompiler
 {
 public:
-    GlslCompiler(std::string shaderCode, const Shader::StageType type);
+    GlslCompiler(std::string shaderCode, const Shader::Type type);
     ~GlslCompiler();
 
     bool compile(bool optimise);

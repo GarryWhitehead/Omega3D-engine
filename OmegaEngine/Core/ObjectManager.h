@@ -18,6 +18,7 @@ namespace OmegaEngine
 {
 // forward declerations
 
+using ObjHandle = uint64_t;
 
 class ObjectManager
 {
@@ -38,7 +39,7 @@ public:
 	// 
 	void destroyObject(Object &obj);
 
-	std::unordered_map<uint64_t, Object> &getObjectsList()
+	std::vector<Object> &getObjectsList()
 	{
 		return objects;
 	}
@@ -49,7 +50,7 @@ private:
 
 	// this is an unordered map so we can quickly find objects based on their id. Saves having to iterate through a vector which
 	// could be costly time-wise
-	std::unordered_map<uint64_t, Object> objects;
+	std::vector<Object> objects;
 
 	// ids of objects which has been destroyed and can be re-used
 	std::deque<uint32_t> freeIds;

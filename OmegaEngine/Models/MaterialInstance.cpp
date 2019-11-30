@@ -5,27 +5,26 @@
 namespace OmegaEngine
 {
 
-ModelMaterial::ModelMaterial()
+MaterialInstance::MaterialInstance()
 {
 }
 
-ModelMaterial::~ModelMaterial()
+MaterialInstance::~MaterialInstance()
 {
 }
 
-Util::String ModelMaterial::getTextureUri(cgltf_texture_view& view, const ModelMaterial::TextureVariant bit)
+Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 {
 	// not guaranteed to have a texture or uri
 	if (view.texture && view.texture->image)
 	{
 		// also set variant bit
-		variantBits |= bit;
 		return view.texture->image->uri;
 	}
 	return "";
 }
 
-bool ModelMaterial::prepare(cgltf_material& mat)
+bool MaterialInstance::prepare(cgltf_material& mat)
 {
 	// two pipelines, either specular glosiness or metallic roughness
 	// according to the spec, metallic roughness shoule be preferred
@@ -82,7 +81,7 @@ bool ModelMaterial::prepare(cgltf_material& mat)
 
 }
 
-bool ModelMaterial::prepare(aiMaterial* mat)
+bool MaterialInstance::prepare(aiMaterial* mat)
 {
     mat->Get(AI_MATKEY_NAME, this->name);
     

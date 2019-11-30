@@ -3,9 +3,6 @@
 #include "OEMaths/OEMaths.h"
 
 #include "utility/String.h"
-#include "utility/BitsetEnum.h"
-
-#include "VulkanAPI/Managers/ProgramManager.h"
 
 #include "cgltf/cgltf.h"
 
@@ -41,7 +38,7 @@ public:
 	MaterialInstance(MaterialInstance&&) = default;
 	MaterialInstance& operator=(MaterialInstance&&) = default;
 
-	Util::String getTextureUri(cgltf_texture_view& view, const MaterialInstance::TextureVariant bit);
+	Util::String getTextureUri(cgltf_texture_view& view);
 
 	bool prepare(cgltf_material& mat);
 

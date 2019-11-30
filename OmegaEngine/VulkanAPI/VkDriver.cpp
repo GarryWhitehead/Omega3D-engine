@@ -48,11 +48,19 @@ void VkDriver::shutdown()
 
 // =========== functions for buffer/texture creation ================
 
-void VkDriver::addStaticBuffer(const size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUbo(Util::String id,  size_t size, VkBufferUsageFlags usage)
 {
     Buffer buffer;
     buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
-	buffers.emplace(data, buffer);
+	buffers.emplace(id, buffer);
+}
+
+void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
+                            const uint8_t mipLevels)
+{
+	Texture tex;
+	tex.create2dTex(format, width, height, mipLevels, usage);
+	textures.emplace(id.c_str(), tex);
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
@@ -60,8 +68,8 @@ VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vect
     assert(data);
     VertexBuffer buffer;
     buffer.create(vmaAlloc, stagingPool, data, size);
-	vertBuffers.emplace(data, buffer);
-    return &vertBuffers[data];
+	vertBuffers.emplace_back(buffer);
+    return &vertBuffers.back();
 }
 
 IndexBuffer* VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
@@ -69,21 +77,20 @@ IndexBuffer* VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
     assert(data);
     IndexBuffer buffer;
     buffer.create(vmaAlloc, stagingPool, data, size);
-	indexBuffers.emplace(data, buffer);
-    return &indexBuffers[data];
+	indexBuffers.emplace_back(buffer);
+    return &indexBuffers.back();
 }
 
-void VkDriver::add2DTexture(const vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels, void* data)
+void VkDriver::update2DTexture(Util::String id, size_t size, void* data)
 {
-    Texture tex;
-    tex.create2dTex(format, width, height, mipLevels, usage);
-    // map if data has passed through
-    if (data)
-    {
-        tex.map(stagingPool, data);
-    }
-    textures.emplace(data, tex);
+	auto iter = textures.find(id.c_str());
+	assert(iter != textures.end());
+	assert(data);
+
+	iter->second.map(stagingPool, data);
 }
+
+
 
 // ============ begin/end frame functions ======================
 void VkDriver::beginFrame()

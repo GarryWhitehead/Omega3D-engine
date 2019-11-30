@@ -72,12 +72,9 @@ struct Material
 
 	/// shader variants associated with this material
 	Util::BitSetEnum<TextureVariants> variantBits;
-
-	/// the render state of this material
-	RenderStateBlock* renderState;
     
     /// each material has its own descriptor set
-    VulkanAPI::DescriptorSet descriptorSet;
+    VulkanAPI::DescriptorSet descrSet;
 };
 
 /**
@@ -110,8 +107,14 @@ struct Renderable
     int32_t materialId = -1;  ///< set once added to the renderable manager
     Material* material = nullptr;
     
+	/// the render state of this material
+	RenderStateBlock* renderState;
+
 	/// variation of the mesh shader
 	Util::BitSetEnum<MeshVariant> variantBits;
+
+	// the mesh and material varinats merged - used for looking up the completed shader program
+	uint64_t mergedVariant = 0;
 
 	/// topology
 	vk::PrimitiveTopology topology;
@@ -154,13 +157,13 @@ public:
 	* @param offset The material buffer offset which will be added to the 
 	* primitive ids. This value is obtained from **addMaterial**
 	*/
-	void addMesh(MeshInstance& mesh, const size_t idx, const size_t offset);
+	void addMesh(Renderable& input, MeshInstance& mesh, const size_t idx, const size_t offset);
 
 	/**
 	* @breif Adds a mesh - use this overload when you want to add multiple meshes
 	* linked with the same material group. 
 	*/
-	void addMesh(MeshInstance& mesh, Object& obj, const size_t offset);
+	void addMesh(Renderable& input, MeshInstance& mesh, Object& obj, const size_t offset);
 
 	/**
      * @brief Returns a instance of a mesh based on the specified object
@@ -175,7 +178,7 @@ public:
 	* @return The starting index in which this group of materials is found at 
 	* within the managers larger container
 	*/
-	size_t addMaterial(MaterialInstance* mat, const size_t count);
+	size_t addMaterial(Renderable& input, MaterialInstance* mat, const size_t count);
 
 	friend class GBufferFillPass;
     friend class Renderer;

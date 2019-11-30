@@ -88,7 +88,7 @@ public:
 	*/
 	void draw();
     
-    void drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type);
+    void drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type, RGraphContext& context);
     
 	using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 

@@ -2,13 +2,11 @@
 
 #include "Core/World.h"
 
-#include "Managers/TransformManager.h"
+#include "Components/TransformManager.h"
 
-#include "Models/ModelAnimation.h"
+#include "Models/AnimInstance.h"
 
-#include "Types/ComponentTypes.h"
-
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
@@ -153,7 +151,7 @@ void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Obj
 
 void AnimationManager::updateFrame(double time, World& world)
 {
-	auto& transManager = world.getTransManager();
+	auto& transManager = engine.getTransManager();
 
 	double timeSecs = time / 1000000000;
 
@@ -189,19 +187,17 @@ void AnimationManager::updateFrame(double time, World& world)
 			case Channel::PathType::Rotation:
 			{
 				OEMaths::quatf quat1{
-					sampler.outputs[timeIndex].getX(),
-					sampler.outputs[timeIndex].getY(),
-					sampler.outputs[timeIndex].getZ(),
-					sampler.outputs[timeIndex].getW(),
+					sampler.outputs[timeIndex].x,
+					sampler.outputs[timeIndex].y,
+					sampler.outputs[timeIndex].z,
+					sampler.outputs[timeIndex].w,
 				};
 
-				OEMaths::quatf quat2{ sampler.outputs[timeIndex + 1].getX(), sampler.outputs[timeIndex + 1].getY(),
-					                  sampler.outputs[timeIndex + 1].getZ(), sampler.outputs[timeIndex + 1].getW() };
+				OEMaths::quatf quat2{ sampler.outputs[timeIndex + 1].x, sampler.outputs[timeIndex + 1].y,
+					                  sampler.outputs[timeIndex + 1].z, sampler.outputs[timeIndex + 1].w };
 
 				// TODO: add cubic and step interpolation
-				OEMaths::quatf rot;
-				rot.linearMix(quat1, quat2, phase);
-				rot.normalise();
+				OEMaths::quatf rot = OEMaths::normalise(OEMaths::linearMix(quat1, quat2, phase));
 				transManager.updateObjectRotation(obj, rot);
 				break;
 			}
@@ -212,7 +208,7 @@ void AnimationManager::updateFrame(double time, World& world)
 				// TODO
 				break;
 			default:
-				LOGGER_ERROR("Invalid animation pathtype encountered.");
+				LOGGER_INFO("This shouldn't happen! Invalid animation pathtype encountered.");
 			}
 		}
 	}

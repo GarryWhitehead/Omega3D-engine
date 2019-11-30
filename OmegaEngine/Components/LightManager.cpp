@@ -3,12 +3,10 @@
 #include "Core/Omega_Global.h"
 #include "Core/World.h"
 
-#include "Managers/CameraManager.h"
-#include "Managers/EventManager.h"
+#include "Components/CameraManager.h"
+#include "utility/EventManager.h"
 
 #include "OEMaths/OEMaths_transform.h"
-
-#include "VulkanAPI/Managers/BufferManager.h"
 
 
 namespace OmegaEngine
@@ -17,8 +15,8 @@ namespace OmegaEngine
 LightManager::LightManager()
 {
 	// allocate the memory required for the light POV data
-	alignedPovDataSize = VulkanUtil::alignmentSize(sizeof(LightPOV));
-	lightPovData = (LightPOV*)VulkanUtil::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
+	alignedPovDataSize = VkUtil::alignmentSize(sizeof(LightPOV));
+	lightPovData = (LightPOV*)Vk::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
 }
 
 LightManager::~LightManager()

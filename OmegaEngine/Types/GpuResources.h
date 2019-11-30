@@ -36,9 +36,6 @@ private:
 	Util::String id;
 	uint32_t binding = 0;
 	MappedTexture* texture = nullptr;
-    
-    // handle to where this is located in the vulkan backend
-    Tex2dHandle handle;
 };
 
 /**

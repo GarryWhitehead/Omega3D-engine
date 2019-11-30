@@ -14,7 +14,6 @@ namespace VulkanAPI
 class StagingPool
 {
 public:
-	
 	StagingPool() = default;
 
 	struct StageInfo
@@ -22,17 +21,16 @@ public:
 		VkBuffer buffer;
 		VkDeviceSize size;
 		VmaAllocation mem;
-        VmaAllocationInfo allocInfo;
+		VmaAllocationInfo allocInfo;
 	};
 
 	StageInfo create(const VkDeviceSize size);
 
-	StageInfo& getStage(const VkDeviceSize reqSize); 
+	StageInfo& getStage(const VkDeviceSize reqSize);
 
 	void release(StageInfo& stage);
 
 private:
-
 	// keep a refernce to the memory allocator here
 	VmaAllocator& vmaAlloc;
 
@@ -56,9 +54,13 @@ public:
 
 	void map(void* data, size_t size);
 
+	vk::Buffer& get()
+	{
+		return vk::Buffer(buffer);
+	}
+
 private:
-    
-    VmaAllocationInfo allocInfo;
+	VmaAllocationInfo allocInfo;
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
@@ -71,25 +73,30 @@ private:
 class VertexBuffer
 {
 public:
-    
-    struct Attribute
-    {
-        uint8_t stride;
-        uint8_t width;
-    };
-    
+	struct Attribute
+	{
+		uint8_t stride;
+		uint8_t width;
+	};
+
 	VertexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size, std::vector<Attribute>& attributes);
+	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size,
+	            std::vector<Attribute>& attributes);
+
+	vk::Buffer& get()
+	{
+		return vk::Buffer(buffer);
+	}
 
 private:
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
-    
-    // vulkan pipeline atrribute and binding descriptors that describe the data blob
-    std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
-    std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
+
+	// vulkan pipeline atrribute and binding descriptors that describe the data blob
+	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
+	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
 };
 
 /**
@@ -103,8 +110,12 @@ public:
 
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
+	vk::Buffer& get()
+	{
+		return vk::Buffer(buffer);
+	}
+
 private:
-    
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
@@ -114,6 +125,7 @@ private:
  * @brief Creates a transient CPU staging buffer, copys that specified data to that, creates a GPU buffer and copies the
  * staging pool data to that.
  */
-static void createGpuBufferAndCopy(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize);
+static void createGpuBufferAndCopy(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem,
+                                   void* data, VkDeviceSize dataSize);
 
 }    // namespace VulkanAPI

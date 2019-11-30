@@ -1,6 +1,6 @@
 #include "Shader.h"
 
-#include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
@@ -17,16 +17,16 @@ shaderc_shader_kind getShaderKind(const Shader::StageType type)
     shaderc_shader_kind result;
     switch (type)
     {
-    case Shader::StageType::Vertex:
+	case Shader::Type::Vertex :
         result = shaderc_shader_kind::shaderc_vertex_shader;
         break;
-    case Shader::StageType::Fragment:
+    case Shader::Type::Fragment:
         result = shaderc_shader_kind::shaderc_fragment_shader;
         break;
-    case Shader::StageType::Geometry:
+    case Shader::Type::Geometry:
         result = shaderc_shader_kind::shaderc_geometry_shader;
         break;
-    case Shader::StageType::Compute:
+	case Shader::Type::Compute:
         result = shaderc_shader_kind::shaderc_compute_shader;
         break;
     }
@@ -34,7 +34,7 @@ shaderc_shader_kind getShaderKind(const Shader::StageType type)
     return result;
 }
 
-GlslCompiler::GlslCompiler(std::string shaderCode, const Shader::StageType type) :
+GlslCompiler::GlslCompiler(std::string shaderCode, const Shader::Type type) :
     source(shaderCode),
     kind(getShaderKind(type))
 {
@@ -73,7 +73,7 @@ bool GlslCompiler::compile(bool optimise)
 
 // ==================== Shader =========================
 
-Shader::Shader(VkDriver& context) :
+Shader::Shader(VkContext& context) :
     context(context)
 {
 }
@@ -87,37 +87,35 @@ vk::ShaderStageFlagBits Shader::getStageFlags(Shader::StageType type)
 	vk::ShaderStageFlagBits ret;
 	switch (type)
 	{
-    case Shader::StageType::Vertex:
+    case Shader::Type::Vertex:
 		ret = vk::ShaderStageFlagBits::eVertex;
 		break;
-    case Shader::StageType::Fragment:
+    case Shader::Type::Fragment:
 		ret = vk::ShaderStageFlagBits::eFragment;
 		break;
-    case Shader::StageType::TesselationCon:
-        ret = vk::ShaderStageFlagBits::eTessellationControl;
+    case Shader::Type::TesselationCon:
+        ret = vk::ShaderStageFlagBits::eTessellationControl;ompile
         break;
-    case Shader::StageType::TesselationEval:
+    case Shader::Type::TesselationEval:
         ret = vk::ShaderStageFlagBits::eTessellationEvaluation;
         break;
-    case Shader::StageType::Geometry:
+    case Shader::Type::Geometry:
 		ret = vk::ShaderStageFlagBits::eGeometry;
 		break;
-    case Shader::StageType::Compute:
+    case Shader::Type::Compute:
 		ret = vk::ShaderStageFlagBits::eCompute;
 		break;
 	}
 	return ret;
 }
 
-bool Shader::add(std::string shaderCode, const Shader::StageType type)
+bool Shader::compile(VkContext& context, std::string shaderCode, const Shader::Type type)
 {
     if (shaderCode.empty())
     {
         LOGGER_ERROR("There is no shader code to process!");
         return false;
     }
-    
-    ShaderModuleInfo moduleInfo;
     
     // compile into bytecode
     GlslCompiler compiler(shaderCode, type);
@@ -127,12 +125,11 @@ bool Shader::add(std::string shaderCode, const Shader::StageType type)
     // create the shader module
     vk::ShaderModuleCreateInfo shaderInfo({}, compiler.getSize() ,compiler.getData());
 
-    VK_CHECK_RESULT(context.getDevice().createShaderModule(&shaderInfo, nullptr, &moduleInfo.module));
+    VK_CHECK_RESULT(context.getDevice().createShaderModule(&shaderInfo, nullptr, &module));
     
     // create the wrapper - this will be used by the pipeline
     vk::ShaderStageFlagBits stage = getStageFlags(type);
-    moduleInfo.createInfo = vk::PipelineShaderStageCreateInfo({}, stage, moduleInfo.module, "main", nullptr);
-    shaders.push_back(moduleInfo);
+    createInfo = vk::PipelineShaderStageCreateInfo({}, stage, module, "main", nullptr);
 }
 
 Sampler Shader::getSamplerType(std::string name)
@@ -171,31 +168,6 @@ Sampler Shader::getSamplerType(std::string name)
 	}
 
 	return sampler;
-}
-
-vk::ImageLayout Shader::getImageLayout(std::string& name)
-{
-	vk::ImageLayout layout;
-	if (name.find("Depth_") != std::string::npos)
-	{
-		layout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
-		// we can strip the depth identifier from the name
-		size_t pos = name.find("Depth_");
-		name = name.substr(pos + 6, name.size());
-	}
-	else if (name.find("Colour_") != std::string::npos)
-	{
-		layout = vk::ImageLayout::eColorAttachmentOptimal;
-		// we can strip the colour identifier from the name
-		size_t pos = name.find("Colour_");
-		name = name.substr(pos, name.size());
-	}
-	else
-	{
-		// default if no identifier found
-		layout = vk::ImageLayout::eShaderReadOnlyOptimal;
-	}
-	return layout;
 }
 
 vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width)

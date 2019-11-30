@@ -15,13 +15,14 @@ namespace OmegaEngine
 class World;
 class GltfModel;
 class Object;
+class Engine;
 
 class Scene
 {
 public:
 	Scene() = default;
 
-	Scene(World& world);
+	Scene(World& world, Engine& engine);
 	~Scene();
 
 	// a scene isn't copyable
@@ -29,6 +30,8 @@ public:
 	Scene& operator=(Scene&) = delete;
 
 	void update();
+
+	void prepare();
 
 	/**
 	* Return an instance of the object manager
@@ -62,7 +65,8 @@ private:
     Camera camera;
     
 	/// The world this scene is assocaited with
-	/// Should be safe, as the scene will be deleted before the world
 	World& world;
+
+	Engine& engine;
 };
 }    // namespace OmegaEngine

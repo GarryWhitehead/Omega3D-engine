@@ -25,8 +25,8 @@ public:
 	struct SkyboxInstance
 	{
 		// vertex and index buffer memory info for the cube
-		VulkanAPI::Buffer vertexBuffer;
-		VulkanAPI::Buffer indexBuffer;
+		VulkanAPI::VertexBuffer vertexBuffer;
+		VulkanAPI::IndexBuffer indexBuffer;
 		uint32_t indexCount = 0;
 
 		// the factor which the skybox will be blurred by
@@ -41,13 +41,6 @@ public:
 	Skybox& operator=(const Skybox&) = delete;
 
 	bool prepare(VulkanAPI::ProgramManager* manager) override;
-
-
-	// used to get the address of this instance
-	void* getHandle() override
-	{
-		return this;
-	}
 
 private:
 

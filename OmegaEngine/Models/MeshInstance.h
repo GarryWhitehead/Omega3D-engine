@@ -17,7 +17,6 @@ namespace OmegaEngine
 class MeshInstance
 {
 public:
-    
 	struct Dimensions
 	{
 		OEMaths::vec3f min;
@@ -28,16 +27,16 @@ public:
 
 		//void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
 	};
-    
-    /**
+
+	/**
      * @brief A abstract vertex buffer. Vertices are stored as blobs of data as the shader system allows
      * numerous variants in the vertex inputs. The blob is described by the **VertexDescriptor*
      */
 	struct VertexBuffer
 	{
-        uint8_t* data = nullptr;
-        size_t size = 0;
-        std::vector<Attribute> attributes;
+		uint8_t* data = nullptr;
+		size_t size = 0;
+		std::vector<VulkanAPI::Attribute> attributes;
 	};
 
 	struct Primitive
@@ -47,16 +46,16 @@ public:
 		Dimensions dimensions;
 
 		// index offsets
-		uint32_t indexBase = 0;
-		uint32_t indexCount = 0;
-        
-        // ============ vulakn backend ==========================
-        // set by calling **update**
-        uint32_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
-        uint32_t indexPrimitiveCount;
-        
-		// this is set by the renderable manager as is the mesh + material merged variants
-		uint64_t mergedVariant = 0;
+		size_t indexBase = 0;
+		size_t indexCount = 0;
+
+		// Note: this is only used for error checking.
+		uint32_t materialIdx = UINT32_MAX;
+
+		// ============ vulakn backend ==========================
+		// set by calling **update**
+		size_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
+		size_t indexPrimitiveCount;
 	};
 
 	MeshInstance() = default;
@@ -66,22 +65,22 @@ public:
 	bool prepare(aiScene* scene);
 
 	friend class RenderableManager;
+	friend class GBufferFillPass;
 
 private:
-
 	/// defines the topology to use in the program state
 	StateTopology topology;
-    
-    /// the overall dimensions of this model. Sub-meshses contain their own dimension data
+
+	/// the overall dimensions of this model. Sub-meshses contain their own dimension data
 	Dimensions totalDimensions;
-    
-    /// sub-meshes
+
+	/// sub-meshes
 	std::vector<Primitive> primitives;
-    
-    /// All vertivces associated with the particular model
+
+	/// All vertivces associated with the particular model
 	std::vector<VertexBuffer> vertices;
-    
-    /// All indices associated with this particular model
+
+	/// All indices associated with this particular model
 	std::vector<uint32_t> indices;
 };
 

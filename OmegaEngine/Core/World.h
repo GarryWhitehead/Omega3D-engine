@@ -42,6 +42,11 @@ public:
 	*/
 	Scene* createScene();
 
+	ObjectManager& getObjManager()
+	{
+		return objManager;
+	}
+
 private:
 	// name used to identify this world
 	Util::String name;

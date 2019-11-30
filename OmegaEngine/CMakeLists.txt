@@ -32,16 +32,14 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/PostProcess
 	${CMAKE_CURRENT_SOURCE_DIR}/RenderGraph
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering
-	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Types
-	${CMAKE_CURRENT_SOURCE_DIR}/Rendering/Renderers
 	${CMAKE_CURRENT_SOURCE_DIR}/Threading
 	${CMAKE_CURRENT_SOURCE_DIR}/utility
 	${CMAKE_CURRENT_SOURCE_DIR}/Misc
 	${CMAKE_CURRENT_SOURCE_DIR}/Misc/Primitives
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
-	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Types
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/VkUtils
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Platform
-	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Managers
+	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Compiler
 	${CMAKE_CURRENT_SOURCE_DIR}
 	PRIVATE
 	${EXTERNAL_DIR}
@@ -123,8 +121,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/IblImage.cpp Rendering/IblImage.h
 	Rendering/Skybox.cpp Rendering/Skybox.h
 	Rendering/CompositionPass.cpp Rendering/CompositionPass.h
-
-	Rendering/RenderTypes/RenderableObject.cpp Rendering/RenderTypes/RenderableObject.h
 	
 	Threading/ThreadedQueue.h
 	Threading/ThreadPool.cpp Threading/ThreadPool.h
@@ -143,10 +139,12 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 
-	VulkanAPI/Managers/MemoryAllocator.cpp VulkanAPI/Managers/MemoryAllocator.h
-	VulkanAPI/Managers/CommandBufferManager.cpp VulkanAPI/Managers/CommandBufferManager.h
-	VulkanAPI/Managers/SemaphoreManager.cpp VulkanAPI/Managers/SemaphoreManager.h
-	VulkanAPI/Managers/ProgramManager.cpp VulkanAPI/Managers/ProgramManager.h
+	VulkanAPI/CommandBufferManager.cpp VulkanAPI/CommandBufferManager.h
+	VulkanAPI/SemaphoreManager.cpp VulkanAPI/SemaphoreManager.h
+	VulkanAPI/ProgramManager.cpp VulkanAPI/ProgramManager.h
+
+	VulkanAPI/Compiler/ShaderParser.cpp VulkanAPI/Compiler/ShaderParser.h
+	VulkanAPI/Compiler/ShaderCompiler.cpp VulkanAPI/Compiler/ShaderCompiler.h
 
 	VulkanAPI/VkContext.cpp VulkanAPI/VkContext.h
 	VulkanAPI/VkTexture.cpp VulkanAPI/VkTexture.h

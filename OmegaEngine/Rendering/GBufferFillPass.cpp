@@ -6,9 +6,9 @@
 
 #include "Models/MaterialInstance.h"
 
-#include "VulkanAPI/common.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Managers/ProgramManager.h"
+#include "VulkanAPI/common.h"
 
 #include "utility/Logger.h"
 
@@ -80,37 +80,25 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 	VulkanAPI::ProgramManager* pgManager = context.ProgramManager;
 	VulkanAPI::CmdBufferManager* cbManager = context.cbManager;
 
-	// ================= create shader variant if needed ===============================
-	uint64_t mergedVariant = instance.mesh.variantBits.getUint64() + render->mat.variantBits.getUint64();
-
-	VulkanAPI::ShaderProgram* prog = pgManager->findProgram(Renderable::name, render->renderState, render->mergedVariant);
-	if (!prog)
-	{
-		// vertex
-		VulkanAPI::ShaderDescriptor* mesh_descr =
-		    manager->getCachedStage(Renderable::name, render->renderState, render->variantBits);
-		// fragment
-		VulkanAPI::ShaderDescriptor* mat_descr =
-		    manager->getCachedStage(Material::name, render->renderState, render->variantBits);
-		// create new program
-		prog = pgManager->create(mesh_descr, mat_descr);
-
-	}
-
 	// ==================== bindings ==========================
 
-	cmdBuffer.bindPipeline(prog, context.renderpass);
+	cmdBuffer.bindPipeline(context.rpass, prog);
 
 	cmdBuffer.bindDynamicDescriptors(prog, dynamicOffsets, VulkanAPI::Pipeline::Type::Graphics);
-    
-	cmdBuffer.bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment,
-	                        sizeof(MaterialInstance::MaterialBlock), &render->material->instance.block);
+
+	cmdBuffer.bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment, sizeof(MaterialInstance::MaterialBlock),
+	                        &render->material->instance.block);
 
 	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	cmdBuffer.bindVertexBuffer(render->vertexBuffer.buffer, offset);
-	cmdBuffer.bindIndexBuffer(render->indexBuffer.buffer,
+	cmdBuffer.bindVertexBuffer(render->vertexBuffer->get(), offset);
+	cmdBuffer.bindIndexBuffer(render->indexBuffer->get(),
 	                          render->indexBuffer.offset + (render->indexOffset * sizeof(uint32_t)));
-	cmdBuffer.drawIndexed(render->indexPrimitiveCount, render->indexPrimitiveOffset);
+
+	// draw all primitives
+	for (const MeshInstance::Primitive& prim : render->instance.primitives)
+	{
+		cmdBuffer.drawIndexed(prim.indexPrimitiveCount, prim.indexPrimitiveOffset);
+	}
 }
 
 

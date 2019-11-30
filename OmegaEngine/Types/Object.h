@@ -20,7 +20,7 @@ public:
 		this->id = id;
 	}
 
-	// object are copyable 
+	// object are copyable
 	Object(const Object&) = default;
 	Object& operator=(const Object&) = default;
 
@@ -45,8 +45,14 @@ public:
 		this->id = id;
 	}
 
+	inline bool isActive() const
+	{
+		return active;
+	}
+
 private:
 	ObjectId id;
+	bool active = true;
 };
 
 }    // namespace OmegaEngine
