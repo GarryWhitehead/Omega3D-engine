@@ -70,5 +70,18 @@ void Scene::update()
 	// and prepare the visible lighting list
 }
 
+void Scene::updateCamera()
+{
+	updateViewMatrix();
+
+	// update everything in the buffer
+	cameraBuffer.mvp = currentProjMatrix * currentViewMatrix;    // * model
+	cameraBuffer.cameraPosition = currentPosition;
+	cameraBuffer.projection = currentProjMatrix;
+	cameraBuffer.model = currentModelMatrix;    // this is just identity for now
+	cameraBuffer.view = currentViewMatrix;
+	cameraBuffer.zNear = camera.zNear;
+	cameraBuffer.zFar = camera.zFar;
+}
 
 }    // namespace OmegaEngine

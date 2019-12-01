@@ -169,12 +169,12 @@ bool RenderableManager::updateVariants()
 	for (const Renderable& rend : renderables)
 	{
 
-		if (!manager.hasShaderVariantCached(mesh_filename, rend.renderState, rend.variantBits.getUint64()))
+		if (!manager.hasShaderVariantCached({ mesh_filename.c_str(), rend.variantBits.getUint64(), rend.renderState }))
 		{
 			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance(mesh_filename, rend.renderState, rend.variantBits.getUint64());
+			    manager.createCachedInstance({ mesh_filename.c_str(), rend.variantBits.getUint64(), rend.renderState });
 
-			mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::StageType::Vertex);
+			mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex);
 		}
 	}
 
@@ -190,10 +190,10 @@ bool RenderableManager::updateVariants()
 
 	for (const Material& mat : materials)
 	{
-		if (!manager.hasShaderVariantCached(mat_filename, nullptr, mat.variantBits.getUint64()))
+		if (!manager.hasShaderVariantCached({ mat_filename.c_str(),  mat.variantBits.getUint64(), nullptr }))
 		{
 			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance(mat_filename, nullptr, mat.variantBits.getUint64());
+			    manager.createCachedInstance({ mat_filename.c_str(), mat.variantBits.getUint64(), nullptr });
 
 			mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::Type::Fragment);
 		}
@@ -207,24 +207,25 @@ bool RenderableManager::updateVariants()
 		Material* mat = rend.material;
 		rend.mergedVariant = rend.variantBits.getUint64() + mat->variantBits.getUint64();
 
-		VulkanAPI::ShaderProgram* prog =
-		    manager.findProgram(mesh_filename, rend.renderState, rend.mergedVariant);
+		VulkanAPI::ShaderProgram* prog = manager.findVariant({ mesh_filename.c_str(), rend.mergedVariant, rend.renderState });
 		if (!prog)
 		{
 			// create new program
-			prog = manager.build(mesh_filename, rend.renderState, rend.variantBits, mat_filename, nullptr,
-			                     mat->variantBits);
+			std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes
+			{
+				{ mesh_filename.c_str(), rend.renderState, rend.variantBits }, 
+				{ mat_filename.c_str(), nullptr, mat->variantBits }
+			};
+			prog = manager.build(hashes);
 		}
 
-		// and prepare the material descriptor set
-		mat->descrSet.prepare(engine.getVkDriver(), prog->descrLayout);
-
 		// find the set id for materials via its group id
-		const uint8_t set = prog->getGroupBindings("material").getSet();
+		const uint8_t set = prog->getGroupImageBindings("material").getSet();
 
 		Material* mat = rend.material;
 		TextureGroup& texGroup = textures[mat->texIdx];
-		
+
+		// for each texture, we update the descriptos set with the appropiate image and sampler
 		for (uint8_t i = 0; i < TextureType::Count; ++i)
 		{
 			if (texGroup.textures[i])
@@ -247,11 +248,11 @@ void RenderableManager::update()
 		{
 			for (uint8_t i = 0; i < TextureType::Count; ++i)
 			{
-				GpuTextureInfo* texGroup = group.textures[i]; 
+				GpuTextureInfo* texGroup = group.textures[i];
 				if (texGroup)
 				{
 					// each sampler needs its own unique id - so append the tex type to the material name
-					Util::String id = Util::String::append(group.matId, TextureGroup::texTypeToStr((TextureType)i));
+					Util::String id = group.matId.append(TextureGroup::texTypeToStr((TextureType)i));
 
 					MappedTexture* tex = texGroup->texture;
 					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels);
@@ -267,29 +268,29 @@ void RenderableManager::update()
 	// upload meshes to the vulkan backend
 	if (meshDirty)
 	{
-		// create one large buffer and add data via offsets into the buffer
-		size_t vertBufferSize = getTotalVertexSize();
-		size_t indBufferSize = getTotalIndexSize();
-
-		vertexBuffer = driver.addVertexBuffer(rend.vertices.size, rend.vertices.data, rend.vertices.attributes);
-		indexBuffer = driver.addIndexBuffer(rend.indices.size(), rend.indices.data());
-
-		size_t vert_offset = 0;
-		size_t ind_offset = 0;
-
-		for (Renderable& rend : renderables)
+		// If no buffers exsisit, create new instances and upload data
+		if (!vertexBuffer && !indexBuffer)
 		{
-			// vertices
-			MeshInstance& mesh = rend.instance;
-			vertexBuffer.map(mesh.vertices.size(), mesh.vertices.data(), vert_offset);
+			vertexBuffer = driver.addVertexBuffer(vertices.size(), vertices.data(), vertices.attributes);
+			indexBuffer = driver.addIndexBuffer(indices.size(), indices.data());
+		}
+		else if (vertexBuffer->getSize() < vertices.size())
+		{
+			// if the current buffer does not have enough space, destroy and create new buffer instances 
+			driver.destroyVertexBuffer(vertexBuffer);
+			driver.destroyIndexBuffer(indexBuffer);
 
-			// indices
-			indexBuffer.map(mesh.indices.size(), mesh.indices.data(), ind_offset);
-
-			vert_offset += mesh.vertices.size();
-			ind_offset += mesh.indices.size();
+			vertexBuffer = driver.addVertexBuffer(vertices.size(), vertices.data(), vertices.attributes);
+			indexBuffer = driver.addIndexBuffer(indices.size(), indices.data());
+		}
+		else
+		{
+			vertexBuffer.map(vertices.size(), vertices.data(), vertices.attributes);
+			indexBuffer.map(indices.size(), indices.data());
 		}
 	}
+	
 }
+}    // namespace OmegaEngine
 
 }    // namespace OmegaEngine

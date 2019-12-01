@@ -121,9 +121,6 @@ struct Renderable
     
     /// ============ vulkan backend ========================
     /// This is info is set by calling **update**
-    /// vertex and index buffers
-    VulkanAPI::Buffer* vertexBuffer = nullptr;
-    VulkanAPI::Buffer* indexBuffer = nullptr;
     
     /// offset into transform buffer for this mesh
     /// A renderable can either be static or skinned - maybe this should be a abstract inherited class
@@ -200,6 +197,14 @@ private:
 
 	// and all the textures
 	std::vector<TextureGroup> textures;
+
+	// the vertices and indices mega buffer
+	std::vector<MeshInstance::VertexBuffer> vertices;
+	std::vector<uint32_t> indices;
+
+	// vertex and index buffers in the vulkan backend - all vertices uploaded in one large blob. Access is via offsets
+	VulkanAPI::Buffer* vertexBuffer = nullptr;
+	VulkanAPI::Buffer* indexBuffer = nullptr;
 
 	// Dirty flags - state whether anything has been added or altered and needs updating on the backend
 	bool meshDirty = true;

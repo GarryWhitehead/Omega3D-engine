@@ -171,8 +171,23 @@ private:
 class ProgramManager
 {
 public:
+
+	struct ShaderHash
+	{
+		const char* name;
+		uint64_t variantBits;
+		vk::PrimitiveTopology* topology;    //< optional (leave null if not needed)
+	};
+
 	ProgramManager(VkDriver& context);
 	~ProgramManager();
+
+	/**
+	* @brief Creates a shader program from the specified shader key list. The shader stage varaints must
+	* have been created by calling **createCachedInstance** before this fucntion is called. Also, the
+	* shader must be in a valid state - namely, there must be a vertex shader.
+	*/
+	ShaderProgram* build(std::vector<ShaderHash>& hashes);
 
 	/**
      * @brief Creates a new shader program instance. This will be inserted into the map.
@@ -181,37 +196,38 @@ public:
      * @param variantBits The variant flags used by this shader
 	 * @return A pointer to the newly created shader program
      */
-	ShaderProgram* createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+	ShaderProgram* createNewInstance(ShaderHash& hash);
 
 	/**
      * @brief Checks whether a shader has been created based on the hash
-     * @param name The name of the shader to find - the filename
-     * @param renderBlock Whether this shader has a render override block
-     * @param variantBits The variant flags used by this shader
+     * @param hash The key of the variant to check
      * @return A boolean set to true if the shader exsists, otherwise false
      */
-	bool hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+	bool hasShaderVariant(ShaderHash& hash);
+
+	/**
+     * @brief Checks whether a shader has been created based on the hash and returns the program if so. 
+     * @param hash The key of the variant to check
+     * @return A pointer to a shader program if one exsists with the designated hash. Otherwise returns nullptr
+     */
+	ShaderProgram* findVariant(ShaderHash& hash);
 
 	/**
 	* @brief Creates a shader fragment that will be cached until ready for use
 	*/
-	ShaderDescriptor* createCachedInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+	ShaderDescriptor* createCachedInstance(ShaderHash& hash);
 
 	/**
 	* @brief Checks whether a shader fragment has been cached as specified by the hash
 	*/
-	bool hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits);
+	bool hasShaderVariantCached(ShaderHash& hash);
 
 	friend class CmdBufferManager;
 
+
 private:
+
 	// =============== shader hasher ======================
-	struct ShaderHash
-	{
-		const char* name;
-		uint64_t variantBits;
-		vk::PrimitiveTopology* topology;    //< optional (leave null if not needed)
-	};
 
 	struct ShaderHasher
 	{

@@ -55,13 +55,8 @@ void CameraManager::mouseMoveEvent(MouseMoveEvent& event)
 	updateCameraRotation();
 }
 
-void CameraManager::keyboardPressEvent(KeyboardPressEvent& event)
+void CameraManager::update()
 {
-
-	auto& camera = cameras[cameraIndex];
-	float velocity = camera.velocity;
-
-	// check for forwards and strafe movement
 	if (event.isMovingForward)
 	{
 		currentPosition += frontVec * velocity;    // Engine::DT;	<- Needed?
@@ -83,20 +78,13 @@ void CameraManager::keyboardPressEvent(KeyboardPressEvent& event)
 		currentPosition -= cameraRight * velocity;
 	}
 
-	isDirty = true;
-}
-
-void CameraManager::updateCameraRotation()
-{
-	auto& camera = cameras[cameraIndex];
-
 	//calculate the pitch and yaw vectors
 	frontVec = OEMaths::vec3f{ std::cos(OEMaths::radians(pitch)) * std::cos(OEMaths::radians(yaw)),
 		                       std::sin(OEMaths::radians(pitch)),
 		                       std::cos(OEMaths::radians(pitch)) * std::sin(OEMaths::radians(yaw)) };
 	frontVec.normalise();
 
-	isDirty = true;
+	isupdateViewMatrix()
 }
 
 void CameraManager::updateViewMatrix()

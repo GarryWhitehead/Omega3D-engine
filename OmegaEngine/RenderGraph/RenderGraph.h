@@ -2,7 +2,7 @@
 
 #include "RenderGraph/Resources.h"
 
-#include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 #include "utility/String.h"
 
@@ -71,7 +71,7 @@ public:
 	ResourceHandle addOutput(ResourceHandle output);
 
 	// A callback function which will be called each frame
-	void addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount);
+	void addExecute(ExecuteFunc&& func);
 
 	// init the vulkan renderpass - attachments, ref, dependencies
 	// these are can be added to a parent merged pass if defined
@@ -80,19 +80,13 @@ public:
 	// creates the vulkan renderpass. You must call **prepare()** first
 	void bake();
 
+	// Sets the clear colour for all attachments for this pass	
+	void setClearColour(OEMaths::colour4 clearCol);
+
+	// sets the depth clear for this pass
+	void setDepthClear(float depthClear);
+
 	friend class RenderGraph;
-
-private:
-	struct ExecuteInfo
-	{
-		ExecuteFunc func;
-
-		// a blob of data containing info relevant for the execute function
-		// Must be re-interpreted only within this context.
-		void* data = nullptr;
-
-		uint32_t threads = 0;
-	};
 
 private:
 	RenderGraph* rgraph = nullptr;
@@ -104,7 +98,7 @@ private:
 	std::vector<ResourceHandle> outputs;    // colour/depth/stencil attachments
 
 	// the execute function to be used by this pass
-	ExecuteInfo execute;
+	ExecuteFunc execFunc;
 
 	// ====== compiler set =========
 	// reference count for the number of outputs
@@ -123,6 +117,10 @@ private:
 
 	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
 	std::vector<VulkanAPI::FrameBuffer> framebuffer;
+
+	// clear colours for this pass
+	OEMaths::colour4 clearCol = { 0.0f };
+	float depthClear = 1.0f;
 };
 
 /**
@@ -157,11 +155,19 @@ public:
 	/**
      * @brief Adds a function to execute each frame for this renderpass 
 	 * @param func The function to execute. Must be of the format (void*)(RenderPassContext&)
-	 * @param renderData The data for the execution function
-	 * @param secCmdBufferCount If this is greater than zero, then the data will be sliced into data chunks and executed on seperate threads
      *  
      */
-	void addExecute(ExecuteFunc&& func, void* renderData, uint32_t secCmdBufferCount = 0);
+	void addExecute(ExecuteFunc&& func);
+
+	/**
+	* @brief Sets the clear colour for all attachments for this pass
+	*/
+	void setClearColour(OEMaths::colour4 clearCol);
+
+	/**
+	* @brief Sets the depth clear for this pass
+	*/
+	void setDepthClear(float depthClear);
 
 private:
 	// a reference to the graph and pass we are building

@@ -3,8 +3,8 @@
 #include "Utility/logger.h"
 #include "utility/FileUtil.h"
 
-#include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
+#include "VulkanAPI/Compiler/ShaderParser.h"
 
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
@@ -70,18 +70,70 @@ ProgramManager::~ProgramManager()
 	}
 }
 
-ShaderProgram* ProgramManager::createNewInstance(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
+{
+	if (hashes.empty())
+	{
+		return nullptr;
+	}
+
+	// ids for the new hash
+	uint64_t mergedVariants = 0;
+	const char* instanceName;    // we use the vertex name as the identifing id
+	vk::PrimitiveTopology* topo;
+
+	ShaderParser parser;
+
+	ShaderProgram* instance = new ShaderProgram();
+	for (const ShaderHash& hash : hashes)
+	{
+		ShaderDescriptor* descr = findCachedVariant(hash);
+		if (!descr)
+		{
+			LOGGER_ERROR("Unable to find cached shader varinat with id: %s and varinat id: %lu", hash.name,
+			             hash.variantBits);
+			return nullptr;
+		}
+		else if (descr->type == Shader::Type::Vertex)
+		{
+			instanceName = descr->id;
+			topo = hash.topology;
+		}
+		parser.addStage(descr);
+	}
+
+	// use the render state from the mesh/material
+	instance->overrideRenderState();
+
+	// compile
+	ShaderCompiler compiler(*instance, context.getContext());
+	compiler.compile(parser);
+
+	ShaderHash newHash{ instanceName, mergedVariants, topo };
+	programs.emplace(newHash, instance);
+	return instance;
+}
+
+ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
 {
 	ShaderProgram* instance = new ShaderProgram();
 
-	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
 	programs.emplace(hash, instance);
 	return instance;
 }
 
-bool ProgramManager::hasShaderVariant(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+ShaderProgram* ProgramManager::findVariant(ShaderHash& hash)
 {
-	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
+	auto iter = programs.find(hash);
+	if (iter == programs.end())
+	{
+		return iter->second;
+	}
+	return nullptr;
+}
+
+bool ProgramManager::hasShaderVariant(ShaderHash& hash)
+{
 	auto iter = programs.find(hash);
 	if (iter == programs.end())
 	{
@@ -90,19 +142,16 @@ bool ProgramManager::hasShaderVariant(Util::String name, RenderStateBlock* rende
 	return true;
 }
 
-ShaderDescriptor* ProgramManager::createCachedInstance(Util::String name, RenderStateBlock* renderBlock,
-                                                       uint64_t variantBits)
+ShaderDescriptor* ProgramManager::createCachedInstance(ShaderHash& hash)
 {
 	ShaderDescriptor* instance = new ShaderDescriptor();
 
-	ShaderHash hash{ name.c_str(), variantBits, renderBlock };
 	cached.emplace(hash, instance);
 	return instance;
 }
 
-bool ProgramManager::hasShaderVariantCached(Util::String name, RenderStateBlock* renderBlock, uint64_t variantBits)
+bool ProgramManager::hasShaderVariantCached(ShaderHash& hash)
 {
-	ShaderHash hash{ name.c_str(), variantBits, renderBlock->rastState };
 	auto iter = cached.find(hash);
 	if (iter == cached.end())
 	{

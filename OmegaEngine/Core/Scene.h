@@ -42,21 +42,6 @@ public:
 		return objManager;
 	}
 
-private:
-	// private functions to the scene
-
-	/**
-	* Adds a renderable type to the list.
-	* @param T renderable type
-	* @param args argument list which matches the init list for this particular renderable
-	*/
-	template <typename T, typename... Args>
-	void addRenderable(Args&&... args)
-	{
-		T* renderable = new T(std::forward<Args>(args)...);
-		renderables.push_back({ renderable });
-	}
-
 	friend class Renderer;
     
 private:

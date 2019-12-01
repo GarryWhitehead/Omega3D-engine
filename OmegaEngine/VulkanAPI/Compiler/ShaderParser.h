@@ -123,7 +123,8 @@ public:
 
 	void addStage(ShaderDescriptor* shader);
 
-	private:
+private:
+
 	bool parseShaderJson();
 	bool readShader(rapidjson::Document& doc, ShaderDescriptor& shader, std::string id, uint16_t& maxGroup);
 

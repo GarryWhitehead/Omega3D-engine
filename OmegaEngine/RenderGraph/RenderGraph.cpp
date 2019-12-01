@@ -4,7 +4,6 @@
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkDriver.h"
-#include "VulkanAPI/Managers/CommandBufferManager.h"
 
 #include "utility/Logger.h"
 
@@ -59,13 +58,23 @@ AttachmentHandle RenderGraphBuilder::addOutputAttachment(Util::String name, cons
 	return handle;
 }
 
-void RenderGraphBuilder::addExecute(ExecuteFunc&& func, void* renderData, uint32_t secCmdBufferCount)
+void RenderGraphBuilder::addExecute(ExecuteFunc&& func)
 {
 	assert(func);
-	assert(renderData);
-
-	rPass->addExecute(std::move(func), renderData, secCmdBufferCount);
+	rPass->addExecute(std::move(func));
 }
+
+void RenderGraphBuilder::setClearColour(OEMaths::colour4 clearCol)
+{
+	rPass->setClearColour(clearCol);
+}
+
+void RenderGraphBuilder::setDepthClear(float depthClear)
+{
+	rPass->setDepthClear(depthClear);
+}
+
+// ============================== render graph pass =================================
 
 ResourceHandle RenderGraphPass::addInput(const ResourceHandle input)
 {
@@ -99,18 +108,18 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 	{
 	case RenderPassType::Graphics:
 	{
-        // used for signyfing to the subpass the reference ids associated with it
-        std::vector<uint32_t> inputRefs, outputRefs;
-        
+		// used for signyfing to the subpass the reference ids associated with it
+		std::vector<uint32_t> inputRefs, outputRefs;
+
 		// if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
 		if (!parent)
 		{
-			rpass = new VulkanAPI::RenderPass(Engine.getDevContext());
+			context.rpass = new VulkanAPI::RenderPass(engine.getDevContext());
 		}
 		else
 		{
-			assert(parent->rpass);
-			rpass = parent->rpass;
+			assert(parent->context.rpass);
+			context.rpass = parent->context.rpass;
 		}
 
 		// add the output attachments
@@ -128,15 +137,15 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 				tex->height = maxHeight;
 				LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
 			}
-            
-            outputRefs.emplace_back(tex->referenceId);
+
+			outputRefs.emplace_back(tex->referenceId);
 			tex->bake();
 
 			// add a attachment
-			rpass->addOutputAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
+			context.rpass->addOutputAttachment(tex->format, tex->initialLayout, tex->finalLayout, tex->clearFlags);
 
 			// add the reference
-			rpass->addOutputRef(tex->referenceId);
+			context.rpass->addOutputRef(tex->referenceId);
 		}
 
 		// input attachments
@@ -145,14 +154,14 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 			ResourceBase* base = rgraph->resources[handle];
 			assert(base->type == ResourceBase::ResourceType::Texture);
 			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[handle]);
-            
-            inputRefs.emplace_back(tex->referenceId);
-			rpass->addInputRef(tex->referenceId);
+
+			inputRefs.emplace_back(tex->referenceId);
+			context.rpass->addInputRef(tex->referenceId);
 		}
 
 		// Add a subpass. If this is a merged pass, then this will be added to the parent
-		rpass->addSubPass(inputRefs, outputRefs);
-		rpass->addSubpassDependency(subpass.depFlags);
+		context.rpass->addSubPass(inputRefs, outputRefs);
+		context.rpass->addSubpassDependency(subpass.depFlags);
 		break;
 	}
 	case RenderPassType::Compute:
@@ -165,18 +174,28 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 void RenderGraphPass::bake()
 {
 	// create the renderpass
-	rpass->prepare();
+	context.rpass->prepare();
 }
 
-void RenderGraphPass::addExecute(ExecuteFunc&& func, void* userData, uint32_t threadCount)
+void RenderGraphPass::addExecute(ExecuteFunc&& func)
 {
-	execute = ExecuteInfo{ func, userData, threadCount };
+	execFunc = func;
+}
+
+void RenderGraphPass::setClearColour(OEMaths::colour4 colour)
+{
+	clearCol = colour;
+}
+
+void RenderGraphPass::setDepthClear(float depth)
+{
+	depthClear = depth;
 }
 
 // =========================== RenderGraph ===============================
 
-RenderGraph::RenderGraph(VkDriver& driver) :
-    vkDriver(driver)
+RenderGraph::RenderGraph(VkDriver& driver)
+    : vkDriver(driver)
 {
 }
 
@@ -303,7 +322,7 @@ bool RenderGraph::compile()
 		}
 
 		// if the outputs from this pass are used as inputs in another pass, we can probably merge
-		// we create a linked list of passes - wth the fact that the parent isn't nullptr denoting that 
+		// we create a linked list of passes - wth the fact that the parent isn't nullptr denoting that
 		// these are merged. The ref count of merged passes, except for the parent is set to zero
 		// to ensure that the passes that are merged aren't also created seperately
 		// TODO: check - there maybe other circumstances in which a pass can not be merged
@@ -324,7 +343,6 @@ bool RenderGraph::compile()
 					rpass.refCount = 0;
 				}
 			}
-			
 		}
 	}
 
@@ -406,16 +424,16 @@ void RenderGraph::prepare()
 
 void RenderGraph::execute()
 {
-    // iterate over all passes and execute the registered callback function
-    for (const RenderGraphPass& rpass: renderPasses)
-    {
-        // start the render pass
-        VulkanAPI::CmdBufferManager& manager = vkDriver.getCbManager();
-        manager->beginRenderpass(rpass.cmdBufferHandle, rpass.renderPass, rpass.frameBuffer);
-        
-        ExecuteInfo& exec = rpass.execute;
-        exec.func(rpass.context, exec.data);
-    }
+	// iterate over all passes and execute the registered callback function
+	for (const RenderGraphPass& rpass : renderPasses)
+	{
+		// start the render pass
+		VulkanAPI::CmdBufferManager& manager = vkDriver.getCbManager();
+		manager->beginRenderpass(rpass.cmdBufferHandle, rpass.renderPass, rpass.frameBuffer);
+
+		ExecuteInfo& exec = rpass.execute;
+		exec.func(rpass.context, exec.data);
+	}
 }
 
 AttachmentHandle RenderGraph::findAttachment(Util::String req)

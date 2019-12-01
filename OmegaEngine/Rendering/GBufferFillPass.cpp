@@ -7,7 +7,7 @@
 #include "Models/MaterialInstance.h"
 
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Managers/ProgramManager.h"
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/common.h"
 
 #include "utility/Logger.h"
@@ -66,16 +66,8 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 {
 	Renderable* render = static_cast<Renderable*>(data);
 
-	std::vector<uint32_t> dynamicOffsets{ instanceData->transformDynamicOffset };
-	if (instanceData->type == StateMesh::Skinned)
-	{
-		dynamicOffsets.push_back(instanceData->skinnedDynamicOffset);
-	}
-
 	// merge the material set with the mesh ubo sets
-	std::vector<vk::DescriptorSet> materialSet = instanceData->descriptorSet.get();
-	std::vector<vk::DescriptorSet> meshSet = state->descriptorSet.get();
-	meshSet.insert(meshSet.end(), materialSet.begin(), materialSet.end());
+	std::vector<vk::DescriptorSet> sets { state->descriptorSet.get(), render->material->descrSet };
 
 	VulkanAPI::ProgramManager* pgManager = context.ProgramManager;
 	VulkanAPI::CmdBufferManager* cbManager = context.cbManager;
@@ -89,7 +81,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 	cmdBuffer.bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment, sizeof(MaterialInstance::MaterialBlock),
 	                        &render->material->instance.block);
 
-	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
+	vk::DeviceSize offset = { render->vertexBuffer.offset };
 	cmdBuffer.bindVertexBuffer(render->vertexBuffer->get(), offset);
 	cmdBuffer.bindIndexBuffer(render->indexBuffer->get(),
 	                          render->indexBuffer.offset + (render->indexOffset * sizeof(uint32_t)));
