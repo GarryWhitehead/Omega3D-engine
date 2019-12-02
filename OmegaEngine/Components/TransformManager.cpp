@@ -1,19 +1,9 @@
 #include "TransformManager.h"
 
-#include "Core/Omega_Common.h"
-#include "Core/Omega_Global.h"
-
-#include "Managers/EventManager.h"
 #include "Managers/MeshManager.h"
 #include "Managers/ObjectManager.h"
 
-#include "Models/ModelSkin.h"
-#include "Models/ModelTransform.h"
-
-#include "Types/ComponentTypes.h"
-
-#include "Utility/GeneralUtil.h"
-#include "VulkanAPI/Managers/BufferManager.h"
+#include "Models/SkinInstance.h"
 
 #include <algorithm>
 #include <cstdint>

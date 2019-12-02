@@ -6,6 +6,7 @@
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 
+#include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
@@ -34,6 +35,39 @@ void ShaderProgram::updateConstant(Util::String name, int32_t value, Shader::Typ
 
 void ShaderProgram::updateConstant(Util::String name, float value, Shader::Type stage)
 {
+}
+
+bool ShaderProgram::addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageView, vk::ImageLayout layout, Shader::Type stage)
+{
+    ShaderBinding& binding = stages[stage];
+    for (const auto& bind : binding.samplerBindings)
+    {
+        if (bind.name.compare(id))
+        {
+            bind.imageView = &imageView;
+            bind.sampler = &sampler;
+            return true;
+        }
+    }
+    // we shouldn't be here if everything went OK!
+    LOGGER_ERROR("Unable to find a buffer with binding id: %s.", id.c_str());
+    return false;
+}
+
+bool ShaderProgram::addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout layout, Shader::Type stage)
+{
+    ShaderBinding& binding = stages[stage];
+    for (const auto& bind : binding.bufferBindings)
+    {
+        if (bind.name.compare(id))
+        {
+            bind.buffer = &buffer;
+            return true;
+        }
+    }
+    // we shouldn't be here if everything went OK!
+    LOGGER_ERROR("Unable to find a sampler with binding id: %s.", id.c_str());
+    return false;
 }
 
 bool ShaderProgram::prepare(ShaderParser& parser, VkContext& context)

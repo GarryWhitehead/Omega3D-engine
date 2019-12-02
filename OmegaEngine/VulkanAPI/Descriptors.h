@@ -39,7 +39,7 @@ public:
 	void add(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
 	               vk::ShaderStageFlags flags);
 
-	void prepare(vk::Device device, const uint32_t imageSets = 1);
+	void prepare(vk::Device device);
 
 	std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>> &getLayout()
 	{
@@ -91,10 +91,10 @@ public:
      */
 	void prepare(vk::Device &device, DescriptorLayout &descriptorLayout);
 
-	void writeBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer &buffer,
+	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer &buffer,
 	              uint32_t offset, uint32_t range);
     
-	void writeImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
+	void updateImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
                        vk::ImageView& imageView, vk::ImageLayout layout)
 
 

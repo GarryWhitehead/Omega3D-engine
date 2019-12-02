@@ -22,6 +22,8 @@ class VkDriver;
 class CmdBuffer;
 class ShaderDescriptor;
 class ShaderParser;
+class Sampler;
+class ImageView;
 
 /**
 * @brief Specifies the render pipeline state of the shader program
@@ -55,6 +57,8 @@ struct RenderStateBlock
 class ShaderBinding
 {
 public:
+    
+    
 	/**
      * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
      */
@@ -64,7 +68,9 @@ public:
 		int16_t bind = 0;
 		uint16_t set = 0;
 		uint32_t size = 0;
-		Shader::Type shader;
+        
+        /// descriptor set update info
+        Buffer* buffer = nullptr;
 	};
 
 	/**
@@ -75,7 +81,10 @@ public:
 		Util::String name;
 		int16_t bind = 0;
 		uint16_t set = 0;
-		Shader::Type shader;
+        
+        /// descriptor set update info
+        ImageView* imageView = nullptr;
+        Sampler* sampler = nullptr;
 	};
 
 	/**
@@ -105,6 +114,7 @@ public:
 
 	ShaderBinding() = default;
 
+    friend class ShaderProgram;
 	friend class ShaderCompiler;
 
 private:
@@ -151,7 +161,19 @@ public:
 	void updateConstant(Util::String name, uint32_t value, Shader::Type stage);
 	void updateConstant(Util::String name, int32_t value, Shader::Type stage);
 	void updateConstant(Util::String name, float value, Shader::Type stage);
-
+    
+    // =============== decriptor set functions ==============================
+    
+    /**
+     * @brief Adds descriptor set update buffer information to the specified binding
+     */
+    bool addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout layout, Shader::Type stage);
+    
+    /**
+       @brief Adds descriptor set update sampler information to the specified binding
+    */
+    bool addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageview, vk::ImageLayout layout, Shader::Type stage);
+    
 	friend class ShaderCompiler;
 	friend class CmdBuffer;
 

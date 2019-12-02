@@ -47,7 +47,7 @@ public:
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
 	* @param queueType The queue which this cmd buffer will be submitted to.
 	*/
-	CmdBufferHandle newInstance();
+	CmdBufferHandle createCmdBuffer();
 
 	std::unique_ptr<CmdBuffer>& beginNewFame(CmdBufferHandle handle);
 
@@ -126,16 +126,17 @@ private:
 	};
     
     // ============== Descriptor set hasher ==================
+    // using the address of the descriptor layout as this will be uniuqe
     struct DescrHash
     {
-        vk::DescriptorSetLayout layout;
+        vk::DescriptorLayout* layout = nullptr;
     };
 
     struct DescrHasher
     {
         size_t operator()(DescrHash const& id) const noexcept
         {
-            return std::hash<vk::DescriptorSetLayout>{}(id.layout);
+            return std::hash<vDescriptorLayout*>{}(id.layout);
         }
     };
 

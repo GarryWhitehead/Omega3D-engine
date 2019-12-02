@@ -127,12 +127,12 @@ void DescriptorSet::prepare(vk::Device& device, DescriptorLayout& descrLayout)
 
 		vk::DescriptorSet descrSet;
 		VK_CHECK_RESULT(device.allocateDescriptorSets(&allocInfo, &descrSet));
-		// still storing sets based on there set id - this allows them to be quickly referenced for writing
+		// still storing sets based on their set id - this allows them to be quickly referenced for writing
         descrSets[layout.first] = descrSet;
 	}
 }
 
-void DescriptorSet::writeBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer,
+void DescriptorSet::updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer,
                              uint32_t offset, uint32_t range)
 {
 	vk::DescriptorBufferInfo buffer_info(buffer, offset, range);
@@ -140,7 +140,7 @@ void DescriptorSet::writeBufferSet(uint32_t set, uint32_t binding, vk::Descripto
 	device.updateDescriptorSets(1, &writeSet, 0, nullptr);
 }
 
-void DescriptorSet::writeImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
+void DescriptorSet::updateImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
                              vk::ImageView& imageView, vk::ImageLayout layout)
 {
 	vk::DescriptorImageInfo image_info(sampler, imageView, layout);

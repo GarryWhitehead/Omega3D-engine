@@ -32,10 +32,9 @@ RenderableManager::~RenderableManager()
 
 void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, const size_t idx, const size_t offset)
 {
-
-	// just do a copy here - we could hold this as a pointer or transfer ownership but this feels safer and not concerned about performance here
-	input.instance = mesh;
-
+	// copy the vertices and indices into the "mega" buffer
+    input.instance = mesh;
+    
 	// now adjust the material index - this is used primarily by the sorting key
 	if (offset >= 0)    // a value of -1 indicate no materials for this renderable
 	{
@@ -149,6 +148,62 @@ Renderable& RenderableManager::getMesh(Object& obj)
 	return renderables[index];
 }
 
+void RenderableManager::updateBuffers()
+{
+    // calculate how much we need to allocate on the gpu side
+    size_t vertTotalSize = 0;
+    size_t indTotalSize = 0;
+    
+    for (Renderable& rend : renderables)
+    {
+        vertTotalSize += rend.vertexBuffer.size;
+        indTotalSize += rend.indices.size();
+    }
+    
+    char* vertData = new char[vertTotalSize];
+    uint32_t* indData = new uint32_t[indTotalSize];
+    
+    // copy the data into the buffers
+    char* vertPtr = vertData;
+    uint32_t* indPtr = indData;
+    
+    for (Renderable& rend : renderables)
+    {
+        size_t vertSize = rend.vertexBuffer.size;
+        size_t indSize = rend.indices.size() * sizeof(uint32_t);
+        
+        memcpy(vertPtr, rend.vertexBuffer.data, vertSize);
+        memcpy(indPtr, rend.indices.data(), indSize);
+        
+        vertPtr += vertSize;
+        indPtr += indSize;
+    }
+    
+    // upload "mega" buffer to the gpu
+    VulkanAPI::VkDriver& driver = engine.getVkDriver();
+    
+    // If no buffers exsisit, create new instances and upload data
+    if (!vertexBuffer && !indexBuffer)
+    {
+        vertexBuffer = driver.addVertexBuffer(vertTotalSize, vertData, vertices.attributes);
+        indexBuffer = driver.addIndexBuffer(indTotalSize, indData);
+    }
+    else if (vertexBuffer->getSize() < vertTotalSize)
+    {
+        // if the current buffer does not have enough space, destroy and create new buffer instances
+        driver.destroyVertexBuffer(vertexBuffer);
+        driver.destroyIndexBuffer(indexBuffer);
+
+        vertexBuffer = driver.addVertexBuffer(vertTotalSize, vertData, vertices.attributes);
+        indexBuffer = driver.addIndexBuffer(indTotalSize, indData);
+    }
+    else
+    {
+        vertexBuffer.map(vertTotalSize, vertData, vertices.attributes);
+        indexBuffer.map(indTotalSize, indData);
+    }
+}
+
 bool RenderableManager::updateVariants()
 {
 	// parse the shader json file - this will be used by all variants
@@ -201,7 +256,7 @@ bool RenderableManager::updateVariants()
 
 	// ============ create progrms for each mesh/material variant combo ========================
 	// We do this here for two reasons  1) Creating the shaders during time critical moments could really impede performance
-	// 2) Its easier to update the material descriptor set as we have the layout
+	// 2) Its easier to update the material descriptor set as we have all the information available here.
 	for (Renderable& rend : renderables)
 	{
 		Material* mat = rend.material;
@@ -219,18 +274,16 @@ bool RenderableManager::updateVariants()
 			prog = manager.build(hashes);
 		}
 
-		// find the set id for materials via its group id
-		const uint8_t set = prog->getGroupImageBindings("material").getSet();
-
-		Material* mat = rend.material;
-		TextureGroup& texGroup = textures[mat->texIdx];
-
-		// for each texture, we update the descriptos set with the appropiate image and sampler
+		// for each texture, we update the descriptor set with the appropiate image and sampler
+        TextureGroup& texGroup = textures[mat->texIdx];
+        Material* mat = rend.material;
+        
 		for (uint8_t i = 0; i < TextureType::Count; ++i)
 		{
 			if (texGroup.textures[i])
 			{
-				mat->descrSet.writeImageSet(set, i, type, sampler, imageview, layout);
+                Util::String id = Util::String::Append(mat.name, texTypeToStr(i));
+                prog->addDescrSetUpdateInfo(id, sampler, imageview, layout);
 			}
 		}
 	}
@@ -268,26 +321,10 @@ void RenderableManager::update()
 	// upload meshes to the vulkan backend
 	if (meshDirty)
 	{
-		// If no buffers exsisit, create new instances and upload data
-		if (!vertexBuffer && !indexBuffer)
-		{
-			vertexBuffer = driver.addVertexBuffer(vertices.size(), vertices.data(), vertices.attributes);
-			indexBuffer = driver.addIndexBuffer(indices.size(), indices.data());
-		}
-		else if (vertexBuffer->getSize() < vertices.size())
-		{
-			// if the current buffer does not have enough space, destroy and create new buffer instances 
-			driver.destroyVertexBuffer(vertexBuffer);
-			driver.destroyIndexBuffer(indexBuffer);
-
-			vertexBuffer = driver.addVertexBuffer(vertices.size(), vertices.data(), vertices.attributes);
-			indexBuffer = driver.addIndexBuffer(indices.size(), indices.data());
-		}
-		else
-		{
-			vertexBuffer.map(vertices.size(), vertices.data(), vertices.attributes);
-			indexBuffer.map(indices.size(), indices.data());
-		}
+        // create a "mega" buffer from all the vertex and index data we have. Best pratice in vulkan with regards to buffers
+        // is to create as few as possible - there is a upper limit on the amount of allocations that can be performed
+        createBuffers();
+        
 	}
 	
 }

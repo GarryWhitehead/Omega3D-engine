@@ -66,7 +66,8 @@ public:
         FirstPerson,
         ThirdPerson
     };
-
+    
+    // ================== getters ====================
     /**
      * Calculates the perspective projection matrix. Note: only perspective cameras supported at the moment
      * @return A 4x4 projection matrix
@@ -75,14 +76,20 @@ public:
     {
         return OEMaths::perspective(fov, aspect, zNear, zFar);
     }
-
+    
+    OEMaths::mat4f getMvpMatrix()
+    {
+        return currentProj * currentView * currentModel;
+    }
+    
+    // ================ setters ======================
     /**
      * Set the feild of view for this camera. Default value is 40.0degrees.
      * @param fov: the field of view in degrees
     */
-    void setFov(const float fov)
+    void setFov(const float camFov)
     {
-        this->fov = fov;
+        fov = camFov;
     }
 
     /**
@@ -91,7 +98,7 @@ public:
      */
     void setZNear(const float zn)
     {
-        this->zNear = zn;
+        zNear = zn;
     }
 
     /**
@@ -100,7 +107,7 @@ public:
      */
     void setZFar(const float zf)
     {
-        this->zFar = zf;
+        zFar = zf;
     }
 
     /**
@@ -109,7 +116,7 @@ public:
      */
     void setAspect(const float asp)
     {
-        this->aspect = asp;
+        aspect = asp;
     }
 
     /**
@@ -118,7 +125,7 @@ public:
      */
     void setVelocity(const float vel)
     {
-        this->velocity = vel;
+        velocity = vel;
     }
 
     /**
@@ -126,9 +133,9 @@ public:
      * Note: Only first-person camera supported at present
      * @param type: enum depicting this camera type
      */
-    void setType(const CameraType type)
+    void setType(const CameraType camType)
     {
-        this->type = type;
+        type = camType;
     }
 
     /**
@@ -141,19 +148,35 @@ public:
     }
 
 	void update();
-
+    
+    void updateViewMatrix();
+    
 private:
 
-    /// default values
+    /// camera attributes default values
     float fov = 40.0f;
     float zNear = 0.5f;
     float zFar = 1000.0f;
     float aspect = 16.0f / 9.0f;
     float velocity = 0.1f;
-
+    
+    // type of camera - not actually used at present
     CameraType type = CameraType::FirstPerson;
-
-    OEMaths::vec3f startPosition{ 0.0f, 0.0f, 6.0f };
+    
+    // current matrices
+    OEMaths::mat4f currentProj;
+    OEMaths::mat4f currentView;
+    OEMaths::mat4f currentModel;
+    OEMaths::vec3f currentPos { 0.0f, 0.0f, 6.0f };
+    OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
+    
+    // current status of the axis
+    double yaw = -45.0;
+    double pitch = 0.0;
+    double currX = 0.0;
+    double currY = 0.0;
+    
+    // "up" for this camera
     OEMaths::vec3f cameraUp{ 0.0f, 1.0f, 0.0f };
 };
 
@@ -174,8 +197,7 @@ public:
 	 */
 	void updateFrame(double time, double dt);
 
-	void updateCameraRotation();
-	void updateViewMatrix();
+	
 
 	// event functions
 	void keyboardPressEvent(KeyboardPressEvent &event);
@@ -216,16 +238,9 @@ private:
 	uint32_t cameraIndex;
 
 	/// data calculated using the currently selected camera
-	OEMaths::mat4f currentProjMatrix;
-	OEMaths::mat4f currentViewMatrix;
-	OEMaths::mat4f currentModelMatrix;
-	OEMaths::vec3f currentPosition;
-	OEMaths::vec3f frontVec{ 0.0f, 0.0f, -1.0f };
+	
 
-	double yaw = -45.0;
-	double pitch = 0.0;
-	double currentX = 0.0;
-	double currentY = 0.0;
+	
 
 	/// controls the sensitivity of the camera to mouse movements
 	float mouseSensitivity = 0.1;

@@ -33,21 +33,35 @@ Pipeline* CmdBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass
 	else
     {
         // else create a new pipeline - If we are in a threaded environemt then we can't add to the list until we are out of the thread
+        pline = new Pipeline();
         pline->create(context.getDevice(), *rPass, *prog);
+        pipelines.emplace(key, pline);
     }
     
     return pline;
 }
 
-DescriptorSet* CmdBufferManager::findOrCreateDescrSer(DescriptorLayout& layout)
+DescriptorSet* CmdBufferManager::findOrCreateDescrSet(DescriptorLayout& layout)
 {
     DescriptorSet* set = nullptr;
     
-    DescrHash key { layout.get() };
+    DescrHash key { &layout };
     auto iter = descrSets.find(key);
+    
+    if (iter != descrSets.end())
+    {
+        return &(*iter);
+    }
+    else
+    {
+        // if nnot found, create a new set
+        set = new DescriptorSet();
+        set->prepare(context.getDevice(), layout);
+        descrSets.emplace(key, set);
+    }
 }
 
-CmdBufferHandle CmdBufferManager::newInstance()
+CmdBufferHandle CmdBufferManager::createCmdBuffer()
 {
     CmdBufferInfo bufferInfo;
 	vk::Device dev = context.getDevice();

@@ -60,6 +60,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/World.cpp Core/World.h
 	Core/Scene.cpp Core/Scene.h
 	Core/Omega_Common.h
+    Core/CameraManager.cpp Core/CameraManager.h
 
 	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
 	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h
@@ -69,7 +70,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 
 	Components/ComponentManager.h
 	Components/AnimationManager.cpp Components/AnimationManager.h
-	Components/CameraManager.cpp Components/CameraManager.h
 	Components/LightManager.cpp Components/LightManager.h
 	Components/RenderableManager.cpp Components/RenderableManager.h
 	Components/TransformManager.cpp Components/TransformManager.h

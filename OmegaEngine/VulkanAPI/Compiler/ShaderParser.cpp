@@ -92,13 +92,12 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 				std::string name = import["name"].GetString();
 				std::string type = import["type"].GetString();
 
-				// samplers and buffers can be grouped into sets - this is optional and if
-				// not specified, all imports will be grouped in the same set
+				// samplers and buffers can be grouped using a identifying name
+                // The id will be appended to the buffer or sampler name
 				uint16_t group = 0;
 				if (import.HasMember("group"))
 				{
-					group = std::stoi(import["group"].GetString());
-					maxGroup = group;
+                    groupId = import["group"].GetString();
 				}
 
 				if (VkUtils::isSamplerType(name))

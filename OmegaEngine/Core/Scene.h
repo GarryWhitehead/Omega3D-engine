@@ -32,6 +32,8 @@ public:
 	void update();
 
 	void prepare();
+    
+    void updateCamera();
 
 	/**
 	* Return an instance of the object manager
@@ -46,8 +48,9 @@ public:
     
 private:
 
-	/// Current camera associated with this scene. Updated by the camera manager
-    Camera camera;
+	/// Current cameras associated with this scene.
+    std::vector<Camera> cameras;
+    uint16_t currCamera = UINT16_MAX;
     
 	/// The world this scene is assocaited with
 	World& world;

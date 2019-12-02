@@ -182,6 +182,8 @@ public:
     
 private:
     
+    void updateBuffers();
+    
 	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
 
 	bool updateVariants();

@@ -78,7 +78,7 @@ private:
 	std::vector<Primitive> primitives;
 
 	/// All vertivces associated with the particular model
-	std::vector<VertexBuffer> vertices;
+	VertexBuffer vertices;
 
 	/// All indices associated with this particular model
 	std::vector<uint32_t> indices;

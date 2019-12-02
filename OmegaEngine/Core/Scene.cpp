@@ -4,6 +4,7 @@
 
 #include "Core/World.h"
 #include "Core/engine.h"
+#include "Core/CameraManager.h"
 
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
@@ -29,7 +30,7 @@ void Scene::prepare()
 	// prepare the camera buffer - note: the id matches the naming of the shader ubo
 	// the data will be updated on a per frame basis in the update
 	auto& driver = engine.getVkDriver();
-	driver.addUbo("CameraUbo", sizeof(CameraBuffer), Buffer::Usage::Dynamic);
+	driver.addUbo("CameraUbo", sizeof(Camera::Ubo), Buffer::Usage::Dynamic);
 }
 
 void Scene::update()
@@ -72,16 +73,22 @@ void Scene::update()
 
 void Scene::updateCamera()
 {
-	updateViewMatrix();
+    Camera& camera = cameras[currCamera];
+    
+    camera.updateViewMatrix();
 
 	// update everything in the buffer
-	cameraBuffer.mvp = currentProjMatrix * currentViewMatrix;    // * model
-	cameraBuffer.cameraPosition = currentPosition;
-	cameraBuffer.projection = currentProjMatrix;
-	cameraBuffer.model = currentModelMatrix;    // this is just identity for now
-	cameraBuffer.view = currentViewMatrix;
-	cameraBuffer.zNear = camera.zNear;
-	cameraBuffer.zFar = camera.zFar;
+    Camera::Ubo ubo;
+	ubo.mvp = camera.getMvpMatrix();
+	ubo.cameraPosition = camera.getPos();
+    ubo.projection = camera.getProjMatrix();
+	ubo.model = camera.getModelMatrix();    // this is just identity for now
+	ubo.view = camera.getViewMatrix();
+	ubo.zNear = camera.getZNear();
+	ubo.zFar = camera.getZFar();
+    
+    auto& driver = engine.getVkDriver();
+    driver.updateUniform("CameraUbo", &ubo, sizeof(Camera::Ubo));
 }
 
 }    // namespace OmegaEngine
