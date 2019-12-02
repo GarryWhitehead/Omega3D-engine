@@ -2,9 +2,9 @@
 
 #include "Types/Object.h"
 
+#include "Core/Camera.h"
 #include "Core/World.h"
 #include "Core/engine.h"
-#include "Core/CameraManager.h"
 
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
@@ -73,22 +73,27 @@ void Scene::update()
 
 void Scene::updateCamera()
 {
-    Camera& camera = cameras[currCamera];
-    
-    camera.updateViewMatrix();
+	Camera& camera = cameras[currCamera];
+
+	camera.updateViewMatrix();
 
 	// update everything in the buffer
-    Camera::Ubo ubo;
+	Camera::Ubo ubo;
 	ubo.mvp = camera.getMvpMatrix();
 	ubo.cameraPosition = camera.getPos();
-    ubo.projection = camera.getProjMatrix();
+	ubo.projection = camera.getProjMatrix();
 	ubo.model = camera.getModelMatrix();    // this is just identity for now
 	ubo.view = camera.getViewMatrix();
 	ubo.zNear = camera.getZNear();
 	ubo.zFar = camera.getZFar();
-    
-    auto& driver = engine.getVkDriver();
-    driver.updateUniform("CameraUbo", &ubo, sizeof(Camera::Ubo));
+
+	auto& driver = engine.getVkDriver();
+	driver.updateUniform("CameraUbo", &ubo, sizeof(Camera::Ubo));
+}
+
+Camera* Scene::getCurrentCamera()
+{
+	return &cameras[currCamera];
 }
 
 }    // namespace OmegaEngine

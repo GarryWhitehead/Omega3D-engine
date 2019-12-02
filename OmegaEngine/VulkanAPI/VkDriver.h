@@ -19,10 +19,10 @@ class VertexBuffer;
 class IndexBuffer;
 class Swapchain;
 
-    /**
+/**
 * @brief A wrapper for a vulkan instance
 */
-    class Instance
+class Instance
 {
 public:
 	// no copying allowed!
@@ -39,26 +39,52 @@ private:
 namespace VkHash
 {
 
-void* key;
-
-struct ResourceHasher
+struct ResourceIdKey
 {
-	size_t operator()(const char* key) const noexcept
+	const char* key;
+};
+
+struct ResourceIdHasher
+{
+	size_t operator()(const ResourceIdKey& id) const noexcept
 	{
-		return std::hash<const char*>{}(key);
+		return std::hash<const char*>{}(id.key);
 	}
 };
 
-struct ResourceEqualTo
+struct ResourceIdEqualTo
 {
-	bool operator()(const char* lhs, const char* rhs) const
+	bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
 	{
-		return lhs == rhs;
+		return lhs.key == rhs.key;
 	}
 };
 
-using TextureMap = std::unordered_map<const char*, Texture, ResourceHasher, ResourceEqualTo>;
-using BufferMap = std::unordered_map<const char*, Buffer, ResourceHasher, ResourceEqualTo>;
+struct ResourcePtrKey
+{
+	void* key;
+};
+
+struct ResourcePtrHasher
+{
+	size_t operator()(const ResourcePtrKey& id) const noexcept
+	{
+		return std::hash<void*>{}(id.key);
+	}
+};
+
+struct ResourcePtrEqualTo
+{
+	bool operator()(const ResourcePtrKey& lhs, const ResourcePtrKey& rhs) const
+	{
+		return lhs.key == rhs.key;
+	}
+};
+
+using TextureMap = std::unordered_map<ResourceIdKey, Texture, ResourceIdHasher, ResourceIdEqualTo>;
+using BufferMap = std::unordered_map<ResourceIdKey, Buffer, ResourceIdHasher, ResourceIdEqualTo>;
+using VBufferMap = std::unordered_map<ResourcePtrKey, VertexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
+using IBufferMap = std::unordered_map<ResourcePtrKey, IndexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
 
 };    // namespace VkHash
 
@@ -97,11 +123,19 @@ public:
     */
 	IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
-	void add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height, const uint8_t mipLevels);
+	void add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
+	                  const uint8_t mipLevels);
 
 	// ============== buffer update functions ===============================
 
 	void update2DTexture(Util::String id, size_t size, void* data);
+
+	void updateUniform(Util::String id, size_t size, void* data);
+
+	// =============== delete buffer ==========================
+	void deleteVertexBuffer(VertexBuffer* buffer);
+
+	void deleteIndexBuffer(IndexBuffer* buffer);
 
 	// ======== begin/end frame functions ====================
 	void beginFrame();
@@ -138,12 +172,13 @@ private:
 	// staging pool used for managing CPU stages
 	StagingPool stagingPool;
 
-	// resources associated with this device - hashed by the string id 
+	// resources associated with this device - hashed by the string id
 	VkHash::TextureMap textures;
 	VkHash::BufferMap buffers;
 
-	std::vector<VertexBuffer> vertBuffers;
-	std::vector<IndexBuffer> indexBuffers;
+	// mesh data - indexed via the address of the buffer
+	VkHash::VBufferMap vertBuffers;
+	VkHash::IBufferMap indexBuffers;
 
 	// Keep local track of the swapchain
 	// TODO: This may need chnaging if multiple swapchains are used!

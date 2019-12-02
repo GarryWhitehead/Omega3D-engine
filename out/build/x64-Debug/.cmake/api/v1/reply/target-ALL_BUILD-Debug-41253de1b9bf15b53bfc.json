@@ -1,0 +1,67 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"external/shaderc/libshaderc_util/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "shaderc_util_message_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_mutex_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_file_finder_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_string_piece_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_io_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_counting_includer_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_format_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_version_profile_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_compiler_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "CMakePredefinedTargets"
+	},
+	"id" : "ALL_BUILD::@30387d052571abe8a72b",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : "external/shaderc/libshaderc_util",
+		"source" : "external/shaderc/libshaderc_util"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

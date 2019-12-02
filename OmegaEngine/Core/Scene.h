@@ -16,6 +16,7 @@ class World;
 class GltfModel;
 class Object;
 class Engine;
+class Camera;
 
 class Scene
 {
@@ -35,14 +36,7 @@ public:
     
     void updateCamera();
 
-	/**
-	* Return an instance of the object manager
-	* Used by the user for creating objects - usually passed to the scene
-	*/
-	ObjectManager& getObjManager()
-	{
-		return objManager;
-	}
+	Camera* getCurrentCamera();
 
 	friend class Renderer;
     

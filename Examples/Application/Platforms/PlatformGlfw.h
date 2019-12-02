@@ -8,9 +8,17 @@
 
 #include <tuple>
 
+// forward declerations
+namespace OmegaEngine
+{
+class Scene;
+class Camera;
+}    // namespace OmegaEngine
+
 class GlfwPlatform
 {
 public:
+
 	GlfwPlatform();
 	~GlfwPlatform();
 
@@ -44,8 +52,9 @@ public:
 		* @brief Returns a native window pointer
 		* @return A window pointer as void - i.e HWND for windows, XCB for linux
 		*/
-	void* GlfwPlatform::getNativeWinPointer();
+	void* getNativeWinPointer();
 
+	// =================== window input ==========================================
 	void keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode);
 	void mouseButtonResponse(GLFWwindow* window, int button, int action, int mods);
 	void mouseMoveResponse(double xpos, double ypos);
@@ -53,6 +62,8 @@ public:
 	bool buttonState(int button);
 	void getCursorPos(GLFWwindow* window, double* xpos, double* ypos);
 	void switchWindowCursorState(GLFWwindow* window);
+
+	void setCamera(OmegaEngine::Scene& scene);
 
 private:
 	GLFWwindow* window = nullptr;
@@ -62,4 +73,10 @@ private:
 	// states of mouse actions
 	bool leftMousePress = false;
 	bool rightMousePress = false;
+
+	// current mouse position
+	OEMaths::vec2f mousePos = { 0.0f };
+
+	// a pointer to the current camera held by the scene
+	OmegaEngine::Camera* camera = nullptr;
 };

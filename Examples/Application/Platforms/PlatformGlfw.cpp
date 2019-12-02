@@ -1,5 +1,8 @@
 #include "PlatformGlfw.h"
 
+#include "Core/Camera.h"
+#include "Core/Scene.h"
+
 #include "GLFW/glfw3native.h"
 
 GlfwPlatform::GlfwPlatform()
@@ -71,6 +74,8 @@ std::tuple<const char**, uint32_t> GlfwPlatform::getInstanceExt()
 	return std::make_tuple(glfwExtensions, count);
 }
 
+// ========================== evevnt handling =================================================
+
 void GlfwPlatform::poll()
 {
 	glfwPollEvents();
@@ -78,34 +83,54 @@ void GlfwPlatform::poll()
 
 void GlfwPlatform::keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
-	KeyboardPressEvent event;
+	switch (action)
+	{
+	case GLFW_PRESS:
+	{
+		if (key == GLFW_KEY_W)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Up);    // forwrards (z-axis)
+		}
+		if (key == GLFW_KEY_S)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Down);    // backwards (z-axis)
+		}
+		if (key == GLFW_KEY_A)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Left);    // leftwards movement (x-axis)
+		}
+		if (key == GLFW_KEY_D)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Right);    // rightwards movement (x-axis)
+		}
+		break;
+	}
+	case GLFW_RELEASE:
+	{
+		if (key == GLFW_KEY_W)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+		}
+		if (key == GLFW_KEY_S)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+		}
+		if (key == GLFW_KEY_A)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+		}
+		if (key == GLFW_KEY_D)
+		{
+			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+		}
+		break;
+	}
+	}
 
-	if (key == GLFW_KEY_W)
-	{
-		event.isMovingForward = true;    // forwrards (z-axis)
-	}
-	if (key == GLFW_KEY_S)
-	{
-		event.isMovingBackward = true;    // backwards (z-axis)
-	}
-	if (key == GLFW_KEY_A)
-	{
-		event.isMovingLeft = true;    // leftwards movement (x-axis)
-	}
-	if (key == GLFW_KEY_D)
-	{
-		event.isMovingRight = true;    // rightwards movement (x-axis)
-	}
-
-	if (key == GLFW_KEY_ESCAPE)
+	// check for exit
+	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 	{
 		glfwSetWindowShouldClose(window, true);    // exit
-	}
-
-	if (Global::eventManager())
-	{
-		// update the camera position instantly so we reduce the chnace of lag
-		Global::eventManager()->instantNotification<KeyboardPressEvent>(event);
 	}
 }
 
@@ -140,16 +165,21 @@ void GlfwPlatform::mouseButtonResponse(GLFWwindow* window, int button, int actio
 
 void GlfwPlatform::mouseMoveResponse(double xpos, double ypos)
 {
-	MouseMoveEvent event{ xpos, ypos };
+	float dx = mousePos.x - static_cast<float>(xpos);
+	float dy = mousePos.y - static_cast<float>(ypos);
 
-	if (Global::eventManager())
+	mousePos = OEMaths::vec2f{ xpos, ypos };
+
+	if (leftMousePress)
 	{
-		if (leftMousePress)
-		{
-			// update the camera position instantly so we reduce the chnace of lag
-			Global::eventManager()->instantNotification<MouseMoveEvent>(event);
-		}
+		// update the camera position
+		camera->rotate(dx, dy);
 	}
+	if (rightMousePress)
+	{
+		camera->translate(dx, dy, 0.0f);
+	}
+	// TODO: add zoom to the middle wheel
 }
 
 bool GlfwPlatform::buttonState(int button)
@@ -179,7 +209,12 @@ void GlfwPlatform::switchWindowCursorState(GLFWwindow* window)
 	glfwSetInputMode(window, GLFW_CURSOR, cursorState ? GLFW_CURSOR_NORMAL : GLFW_CURSOR_DISABLED);
 }
 
-// static functions for glfw input. Kind of a hack to allow for accessing class member functions ===========================================================================================================================================================================================================
+void GlfwPlatform::setCamera(OmegaEngine::Scene& scene)
+{
+	camera = scene.getCurrentCamera();
+}
+
+// ======================= static functions for glfw input. Kind of a hack to allow for accessing class member functions ==============================
 
 void keyCallback(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
