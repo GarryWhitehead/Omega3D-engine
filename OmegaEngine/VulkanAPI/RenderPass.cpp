@@ -9,23 +9,23 @@
 namespace VulkanAPI
 {
 
-RenderPass::RenderPass(VkContext& cntext)
-    : device(context.getDevice())
+RenderPass::RenderPass(VkContext& context)
+    : context(context)
 {
 }
 
 RenderPass::~RenderPass()
 {
-	device.destroy(renderpass, nullptr);
+	context.getDevice().destroy(renderpass, nullptr);
 }
 
 
 vk::AttachmentLoadOp RenderPass::clearFlagsToVk(const ClearType flags)
 {
 	vk::AttachmentLoadOp result;
-	switch(flags)
+	switch (flags)
 	{
-	case ClearType::Clear: 
+	case ClearType::Clear:
 		result = vk::AttachmentLoadOp::eClear;
 		break;
 	case ClearType::DontCare:
@@ -68,7 +68,8 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 }
 
 void RenderPass::addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout,
-                                     const vk::ImageLayout finalLayout, const size_t reference, ClearFlags& clearFlags, uint32_t sampleCount)
+                                     const vk::ImageLayout finalLayout, const size_t reference, ClearFlags& clearFlags,
+                                     uint32_t sampleCount)
 {
 	// the description of this attachment
 	vk::AttachmentDescription attachDescr;
@@ -124,8 +125,6 @@ void RenderPass::addOutputRef(const uint32_t reference)
 
 bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
 {
-	assert(!colorRef.empty() || !inputRef.empty());
-
 	// override default subpass with user specified subpass
 	SubPassInfo subpass;
 	subpass.descr.pipelineBindPoint =
@@ -269,7 +268,7 @@ void RenderPass::prepare()
 {
 	// copy all the subpass declerations into one container
 	std::vector<vk::SubpassDescription> descrs;
-	for (SubpassInfo& subpass : subpasses)
+	for (const SubpassInfo& subpass : subpasses)
 	{
 		descrs.emplace_back(subpass.descr);
 	}
@@ -280,27 +279,50 @@ void RenderPass::prepare()
 	                                    static_cast<uint32_t>(descrs.size()), descrs.data(),
 	                                    static_cast<uint32_t>(dependency.size()), dependency.data());
 
-	VK_CHECK_RESULT(device.createRenderPass(&createInfo, nullptr, &renderpass));
+	VK_CHECK_RESULT(context.getDevice().createRenderPass(&createInfo, nullptr, &renderpass));
+}
+
+vk::RenderPass& RenderPass::get()
+{
+	return renderpass;
 }
 
 void RenderPass::setClearColour(OEMaths::colour4& col)
 {
-    clearCol = col;
+	clearCol = col;
 }
 
 void RenderPass::setDepthClear(float col)
 {
-    depthClear = col;
+	depthClear = col;
 }
 
 bool RenderPass::hasColourAttach()
 {
-    
+	return !attachments.empty();
 }
 
 bool RenderPass::hasDepthAttach()
 {
-    
+	return depthAttach;
+}
+
+std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs()
+{
+	size_t attachCount = attachments.size();
+	assert(attachCount > 0);
+	std::vector<vk::PipelineColorBlendAttachmentState> colAttachs(attachCount);
+	
+	// for each clear output colour attachment in the renderpass, we need a blend attachment
+	for (uint32_t i = 0; i < attachments.size(); ++i)
+	{
+		vk::PipelineColorBlendAttachmentState colour;
+		colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
+		                        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
+		colour.blendEnable = blendFactor;
+		colAttachs.push_back(colour);
+	}
+	return colAttachs;
 }
 
 // ========================= frame buffer =================================

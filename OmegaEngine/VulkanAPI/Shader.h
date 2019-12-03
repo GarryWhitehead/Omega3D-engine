@@ -73,6 +73,8 @@ public:
      */
 	bool compile(VkContext& context, std::string shaderCode, const Shader::Type type);
     
+	friend class ShaderProgram;
+
 private:
     
     vk::ShaderModule module;

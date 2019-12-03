@@ -4,8 +4,7 @@
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
-
-#include "spirv_cross.hpp"
+#include "VulkanAPI/VkContext.h"
 
 namespace VulkanAPI
 {
@@ -14,7 +13,7 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::prepare(VkDriver& device,
+void PipelineLayout::prepare(VkContext& context,
                             std::vector<DescriptorLayout>& descrLayouts)
 {
 	// create push constants
@@ -27,7 +26,7 @@ void PipelineLayout::prepare(VkDriver& device,
 	for (size_t i = 0; i < pConstantSizes.size(); ++i)
 	{
         size_t size = pConstantSizes[i].first;
-        Shader::StageType type = pConstantSizes[i].second;
+        Shader::Type type = pConstantSizes[i].second;
         
         flags |= Shader::getStageFlags(type);
         totalSize += size;
@@ -61,10 +60,10 @@ vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
 
     switch (type)
     {
-    case PipelineType::Graphics:
+    case Type::Graphics:
         bindPoint = vk::PipelineBindPoint::eGraphics;
         break;
-    case PipelineType::Compute:
+    case Type::Compute:
         bindPoint = vk::PipelineBindPoint::eCompute;
         break;
     }
@@ -72,8 +71,10 @@ vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
     return bindPoint;
 }
 
-void Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
+vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<ShaderBinding::InputBinding>& inputs)
 {
+	vk::PipelineVertexInputStateCreateInfo vertexInputState; 
+
 	// check for empty vertex input
 	if (inputs.empty())
 	{
@@ -84,7 +85,7 @@ void Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& input
 		return;
 	}
     
-    for (const ShaderProgram::InputBinding& input : inputs)
+    for (const ShaderBinding::InputBinding& input : inputs)
     {
         vertexAttrDescr.push_back({ input.loc, 0, input.format, input.stride });
     }
@@ -92,39 +93,34 @@ void Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& input
 	// first sort the attributes so they are in order of location
 	std::sort(vertexAttrDescr.begin(), vertexAttrDescr.end(),
 	          [](const vk::VertexInputAttributeDescription lhs, const vk::VertexInputAttributeDescription rhs) {
-		          return lhs.loc < rhs.loc;
+		          return lhs.location < rhs.location;
 	          });
 
-
-
-	vertexInputState.vertexAttributeDescriptionCount = attributeCount;
+	vertexInputState.vertexAttributeDescriptionCount = vertexAttrDescr.size();
 	vertexInputState.pVertexAttributeDescriptions = vertexAttrDescr.data();
 	vertexInputState.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindDescr.size());
 	vertexInputState.pVertexBindingDescriptions = vertexBindDescr.data();
+
+	return vertexInputState;
 }
 
-void Pipeline::addEmptyLayout()
+void Pipeline::addEmptyLayout(VkContext& context)
 {
 	vk::PipelineLayoutCreateInfo createInfo;
-	VK_CHECK_RESULT(device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
+	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
 }
 
-void Pipeline::create(VkDriver& dev, RenderPass& rPass, ShaderProgram& shader)
-{
-	
-	type = type;
-	this->renderpass = renderpass;
-	this->pipelineLayout = layout.get();
-    
-    vk::device = dev;
-    
+void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shader)
+{ 
+	RenderStateBlock* renderState = shader;
+
 	// calculate the offset and stride size
-	updateVertexInput(shader->inputs);
+	vk::PipelineVertexInputStateCreateInfo vertInputState = updateVertexInput(shader.inputs);
     
     // ============== primitive topology =====================
     vk::PipelineInputAssemblyStateCreateInfo assemblyState;
-    assemblyState.topology = shader->topology;
-    assemblyState.primitiveRestartEnable = shader->primRestart;
+	assemblyState.topology = renderState->rastState.topology;
+	assemblyState.primitiveRestartEnable = renderState->rastState.primRestart;
     
     // ============== depth/stenicl state ====================
     vk::PipelineDepthStencilStateCreateInfo depthStencilState;
@@ -145,9 +141,9 @@ void Pipeline::create(VkDriver& dev, RenderPass& rPass, ShaderProgram& shader)
     
     // ============ raster state =======================
     vk::PipelineRasterizationStateCreateInfo rasterState;
-    rasterState.cullMode = shader->rasterState.cullMode;
-    rasterState.frontFace = shader->rasterState.frontFace;
-    rasterState.polygonMode = shader->rasterState.polygonMode;
+	rasterState.cullMode = renderState->rastState.cullMode;
+	rasterState.frontFace = renderState->rastState.frontFace;
+	rasterState.polygonMode = renderState->rastState.polygonMode;
     
     // ============ dynamic states ====================
     vk::PipelineDynamicStateCreateInfo dynamicCreateState;
@@ -156,7 +152,7 @@ void Pipeline::create(VkDriver& dev, RenderPass& rPass, ShaderProgram& shader)
     
 	// =============== viewport state ====================
 	vk::PipelineViewportStateCreateInfo viewportState;
-    vk::Viewport viewPort(0.0f, 0.0f, (float)renderpass.getImageWidth(), (float)renderpass.getImageHeight(), 0.0f,
+    vk::Viewport viewPort(0.0f, 0.0f, static_cast<float>(renderpass.getImageWidth()), static_cast<float>(renderpass.getImageHeight()), 0.0f,
 	                      1.0f);
 	vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
 	viewportState.pViewports = &viewPort;
@@ -165,35 +161,26 @@ void Pipeline::create(VkDriver& dev, RenderPass& rPass, ShaderProgram& shader)
 	viewportState.scissorCount = 1;
     
     // ============= colour attachment =================
-    vk::PipelineColorBlendStateCreateInfo colorBlendState;
-    
-    // for each clear colour state in the renderpass, we need a blend attachment
-    for (uint32_t i = 0; i < renderpass.get_attach_count(); ++i)
-    {
-        vk::PipelineColorBlendAttachmentState colour;
-        colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
-                                vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-        colour.blendEnable = blendFactor;
-        colorAttachState.push_back(colour);
-    }
+	auto& colAttachments = renderpass.getColourAttachs();
+    vk::PipelineColorBlendStateCreateInfo colourBlendState;
+	colourBlendState.attachmentCount = static_cast<uint32_t>(colAttachments.size());
+	colourBlendState.pAttachments = colAttachments.data();
     
     // aplha blending - using preset states
     if (blendFactor == VK_TRUE)
     {
         // deal with blending here
     }
-
-    // update blend state
-    colorBlendState.attachmentCount = static_cast<uint32_t>(colorAttachState.size());
-    colorBlendState.pAttachments = colorAttachState.data();
     
+	auto& shaderCreateInfo = shader.getShaderCreateInfo();
+
     // ================= create the pipeline =======================
-	vk::GraphicsPipelineCreateInfo createInfo({}, shader->size(), shader.getShaderData(), &vertexInputState,
+	vk::GraphicsPipelineCreateInfo createInfo({}, shaderCreateInfo.size(), shaderCreateInfo.data(), &vertInputState,
 	                                          &assemblyState, nullptr, &viewportState, &rasterState, &multiSampleState,
 	                                          &depthStencilState, &colorBlendState, &dynamicCreateState, pipelineLayout,
 	                                          this->renderpass.get(), 0, nullptr, 0);
 
-	VK_CHECK_RESULT(device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
+	VK_CHECK_RESULT(context.getDevice().createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
 
 }    // namespace VulkanAPI

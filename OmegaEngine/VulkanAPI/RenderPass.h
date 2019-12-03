@@ -2,8 +2,6 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "VulkanAPI/VkDriver.h"
-
 #include "OEMaths/OEMaths.h"
 
 #include <assert.h>
@@ -39,7 +37,7 @@ public:
 		ClearType stencilStore = ClearType::DontCare;
 	};
 
-	RenderPass(VkDriver& driver);
+	RenderPass(VkContext& context);
 	~RenderPass();
 
 	// no copying
@@ -51,11 +49,6 @@ public:
 	static bool isDepth(const vk::Format format);
 	static bool isStencil(const vk::Format format);
 	vk::AttachmentLoadOp clearFlagsToVk(const ClearType flags);
-
-	vk::RenderPass get()
-	{
-		return renderpass;
-	}
 
 	// Adds a attahment for this pass. This can be a colour or depth attachment
 	void addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout,
@@ -77,7 +70,10 @@ public:
 	// Actually creates the renderpass based on the above definitions
 	void prepare();
     
-    // sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
+	// ====================== the getter and setters =================================
+	vk::RenderPass& get();
+
+	// sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
     void setClearColour(OEMaths::colour4& col);
     void setDepthClear(float col);
     
@@ -85,6 +81,8 @@ public:
     bool hasColourAttach();
     bool hasDepthAttach();
     
+	std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
+
 private:
 	struct SubpassInfo
 	{
@@ -102,7 +100,7 @@ private:
 
 private:
 	// keep a refernece of the device this pass was created on for destruction purposes
-	vk::Device device;
+	VkContext& context;
 
 	vk::RenderPass renderpass;
 
@@ -118,8 +116,12 @@ private:
 	std::vector<vk::SubpassDependency> dependencies;
     
     // the clear colour for this pass - for each attachment
-    OEMaths::colour3 clearCol;
+    OEMaths::colour4 clearCol;
     float depthClear = 0.0f;
+
+	// max extents of this pass
+	uint32_t width = 0;
+	uint32_t height = 0;
 };
 
 class FrameBuffer
@@ -127,8 +129,8 @@ class FrameBuffer
 public:
 	FrameBuffer() = default;
 
-	FrameBuffer(VkDriver& driver)
-	    : device(driver.getDevice())
+	FrameBuffer(VkContext& context)
+	    : device(context.getDevice())
 	{
 	}
 

@@ -1,7 +1,7 @@
 #pragma once
 
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/Shader.h"
 
 namespace VulkanAPI
@@ -9,7 +9,9 @@ namespace VulkanAPI
 // forward declearions
 class Shader;
 class PipelineLayout;
-class VkDriver;
+class VkContext;
+class ShaderProgram;
+class RenderPass;
 
 class Pipeline
 {
@@ -28,18 +30,18 @@ public:
     Pipeline(const Pipeline&) = delete;
     Pipeline& operator=(const Pipeline&) = delete;
     
-    static vk::PipelineBindPoint createBindPoint(Pipeline::Type type)
+    static vk::PipelineBindPoint createBindPoint(Pipeline::Type type);
     
-	void updateVertexInput();
+	vk::PipelineVertexInputStateCreateInfo updateVertexInput(std::vector<ShaderBinding::InputBinding>& inputs);
 
-	void addEmptyLayout();
+	void addEmptyLayout(VkContext& context);
     
     /**
      * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
      */
-	void create(vk::Device dev, RenderPass &renderpass, ShaderProgram &shader);
+	void create(VkContext& context, RenderPass& rPass, ShaderProgram& shader);
 	
-	PipelineType getType() const
+	Pipeline::Type getType() const
 	{
 		return type;
 	}
@@ -51,7 +53,7 @@ public:
 
 private:
     
-	vk::Device device;
+	VkContext& device;
 
 	// everything needeed to build the pipeline
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
@@ -84,7 +86,7 @@ public:
      * created before calling this function.
      * Note: The layouts must be in the correct order as depicted by the set number
      */
-	void prepare(VkDriver& context, std::vector<DescriptorLayout> &descrLayouts);
+	void prepare(VkContext& context, std::vector<DescriptorLayout> &descrLayouts);
     
     /// returns the vulkan pipeline layout
 	vk::PipelineLayout &get()
@@ -96,7 +98,7 @@ public:
      * Adds a push constant reference to this layout. Only the size must be known at this stage; The data will be
      * associated with this push constant at draw time.
      */
-	void addPushConstant(Shader::StageType stage, uint32_t size)
+	void addPushConstant(Shader::Type stage, uint32_t size)
 	{
         pConstantSizes.emplace(stage, size);
 	}
@@ -104,7 +106,7 @@ public:
 private:
     
 	/// the shader stage the push constant refers to and its size
-	std::vector<std::pair<Shader::StageType, size_t> pConstantSizes = {};
+	std::vector<std::pair<Shader::Type, size_t>> pConstantSizes;
 
 	vk::PipelineLayout layout;
 };

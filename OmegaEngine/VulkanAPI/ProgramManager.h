@@ -1,10 +1,7 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Descriptors.h"
-#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/VkDriver.h"
 
 #include "utility/BitSetEnum.h"
 #include "utility/String.h"
@@ -24,6 +21,9 @@ class ShaderDescriptor;
 class ShaderParser;
 class Sampler;
 class ImageView;
+class DescriptorLayout;
+class PipelineLayout;
+class Buffer;
 
 /**
 * @brief Specifies the render pipeline state of the shader program
@@ -33,9 +33,10 @@ struct RenderStateBlock
 {
 	struct RasterState
 	{
-		vk::CullModeFlagBits cullMode = vk::CullModeFlagBits::eNone;
-		vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
-		vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
+		vk::CullModeFlagBits cullMode;
+		vk::PolygonMode polygonMode;
+		vk::FrontFace frontFace;
+		vk::PrimitiveTopology topology;
 	};
 
 	struct Sampler
@@ -57,10 +58,8 @@ struct RenderStateBlock
 class ShaderBinding
 {
 public:
-    
-    
 	/**
-     * The uniform buffer bindings for the shader stage - uniform, storage and input buffers
+     * @brief The uniform buffer bindings for the shader stage - uniform, storage and input buffers
      */
 	struct BufferBinding
 	{
@@ -74,7 +73,7 @@ public:
 	};
 
 	/**
-     * The sampler bindings for the shder stage. These can be sampler2D, sampler3D and samplerCube
+     * @brief The sampler bindings for the shder stage. These can be sampler2D, sampler3D and samplerCube
      */
 	struct SamplerBinding
 	{
@@ -88,11 +87,11 @@ public:
 	};
 
 	/**
-     * Input semenatics of the shader stage. Used by the pipeline attributes
+     * @brief Input semenatics of the shader stage. Used by the pipeline attributes
      */
 	struct InputBinding
 	{
-		uint16_t location = 0;
+		uint16_t loc = 0;
 		uint32_t stride = 0;
 		vk::Format format;
 	};
@@ -104,7 +103,7 @@ public:
 	};
 
 	/**
-     * States the ouput from the fragment shader - into a buffer specified by the render pass
+     * @brief States the ouput from the fragment shader - into a buffer specified by the render pass
      */
 	struct RenderTarget
 	{
@@ -121,6 +120,8 @@ private:
 	std::vector<BufferBinding> bufferBindings;
 	std::vector<SamplerBinding> samplerBindings;
 	std::vector<RenderTarget> renderTargets;
+	
+	// vertex shader only
 	std::vector<InputBinding> inputs;
 
 	// Specialisation constant are finalised at the pipeline creation stage
@@ -167,26 +168,29 @@ public:
     /**
      * @brief Adds descriptor set update buffer information to the specified binding
      */
-    bool addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout layout, Shader::Type stage);
+    bool addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout& layout, Shader::Type stage);
     
     /**
        @brief Adds descriptor set update sampler information to the specified binding
     */
-    bool addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageview, vk::ImageLayout layout, Shader::Type stage);
+    bool addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageview, vk::ImageLayout& layout, Shader::Type stage);
     
+	// ================== getters ==========================
+	std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
+
 	friend class ShaderCompiler;
 	friend class CmdBuffer;
 
 private:
 	
-	std::array<std::unique_ptr<ShaderBinding>, Shader::Type::Count> stages;
+	std::vector<ShaderBinding> stages;
 
 	// this block overrides all render state for this shader.
 	std::unique_ptr<RenderStateBlock> renderState;
 
 	// used by the vulkan backend
-	DescriptorLayout descrLayout;
-	PipelineLayout pLineLayout;
+	std::unique_ptr<DescriptorLayout> descrLayout;
+	std::unique_ptr<PipelineLayout> pLineLayout;
 };
 
 
@@ -243,6 +247,8 @@ public:
 	* @brief Checks whether a shader fragment has been cached as specified by the hash
 	*/
 	bool hasShaderVariantCached(ShaderHash& hash);
+
+	ShaderDescriptor* findCachedVariant(ShaderHash& hash);
 
 	friend class CmdBufferManager;
 
