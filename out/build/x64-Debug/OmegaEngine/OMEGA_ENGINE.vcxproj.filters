@@ -19,6 +19,9 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Camera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -92,9 +95,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderCommon.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.cpp">
@@ -231,6 +231,9 @@
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -352,9 +355,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.h">

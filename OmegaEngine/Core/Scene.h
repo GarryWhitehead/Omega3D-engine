@@ -17,10 +17,21 @@ class GltfModel;
 class Object;
 class Engine;
 class Camera;
+struct TransformInfo;
 
 class Scene
 {
 public:
+	/**
+	* @brief A temp struct used to gather viable renderable objects data ready for visibilty checks
+	* and passing to the render queue
+	*/
+	struct VisibleCandidate
+	{
+		Renderable* renderable;
+		TransformInfo* transform;
+	};
+
 	Scene() = default;
 
 	Scene(World& world, Engine& engine);
@@ -33,19 +44,18 @@ public:
 	void update();
 
 	void prepare();
-    
-    void updateCamera();
+
+	void updateCamera();
 
 	Camera* getCurrentCamera();
 
 	friend class Renderer;
-    
-private:
 
+private:
 	/// Current cameras associated with this scene.
-    std::vector<Camera> cameras;
-    uint16_t currCamera = UINT16_MAX;
-    
+	std::vector<Camera> cameras;
+	uint16_t currCamera = UINT16_MAX;
+
 	/// The world this scene is assocaited with
 	World& world;
 

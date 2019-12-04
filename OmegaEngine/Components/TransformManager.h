@@ -1,13 +1,12 @@
 #pragma once
+
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "OEMaths/OEMaths_transform.h"
 
-#include "Utility/logger.h"
-
 #include "Components/ComponentManager.h"
 
-#include "Models/ModelNode.h"
+#include "Models/NodeInstance.h"
 
 #include <cstdint>
 #include <memory>
@@ -21,7 +20,7 @@ struct ModelSkin;
 
 struct TransformInfo
 {
-	ModelNode::NodeInfo* root = nullptr;
+	NodeInstance::NodeInfo* root = nullptr;
 
 	// the offset all skin indices will be adjusted by within this
 	// node hierachy
@@ -61,7 +60,7 @@ public:
 	* @brief Adds the node hierachy - reflects the layout obtained from 
 	* wherever this originate from to make sure bone transforms are correct
 	*/
-	bool addNodeHierachy(ModelNode& node, Object& obj, ModelSkin* skin, size_t skinCount);
+	bool addNodeHierachy(NodeInstance&node, Object& obj, ModelSkin* skin, size_t skinCount);
 
 	/**
 	* @brief Creates a single node and adds the transform data to the root
@@ -74,7 +73,7 @@ public:
 	/**
 	* @brief Updates the local matrix tree; returns the root node local matrix
 	*/
-	OEMaths::mat4f updateMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world);
+	OEMaths::mat4f updateMatrix(NodeInstance::NodeInfo* node, OEMaths::mat4f& world);
 
 	/**
 	* @brief Called after an update the transfom node hierachy, this function
@@ -82,7 +81,7 @@ public:
 	* starting from a mesh node. Updates the aligned buffer which will be used by the 
 	* renderer prior to rendering to the surface
 	*/
-	void updateLocalTransform(ModelNode::NodeInfo* parent, TransformUbo* transformPtr, SkinnedUbo* skinnedPtr);
+	void updateLocalTransform(NodeInstance:: NodeInfo* parent, TransformUbo* transformPtr, SkinnedUbo* skinnedPtr);
 
 	/**
 	* @brief Updates the skeleton (node) hierachy of all objects associated with this component manager 
@@ -94,6 +93,9 @@ public:
 	void updateObjectTranslation(Object* obj, OEMaths::vec4f trans);
 	void updateObjectScale(Object* obj, OEMaths::vec4f scale);
 	void updateObjectRotation(Object* obj, OEMaths::quatf rot);
+
+	// =================== getters ==========================
+	TransformInfo& getTransform(const ObjHandle obj);
 
 private:
 	// transform data preserved in the node hierachal format

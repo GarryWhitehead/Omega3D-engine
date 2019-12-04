@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/ObjectManager.h"
+
 #include "Types/Object.h"
 
 #include "OEMaths/OEMaths.h"
@@ -165,7 +167,7 @@ public:
 	/**
      * @brief Returns a instance of a mesh based on the specified object
      */
-	Renderable& getMesh(Object& obj);
+	Renderable& getMesh(const ObjHandle obj);
 
 	// === material related functions ===
 	/**

@@ -39,8 +39,13 @@ void Scene::update()
 	auto& rendManager = engine.getRendManager();
 	auto& lightManager = engine.getLightManager();
 
-	// create a temp list of all renderable and light objects that are active
 	auto& objects = world.getObjManager().getObjectsList();
+
+	// reserve more space than we need
+	std::vector<VisibleCandidate> candObjects(objects.size());
+
+	// create a temp list of all renderable and light objects that are active
+	// we create a temp container as we will be doing the visibility checks async
 	for (Object& obj : objects)
 	{
 		if (!obj.isActive())
@@ -51,14 +56,20 @@ void Scene::update()
 		ObjHandle rHandle = rendManager.getObjIndex(obj);
 		ObjHandle tHandle = transManager.getObjIndex(obj);
 
+		// it should be impossible for a object to exsist that doesn't have both a transform and renderable component, but better make sure!
 		if (rHandle && tHandle)
 		{
+			VisibleCandidate candidate;
+			candidate.renderable = &rendManager.getMesh(rHandle);
+			candidate.transform = &transManager.getTransform(tHandle);
+			candObjects.emplace_back(candidate);
 		}
 		else
 		{
 			ObjHandle lHandle = lightManager.getObjIndex(obj);
 			if (lHandle)
 			{
+				// TODO
 			}
 		}
 	}

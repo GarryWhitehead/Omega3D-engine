@@ -104,6 +104,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Common.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Camera.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Camera.h" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.cpp" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\ImageLoader.cpp" />
@@ -170,8 +172,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.h" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderCommon.cpp" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderCommon.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.cpp" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.h" />
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderQueue.cpp" />

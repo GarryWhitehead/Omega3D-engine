@@ -80,15 +80,14 @@ void Renderer::update()
         queueInfo.renderableData = (void*)&rend;
         queueInfo.renderableHandle = this;
         queueInfo.renderFunction = GBufferFillPass::drawCallback;
-        queueInfo.sortingKey = RenderQueue::createSortKey(RenderQueue::Layer::Default, rend.materialId, rend.variant);
+        queueInfo.sortingKey = RenderQueue::createSortKey(RenderQueue::Layer::Default, rend.materialId, rend.variantBits);
         renderQueue.push(queueInfo);
     }
 }
 
 void Renderer::draw()
 {
-	// update the unifom buffers on the backend
-	vkDriver.updateUbo();
+	vkDriver.beginFrame();
 
 	// optimisation and compilation of the render graph. If nothing has changed since the last frame then this 
 	// call will just return.

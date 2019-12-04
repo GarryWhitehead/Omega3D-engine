@@ -59,16 +59,16 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
     {
         auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
         
-        cmdBuffer.bindPipeline(context.rpass, prog);
+        cmdBuffer->bindPipeline(context.rpass, prog);
         
-        cmdBuffer.bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::Pipeline::Type::Graphics);
-        cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float),
+        cmdBuffer->bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer-?bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float),
                                 &instanceData->blurFactor);
 
         vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-        cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-        cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
-        cmdBuffer.drawIndexed(instanceData->indexCount);
+        cmdBuffer->bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+        cmdBuffer->bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
+        cmdBuffer->drawIndexed(instanceData->indexCount);
     });
 }
 

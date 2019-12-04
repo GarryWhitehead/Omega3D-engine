@@ -1,9 +1,12 @@
 #include "TransformManager.h"
 
-#include "Managers/MeshManager.h"
-#include "Managers/ObjectManager.h"
+#include "Components/RenderableManager.h"
+
+#include "Core/ObjectManager.h"
 
 #include "Models/SkinInstance.h"
+
+#include "utility/Logger.h"
 
 #include <algorithm>
 #include <cstdint>
@@ -91,7 +94,7 @@ OEMaths::mat4f TransformManager::updateMatrix(ModelNode::NodeInfo* node, OEMaths
 }
 
 
-void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, TransformUbo* transformPtr,
+void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, TransformUbo* transformPtr,
                                             SkinnedUbo* skinnedPtr)
 {
 	assert(transformPtr);	// there must be transform data!
@@ -127,7 +130,7 @@ void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, Transfo
 			for (uint32_t i = 0; i < jointCount; ++i)
 			{
 				// get a pointer to the joint a.k.a transform node
-				ModelNode::NodeInfo* jointNode = skin.jointNodes[i];
+				NodeInstance::NodeInfo* jointNode = skin.jointNodes[i];
 
 				// the joint matrix is the local matrix * inverse bin matrix
 				OEMaths::mat4f jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
@@ -143,7 +146,7 @@ void TransformManager::updateLocalTransform(ModelNode::NodeInfo* parent, Transfo
 	}
 
 	// now work up the child nodes - until we find a mesh
-	for (ModelNode::NodeInfo* child : parent->children)
+	for (NodeInstance::NodeInfo* child : parent->children)
 	{
 		updateLocalTransform(child, transformPtr, skinnedPtr);
 	}
@@ -202,4 +205,11 @@ void TransformManager::updateObjectRotation(Object* obj, OEMaths::quatf rot)
 	transforms[index].setRotation(rot);
 	isDirty = true;
 }
+
+TransformInfo& TransformManager::getTransform(const ObjHandle handle)
+{
+	assert(handle > 0 && handle < nodes.size());
+	return nodes[handle];
+}
+
 }    // namespace OmegaEngine
