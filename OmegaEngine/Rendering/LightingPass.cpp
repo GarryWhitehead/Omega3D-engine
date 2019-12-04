@@ -5,8 +5,8 @@
 #include "RenderGraph/RenderGraph.h"
 
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Managers/CommandBufferManager.h"
-#include "VulkanAPI/Managers/ProgramManager.h"
+#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/VkDriver.h"
 
@@ -23,6 +23,8 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
 	const Util::String filename = "lighting.glsl";
+    VulkanAPI::ShaderProgram* prog = nullptr;
+    
 	if (!manager->hasShaderVariant(filename, nullptr, variantBits))
 	{
 		VulkanAPI::ShaderParser parser;
@@ -30,7 +32,7 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 		{
 			return false;
 		}
-		VulkanAPI::ShaderProgram* prog = manager->createNewInstance(filename, nullptr, varinatBits);
+        prog = manager->createNewInstance(filename, nullptr, variantBits);
 
 		// add variants and constant values
 
@@ -57,23 +59,22 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 	// create the output taragets
 	passInfo.output = builder.addOutputAttachment("lighting", passInfo.output);
 
-	builder.addExecute([=](RGraphContext& rgContext, RenderContext& rContext) {
-		// viewport and scissor
-		rgContext.cmdBuffer->setViewport();
-		rgContext.cmdBuffer->setScissor();
-
+	builder.addExecute([=](RGraphContext& context) {
+        
+        auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
+        
 		// bind the pipeline
-		VulkanAPI::Pipeline* pline = cbManager->findOrCreatePipeline(program, rgContext.pass);
-		rgContext.cmdBuffer->bindPipeline(pline);
+		VulkanAPI::Pipeline* pline = context.cbManager->findOrCreatePipeline(prog, context.rpass);
+		cmdBuffer->bindPipeline(pline);
 
 		// bind the descriptor
-		VulkanAPI::DescriptorSet descrSet = cbManager->findOrCreateDescrSet(program);
-		rgContext.cmdBuffer->bindDescriptors(descrSet, VulkanAPI::PipelineType::Graphics);
+		VulkanAPI::DescriptorSet descrSet = context.cbManager->findOrCreateDescrSet(prog->descrLayout);
+        cmdBuffer->bindDescriptors(descrSet, VulkanAPI::Pipeline::Type::Graphics);
 
-		rgContext.cmdBuffer->bindPushBlock(program, &renderConfig.ibl);
+		cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 
 		// render full screen quad to screen
-		rgContext.cmdBuffer->drawQuad();
+		cmdBuffer->drawQuad();
 	});
 }
 

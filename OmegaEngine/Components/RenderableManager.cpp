@@ -191,8 +191,8 @@ void RenderableManager::updateBuffers()
     else if (vertexBuffer->getSize() < vertTotalSize)
     {
         // if the current buffer does not have enough space, destroy and create new buffer instances
-        driver.destroyVertexBuffer(vertexBuffer);
-        driver.destroyIndexBuffer(indexBuffer);
+        driver.deleteVertexBuffer(vertexBuffer);
+        driver.deleteIndexBuffer(indexBuffer);
 
         vertexBuffer = driver.addVertexBuffer(vertTotalSize, vertData, vertices.attributes);
         indexBuffer = driver.addIndexBuffer(indTotalSize, indData);
@@ -323,11 +323,11 @@ void RenderableManager::update()
 	{
         // create a "mega" buffer from all the vertex and index data we have. Best pratice in vulkan with regards to buffers
         // is to create as few as possible - there is a upper limit on the amount of allocations that can be performed
-        createBuffers();
+        updateBuffers();
         
 	}
 	
 }
-}    // namespace OmegaEngine
 
 }    // namespace OmegaEngine
+
