@@ -112,7 +112,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	RenderGraph/Resources.cpp RenderGraph/Resources.h
 
 	Rendering/IblInterface.cpp Rendering/IblInterface.h
-	Rendering/RenderCommon.cpp Rendering/RenderCommon.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
 	Rendering/Renderer.cpp Rendering/Renderer.h

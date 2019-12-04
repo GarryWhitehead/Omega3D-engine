@@ -98,7 +98,11 @@ private:
     VkContext& context;
 	vk::CommandPool* cmdPool = nullptr;
 	CmdBufferManager* cbManager = nullptr;
-
+    
+    // current bindings - variants are used for ease
+    Pipeline* boundPipeline = nullptr;
+    DescriptorSet* boundDescrSet = nullptr;
+    
 	// primary or secondary buffer
 	CmdBufferType type;
 

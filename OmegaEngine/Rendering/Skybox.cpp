@@ -1,6 +1,10 @@
 #include "Skybox.h"
 
-#include "VulkanAPI/Managers/ProgramManager.h"
+#include "VulkanAPI/ProgramManager.h"
+#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CommandBuffer.h"
+
+#include "VulkanAPI/Compiler/ShaderParser.h"
 
 #include "utility/Logger.h"
 
@@ -22,12 +26,27 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
 
 	// load the shaders
-	VulkanAPI::ShaderProgram* program = manager->findOrCreateShader("skybox.glsl", nullptr, 0);
-	if (!program)
-	{
-		LOGGER_ERROR("Fatal error whilst trying to compile shader for renderpass: %s.", passId);
-		return false;
-	}
+    const Util::String filename = "skybox.glsl";
+    VulkanAPI::ShaderProgram* prog = nullptr;
+    
+    VulkanAPI::ProgramManager::ShaderHash hash { filename.c_str(), 0, nullptr };
+    if (!manager->hasShaderVariant(hash))
+    {
+        VulkanAPI::ShaderParser parser;
+        if (!parser.parse(filename))
+        {
+            return false;
+        }
+        prog = manager->createNewInstance(hash);
+
+        // add variants and constant values
+
+        assert(prog);
+        if (!prog->prepare(parser))
+        {
+            return false;
+        }
+    }
 
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
@@ -35,6 +54,22 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 	builder.addInputAttachment("lighting");
 
 	builder.addOutputAttachment("SkyboxPass", output);
+    
+    builder.addExecute([&](RGraphContext& context)
+    {
+        auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
+        
+        cmdBuffer.bindPipeline(context.rpass, prog);
+        
+        cmdBuffer.bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float),
+                                &instanceData->blurFactor);
+
+        vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
+        cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
+        cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
+        cmdBuffer.drawIndexed(instanceData->indexCount);
+    });
 }
 
 /*void Skybox::generateBuffers()
@@ -83,24 +118,4 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 }
 
 
-
-
-void RenderableSkybox::render(VulkanAPI::SecondaryCommandBuffer& cmdBuffer, void* instance)
-{
-	SkyboxInstance* instanceData = (SkyboxInstance*)instance;
-
-	ProgramState* state = instanceData->state;
-
-	cmdBuffer.setViewport();
-	cmdBuffer.setScissor();
-	cmdBuffer.bindPipeline(state->pipeline);
-	cmdBuffer.bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::PipelineType::Graphics);
-	cmdBuffer.bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float),
-	                        &instanceData->blurFactor);
-
-	vk::DeviceSize offset = { instanceData->vertexBuffer.offset };
-	cmdBuffer.bindVertexBuffer(instanceData->vertexBuffer.buffer, offset);
-	cmdBuffer.bindIndexBuffer(instanceData->indexBuffer.buffer, instanceData->indexBuffer.offset);
-	cmdBuffer.drawIndexed(instanceData->indexCount);
-}*/
 }    // namespace OmegaEngine
