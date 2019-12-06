@@ -94,6 +94,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
 	Types/GpuResources.h
+	Types/AABox.h
 	
 	OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.h
@@ -134,7 +135,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/RandomNumber.cpp utility/RandomNumber.h
 	utility/result.h
 	utility/String.cpp utility/String.h
-	utility/Timer.cpp utility/Timer.h
+	utility/Timer.h
     utility/BitSetEnum.h
 	
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h

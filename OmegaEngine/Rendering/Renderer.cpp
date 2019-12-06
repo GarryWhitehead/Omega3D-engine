@@ -67,22 +67,9 @@ void Renderer::beginFrame()
 
 void Renderer::update()
 {
-    // uopdate the render queue with visible renderables derived from the scene
-    // NOTE: makes sure that you have updated the scene before calling this!
-    RenderableManager& manager = engine.getRendManager();
+   
     
-    for (const Renderable& rend : manager.renderables)
-    {
-        RenderableQueueInfo queueInfo;
-        // we use the renderable data as it is, rather than waste time copying everything into another struct.
-        // This method does mean that it is imperative that the data isnt destroyed until the beginning of the next
-        // frame ad that the data isn't written too - we aren't using guards though this might be required.
-        queueInfo.renderableData = (void*)&rend;
-        queueInfo.renderableHandle = this;
-        queueInfo.renderFunction = GBufferFillPass::drawCallback;
-        queueInfo.sortingKey = RenderQueue::createSortKey(RenderQueue::Layer::Default, rend.materialId, rend.variantBits);
-        renderQueue.push(queueInfo);
-    }
+   
 }
 
 void Renderer::draw()

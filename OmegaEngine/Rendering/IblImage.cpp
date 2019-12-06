@@ -146,14 +146,12 @@ void IblImage::prepare()
 		Image2DF32* image = prefilter->levels[0]->getFace(face);
 		uint32_t dim = image->getDimensions();
 
-		auto filterSplitTask = [&preFilterThread, &image, &dim](size_t curr_y, size_t chunkSize) 
-		{
+		auto filterSplitTask = [&preFilterThread, &image, &dim](size_t curr_y, size_t chunkSize) {
 			for (size_t y = curr_y; y < curr_y + chunkSize; ++y)
 			{
 				Image2DF32::Colour3* dataPtr = image->getDataPtr(0, y);
 				preFilterThread(dataPtr, dim, y);
 			}
-			
 		};
 
 		ThreadTaskSplitter split{ 0, dim, filterSplitTask };

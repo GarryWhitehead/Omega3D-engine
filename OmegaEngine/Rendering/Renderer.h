@@ -100,9 +100,6 @@ private:
 	/// IBL environment mapping handler
 	Ibl::IblImage ibl;
     
-    /// Filled by visible renderables obtained from the scene
-    RenderQueue renderQueue;
-    
 	/// keep a local copy of the render config
 	//RenderConfig renderConfig;
 

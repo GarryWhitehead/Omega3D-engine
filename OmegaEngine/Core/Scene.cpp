@@ -3,8 +3,11 @@
 #include "Types/Object.h"
 
 #include "Core/Camera.h"
+#include "Core/Frustum.h"
 #include "Core/World.h"
 #include "Core/engine.h"
+
+#include "Threading/ThreadPool.h"
 
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
@@ -31,6 +34,27 @@ void Scene::prepare()
 	// the data will be updated on a per frame basis in the update
 	auto& driver = engine.getVkDriver();
 	driver.addUbo("CameraUbo", sizeof(Camera::Ubo), Buffer::Usage::Dynamic);
+}
+
+void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCandidate>& renderables)
+{
+	size_t workSize = renderables.size();
+
+	auto visibilityCheck = [&frustum, &renderables](size_t curr_idx, size_t chunkSize) {
+		assert(curr_idx + chunkSize < renderables.size());
+		for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
+		{
+			Renderable* rend = renderables[idx].renderable;
+			AABox& box = rend->instance.getAABBox();
+			if (frustum.checkBoxPlaneIntersect(box))
+			{
+				rend->visibility |= Renderable::Visible::Renderable;
+			}
+		}
+	};
+
+	ThreadTaskSplitter splitWork{ 0, workSize, visibilityCheck };
+	splitWork.run();
 }
 
 void Scene::update()
@@ -74,12 +98,44 @@ void Scene::update()
 		}
 	}
 
-	// ============ visibility checks and culling ===================
-	// first renderables - seperate work and run async - fills the render queue
-	// which will be displayed by the renderer
+	// prepare the camera frustum
+	Camera& camera = cameras[currCamera];
+	Frustum frustum;
+	frustum.projection(camera.getViewMatrix() * camera.getProjMatrix());
 
+	// ============ visibility checks and culling ===================
+	// first renderables - split work tasks and run async - Sets the visibility bit if passes intersection test
+	// This will then be used to generate the render queue
+	getVisibleRenderables(frustum, candObjects);
+
+	// shadow culling tests
 
 	// and prepare the visible lighting list
+
+	// ============ render queue generation =========================
+	std::vector<RenderableQueueInfo> queueRend;
+
+	for (const VisibleCandidate& cand : candObjects)
+	{
+		Renderable* rend = cand.renderable;
+		// only add visible renderables to the queue
+		if (!rend->visibility & Renderable::Visible::Renderable)
+		{
+			continue;
+		}
+
+		RenderableQueueInfo queueInfo;
+		// we use the renderable data as it is, rather than waste time copying everything into another struct.
+		// This method does mean that it is imperative that the data isnt destroyed until the beginning of the next
+		// frame ad that the data isn't written too - we aren't using guards though this might be required.
+		queueInfo.renderableData = (void*)&rend;
+		queueInfo.renderableHandle = this;
+		queueInfo.renderFunction = GBufferFillPass::drawCallback;
+		queueInfo.sortingKey =
+		    RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId, rend->variantBits.getUint64());
+		queueRend.emplace_back(queueInfo);
+	}
+	renderQueue.pushRenderables(queueRend, RenderQueue::Partition::Colour);
 }
 
 void Scene::updateCamera()

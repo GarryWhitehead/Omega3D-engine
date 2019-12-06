@@ -18,6 +18,7 @@ class Object;
 class Engine;
 class Camera;
 struct TransformInfo;
+class Frustum;
 
 class Scene
 {
@@ -49,9 +50,15 @@ public:
 
 	Camera* getCurrentCamera();
 
+	void getVisibleRenderables(Frustum& frustum, std::vector<VisibleCandidate>& renderables);
+
 	friend class Renderer;
 
 private:
+
+	/// per frame: all the renderables after visibility checks
+	RenderQueue renderQueue;
+
 	/// Current cameras associated with this scene.
 	std::vector<Camera> cameras;
 	uint16_t currCamera = UINT16_MAX;

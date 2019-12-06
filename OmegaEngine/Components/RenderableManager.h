@@ -74,9 +74,9 @@ struct Material
 
 	/// shader variants associated with this material
 	Util::BitSetEnum<TextureVariants> variantBits;
-    
-    /// each material has its own descriptor set
-    VulkanAPI::DescriptorSet descrSet;
+
+	/// each material has its own descriptor set
+	VulkanAPI::DescriptorSet descrSet;
 };
 
 /**
@@ -101,14 +101,23 @@ struct Renderable
 		HasJoint
 	};
 
+	/**
+	* Bit flags for specifying the visibilty of renderables
+	*/
+	enum class Visible : uint8_t
+	{
+		Renderable,
+		Shadow
+	};
+
 	/// all the model data
 	MeshInstance instance;
-    
-    /// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot harder and in 99% of cases,
-    /// all primitives share the same material. So we only allow one material per mesh - this can be reviewed and changed if the need arises
-    int32_t materialId = -1;  ///< set once added to the renderable manager
-    Material* material = nullptr;
-    
+
+	/// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot harder and in 99% of cases,
+	/// all primitives share the same material. So we only allow one material per mesh - this can be reviewed and changed if the need arises
+	int32_t materialId = -1;    ///< set once added to the renderable manager
+	Material* material = nullptr;
+
 	/// the render state of this material
 	RenderStateBlock* renderState;
 
@@ -118,16 +127,16 @@ struct Renderable
 	// the mesh and material varinats merged - used for looking up the completed shader program
 	uint64_t mergedVariant = 0;
 
-	/// topology
-	vk::PrimitiveTopology topology;
-    
-    /// ============ vulkan backend ========================
-    /// This is info is set by calling **update**
-    
-    /// offset into transform buffer for this mesh
-    /// A renderable can either be static or skinned - maybe this should be a abstract inherited class
-    size_t transformDynamicOffset = 0;
-    size_t skinnedDynamicOffset = 0;
+	// visibilty of this renderable and their shadow
+	Util::BitSetEnum<Visible> visibility;
+
+	/// ============ vulkan backend ========================
+	/// This is info is set by calling **update**
+
+	/// offset into transform buffer for this mesh
+	/// A renderable can either be static or skinned - maybe this should be a abstract inherited class
+	size_t transformDynamicOffset = 0;
+	size_t skinnedDynamicOffset = 0;
 };
 
 class RenderableManager : public ComponentManager
@@ -180,12 +189,11 @@ public:
 	size_t addMaterial(Renderable& input, MaterialInstance* mat, const size_t count);
 
 	friend class GBufferFillPass;
-    friend class Renderer;
-    
+	friend class Renderer;
+
 private:
-    
-    void updateBuffers();
-    
+	void updateBuffers();
+
 	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
 
 	bool updateVariants();

@@ -30,9 +30,13 @@ public:
 	bool Application::init(const char* title, uint32_t width, uint32_t height,
 	                       OmegaEngine::NativeWindowWrapper& output);
 
+    void run();
+
+
 private:
 
     GlfwPlatform glfw;
 
-
+    // the running state of this app. Set to true by 'esc' keypress or window close
+    bool closeApp = false;
 };

@@ -2,6 +2,8 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "Types/AABox.h"
+
 #include "Models/Formats/GltfModel.h"
 
 #include "assimp/include/assimp/scene.h"
@@ -17,16 +19,6 @@ namespace OmegaEngine
 class MeshInstance
 {
 public:
-	struct Dimensions
-	{
-		OEMaths::vec3f min;
-		OEMaths::vec3f max;
-		OEMaths::vec3f size;
-		OEMaths::vec3f center;
-		float radius;
-
-		//void initDimensions(OEMaths::vec3f min, OEMaths::vec3f max);
-	};
 
 	/**
      * @brief A abstract vertex buffer. Vertices are stored as blobs of data as the shader system allows
@@ -43,7 +35,7 @@ public:
 	{
 		Primitive() = default;
 
-		Dimensions dimensions;
+		AABox dimensions;
 
 		// index offsets
 		size_t indexBase = 0;
@@ -71,8 +63,8 @@ private:
 	/// defines the topology to use in the program state
 	StateTopology topology;
 
-	/// the overall dimensions of this model. Sub-meshses contain their own dimension data
-	Dimensions totalDimensions;
+	/// the overall dimensions of this model. Sub-meshses contain their own dimensions
+	AABox dimensions;
 
 	/// sub-meshes
 	std::vector<Primitive> primitives;

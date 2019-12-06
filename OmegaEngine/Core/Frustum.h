@@ -7,6 +7,9 @@
 namespace OmegaEngine
 {
 
+//forward declerations
+struct AABox;
+
 class Frustum
 {
 public:
@@ -19,7 +22,7 @@ public:
 
 	bool checkSphereIntersect(OEMaths::vec3f& pos, float radius);
 
-	bool checkBoxIntersect(OEMaths::vec4f& box);
+	bool checkBoxPlaneIntersect(AABox& box);
 
 private:
 
