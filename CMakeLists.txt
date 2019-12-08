@@ -72,6 +72,7 @@ ADD_SUBDIRECTORY(external/glfw)
 ADD_SUBDIRECTORY(external/SPIRV-Tools)
 ADD_SUBDIRECTORY(external/shaderc)
 ADD_SUBDIRECTORY(external/assimp)
+ADD_SUBDIRECTORY(external/lua)
 
 ADD_LIBRARY(RAPID_JSON STATIC external/rapidjson/include/rapidjson/rapidjson.h)
 TARGET_INCLUDE_DIRECTORIES(RAPID_JSON 

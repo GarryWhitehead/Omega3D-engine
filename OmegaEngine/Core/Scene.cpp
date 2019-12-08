@@ -13,6 +13,8 @@
 #include "Components/RenderableManager.h"
 #include "Components/TransformManager.h"
 
+#include "utility/AlignedAlloc.h"
+
 #include "VulkanAPI/VkDriver.h"
 
 namespace OmegaEngine
@@ -136,7 +138,54 @@ void Scene::update()
 		queueRend.emplace_back(queueInfo);
 	}
 	renderQueue.pushRenderables(queueRend, RenderQueue::Partition::Colour);
+
+	// ================== update ubos =================================
+	updateCamera();
+
+	// transforms
+	struct TransformUbo
+	{
+		OEMaths::mat4f modelMatrix;
+	};
+
+	struct SkinnedUbo
+	{
+		OEMaths::mat4f modelMatrix;
+		OEMaths::mat4f jointMatrices[MAX_BONE_COUNT];
+		float jointCount;
+	};
+
+	TransformUbo* currTransformPtr = nullptr;
+	SkinnedUbo* currSkinnedPtr = nullptr;
+
+	const size_t dataSize = candObjects.size();
+
+	const size_t staticDynAlign = (sizeof(TransformUbo) + 256 - 1) & ~(256 - 1);
+	const size_t skinDynAlign = (sizeof(SkinnedUbo) + 256 - 1) & ~(256 - 1);
+
+	Util::AlignedAlloc alignAlloc{ dynAlign * dataSize, dynAlign };
+	Util::AlignedAlloc alignAlloc{ dynAlign * dataSize, dynAlign };
+	assert(!alignAlloc.empty());
+
+	for (auto& cand : candObjects)
+	{
+		if (!rend->visibility & Renderable::Visible::Renderable)
+		{
+			continue;
+		}
+
+		TransformInfo* transInfo = cand.transform;
+		if (!transInfo->jointCount)
+		{
+			currTransformPtr = (TransformUbo*)((uint64_t)transformUbo + (transUboAlign * transUboCount));
+		}
+		else
+		{
+			currSkinnedPtr = (SkinnedUbo*)((uint64_t)skinUbo + (skinUboAlign * skinUboCount));
+		}
+	}
 }
+
 
 void Scene::updateCamera()
 {

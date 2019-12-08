@@ -26,12 +26,4 @@ uint32_t generateTypeId(const char* typeName)
 {
 	return crc32c(0, typeName, std::strlen(typeName));
 }
-
-void* alloc_align(size_t alignmentSize, size_t size)
-{
-	void* data = nullptr;
-	data = _aligned_malloc(size, alignmentSize);
-	assert(data);
-	return data;
-}
 }    // namespace Util

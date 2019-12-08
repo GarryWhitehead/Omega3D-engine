@@ -19,6 +19,7 @@ class Engine;
 class Camera;
 struct TransformInfo;
 class Frustum;
+class Renderable;
 
 class Scene
 {

@@ -29,7 +29,4 @@ public:
 	}
 };
 
-// aligned memory allocation
-void *alloc_align(size_t alignmentSize, size_t size);
-
 } // namespace Util

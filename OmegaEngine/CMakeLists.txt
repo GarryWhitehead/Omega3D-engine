@@ -123,6 +123,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/Skybox.cpp Rendering/Skybox.h
 	Rendering/CompositionPass.cpp Rendering/CompositionPass.h
 	
+	Scripting/LuaBinder.cpp Scripting/LuaBinder.h
+	Scripting/OEConfig.cpp Scripting/OEConfig.h
+
 	Threading/ThreadedQueue.h
 	Threading/ThreadPool.cpp Threading/ThreadPool.h
 	Threading/ThreadUtil.cpp Threading/ThreadUtil.h
@@ -137,6 +140,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/String.cpp utility/String.h
 	utility/Timer.h
     utility/BitSetEnum.h
+	utility/AlignedAlloc.h
 	
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 

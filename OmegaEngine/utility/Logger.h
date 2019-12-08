@@ -21,7 +21,6 @@
 		fprintf(stderr, "{Error log}: " __VA_ARGS__);                               \
 		fprintf(stderr, "\n");                                                      \
 		fflush(stderr);                                                             \
-		throw std::runtime_error("Omega Engine error! See error log for details."); \
 	} while (false)
 
 #define LOGGER_INFO(...)                             \

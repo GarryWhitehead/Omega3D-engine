@@ -37,7 +37,7 @@ TransformManager::~TransformManager()
 	}
 }
 
-bool TransformManager::addNodeHierachy(ModelNode& node, Object& obj, ModelSkin* skin, size_t count)
+bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, ModelSkin* skin, size_t count)
 {
 	if (!node.rootNode)
 	{
@@ -66,12 +66,15 @@ bool TransformManager::addNodeHierachy(ModelNode& node, Object& obj, ModelSkin* 
 		// We have no idea when the model data will go out of scope
 		nodes.emplace_back(std::move(info));
 	}
+
+	// update the model transform, and if skinned, joint matrices
+	updateModelTransform(info.root, info);
 }
 
 void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale,
                                     OEMaths::quatf& rot)
 {
-	ModelNode::NodeInfo* newNode = new ModelNode::NodeInfo();
+	NodeInstance::NodeInfo* newNode = new NodeInstance::NodeInfo();
 	newNode->translation = translation;
 	newNode->scale = scale;
 	newNode->rotation = rot;
@@ -80,10 +83,10 @@ void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& trans
 	nodes.push_back({ newNode, 0 });
 }
 
-OEMaths::mat4f TransformManager::updateMatrix(ModelNode::NodeInfo* node, OEMaths::mat4f& world)
+OEMaths::mat4f TransformManager::updateMatrix(NodeInstance::NodeInfo* node, OEMaths::mat4f& world)
 {
 	OEMaths::mat4f mat = node->nodeTransform;
-	ModelNode::NodeInfo* parent = node->parent;
+	NodeInstance::NodeInfo* parent = node->parent;
 	while (parent)
 	{
 		mat = parent->nodeTransform * mat;
@@ -94,11 +97,8 @@ OEMaths::mat4f TransformManager::updateMatrix(ModelNode::NodeInfo* node, OEMaths
 }
 
 
-void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, TransformUbo* transformPtr,
-                                            SkinnedUbo* skinnedPtr)
+void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, TransformInfo& transInfo)
 {
-	assert(transformPtr);	// there must be transform data!
-
 	// we need to find the mesh node first - we will then update matrices working back
 	// towards the root node
 	if (parent->hasMesh)
@@ -109,10 +109,10 @@ void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, Tran
 		mat = updateMatrix(parent);
 
 		// add updated local transfrom to the ubo buffer
-		transformPtr->modelMatrix = mat;
+		transInfo.modelTransform = mat;
 
 		// will be null if this model doesn't contain a skin
-		if (skinnedPtr)
+		if (transInfo.hasSkin)
 		{
 			// the transform data index for this object is stored on the component
 			uint32_t skinIndex = parent->skinIndex;
@@ -122,8 +122,8 @@ void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, Tran
 			size_t jointCount = skin.jointNodes.size();
 
 			// the number of joints is needed on the shader
-			skinnedPtr->jointCount = jointCount;
-
+			transInfo.jointCount = std::min(jointCount, MAX_BONE_COUNT);
+			
 			// transform to local space
 			OEMaths::mat4f inverseMat = mat.inverse();
 
@@ -137,7 +137,7 @@ void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, Tran
 
 				// transform joint to local (joint) space
 				OEMaths::mat4f localMatrix = inverseMat * jointMatrix;
-				skinnedPtr->jointMatrices[i] = localMatrix;
+				transInfo.jointMatrices[i] = localMatrix;
 			}
 		}
 
@@ -148,23 +148,23 @@ void TransformManager::updateLocalTransform(NodeInstance::NodeInfo* parent, Tran
 	// now work up the child nodes - until we find a mesh
 	for (NodeInstance::NodeInfo* child : parent->children)
 	{
-		updateLocalTransform(child, transformPtr, skinnedPtr);
+		updateModelTransform(child, transInfo);
 	}
 }
 
-void TransformManager::update()
+void TransformManager::updateModelTransform(Object& object)
 {
 	// reset both ubo to zero
-	this->transUboCount = 0;
-	this->skinUboCount = 0;
+	transUboCount = 0;
+	skinUboCount = 0;
 
 	TransformUbo* currTransformPtr = nullptr;
 	SkinnedUbo* currSkinnedPtr = nullptr;
 
-	for (auto& obj : objects)
+	for (auto& vis : visible)
 	{
 		size_t nodeIdx = getObjIndex(obj.first);
-		TransformInfo transInfo = nodes[nodeIdx];
+		TransformInfo& transInfo = vis->transform;
 
 		// the transform and skinned buffers are mem aligned due to the requirement of dynamic descriptor sets
 		currTransformPtr = (TransformUbo*)((uint64_t)transformUbo + (transUboAlign * transUboCount));
