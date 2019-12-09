@@ -1,0 +1,197 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{AD65B97D-632D-3545-89A5-661A32FEC16C}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>glslc_resource_parse_test</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\Debug\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">glslc_resource_parse_test.dir\Debug\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">glslc_resource_parse_test</TargetName>
+    <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.exe</TargetExt>
+    <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
+    <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</GenerateManifest>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <CompileAs>CompileAsCpp</CompileAs>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <DisableSpecificWarnings>4800</DisableSpecificWarnings>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <InlineFunctionExpansion>Disabled</InlineFunctionExpansion>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <UseFullPaths>false</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;NV_EXTENSIONS;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ObjectFileName>$(IntDir)</ObjectFileName>
+    </ClCompile>
+    <ResourceCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;NV_EXTENSIONS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googlemock;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\googletest\googletest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+    <Link>
+      <AdditionalDependencies>Debug\glslc.lib;..\libshaderc_util\Debug\shaderc_util.lib;..\libshaderc\Debug\shaderc.lib;..\..\..\lib\Debug\gmockd.lib;..\..\..\lib\Debug\gtest_maind.lib;..\libshaderc_util\Debug\shaderc_util.lib;..\third_party\glslang\SPIRV\Debug\SPIRVd.lib;..\third_party\glslang\glslang\Debug\glslangd.lib;..\third_party\glslang\glslang\OSDependent\Windows\Debug\OSDependentd.lib;..\third_party\glslang\OGLCompilersDLL\Debug\OGLCompilerd.lib;..\third_party\glslang\hlsl\Debug\HLSLd.lib;..\..\SPIRV-Tools\source\opt\Debug\SPIRV-Tools-opt.lib;..\..\SPIRV-Tools\source\Debug\SPIRV-Tools.lib;..\..\..\lib\Debug\gtestd.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <IgnoreSpecificDefaultLibraries>%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ImportLibrary>C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/glslc/Debug/glslc_resource_parse_test.lib</ImportLibrary>
+      <ProgramDataBaseFile>C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/glslc/Debug/glslc_resource_parse_test.pdb</ProgramDataBaseFile>
+      <SubSystem>Console</SubSystem>
+    </Link>
+    <ProjectReference>
+      <LinkLibraryDependencies>false</LinkLibraryDependencies>
+    </ProjectReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\glslc\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/glslc/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/glslc/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckCSourceCompiles.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckIncludeFile.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckLibraryExists.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindThreads.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\glslc\src\resource_parse_test.cc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\ZERO_CHECK.vcxproj">
+      <Project>{0C61801E-A871-36A9-8E10-FBCB73BD3382}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
+      <Project>{13B2173B-CF1E-3578-A8DA-0F1514329722}</Project>
+      <Name>HLSL</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
+      <Project>{BA27FA8F-1125-3732-928A-C5661BE85FAF}</Project>
+      <Name>OGLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
+      <Project>{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}</Project>
+      <Name>OSDependent</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
+      <Project>{7606B6F7-5933-3A49-BB93-71C68AF76D00}</Project>
+      <Name>SPIRV</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
+      <Project>{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}</Project>
+      <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
+      <Project>{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}</Project>
+      <Name>SPIRV-Tools-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\glslang.vcxproj">
+      <Project>{B4284582-40A1-3D87-AEE7-651C2594453B}</Project>
+      <Name>glslang</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc.vcxproj">
+      <Project>{2481462D-7C7E-3264-9B21-16508AB373B8}</Project>
+      <Name>glslc</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googlemock\gmock.vcxproj">
+      <Project>{64C398C8-78A4-3A81-BB6C-28937AF54407}</Project>
+      <Name>gmock</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googletest\gtest.vcxproj">
+      <Project>{570ADA89-836D-3F85-85C9-FA53C01380F8}</Project>
+      <Name>gtest</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googletest\gtest_main.vcxproj">
+      <Project>{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}</Project>
+      <Name>gtest_main</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc.vcxproj">
+      <Project>{4F4C7D7F-A013-320B-AAA5-B96C448E007D}</Project>
+      <Name>shaderc</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util.vcxproj">
+      <Project>{AEF46BF8-8521-32B8-9281-93918F129841}</Project>
+      <Name>shaderc_util</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

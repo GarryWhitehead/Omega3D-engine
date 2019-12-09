@@ -1,0 +1,515 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{89C40C56-C0FB-3EC6-9AA3-5180D66C9496}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCCompiler.cmake.in;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCCompilerABI.c;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCInformation.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCXXCompiler.cmake.in;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCXXCompilerABI.cpp;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCXXInformation.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCommonLanguageInclude.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeCompilerIdDetection.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCXXCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCompileFeatures.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCompilerABI.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineCompilerId.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineRCCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeDetermineSystem.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeFindBinUtils.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeGenericSystem.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeInitializeConfigs.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeLanguageInformation.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeParseImplicitIncludeInfo.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeParseImplicitLinkInfo.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeRCCompiler.cmake.in;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeRCInformation.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeSystem.cmake.in;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeSystemSpecificInformation.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeSystemSpecificInitialize.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeTestCCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeTestCXXCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeTestCompilerCommon.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CMakeTestRCCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\ADSP-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\ARMCC-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\ARMClang-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\AppleClang-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Borland-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Bruce-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\CMakeCommonCompilerMacros.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Clang-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Clang-DetermineCompilerInternal.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Comeau-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Compaq-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Compaq-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Cray-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Embarcadero-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Fujitsu-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\GHS-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\GNU-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\GNU-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\HP-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\HP-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\IAR-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\IBMCPP-C-DetermineVersionInternal.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\IBMCPP-CXX-DetermineVersionInternal.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Intel-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\MSVC-C.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\MSVC-CXX.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\MSVC-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\NVIDIA-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\OpenWatcom-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\PGI-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\PathScale-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\SCO-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\SDCC-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\SunPro-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\SunPro-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\TI-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\TinyCC-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\VisualAge-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\VisualAge-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\Watcom-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\XL-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\XL-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\XLClang-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\XLClang-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\zOS-C-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Compiler\zOS-CXX-DetermineCompiler.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CompilerId\VS-10.vcxproj.in;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindVulkan.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Internal\FeatureTesting.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\Windows-Determine-CXX.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\Windows-MSVC-C.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\Windows-MSVC-CXX.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\Windows-MSVC.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\Windows.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\Platform\WindowsPaths.cmake;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\3.15.19101501-MSVC_2\CMakeCCompiler.cmake;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\3.15.19101501-MSVC_2\CMakeCXXCompiler.cmake;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\3.15.19101501-MSVC_2\CMakeRCCompiler.cmake;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\3.15.19101501-MSVC_2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\ZERO_CHECK.vcxproj">
+      <Project>{0C61801E-A871-36A9-8E10-FBCB73BD3382}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
+      <Project>{13B2173B-CF1E-3578-A8DA-0F1514329722}</Project>
+      <Name>HLSL</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\irrXML\IrrXML.vcxproj">
+      <Project>{51642014-8BB5-34C9-BEE6-F3FF10B90157}</Project>
+      <Name>IrrXML</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\lua\LUA.vcxproj">
+      <Project>{D572448C-29AD-3691-9FEC-766A4B93C824}</Project>
+      <Name>LUA</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
+      <Project>{BA27FA8F-1125-3732-928A-C5661BE85FAF}</Project>
+      <Name>OGLCompiler</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\OmegaEngine\OMEGA_ENGINE.vcxproj">
+      <Project>{41346764-D7A0-309C-AC7A-76EC0F6671F2}</Project>
+      <Name>OMEGA_ENGINE</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
+      <Project>{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}</Project>
+      <Name>OSDependent</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\RAPID_JSON.vcxproj">
+      <Project>{E033A236-1398-3232-905F-9137DDE0DCE3}</Project>
+      <Name>RAPID_JSON</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
+      <Project>{7606B6F7-5933-3A49-BB93-71C68AF76D00}</Project>
+      <Name>SPIRV</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
+      <Project>{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}</Project>
+      <Name>SPIRV-Tools</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\link\SPIRV-Tools-link.vcxproj">
+      <Project>{6F101571-AB98-3B00-B89A-F3ADB27E1E79}</Project>
+      <Name>SPIRV-Tools-link</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
+      <Project>{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}</Project>
+      <Name>SPIRV-Tools-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\reduce\SPIRV-Tools-reduce.vcxproj">
+      <Project>{733CD0AA-D1CE-3EFE-95C7-DC75B9368814}</Project>
+      <Name>SPIRV-Tools-reduce</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools-shared.vcxproj">
+      <Project>{16132C07-58C6-3695-871F-FEF92C1772E6}</Project>
+      <Name>SPIRV-Tools-shared</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPVRemapper.vcxproj">
+      <Project>{35D46BC5-97E4-3F45-9796-5273CBDBBC91}</Project>
+      <Name>SPVRemapper</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\Scene.vcxproj">
+      <Project>{C1642772-8361-30D9-AFB7-619E02B25838}</Project>
+      <Name>Scene</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\code\assimp.vcxproj">
+      <Project>{B19C1BCC-A21B-3697-9810-5D1175364A4B}</Project>
+      <Name>assimp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\tools\assimp_cmd\assimp_cmd.vcxproj">
+      <Project>{FE7ACD75-BAA2-3D56-9DA1-774351A6E6C8}</Project>
+      <Name>assimp_cmd</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\check-copyright.vcxproj">
+      <Project>{3B6F5032-C3FF-3BAE-BF73-CF86D0E837A7}</Project>
+      <Name>check-copyright</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\copy-tests-if-necessary.vcxproj">
+      <Project>{3C219672-FAB8-3AA6-B618-E641B03901F8}</Project>
+      <Name>copy-tests-if-necessary</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src\glfw.vcxproj">
+      <Project>{D39CEE3C-1F01-3082-B101-6C4A2DA85399}</Project>
+      <Name>glfw</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\glslang.vcxproj">
+      <Project>{B4284582-40A1-3D87-AEE7-651C2594453B}</Project>
+      <Name>glslang</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\StandAlone\glslang-default-resource-limits.vcxproj">
+      <Project>{8BBA88BE-D4CA-387A-8A3C-42137ED75405}</Project>
+      <Name>glslang-default-resource-limits</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\StandAlone\glslangValidator.vcxproj">
+      <Project>{E2D02BE7-8B31-3096-AB38-FDBA976A8178}</Project>
+      <Name>glslangValidator</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\gtests\glslangtests.vcxproj">
+      <Project>{1CFA8579-80A9-3271-844F-7437089B5802}</Project>
+      <Name>glslangtests</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc.vcxproj">
+      <Project>{2481462D-7C7E-3264-9B21-16508AB373B8}</Project>
+      <Name>glslc</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc_exe.vcxproj">
+      <Project>{38C1D84E-1889-368F-BCE8-6A83247619BE}</Project>
+      <Name>glslc_exe</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc_file_test.vcxproj">
+      <Project>{01EED1AD-53DA-31A1-A79D-5F60E29D9494}</Project>
+      <Name>glslc_file_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc_resource_parse_test.vcxproj">
+      <Project>{AD65B97D-632D-3545-89A5-661A32FEC16C}</Project>
+      <Name>glslc_resource_parse_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\glslc\glslc_stage_test.vcxproj">
+      <Project>{9D073BD1-94D9-3590-9D6B-F457F5670B3C}</Project>
+      <Name>glslc_stage_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googlemock\gmock.vcxproj">
+      <Project>{64C398C8-78A4-3A81-BB6C-28937AF54407}</Project>
+      <Name>gmock</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googlemock\gmock_main.vcxproj">
+      <Project>{28B5494A-3A94-3B0C-941E-78FDEA423F57}</Project>
+      <Name>gmock_main</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googletest\gtest.vcxproj">
+      <Project>{570ADA89-836D-3F85-85C9-FA53C01380F8}</Project>
+      <Name>gtest</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\googletest\googletest\gtest_main.vcxproj">
+      <Project>{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}</Project>
+      <Name>gtest_main</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc.vcxproj">
+      <Project>{4F4C7D7F-A013-320B-AAA5-B96C448E007D}</Project>
+      <Name>shaderc</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\examples\online-compile\shaderc-online-compile.vcxproj">
+      <Project>{871A688F-9874-3C2D-8F34-7BAC7A0BFD2F}</Project>
+      <Name>shaderc-online-compile</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\shaderc-pkg-config.vcxproj">
+      <Project>{93814563-4AA1-3341-B835-727FBC2F4669}</Project>
+      <Name>shaderc-pkg-config</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_c_smoke_test.vcxproj">
+      <Project>{70EFDB85-C008-3B3B-BEBA-FB7E3DBA01B6}</Project>
+      <Name>shaderc_c_smoke_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\shaderc_combined-pkg-config.vcxproj">
+      <Project>{813E42F6-CEA9-38F3-92FB-0BAA366A81FA}</Project>
+      <Name>shaderc_combined-pkg-config</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_combined_genfile.vcxproj">
+      <Project>{94750AE9-848A-33E0-9135-D519CF176BA9}</Project>
+      <Name>shaderc_combined_genfile</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_combined_shaderc_cpp_test.vcxproj">
+      <Project>{71A42D69-86E3-3AB8-B7A0-612EFE3D79DF}</Project>
+      <Name>shaderc_combined_shaderc_cpp_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_combined_shaderc_test.vcxproj">
+      <Project>{3E96666D-A709-3B54-AB27-36BE376D2D39}</Project>
+      <Name>shaderc_combined_shaderc_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shaderc_cpp_test.vcxproj">
+      <Project>{8DB67EC0-E931-342E-8E78-26B9886D4999}</Project>
+      <Name>shaderc_shaderc_cpp_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shaderc_private_test.vcxproj">
+      <Project>{ABC8ECA2-D6C8-3EB5-9C9B-FF388CACE374}</Project>
+      <Name>shaderc_shaderc_private_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shaderc_test.vcxproj">
+      <Project>{E79FA513-595D-33BF-87F1-EF57A2895F76}</Project>
+      <Name>shaderc_shaderc_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shared.vcxproj">
+      <Project>{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}</Project>
+      <Name>shaderc_shared</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shared_shaderc_cpp_test.vcxproj">
+      <Project>{A0EDF262-FD94-3BAA-A7D3-F66F10E5002D}</Project>
+      <Name>shaderc_shared_shaderc_cpp_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shared_shaderc_private_test.vcxproj">
+      <Project>{D3528028-D215-3977-9936-B6B81B736B47}</Project>
+      <Name>shaderc_shared_shaderc_private_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc_shared_shaderc_test.vcxproj">
+      <Project>{368E6EE0-79B9-34DF-93E9-9A5BED608ECA}</Project>
+      <Name>shaderc_shared_shaderc_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\shaderc_static-pkg-config.vcxproj">
+      <Project>{749C3E76-84FE-32F0-9DB2-10D431838BD5}</Project>
+      <Name>shaderc_static-pkg-config</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util.vcxproj">
+      <Project>{AEF46BF8-8521-32B8-9281-93918F129841}</Project>
+      <Name>shaderc_util</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_compiler_test.vcxproj">
+      <Project>{66A1264D-DE5E-332D-BF69-92D8D86A994E}</Project>
+      <Name>shaderc_util_compiler_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_counting_includer_test.vcxproj">
+      <Project>{70E0CCCF-975D-3288-8079-24F481E5EFE7}</Project>
+      <Name>shaderc_util_counting_includer_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_file_finder_test.vcxproj">
+      <Project>{C85254DC-F2BD-3F61-B8AB-5F8E53A93AC4}</Project>
+      <Name>shaderc_util_file_finder_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_format_test.vcxproj">
+      <Project>{FBBDCC5A-5DE8-339B-8E42-28F97F320049}</Project>
+      <Name>shaderc_util_format_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_io_test.vcxproj">
+      <Project>{8BEA377A-C946-30C7-9A8B-8F51FFEEA10F}</Project>
+      <Name>shaderc_util_io_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_message_test.vcxproj">
+      <Project>{A8859CEB-9F87-33E2-A42A-9A4045DAC30A}</Project>
+      <Name>shaderc_util_message_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_mutex_test.vcxproj">
+      <Project>{616896D6-30A0-33D4-A92F-73E3DAB75C5A}</Project>
+      <Name>shaderc_util_mutex_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_string_piece_test.vcxproj">
+      <Project>{94B1647D-708D-3A9E-900B-D2F227CA5CA5}</Project>
+      <Name>shaderc_util_string_piece_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util_version_profile_test.vcxproj">
+      <Project>{4858CA35-958A-355B-9F24-AA53A86FF204}</Project>
+      <Name>shaderc_util_version_profile_test</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-as.vcxproj">
+      <Project>{9E5ECFD2-D4A8-3B21-8A84-D3F4E15D6F06}</Project>
+      <Name>spirv-as</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-cfg.vcxproj">
+      <Project>{F77F0BED-3520-373E-B605-662A66662784}</Project>
+      <Name>spirv-cfg</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-dis.vcxproj">
+      <Project>{25B8697F-7A53-334B-9843-7884B630330A}</Project>
+      <Name>spirv-dis</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-link.vcxproj">
+      <Project>{CE5F6FE1-1862-398D-8CEA-FD1DF6664871}</Project>
+      <Name>spirv-link</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-opt.vcxproj">
+      <Project>{D5ED9480-4E9C-3797-A548-3B0C503D1905}</Project>
+      <Name>spirv-opt</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-reduce.vcxproj">
+      <Project>{2BBE76D4-AAF2-3649-819E-43A0F3D64BF6}</Project>
+      <Name>spirv-reduce</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\StandAlone\spirv-remap.vcxproj">
+      <Project>{F9602671-C600-3DFC-8D4A-B9B015AE6E8C}</Project>
+      <Name>spirv-remap</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\examples\cpp-interface\spirv-tools-cpp-example.vcxproj">
+      <Project>{AC770FB9-E248-3B07-8913-5F690151AD6B}</Project>
+      <Name>spirv-tools-cpp-example</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\spirv-tools-pkg-config.vcxproj">
+      <Project>{DEEBFCA6-8F9D-366A-96D9-2ED1AA8F6D45}</Project>
+      <Name>spirv-tools-pkg-config</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\spirv-tools-shared-pkg-config.vcxproj">
+      <Project>{4B095375-BF48-337D-82A7-2DC55B8CD3E4}</Project>
+      <Name>spirv-tools-shared-pkg-config</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-val.vcxproj">
+      <Project>{298A0BB0-34BA-31A3-AD8A-2B98BCC4152D}</Project>
+      <Name>spirv-val</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\test\unit.vcxproj">
+      <Project>{F8DBB1A2-D031-325D-9F37-A2127D269935}</Project>
+      <Name>unit</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlib.vcxproj">
+      <Project>{E02A8433-8BA9-3418-937F-82F0972DDDAB}</Project>
+      <Name>zlib</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlibstatic.vcxproj">
+      <Project>{064A2C01-76DE-330F-A45E-5ED57279EADC}</Project>
+      <Name>zlibstatic</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

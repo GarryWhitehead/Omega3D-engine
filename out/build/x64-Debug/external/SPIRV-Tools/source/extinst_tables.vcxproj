@@ -1,0 +1,163 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{F9CBA220-C14C-37B5-A33D-14A033934D86}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.18362.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>extinst_tables</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\b68b939b1167a8f050c2476b3d293606\opencl.std.insts.inc.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate info tables for OpenCL extended instructions and operands vunified1.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\Users\THEGM\AppData\Local\Programs\Python\Python38-32\python.exe "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/utils/generate_grammar_tables.py" "--extinst-opencl-grammar=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-headers/include/spirv/unified1/extinst.opencl.std.100.grammar.json" "--opencl-insts-output=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools/opencl.std.insts.inc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\utils\generate_grammar_tables.py;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include\spirv\unified1\extinst.opencl.std.100.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\opencl.std.insts.inc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\b68b939b1167a8f050c2476b3d293606\glsl.std.450.insts.inc.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Generate info tables for GLSL extended instructions and operands vunified1.</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+C:\Users\THEGM\AppData\Local\Programs\Python\Python38-32\python.exe "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/utils/generate_grammar_tables.py" "--extinst-glsl-grammar=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-headers/include/spirv/unified1/extinst.glsl.std.450.grammar.json" "--glsl-insts-output=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools/glsl.std.450.insts.inc"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\utils\generate_grammar_tables.py;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include\spirv\unified1\spirv.core.grammar.json;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Headers\include\spirv\unified1\extinst.glsl.std.450.grammar.json;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\glsl.std.450.insts.inc</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\3c62e89e954f9abb22b7a489d225d723\extinst_tables.rule">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"></Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\opencl.std.insts.inc;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\glsl.std.450.insts.inc;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\CMakeFiles\extinst_tables</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\source\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/source/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools/source/CMakeFiles/generate.stamp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\CMakeFiles\extinst_tables" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\ZERO_CHECK.vcxproj">
+      <Project>{0C61801E-A871-36A9-8E10-FBCB73BD3382}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spirv-tools-header-DebugInfo.vcxproj">
+      <Project>{EF6FD91C-487D-3343-9A8A-27E8C3B60FDF}</Project>
+      <Name>spirv-tools-header-DebugInfo</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spv-tools-debuginfo.vcxproj">
+      <Project>{81C1A69B-04CA-3645-9AD3-E1208111FB7B}</Project>
+      <Name>spv-tools-debuginfo</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spv-tools-spv-amd-gs.vcxproj">
+      <Project>{DF0EEE9E-DE55-3BAC-987F-916D614D12EF}</Project>
+      <Name>spv-tools-spv-amd-gs</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spv-tools-spv-amd-sb.vcxproj">
+      <Project>{08047013-23CC-3F71-8605-78205B0A05D2}</Project>
+      <Name>spv-tools-spv-amd-sb</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spv-tools-spv-amd-sevp.vcxproj">
+      <Project>{0BA5ABCC-FA4B-3D9C-B59C-718028AC3AD7}</Project>
+      <Name>spv-tools-spv-amd-sevp</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\spv-tools-spv-amd-stm.vcxproj">
+      <Project>{9F946F38-AAC2-35BD-8D94-AD37EEA1FBBB}</Project>
+      <Name>spv-tools-spv-amd-stm</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
