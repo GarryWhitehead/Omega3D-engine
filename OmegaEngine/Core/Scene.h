@@ -6,7 +6,14 @@
 
 #include "Rendering/RenderQueue.h"
 
+#include "VulkanAPI/Buffer.h"
+
 #include <vector>
+
+namespace VulkanAPI
+{
+class VkDriver;
+}
 
 namespace OmegaEngine
 {
@@ -36,7 +43,7 @@ public:
 
 	Scene() = default;
 
-	Scene(World& world, Engine& engine);
+	Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver);
 	~Scene();
 
 	// a scene isn't copyable
@@ -47,7 +54,9 @@ public:
 
 	void prepare();
 
-	void updateCamera();
+	void updateCameraBuffer();
+
+	void updateTransformBuffer(const size_t staticModelCount, const size_t skinnedModelCount);
 
 	Camera* getCurrentCamera();
 
@@ -56,6 +65,7 @@ public:
 	friend class Renderer;
 
 private:
+	VulkanAPI::VkDriver& driver;
 
 	/// per frame: all the renderables after visibility checks
 	RenderQueue renderQueue;
@@ -66,7 +76,6 @@ private:
 
 	/// The world this scene is assocaited with
 	World& world;
-
 	Engine& engine;
 };
 }    // namespace OmegaEngine

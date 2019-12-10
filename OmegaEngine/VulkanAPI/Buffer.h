@@ -59,6 +59,11 @@ public:
 		return vk::Buffer(buffer);
 	}
 
+	size_t getSize() const
+	{
+		return static_cast<size_t>(size);
+	}
+
 private:
 	VmaAllocationInfo allocInfo;
 	VmaAllocation mem;

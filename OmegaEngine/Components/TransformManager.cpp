@@ -16,25 +16,10 @@ namespace OmegaEngine
 
 TransformManager::TransformManager()
 {
-	transformAligned = VulkanUtil::alignmentSize(sizeof(TransformBufferInfo));
-	skinnedAligned = VulkanUtil::alignmentSize(sizeof(SkinnedBufferInfo));
-
-	// allocate the memory used to store the transforms on the CPU side. This will be aligned as we are using dynamic buffers on the Vulkan side
-	transformBufferData =
-	    (TransformBufferInfo*)Util::alloc_align(transformAligned, transformAligned * TransformBlockSize);
-	skinnedBufferData = (SkinnedBufferInfo*)Util::alloc_align(skinnedAligned, skinnedAligned * SkinnedBlockSize);
 }
 
 TransformManager::~TransformManager()
 {
-	if (transformBufferData)
-	{
-		_aligned_free(transformBufferData);
-	}
-	if (skinnedBufferData)
-	{
-		_aligned_free(skinnedBufferData);
-	}
 }
 
 bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, ModelSkin* skin, size_t count)
@@ -123,7 +108,7 @@ void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, Tran
 
 			// the number of joints is needed on the shader
 			transInfo.jointCount = std::min(jointCount, MAX_BONE_COUNT);
-			
+
 			// transform to local space
 			OEMaths::mat4f inverseMat = mat.inverse();
 
@@ -152,58 +137,29 @@ void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, Tran
 	}
 }
 
-void TransformManager::updateModelTransform(Object& object)
+void TransformManager::updateModel(Object& obj)
 {
-	// reset both ubo to zero
-	transUboCount = 0;
-	skinUboCount = 0;
-
-	TransformUbo* currTransformPtr = nullptr;
-	SkinnedUbo* currSkinnedPtr = nullptr;
-
-	for (auto& vis : visible)
-	{
-		size_t nodeIdx = getObjIndex(obj.first);
-		TransformInfo& transInfo = vis->transform;
-
-		// the transform and skinned buffers are mem aligned due to the requirement of dynamic descriptor sets
-		currTransformPtr = (TransformUbo*)((uint64_t)transformUbo + (transUboAlign * transUboCount));
-		transInfo.dynamicOffset = transUboCount * transUboAlign;
-		++transUboCount;
-
-		// only update the skinned pointer, if this node has a skin
-		if (transInfo.hasSkin)
-		{
-			currSkinnedPtr = (SkinnedUbo*)((uint64_t)skinUbo + (skinUboAlign * skinUboCount));
-			transInfo.skinDynamicOffset = skinUboCount * skinUboAlign;
-			++skinUboCount;
-		}
-
-		updateLocalTransform(transInfo.root, currTransformPtr, currSkinnedPtr);
-	}
+	size_t idx = getObjIndex(obj);
+	TransformInfo& info = nodes[idx];
+	updateModelTransform(info.root->parent, info);
 }
 
-void TransformManager::updateObjectTranslation(Object* obj, OEMaths::vec4f trans)
+void TransformManager::updateObjectTranslation(Object& obj, const OEMaths::vec3f& trans)
 {
-	uint32_t index = obj->getComponent<TransformComponent>().index;
-	transforms[index].setTranslation(OEMaths::vec3f{ trans.getX(), trans.getY(), trans.getZ() });
-
-	// this will update all lists - though TODO: add objects which need updating for that frame to a list - should be faster?
-	isDirty = true;
+	size_t idx = getObjIndex(obj);
+	nodes[idx].root->translation = OEMaths::vec3f{ trans.x, trans.y, trans.z };
 }
 
-void TransformManager::updateObjectScale(Object* obj, OEMaths::vec4f scale)
+void TransformManager::updateObjectScale(Object& obj, const OEMaths::vec3f& scale)
 {
-	uint32_t index = obj->getComponent<TransformComponent>().index;
-	transforms[index].setScale(OEMaths::vec3f{ scale.getX(), scale.getY(), scale.getZ() });
-	isDirty = true;
+	size_t idx = getObjIndex(obj);
+	nodes[idx].root->scale = OEMaths::vec3f{ scale.x, scale.y, scale.z };
 }
 
-void TransformManager::updateObjectRotation(Object* obj, OEMaths::quatf rot)
+void TransformManager::updateObjectRotation(Object& obj, const OEMaths::quatf& rot)
 {
-	uint32_t index = obj->getComponent<TransformComponent>().index;
-	transforms[index].setRotation(rot);
-	isDirty = true;
+	size_t idx = getObjIndex(obj);
+	nodes[idx].root->rotation = OEMaths::quatf{ rot.x, rot.y, rot.z, rot.w };
 }
 
 TransformInfo& TransformManager::getTransform(const ObjHandle handle)

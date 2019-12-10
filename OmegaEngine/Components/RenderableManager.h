@@ -131,11 +131,11 @@ struct Renderable
 	Util::BitSetEnum<Visible> visibility;
 
 	/// ============ vulkan backend ========================
-	/// This is info is set by calling **update**
+	/// This is set by calling **update**
 
 	/// offset into transform buffer for this mesh
 	/// A renderable can either be static or skinned - maybe this should be a abstract inherited class
-	size_t transformDynamicOffset = 0;
+	size_t staticDynamicOffset = 0;
 	size_t skinnedDynamicOffset = 0;
 };
 

@@ -34,8 +34,7 @@ struct TransformInfo
 	size_t skinOffset = 0;
 
 	// skinning data - set by calling updateTransform()
-	uint16_t jointCount = 0;
-	std::array<OEMaths::mat4f, MAX_BONE_COUNT> jointMatrices;
+	std::vector<OEMaths::mat4f> jointMatrices;
 };
 
 class TransformManager : public ComponentManager
@@ -70,21 +69,18 @@ public:
 	*/
 	void updateModelTransform(NodeInstance::NodeInfo* parent, TransformInfo& transInfo);
 
-	/**
-	* @brief Updates the skeleton (node) hierachy of all objects associated with this component manager 
-	* This should be called after any chnages - usually when updating animation transfroms
-	*/
-	void TransformManager::update();
+	void updateModel(Object& obj);
 
 	// object update functions
-	void updateObjectTranslation(Object* obj, OEMaths::vec4f trans);
-	void updateObjectScale(Object* obj, OEMaths::vec4f scale);
-	void updateObjectRotation(Object* obj, OEMaths::quatf rot);
+	void updateObjectTranslation(Object& obj, const OEMaths::vec3f& trans);
+	void updateObjectScale(Object& obj, const OEMaths::vec3f& scale);
+	void updateObjectRotation(Object& obj, const OEMaths::quatf& rot);
 
 	// =================== getters ==========================
 	TransformInfo& getTransform(const ObjHandle obj);
 
 private:
+
 	// transform data preserved in the node hierachal format
 	// referenced by assoociated object
 	std::vector<TransformInfo> nodes;
@@ -92,19 +88,6 @@ private:
 	// skinned data - inverse bind matrices and bone info
 	std::vector<ModelSkin> skins;
 
-	// store locally the aligned buffer sizes
-	size_t transUboAlign = 0;
-	size_t skinUboAlign = 0;
-
-	// transform data for each object which will be added to the GPU
-	TransformUbo* transformUbo = nullptr;
-	SkinnedUbo* skinUbo = nullptr;
-
-	size_t transUboCount = 0;
-	size_t skinUboCount = 0;
-
-	// flag which tells us whether we need to update the static data
-	bool isDirty = true;
 };
 
 }    // namespace OmegaEngine
