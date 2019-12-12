@@ -49,6 +49,22 @@ void VkDriver::shutdown()
 
 void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
 {
+	// check if the buffer already exists with the same id. If so, check the size of the current
+	// buffer against the size of the requested buffer. If the space is too small, destroy the existing buffer
+	// and create a new one.
+	auto iter = buffers.find({ id.c_str() });
+	if (iter != buffers.end())
+	{
+		// check the size
+		Buffer& buffer = iter->second;
+		if (size < buffer.getSize())
+		{
+			// nothing else to do here as the buffer is of adequate size
+			return;
+		}
+		deleteUbo(id);
+	}
+
 	Buffer buffer;
 	buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
 	buffers.emplace(id, buffer);

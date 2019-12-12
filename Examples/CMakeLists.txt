@@ -18,6 +18,7 @@ FUNCTION(BUILD_OMEGA_APPLICATION APP_NAME)
 	# And source files
 	TARGET_SOURCES(${APP_NAME} PRIVATE
 		Application/Application.cpp	Application/Application.h
+		Application/Light.cpp Application/Light.h
 		Application/Platforms/PlatformGlfw.cpp	Application/Platforms/PlatformGlfw.h
 	)
 

@@ -122,6 +122,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/IblImage.cpp Rendering/IblImage.h
 	Rendering/Skybox.cpp Rendering/Skybox.h
 	Rendering/CompositionPass.cpp Rendering/CompositionPass.h
+	Rendering/Shadow.cpp Rendering/Shadow.h
 	
 	Scripting/LuaBinder.cpp Scripting/LuaBinder.h
 	Scripting/OEConfig.cpp Scripting/OEConfig.h

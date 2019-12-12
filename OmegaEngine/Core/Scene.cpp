@@ -60,6 +60,53 @@ void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCa
 	splitWork.run();
 }
 
+void Scene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights)
+{
+	size_t workSize = lights.size();
+
+	auto visibilityCheck = [&frustum, &lights](size_t curr_idx, size_t chunkSize) {
+		assert(curr_idx + chunkSize < lights.size());
+		for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
+		{
+			LightBase* light = lights[idx];
+			light->isVisible = false;
+
+			if (light->type != LightType::Directional)
+			{
+				float radius;
+				OEMaths::vec3f pos;
+
+				if (light->type == LightType::Point)
+				{
+					PointLight* pLight = reinterpret_cast<PointLight*>(light);
+					radius = pLight->radius;
+					pos = pLight->position;
+				}
+				else if (light->type == LightType::Spot)
+				{
+					SpotLight* sLight = reinterpret_cast<SpotLight*>(light);
+					radius = sLight->radius;
+					pos = sLight->position;
+				}
+				else
+				{
+					LOGGER_WARN("Unrecognisied light type detected. This shouldn't happen!");
+					continue;
+				}
+
+				// check whether this light is with the frustum boundaries
+				if (frustum.checkSphereIntersect(pos, radius))
+				{
+					light->isVisible = true;
+				}
+			}
+		}
+	};
+
+	ThreadTaskSplitter splitWork{ 0, workSize, visibilityCheck };
+	splitWork.run();
+}
+
 void Scene::update()
 {
 	auto& transManager = engine.getTransManager();
@@ -69,7 +116,8 @@ void Scene::update()
 	auto& objects = world.getObjManager().getObjectsList();
 
 	// reserve more space than we need
-	std::vector<VisibleCandidate> candObjects(objects.size());
+	std::vector<VisibleCandidate> candRenderableObjs(objects.size());
+	std::vector<LightBase*> candLightObjs(objects.size());
 
 	// create a temp list of all renderable and light objects that are active
 	// we create a temp container as we will be doing the visibility checks async
@@ -89,14 +137,14 @@ void Scene::update()
 			VisibleCandidate candidate;
 			candidate.renderable = &rendManager.getMesh(rHandle);
 			candidate.transform = &transManager.getTransform(tHandle);
-			candObjects.emplace_back(candidate);
+			candRenderableObjs.emplace_back(candidate);
 		}
 		else
 		{
 			ObjHandle lHandle = lightManager.getObjIndex(obj);
 			if (lHandle)
 			{
-				// TODO
+				candLightObjs.emplace_back(lightManager.getLight(lHandle));
 			}
 		}
 	}
@@ -109,11 +157,13 @@ void Scene::update()
 	// ============ visibility checks and culling ===================
 	// first renderables - split work tasks and run async - Sets the visibility bit if passes intersection test
 	// This will then be used to generate the render queue
-	getVisibleRenderables(frustum, candObjects);
+	getVisibleRenderables(frustum, candRenderableObjs);
 
 	// shadow culling tests
+	// ** TODO **
 
 	// and prepare the visible lighting list
+	getVisibleLights(frustum, candLightObjs);
 
 	// ============ render queue generation =========================
 	std::vector<RenderableQueueInfo> queueRend;
@@ -122,7 +172,7 @@ void Scene::update()
 	size_t staticModelCount = 0;
 	size_t skinnedModelCount = 0;
 
-	for (const VisibleCandidate& cand : candObjects)
+	for (const VisibleCandidate& cand : candRenderableObjs)
 	{
 		Renderable* rend = cand.renderable;
 		// only add visible renderables to the queue
@@ -154,7 +204,7 @@ void Scene::update()
 	renderQueue.pushRenderables(queueRend, RenderQueue::Partition::Colour);
 
 	// ================== update ubos =================================
-	// camera buffer is updated every frame as we expect this to change a lot 
+	// camera buffer is updated every frame as we expect this to change a lot
 	updateCameraBuffer();
 
 	// we also update the transforms every frame though could have a dirty flag
@@ -181,7 +231,8 @@ void Scene::updateCameraBuffer()
 	driver.updateUniform("CameraUbo", &ubo, sizeof(Camera::Ubo));
 }
 
-void Scene::updateTransformBuffer(const size_t staticModelCount, const size_t skinnedModelCount)
+void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObjects, const size_t staticModelCount,
+                                  const size_t skinnedModelCount)
 {
 	// transforms
 	struct TransformUbo
@@ -246,44 +297,117 @@ void Scene::updateTransformBuffer(const size_t staticModelCount, const size_t sk
 	if (staticModelCount)
 	{
 		size_t staticDataSize = staticModelCount * sizeof(TransformUbo);
-		size_t staticUboSize = driver.getUboSize("StaticTransform");
-		if (!staticUboSize)
-		{
-			driver.addUbo("StaticTransform", staticDataSize, );
-			driver.updateUniform("StaticTransform", staticDataSize, staticAlignAlloc.data());
-		}
-		else if (staticUboSize < staticUboSize)
-		{
-			driver.deleteUbo("StaticTransform");
-			driver.addUbo("StaticTransform", staticDataSize, );
-			driver.updateUniform("StaticTransform", staticDataSize, staticAlignAlloc.data());
-		}
-		else
-		{
-			driver.updateUniform("StaticTransform", staticDataSize, staticAlignAlloc.data());
-		}
+		driver.addUbo("StaticTransform", staticDataSize, );
+		driver.updateUniform("StaticTransform", staticDataSize, staticAlignAlloc.data());
 	}
 
 	// skinned buffer
 	if (skinnedModelCount)
 	{
 		size_t skinnedDataSize = skinnedModelCount * sizeof(SkinnedUbo);
-		size_t skinnedUboSize = driver.getUboSize("SkinnedTransform");
-		if (!skinnedUboSize)
+		driver.addUbo("SkinnedTransform", skinnedDataSize, );
+		driver.updateUniform("SkinnedTransform", skinnedDataSize, skinAlignAlloc.data());
+	}
+}
+
+void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
+{
+	// a mirror of the shader structs
+	struct PointLightUbo
+	{
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::colour4 colour;    //< rgb, intensity (lumens)
+		float fallOut;
+	};
+
+	struct SpotLightUbo
+	{
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::vec4f direction;
+		OEMaths::colour4 colour;    //< rgb, intensity (lumens)
+		float scale;
+		float offset;
+		float fallOut;
+	};
+
+	struct DirectionalLightUbo
+	{
+		OEMaths::mat4f lightMvp;
+		OEMaths::vec4f position;
+		OEMaths::vec4f direction;
+		OEMaths::colour4 colour;    //< rgb, intensity (lumens)
+	};
+
+
+	uint32_t spotlightCount = 0;
+	uint32_t pointlightCount = 0;
+	uint32_t dirLightCount = 0;
+
+	std::array<SpotLightUbo, MAX_SPOT_LIGHTS> spotLights;
+	std::array<PointLightUbo, MAX_POINT_LIGHTS> pointLights;
+	std::array<DirectionalLightUbo, MAX_DIR_LIGHTS> dirLights;
+
+	// copy the light attributes we need for use in the light shaders.
+
+	for (LightBase* light : candLights)
+	{
+		if (light->type == LightType::Spot)
 		{
-			driver.addUbo("SkinnedTransform", skinnedDataSize, );
-			driver.updateUniform("SkinnedTransform", skinnedDataSize, skinAlignAlloc.data());
+			const auto& spotLight = static_cast<SpotLight*>(light);
+
+			// fill in the data to be sent to the gpu
+			SpotLightUbo ubo{ light->lightMvp,
+				              OEMaths::vec4f{ spotLight->position, 1.0f },
+				              OEMaths::vec4f{ spotLight->target, 1.0f },
+				              { spotLight->colour, spotLight->intensity },
+				              spotLight->scale,
+				              spotLight->offset,
+				              spotLight->fallout };
+			spotLights[spotlightCount++] = ubo;
 		}
-		else if (skinnedUboSize < skinnedUboSize)
+		else if (light->type == LightType::Point)
 		{
-			driver.deleteUbo("SkinnedTransform");
-			driver.addUbo("SkinnedTransform", skinnedDataSize, );
-			driver.updateUniform("SkinnedTransform", skinnedDataSize, skinAlignAlloc.data());
+			const auto& pointLight = static_cast<PointLight*>(light);
+
+			// fill in the data to be sent to the gpu
+			PointLightUbo ubo{ light->lightMvp,
+				               OEMaths::vec4f{ pointLight->position, 1.0f },
+				               { pointLight->colour, pointLight->intensity },
+				               pointLight->fallOut };
+			pointLights[pointlightCount++] = ubo;
 		}
-		else
+		else if (light->type == LightType::Directional)
 		{
-			driver.updateUniform("SkinnedTransform", skinnedDataSize, skinAlignAlloc.data());
+			const auto& dirLight = static_cast<DirectionalLight*>(light);
+
+			// fill in the data to be sent to the gpu
+			DirectionalLightUbo ubo{ dirLight->lightMvp,
+				                     OEMaths::vec4f{ dirLight->position, 1.0f },
+				                     OEMaths::vec4f{ dirLight->target, 1.0f },
+				                     { dirLight->colour, dirLight->intensity } };
+			dirLights[dirLightCount++] = ubo;
 		}
+	}
+
+	if (spotlightCount)
+	{
+		size_t dataSize = spotlightCount * sizeof(SpotLightUbo);
+		driver.addUbo("Spotlights", dataSize, );
+		driver.updateUniform("SpotLights", dataSize, spotLights.data());
+	}
+	if (pointlightCount)
+	{
+		size_t dataSize = pointlightCount * sizeof(PointLightUbo);
+		driver.addUbo("Pointlights", dataSize, );
+		driver.updateUniform("PointLights", dataSize, pointLights.data());
+	}
+	if (dirLightCount)
+	{
+		size_t dataSize = dirLightCount * sizeof(DirectionalLightUbo);
+		driver.addUbo("Dirlights", dataSize, );
+		driver.updateUniform("DirLights", dataSize, dirLights.data());
 	}
 }
 

@@ -5,9 +5,7 @@
 #include "Components/ComponentManager.h"
 
 #include <cstdint>
-#include <tuple>
 #include <vector>
-#include <memory>
 
 #define MAX_SPOT_LIGHTS 50
 #define MAX_POINT_LIGHTS 50
@@ -31,62 +29,92 @@ enum class LightType
 	Directional
 };
 
-enum class LightAnimateType
+class LightBase
 {
-	Static,
-	RotateX,
-	RotateY,
-	RotateZ
-};
 
-struct LightAnimateInfo 
-{
-	LightAnimateInfo() = default;
+public:
 
-	LightAnimateInfo(const LightAnimateType type, const float vel)
-	    : animationType(type)
-	    , velocity(vel)
+	LightBase(LightType type)
+	    : type(type)
 	{
 	}
 
-	// default to static
-	LightAnimateType animationType = LightAnimateType::Static;
-	float velocity = 5.0f;
-};
+	virtual ~LightBase() = default;
 
-struct LightBase
-{
-	LightBase() = default;
-	virtual ~LightBase()
-	{
-	}
+	LightBase() = delete;
 
+	friend class Scene;
+	friend class LightManager;
+
+protected:
+
+	/// the projection matrix of the light taken from the lights point-of-view
+	/// this is for shadow drawing
 	OEMaths::mat4f lightMvp;
+	
+	// position of the light in world space 
 	OEMaths::vec3f position;
 	OEMaths::vec3f target;
-	OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f, 1.0f, 1.0f };
+
+	/// the colour of the light
+	OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f };
+
+	/// the field of view of this light
 	float fov = 90.0f;
+
+	/// Whether this is directional, spot or point light
 	LightType type;
+
+	/// states whether this light is visible. Set by the visibility check during scene update
+	bool isVisible = false;
 };
 
 struct DirectionalLight : public LightBase
 {
+public:
+
+	friend class Scene;
+	friend class LightManager;
+
+private:
+
+	/// the light intensity in lumens
 	float intensity = 10000.0f;
 };
 
 struct PointLight : public LightBase
 {
+public:
+
+	friend class Scene;
+	friend class LightManager;
+
+private:
+
 	float fallOut = 10.0f;
+	
+	/// the radius of the light in pixels
 	float radius = 25.0f;
+	
+	/// the light intensity in lumens
 	float intensity = 1000.0f;
 };
 
 struct SpotLight : public LightBase
 {
-	float fallOut = 10.0f;
+public:
+
+	friend class Scene;
+	friend class LightManager;
+
+private:
+
+	float fallout = 10.0f;
 	float radius = 25.0f;
 	float scale = 1.0f;
 	float offset = 0.0f;
+
+	/// the light intensity in lumens
 	float intensity = 1000.0f;
 };
 
@@ -94,125 +122,29 @@ class LightManager : public ComponentManager
 {
 
 public:
-	// a mirror of the shader structs
-	struct PointLightUbo
-	{
-		PointLightUbo() = default;
-		PointLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec3f& col, float fo,
-		              float intensity)
-		    : lightMvp(mvp)
-		    , position(pos)
-		    , colour(OEMaths::vec4f{ col, intensity })
-		    , fallOut(fo)
-
-		{
-		}
-
-		OEMaths::mat4f lightMvp;
-		OEMaths::vec4f position;
-		OEMaths::vec4f colour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1000.0f };
-		float fallOut;
-	};
-
-	struct SpotLightUbo
-	{
-		SpotLightUbo() = default;
-		SpotLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec4f& dir,
-		             const OEMaths::vec3f& col, float fo, float intensity, float sca, float ofs)
-		    : lightMvp(mvp)
-		    , position(pos)
-		    , direction(dir)
-		    , colour(OEMaths::vec4f{ col, intensity })
-		    , fallOut(fo)
-		    , scale(sca)
-		    , offset(ofs)
-
-		{
-		}
-
-		OEMaths::mat4f lightMvp;
-		OEMaths::vec4f position;
-		OEMaths::vec4f direction;
-		OEMaths::vec4f colour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1000.0f };
-		float scale;
-		float offset;
-		float fallOut;
-	};
-
-	struct DirectionalLightUbo
-	{
-		DirectionalLightUbo() = default;
-		DirectionalLightUbo(const OEMaths::mat4f& mvp, const OEMaths::vec4f& pos, const OEMaths::vec4f& dir,
-		                    const OEMaths::vec3f& col, float intensity)
-		    : lightMvp(mvp)
-		    , position(pos)
-		    , direction(dir)
-		    , colour(OEMaths::vec4f{ col, intensity })
-		{
-		}
-
-		OEMaths::mat4f lightMvp;
-		OEMaths::vec4f position;
-		OEMaths::vec4f direction;
-		OEMaths::vec4f colour = OEMaths::vec4f{ 1.0f, 1.0f, 1.0f, 1000.0f };
-	};
-
-	struct LightUboBuffer
-	{
-		SpotLightUbo spotLights[MAX_SPOT_LIGHTS];
-		PointLightUbo pointLights[MAX_POINT_LIGHTS];
-		DirectionalLightUbo dirLights[MAX_DIR_LIGHTS];    // not anticipating as many directional lights required
-	};
-
+	
 	LightManager();
 	~LightManager();
 
-	// not used at present - just here to keep the inheritance demons happy
-	void updateFrame(double dt, World& world);
-
-	void updateLightPositions(double dt);
-
-	void updateDynamicBuffer(World& world);
 
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
 
-	void addSpotLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
-	                  const float fov, float intensity, float fallout, float innerCone, float outerCone,
-	                  const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f);
+	void addLight(LightBase* light);
 
-	void addPointLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
-	                   float fov, float intensity, float fallOut,
-	                   const LightAnimateType animType = LightAnimateType::Static, const float animVel = 0.0f);
-
-	void addDirectionalLight(const OEMaths::vec3f& position, const OEMaths::vec3f& target, const OEMaths::vec3f& colour,
-	                         float fov, float intensity);
-
-	uint32_t getLightCount() const
-	{
-		return static_cast<uint32_t>(lights.size());
-	}
-
-	uint32_t getAlignmentSize() const
-	{
-		return alignedPovDataSize;
-	}
+	size_t getLightCount() const;
+	LightBase* getLight(const size_t idx);
 
 private:
-	std::vector<std::tuple<std::unique_ptr<LightBase>, LightAnimateInfo>> lights;
 
-	// buffer on the vulkan side which will hold all lighting info
-	LightUboBuffer lightBuffer;
+	std::vector<LightBase*> lights;
+
+
 
 	// dynamic buffer for light pov - used for shadow drawing
 	LightPOV* lightPovData = nullptr;
 	uint32_t alignedPovDataSize = 0;
 	uint32_t lightPovDataSize = 0;
-
-	// dirty timer for light animations
-	float timer = 0.0f;
-
-	bool isDirty = false;
 };
 
 }    // namespace OmegaEngine

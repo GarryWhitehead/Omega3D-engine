@@ -27,6 +27,7 @@ class Camera;
 struct TransformInfo;
 class Frustum;
 class Renderable;
+class LightBase;
 
 class Scene
 {
@@ -56,11 +57,16 @@ public:
 
 	void updateCameraBuffer();
 
-	void updateTransformBuffer(const size_t staticModelCount, const size_t skinnedModelCount);
+	void updateTransformBuffer(std::vector<Scene::VisibleCandidate>& cand, const size_t staticModelCount,
+	                           const size_t skinnedModelCount);
+
+	void updateLightBuffer(std::vector<LightBase*> lights);
 
 	Camera* getCurrentCamera();
 
 	void getVisibleRenderables(Frustum& frustum, std::vector<VisibleCandidate>& renderables);
+
+	void getVisibleLights(Frustum& frustum, std::vector<LightBase*>& renderables);
 
 	friend class Renderer;
 
