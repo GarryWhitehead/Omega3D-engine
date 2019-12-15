@@ -6,7 +6,7 @@
 #include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/VkContext.h"
-#include "VulkanAPI/RendePpass"
+#include "VulkanAPI/RenderPass.h"
 
 #include <cassert>
 
@@ -62,8 +62,7 @@ void CmdBuffer::bindPipeline(RenderPass* renderpass, ShaderProgram* program)
 
 void CmdBuffer::bindDescriptors(ShaderProgram* prog, const Pipeline::Type type)
 {
-	DescriptorSet* set = cbManager->findOrCreateDescrSet(prog->descrLayout);
-    assert(set);
+	DescriptorSet* set = prog->descrSet.get();
     if (!boundDescrSet || set != boundDescrSet)
     {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(type);
@@ -75,7 +74,7 @@ void CmdBuffer::bindDescriptors(ShaderProgram* prog, const Pipeline::Type type)
 
 void CmdBuffer::bindDynamicDescriptors(ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type)
 {
-    DescriptorSet* set = cbManager->findOrCreateDescrSet(prog->descrLayout);
+	DescriptorSet* set = prog->descrSet.get();
     assert(set);
     if (!boundDescrSet || set != boundDescrSet)
     {

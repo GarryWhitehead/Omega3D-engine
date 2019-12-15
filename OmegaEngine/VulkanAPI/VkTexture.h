@@ -2,6 +2,8 @@
 
 #include "VulkanAPI/Common.h"
 
+#include "VulkanAPI/Sampler.h"
+
 #include <memory>
 
 namespace VulkanAPI
@@ -54,7 +56,7 @@ public:
     /**
      * @brief Retuens the image view for this texture
      */
-    vk::ImageView& getImageView();
+    ImageView* getImageView();
     
     /**
      * @brief Returns a struct containing all user relevant info for this texture
@@ -73,6 +75,9 @@ private:
 
 	// texture info
 	TextureContext texContext;
+
+    // The texture sampler
+    Sampler sampler;
 
 	std::unique_ptr<Image> image;
 	std::unique_ptr<ImageView> imageView;

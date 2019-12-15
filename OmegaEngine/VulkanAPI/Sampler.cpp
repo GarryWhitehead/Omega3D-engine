@@ -10,9 +10,9 @@ Sampler::Sampler()
 {
 }
 
-Sampler::Sampler(VkContext& context, SamplerType type)
+Sampler::Sampler(SamplerType type)
+    : type(type)
 {
-	create(context, type);
 }
 
 Sampler::~Sampler()
@@ -51,35 +51,39 @@ SamplerType Sampler::getDefaultSampler()
 	return SamplerType::LinearClamp;
 }
 
-void Sampler::create(VkContext& context, SamplerType type)
+void Sampler::build(VkContext& context)
 {
 	switch (type)
 	{
 	case SamplerType::Clamp:
-		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest,
-		              false);
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eNearest,
+		              vk::SamplerMipmapMode::eNearest, false);
 		break;
 	case SamplerType::Wrap:
-		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest, false);
-		break;
-	case SamplerType::LinearClamp:
-		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eNearest, vk::SamplerMipmapMode::eNearest,
 		              false);
 		break;
+	case SamplerType::LinearClamp:
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear,
+		              vk::SamplerMipmapMode::eNearest, false);
+		break;
 	case SamplerType::TriLinearClamp:
-		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+		createSampler(context, vk::SamplerAddressMode::eClampToEdge, vk::Filter::eLinear,
+		              vk::SamplerMipmapMode::eLinear, false);
 		break;
 	case SamplerType::LinearWrap:
-		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest, false);
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eNearest,
+		              false);
 		break;
 	case SamplerType::TrilinearWrap:
-		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear, false);
+		createSampler(context, vk::SamplerAddressMode::eRepeat, vk::Filter::eLinear, vk::SamplerMipmapMode::eLinear,
+		              false);
 		break;
 	}
 }
 
-void Sampler::createSampler(VkContext& context, vk::SamplerAddressMode addressMode, vk::Filter filter, vk::SamplerMipmapMode mipMapMode,
-                            bool compareOp)
+void Sampler::createSampler(VkContext& context, vk::SamplerAddressMode addressMode, vk::Filter filter,
+                            vk::SamplerMipmapMode mipMapMode, bool compareOp)
 {
 	vk::SamplerCreateInfo samplerInfo({}, filter, filter, mipMapMode, addressMode, addressMode, addressMode, 0.0f,
 	                                  VK_TRUE,

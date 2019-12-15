@@ -26,17 +26,25 @@ Object* ObjectManager::createObject()
 		id = nextId++;
 	}
 
-	Object& object = objects[id];
-
-	object.setId(id);
-	return &object;
+	Object object(id);
+	objects.emplace_back(object);
+	return &objects.back();
 }
 
 void ObjectManager::destroyObject(Object& obj)
 {
-	uint64_t id = obj.getId();
-	objects.erase(id);
-	freeIds.push_front(id);
+	size_t count = 0;
+	for (auto& object : objects)
+	{
+		if (obj == object)
+		{
+			break;
+		}
+		++count;
+	}
+	// completley remove from the list - costly!
+	objects.erase(objects.begin() + count);
+	freeIds.push_front(obj.getId());
 }
 
 }    // namespace OmegaEngine

@@ -99,7 +99,7 @@ void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffer
 	}
 }
 
-vk::ImageView& Texture::getImageView()
+ImageView* Texture::getImageView()
 {
 	return imageView.get();
 }

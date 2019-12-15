@@ -14,23 +14,27 @@ Swapchain::Swapchain()
 {
 }
 
+Swapchain::~Swapchain()
+{
+}
+
 Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapper& window, Instance& instance)
 {
 	Platform::SurfaceWrapper wrapper(window, instance);
 	return wrapper;
 }
 
-bool Swapchain::prepare(VkDriver& context, Platform::SurfaceWrapper& surface)
+bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 {
 	vk::Device device = context.getDevice();
-	vk::PhysicalDevice gpu = context.getPhysicalDevice();
+	vk::PhysicalDevice gpu = context.getGpu();
 
 	// Get the basic surface properties of the physical device
 	uint32_t surfaceCount = 0;
 
-	vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface);
-	std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfaceFormatsKHR(surface);
-	std::vector<vk::PresentModeKHR> presentModes = gpu.getSurfacePresentModesKHR(surface);
+	vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface.get());
+	std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfaceFormatsKHR(surface.get());
+	std::vector<vk::PresentModeKHR> presentModes = gpu.getSurfacePresentModesKHR(surface.get());
 
 	// make sure that we have suitable swap chain extensions available before continuing
 	if (surfaceFormats.empty() || presentModes.empty())
@@ -85,10 +89,10 @@ bool Swapchain::prepare(VkDriver& context, Platform::SurfaceWrapper& surface)
 	}
 	else
 	{
-		this->extent.width =
-		    std::max(capabilities.minImageExtent.width, std::min(capabilities.maxImageExtent.width, surface.getWidth()));
-		this->extent.height =
-		    std::max(capabilities.minImageExtent.height, std::min(capabilities.maxImageExtent.height, surface.getHeight()));
+		this->extent.width = std::max(capabilities.minImageExtent.width,
+		                              std::min(capabilities.maxImageExtent.width, surface.getWidth()));
+		this->extent.height = std::max(capabilities.minImageExtent.height,
+		                               std::min(capabilities.maxImageExtent.height, surface.getHeight()));
 	}
 
 	// Get the number of possible images we can send to the queue
@@ -103,8 +107,8 @@ bool Swapchain::prepare(VkDriver& context, Platform::SurfaceWrapper& surface)
 	std::vector<uint32_t> queueFamilyIndicies;
 	vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-	uint32_t graphFamilyIdx = context.getQueueIndex(VkDriver::QueueType::Graphics);
-	uint32_t presentFamilyIdx = context.getQueueIndex(VkDriver::QueueType::Present);
+	uint32_t graphFamilyIdx = context.getGraphQueueIdx();
+	uint32_t presentFamilyIdx = context.getPresentQueueIdx();
 
 	if (graphFamilyIdx != presentFamilyIdx)
 	{
@@ -120,57 +124,26 @@ bool Swapchain::prepare(VkDriver& context, Platform::SurfaceWrapper& surface)
 
 	// And finally, create the swap chain
 	VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain));
+}
 
-	// Get the image loactions created when creating the swap chains
+std::vector<ImageView> Swapchain::prepareImageViews(Swapchain& swapchain, VkContext& context, const vk::SurfaceFormatKHR& surfaceFormat)
+{	
+	std::vector<ImageView> imageViews;
+	vk::Device device = context.getDevice();
+
+	// Get the image loactions created when creating the swap chain
 	std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
 
 	for (int c = 0; c < images.size(); ++c)
 	{
-		ImageView imageView;
-		imageView.create(device, images[c], requiredSurfaceFormats.format, vk::ImageAspectFlagBits::eColor,
+		ImageView imageView(context);
+		imageView.create(device, images[c], surfaceFormat.format, vk::ImageAspectFlagBits::eColor,
 		                 vk::ImageViewType::e2D);
 		imageViews.emplace_back(std::move(imageView));
 	}
 
-	prepareSwapchainPass();
-
-	return true;
+	return imageViews;
 }
 
-Swapchain::~Swapchain()
-{
-	for (int c = 0; c < imageViews.size(); ++c)
-	{
-		device.destroyImageView(imageViews[c].getImageView(), nullptr);
-	}
-
-	device.destroySwapchainKHR(swapchain, nullptr);
-}
-
-
-
-void Swapchain::prepareSwapchainPass()
-{
-	// depth image
-	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
-
-	depthTexture = std::make_unique<Texture>(device, gpu);
-	depthTexture->createEmptyImage(depthFormat, extent.width, extent.height, 1,
-	                               vk::ImageUsageFlagBits::eDepthStencilAttachment);
-
-	renderpass = std::make_unique<RenderPass>(device);
-	renderpass->addAttachment(surfaceFormat.format, VulkanAPI::FinalLayoutType::PresentKHR, true);
-	renderpass->addAttachment(depthFormat, VulkanAPI::FinalLayoutType::Auto);
-	renderpass->prepareRenderPass();
-
-	// create presentation renderpass/framebuffer for each swap chain image
-	for (uint32_t i = 0; i < imageViews.size(); ++i)
-	{
-
-		// create a frame buffer for each swapchain image
-		std::vector<vk::ImageView> views{ imageViews[i].getImageView(), depthTexture->getImageView() };
-		renderpass->prepareFramebuffer(static_cast<uint32_t>(views.size()), views.data(), extent.width, extent.height);
-	}
-}
 
 }    // namespace VulkanAPI

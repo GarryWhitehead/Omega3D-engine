@@ -46,7 +46,11 @@ public:
 	* @param context A prepared vulkan device object
 	* @param surface A surface object for the given platform
 	*/
-	bool prepare(VkDriver& context, Platform::SurfaceWrapper& surface);
+	bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
+
+	/// creates the image views for the swapchain
+	static std::vector<ImageView> prepareImageViews(Swapchain& swapchain, VkContext& context,
+	                                                const vk::SurfaceFormatKHR& surfaceFormat);
 
 	vk::SwapchainKHR& get()
 	{
@@ -63,14 +67,13 @@ public:
 		return extent.width;
 	}
 
-    friend class VkDriver;
+	friend class VkDriver;
 
 private:
-    
-    // the dimensions of the current swapchain
+	// the dimensions of the current swapchain
 	vk::Extent2D extent;
-    
-    // a swapchain based on the present surface type
+
+	// a swapchain based on the present surface type
 	vk::SwapchainKHR swapchain;
 
 	// Use for syncing the end of the last frame submit, with the beginning of the next

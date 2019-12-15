@@ -42,7 +42,7 @@ void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, V
 // ================== StagingPool =======================
 void StagingPool::release(StageInfo& stage)
 {
-	freeStages.emplace();
+	freeStages.emplace_back(std::make_pair(stage.size, stage));
 }
 
 StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
@@ -79,8 +79,8 @@ StagingPool::StageInfo& StagingPool::getStage(const VkDeviceSize reqSize)
 	}
 
 	StageInfo stage = create(reqSize);
-	freeStages.emplace(reqSize, stage);
-	return freeStages.back();
+	freeStages.emplace_back(std::make_pair(reqSize, stage));
+	return freeStages.back().second;
 }
 
 // ==================== Buffer ==========================

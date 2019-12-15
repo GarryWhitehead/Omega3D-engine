@@ -1,10 +1,11 @@
 #include "VkContext.h"
 
-#include "VulkanAPI/Managers/CommandBufferManager.h"
-#include "VulkanAPI/Queue.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 #include "utility/Logger.h"
 
+#include <set>
+#include <string.h>
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags, VkDebugReportObjectTypeEXT obj_type,
                                                     uint64_t obj, size_t loc, int32_t code, const char* layer_prefix,
@@ -92,34 +93,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(VkDebugUtilsMessageSeverity
 namespace VulkanAPI
 {
 
-static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
-                                      vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu)
-{
-	vk::Format outputFormat;
-
-	for (auto format : formats)
-	{
-		vk::FormatProperties properties = gpu.getFormatProperties(format);
-
-		if (tiling == vk::ImageTiling::eLinear && formatFeature == (properties.linearTilingFeatures & formatFeature))
-		{
-			outputFormat = format;
-			break;
-		}
-		else if (tiling == vk::ImageTiling::eOptimal &&
-		         formatFeature == (properties.optimalTilingFeatures & formatFeature))
-		{
-			outputFormat = format;
-			break;
-		}
-		else
-		{
-			LOGGER_ERROR("Error! Unable to find supported vulkan format");
-		}
-	}
-	return outputFormat;
-}
-
 bool VkContext::findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties)
 {
 	for (auto& ext : properties)
@@ -132,29 +105,8 @@ bool VkContext::findExtensionProperties(const char* name, std::vector<vk::Extens
 	return false;
 };
 
-vk::Format VkContext::getDepthFormat(vk::PhysicalDevice& gpu)
+void VkContext::prepareExtensions()
 {
-	// in order of preference - TODO: allow user to define whether stencil format is required or not
-	std::vector<vk::Format> formats = { vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
-		                                vk::Format::eD32Sfloat };
-
-	return VulkanUtil::findSupportedFormat(formats, vk::ImageTiling::eOptimal,
-	                                       vk::FormatFeatureFlagBits::eDepthStencilAttachment, gpu);
-}
-
-void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
-{
-	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "", VK_MAKE_VERSION(1, 1, 0),
-	                            VK_API_VERSION_1_1);
-
-	// glfw extensions
-	std::vector<const char*> extensions;
-	for (uint32_t c = 0; c < extCount; ++c)
-	{
-		extensions.push_back(glfwExtension[c]);
-	}
-
-	// extension properties
 	std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
 
 	for (uint32_t i = 0; i < extCount; ++i)
@@ -162,7 +114,7 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 		if (!findExtensionProperties(extensions[i], extensionProps))
 		{
 			LOGGER_ERROR("Unable to find required extension properties for GLFW.");
-            return false;
+			return false;
 		}
 	}
 
@@ -184,6 +136,22 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		deviceExtensions.hasDebugUtils = true;
 	}
+}
+
+bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
+{
+	vk::ApplicationInfo appInfo("OmegaEngine", VK_MAKE_VERSION(1, 1, 0), "", VK_MAKE_VERSION(1, 1, 0),
+	                            VK_API_VERSION_1_1);
+
+	// glfw extensions
+	std::vector<const char*> extensions;
+	for (uint32_t c = 0; c < extCount; ++c)
+	{
+		extensions.push_back(glfwExtension[c]);
+	}
+
+	// extension properties
+	prepareExtensions();
 
 	// layer extensions, if any
 	std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
@@ -208,7 +176,7 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	else
 	{
 		LOGGER_INFO("Unable to find validation standard layers.");
-        return false;
+		return false;
 	}
 
 	// if debug utils isn't supported, try debug report
@@ -250,12 +218,43 @@ void VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 #endif
 }
 
+vk::PhysicalDeviceFeatures VkContext::prepareFeatures()
+{
+	vk::PhysicalDeviceFeatures requiredFeatures;
+	vk::PhysicalDeviceFeatures features = physical.getFeatures();
+	if (features.textureCompressionETC2)
+	{
+		requiredFeatures.textureCompressionETC2 = VK_TRUE;
+	}
+	if (features.textureCompressionBC)
+	{
+		requiredFeatures.textureCompressionBC = VK_TRUE;
+	}
+	if (features.samplerAnisotropy)
+	{
+		requiredFeatures.samplerAnisotropy = VK_TRUE;
+	}
+	if (features.tessellationShader)
+	{
+		requiredFeatures.tessellationShader = VK_TRUE;
+	}
+	if (features.geometryShader)
+	{
+		requiredFeatures.geometryShader = VK_TRUE;
+	}
+	if (features.shaderStorageImageExtendedFormats)
+	{
+		requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
+	}
+	return requiredFeatures;
+}
+
 bool VkContext::prepareDevice()
 {
 	if (!instance)
 	{
 		LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
-        return false;
+		return false;
 	}
 
 	// find a suitable gpu - at the moment this is pretty basic - find a gpu and that will do. In the future, find the best match
@@ -272,7 +271,7 @@ bool VkContext::prepareDevice()
 	if (!physical)
 	{
 		LOGGER_ERROR("Critcal error! No Vulkan supported GPU devices were found.");
-        return false;
+		return false;
 	}
 
 	// Also get all the device extensions for querying later
@@ -318,7 +317,7 @@ bool VkContext::prepareDevice()
 	if (queueFamilyIndex.present == VK_QUEUE_FAMILY_IGNORED)
 	{
 		LOGGER_ERROR("Critcal error! Required queues not found.");
-        return false;
+		return false;
 	}
 
 	// The preference is a sepearte compute queue as this will be faster, though if not found, use the graphics queue for compute shaders
@@ -338,84 +337,70 @@ bool VkContext::prepareDevice()
 	}
 
 	// enable required device features
-	vk::PhysicalDeviceFeatures requiredFeatures;
-	vk::PhysicalDeviceFeatures features = physical.getFeatures();
-	if (features.textureCompressionETC2)
-	{
-		requiredFeatures.textureCompressionETC2 = VK_TRUE;
-	}
-	if (features.textureCompressionBC)
-	{
-		requiredFeatures.textureCompressionBC = VK_TRUE;
-	}
-	if (features.samplerAnisotropy)
-	{
-		requiredFeatures.samplerAnisotropy = VK_TRUE;
-	}
-	if (features.tessellationShader)
-	{
-		requiredFeatures.tessellationShader = VK_TRUE;
-	}
-	if (features.geometryShader)
-	{
-		requiredFeatures.geometryShader = VK_TRUE;
-	}
-	if (features.shaderStorageImageExtendedFormats)
-	{
-		requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
-	}
+	auto& reqFeatures = prepareFeatures();
 
 	const std::vector<const char*> swapChainExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
 	if (!findExtensionProperties(swapChainExtension[0], extensions))
 	{
 		LOGGER_ERROR("Critical error! Swap chain extension not found.");
-        return false;
+		return false;
 	}
 
 	vk::DeviceCreateInfo createInfo(
 	    {}, static_cast<uint32_t>(queueInfo.size()), queueInfo.data(), static_cast<uint32_t>(requiredLayers.size()),
 	    requiredLayers.empty() ? nullptr : requiredLayers.data(), static_cast<uint32_t>(swapChainExtension.size()),
-	    swapChainExtension.data(), &requiredFeatures);
+	    swapChainExtension.data(), &reqFeatures);
 
 	VK_CHECK_RESULT(physical.createDevice(&createInfo, nullptr, &device));
 
+	// ================================= queues =============================================
 	// prepare queue for each type
 	vk::Queue vkComputeQueue, vkgraphicsQueue, vkPresentQueue;
 
 	device.getQueue(queueFamilyIndex.compute, 0, &vkComputeQueue);
 	device.getQueue(queueFamilyIndex.graphics, 0, &vkgraphicsQueue);
 	device.getQueue(queueFamilyIndex.present, 0, &vkPresentQueue);
-
-	// init vulkan api queue wrapper
-	graphicsQueue.create(vkgraphicsQueue, device, queueFamilyIndex.graphics);
-	presentQueue.create(vkPresentQueue, device, queueFamilyIndex.present);
-	computeQueue.create(vkComputeQueue, device, queueFamilyIndex.compute);
 }
 
 vk::Device& VkContext::getDevice()
 {
-    return device;
+	return device;
 }
 
 vk::PhysicalDevice& VkContext::getGpu()
 {
-    return physical;
+	return physical;
 }
 
-Queue& VkContext::getGraphQueue()
+vk::Queue& VkContext::getGraphQueue()
 {
-    return graphicsQueue;
+	return graphicsQueue;
 }
 
-Queue& VkContext::getPresentQueue()
+vk::Queue& VkContext::getPresentQueue()
 {
-    return presentQueue;
+	return presentQueue;
 }
 
-Queue& VkContext::getCompQueue()
+vk::Queue& VkContext::getCompQueue()
 {
-    return computeQueue;
+	return computeQueue;
+}
+
+int VkContext::getComputeQueueIdx() const
+{
+	return queueFamilyIndex.compute;
+}
+
+int VkContext::getPresentQueueIdx() const
+{
+	return queueFamilyIndex.present;
+}
+
+int VkContext::getGraphQueueIdx() const
+{
+	return queueFamilyIndex.graphics;
 }
 
 }    // namespace VulkanAPI

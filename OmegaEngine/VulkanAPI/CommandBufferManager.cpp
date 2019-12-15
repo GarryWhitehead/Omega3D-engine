@@ -1,6 +1,6 @@
 #include "CommandBufferManager.h"
 
-#include "VulkanAPI/Managers/SemaphoreManager.h"
+#include "VulkanAPI/SemaphoreManager.h"
 #include "VulkanAPI/Renderpass.h"
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkDriver.h"
@@ -39,26 +39,6 @@ Pipeline* CmdBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass
     }
     
     return pline;
-}
-
-DescriptorSet* CmdBufferManager::findOrCreateDescrSet(DescriptorLayout& layout)
-{
-    DescriptorSet* set = nullptr;
-    
-    DescrHash key { &layout };
-    auto iter = descrSets.find(key);
-    
-    if (iter != descrSets.end())
-    {
-        return &(*iter);
-    }
-    else
-    {
-        // if nnot found, create a new set
-        set = new DescriptorSet();
-        set->prepare(context.getDevice(), layout);
-        descrSets.emplace(key, set);
-    }
 }
 
 CmdBufferHandle CmdBufferManager::createCmdBuffer()
@@ -108,7 +88,7 @@ std::unique_ptr<VulkanAPI::CmdBuffer>& CmdBufferManager::beginNewFame(CmdBufferH
     // or just reset?
     if (mode == NewFrameMode::New)
     {
-        cmdBuffers[handle].cmdBuffer = std::make_unique<CommandBuffer>(driver);
+        cmdBuffers[handle].cmdBuffer = std::make_unique<CmdBuffer>(driver);
     }
     else
     {
@@ -133,16 +113,16 @@ void CmdBufferManager::beginRenderpass(const CmdBufferHandle handle, RenderPass&
     vk::CommandBuffer cmdBuffer = cmdBuffers[rpass.cmdBufferHandle]->get();
     
     // setup the clear values for this pass - need one for each attachment
-    vk::ClearValue clearValues[2];
+    vk::ClearValue clearValue[2];
     
-    if (renderpass.hasColourAttach())
+    if (rpass.hasColourAttach())
     {
         clearValue[0].color.float32[0] = rpass.clearCol.r;
         clearValue[0].color.float32[1] = rpass.clearCol.g;
         clearValue[0].color.float32[2] = rpass.clearCol.b;
         clearValue[0].color.float32[3] = rpass.clearCol.a;
     }
-    if (renderpass.hasDepthAttach())
+    if (rpass.hasDepthAttach())
     {
         clearValue[1].depthStencil = { rpass.depthClear, 0 };
     }
@@ -150,7 +130,7 @@ void CmdBufferManager::beginRenderpass(const CmdBufferHandle handle, RenderPass&
     // extents of the frame buffer
     vk::Extent2D extents { fbuffer.width, fbuffer.height };
     
-    vk::RenderPassBeginInfo beginInfo { renderpass.get(), frameBuffer.get(), extents, 1, &clearValue };
+    vk::RenderPassBeginInfo beginInfo { rpass.get(), fbuffer.get(), extents, 1, &clearValue };
     cmdBuffer.beginRenderPass(&beginInfo, vk::SubpassContents::eInline);
 
     // use custom defined viewing area
@@ -216,22 +196,6 @@ void CmdBufferManager::submitAll(Swapchain& swapchain)
 
 	// then the presentation part.....
 	swapchain.submitFrame(finalSemaphore, driver->getQueue(VkDriver::QueueType::Present).get());
-}
-
-void CommandBufferManager::submitAll(std::vector<vk::Semaphore>& waitSemaphores,
-                            std::vector<vk::Semaphore>& signalSemaphores, vk::PipelineStageFlags* stageFlags)
-{
-    assert(!waitSemaphores.empty() && !signalSemaphores.empty());
-
-    vk::PipelineStageFlags defaultFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-
-    vk::SubmitInfo submitInfo(static_cast<uint32_t>(waitSemaphores.size()), waitSemaphores.data(),
-                               stageFlags == nullptr ? &defaultFlag : stageFlags,
-                               static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data(),
-                               static_cast<uint32_t>(signalSemaphores.size()), signalSemaphores.data());
-
-    VK_CHECK_RESULT(queue.submit(1, &submit_info, {}));
-    queue.waitIdle();
 }
 
 }    // namespace VulkanAPI

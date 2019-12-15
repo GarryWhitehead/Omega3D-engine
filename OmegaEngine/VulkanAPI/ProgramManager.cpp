@@ -6,8 +6,10 @@
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 
+#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
 
@@ -36,40 +38,6 @@ void ShaderProgram::updateConstant(Util::String name, float value, Shader::Type 
 {
 }
 
-bool ShaderProgram::addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageView,
-                                          vk::ImageLayout& layout, Shader::Type stage)
-{
-	auto& binding = stages[stage];
-	for (auto& bind : binding.samplerBindings)
-	{
-		if (bind.name.compare(id))
-		{
-			bind.imageView = &imageView;
-			bind.sampler = &sampler;
-			return true;
-		}
-	}
-	// we shouldn't be here if everything went OK!
-	LOGGER_ERROR("Unable to find a buffer with binding id: %s.", id.c_str());
-	return false;
-}
-
-bool ShaderProgram::addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout& layout, Shader::Type stage)
-{
-	auto& binding = stages[stage];
-	for (auto& bind : binding.bufferBindings)
-	{
-		if (bind.name.compare(id))
-		{
-			bind.buffer = &buffer;
-			return true;
-		}
-	}
-	// we shouldn't be here if everything went OK!
-	LOGGER_ERROR("Unable to find a sampler with binding id: %s.", id.c_str());
-	return false;
-}
-
 bool ShaderProgram::prepare(ShaderParser& parser, VkContext& context)
 {
 	ShaderCompiler compiler(*this, context);
@@ -91,7 +59,7 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgram::getShaderCreateInf
 {
 	// probably something wrong if your calling this with no stages registered
 	assert(!stages.empty());
-	
+
 	std::vector<vk::PipelineShaderStageCreateInfo> createInfos;
 	for (const ShaderBinding& bind : stages)
 	{
@@ -100,9 +68,42 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgram::getShaderCreateInf
 	return createInfos;
 }
 
+bool ShaderProgram::updateDecrSetBuffer(Util::String id, Buffer& buffer)
+{
+	for (auto& stage : stages)
+	{
+		for (auto& binding : stage.bufferBindings)
+		{
+			if (binding.name.compare(id))
+			{
+				descrSet->updateBufferSet(binding.set, binding.bind, buffer.getType(), buffer, 0, buffer.getSize());
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+bool ShaderProgram::updateDecrSetImage(Util::String id, Texture& tex)
+{
+	for (auto& stage : stages)
+	{
+		for (auto& binding : stage.bufferBindings)
+		{
+			if (binding.name.compare(id))
+			{
+				descrSet->updateImageSet(binding.set, binding.bind, binding.type, tex.getSampler(), tex.getImageView,
+				                         tex.getLayout());
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
 // =================== Program Manager ==================
-ProgramManager::ProgramManager(VkDriver& context)
-    : context(context)
+ProgramManager::ProgramManager(VkDriver& driver)
+    : driver(driver)
 {
 }
 
@@ -132,7 +133,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 	ShaderParser parser;
 
 	ShaderProgram* instance = new ShaderProgram();
-	for (const ShaderHash& hash : hashes)
+	for (ShaderHash& hash : hashes)
 	{
 		ShaderDescriptor* descr = findCachedVariant(hash);
 		if (!descr)
@@ -153,7 +154,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 	instance->overrideRenderState();
 
 	// compile
-	ShaderCompiler compiler(*instance, context.getContext());
+	ShaderCompiler compiler(*instance, driver.getContext());
 	compiler.compile(parser);
 
 	ShaderHash newHash{ instanceName, mergedVariants, topo };
@@ -217,5 +218,24 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 	return nullptr;
 }
 
+bool ProgramManager::updateBufferDecsrSets(Util::String id, Buffer& buffer)
+{
+	bool result = false;
+	for (auto& prog : programs)
+	{
+		result &= prog.second->updateDecrSetBuffer(id, buffer);
+	}
+	return result;
+}
+
+bool ProgramManager::updateImageDecsrSets(Util::String id, Texture& tex)
+{
+	bool result = false;
+	for (auto& prog : programs)
+	{
+		result &= prog.second->updateDecrSetImage(id, tex);
+	}
+	return result;
+}
 
 }    // namespace VulkanAPI

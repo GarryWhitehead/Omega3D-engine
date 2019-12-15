@@ -2,6 +2,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
 
+#include <cassert>
 #include <tuple>
 #include <unordered_map>
 
@@ -16,15 +17,14 @@ class DescriptorLayout
 {
 
 public:
-    
-    /**
+	/**
      * @brief running counts of each descriptor type - required for creating descriptor pools using one pool for multiple sets
      */
 	struct BindingPool
 	{
 		// grouped into sets
 		std::unordered_map<uint8_t, std::vector<vk::DescriptorSetLayoutBinding>> layouts;
-        
+
 		uint32_t uboCount = 0;
 		uint32_t ssboCount = 0;
 		uint32_t samplerCount = 0;
@@ -33,44 +33,45 @@ public:
 		uint32_t storageImageCount = 0;
 	};
 
-	DescriptorLayout();
+	DescriptorLayout(VkContext& context);
 	~DescriptorLayout();
 
-	void add(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
-	               vk::ShaderStageFlags flags);
+	void add(uint32_t set, uint32_t binding, vk::DescriptorType bindType, vk::ShaderStageFlags flags);
 
-	void prepare(vk::Device device);
+	void prepare();
 
-	std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>> &getLayout()
+	std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& getLayout()
 	{
 		assert(!descriptorLayouts.empty());
 		return descriptorLayouts;
 	}
 
-	vk::DescriptorSetLayout &getLayout(uint8_t set)
+	vk::DescriptorSetLayout& getLayout(uint8_t set)
 	{
-        auto iter = layouts.find(set);
-        assert(iter != layouts.end);
-        return iter->second;
+		auto iter = layouts.find(set);
+		assert(iter != layouts.end);
+		return iter->second;
 	}
 
-	vk::DescriptorPool &getDescriptorPool()
+	vk::DescriptorPool& getDescriptorPool()
 	{
 		assert(pool);
 		return pool;
 	}
 
-private:
-	vk::Device device;
+	friend class DescriptorSet;
 
-    // Each layout has its own pool - this is to avoid issues if used in a multi-threaded environment as the spec states:
-    // "that the application must not allocate and/or free descriptor sets from the same pool in multiple threads simultaneously."
+private:
+	VkContext& context;
+
+	// Each layout has its own pool - this is to avoid issues if used in a multi-threaded environment as the spec states:
+	// "that the application must not allocate and/or free descriptor sets from the same pool in multiple threads simultaneously."
 	vk::DescriptorPool pool;
 
 	// each set will need it's own layout - keep track of the set number so we can match them correctly later
 	std::unordered_map<uint8_t, vk::DescriptorSetLayout> layouts;
-    
-    // a running tally of all the different resources associated with this layout
+
+	// a running tally of all the different resources associated with this layout
 	BindingPool bindings;
 };
 
@@ -78,27 +79,26 @@ class DescriptorSet
 {
 
 public:
-    
-	DescriptorSet();
+	DescriptorSet(VkContext& context);
 	~DescriptorSet();
-    
-    // not copyable
-    DescriptorSet(const DecsriptorSet&) = delete;
-    DescriptorSet operator=(const DecsriptorSet&) = delete;
 
-    /**
+	// not copyable
+	DescriptorSet(const DescriptorSet&) = delete;
+	DescriptorSet operator=(const DescriptorSet&) = delete;
+
+	/**
      * 
      */
-	void prepare(vk::Device &device, DescriptorLayout &descriptorLayout);
+	void prepare(DescriptorLayout& descriptorLayout);
 
-	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer &buffer,
-	              uint32_t offset, uint32_t range);
-    
+	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset,
+	                     uint32_t range);
+
 	void updateImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
-                       vk::ImageView& imageView, vk::ImageLayout layout)
+	                    vk::ImageView& imageView, vk::ImageLayout layout);
 
 
-	vk::DescriptorSet &get(uint32_t set)
+	vk::DescriptorSet& get(uint32_t set)
 	{
 		assert(!descriptorSets.empty());
 		return descrSets[set];
@@ -109,7 +109,7 @@ public:
 		assert(!descriptorSets.empty());
 		// first get the bindings
 		std::vector<uint32_t> bindings;
-		for (auto &set : descriptorSets)
+		for (auto& set : descriptorSets)
 		{
 			bindings.push_back(set.first);
 		}
@@ -119,7 +119,7 @@ public:
 
 		// now create the sets
 		std::vector<vk::DescriptorSet> sets;
-		for (auto &bind : bindings)
+		for (auto& bind : bindings)
 		{
 			sets.push_back(descriptorSets[bind]);
 		}
@@ -130,14 +130,14 @@ public:
 	{
 		return descrSets.size();
 	}
-    
-    friend class DescriptorLayout;
-    
+
+	friend class DescriptorLayout;
+
 private:
-	vk::Device device;
+	VkContext& context;
 
 	// one for all the sets that will be created
 	std::unordered_map<uint8_t, vk::DescriptorSet> descrSets;
 };
 
-} // namespace VulkanAPI
+}    // namespace VulkanAPI

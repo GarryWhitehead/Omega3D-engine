@@ -1,4 +1,5 @@
 #pragma once
+
 #include "VulkanAPI/Common.h"
 
 namespace VulkanAPI
@@ -21,14 +22,15 @@ class Sampler
 {
 
 public:
-	Sampler();
-	Sampler(vk::Device device, SamplerType type);
+	Sampler() = delete;
+
+	Sampler(SamplerType type);
 	~Sampler();
 
 	static SamplerType getSamplerType(const vk::SamplerAddressMode mode, const vk::Filter filter);
 	static SamplerType getDefaultSampler();
 
-	void create(VkContext& context, SamplerType type);
+	void build(VkContext& context);
 
 	vk::Sampler &getSampler()
 	{
@@ -42,6 +44,7 @@ private:
 
 private:
     
+	SamplerType type;
 	vk::Sampler sampler;
 };
 

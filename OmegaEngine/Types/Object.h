@@ -4,7 +4,6 @@
 
 namespace OmegaEngine
 {
-struct ComponentBase;
 
 using ObjectId = uint64_t;
 
@@ -16,17 +15,9 @@ public:
 	~Object() = default;
 
 	Object(const ObjectId id)
+	    : id(id)
 	{
-		this->id = id;
 	}
-
-	// object are copyable
-	Object(const Object&) = default;
-	Object& operator=(const Object&) = default;
-
-	// and moveable
-	Object(Object&&) = default;
-	Object& operator=(Object&&) = default;
 
 	// operator overloads
 	bool operator==(const Object& obj) const

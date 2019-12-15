@@ -54,7 +54,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 # =============== source files =============================
 TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
-	Core/engine.cpp Core/engine.h
+	Core/Engine.cpp Core/Engine.h
 	Core/Omega_Global.h Core/Omega_Global.cpp
 	Core/ObjectManager.cpp Core/ObjectManager.h
 	Core/World.cpp Core/World.h
@@ -165,6 +165,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	VulkanAPI/Shader.cpp VulkanAPI/Shader.h
 	VulkanAPI/SwapChain.cpp VulkanAPI/SwapChain.h
 	VulkanAPI/Buffer.cpp VulkanAPI/Buffer.h
+	VulkanAPI/Utility.cpp VulkanAPI/Utility.h
 
 	VulkanAPI/VkUtils/StringToVk.cpp VulkanAPI/VkUtils/StringToVk.h
 	VulkanAPI/VkUtils/VkToString.cpp VulkanAPI/VkUtils/VkToString.h

@@ -130,9 +130,12 @@ public:
 
 	void update2DTexture(Util::String id, size_t size, void* data);
 
-	void updateUniform(Util::String id, size_t size, void* data);
+	void updateUbo(Util::String id, size_t size, void* data);
 
 	// =============== delete buffer ==========================
+
+	void deleteUbo(Util::String id);
+
 	void deleteVertexBuffer(VertexBuffer* buffer);
 
 	void deleteIndexBuffer(IndexBuffer* buffer);

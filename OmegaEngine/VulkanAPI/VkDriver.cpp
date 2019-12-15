@@ -68,14 +68,25 @@ void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
 	Buffer buffer;
 	buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
 	buffers.emplace(id, buffer);
+
+	// also update all descriptors that have this id - we haven't added data to the buffer yet but the descriptor sets are only
+	// interested in the address and size of the buffer which is known now
+	progManager->updateBufferDecsrSets(id, buffer);
 }
 
 void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
                             const uint8_t mipLevels)
 {
+	// for textures, we expect the ids to be unique. 
+	auto iter = textures.find({ id.c_str() });
+	assert(iter == textures.end());
+
 	Texture tex;
 	tex.create2dTex(format, width, height, mipLevels, usage);
 	textures.emplace(id.c_str(), tex);
+
+	// update the image descriptor set
+	progManager->updateImageDecsrSets(id, tex);
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
@@ -109,7 +120,7 @@ void VkDriver::update2DTexture(Util::String id, size_t size, void* data)
 	iter->second.map(stagingPool, data);
 }
 
-void VkDriver::updateUniform(Util::String id, size_t size, void* data)
+void VkDriver::updateUbo(Util::String id, size_t size, void* data)
 {
 	auto iter = buffers.find({ id.c_str() });
 	assert(iter != buffers.end());
@@ -119,6 +130,15 @@ void VkDriver::updateUniform(Util::String id, size_t size, void* data)
 }
 
 // ============================ delete resources ==============================================
+
+
+void VkDriver::deleteUbo(Util::String id)
+{
+	auto& iter = buffers.find({ id.c_str() });
+	assert(iter != buffers.end());
+	context.device.destroy(iter->second.get(), nullptr);
+	buffers.erase({ id.c_str() });
+}
 
 void VkDriver::deleteVertexBuffer(VertexBuffer* buffer)
 {
@@ -141,6 +161,7 @@ void VkDriver::deleteIndexBuffer(IndexBuffer* buffer)
 }
 
 // ============ begin/end frame functions ======================
+
 void VkDriver::beginFrame()
 {
 	// TODO: need to reset some stuff here!

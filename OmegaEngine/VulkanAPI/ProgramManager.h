@@ -22,8 +22,10 @@ class ShaderParser;
 class Sampler;
 class ImageView;
 class DescriptorLayout;
+class DescriptorSet;
 class PipelineLayout;
 class Buffer;
+class Texture;
 
 /**
 * @brief Specifies the render pipeline state of the shader program
@@ -67,9 +69,6 @@ public:
 		int16_t bind = 0;
 		uint16_t set = 0;
 		uint32_t size = 0;
-        
-        /// descriptor set update info
-        Buffer* buffer = nullptr;
 	};
 
 	/**
@@ -80,10 +79,6 @@ public:
 		Util::String name;
 		int16_t bind = 0;
 		uint16_t set = 0;
-        
-        /// descriptor set update info
-        ImageView* imageView = nullptr;
-        Sampler* sampler = nullptr;
 	};
 
 	/**
@@ -147,6 +142,7 @@ public:
 	*/
 	bool prepare(ShaderParser& parser, VkContext& context);
 
+
 	/**
      * @brief Adds a shader variant for a specifed stage to the list
      */
@@ -165,15 +161,11 @@ public:
     
     // =============== decriptor set functions ==============================
     
-    /**
-     * @brief Adds descriptor set update buffer information to the specified binding
-     */
-    bool addDescrSetUpdateInfo(Util::String id, Buffer& buffer, vk::ImageLayout& layout, Shader::Type stage);
-    
-    /**
-       @brief Adds descriptor set update sampler information to the specified binding
-    */
-    bool addDescrSetUpdateInfo(Util::String id, Sampler& sampler, ImageView& imageview, vk::ImageLayout& layout, Shader::Type stage);
+	bool updateDecrSetBuffer(Util::String id, Buffer& buffer);
+
+	bool updateDecrSetImage(Util::String id, Texture& tex);
+
+	void upateAllDescrSets();
     
 	// ================== getters ==========================
 	std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
@@ -190,6 +182,11 @@ private:
 
 	// used by the vulkan backend
 	std::unique_ptr<DescriptorLayout> descrLayout;
+	
+	// it's tricky deciding the best place to store descriptor sets. In OE, they are stored in the shader program as only
+	// the shader knows the layout. Call **updateDescrSets()** set update the sets with relevant buffer/texture info. This is
+	// usually done via the driver and a **updateUniform()** call.
+	std::unique_ptr<DescriptorSet> descrSet;
 	std::unique_ptr<PipelineLayout> pLineLayout;
 };
 
@@ -249,9 +246,25 @@ public:
 	bool hasShaderVariantCached(ShaderHash& hash);
 
 	ShaderDescriptor* findCachedVariant(ShaderHash& hash);
+	
+	/**
+	* @brief Checks all shaders that are registered for the id, and updates the descr set with the buffer if found.
+	* @param id The name of the buffer to update
+	* @param buffer The buffer which will be used to update the set
+	* @return True is returned if a binding with the specified id is found. Otherwise returns false
+	*/
+	bool updateBufferDecsrSets(Util::String id, Buffer& buffer);
+
+	/**
+	* @brief Similiar to **updateBufferDescrSets** but this is for images
+	* @param id The name of the texture to update
+	* @param buffer The texture which will be used to update the set
+	* @return True is returned if a binding with the specified id is found. Otherwise returns false
+	*/
+	bool updateImageDecsrSets(Util::String id, Texture& tex);
+
 
 	friend class CmdBufferManager;
-
 
 private:
 
@@ -277,7 +290,7 @@ private:
 	};
 
 private:
-	VkDriver& context;
+	VkDriver& driver;
 
 	// fully compiled, complete shader programs
 	std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;

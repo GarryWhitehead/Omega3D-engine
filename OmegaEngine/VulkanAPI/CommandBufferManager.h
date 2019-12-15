@@ -17,6 +17,8 @@ class VkContext;
 class Pipeline;
 class CmdBuffer;
 class ShaderProgram;
+class FrameBuffer;
+class Swapchain;
 
 using CmdBufferHandle = uint64_t;
 
@@ -36,12 +38,6 @@ public:
 	* it does, otherwise nullptr
 	*/
 	Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
-
-	/**
-	* @brief Checks whether a decsriptor set exsists and returns that if so, otherwise creates a new instance
-	* The hash requires descriptor layout and pool (Vulkan handles)
-	*/
-    DescriptorSet* findOrCreateDescrSet(DescriptorLayout& layout);
     
 	/**
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
@@ -71,6 +67,8 @@ public:
 	// =============== renderpass functions ================================
 
 	void beginRenderpass(const CmdBufferHandle handle, RenderPass& rpass, FrameBuffer& fbuffer);
+
+	void endRenderpass(const CmdBufferHandle handle);
 
 	bool isRecorded(CmdBufferHandle handle)
 	{
@@ -125,29 +123,6 @@ private:
 		}
 	};
     
-    // ============== Descriptor set hasher ==================
-    // using the address of the descriptor layout as this will be uniuqe
-    struct DescrHash
-    {
-        vk::DescriptorLayout* layout = nullptr;
-    };
-
-    struct DescrHasher
-    {
-        size_t operator()(DescrHash const& id) const noexcept
-        {
-            return std::hash<vDescriptorLayout*>{}(id.layout);
-        }
-    };
-
-    struct DescrEqual
-    {
-        bool operator()(const DescrHash& lhs, const DescrHash& rhs) const
-        {
-            return lhs.layout == rhs.layout;
-        }
-    };
-    
 	friend class CmdBuffer;
 
 private:
@@ -161,9 +136,7 @@ private:
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being
 	// exclusively tied to a renderpass, we can only create the pipeline once these have been created.
 	std::unordered_map<PLineHash, Pipeline, PLineHasher, PLineEqual> pipelines;
-    
-    // as per pipelines, descriptor sets are created and stored here
-    std::unordered_map<DescrHash, DescriptorSet, DescrHasher, DescrEqual> descrSets;
+
 };
 
 }    // namespace VulkanAPI

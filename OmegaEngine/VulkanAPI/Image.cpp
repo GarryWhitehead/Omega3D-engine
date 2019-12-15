@@ -282,6 +282,6 @@ void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
 
 	// flush the cmd buffer
 	blitCmdBuffer.end();
-	graphicsQueue.flushCmdBuffer(blitCmdBuffer.get());
+	blitCmdBuffer.flush();
 }
 }    // namespace VulkanAPI

@@ -4,7 +4,7 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include <assert.h>
+#include <cassert>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
@@ -14,6 +14,7 @@ namespace VulkanAPI
 
 // forward declerations
 class ImageView;
+class VkContext;
 
 class RenderPass
 {
@@ -69,18 +70,18 @@ public:
 
 	// Actually creates the renderpass based on the above definitions
 	void prepare();
-    
+
 	// ====================== the getter and setters =================================
 	vk::RenderPass& get();
 
 	// sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
-    void setClearColour(OEMaths::colour4& col);
-    void setDepthClear(float col);
-    
-    // functions that return the state of various aspects of this pass
-    bool hasColourAttach();
-    bool hasDepthAttach();
-    
+	void setClearColour(OEMaths::colour4& col);
+	void setDepthClear(float col);
+
+	// functions that return the state of various aspects of this pass
+	bool hasColourAttach();
+	bool hasDepthAttach();
+
 	std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
 
 private:
@@ -98,6 +99,8 @@ private:
 		size_t index;    // points to the attachment description for this ref.
 	};
 
+	friend class CmdBufferManager;
+
 private:
 	// keep a refernece of the device this pass was created on for destruction purposes
 	VkContext& context;
@@ -114,10 +117,10 @@ private:
 
 	// the dependencies between renderpasses and external sources
 	std::vector<vk::SubpassDependency> dependencies;
-    
-    // the clear colour for this pass - for each attachment
-    OEMaths::colour4 clearCol;
-    float depthClear = 0.0f;
+
+	// the clear colour for this pass - for each attachment
+	OEMaths::colour4 clearCol;
+	float depthClear = 0.0f;
 
 	// max extents of this pass
 	uint32_t width = 0;
@@ -145,8 +148,8 @@ public:
 private:
 	// references
 	vk::Device device;
-    
-    // extents of this buffer
+
+	// extents of this buffer
 	uint32_t width = 0;
 	uint32_t height = 0;
 

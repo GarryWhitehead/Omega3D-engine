@@ -5,6 +5,7 @@
 #include "VulkanAPI/CommandBuffer.h"
 
 #include "VulkanAPI/Compiler/ShaderParser.h"
+#include "VulkanAPI/Utility.h"
 
 #include "utility/Logger.h"
 
@@ -23,8 +24,6 @@ Skybox::~Skybox()
 
 bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 {
-	vk::Format depthFormat = VulkanAPI::Device::getDepthFormat(gpu);
-
 	// load the shaders
     const Util::String filename = "skybox.glsl";
     VulkanAPI::ShaderProgram* prog = nullptr;
@@ -42,7 +41,7 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
         // add variants and constant values
 
         assert(prog);
-        if (!prog->prepare(parser))
+        if (!prog->prepare(parser, context))
         {
             return false;
         }
@@ -52,17 +51,17 @@ bool Skybox::prepare(VulkanAPI::ProgramManager* manager)
 
 	//  use the output from the lighting pass as a input
 	builder.addInputAttachment("lighting");
-
 	builder.addOutputAttachment("SkyboxPass", output);
     
+	// everything required to draw the skybox to the cmd buffer
     builder.addExecute([&](RGraphContext& context)
     {
         auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
         
         cmdBuffer->bindPipeline(context.rpass, prog);
         
-        cmdBuffer->bindDescriptors(state->pipelineLayout, state->descriptorSet, VulkanAPI::Pipeline::Type::Graphics);
-        cmdBuffer-?bindPushBlock(state->pipelineLayout, vk::ShaderStageFlagBits::eFragment, sizeof(float),
+        cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer-?bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment, sizeof(float),
                                 &instanceData->blurFactor);
 
         vk::DeviceSize offset = { instanceData->vertexBuffer.offset };

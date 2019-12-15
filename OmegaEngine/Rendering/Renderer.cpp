@@ -13,7 +13,7 @@
 
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/Managers/CommandBufferManager.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 #include "Threading/ThreadPool.h"
 
@@ -61,8 +61,7 @@ void Renderer::prepare()
 
 void Renderer::beginFrame()
 {
-    // render queues are built each frame
-    renderQueue.reset();
+    
 }
 
 void Renderer::update()
@@ -87,12 +86,12 @@ void Renderer::draw()
 	vkDriver.submitFrame(swapchain);
 }
 
-void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::Type type, RGraphContext& context)
+void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext& context)
 {
     VulkanAPI::CmdBuffer cbSecondary = cmdBuffer.createSecondary();
-	auto& queue = renderQueue.renderables;
+	auto& queue = scene.renderQueue.getPartition(RenderQueue::Partition::Colour);
 
-    auto thread_draw = [&cbSecondary, &queue, &type, &context](size_t start, size_t end)
+    auto thread_draw = [&cbSecondary, &queue, &context](size_t start, size_t end)
     {
 		assert(end < queue.size());
 		assert(start < end);
@@ -104,7 +103,7 @@ void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RenderQueue::T
     };
     
     // split task up equally per thtread - using a new secondary cmd buffer per thread
-    size_t workSize = renderQueue.renderables.size();
+    size_t workSize = queue.size();
     ThreadTaskSplitter split{ 0, workSize, thread_draw };
     split.run();
     

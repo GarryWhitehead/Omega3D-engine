@@ -107,7 +107,7 @@ vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<S
 void Pipeline::addEmptyLayout(VkContext& context)
 {
 	vk::PipelineLayoutCreateInfo createInfo;
-	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&createInfo, nullptr, &pipelineLayout));
+	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
 }
 
 void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shader)
@@ -124,9 +124,9 @@ void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shad
     
     // ============== depth/stenicl state ====================
     vk::PipelineDepthStencilStateCreateInfo depthStencilState;
-    depthStencilState.depthTestEnable = shader->depth.testEnable;
-    depthStencilState.depthWriteEnable = shader->depth.writeEnable;
-    depthStencilState.depthCompareOp = shader->depth.compareOp;
+    depthStencilState.depthTestEnable = shader.depth.testEnable;
+    depthStencilState.depthWriteEnable = shader.depth.writeEnable;
+    depthStencilState.depthCompareOp = shader.depth.compareOp;
     
     // ============== stencil state =====================
     depthStencilState.stencilTestEnable = VK_TRUE;

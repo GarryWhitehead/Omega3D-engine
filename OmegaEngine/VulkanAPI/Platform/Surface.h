@@ -20,7 +20,6 @@ namespace Platform
 class SurfaceWrapper
 {
 public:
-	
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	using HWND = void*;
 	SurfaceWrapper(NativeWindowWrapper& window, Instance& instance);
@@ -36,14 +35,17 @@ public:
 		return winHeight;
 	}
 
+	vk::SurfaceKHR& get()
+	{
+		return surface;
+	}
 
 private:
-
 	vk::SurfaceKHR surface;
 
 	uint32_t winWidth = 0;
 	uint32_t winHeight = 0;
 };
 
-}
+}    // namespace Platform
 }    // namespace VulkanAPI

@@ -5,12 +5,6 @@
 namespace VulkanAPI
 {
 
-namespace VulkanUtil
-{
-vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
-                               vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu);
-}
-
 /**
  * The current vulkan instance. Encapsulates all information extracted from the device
  * and physical device. Makes passing vulkan information around easier.
@@ -35,27 +29,41 @@ public:
 	};
 
 	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
-	static vk::Format getDepthFormat(vk::PhysicalDevice& gpu);
 
-	static void createInstance(const char** glfwExtension, uint32_t extCount);
-	void prepareDevice();
-    
-    // ============= getters =================
-    vk::Device& getDevice();
-    vk::PhysicalDevice& getGpu();
-    vk::Queue& getGraphQueue();
-    vk::Queue& getPresentQueue();
-    vk::Queue& getCompQueue();
-    
+	void prepareExtensions();
+
+	vk::PhysicalDeviceFeatures prepareFeatures();
+
+	/**
+	* @brief Creates a new abstract instance of vulkan
+	*/
+	bool createInstance(const char** glfwExtension, uint32_t extCount);
+
+	/**
+	* @brief Sets up all the vulkan devices and queues.
+	*/
+	bool prepareDevice();
+
+	// ============= getters =================
+	vk::Device& getDevice();
+	vk::PhysicalDevice& getGpu();
+	vk::Queue& getGraphQueue();
+	vk::Queue& getPresentQueue();
+	vk::Queue& getCompQueue();
+	int getComputeQueueIdx() const;
+	int getPresentQueueIdx() const;
+	int getGraphQueueIdx() const;
+
 	friend class VkDriver;
 
 private:
+
 	vk::Instance instance;
 
 	vk::Device device;
 	vk::PhysicalDevice physical;
 	vk::PhysicalDeviceFeatures features;
-    
+
 	struct QueueInfo
 	{
 		int compute = VK_QUEUE_FAMILY_IGNORED;
@@ -75,4 +83,4 @@ private:
 };
 
 
-}    // namespace VulaknAPI
+}    // namespace VulkanAPI
