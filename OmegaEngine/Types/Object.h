@@ -22,18 +22,18 @@ public:
 	// operator overloads
 	bool operator==(const Object& obj) const
 	{
-		return this->id == obj.id;
+		return id == obj.id;
 	}
 
 	// helper functions
 	ObjectId getId() const
 	{
-		return this->id;
+		return id;
 	}
 
-	void setId(const ObjectId id)
+	void setId(const ObjectId objId)
 	{
-		this->id = id;
+		id = objId;
 	}
 
 	inline bool isActive() const

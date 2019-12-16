@@ -247,22 +247,35 @@ public:
 
 	ShaderDescriptor* findCachedVariant(ShaderHash& hash);
 	
-	/**
-	* @brief Checks all shaders that are registered for the id, and updates the descr set with the buffer if found.
-	* @param id The name of the buffer to update
-	* @param buffer The buffer which will be used to update the set
-	* @return True is returned if a binding with the specified id is found. Otherwise returns false
-	*/
-	bool updateBufferDecsrSets(Util::String id, Buffer& buffer);
+    /**
+     * @brief Pushes a buffer dedscriptor to update this frame. This will not check if the id exsists. Thus, will only fail at the point of update, at which
+     * point it will throw an exception if it does not exsist
+     */
+    void pushBufferDescrUpdate(Util::String id, Buffer& buffer);
+    
+    /**
+    * @brief Pushes a image dedscriptor to update this frame. This will not check if the id exsists. Thus, will only fail at the point of update, at which
+    * point it will throw an exception if it does not exsist
+    */
+    void pushImageDecsrUpdate(Util::String id, Texture& tex);
+    
+    /**
+     * @brief A special function call for updating the material descriptor sets. The reason for updating them in this fashion is because they require the descriptor]
+     * layout of the model shader. Rather than passing around the descriptor layout which could be difficult as it depends on whether the shader has actually been
+     * initialised, this methid makes it less error prone and keeps the program data contatned within its class
+     */
+    void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
+    
+private:
+    
+	/// For all descriptors that need checking, all shaders that are registered for the id, and updates the descr set with the buffer if found.
+	void updateBufferDecsrSets();
 
-	/**
-	* @brief Similiar to **updateBufferDescrSets** but this is for images
-	* @param id The name of the texture to update
-	* @param buffer The texture which will be used to update the set
-	* @return True is returned if a binding with the specified id is found. Otherwise returns false
-	*/
-	bool updateImageDecsrSets(Util::String id, Texture& tex);
-
+	/// Similiar to **updateBufferDescrSets** but this is for images
+	void updateImageDecsrSets();
+    
+    /// updates all material descriptor sets with the specfied image/sampler
+    void updateMatDescrSets();
 
 	friend class CmdBufferManager;
 
@@ -297,6 +310,15 @@ private:
 
 	// this is where individual shaders are cached until required to assemble into a shader program
 	std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
+    
+    // Queued decriptor requiring updating which is done on a per frame basis
+    std::vector<std::pair<Util::String, Buffer>> bufferDescrQueue;
+    std::vector<std::pair<Util::String, Texture>> imageDescrQueue;
+    
+    // this is a special update queue for materials - this will use the descriptor layout specified by the model shader
+    // to update the specified descriptor set
+    std::vector<std::pair<Util::String, DescriptorSet*>> matDescrQueue;
+    
 };
 
 }    // namespace VulkanAPI

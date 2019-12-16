@@ -218,24 +218,71 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 	return nullptr;
 }
 
-bool ProgramManager::updateBufferDecsrSets(Util::String id, Buffer& buffer)
+void ProgramManager::pushBufferDescrUpdate(Util::String id, Buffer& buffer)
 {
-	bool result = false;
-	for (auto& prog : programs)
-	{
-		result &= prog.second->updateDecrSetBuffer(id, buffer);
-	}
-	return result;
+    assert(!id.empty());
+    bufferDescrQueue.emplace_back(std::make_pair(id, buffer));
 }
 
-bool ProgramManager::updateImageDecsrSets(Util::String id, Texture& tex)
+void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
 {
-	bool result = false;
-	for (auto& prog : programs)
-	{
-		result &= prog.second->updateDecrSetImage(id, tex);
-	}
-	return result;
+    assert(!id.empty());
+    imageDescrQueue.emplace_back(std::make_pair(id, tex));
+}
+
+void ProgramManager::pushMatDescrUdpdate(Util::String id, DescriptorSet* set)
+{
+    assert(set);
+    assert(!id.empty());
+    matDescrQueue.emplace_back(std::make_pair(id, set));
+}
+
+void ProgramManager::updateBufferDecsrSets()
+{
+    if (bufferDescrQueue.empty())
+    {
+        return;
+    }
+    
+    for (auto& queuePair : bufferDescrQueue)
+    {
+        bool result = false;
+        for (auto& prog : programs)
+        {
+            result &= prog.second->updateDecrSetBuffer(queuePair.first, queuePair.second);
+        }
+        if (!result)
+        {
+            throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+        }
+    }
+    
+    // all done, so clear the updates ready for the next frame
+    bufferDescrQueue.clear();
+}
+
+void ProgramManager::updateImageDecsrSets()
+{
+	if (imageDescrQueue.empty())
+    {
+        return;
+    }
+    
+    for (auto& queuePair : imageDescrQueue)
+    {
+        bool result = false;
+        for (auto& prog : programs)
+        {
+            result &= prog.second->updateDecrSetImage(queuePair.first, queuePair.second);
+        }
+        if (!result)
+        {
+            throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+        }
+    }
+    
+    // all done, so clear the updates ready for the next frame
+    imageDescrQueue.clear();
 }
 
 }    // namespace VulkanAPI

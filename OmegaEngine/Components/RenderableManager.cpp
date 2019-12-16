@@ -278,7 +278,6 @@ bool RenderableManager::updateVariants()
 			if (texGroup.textures[i])
 			{
 				Util::String id = Util::String::Append(mat.name, texTypeToStr(i));
-				prog->addDescrSetUpdateInfo(id, sampler, imageview, layout);
 			}
 		}
 	}
@@ -308,7 +307,26 @@ void RenderableManager::update()
 				}
 			}
 		}
-
+        
+        // because we need the descriptor layout before we can update the material descr set, we queue an
+        // update on the program manager, which will do all the updating based on the id and descriptor set we pass
+        // would be better if we could do this and the above together - the issue at the moment is that we could
+        // actually update a texture more than once, so something to look at in the future
+        for (Renderable& rend : renderables)
+        {
+            Material* mat = rend.material;
+            TextureGroup& texGroup = textures[mat->texIdx];
+            
+            for (uint8_t i = 0; i < TextureType::Count; ++i)
+            {
+                if (texGroup.textures[i])
+                {
+                    Util::String id = Util::String::Append(mat.name, texTypeToStr(i));
+                    prog->pushMatDescrUpdate(id, mat->descrSet);
+                }
+            }
+        }
+        
 		// create material shader varinats if needed
 		updateVariants();
 	}

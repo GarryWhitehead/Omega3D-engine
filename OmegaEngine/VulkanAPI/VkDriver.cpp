@@ -71,7 +71,7 @@ void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
 
 	// also update all descriptors that have this id - we haven't added data to the buffer yet but the descriptor sets are only
 	// interested in the address and size of the buffer which is known now
-	progManager->updateBufferDecsrSets(id, buffer);
+	progManager->pushBufferDecsr(id, buffer);
 }
 
 void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
@@ -86,7 +86,7 @@ void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t w
 	textures.emplace(id.c_str(), tex);
 
 	// update the image descriptor set
-	progManager->updateImageDecsrSets(id, tex);
+	progManager->pushImageDecsr(id, tex);
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
@@ -128,6 +128,7 @@ void VkDriver::updateUbo(Util::String id, size_t size, void* data)
 
 	iter->second.map(data, size);
 }
+
 
 // ============================ delete resources ==============================================
 

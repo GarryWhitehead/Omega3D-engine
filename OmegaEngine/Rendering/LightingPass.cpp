@@ -68,8 +68,8 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 		cmdBuffer->bindPipeline(pline);
 
 		// bind the descriptor
-		VulkanAPI::DescriptorSet descrSet = context.cbManager->findOrCreateDescrSet(prog->descrLayout);
-        cmdBuffer->bindDescriptors(descrSet, VulkanAPI::Pipeline::Type::Graphics);
+		VulkanAPI::DescriptorSet descrSet = context.cbManager->findOrCreateDescrSet(prog);
+        cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
 
 		cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 

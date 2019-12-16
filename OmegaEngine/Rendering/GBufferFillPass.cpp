@@ -1,14 +1,16 @@
 #include "GBufferFillPass.h"
 
-#include "RenderGraph/RenderGraph.h"
-
 #include "Components/RenderableManager.h"
 
 #include "Models/MaterialInstance.h"
 
+#include "Rendering/RenderQueue.h"
+
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/common.h"
+#include "VulkanAPI/Utility.h"
+#include "VulkanAPI/Descriptors.h"
 
 #include "utility/Logger.h"
 
@@ -27,7 +29,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	// shaders are prepared within the renderable manager for this pass
 
 	// a list of the formats required for each buffer
-	vk::Format depthFormat = VulkanAPI::VkDriver::getDepthFormat(gpu);
+	vk::Format depthFormat = VulkanAPI::Util::getSupportedDepthFormat(context);
 
 	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
 
@@ -50,7 +52,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	builder.setClearColour();
 	builder.setDepthClear();
 
-	builder.addExecute([](RGraphContext& context) {
+	builder.addExecute([=](RGraphContext& context) {
 		// for me old sanity!
 		assert(context.cbManager);
 		assert(context.renderer);
@@ -58,16 +60,36 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 
 		// draw the contents of the renderable rendder queue
 		Renderer* renderer = context.renderer;
-		renderer->drawQueueThreaded(*cmdBuffer, RenderQueue::Type::Colour);
+        renderer->drawQueueThreaded(*cmdBuffer, RenderQueue::Type::Colour);
 	});
 }
 
 void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, RGraphContext& context)
 {
 	Renderable* render = static_cast<Renderable*>(data);
-
+    Material* mat = render->material;
+    assert(mat);
+    
+    // update the material descriptor set here as we have all the info we need.
+    // This should be done only when completely nescessary as could impact performance
+    if (!mat->descrSet)
+    {
+        VulkanAPI::DescriptorLayout* layout = prog->getDescrLayout();
+        auto set = std::make_unique<VulkanAPI::DescriptorSet>();
+        set->prepare(layout);
+        // we need info from two places - image data which is the imageview and shader; and the bindings from
+        // the shader program.
+        // first grab the image data - try for all pbr materials, though if returns false, this isn't considered an error
+        for (size_t i = 0; i < TextureType::Count; ++i)
+        {
+            Util::String id = mat->name.append(TextureGroup::texTypeToStr(i));
+            VulkanAPI::Texture* tex = driver.getTexture2D(id);
+        }
+        
+    }
+    
 	// merge the material set with the mesh ubo sets
-	std::vector<vk::DescriptorSet> sets { state->descriptorSet.get(), render->material->descrSet };
+	std::vector<vk::DescriptorSet> sets { prog->getDescrSet, render->material->descrSet };
 
 	VulkanAPI::ProgramManager* pgManager = context.ProgramManager;
 	VulkanAPI::CmdBufferManager* cbManager = context.cbManager;
