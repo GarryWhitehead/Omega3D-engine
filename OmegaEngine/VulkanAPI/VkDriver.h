@@ -116,7 +116,7 @@ public:
 	/**
      * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline
      */
-	VertexBuffer* addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes);
+	VertexBuffer* addVertexBuffer(const size_t size, void* data);
 
 	/**
      @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend. Note: it is presumed to be of the type uint32_t.
@@ -132,7 +132,13 @@ public:
 
 	void updateUbo(Util::String id, size_t size, void* data);
 
-	// =============== delete buffer ==========================
+	// ============= retrieve resources ====================================
+
+	Texture* getTexture2D(Util::String name);
+
+	Buffer* getBuffer(Util::String name);
+
+	// =============== delete buffer =======================================
 
 	void deleteUbo(Util::String id);
 
@@ -140,12 +146,12 @@ public:
 
 	void deleteIndexBuffer(IndexBuffer* buffer);
 
-	// ======== begin/end frame functions ====================
+	// ======== begin/end frame functions =================================
 	void beginFrame();
 
 	void endFrame();
 
-	// ====== manager helper functions =========
+	// ====== manager helper functions ===================================
 	CmdBufferManager& getCmdBufManager()
 	{
 		return *cbManager;

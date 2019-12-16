@@ -15,16 +15,6 @@
 namespace OmegaEngine
 {
 
-enum TextureType : size_t
-{
-	BaseColour,
-	Emissive,
-	MetallicRoughness,
-	Normal,
-	Occlusion,
-	Count
-};
-
 class MaterialInstance
 {
 public:

@@ -33,12 +33,15 @@ class Renderer;
 */
 struct RGraphContext
 {
+	// the command buffer handle for this pass
 	VulkanAPI::CmdBufferHandle cmdBuffer;
+
+	// the vulkan render pass for this pass
 	VulkanAPI::RenderPass* rpass = nullptr;
 
 	// useful vulkan managers
-	VulkanAPI::ProgramManager* ProgramManager = nullptr;
 	VulkanAPI::CmdBufferManager* cbManager = nullptr;
+	VulkanAPI::VkDriver* driver = nullptr;
 
 	// keep track of the renderer
 	Renderer* renderer = nullptr;

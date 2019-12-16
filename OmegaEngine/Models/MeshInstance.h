@@ -20,6 +20,12 @@ class MeshInstance
 {
 public:
 
+	struct Attribute
+	{
+		uint8_t stride;
+		uint8_t width;
+	};
+
 	/**
      * @brief A abstract vertex buffer. Vertices are stored as blobs of data as the shader system allows
      * numerous variants in the vertex inputs. The blob is described by the **VertexDescriptor*
@@ -28,7 +34,7 @@ public:
 	{
 		uint8_t* data = nullptr;
 		size_t size = 0;
-		std::vector<VulkanAPI::Attribute> attributes;
+		std::vector<Attribute> attributes;
 	};
 
 	struct Primitive

@@ -182,7 +182,7 @@ void RenderGraphPass::addExecute(ExecuteFunc&& func)
 	execFunc = func;
 }
 
-void RenderGraphPass::setClearColour(OEMaths::colour4 colour)
+void RenderGraphPass::setClearColour(OEMaths::colour4& colour)
 {
 	clearCol = colour;
 }

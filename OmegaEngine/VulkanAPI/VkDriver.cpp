@@ -77,7 +77,7 @@ void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
 void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
                             const uint8_t mipLevels)
 {
-	// for textures, we expect the ids to be unique. 
+	// for textures, we expect the ids to be unique.
 	auto iter = textures.find({ id.c_str() });
 	assert(iter == textures.end());
 
@@ -89,7 +89,7 @@ void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t w
 	progManager->pushImageDecsr(id, tex);
 }
 
-VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data, std::vector<VertexBuffer::Attribute>& attributes)
+VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data)
 {
 	assert(data);
 	VertexBuffer* buffer = new VertexBuffer;
@@ -159,6 +159,28 @@ void VkDriver::deleteIndexBuffer(IndexBuffer* buffer)
 	indexBuffers.erase({ buffer });
 	delete buffer;
 	buffer = nullptr;
+}
+
+// ======================== resource retrieval ===================================
+
+Texture* VkDriver::getTexture2D(Util::String name)
+{
+	auto iter = textures.find({ name.c_str });
+	if (iter == textures.end())
+	{
+		return nullptr;
+	}
+	return &iter->second;
+}
+
+Buffer* VkDriver::getBuffer(Util::String name)
+{
+	auto iter = buffers.find({ name.c_str });
+	if (iter == buffers.end())
+	{
+		return nullptr;
+	}
+	return &iter->second;
 }
 
 // ============ begin/end frame functions ======================

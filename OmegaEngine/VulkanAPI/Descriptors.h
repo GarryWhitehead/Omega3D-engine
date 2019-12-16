@@ -9,14 +9,17 @@
 namespace VulkanAPI
 {
 
-/**
- * A descriptor layout describing the bindings for a entire shader program so may have multiple sets
- * *Maintains its own descriptor pool so this can be used in a threaded environment.
- */
-class DescriptorLayout
-{
+// forward declerations
+class VkContext;
+class DescriptorLayout;
 
+class DescriptorPool
+{
 public:
+
+	DescriptorPool(VkContext& context);
+	~DescriptorPool();
+
 	/**
      * @brief running counts of each descriptor type - required for creating descriptor pools using one pool for multiple sets
      */
@@ -33,46 +36,68 @@ public:
 		uint32_t storageImageCount = 0;
 	};
 
-	DescriptorLayout(VkContext& context);
-	~DescriptorLayout();
+	DescriptorLayout& createLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
+	                               vk::ShaderStageFlags flags);
 
-	void add(uint32_t set, uint32_t binding, vk::DescriptorType bindType, vk::ShaderStageFlags flags);
+	void build();
 
-	void prepare();
-
-	std::vector<std::tuple<uint32_t, vk::DescriptorSetLayout>>& getLayout()
-	{
-		assert(!descriptorLayouts.empty());
-		return descriptorLayouts;
-	}
-
-	vk::DescriptorSetLayout& getLayout(uint8_t set)
-	{
-		auto iter = layouts.find(set);
-		assert(iter != layouts.end);
-		return iter->second;
-	}
-
-	vk::DescriptorPool& getDescriptorPool()
+	vk::DescriptorPool& get()
 	{
 		assert(pool);
 		return pool;
 	}
 
-	friend class DescriptorSet;
-
 private:
+
 	VkContext& context;
+
+	// a running tally of all the different resources associated with this layout
+	BindingPool bindings;
 
 	// Each layout has its own pool - this is to avoid issues if used in a multi-threaded environment as the spec states:
 	// "that the application must not allocate and/or free descriptor sets from the same pool in multiple threads simultaneously."
 	vk::DescriptorPool pool;
 
-	// each set will need it's own layout - keep track of the set number so we can match them correctly later
-	std::unordered_map<uint8_t, vk::DescriptorSetLayout> layouts;
+	// a list of all the descriptor layouts associated with this pool
+	std::vector<DescriptorLayout> layouts;
+};
 
-	// a running tally of all the different resources associated with this layout
-	BindingPool bindings;
+/**
+ * A simple wrapper which contains the layout information for creating a set
+ */
+class DescriptorLayout
+{
+
+public:
+	
+	DescriptorLayout(VkContext& context, DescriptorPool& pool);
+	~DescriptorLayout();
+
+	void prepare();
+
+	vk::DescriptorSetLayout& getLayout()
+	{
+		assert(descrlayout);
+		return descrlayout;
+	}
+
+	friend class DescriptorPool;
+	friend class DescriptorSet;
+
+private:
+
+	VkContext& context;
+
+	/// the pool associated with this layout
+	DescriptorPool& pool;
+
+	/// the binding set number for this layout
+	uint8_t set = 0;
+
+	// layouts required for building the set
+	vk::DescriptorSetLayoutBinding layoutBinding;
+	vk::DescriptorSetLayout descrlayout;
+	
 };
 
 class DescriptorSet
@@ -87,9 +112,9 @@ public:
 	DescriptorSet operator=(const DescriptorSet&) = delete;
 
 	/**
-     * 
+     * @brief Adds a descriptor layout to this set
      */
-	void prepare(DescriptorLayout& descriptorLayout);
+	void addLayout(DescriptorLayout& descriptorLayout);
 
 	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset,
 	                     uint32_t range);

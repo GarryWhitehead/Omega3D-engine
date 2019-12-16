@@ -19,6 +19,32 @@
 namespace OmegaEngine
 {
 
+Util::String TextureGroup::texTypeToStr(const TextureType type)
+{
+	Util::String result;
+	switch (type)
+	{
+	case TextureType::BaseColour:
+		result = "BaseColour";
+		break;
+	case TextureType::Emissive:
+		result = "Emissive";
+		break;
+	case TextureType::MetallicRoughness:
+		result = "MetallicRoughness";
+		break;
+	case TextureType::Normal:
+		result = "Normal";
+		break;
+	case TextureType::Occlusion:
+		result = "Occlusion";
+		break;
+	}
+	return result;
+}
+
+// ===============================================================================================
+
 RenderableManager::RenderableManager(Engine& engine)
     : engine(engine)
 {
@@ -47,7 +73,8 @@ void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, const siz
 			if (i > 0 && newIdx != mat_idx)
 			{
 				// error here? just warn for now
-				LOGGER_INFO("Warning: This mesh has more than one material for its primitives. Only one material per "
+				LOGGER_INFO("Warning: This mesh has more than one material for its primitives. Only one "
+				            "material per "
 				            "mesh supported at present.");
 			}
 			mat_idx = newIdx;
@@ -88,7 +115,7 @@ size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat, 
 		// sort out the textures
 		TextureGroup group;
 
-		for (size_t j = 0; j < TextureType::Count; ++j)
+		for (size_t j = 0; j < TextureGroup::TextureType::Count; ++j)
 		{
 			// this function does return an error value but unsure yet
 			// whether just to continue (it will be obvious that somethings gone
@@ -145,57 +172,21 @@ Renderable& RenderableManager::getMesh(const ObjHandle handle)
 
 void RenderableManager::updateBuffers()
 {
-	// calculate how much we need to allocate on the gpu side
-	size_t vertTotalSize = 0;
-	size_t indTotalSize = 0;
-
-	for (Renderable& rend : renderables)
-	{
-		vertTotalSize += rend.vertexBuffer.size;
-		indTotalSize += rend.indices.size();
-	}
-
-	char* vertData = new char[vertTotalSize];
-	uint32_t* indData = new uint32_t[indTotalSize];
-
-	// copy the data into the buffers
-	char* vertPtr = vertData;
-	uint32_t* indPtr = indData;
-
-	for (Renderable& rend : renderables)
-	{
-		size_t vertSize = rend.vertexBuffer.size;
-		size_t indSize = rend.indices.size() * sizeof(uint32_t);
-
-		memcpy(vertPtr, rend.vertexBuffer.data, vertSize);
-		memcpy(indPtr, rend.indices.data(), indSize);
-
-		vertPtr += vertSize;
-		indPtr += indSize;
-	}
-
-	// upload "mega" buffer to the gpu
 	VulkanAPI::VkDriver& driver = engine.getVkDriver();
 
-	// If no buffers exsisit, create new instances and upload data
-	if (!vertexBuffer && !indexBuffer)
+	for (Renderable& rend : renderables)
 	{
-		vertexBuffer = driver.addVertexBuffer(vertTotalSize, vertData, vertices.attributes);
-		indexBuffer = driver.addIndexBuffer(indTotalSize, indData);
-	}
-	else if (vertexBuffer->getSize() < vertTotalSize)
-	{
-		// if the current buffer does not have enough space, destroy and create new buffer instances
-		driver.deleteVertexBuffer(vertexBuffer);
-		driver.deleteIndexBuffer(indexBuffer);
+		if (!rend.vertBuffer && !rend.indexBuffer)
+		{
+			MeshInstance& instance = rend.instance;
+			size_t vertSize = instance.vertices.size;
+			size_t indexSize = instance.indices.size() * sizeof(uint32_t);
+			
+			rend.vertBuffer = driver.addVertexBuffer(vertSize, instance.vertices.data);
+			rend.indexBuffer = driver.addIndexBuffer(indexSize, instance.indices.data());
 
-		vertexBuffer = driver.addVertexBuffer(vertTotalSize, vertData, vertices.attributes);
-		indexBuffer = driver.addIndexBuffer(indTotalSize, indData);
-	}
-	else
-	{
-		vertexBuffer.map(vertTotalSize, vertData, vertices.attributes);
-		indexBuffer.map(indTotalSize, indData);
+			assert(rend.vertBuffer && rend.indexBuffer);
+		}
 	}
 }
 
@@ -268,18 +259,8 @@ bool RenderableManager::updateVariants()
 			};
 			prog = manager.build(hashes);
 		}
-
-		// for each texture, we update the descriptor set with the appropiate image and sampler
-		TextureGroup& texGroup = textures[mat->texIdx];
-		Material* mat = rend.material;
-
-		for (uint8_t i = 0; i < TextureType::Count; ++i)
-		{
-			if (texGroup.textures[i])
-			{
-				Util::String id = Util::String::Append(mat.name, texTypeToStr(i));
-			}
-		}
+		// keep reference to the shader program within the renderable for easier lookup when drawing
+		rend.program = prog;
 	}
 }
 
@@ -293,13 +274,13 @@ void RenderableManager::update()
 		// upload textures if required
 		for (const TextureGroup& group : textures)
 		{
-			for (uint8_t i = 0; i < TextureType::Count; ++i)
+			for (uint8_t i = 0; i < TextureGroup::TextureType::Count; ++i)
 			{
 				GpuTextureInfo* texGroup = group.textures[i];
 				if (texGroup)
 				{
 					// each sampler needs its own unique id - so append the tex type to the material name
-					Util::String id = group.matId.append(TextureGroup::texTypeToStr((TextureType)i));
+					Util::String id = group.matId.append(TextureGroup::texTypeToStr(i));
 
 					MappedTexture* tex = texGroup->texture;
 					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels);
@@ -307,26 +288,7 @@ void RenderableManager::update()
 				}
 			}
 		}
-        
-        // because we need the descriptor layout before we can update the material descr set, we queue an
-        // update on the program manager, which will do all the updating based on the id and descriptor set we pass
-        // would be better if we could do this and the above together - the issue at the moment is that we could
-        // actually update a texture more than once, so something to look at in the future
-        for (Renderable& rend : renderables)
-        {
-            Material* mat = rend.material;
-            TextureGroup& texGroup = textures[mat->texIdx];
-            
-            for (uint8_t i = 0; i < TextureType::Count; ++i)
-            {
-                if (texGroup.textures[i])
-                {
-                    Util::String id = Util::String::Append(mat.name, texTypeToStr(i));
-                    prog->pushMatDescrUpdate(id, mat->descrSet);
-                }
-            }
-        }
-        
+
 		// create material shader varinats if needed
 		updateVariants();
 	}

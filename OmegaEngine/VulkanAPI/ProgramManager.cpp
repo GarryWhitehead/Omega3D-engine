@@ -92,13 +92,40 @@ bool ShaderProgram::updateDecrSetImage(Util::String id, Texture& tex)
 		{
 			if (binding.name.compare(id))
 			{
-				descrSet->updateImageSet(binding.set, binding.bind, binding.type, tex.getSampler(), tex.getImageView,
+				descrSet->updateImageSet(binding.set, binding.bind, binding.type, tex.getSampler(), tex.getImageView(),
 				                         tex.getLayout());
 				return true;
 			}
 		}
 	}
 	return false;
+}
+
+ShaderBinding::SamplerBinding& ShaderProgram::findSamplerBinding(Util::String name, const Shader::Type type)
+{
+	auto iter = std::find(stages.begin(), stages.end(),
+	                      [](const ShaderBinding& lhs, const ShaderBinding& rhs) { return lhs.type == rhs.type; });
+
+	assert(iter != stages.end());
+	for (auto& sampler : iter->samplerBindings)
+	{
+		if (sampler.name.compare(name))
+		{
+			return sampler;
+		}
+	}
+	// a binding with this name doesn't exsist
+	throw std::runtime_error("Unable to find a sampler binding with id: %s", name.c_str());
+}
+
+DescriptorLayout* ShaderProgram::getDescrLayout()
+{
+	return descrLayout.get();
+}
+
+DescriptorSet* ShaderProgram::getDescrSet()
+{
+	return descrSet.get();
 }
 
 // =================== Program Manager ==================
@@ -220,69 +247,69 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 
 void ProgramManager::pushBufferDescrUpdate(Util::String id, Buffer& buffer)
 {
-    assert(!id.empty());
-    bufferDescrQueue.emplace_back(std::make_pair(id, buffer));
+	assert(!id.empty());
+	bufferDescrQueue.emplace_back(std::make_pair(id, buffer));
 }
 
 void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
 {
-    assert(!id.empty());
-    imageDescrQueue.emplace_back(std::make_pair(id, tex));
+	assert(!id.empty());
+	imageDescrQueue.emplace_back(std::make_pair(id, tex));
 }
 
 void ProgramManager::pushMatDescrUdpdate(Util::String id, DescriptorSet* set)
 {
-    assert(set);
-    assert(!id.empty());
-    matDescrQueue.emplace_back(std::make_pair(id, set));
+	assert(set);
+	assert(!id.empty());
+	matDescrQueue.emplace_back(std::make_pair(id, set));
 }
 
 void ProgramManager::updateBufferDecsrSets()
 {
-    if (bufferDescrQueue.empty())
-    {
-        return;
-    }
-    
-    for (auto& queuePair : bufferDescrQueue)
-    {
-        bool result = false;
-        for (auto& prog : programs)
-        {
-            result &= prog.second->updateDecrSetBuffer(queuePair.first, queuePair.second);
-        }
-        if (!result)
-        {
-            throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
-        }
-    }
-    
-    // all done, so clear the updates ready for the next frame
-    bufferDescrQueue.clear();
+	if (bufferDescrQueue.empty())
+	{
+		return;
+	}
+
+	for (auto& queuePair : bufferDescrQueue)
+	{
+		bool result = false;
+		for (auto& prog : programs)
+		{
+			result &= prog.second->updateDecrSetBuffer(queuePair.first, queuePair.second);
+		}
+		if (!result)
+		{
+			throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+		}
+	}
+
+	// all done, so clear the updates ready for the next frame
+	bufferDescrQueue.clear();
 }
 
 void ProgramManager::updateImageDecsrSets()
 {
 	if (imageDescrQueue.empty())
-    {
-        return;
-    }
-    
-    for (auto& queuePair : imageDescrQueue)
-    {
-        bool result = false;
-        for (auto& prog : programs)
-        {
-            result &= prog.second->updateDecrSetImage(queuePair.first, queuePair.second);
-        }
-        if (!result)
-        {
-            throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
-        }
-    }
-    
-    // all done, so clear the updates ready for the next frame
-    imageDescrQueue.clear();
+	{
+		return;
+	}
+
+	for (auto& queuePair : imageDescrQueue)
+	{
+		bool result = false;
+		for (auto& prog : programs)
+		{
+			result &= prog.second->updateDecrSetImage(queuePair.first, queuePair.second);
+		}
+		if (!result)
+		{
+			throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+		}
+	}
+
+	// all done, so clear the updates ready for the next frame
+	imageDescrQueue.clear();
 }
 
 }    // namespace VulkanAPI

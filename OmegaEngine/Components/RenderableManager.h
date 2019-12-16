@@ -37,6 +37,16 @@ class RenderStateBlock;
 	*/
 struct TextureGroup
 {
+	enum TextureType : size_t
+	{
+		BaseColour,
+		Emissive,
+		MetallicRoughness,
+		Normal,
+		Occlusion,
+		Count
+	};
+
 	TextureGroup() = default;
 
 	~TextureGroup()
@@ -54,6 +64,8 @@ struct TextureGroup
 	// not copyable
 	TextureGroup(const TextureGroup&) = delete;
 	TextureGroup& operator=(const TextureGroup&) = delete;
+
+	static Util::String texTypeToStr(const TextureType type);
 
 	GpuTextureInfo* textures[TextureType::Count];
 };
@@ -76,7 +88,7 @@ struct Material
 	Util::BitSetEnum<TextureVariants> variantBits;
 
 	/// each material has its own descriptor set
-	VulkanAPI::DescriptorSet descrSet;
+	std::unique_ptr<VulkanAPI::DescriptorSet> descrSet;
 };
 
 /**
@@ -115,7 +127,7 @@ struct Renderable
 
 	/// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot harder and in 99% of cases,
 	/// all primitives share the same material. So we only allow one material per mesh - this can be reviewed and changed if the need arises
-	int32_t materialId = -1;    ///< set once added to the renderable manager
+	int32_t materialId = -1;    ///< set once added to the renderable manager. Used for render queue sorting
 	Material* material = nullptr;
 
 	/// the render state of this material
@@ -131,12 +143,15 @@ struct Renderable
 	Util::BitSetEnum<Visible> visibility;
 
 	/// ============ vulkan backend ========================
-	/// This is set by calling **update**
+	VulkanAPI::ShaderProgram* program = nullptr;
 
-	/// offset into transform buffer for this mesh
-	/// A renderable can either be static or skinned - maybe this should be a abstract inherited class
+	/// this is set by the transform manager but held here for convience reasons when drawing
 	size_t staticDynamicOffset = 0;
 	size_t skinnedDynamicOffset = 0;
+
+	// pointers to the vertex and index buffers once uploaded to the gpu
+	VulkanAPI::VertexBuffer* vertBuffer;
+	VulkanAPI::IndexBuffer* indexBuffer;
 };
 
 class RenderableManager : public ComponentManager
@@ -209,14 +224,6 @@ private:
 
 	// and all the textures
 	std::vector<TextureGroup> textures;
-
-	// the vertices and indices mega buffer
-	std::vector<MeshInstance::VertexBuffer> vertices;
-	std::vector<uint32_t> indices;
-
-	// vertex and index buffers in the vulkan backend - all vertices uploaded in one large blob. Access is via offsets
-	VulkanAPI::Buffer* vertexBuffer = nullptr;
-	VulkanAPI::Buffer* indexBuffer = nullptr;
 
 	// Dirty flags - state whether anything has been added or altered and needs updating on the backend
 	bool meshDirty = true;

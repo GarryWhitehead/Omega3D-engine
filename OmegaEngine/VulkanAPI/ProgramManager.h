@@ -108,14 +108,14 @@ public:
 
 	ShaderBinding() = default;
 
-    friend class ShaderProgram;
+	friend class ShaderProgram;
 	friend class ShaderCompiler;
 
 private:
 	std::vector<BufferBinding> bufferBindings;
 	std::vector<SamplerBinding> samplerBindings;
 	std::vector<RenderTarget> renderTargets;
-	
+
 	// vertex shader only
 	std::vector<InputBinding> inputs;
 
@@ -132,7 +132,6 @@ private:
 class ShaderProgram
 {
 public:
-	
 	ShaderProgram() = default;
 
 	/**
@@ -141,7 +140,6 @@ public:
 	* otherwise it will return an error
 	*/
 	bool prepare(ShaderParser& parser, VkContext& context);
-
 
 	/**
      * @brief Adds a shader variant for a specifed stage to the list
@@ -158,23 +156,27 @@ public:
 	void updateConstant(Util::String name, uint32_t value, Shader::Type stage);
 	void updateConstant(Util::String name, int32_t value, Shader::Type stage);
 	void updateConstant(Util::String name, float value, Shader::Type stage);
-    
-    // =============== decriptor set functions ==============================
-    
+
+	ShaderBinding::SamplerBinding& findSamplerBinding(Util::String name, const Shader::Type type);
+
+	// =============== decriptor set functions ==============================
+
 	bool updateDecrSetBuffer(Util::String id, Buffer& buffer);
 
 	bool updateDecrSetImage(Util::String id, Texture& tex);
 
-	void upateAllDescrSets();
-    
 	// ================== getters ==========================
+
 	std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
+
+	DescriptorLayout* getDescrLayout();
+
+	DescriptorSet* getDescrSet();
 
 	friend class ShaderCompiler;
 	friend class CmdBuffer;
 
 private:
-	
 	std::vector<ShaderBinding> stages;
 
 	// this block overrides all render state for this shader.
@@ -182,7 +184,7 @@ private:
 
 	// used by the vulkan backend
 	std::unique_ptr<DescriptorLayout> descrLayout;
-	
+
 	// it's tricky deciding the best place to store descriptor sets. In OE, they are stored in the shader program as only
 	// the shader knows the layout. Call **updateDescrSets()** set update the sets with relevant buffer/texture info. This is
 	// usually done via the driver and a **updateUniform()** call.
@@ -194,7 +196,6 @@ private:
 class ProgramManager
 {
 public:
-
 	struct ShaderHash
 	{
 		const char* name;
@@ -246,41 +247,36 @@ public:
 	bool hasShaderVariantCached(ShaderHash& hash);
 
 	ShaderDescriptor* findCachedVariant(ShaderHash& hash);
-	
-    /**
+
+	/**
      * @brief Pushes a buffer dedscriptor to update this frame. This will not check if the id exsists. Thus, will only fail at the point of update, at which
      * point it will throw an exception if it does not exsist
      */
-    void pushBufferDescrUpdate(Util::String id, Buffer& buffer);
-    
-    /**
+	void pushBufferDescrUpdate(Util::String id, Buffer& buffer);
+
+	/**
     * @brief Pushes a image dedscriptor to update this frame. This will not check if the id exsists. Thus, will only fail at the point of update, at which
     * point it will throw an exception if it does not exsist
     */
-    void pushImageDecsrUpdate(Util::String id, Texture& tex);
-    
-    /**
+	void pushImageDecsrUpdate(Util::String id, Texture& tex);
+
+	/**
      * @brief A special function call for updating the material descriptor sets. The reason for updating them in this fashion is because they require the descriptor]
      * layout of the model shader. Rather than passing around the descriptor layout which could be difficult as it depends on whether the shader has actually been
      * initialised, this methid makes it less error prone and keeps the program data contatned within its class
      */
-    void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
-    
+	void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
+
 private:
-    
 	/// For all descriptors that need checking, all shaders that are registered for the id, and updates the descr set with the buffer if found.
 	void updateBufferDecsrSets();
 
 	/// Similiar to **updateBufferDescrSets** but this is for images
 	void updateImageDecsrSets();
-    
-    /// updates all material descriptor sets with the specfied image/sampler
-    void updateMatDescrSets();
 
 	friend class CmdBufferManager;
 
 private:
-
 	// =============== shader hasher ======================
 
 	struct ShaderHasher
@@ -310,15 +306,10 @@ private:
 
 	// this is where individual shaders are cached until required to assemble into a shader program
 	std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
-    
-    // Queued decriptor requiring updating which is done on a per frame basis
-    std::vector<std::pair<Util::String, Buffer>> bufferDescrQueue;
-    std::vector<std::pair<Util::String, Texture>> imageDescrQueue;
-    
-    // this is a special update queue for materials - this will use the descriptor layout specified by the model shader
-    // to update the specified descriptor set
-    std::vector<std::pair<Util::String, DescriptorSet*>> matDescrQueue;
-    
+
+	// Queued decriptor requiring updating which is done on a per frame basis
+	std::vector<std::pair<Util::String, Buffer>> bufferDescrQueue;
+	std::vector<std::pair<Util::String, Texture>> imageDescrQueue;
 };
 
 }    // namespace VulkanAPI

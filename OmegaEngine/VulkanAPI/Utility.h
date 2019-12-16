@@ -7,7 +7,7 @@
 namespace VulkanAPI
 {
 
-namespace Util
+namespace VkUtil
 {
 
 static vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,

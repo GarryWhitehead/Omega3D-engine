@@ -10,6 +10,8 @@
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/VkDriver.h"
 
+#include "VulkanAPI/Compiler/ShaderParser.h"
+
 namespace OmegaEngine
 {
 
@@ -25,19 +27,20 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 	const Util::String filename = "lighting.glsl";
     VulkanAPI::ShaderProgram* prog = nullptr;
     
-	if (!manager->hasShaderVariant(filename, nullptr, variantBits))
+	VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), variantBits, nullptr };
+	if (!manager->hasShaderVariant(key))
 	{
 		VulkanAPI::ShaderParser parser;
 		if (!parser.parse(filename))
 		{
 			return false;
 		}
-        prog = manager->createNewInstance(filename, nullptr, variantBits);
+        prog = manager->createNewInstance(key);
 
 		// add variants and constant values
 
 		assert(prog);
-		if (!prog->prepare(parser))
+		if (!prog->prepare(parser, context))
 		{
 			return false;
 		}
@@ -64,11 +67,9 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
         auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
         
 		// bind the pipeline
-		VulkanAPI::Pipeline* pline = context.cbManager->findOrCreatePipeline(prog, context.rpass);
-		cmdBuffer->bindPipeline(pline);
+		cmdBuffer->bindPipeline(context.rpass, prog);
 
 		// bind the descriptor
-		VulkanAPI::DescriptorSet descrSet = context.cbManager->findOrCreateDescrSet(prog);
         cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
 
 		cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);

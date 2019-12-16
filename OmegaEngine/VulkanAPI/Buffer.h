@@ -78,16 +78,10 @@ private:
 class VertexBuffer
 {
 public:
-	struct Attribute
-	{
-		uint8_t stride;
-		uint8_t width;
-	};
-
+	
 	VertexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size,
-	            std::vector<Attribute>& attributes);
+	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
 	vk::Buffer& get()
 	{
@@ -95,13 +89,10 @@ public:
 	}
 
 private:
+
 	VmaAllocation mem;
 	VkDeviceSize size;
 	VkBuffer buffer;
-
-	// vulkan pipeline atrribute and binding descriptors that describe the data blob
-	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
-	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
 };
 
 /**
@@ -113,7 +104,7 @@ class IndexBuffer
 public:
 	IndexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
+	void create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize size);
 
 	vk::Buffer& get()
 	{
