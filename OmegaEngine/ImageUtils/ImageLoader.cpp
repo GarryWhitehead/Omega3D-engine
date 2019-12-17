@@ -5,10 +5,10 @@
 namespace OmegaEngine
 {
 
-bool load(Util::String filename, int components)
+bool ImageLoader::load(Util::String filename, int pixels)
 {
-	this->buffer = stbi_load(filename.c_str(), &this->width, &this->height, &this->components, components);
-	if (!this->buffer)
+	buffer = stbi_load(filename.c_str(), &width, &height, &components, pixels);
+	if (!buffer)
 	{
 		LOGGER_ERROR("Unable to open image file %s.\n", filename.c_str());
 		return false;

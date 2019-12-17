@@ -22,7 +22,7 @@ public:
     static constexpr size_t NUM_COLS = 4;
     static constexpr size_t MAT_SIZE = 16;
     
-	void setCol(size_t col, const VecN<T, 4>& vec)
+	inline void setCol(size_t col, const VecN<T, 4>& vec)
 	{
         assert(col < 4);
         data[col] = vec;
@@ -68,7 +68,7 @@ public:
 
 	// ========= matrix transforms ==================
     
-    MatN<T, 4, 4>& setDiag(const VecN<T, 4>& vec)
+    inline constexpr MatN<T, 4, 4>& setDiag(const VecN<T, 4>& vec)
     {
         data[0][0] = vec.x;
         data[1][1] = vec.y;
@@ -77,7 +77,7 @@ public:
         return *this;
     }
     
-    MatN<T, 4, 4>& translate(const VecN<T, 3>& trans)
+    inline constexpr MatN<T, 4, 4>& translate(const VecN<T, 3>& trans)
 	{
 		data[3][0] = trans.x;
 		data[3][1] = trans.y;
@@ -86,13 +86,13 @@ public:
 		return *this;
 	}
 
-	MatN<T, 4, 4>& scale(const VecN<T, 3>& scale)
+	inline constexpr MatN<T, 4, 4>& scale(const VecN<T, 3>& scale)
 	{
         setDiag({scale, 1.0f});
 		return *this;
 	}
     
-    void setUpperLeft(MatN<T, 3, 3>& mat)
+    inline void setUpperLeft(MatN<T, 3, 3>& mat)
     {
         for (size_t i = 0; i < 3; ++i)
         {
@@ -100,7 +100,7 @@ public:
         }
     }
     
-    MatN<T, 3, 3> getUpperLeft()
+    inline constexpr MatN<T, 3, 3> getUpperLeft()
     {
         MatN<T, 3 ,3> result;
         for (size_t i = 0; i < 3; ++i)
@@ -111,11 +111,18 @@ public:
     }
     
 	// operator overloads
-	VecN<T, 4>& operator[](const size_t& idx)
+	inline constexpr VecN<T, 4>& operator[](const size_t& idx)
 	{
 		assert(idx < NUM_COLS);
 		return data[idx];
 	}
+    
+    // operator overloads
+    inline constexpr VecN<T, 4> operator[](const size_t& idx) const
+    {
+        assert(idx < NUM_COLS);
+        return data[idx];
+    }
 
 
 public:

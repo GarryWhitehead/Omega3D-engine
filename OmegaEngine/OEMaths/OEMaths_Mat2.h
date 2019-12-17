@@ -13,7 +13,7 @@ class MatN<T, 2, 2> : public MatMathOperators<MatN, T, 2, 2>
 {
 public:
 
-    void setCol(size_t col, const VecN<T, 2>& vec)
+    inline void setCol(size_t col, const VecN<T, 2>& vec)
     {
         assert(col < NUM_COLS);
         data[col] = vec;
@@ -26,7 +26,13 @@ public:
         setCol(1, { 0.0f, 1.0f });
     }
 
-    VecN<T, 2> &operator[](const size_t &idx)
+    inline constexpr VecN<T, 2>& operator[](const size_t &idx)
+    {
+        assert(idx < NUM_COLS);
+        return data[idx];
+    }
+    
+    inline constexpr VecN<T, 2> operator[](const size_t &idx) const
     {
         assert(idx < NUM_COLS);
         return data[idx];
@@ -36,7 +42,7 @@ public:
 
     // ========= matrix transforms ==================
 
-    MatN<T, 2, 2>& setDiag(const VecN<T, 2>& vec)
+    inline constexpr MatN<T, 2, 2>& setDiag(const VecN<T, 2>& vec)
     {
         data[0][0] = vec.x;
         data[1][1] = vec.y;

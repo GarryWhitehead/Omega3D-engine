@@ -114,6 +114,10 @@ private:
 	float scale = 1.0f;
 	float offset = 0.0f;
 
+    // this needs looking at - not set at present
+    float innerCone = 0.0f;
+    float outerCone = 0.0f;
+    
 	/// the light intensity in lumens
 	float intensity = 1000.0f;
 };

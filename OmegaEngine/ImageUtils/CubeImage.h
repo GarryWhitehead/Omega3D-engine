@@ -63,15 +63,15 @@ public:
 	void fixupEdges(Face srcFace, size_t srcX, size_t srcY, size_t srcWalk, size_t srcPerpWalk, Face neighbourFace,
 	                size_t neighbourX, size_t neighbourY, size_t neighbourWalk, size_t neighbourPerpWalk);
 
-	static Colour3 fetchBilinear(float x, float y, Image2DF32* data);
+    static OEMaths::colour3 fetchBilinear(float x, float y, Image2DF32* data);
 
-	static Colour3 fetchBilinear(OEMaths::vec3f& pos, CubeImage* image);
+    static OEMaths::colour3 fetchBilinear(OEMaths::vec3f& pos, CubeImage* image);
 
-	Colour3 fetchTrilinear(const OEMaths::vec3f& reflect, CubeImage* mip1, float lerp);
+    OEMaths::colour3 fetchTrilinear(const OEMaths::vec3f& reflect, CubeImage* mip1, float lerp);
 
 
 private:
-	Image2D* faceImages[6];
+	Image2D<float>* faceImages[6];
 };
 
 }    // namespace OmegaEngine

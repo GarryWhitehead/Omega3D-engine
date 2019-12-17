@@ -7,7 +7,7 @@
 namespace OmegaEngine
 {
 
-void Camera::updatePosition(double xpos, double ypos)
+/*void Camera::updatePosition(double xpos, double ypos)
 {
 	if (firstTime)
 	{
@@ -29,7 +29,7 @@ void Camera::updatePosition(double xpos, double ypos)
 	pitch = pitch < -89.0 ? -89.0 : pitch;
 
 	updateCameraRotation();
-}
+}*/
 
 void Camera::update()
 {

@@ -95,7 +95,7 @@ public:
     * @param y The y coord in pixels
     * @param The face which to extract data from. This must be a cube image to be used
     */
-	Colour3 getTexel(uint32_t x, uint32_t y)
+	Colour3 getTexel3(uint32_t x, uint32_t y)
 	{
 		assert(data);
 		assert(x <= width);
@@ -112,7 +112,7 @@ public:
     * @param y The y coord in pixels
     * @param The face which to extract data from. This must be a cube image to be used
     */
-	Colour4 getTexel(uint32_t x, uint32_t y)
+	Colour4 getTexel4(uint32_t x, uint32_t y)
 	{
 		assert(data);
 		assert(x <= width);

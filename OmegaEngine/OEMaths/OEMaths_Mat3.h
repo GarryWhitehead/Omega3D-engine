@@ -15,7 +15,7 @@ class MatN<T, 3, 3> : public MatMathOperators<MatN, T,3, 3>
 {
 public:
 
-    void setCol(size_t col, const VecN<T, 3>& vec)
+    inline void setCol(size_t col, const VecN<T, 3>& vec)
     {
         assert(col < NUM_COLS);
         data[col] = vec;
@@ -57,16 +57,21 @@ public:
 
 	// ========= operator overloads =========================
 
-	VecN<T, 3>& operator[](const size_t& idx) const
+    inline constexpr VecN<T, 3>& operator[](const size_t& idx)
+    {
+        assert(idx < NUM_COLS);
+        return data[idx];
+    }
+    
+	inline constexpr VecN<T, 3> operator[](const size_t& idx) const
 	{
 		assert(idx < NUM_COLS);
 		return data[idx];
 	}
 
-
     // ========= matrix transforms ==================
 
-    MatN<T, 3, 3> setDiag(const VecN<T, 3>& vec)
+    inline constexpr MatN<T, 3, 3> setDiag(const VecN<T, 3>& vec)
     {
         data[0][0] = vec.x;
         data[1][1] = vec.y;
@@ -74,7 +79,7 @@ public:
         return *this;
     }
     
-    MatN<T, 3, 3> translate(const VecN<T, 3>& trans)
+    inline constexpr MatN<T, 3, 3> translate(const VecN<T, 3>& trans)
     {
         data[2][0] = trans.x;
         data[2][1] = trans.y;
@@ -82,7 +87,7 @@ public:
         return *this;
     }
 
-    MatN<T, 3, 3> scale(const VecN<T, 3>& scale)
+    inline constexpr MatN<T, 3, 3> scale(const VecN<T, 3>& scale)
     {
         setDiag(scale);
         return *this;

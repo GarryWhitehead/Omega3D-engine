@@ -191,7 +191,7 @@ VecN<T, size> makeVector(U* data)
 // =========== vector transforms ====================
 
 template <typename T, size_t size>
-inline constexpr T length(VecN<T, size>& vec)
+inline constexpr T length(const VecN<T, size>& vec)
 {
 	T result = static_cast<T>(0);
 	for (size_t i = 0; i < size; ++i)
@@ -202,7 +202,7 @@ inline constexpr T length(VecN<T, size>& vec)
 }
 
 template <typename T, size_t size>
-inline constexpr VecN<T, size>& normalise(VecN<T, size>& vec)
+inline constexpr VecN<T, size> normalise(const VecN<T, size>& vec)
 {
 	VecN<T, size> result;
 
@@ -216,7 +216,7 @@ inline constexpr VecN<T, size>& normalise(VecN<T, size>& vec)
 }
 
 template <typename T, size_t size>
-inline constexpr T dot(VecN<T, size>& vec1, VecN<T, size>& vec2)
+inline constexpr T dot(const VecN<T, size>& vec1, const VecN<T, size>& vec2)
 {
 	T result;
 	for (size_t i = 0; i < size; ++i)
@@ -227,7 +227,7 @@ inline constexpr T dot(VecN<T, size>& vec1, VecN<T, size>& vec2)
 }
 
 template <typename T, size_t size>
-inline constexpr VecN<T, size>& mix(VecN<T, size>& vec1, VecN<T, size>& vec2, T u)
+inline constexpr VecN<T, size>& mix(const VecN<T, size>& vec1, const VecN<T, size>& vec2, T u)
 {
 	VecN<T, size> result;
 	for (size_t i = 0; i < size; ++i)

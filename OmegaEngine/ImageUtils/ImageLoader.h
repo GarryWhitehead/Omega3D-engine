@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -34,8 +34,7 @@ public:
 	* @brief the number of components per pixel - this defaults to 4 (rgba)
 	* @return Whther the image was successfully mapped into the buffer
  	*/
-	    bool
-	    load(Util::String filename, int components = 4);
+    bool load(Util::String filename, int components = 4);
 
 	/**
 	* @brief Returns the image width in pixels
