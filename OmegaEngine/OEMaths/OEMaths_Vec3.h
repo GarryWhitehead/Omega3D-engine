@@ -46,6 +46,18 @@ public:
         result.z = vec1.x * vec2.y - vec1.y * vec2.x;
         return result;
     }
+    
+    inline constexpr T& operator[](const size_t idx)
+    {
+        assert(idx < 3);
+        return data[idx];
+    }
+    
+    inline constexpr T operator[](const size_t idx) const
+    {
+        assert(idx < 3);
+        return data[idx];
+    }
 
 public:
 	union

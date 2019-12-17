@@ -13,40 +13,27 @@ class MathOperators
 {
 public:
 	// addition
-	friend inline Vec<T, size>& operator+(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+	inline constexpr Vec<T, size>& operator+=(const Vec<T, size>& other)
 	{
-		Vec<T, size> result;
-		for (size_t i = 0; i < size; ++i)
-		{
-			result[i] = vec1[i] + vec2[i];
-		}
-		return result;
-	}
-
-	inline Vec<T, size>& operator+=(const Vec<T, size>& other)
-	{
-		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(&this);
+		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(*this);
 		for (size_t i = 0; i < size; ++i)
 		{
 			lhs[i] += other[i];
 		}
 		return lhs;
 	}
+    
+    friend inline Vec<T, size> operator+(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+    {
+        Vec<T, size> result = vec1;
+        result += vec2;
+        return result;
+    }
 
 	// subtraction
-	friend inline Vec<T, size>& operator-(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+	inline constexpr Vec<T, size>& operator-=(const Vec<T, size>& other)
 	{
-		Vec<T, size> result;
-		for (size_t i = 0; i < size; ++i)
-		{
-			result[i] = vec1[i] - vec2[i];
-		}
-		return result;
-	}
-
-	inline Vec<T, size>& operator-=(const Vec<T, size>& other)
-	{
-		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(&this);
+		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(*this);
 		for (size_t i = 0; i < size; ++i)
 		{
 			lhs[i] -= other[i];
@@ -54,9 +41,25 @@ public:
 		return lhs;
 	}
 
-
+    friend inline Vec<T, size> operator-(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+    {
+        Vec<T, size> result = vec1;
+        result -= vec2;
+        return result;
+    }
+    
 	// multiplication
-	inline friend Vec<T, size>& operator*(const Vec<T, size>& vec, const T& value)
+    inline constexpr Vec<T, size>& operator*=(const Vec<T, size>& other)
+    {
+        Vec<T, size>& lhs = static_cast<Vec<T, size>&>(*this);
+        for (size_t i = 0; i < size; ++i)
+        {
+            lhs[i] *= other[i];
+        }
+        return lhs;
+    }
+    
+	inline friend Vec<T, size> operator*(const Vec<T, size>& vec, const T& value)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -66,7 +69,7 @@ public:
 		return result;
 	}
 
-	inline friend Vec<T, size>& operator*(const T& value, const Vec<T, size>& vec)
+	inline friend Vec<T, size> operator*(const T& value, const Vec<T, size>& vec)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -76,7 +79,7 @@ public:
 		return result;
 	}
 
-	inline friend Vec<T, size>& operator*(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+	inline friend Vec<T, size> operator*(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -86,18 +89,18 @@ public:
 		return result;
 	}
 
-	inline Vec<T, size>& operator*=(const Vec<T, size>& other)
-	{
-		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(&this);
-		for (size_t i = 0; i < size; ++i)
-		{
-			lhs[i] *= other[i];
-		}
-		return lhs;
-	}
-
 	// division
-	inline friend Vec<T, size>& operator/(const Vec<T, size>& vec, const T& value)
+    inline constexpr Vec<T, size>& operator/=(const Vec<T, size>& other)
+    {
+        Vec<T, size>& lhs = static_cast<Vec<T, size>&>(*this);
+        for (size_t i = 0; i < size; ++i)
+        {
+            lhs[i] /= other[i];
+        }
+        return lhs;
+    }
+    
+	inline friend Vec<T, size> operator/(const Vec<T, size>& vec, const T& value)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -107,7 +110,7 @@ public:
 		return result;
 	}
 
-	inline friend Vec<T, size>& operator/(const T& value, const Vec<T, size>& vec)
+	inline friend Vec<T, size> operator/(const T& value, const Vec<T, size>& vec)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -117,7 +120,7 @@ public:
 		return result;
 	}
 
-	inline friend Vec<T, size>& operator/(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
+	inline friend Vec<T, size> operator/(const Vec<T, size>& vec1, const Vec<T, size>& vec2)
 	{
 		Vec<T, size> result;
 		for (size_t i = 0; i < size; ++i)
@@ -125,16 +128,6 @@ public:
 			result[i] = vec1[i] / vec2[i];
 		}
 		return result;
-	}
-
-	inline Vec<T, size>& operator/=(const Vec<T, size>& other)
-	{
-		Vec<T, size>& lhs = static_cast<Vec<T, size>&>(&this);
-		for (size_t i = 0; i < size; ++i)
-		{
-			lhs[i] /= other[i];
-		}
-		return lhs;
 	}
 	
 };
@@ -200,7 +193,7 @@ VecN<T, size> makeVector(U* data)
 template <typename T, size_t size>
 inline constexpr T length(VecN<T, size>& vec)
 {
-	T result;
+	T result = static_cast<T>(0);
 	for (size_t i = 0; i < size; ++i)
 	{
 		result += vec.data[i] * vec.data[i];

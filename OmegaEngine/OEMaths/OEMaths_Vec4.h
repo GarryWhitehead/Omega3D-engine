@@ -39,11 +39,17 @@ public:
 		VecN{ vec.data[0], vec.data[1], vec.data[3], value };
 	}
 
-	T& operator[](const size_t idx) 
-	{
-		assert(idx < 4);
-		return data[idx];
-	}
+	inline constexpr T& operator[](const size_t idx)
+    {
+        assert(idx < 4);
+        return data[idx];
+    }
+    
+    inline constexpr T operator[](const size_t idx) const
+    {
+        assert(idx < 4);
+        return data[idx];
+    }
 
 public:
 	union {

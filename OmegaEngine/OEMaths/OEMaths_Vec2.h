@@ -29,7 +29,18 @@ public:
 	{
 	}
 
-
+    inline constexpr T& operator[](const size_t idx)
+    {
+        assert(idx < 2);
+        return data[idx];
+    }
+    
+    inline constexpr T operator[](const size_t idx) const
+    {
+        assert(idx < 2);
+        return data[idx];
+    }
+    
 public:
 	union
 	{

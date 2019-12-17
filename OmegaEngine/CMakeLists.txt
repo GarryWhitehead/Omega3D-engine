@@ -138,7 +138,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	utility/Logger.h
 	utility/RandomNumber.cpp utility/RandomNumber.h
 	utility/result.h
-	utility/String.cpp utility/String.h
+	utility/CString.cpp utility/CString.h
 	utility/Timer.h
     utility/BitSetEnum.h
 	utility/AlignedAlloc.h

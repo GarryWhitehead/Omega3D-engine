@@ -7,14 +7,10 @@ namespace OmegaEngine
 
 LightManager::LightManager()
 {
-	// allocate the memory required for the light POV data
-	alignedPovDataSize = VkUtil::alignmentSize(sizeof(LightPOV));
-	lightPovData = (LightPOV*)Vk::alloc_align(alignedPovDataSize, alignedPovDataSize * (MAX_SPOT_LIGHTS * 2));
 }
 
 LightManager::~LightManager()
 {
-	_aligned_free(lightPovData);
 }
 
 void LightManager::calculatePointIntensity(float intensity, PointLight& light)
@@ -50,12 +46,16 @@ void LightManager::addLight(LightBase* light)
 		SpotLight* sLight = static_cast<SpotLight*>(light);
 		// carry out some of the calculations on the cpu side to save time
 		calculateSpotIntensity(sLight->intensity, sLight->outerCone, sLight->innerCone, *sLight);
+        break;
 	}
 	case LightType::Point:
 	{
 		PointLight* pLight = static_cast<PointLight*>(light);
 		calculatePointIntensity(pLight->intensity, *pLight);
+        break;
 	}
+    case LightType::Directional:
+        break;
 	}
 
 	// nothing to be done with directional lights right now

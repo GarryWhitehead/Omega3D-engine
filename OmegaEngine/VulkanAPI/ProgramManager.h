@@ -169,7 +169,7 @@ public:
 
 	std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
 
-	DescriptorLayout* getDescrLayout();
+	DescriptorLayout* getDescrLayout(uint8_t set);
 
 	DescriptorSet* getDescrSet();
 
@@ -183,7 +183,7 @@ private:
 	std::unique_ptr<RenderStateBlock> renderState;
 
 	// used by the vulkan backend
-	std::unique_ptr<DescriptorLayout> descrLayout;
+	std::vector<std::unique_ptr<DescriptorLayout>> descrLayouts;
 
 	// it's tricky deciding the best place to store descriptor sets. In OE, they are stored in the shader program as only
 	// the shader knows the layout. Call **updateDescrSets()** set update the sets with relevant buffer/texture info. This is

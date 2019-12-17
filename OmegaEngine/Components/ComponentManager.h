@@ -3,6 +3,7 @@
 #include "Types/Object.h"
 
 #include <unordered_map>
+#include <vector>
 
 namespace OmegaEngine
 {
@@ -91,6 +92,8 @@ public:
 		}
 		freeSlots.emplace_back(iter->second);
 		objects.erase(iter);
+        
+        return true;
 	}
 
 protected:

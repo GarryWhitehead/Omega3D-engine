@@ -57,10 +57,9 @@ public:
 	/**
 	* Extracts a quaternin from a matrix type. This code is identical to the code in Eigen.
 	*/
-	template <typename T, size_t cols, size_t rows>
-	static Quaternion<T> matToQuat(MatN<T, cols, rows>& mat)
+    ::OEMaths::Quarternion<T, size> matToQuat(MatN<T, 4, 4>& mat)
 	{
-		Quaternion<T> quat;
+        ::OEMaths::Quarternion<T, size> quat;
 
 		// Compute the trace to see if it is positive or not.
 		const T trace = mat[0][0] + mat[1][1] + mat[2][2];

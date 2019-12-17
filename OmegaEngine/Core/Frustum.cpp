@@ -31,7 +31,7 @@ void Frustum::projection(OEMaths::mat4f viewProj)
 	}
 }
 
-bool Frustum::checkBoxPlaneIntersect(AABox& box)
+bool Frustum::checkBoxPlaneIntersect(AABBox& box)
 {
 	for (size_t i = 0; i < 6; ++i)
 	{
@@ -69,8 +69,8 @@ bool Frustum::checkSphereIntersect(OEMaths::vec3f& center, float radius)
 		{
 			return false;
 		}
-		return true;
 	}
+    return true;
 }
 
 }    // namespace OmegaEngine

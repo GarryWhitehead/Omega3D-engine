@@ -5,7 +5,7 @@
 #include "Types/Object.h"
 
 #include "utility/GeneralUtil.h"
-#include "utility/logger.h"
+#include "utility/Logger.h"
 
 #include <deque>
 #include <memory>
@@ -24,8 +24,8 @@ class ObjectManager
 {
 public:
 
-	ObjectManager() = default;
-	~ObjectManager() = default;
+	ObjectManager();
+	~ObjectManager();
 
 	// no copying or moving of this manager
 	ObjectManager(const ObjectManager&) = delete;

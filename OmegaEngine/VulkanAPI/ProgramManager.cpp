@@ -118,9 +118,10 @@ ShaderBinding::SamplerBinding& ShaderProgram::findSamplerBinding(Util::String na
 	throw std::runtime_error("Unable to find a sampler binding with id: %s", name.c_str());
 }
 
-DescriptorLayout* ShaderProgram::getDescrLayout()
+DescriptorLayout* ShaderProgram::getDescrLayout(uint8_t set)
 {
-	return descrLayout.get();
+    std::find(descrLayouts.begin(), descrLayouts.end(), [](const DescriptorLayout& lhs, const DescriptorLayout rhs) { return lhs.set == rhs.set });
+    return iter->get();
 }
 
 DescriptorSet* ShaderProgram::getDescrSet()
@@ -255,13 +256,6 @@ void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
 {
 	assert(!id.empty());
 	imageDescrQueue.emplace_back(std::make_pair(id, tex));
-}
-
-void ProgramManager::pushMatDescrUdpdate(Util::String id, DescriptorSet* set)
-{
-	assert(set);
-	assert(!id.empty());
-	matDescrQueue.emplace_back(std::make_pair(id, set));
 }
 
 void ProgramManager::updateBufferDecsrSets()
