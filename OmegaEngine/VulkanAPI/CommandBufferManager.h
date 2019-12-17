@@ -1,13 +1,15 @@
 #pragma once
 
-#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/Descriptors.h"
+
+#include "VulkanAPI/SemaphoreManager.h"
 
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
+
+#define MAX_FRAMES_IN_FLIGHT 3
 
 namespace VulkanAPI
 {
@@ -22,10 +24,54 @@ class Swapchain;
 
 using CmdBufferHandle = uint64_t;
 
+/**
+ * @brief A pool of command buffers and everything required for syncronisation
+ */
+class CmdPool
+{
+public:
+
+	CmdPool(VkContext& context, int queueIndex);
+	~CmdPool();
+
+	/**
+	* @brief Creates a new instance of a cmd buffer, including reseting fences.
+	* Returns a pointer to the buffer - because we never destroy buffers, only reset them, its safe to pass around pointers.
+	*/
+	CmdBuffer* createCmdBuffer();
+
+	/**
+	* @brief Resets the command pool. Before doing this, all cmd buffers are checked to make sure they have finished their activites.
+	*/
+	void reset();
+
+private:
+	struct CmdInstance
+	{
+		std::unique_ptr<CmdBuffer> cmdBuffer;
+
+		/// to ensure the cmd buffer has finished before resetting
+		vk::Fence fence;
+
+		/// sync between queues
+		vk::Semaphore semaphore;
+	};
+
+	VkContext& context;
+	SemaphoreManager& spManager;
+
+	/// all the cmd buffers that have been created with this pool
+	std::vector<CmdInstance> cmdInstances;
+
+	/// the queue to use for this pool
+	uint32_t queueIndex;
+
+	vk::CommandPool cmdPool;
+};
+
 class CmdBufferManager
 {
 public:
-    
 	CmdBufferManager(VkContext& context);
 	~CmdBufferManager();
 
@@ -38,14 +84,10 @@ public:
 	* it does, otherwise nullptr
 	*/
 	Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
-    
-	/**
-	* @brief Creates a new instance of a cmd buffer, including reseting fences.
-	* @param queueType The queue which this cmd buffer will be submitted to.
-	*/
-	CmdBufferHandle createCmdBuffer();
 
-	std::unique_ptr<CmdBuffer>& beginNewFame(CmdBufferHandle handle);
+	CmdPool* createPool();
+
+	void beginNewFame();
 
 	/**
 	* @brief Submits all the command buffers registered with the manager to the appropiate queue
@@ -53,63 +95,26 @@ public:
 	*/
 	void submitAll(Swapchain& swapchain);
 
-	/**
-	* @brief Resets all command buffers, ensuring that they have finished before doing so
-	*/
-	void resetAll();
-
-	/**
-	* returns a cmdbuffer based on the specified handle 
-	*/
-	std::unique_ptr<CmdBuffer>& getCmdBuffer(CmdBufferHandle handle);
-
-
 	// =============== renderpass functions ================================
 
-	void beginRenderpass(const CmdBufferHandle handle, RenderPass& rpass, FrameBuffer& fbuffer);
+	void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer);
 
 	void endRenderpass(const CmdBufferHandle handle);
 
-	bool isRecorded(CmdBufferHandle handle)
-	{
-		return cmdBuffers[handle].cmdBuffer != nullptr;
-	}
-
 private:
-    
-    /**
-     * @brief Everything needed for running and syncing a command buffer
-     */
-    struct CmdBufferInfo
-    {
-        std::unique_ptr<CmdBuffer> cmdBuffer;
-
-        /// sync buffer destruction
-        vk::Fence fence;
-
-        /// sync between queues
-        vk::Semaphore semaphore;
-
-        /// the queue to use for this cmdbuffer
-        uint32_t queueIndex;
-
-        /// primary cmd pool for this buffer
-        vk::CommandPool cmdPool;
-    };
-    
 	// =============== pipeline hasher ======================
 	struct PLineHash
 	{
 		// first three comprise the shader hash
 		ShaderProgram* prog;
-        RenderPass* pass;
+		RenderPass* pass;
 	};
 
 	struct PLineHasher
 	{
 		size_t operator()(PLineHash const& id) const noexcept
 		{
-			size_t h1 = std::hash<const char*>{}(id.prog);
+			size_t h1 = std::hash<ShaderProgram*>{}(id.prog);
 			size_t h2 = std::hash<RenderPass*>{}(id.pass);
 			return h1 ^ (h2 << 1);
 		}
@@ -119,24 +124,31 @@ private:
 	{
 		bool operator()(const PLineHash& lhs, const PLineHash& rhs) const
 		{
-            return lhs.prog == rhs.prog && lhs.pass == rhs.pass;
+			return lhs.prog == rhs.prog && lhs.pass == rhs.pass;
 		}
 	};
-    
+
 	friend class CmdBuffer;
 
 private:
 	// The current vulkan context
 	VkContext& context;
 
-	// all the cmd buffers currently active
-	std::vector<CmdBufferInfo> cmdBuffers;
+	// the cmd pools - one per thread
+	std::vector<std::unique_ptr<CmdPool>> cmdPools;
+
+	// a seperate pool for the temp use of cmd buffers - these are cycled and reset per frame
+	std::unique_ptr<CmdPool> tempCmdPool;
 
 	// graphic pipelines are stored in the cmd buffer for the reason that they are inextricably linked to the cmd
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being
 	// exclusively tied to a renderpass, we can only create the pipeline once these have been created.
 	std::unordered_map<PLineHash, Pipeline, PLineHasher, PLineEqual> pipelines;
 
+	SemaphoreManager spManager;
+
+	// the current frame which to draw
+	uint8_t currFrame = 0;
 };
 
 }    // namespace VulkanAPI

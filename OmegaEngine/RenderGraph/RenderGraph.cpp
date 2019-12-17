@@ -194,8 +194,8 @@ void RenderGraphPass::setDepthClear(float depth)
 
 // =========================== RenderGraph ===============================
 
-RenderGraph::RenderGraph(VkDriver& driver)
-    : vkDriver(driver)
+RenderGraph::RenderGraph(VulkanAPI::VkDriver& driver)
+    : driver(driver)
 {
 }
 
@@ -385,7 +385,7 @@ void RenderGraph::initRenderPass()
 				RenderGraphPass* child = &rpass;
 				while (!child->childMergePass)
 				{
-					child.prepare(rpass);
+					child->prepare(&rpass);
 					child = child->childMergePass;
 				}
 				rpass.bake();
@@ -397,10 +397,10 @@ void RenderGraph::initRenderPass()
 			}
 
 			// create the framebuffer - this is linked to the renderpass
-			rpass.framebuffer->prepare(rpass, views, rpass.width, rpass.height);
+			rpass.framebuffer.prepare(rpass, views, rpass.width, rpass.height);
 
 			// and the command buffer - this is linked to both the pass and frame buffer
-			cbManager->newInstance(QueueType::Graphics);
+			rpass.context.cbManager->createCmdBuffer();
 
 			break;
 		}
@@ -425,14 +425,13 @@ void RenderGraph::prepare()
 void RenderGraph::execute()
 {
 	// iterate over all passes and execute the registered callback function
-	for (const RenderGraphPass& rpass : renderPasses)
+	for (RenderGraphPass& rpass : renderPasses)
 	{
 		// start the render pass
-		VulkanAPI::CmdBufferManager& manager = vkDriver.getCbManager();
-		manager->beginRenderpass(rpass.cmdBufferHandle, rpass.renderPass, rpass.frameBuffer);
+		VulkanAPI::CmdBufferManager& manager = driver.getCbManager();
+		manager.beginRenderpass(rpass.context.cmdBuffer, *rpass.context.rpass, rpass.framebuffer);
 
-		ExecuteInfo& exec = rpass.execute;
-		exec.func(rpass.context, exec.data);
+		rpass.execFunc(rpass.context);
 	}
 }
 

@@ -139,11 +139,26 @@ public:
 
 	~FrameBuffer()
 	{
-		device.destroy(framebuffer);
+		device.destroy(fbuffer);
 	}
 
 	void prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
 	             uint32_t layerCount);
+
+	vk::Framebuffer& get()
+	{
+		return fbuffer;
+	}
+
+	uint32_t getWidth() const
+	{
+		return width;
+	}
+
+	uint32_t getHeight() const
+	{
+		return height;
+	}
 
 private:
 	// references
@@ -153,7 +168,7 @@ private:
 	uint32_t width = 0;
 	uint32_t height = 0;
 
-	vk::Framebuffer framebuffer;
+	vk::Framebuffer fbuffer;
 };
 
 }    // namespace VulkanAPI

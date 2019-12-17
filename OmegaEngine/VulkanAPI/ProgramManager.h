@@ -4,7 +4,7 @@
 #include "VulkanAPI/Shader.h"
 
 #include "utility/BitSetEnum.h"
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include <memory>
 #include <string>

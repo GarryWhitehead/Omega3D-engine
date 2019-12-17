@@ -152,7 +152,7 @@ public:
 	void endFrame();
 
 	// ====== manager helper functions ===================================
-	CmdBufferManager& getCmdBufManager()
+	CmdBufferManager& getCbManager()
 	{
 		return *cbManager;
 	}

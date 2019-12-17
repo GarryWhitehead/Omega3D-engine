@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include <shaderc/shaderc.hpp>
 

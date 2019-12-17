@@ -4,7 +4,7 @@
 
 #include "VulkanAPI/CommandBufferManager.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include <functional>
 #include <vector>
@@ -181,7 +181,7 @@ private:
 class RenderGraph
 {
 public:
-	RenderGraph(VkContext& context);
+	RenderGraph(VulkanAPI::VkDriver& driver);
 	~RenderGraph();
 
 	// not copyable or moveable
@@ -232,7 +232,7 @@ private:
 	bool compile();
 
 private:
-	VulkanAPI::VkDriver& vkDriver;
+	VulkanAPI::VkDriver& driver;
 
 	// a list of all the render passes
 	std::vector<RenderGraphPass> renderPasses;
