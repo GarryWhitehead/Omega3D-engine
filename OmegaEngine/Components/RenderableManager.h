@@ -7,11 +7,8 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
-#include "Utility/logger.h"
-#include "utility/BitsetEnum.h"
-
-#include "Models/MaterialInstance.h"
-#include "Models/MeshInstance.h"
+#include "utility/Logger.h"
+#include "utility/BitSetEnum.h"
 
 #include "Components/ComponentManager.h"
 
@@ -20,16 +17,26 @@
 
 #define MESH_INIT_CONTAINER_SIZE 50
 
+// vulkan forward declerations
+namespace VulkanAPI
+{
+class DescriptorSet;
+class ShaderProgram;
+class VertexBuffer;
+class IndexBuffer;
+}
+
 namespace OmegaEngine
 {
 // forard decleartions
 class GpuTextureInfo;
-class MeshInstance;
 class World;
 class Object;
 class Engine;
 class RenderStateBlock;
-
+class MappedTexture;
+class MeshInstance;
+class MaterialInstance;
 
 /**
 	* @brief A convienent way to group textures together
@@ -67,7 +74,7 @@ struct TextureGroup
 
 	static Util::String texTypeToStr(const TextureType type);
 
-	GpuTextureInfo* textures[TextureType::Count];
+	MappedTexture* textures[TextureType::Count];
 };
 
 struct Material
@@ -78,11 +85,12 @@ struct Material
 		HasNormal,
 		HasMetallicRoughness,
 		HasOcclusion,
-		HasEmissive
+		HasEmissive,
+        __SENTINEL__
 	};
 
 	/// The material attributes
-	MaterialInstance instance;
+    MaterialInstance* instance;
 
 	/// shader variants associated with this material
 	Util::BitSetEnum<TextureVariants> variantBits;
@@ -110,7 +118,8 @@ struct Renderable
 		HasUv,
 		HasNormal,
 		HasWeight,
-		HasJoint
+		HasJoint,
+        __SENTINEL__
 	};
 
 	/**
@@ -123,7 +132,7 @@ struct Renderable
 	};
 
 	/// all the model data
-	MeshInstance instance;
+	MeshInstance* instance;
 
 	/// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot harder and in 99% of cases,
 	/// all primitives share the same material. So we only allow one material per mesh - this can be reviewed and changed if the need arises
@@ -150,8 +159,8 @@ struct Renderable
 	size_t skinnedDynamicOffset = 0;
 
 	// pointers to the vertex and index buffers once uploaded to the gpu
-	VulkanAPI::VertexBuffer* vertBuffer;
-	VulkanAPI::IndexBuffer* indexBuffer;
+	VulkanAPI::VertexBuffer* vertBuffer = nullptr;
+	VulkanAPI::IndexBuffer* indexBuffer = nullptr;
 };
 
 class RenderableManager : public ComponentManager

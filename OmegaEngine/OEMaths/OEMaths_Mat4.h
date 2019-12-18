@@ -4,7 +4,7 @@
 #include "OEMaths_VecN.h"
 #include "OEMaths_Vec4.h"
 #include "OEMaths_Vec3.h"
-#include "OEMaths_quat.h"
+#include "OEMaths_Quat.h"
 
 #include <cassert>
 #include <cstdint>

@@ -49,6 +49,8 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}/rapidjson/include
 	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
 	${EXTERNAL_DIR}/stb
+    # The config.h file ends up in the build folder - will probably want to install assimp using another method as this is dependent on the build folder name and location
+    ${BUILD_DIR}/external/assimp/include
 )
 
 # =============== source files =============================
@@ -93,7 +95,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/Object.h
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
-	Types/GpuResources.h
 	Types/AABox.h
 	
 	OEMaths/OEMaths.h

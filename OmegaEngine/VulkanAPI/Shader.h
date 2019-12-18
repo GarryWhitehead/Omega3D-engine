@@ -55,7 +55,7 @@ public:
        @param type A string of a valid type i.e. 'float', 'int', 'vec2', 'vec3', 'vec4'
        @param width The size of the type in bits - e.g. 32 for a float
      */
-    static vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width);
+    static vk::Format getVkFormatFromType(std::string type, uint32_t width);
     
     /**
      * @brief Converts the StageType enum into a vulkan recognisible format
@@ -65,7 +65,7 @@ public:
     /**
      * @brief Derieves from the type specified, the stride in bytes
      */
-    static uint32_t Shader::getStrideFromType(std::string type);
+    static uint32_t getStrideFromType(std::string type);
     
     /**
      * @brief compiles the specified code into glsl bytecode, and then creates

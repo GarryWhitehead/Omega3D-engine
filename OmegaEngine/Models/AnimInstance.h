@@ -1,7 +1,7 @@
 #pragma once
 #include "OEMaths/OEMaths.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include "cgltf/cgltf.h"
 
@@ -10,6 +10,9 @@
 namespace OmegaEngine
 {
 
+// forward declerations
+class GltfModel;
+
 class AnimInstance
 {
 public:
@@ -17,14 +20,14 @@ public:
 
 	struct Sampler
 	{
-		std::string interpolation;
+		Util::String interpolation;
 		std::vector<float> timeStamps;
 		std::vector<OEMaths::vec4f> outputs;
 	};
 
 	struct Channel
 	{
-		std::string pathType;
+        Util::String pathType;
 		uint32_t samplerIndex;
 	};
 

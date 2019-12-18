@@ -37,6 +37,10 @@ SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for
 # external directory path
 SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+# build folder path - this is required for assimp
+SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the build folder")
+
+# the cmake path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 # find vulkan using cmake module if the correct cmake version

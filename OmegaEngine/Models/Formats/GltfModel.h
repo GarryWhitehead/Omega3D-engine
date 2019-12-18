@@ -1,12 +1,14 @@
 #pragma once
-#include "Models/ModelAnimation.h"
-#include "Models/ModelImage.h"
-#include "Models/ModelMaterial.h"
-#include "Models/ModelMesh.h"
-#include "Models/ModelNode.h"
-#include "Models/ModelSkin.h"
 
-#include "utility/String.h"
+#include "Models/AnimInstance.h"
+
+#include "Models/Formats/GltfModel.h"
+#include "Models/MaterialInstance.h"
+#include "Models/MeshInstance.h"
+#include "Models/NodeInstance.h"
+#include "Models/SkinInstance.h"
+
+#include "utility/CString.h"
 
 #include "OEMaths/OEMaths.h"
 
@@ -54,21 +56,21 @@ public:
 	* Otherwise adds the material and returns a index to this material
 	* @param The prepared material to add
 	*/
-	size_t addMaterial(ModelMaterial& mat);
+	size_t addMaterial(MaterialInstance& mat);
 
 	/**
 	* @brief Adds a new skin to the container
 	* @param skin New skin to add
 	* @return index where the new skin has been added
 	*/
-	size_t addSkin(ModelSkin& skin);
+	size_t addSkin(SkinInstance& skin);
     
     /**
      * @brief Trys to find all node heirachies.
      * @param id The id of the node to find.
      * @return If successful, returns a pointer to the node. Otherwise returns nullptr.
      */
-	ModelNode::NodeInfo* getNode(Util::String id);
+	NodeInstance::NodeInfo* getNode(Util::String id);
     
 	/**
 	* @brief Sets the world translation for this model
@@ -96,15 +98,15 @@ private:
 
 	cgltf_data* gltfData = nullptr;
 
-	std::vector<ModelNode> nodes;
+	std::vector<NodeInstance> nodes;
 
 	// materials and image paths pulled out of the nodes.
-	std::vector<ModelMaterial> materials;
+	std::vector<MaterialInstance> materials;
 
 	// skeleton data also removed from the nodes
-	std::vector<ModelSkin> skins;
+	std::vector<SkinInstance> skins;
 
-	std::vector<ModelAnimation> animations;
+	std::vector<AnimInstance> animations;
 
 	// linearised nodes - with the name updated to store an id
     // for linking to our own node hierachy

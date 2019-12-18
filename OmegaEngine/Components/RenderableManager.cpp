@@ -2,9 +2,10 @@
 
 #include "OEMaths/OEMaths_transform.h"
 
-#include "Types/GpuResources.h"
-
 #include "Core/Engine.h"
+
+#include "Models/MaterialInstance.h"
+#include "Models/MeshInstance.h"
 
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"

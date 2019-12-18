@@ -81,14 +81,14 @@ bool KtxReader::save(Util::String filename, std::vector<uint8_t>& data)
 	FILE* file = fopen(filename.c_str(), "wb");
 	if (!file)
 	{
-		fprintf(stderr, "Error creating file %s.\n", filename);
+		fprintf(stderr, "Error creating file %s.\n", filename.c_str());
 		return false;
 	}
 
 	size_t write_size = fwrite(data.data(), sizeof(uint8_t), data.size(), file);
 	if (write_size != data.size())
 	{
-		fprintf(stderr, "Error writing to file %s - incomplete.\n", filename);
+		fprintf(stderr, "Error writing to file %s - incomplete.\n", filename.c_str());
 		return false;
 	}
 
@@ -272,7 +272,7 @@ std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t>& data, uint32_t wi
 
 bool KtxReader::loadFile(Util::String filename)
 {
-	if (!filename)
+	if (filename.empty())
 	{
 		// if filename is nullptr, don't error out
 		return true;
@@ -281,7 +281,7 @@ bool KtxReader::loadFile(Util::String filename)
 	size_t fileSize = 0;
 	if (!load(filename.c_str(), fileSize))
 	{
-		fprintf(stderr, "Unable to open .ktx file: %s.", filename);
+		fprintf(stderr, "Unable to open .ktx file: %s.", filename.c_str());
 		return false;
 	}
 
@@ -293,10 +293,10 @@ bool KtxReader::loadFile(Util::String filename)
 	return true;
 }
 
-bool KtxReader::saveFile(const char* filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount,
+bool KtxReader::saveFile(Util::String filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount,
                          uint32_t num_faceCount, uint32_t width, uint32_t height)
 {
-	if (!filename)
+	if (filename.empty())
 	{
 		fprintf(stderr, "No filename specified.\n");
 		return false;

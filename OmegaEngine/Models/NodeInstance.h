@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Models/ModelMesh.h"
-
 #include "OEMaths/OEMaths.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include "cgltf/cgltf.h"
 
@@ -16,6 +14,7 @@ namespace OmegaEngine
 
 // forward decleartions
 class GltfModel;
+class MeshInstance;
 
 class NodeInstance
 {
@@ -26,9 +25,8 @@ public:
 	*/
 	struct NodeInfo
 	{
-		NodeInfo()
-		{
-		}
+        NodeInfo() = default;
+        
 		~NodeInfo()
 		{
 			for (auto& child : children)
@@ -40,10 +38,10 @@ public:
 				}
 			}
 		}
-
+  
 		// no copying allowed
-		NodeInstance(const NodeInstance&) = delete;
-		NodeInstance& operator=(const NodeInstance&) = delete;
+		NodeInfo(const NodeInstance&) = delete;
+		NodeInfo& operator=(const NodeInstance&) = delete;
 
 		// The id of the node is derived from the index - and is used to locate
 		// this node if it's a joint or animation target
@@ -75,13 +73,13 @@ public:
 	};
 
 	NodeInstance() noexcept;
-	NodeInstance();
+	~NodeInstance();
 
 	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
 	void prepareTranslation(cgltf_node* node, NodeInfo* newNode);
 	bool prepare(cgltf_node* node, GltfModel& model);
     
-    ModelNode::NodeInfo* ModelNode::getNode(Util::String id);
+    NodeInstance::NodeInfo* getNode(Util::String id);
     
 	friend class Scene;
 	friend class TransformManager;
@@ -93,7 +91,7 @@ private:
 private:
     
 	// we expect one mesh per node hierachy!
-	ModelMesh mesh;
+	MeshInstance* mesh = nullptr;
 
 	// the node hierachy
 	NodeInfo* rootNode = nullptr;

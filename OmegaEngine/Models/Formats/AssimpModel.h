@@ -1,6 +1,6 @@
 #pragma once
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 namespace OmegaEngine
 {

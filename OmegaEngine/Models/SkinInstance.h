@@ -4,7 +4,7 @@
 
 #include "Models/NodeInstance.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include "cgltf/cgltf.h"
 
@@ -38,7 +38,7 @@ public:
      * @param skin The cgltf skin to extract data from
      * @param A list of nodes were the 'name' variable has been updated to use a id
      */
-	bool prepare(cgltf_skin& skin, ModelNode& node);
+	bool prepare(cgltf_skin& skin, NodeInstance& node);
 
 	friend class TransformManager;
 
@@ -50,7 +50,7 @@ private:
 	std::vector<OEMaths::mat4f> invBindMatrices;
 	
     // a list of joints - poiints to the node in the skeleon hierachy which will be transformed
-    std::vector<ModelNode::NodeInfo*> jointNodes;
+    std::vector<NodeInstance::NodeInfo*> jointNodes;
     
 	// a pointer to the the root of the skeleton. The spec states that
     // the mdoel doesn't need to specify this - thus will be null if this is the case.

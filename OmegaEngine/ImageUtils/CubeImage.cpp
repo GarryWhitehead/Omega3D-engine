@@ -183,7 +183,7 @@ void CubeImage::fixupEdges(Face srcFace, size_t srcX, size_t srcY, size_t srcWal
 			// iterate over taps in direction perpendicular to edge, and
 			//  adjust intensity values gradualy to obscure change in intensity values of
 			//  edge averaging.
-			for (size_t fixup = 1; fixup < fixupDist; fixup++)
+			for (size_t fixup = 1.0f; fixup < fixupDist; fixup++)
 			{
 				// fractional amount to apply change in tap intensity along edge to taps
 				//  in a perpendicular direction to edge
@@ -191,17 +191,16 @@ void CubeImage::fixupEdges(Face srcFace, size_t srcX, size_t srcY, size_t srcWal
 
 				// perform weighted average of edge tap value and current tap
 				// fade off weight linearly as a function of distance from edge
-				edgeTapDev = (*(edgeStartPtr + (fixup * edgePerpWalk) + k)) - avgTap;
-				neighborEdgeTapDev = (*(neighborEdgeStartPtr + (fixup * neighborEdgePerpWalk) + k)) - avgTap;
-
+                float srcPixel = srcImage->getTexel(j, fixup * srcPerpWalk, k) - avgTap;
+                float nPixel = neighbourImage->getTexel(j, fixup * neighbourPerpWalk, k) - avgTap;
+                
 				// vary intensity of taps within fixup region toward edge values to hide changes made to edge taps
-				*(edgeStartPtr + (iFixup * edgePerpWalk) + k) -= (fixupWeight * edgeTapDev);
-				*(neighborEdgeStartPtr + (iFixup * neighborEdgePerpWalk) + k) -= (fixupWeight * neighborEdgeTapDev);
+                srcPixel -= fixupWeight * srcPixel;
+                nPixel -= fixupWeight * nPixel;
+                
+                srcImage->writeTexel(srcPixel, j, fixup * srcPerpWalk, k);
+                neighbourImage->writeTexel(nPixel, j, fixup * srcPerpWalk, k);
 			}
-
-			// walk the image pointers
-			srcImage += srcWalk;
-			neighbourImage += neighbourWalk;
 		}
 	}
 }
@@ -219,7 +218,7 @@ void CubeImage::seamlessEdges(uint32_t dim, uint8_t channels)
 			// collect face colours
 			for (size_t face = 0; face < 6; ++face)
 			{
-				accum += *(faceImages[face].getData() + k);
+                accum += *(faceImages[face]->getData() + k);
 			}
 
 			// and average the accumulated colour over the six faces
@@ -227,7 +226,7 @@ void CubeImage::seamlessEdges(uint32_t dim, uint8_t channels)
 
 			for (size_t face = 0; face < 6; ++face)
 			{
-				*(faceImages[iFace].getData() + k = accum;
+				*(faceImages[face]->getData() + k) = accum;
 			}
 		}
 
@@ -266,6 +265,7 @@ void CubeImage::seamlessEdges(uint32_t dim, uint8_t channels)
 		}
 	}
 
+    // TODO - this need completing
 	// now fix up the cube edges
 	size_t walkRowLeft = channels * dim;
 	size_t walkRowRight = -(channels * dim);
@@ -292,10 +292,10 @@ Image2DF32::Colour3 CubeImage::fetchBilinear(float x, float y, Image2DF32* data)
 	const float v = y0;
 
 	// get the four texels - x0-x1 and y0-y1
-	Colour3 t0 = data->getTexel(x0, y0);
-	Colour3 t1 = data->getTexel(x1, y0);
-	Colour3 t2 = data->getTexel(x0, y1);
-	Colour3 t3 = data->getTexel(x1, y1);
+	Colour3 t0 = data->getTexel3(x0, y0);
+	Colour3 t1 = data->getTexel3(x1, y0);
+	Colour3 t2 = data->getTexel3(x0, y1);
+	Colour3 t3 = data->getTexel3(x1, y1);
 
 	return (1 - u) * (1 - v) * t0 + (u * 1 - v) * t1 + (1 - u * v) * t2 + u * v * t3;
 }
@@ -304,7 +304,7 @@ Image2DF32::Colour3 CubeImage::fetchBilinear(OEMaths::vec3f& pos, CubeImage* cub
 {
 	FaceTexCoords texCoords = calculateTexCoords(pos);
 
-	Image2DF32* image = cube.faceImages[texCoords.face];
+    Image2DF32* image = cube->faceImages[texCoords.face];
 
 	float x =
 	    std::min(texCoords.u * static_cast<float>(image->getDimensions()), static_cast<float>(image->getDimensions()));

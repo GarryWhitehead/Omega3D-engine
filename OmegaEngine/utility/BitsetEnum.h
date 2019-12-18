@@ -81,7 +81,7 @@ public:
   */
 	BitSetEnum operator|(const T& val)
 	{
-		BitSetEnum retsult(*this);
+		BitSetEnum result(*this);
 		result |= val;
 		return result;
 	}

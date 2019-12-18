@@ -18,21 +18,21 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 	for (size_t i = 0; i < anim.channels_count; ++i)
 	{
 		AnimInstance::Channel channel;
-
+        
 		channel.pathType = anim.channels[i].target_path;
 		// process the samplers below.....
 		animSamplers.emplace_back(anim.channels[i].sampler);
 
 		// set animation flag on relevant node
 		cgltf_node* animNode = anim.channels[i].target_node;
-		ModelNode::NodeInfo* foundNode = model.getNode(Util::String(animNode->name));
+        NodeInstance::NodeInfo* foundNode = model.getNode(Util::String(animNode->name));
 		if (!foundNode)
 		{
 			LOGGER_ERROR("Unable to find animation node %s within the node hierachy.\n", animNode->name);
 			return false;
 		}
 
-		node->setAnimationIndex(index, channelIndex++);
+		foundNode->setAnimationIndex(index, channelIndex++);
 		channels.emplace_back(channel);
 	}
 
@@ -125,10 +125,20 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 					memcpy(samplerInfo.outputs.data(), base, accessor->count * sizeof(OEMaths::vec4f));
 					break;
 				}
+                case cgltf_type_vec2:
 				default:
 					LOGGER_ERROR("Unsupported component type used for animation output.");
 				}
 			}
+            // these are possible formats supported by gltf, but we only support 32bit floats at present
+            case cgltf_component_type_invalid:
+            case cgltf_component_type_r_8:
+            case cgltf_component_type_r_8u:
+            case cgltf_component_type_r_16:
+            case cgltf_component_type_r_16u:
+            case cgltf_component_type_r_32u:
+            default:
+                LOGGER_ERROR("Unsupported component type used for animation output.");
 			}
 		}
 

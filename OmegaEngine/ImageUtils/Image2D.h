@@ -198,7 +198,12 @@ public:
 	{
 		return height;
 	}
-
+    
+    pixelType* getData()
+    {
+        return data;
+    }
+    
 protected:
 	// the actual image data
 	pixelType* data = nullptr;

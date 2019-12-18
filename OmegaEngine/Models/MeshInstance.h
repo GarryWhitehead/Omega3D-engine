@@ -6,7 +6,7 @@
 
 #include "Models/Formats/GltfModel.h"
 
-#include "assimp/include/assimp/scene.h"
+#include "assimp/scene.h"
 
 #include "cgltf/cgltf.h"
 
@@ -14,7 +14,6 @@
 
 namespace OmegaEngine
 {
-
 
 class MeshInstance
 {
@@ -41,7 +40,7 @@ public:
 	{
 		Primitive() = default;
 
-		AABox dimensions;
+        AABBox dimensions;
 
 		// index offsets
 		size_t indexBase = 0;
@@ -70,7 +69,7 @@ private:
 	StateTopology topology;
 
 	/// the overall dimensions of this model. Sub-meshses contain their own dimensions
-	AABox dimensions;
+    AABBox dimensions;
 
 	/// sub-meshes
 	std::vector<Primitive> primitives;

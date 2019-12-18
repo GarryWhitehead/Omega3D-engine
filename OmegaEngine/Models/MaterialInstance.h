@@ -2,7 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include "cgltf/cgltf.h"
 
@@ -76,7 +76,7 @@ private:
     MaterialBlock block;
     
 	// the paths for all textures. Empty paths signify that this texture isn't used
-	Util::String texturePaths[TextureType::Count];
+	Util::String texturePaths[TextureGroup::TextureType::Count];
 
 	// if using specular glossiness then color and metallic/roughness texture indicies will be automatically changed for this workflow
 	bool usingSpecularGlossiness = false;

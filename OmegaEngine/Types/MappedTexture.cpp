@@ -17,7 +17,7 @@ MappedTexture::~MappedTexture()
 }
 
 bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips,
-                         uint32_t size, TextureFormat format)
+                         uint32_t size, const vk::Format format)
 {
 	width = w;
 	height = h;
@@ -26,9 +26,7 @@ bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t f
 	arrayCount = arrays;
 	totalSize = size;
 	assert(totalSize);
-
-	// TODO: add other compressed format support based on whether the particular format is supported by the gpu
-	// also need to add support for hdr 16bit float textures
+    
 	this->format = format;
 
 	this->buffer = new uint8_t[totalSize];
