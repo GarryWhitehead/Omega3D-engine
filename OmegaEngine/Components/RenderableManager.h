@@ -128,7 +128,8 @@ struct Renderable
 	enum class Visible : uint8_t
 	{
 		Renderable,
-		Shadow
+		Shadow,
+        __SENTINEL__
 	};
 
 	/// all the model data

@@ -9,10 +9,10 @@ namespace Util
 {
 String::String(const char* str)
 {
-	this->length = std::strlen(str);
+	length = std::strlen(str);
 	if (this->length > 0)
 	{
-		this->buffer = (char*)malloc(length + 1);
+		buffer = (char*)malloc(length + 1);
 		memcpy(buffer, str, length);
 		buffer[length] = '\0';
 	}
@@ -70,6 +70,7 @@ bool String::compare(String str)
 	return diff == 0;
 }
 
+// =============== static functions =============================
 std::vector<String> String::split(String str, char identifier)
 {
 	if (str.empty())
@@ -77,21 +78,32 @@ std::vector<String> String::split(String str, char identifier)
 		return {};
 	}
 
-	std::vector<std::string> splitStrings;
-	size_t pos = str.find_first_of(identifier);
-	while (pos != std::string::npos)
-	{
-		std::string split = str.substr(0, pos);
-
-		splitStrings.emplace_back(split);
-		str = str.substr(pos + 1, str.size());
-
-		pos = str.find_first_of(identifier);
-	}
-
-	// also include what's left after removing all identifiers
-	splitStrings.emplace_back(str);
-
-	return splitStrings;
+	std::vector<String> result;
+    
+    size_t len = std::strlen(str.c_str());
+    char* bufferPtr = str.buffer;
+    std::vector<char> splitBuffer(len);
+    
+    for (size_t i = 0; i < len; ++i)
+    {
+        if (*bufferPtr == identifier)
+        {
+            if (!splitBuffer.empty())
+            {
+                splitBuffer.emplace_back('\0');
+                String splitStr(splitBuffer.data());
+                result.emplace_back(splitStr);
+                splitBuffer.clear();
+                ++bufferPtr;
+            }
+            else
+            {
+                ++bufferPtr;
+                continue;
+            }
+        }
+        splitBuffer.emplace_back(*bufferPtr++);
+    }
+	return result;
 }
 }    // namespace Util

@@ -7,6 +7,45 @@
 namespace OmegaEngine
 {
 
+Util::String AnimInstance::cgltfSamplerToStr(const cgltf_interpolation_type type)
+{
+    Util::String result;
+    switch(type)
+    {
+        case cgltf_interpolation_type_linear:
+            result = "linear";
+            break;
+        case cgltf_interpolation_type_step:
+            result = "step";
+            break;
+        case cgltf_interpolation_type_cubic_spline:
+            result = "spline";
+            break;
+    }
+    return result;
+}
+
+Util::String AnimInstance::cgltfPathTypeToStr(const cgltf_animation_path_type type)
+{
+    Util::String result;
+    switch(type)
+    {
+        case cgltf_animation_path_type_scale:
+            result = "Scale";
+            break;
+        case cgltf_animation_path_type_weights:
+            result = "Weights";
+            break;
+        case cgltf_animation_path_type_rotation:
+            result = "rotation";
+            break;
+        case cgltf_animation_path_type_translation:
+            result = "translation";
+            break;
+    }
+    return result;
+}
+
 bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 {
 	name = anim.name;
@@ -19,7 +58,7 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 	{
 		AnimInstance::Channel channel;
         
-		channel.pathType = anim.channels[i].target_path;
+		channel.pathType = cgltfPathTypeToStr(anim.channels[i].target_path);
 		// process the samplers below.....
 		animSamplers.emplace_back(anim.channels[i].sampler);
 
@@ -32,7 +71,7 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 			return false;
 		}
 
-		foundNode->setAnimationIndex(index, channelIndex++);
+		foundNode->setChannelIdx(channelIndex++);
 		channels.emplace_back(channel);
 	}
 
@@ -40,7 +79,7 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 	for (cgltf_animation_sampler* animSampler : animSamplers)
 	{
 		AnimInstance::Sampler samplerInfo;
-		samplerInfo.interpolation = animSampler->interpolation;
+		samplerInfo.interpolation = cgltfSamplerToStr(animSampler->interpolation);
 
 		// ====== inputs =====
 		{

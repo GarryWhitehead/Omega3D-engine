@@ -1,18 +1,18 @@
 #include "GltfModel.h"
 
-#include "Utility/FileUtil.h"
-#include "Utility/logger.h"
-#include "utility/String.h"
+#include "utility/FileUtil.h"
+#include "utility/Logger.h"
+#include "utility/CString.h"
 
 #include "Core/World.h"
 
 namespace OmegaEngine
 {
 
-ModelNode::NodeInfo* GltfModel::getNode(Util::String id)
+NodeInstance::NodeInfo* GltfModel::getNode(Util::String id)
 {
-    ModelNode::NodeInfo* foundNode = nullptr;
-    for (ModelNode node : nodes)
+    NodeInstance::NodeInfo* foundNode = nullptr;
+    for (NodeInstance node : nodes)
     {
         foundNode = node.getNode(id);
         if (foundNode)
@@ -23,13 +23,13 @@ ModelNode::NodeInfo* GltfModel::getNode(Util::String id)
     return foundNode;
 }
     
-size_t GltfModel::addMaterial(ModelMaterial& mat)
+size_t GltfModel::addMaterial(MaterialInstance& mat)
 {
 	// check for duplicate materials first. This is possible if there are lots of primitives
 	Util::String MatName = mat.getName();
 
 	size_t index = 0;
-	for (ModelMaterial& modelMat : materials)
+	for (MaterialInstance& modelMat : materials)
 	{
 		if (MatName.compare(modelMat.getName()))
 		{
@@ -42,7 +42,7 @@ size_t GltfModel::addMaterial(ModelMaterial& mat)
 	return index + 1;
 }
 
-size_t GltfModel::addSkin(ModelSkin& skin)
+size_t GltfModel::addSkin(SkinInstance& skin)
 {
 	skins.emplace_back(skin);
 	return skins.size() - 1;
@@ -63,7 +63,7 @@ void GltfModel::getAttributeData(const cgltf_attribute* attrib, uint8_t* base, s
 OEMaths::vec3f GltfModel::tokenToVec3(Util::String str)
 {
 	OEMaths::vec3f output;
-	auto split = str.split(' ');
+	auto split = Util::String::split(str, ' ');
 	assert(split.size() == 3);
 	return OEMaths::vec3f(split[0].toFloat(), split[1].toFloat(), split[2].toFloat());
 }
@@ -108,8 +108,10 @@ bool GltfModel::prepareExtensions(const cgltf_extras& extras, cgltf_data& data, 
 	std::vector<Util::String> temp;
 	for (const jsmntok_t& token : tokenData)
 	{
-		Util::String str(&jsonData[token.start], token.end - token.start);
-		temp.emplace_back(str);
+		Util::String startStr(Util::String::valueToString(&jsonData[token.start]));
+        Util::String endStr(Util::String::valueToString(token.end - token.start));
+		temp.emplace_back(startStr);
+        temp.emplace_back(endStr);
 	}
 
 	// should be divisible by 2 otherwise we will overflow when creating the output
@@ -132,10 +134,10 @@ void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
 {
     // nodes a lot of the time don't possess a name, so we can't rely on this
     // for identifying nodes. So. we will use a stringifyed id instead
-    Util::String indexStr(index);
-    node->name = indexStr.c_str();
+    Util::String indexStr(Util::String::valueToString(index));
+    node.name = indexStr.c_str();
     
-    linearisedNodes.emplace(&node);
+    linearisedNodes.emplace_back(&node);
 
 	cgltf_node** childEnd = node.children + node.children_count;
 	for (cgltf_node* const* child = node.children; child < childEnd; ++child)
@@ -203,8 +205,8 @@ bool GltfModel::prepare()
 		cgltf_node* const* nodeEnd = scene->nodes + scene->nodes_count;
 		for (cgltf_node* const* node = scene->nodes; node < nodeEnd; ++node)
 		{
-			ModelNode newNode;
-			if (!newNode.prepare(**node, OEMaths::mat4f{}, *this))
+			NodeInstance newNode;
+			if (!newNode.prepare(*node, *this))
 			{
 				return false;
 			}
@@ -216,9 +218,9 @@ bool GltfModel::prepare()
     // can only be one per node!)
     for (size_t index = 0; index < skins.size(); ++index)
     {
-        ModelSkin newSkin;
-        newSkin.prepare(skin, linearisedNodes);
-        skins.emplace_back(skin);
+        SkinInstance newSkin;
+        newSkin.prepare(skins[index], linearisedNodes);
+        skins.emplace_back(newSkin);
     }
 
 	return true;

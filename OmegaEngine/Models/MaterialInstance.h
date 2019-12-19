@@ -2,6 +2,8 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "Components/RenderableManager.h"
+
 #include "utility/CString.h"
 
 #include "cgltf/cgltf.h"

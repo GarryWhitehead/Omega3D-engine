@@ -6,14 +6,14 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include <unordered_map>
 #include <vector>
 
 namespace VulkanAPI
 {
-class Device;
+class VkDriver;
 }
 
 namespace OmegaEngine
@@ -25,7 +25,7 @@ class Object;
 class World
 {
 public:
-	World();
+	World(Engine& engine, VulkanAPI::VkDriver& driver);
 	~World();
 
 	void update(double time, double dt);
@@ -34,7 +34,7 @@ public:
 	 * prepares this world ready for recieving a scene
 	 * @param name An identiying name for this world. 
 	 */
-	void prepare(const std::string& name);
+	void prepare(Util::String name);
 
 	/**
 	* @brief creates a new empty scene. This will be passed to the renderer for presentation.
@@ -48,6 +48,10 @@ public:
 	}
 
 private:
+    
+    Engine& engine;
+    VulkanAPI::VkDriver& driver;
+    
 	// name used to identify this world
 	Util::String name;
 
@@ -55,7 +59,7 @@ private:
 	ObjectManager objManager;
 
 	// scenes associated with this world
-	std::vector<Scene> scenes;
+	std::vector<std::unique_ptr<Scene>> scenes;
 };
 
 }    // namespace OmegaEngine

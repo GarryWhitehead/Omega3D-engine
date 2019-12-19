@@ -16,6 +16,7 @@ namespace VulkanAPI
 {
 // forward decleartions
 class VkContext;
+class Sampler;
 
 class Shader
 {
@@ -91,9 +92,9 @@ public:
 
     bool compile(bool optimise);
 
-    void addVariant(Util::String variant, uint8_t value)
+    void addVariant(Util::String variant, const uint8_t value)
     {
-        defines.insert(variant, value);
+        definitions.emplace(variant, value);
     }
 
     uint32_t* getData()
@@ -109,12 +110,13 @@ public:
     using VariantMap = std::unordered_map<Util::String, uint8_t>;
     
 private:
+    
     std::vector<uint32_t> output;
 
     shaderc_shader_kind kind;
     std::string source;
     std::string sourceName;
-    VariantMap defines;
+    VariantMap definitions;
 };
 
 } // namespace VulkanAPI

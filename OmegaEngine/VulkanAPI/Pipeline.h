@@ -100,13 +100,13 @@ public:
      */
 	void addPushConstant(Shader::Type stage, uint32_t size)
 	{
-        pConstantSizes.emplace(stage, size);
+        pConstantSizes.emplace_back(std::make_pair(stage, size));
 	}
 
 private:
     
 	/// the shader stage the push constant refers to and its size
-	std::vector<std::pair<Shader::Type, size_t>> pConstantSizes;
+	std::vector<std::pair<Shader::Type, uint32_t>> pConstantSizes;
 
 	vk::PipelineLayout layout;
 };

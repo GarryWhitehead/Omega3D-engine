@@ -26,7 +26,7 @@ class Engine;
 class Camera;
 struct TransformInfo;
 class Frustum;
-class Renderable;
+struct Renderable;
 class LightBase;
 
 class Scene
@@ -41,8 +41,6 @@ public:
 		Renderable* renderable;
 		TransformInfo* transform;
 	};
-
-	Scene() = default;
 
 	Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver);
 	~Scene();

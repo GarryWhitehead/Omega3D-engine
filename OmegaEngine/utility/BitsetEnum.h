@@ -14,10 +14,12 @@ public:
 	BitSetEnum() = default;
 
 	// copy constructors
-	BitSetEnum(const BitSetEnum&) = default BitSetEnum & operator=(const BitSetEnum&) = default;
+    BitSetEnum(const BitSetEnum&) = default;
+    BitSetEnum & operator=(const BitSetEnum&) = default;
 
 	// move constructors
-	BitSetEnum(BitSetEnum&&) = default BitSetEnum & operator=(BitSetEnum&&) = default;
+    BitSetEnum(BitSetEnum&&) = default;
+    BitSetEnum & operator=(BitSetEnum&&) = default;
 
 	/**
      * Applys a logic AND to the enum bitset with the stated value
@@ -44,7 +46,8 @@ public:
     */
 	BitSetEnum& operator|=(const T& val)
 	{
-		bitset.set(static_cast<utype>(val)) return *this;
+        bitset.set(static_cast<utype>(val));
+        return *this;
 	}
 
 	/**

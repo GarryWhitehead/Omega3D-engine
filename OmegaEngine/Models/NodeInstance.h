@@ -38,6 +38,11 @@ public:
 				}
 			}
 		}
+        
+        void setChannelIdx(size_t idx)
+        {
+            channelIndex = idx;
+        }
   
 		// no copying allowed
 		NodeInfo(const NodeInstance&) = delete;
@@ -49,7 +54,10 @@ public:
 
 		// the index of the skin associated with this node
 		size_t skinIndex = -1;
-
+        
+        // the animation channel index
+        size_t channelIndex = -1;
+        
 		// a flag indicating whether this node contains a mesh
 		// the mesh is actaully stored outside the hierachy
 		bool hasMesh = false;
@@ -76,7 +84,9 @@ public:
 	~NodeInstance();
 
 	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
+    
 	void prepareTranslation(cgltf_node* node, NodeInfo* newNode);
+    
 	bool prepare(cgltf_node* node, GltfModel& model);
     
     NodeInstance::NodeInfo* getNode(Util::String id);

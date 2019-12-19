@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <vector>
+#include <type_traits>
 
 namespace Util
 {
@@ -28,6 +30,8 @@ public:
 	*/
 	bool compare(String str);
 
+    static std::vector<String> split(String str, char identifier);
+    
 	bool empty() const
 	{
 		return !buffer;
@@ -42,7 +46,42 @@ public:
 	{
 		return buffer;
 	}
-
+    
+    /**
+     * @brief Convert a numbert type to string
+     */
+    template <typename T>
+    static String valueToString(T value)
+    {
+        char result[sizeof(T) + 2];
+        if constexpr (std::is_same_v<T, float>)
+        {
+           sprintf(result, "%f", value);
+        }
+        else if constexpr (std::is_same_v<T, int>)
+        {
+           sprintf(result, "%d", value);
+        }
+        else if constexpr (std::is_same_v<T, uint64_t>)
+        {
+           sprintf(result, "%ul", value);
+        }
+        return String{result};
+    }
+    
+    /**
+     * @brief Converts a str to a value
+     */
+    template <typename T>
+    static T stringToValue(String str)
+    {
+        T value;
+        if constexpr (std::is_same_v<T, float>)
+        {
+            sprintnf(str.buffer, str.length, "%f", value);
+        }
+    }
+    
 private:
 	char* buffer = nullptr;
 	size_t length = 0;

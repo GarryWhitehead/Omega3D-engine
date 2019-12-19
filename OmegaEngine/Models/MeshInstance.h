@@ -18,7 +18,18 @@ namespace OmegaEngine
 class MeshInstance
 {
 public:
-
+    
+    enum class StateTopology
+    {
+        PointList,
+        LineList,
+        LineStrip,
+        TriangleList,
+        TriangleStrip,
+        TriangleFan,
+        PatchList
+    };
+    
 	struct Attribute
 	{
 		uint8_t stride;

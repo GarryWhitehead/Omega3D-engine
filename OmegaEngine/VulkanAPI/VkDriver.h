@@ -4,6 +4,8 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkContext.h"
 
+#include "utility/CString.h"
+
 #include <unordered_map>
 #include <vector>
 
