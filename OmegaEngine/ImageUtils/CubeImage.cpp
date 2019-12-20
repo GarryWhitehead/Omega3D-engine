@@ -74,7 +74,7 @@ CubeImage::FaceTexCoords CubeImage::calculateTexCoords(OEMaths::vec3f reflect)
 			majorAxis = Face::pY;
 		}
 	}
-	else if (absZ > absX && absZ > absY)
+	else
 	{
 		if (rz <= 0)
 		{

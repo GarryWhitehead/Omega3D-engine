@@ -61,6 +61,17 @@ String::~String()
 	}
 }
 
+size_t String::operator()(const String& str) const
+{
+    size_t result = 2166136261;
+    for (size_t i = 0; i < length; ++i)
+    {
+        result = (result * 16777619) ^ str.buffer[i];
+    }
+
+    return result;
+}
+
 bool String::compare(String str)
 {
 	assert(buffer);
@@ -68,6 +79,26 @@ bool String::compare(String str)
 
 	int diff = std::strcmp(buffer, str.buffer);
 	return diff == 0;
+}
+
+float String::toFloat() const
+{
+    return std::atof(buffer);
+}
+
+uint32_t String::toUInt32() const
+{
+    return std::atol(buffer);
+}
+
+uint64_t String::toUInt64() const
+{
+    return std::atoll(buffer);
+}
+
+int String::toInt() const
+{
+    return std::atoll(buffer);
 }
 
 // =============== static functions =============================

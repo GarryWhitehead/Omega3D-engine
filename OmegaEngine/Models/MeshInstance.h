@@ -72,6 +72,11 @@ public:
 
 	bool prepare(aiScene* scene);
 
+    AABBox& getAABBox()
+    {
+        return dimensions;
+    }
+    
 	friend class RenderableManager;
 	friend class GBufferFillPass;
 

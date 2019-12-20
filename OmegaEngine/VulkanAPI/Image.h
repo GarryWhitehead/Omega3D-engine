@@ -115,7 +115,7 @@ public:
      */
 	TextureContext &getContext()
 	{
-		return context;
+        return tex;
 	}
 
 private:

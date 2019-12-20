@@ -14,7 +14,8 @@ namespace VulkanAPI
 class StagingPool
 {
 public:
-	StagingPool() = default;
+    
+	StagingPool(VmaAllocator& vmaAlloc);
 
 	struct StageInfo
 	{
@@ -31,6 +32,7 @@ public:
 	void release(StageInfo& stage);
 
 private:
+    
 	// keep a refernce to the memory allocator here
 	VmaAllocator& vmaAlloc;
 
@@ -45,6 +47,13 @@ private:
 class Buffer
 {
 public:
+    
+    enum Usage
+    {
+        Dynamic,
+        Static
+    };
+    
 	Buffer() = default;
 
 	void prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize size, const VkBufferUsageFlags usage,
@@ -54,7 +63,7 @@ public:
 
 	void map(void* data, size_t size);
 
-	vk::Buffer& get()
+	vk::Buffer get() const
 	{
 		return vk::Buffer(buffer);
 	}
@@ -83,7 +92,7 @@ public:
 
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
-	vk::Buffer& get()
+	vk::Buffer get() const
 	{
 		return vk::Buffer(buffer);
 	}
@@ -106,7 +115,7 @@ public:
 
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize size);
 
-	vk::Buffer& get()
+	vk::Buffer get() const
 	{
 		return vk::Buffer(buffer);
 	}

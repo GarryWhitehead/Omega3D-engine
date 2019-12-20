@@ -17,9 +17,8 @@ namespace OmegaEngine
 // forward declerations
 class Object;
 class TransformManager;
-class World;
-struct ModelAnimation;
-struct AnimationComponent;
+class Engine;
+class AnimInstance;
 
 class AnimationManager : public ComponentManager
 {
@@ -51,8 +50,9 @@ public:
 			Scale,
 			CublicTranslation,
 			CubicScale
-		} pathType;
+		};
 
+        PathType type;
 		Object *object;
 		uint32_t samplerIndex;
 	};
@@ -69,10 +69,10 @@ public:
 	AnimationManager();
 	~AnimationManager();
 
-	void addAnimation(std::unique_ptr<ModelAnimation>& animation);
+	void addAnimation(std::unique_ptr<AnimInstance>& animation);
 	void addAnimation(size_t channelIndex, size_t bufferIndex, Object& object);
 
-	void updateFrame(double time, World& world);
+	void update(double time, Engine& engine);
 
 	uint32_t getBufferOffset() const
 	{

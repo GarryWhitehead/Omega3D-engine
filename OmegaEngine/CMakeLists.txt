@@ -79,6 +79,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	Models/Formats/GltfModel.cpp Models/Formats/GltfModel.h
 	Models/Formats/AssimpModel.cpp Models/Formats/AssimpModel.h
+    Models/Formats/GltfExtension.cpp Models/Formats/GltfExtension.h
 
 	Models/AnimInstance.cpp Models/AnimInstance.h
 	Models/MaterialInstance.cpp Models/MaterialInstance.h 
@@ -102,7 +103,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	OEMaths/OEMaths_Mat3.h
 	OEMaths/OEMaths_Mat4.h
     OEMaths/OEMaths_MatN.h
-	OEMaths/OEMaths_quat.h
+	OEMaths/OEMaths_Quat.h
     OEMaths/OEMaths_Vec2.h
 	OEMaths/OEMaths_Vec3.h
 	OEMaths/OEMaths_Vec4.h

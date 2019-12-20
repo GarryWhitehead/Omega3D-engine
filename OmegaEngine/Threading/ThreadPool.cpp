@@ -5,9 +5,8 @@
 namespace OmegaEngine
 {
 
-ThreadPool::ThreadPool(const uint8_t numThreads)
+ThreadPool::ThreadPool(const uint32_t numThreads)
 {
-	uint8_t threadCount;
 	if (!numThreads)
 	{
 		// one less thread as we are on the main one.
@@ -16,7 +15,7 @@ ThreadPool::ThreadPool(const uint8_t numThreads)
 		// Best warn if there are no other threads, performace will be hit!
 		if (!threadCount)
 		{
-			LOGGER_INFO("No extra threads were found for the current hardware setup.");
+			LOGGER_WARN("No extra threads were found for the current hardware setup.");
 		}
 	}
 	else

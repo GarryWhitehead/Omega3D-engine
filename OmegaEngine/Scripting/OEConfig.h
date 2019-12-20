@@ -2,7 +2,7 @@
 
 #include "Scripting/LuaBinder.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include "lua/lua.hpp"
 
@@ -79,6 +79,8 @@ public:
 			}
 			break;
 		}
+        case TypeDescriptor::Invalid:
+                break;
 		}
 		// we shouldn't be here if there was no error. Not much to do but assert or throw!
 		throw std::runtime_error("Mismatched types between lua input and user type.");

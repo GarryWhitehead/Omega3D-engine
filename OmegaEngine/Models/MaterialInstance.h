@@ -6,6 +6,8 @@
 
 #include "utility/CString.h"
 
+#include "Models/Formats/GltfExtension.h"
+
 #include "cgltf/cgltf.h"
 
 #include "assimp/Importer.hpp"
@@ -32,10 +34,12 @@ public:
 
 	Util::String getTextureUri(cgltf_texture_view& view);
 
-	bool prepare(cgltf_material& mat);
+	bool prepare(cgltf_material& mat, GltfExtension& extensions);
 
 	bool prepare(aiMaterial* mat);
-
+    
+    static Util::String convertToAlpha(const cgltf_alpha_mode mode);
+    
 	// helper functions
 	Util::String getName()
 	{

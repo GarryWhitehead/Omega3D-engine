@@ -3,8 +3,12 @@
 #include "RenderGraph/Resources.h"
 
 #include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/RenderPass.h"
 
 #include "utility/CString.h"
+#include "utility/BitSetEnum.h"
+
+#include "OEMaths/OEMaths.h"
 
 #include <functional>
 #include <vector>
@@ -27,6 +31,7 @@ namespace OmegaEngine
 class RenderGraph;
 class RenderGraphPass;
 class Renderer;
+
 
 /**
 * @brief A useful container for grouping together render graph variables for use externally
@@ -57,12 +62,12 @@ public:
 	// compute pass will be deployed, and any remaining graphic passes will be
 	// started in another pass after the compute finishes. This isn't ideal performance wise, as switching
 	// between different pipelines is expensive, so compute calls should be batched, ideally before the the graphics renderpass
-	enum class RenderPassType
+	enum Type
 	{
 		Graphics,
 		Compute
 	};
-
+    
 	// not copyable
 	RenderGraphPass(const RenderGraphPass&) = delete;
 	RenderGraphPass& operator=(const RenderGraphPass&) = delete;
@@ -92,9 +97,10 @@ public:
 	friend class RenderGraph;
 
 private:
+    
 	RenderGraph* rgraph = nullptr;
 
-	RenderPassType type;
+	Type type;
 
 	// a list of handles of input and output attachments
 	std::vector<ResourceHandle> inputs;     // input attachments
@@ -112,8 +118,10 @@ private:
 	uint32_t maxHeight = 0;
 
 	// If this pass is mergeable, then this will point to a linked list of mergable passes
-	RenderGraphPass* childMergePass = nullptr;
-
+	RenderGraphPass* nextPass = nullptr;
+    
+    Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
+    
 	// ======= vulkan specific ================
 	// Kept in a struct as this will be passed around when rendering passes
 	RGraphContext context;
@@ -137,13 +145,13 @@ public:
 	/**
 	* @ creates a texture resource for using as a render target in a graphics  pass
 	*/
-	ResourceHandle RenderGraphBuilder::createTexture(const uint32_t width, const uint32_t height,
-	                                                 const vk::Format format, uint32_t levels = 1, uint32_t layers = 1);
+    ResourceHandle createTexture(const uint32_t width, const uint32_t height,
+            const vk::Format format, uint32_t levels = 1, uint32_t layers = 1);
 
 	/**
     * @ creates a buffer resource for using as a render target in a compute pass
     */
-	ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer);
+    ResourceHandle createBuffer(BufferResource* buffer);
 
 	/**
 	* @brief Adds a input attachment to the render pass. There must be a corresponding output attachment otherwise returns UINT64_MAX as error.
@@ -213,6 +221,7 @@ public:
 
 	friend class RenderGraphBuilder;
 	friend class RenderGraphPass;
+
 
 private:
 	void CullResourcesAndPasses(ResourceBase* resource);

@@ -7,7 +7,6 @@
 namespace VulkanAPI
 {
 
-
 void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize)
 {
     // get a staging pool for hosting on the CPU side
@@ -40,6 +39,11 @@ void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, V
 }
 
 // ================== StagingPool =======================
+StagingPool::StagingPool(VmaAllocator& vmaAlloc) :
+    vmaAlloc(vmaAlloc)
+{
+}
+
 void StagingPool::release(StageInfo& stage)
 {
 	freeStages.emplace_back(std::make_pair(stage.size, stage));
@@ -85,12 +89,12 @@ StagingPool::StageInfo& StagingPool::getStage(const VkDeviceSize reqSize)
 
 // ==================== Buffer ==========================
 
-void Buffer::prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize size, const VkBufferUsageFlags usage,
+void Buffer::prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize buffSize, const VkBufferUsageFlags usage,
                      uint32_t memIndex)
 {
 	VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	bufferInfo.size = size;
+	bufferInfo.size = buffSize;
 	bufferInfo.usage = usage;
 
 	VmaAllocationCreateInfo allocCreateInfo = {};
@@ -115,45 +119,18 @@ void Buffer::destroy()
 // Note: The following functions use VMA hence don't use the vulkan hpp C++ style vulkan bindings
 // Hence, the code has been left in this verbose format - as it doesn't follow the format of the resdt of the codebase
 
-void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize, std::vector<Attribute>& attributes)
+void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize)
 {
 	assert(data);
     
     // create the buffer and copy the data
     createBuffer(vmaAlloc, pool, buffer, mem, data, dataSize);
     
-    // create the attibutes for the vertex which will be added to the pipeline
-    // calculate the offset for each location - the size of each location is store temporarily in the offset elemnt of the struct
-    size_t nextOffset = 0;
-    size_t currentOffset = 0;
-    size_t totalSize = 0;
-    size_t attributeCount = attributes.size();
-    
-    // finialise the attribute definitions except for the offsets
-    uint8_t loc = 0;
-    for (const Attribute& attr : attributes)
-    {
-        vertexAttrDescr.push_back({ loc++, 0, attr.format, atrr.stride });
-    }
-    
-    // calculate the offset for each attribute based on the size of the last
-    for (size_t i = 0; i < attributeCount; ++i)
-    {
-        nextOffset = attributes[i].offset;
-        vertexAttrDescr[i].offset = currentOffset;
-        currentOffset += nextOffset;
-        totalSize += nextOffset;
-    }
-
-    // assuming just one binding at the moment - TODO: should also support instancing
-    vk::VertexInputBindingDescription bindDescr(0, totalSize,
-                                                 vk::VertexInputRate::eVertex);
-    vertexBindDescr.push_back(bindDescr);
 }
 
 // ======================= IndexBuffer ================================
 
-void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize)
+void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize dataSize)
 {
 	assert(data);
     

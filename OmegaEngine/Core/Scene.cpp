@@ -5,13 +5,15 @@
 #include "Core/Camera.h"
 #include "Core/Frustum.h"
 #include "Core/World.h"
-#include "Core/engine.h"
+#include "Core/Engine.h"
 
 #include "Threading/ThreadPool.h"
 
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
 #include "Components/TransformManager.h"
+
+#include "Rendering/GBufferFillPass.h"
 
 #include "utility/AlignedAlloc.h"
 
@@ -22,8 +24,8 @@ namespace OmegaEngine
 
 Scene::Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver)
     : world(world)
-    , engine(engine)
     , driver(driver)
+    , engine(engine)
 {
 }
 
@@ -35,8 +37,7 @@ void Scene::prepare()
 {
 	// prepare the camera buffer - note: the id matches the naming of the shader ubo
 	// the data will be updated on a per frame basis in the update
-	auto& driver = engine.getVkDriver();
-	driver.addUbo("CameraUbo", sizeof(Camera::Ubo), Buffer::Usage::Dynamic);
+    driver.addUbo("CameraUbo", sizeof(Camera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
 }
 
 void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCandidate>& renderables)
@@ -48,10 +49,10 @@ void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCa
 		for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
 		{
 			Renderable* rend = renderables[idx].renderable;
-			AABox& box = rend->instance.getAABBox();
+            AABBox& box = rend->instance->getAABBox();
 			if (frustum.checkBoxPlaneIntersect(box))
 			{
-				rend->visibility |= Renderable::Visible::Renderable;
+				rend->visibility |= Renderable::Visible::Render;
 			}
 		}
 	};
@@ -176,12 +177,12 @@ void Scene::update()
 	{
 		Renderable* rend = cand.renderable;
 		// only add visible renderables to the queue
-		if (!rend->visibility & Renderable::Visible::Renderable)
+		if (!rend->visibility.testBit(Renderable::Visible::Render))
 		{
 			continue;
 		}
 
-		if (rend->instance.hasSkin())
+        if (rend->variantBits.testBit(Renderable::MeshVariant::HasSkin))
 		{
 			++skinnedModelCount;
 		}
@@ -196,7 +197,7 @@ void Scene::update()
 		// frame ad that the data isn't written too - we aren't using guards though this might be required.
 		queueInfo.renderableData = (void*)&rend;
 		queueInfo.renderableHandle = this;
-		queueInfo.renderFunction = GBufferFillPass::drawCallback;
+        queueInfo.renderFunction = GBufferFillPass::drawCallback;
 		queueInfo.sortingKey =
 		    RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId, rend->variantBits.getUint64());
 		queueRend.emplace_back(queueInfo);
@@ -208,7 +209,7 @@ void Scene::update()
 	updateCameraBuffer();
 
 	// we also update the transforms every frame though could have a dirty flag
-	updateTransformBuffer(staticModelCount, skinnedModelCount);
+	updateTransformBuffer(candRenderableObjs, staticModelCount, skinnedModelCount);
 }
 
 void Scene::updateCameraBuffer()
@@ -228,7 +229,7 @@ void Scene::updateCameraBuffer()
 	ubo.zFar = camera.getZFar();
 
 	auto& driver = engine.getVkDriver();
-	driver.updateUniform("CameraUbo", &ubo, sizeof(Camera::Ubo));
+	driver.updateUbo("CameraUbo", sizeof(Camera::Ubo), &ubo);
 }
 
 void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObjects, const size_t staticModelCount,
@@ -243,7 +244,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 	struct SkinnedUbo
 	{
 		OEMaths::mat4f modelMatrix;
-		OEMaths::mat4f jointMatrices[MAX_BONE_COUNT];
+        OEMaths::mat4f jointMatrices[TransformManager::MAX_BONE_COUNT];
 		float jointCount;
 	};
 
@@ -262,7 +263,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 	for (auto& cand : candObjects)
 	{
 		Renderable* rend = cand.renderable;
-		if (!rend->visibility & Renderable::Visible::Renderable)
+		if (!rend->visibility.testBit(Renderable::Visible::Render))
 		{
 			continue;
 		}
@@ -271,7 +272,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 		if (!transInfo->jointMatrices.empty())
 		{
 			size_t offset = staticDynAlign * staticCount++;
-			TransformUbo* currStaticPtr = (TransformUbo*)((uint64_t)staticAlignAlloc.data() + (offset));
+			TransformUbo* currStaticPtr = (TransformUbo*)((uint64_t)staticAlignAlloc.getData() + (offset));
 			currStaticPtr->modelMatrix = transInfo->modelTransform;
 
 			// the dynamic buffer offsets are stored in the renderable for ease of access when drawing
@@ -281,11 +282,11 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 		{
 			size_t offset = skinDynAlign * skinnedCount++;
 			SkinnedUbo* currSkinnedPtr =
-			    (SkinnedUbo*)((uint64_t)skinAlignAlloc.data() + (skinDynAlign * skinnedCount++));
+			    (SkinnedUbo*)((uint64_t)skinAlignAlloc.getData() + (skinDynAlign * skinnedCount++));
 			currSkinnedPtr->modelMatrix = transInfo->modelTransform;
 
 			// rather than throw an error, clamp the joint if it exceeds the max
-			size_t jointCount = std::min(MAX_BONE_COUNT, transInfo->jointMatrices.size());
+			uint32_t jointCount = std::min(TransformManager::MAX_BONE_COUNT, static_cast<uint32_t>(transInfo->jointMatrices.size()));
 			memcpy(currSkinnedPtr->jointMatrices, transInfo->jointMatrices.data(), jointCount * sizeof(OEMaths::mat4f));
 			rend->skinnedDynamicOffset = offset;
 		}
@@ -297,16 +298,16 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 	if (staticModelCount)
 	{
 		size_t staticDataSize = staticModelCount * sizeof(TransformUbo);
-		driver.addUbo("StaticTransform", staticDataSize, );
-		driver.updateUniform("StaticTransform", staticDataSize, staticAlignAlloc.data());
+		driver.addUbo("StaticTransform", staticDataSize, VulkanAPI::Buffer::Usage::Static);
+		driver.updateUbo("StaticTransform", staticDataSize, staticAlignAlloc.getData());
 	}
 
 	// skinned buffer
 	if (skinnedModelCount)
 	{
 		size_t skinnedDataSize = skinnedModelCount * sizeof(SkinnedUbo);
-		driver.addUbo("SkinnedTransform", skinnedDataSize, );
-		driver.updateUniform("SkinnedTransform", skinnedDataSize, skinAlignAlloc.data());
+		driver.addUbo("SkinnedTransform", skinnedDataSize, VulkanAPI::Buffer::Usage::Static);
+		driver.updateUbo("SkinnedTransform", skinnedDataSize, skinAlignAlloc.getData());
 	}
 }
 
@@ -345,9 +346,9 @@ void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
 	uint32_t pointlightCount = 0;
 	uint32_t dirLightCount = 0;
 
-	std::array<SpotLightUbo, MAX_SPOT_LIGHTS> spotLights;
-	std::array<PointLightUbo, MAX_POINT_LIGHTS> pointLights;
-	std::array<DirectionalLightUbo, MAX_DIR_LIGHTS> dirLights;
+	std::array<SpotLightUbo, LightManager::MAX_SPOT_LIGHTS> spotLights;
+	std::array<PointLightUbo, LightManager::MAX_POINT_LIGHTS> pointLights;
+	std::array<DirectionalLightUbo, LightManager::MAX_DIR_LIGHTS> dirLights;
 
 	// copy the light attributes we need for use in the light shaders.
 
@@ -394,20 +395,20 @@ void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
 	if (spotlightCount)
 	{
 		size_t dataSize = spotlightCount * sizeof(SpotLightUbo);
-		driver.addUbo("Spotlights", dataSize, );
-		driver.updateUniform("SpotLights", dataSize, spotLights.data());
+		driver.addUbo("Spotlights", dataSize, VulkanAPI::Buffer::Usage::Dynamic);
+		driver.updateUbo("SpotLights", dataSize, spotLights.data());
 	}
 	if (pointlightCount)
 	{
 		size_t dataSize = pointlightCount * sizeof(PointLightUbo);
-		driver.addUbo("Pointlights", dataSize, );
-		driver.updateUniform("PointLights", dataSize, pointLights.data());
+		driver.addUbo("Pointlights", dataSize, VulkanAPI::Buffer::Usage::Dynamic);
+		driver.updateUbo("PointLights", dataSize, pointLights.data());
 	}
 	if (dirLightCount)
 	{
 		size_t dataSize = dirLightCount * sizeof(DirectionalLightUbo);
-		driver.addUbo("Dirlights", dataSize, );
-		driver.updateUniform("DirLights", dataSize, dirLights.data());
+		driver.addUbo("Dirlights", dataSize, VulkanAPI::Buffer::Usage::Dynamic);
+		driver.updateUbo("DirLights", dataSize, dirLights.data());
 	}
 }
 

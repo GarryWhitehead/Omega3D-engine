@@ -18,9 +18,7 @@ namespace OmegaEngine
 {
 // forward decleartions
 class Object;
-struct ModelSkin;
-
-#define MAX_BONE_COUNT 256
+class SkinInstance;
 
 struct TransformInfo
 {
@@ -30,8 +28,8 @@ struct TransformInfo
 	OEMaths::mat4f modelTransform;
 
 	// the offset all skin indices will be adjusted by within this
-	// node hierachy
-	size_t skinOffset = 0;
+	// node hierachy. We use this also to signify if this model has a skin
+	uint32_t skinOffset = UINT32_MAX;
 
 	// skinning data - set by calling updateTransform()
 	std::vector<OEMaths::mat4f> jointMatrices;
@@ -42,7 +40,8 @@ class TransformManager : public ComponentManager
 
 public:
 	
-
+    static constexpr uint32_t MAX_BONE_COUNT = 256;
+    
 	TransformManager();
 	~TransformManager();
 
@@ -50,7 +49,7 @@ public:
 	* @brief Adds the node hierachy - reflects the layout obtained from 
 	* wherever this originate from to make sure bone transforms are correct
 	*/
-	bool addNodeHierachy(NodeInstance& node, Object& obj, ModelSkin* skin, size_t skinCount);
+	bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin, size_t skinCount);
 
 	/**
 	* @brief Creates a single node and adds the transform data to the root
@@ -60,7 +59,7 @@ public:
 	/**
 	* @brief Updates the local matrix tree; returns the root node local matrix
 	*/
-	OEMaths::mat4f updateMatrix(NodeInstance::NodeInfo* node, OEMaths::mat4f& world);
+	OEMaths::mat4f updateMatrix(NodeInstance::NodeInfo* node);
 
 	/**
 	* @brief Called after a node heirachy is added or after a animation update, this function
@@ -86,7 +85,7 @@ private:
 	std::vector<TransformInfo> nodes;
 
 	// skinned data - inverse bind matrices and bone info
-	std::vector<ModelSkin> skins;
+	std::vector<SkinInstance> skins;
 
 };
 

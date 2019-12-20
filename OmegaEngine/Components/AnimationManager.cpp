@@ -1,6 +1,6 @@
 #include "AnimationManager.h"
 
-#include "Core/World.h"
+#include "Core/Engine.h"
 
 #include "Components/TransformManager.h"
 
@@ -71,7 +71,7 @@ float AnimationManager::Sampler::getPhase(double time)
 	return static_cast<float>(phase);
 }
 
-void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation>& animation)
+void AnimationManager::addAnimation(std::unique_ptr<AnimInstance>& animation)
 {
 	AnimationInfo animInfo;
 
@@ -80,15 +80,15 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation>& animation)
 	{
 		Sampler newSampler;
 
-		if (sampler.interpolation == "LINEAR")
+		if (sampler.interpolation.compare("Linear"))
 		{
 			newSampler.interpolationType = Sampler::InterpolationType::Linear;
 		}
-		else if (sampler.interpolation == "STEP")
+		else if (sampler.interpolation.compare("Step"))
 		{
 			newSampler.interpolationType = Sampler::InterpolationType::Step;
 		}
-		else if (sampler.interpolation == "CUBICSPLINE")
+		else if (sampler.interpolation.compare("CubicSpline"))
 		{
 			newSampler.interpolationType = Sampler::InterpolationType::CubicSpline;
 		}
@@ -111,19 +111,19 @@ void AnimationManager::addAnimation(std::unique_ptr<ModelAnimation>& animation)
 	{
 		Channel newChannel;
 
-		if (channel.pathType == "rotation")
+		if (channel.pathType.compare("rotation"))
 		{
-			newChannel.pathType = Channel::PathType::Rotation;
+			newChannel.type = Channel::PathType::Rotation;
 		}
-		if (channel.pathType == "scale")
+		if (channel.pathType.compare("scale"))
 		{
-			newChannel.pathType = Channel::PathType::Scale;
+			newChannel.type = Channel::PathType::Scale;
 		}
-		if (channel.pathType == "translation")
+		if (channel.pathType.compare("translation"))
 		{
-			newChannel.pathType = Channel::PathType::Translation;
+			newChannel.type = Channel::PathType::Translation;
 		}
-		if (channel.pathType == "weights")
+		if (channel.pathType.compare("weights"))
 		{
 			LOGGER_INFO("Channel path type weights not yet supported.");
 			continue;
@@ -149,7 +149,7 @@ void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Obj
 	channel.object = &object;
 }
 
-void AnimationManager::updateFrame(double time, World& world)
+void AnimationManager::update(double time, Engine& engine)
 {
 	auto& transManager = engine.getTransManager();
 
@@ -168,20 +168,18 @@ void AnimationManager::updateFrame(double time, World& world)
 			uint32_t timeIndex = sampler.indexFromTime(animTime);
 			float phase = sampler.getPhase(animTime);
 
-			switch (channel.pathType)
+			switch (channel.type)
 			{
 			case Channel::PathType::Translation:
 			{
-				OEMaths::vec4f trans;
-				trans.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
-				transManager.updateObjectTranslation(obj, trans);
+				OEMaths::vec4f trans = OEMaths::mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
+				transManager.updateObjectTranslation(*obj, trans.xyz);
 				break;
 			}
 			case Channel::PathType::Scale:
 			{
-				OEMaths::vec4f scale;
-				scale.mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
-				transManager.updateObjectScale(obj, scale);
+				OEMaths::vec4f scale = OEMaths::mix(sampler.outputs[timeIndex], sampler.outputs[timeIndex + 1], phase);
+				transManager.updateObjectScale(*obj, scale.xyz);
 				break;
 			}
 			case Channel::PathType::Rotation:
@@ -197,8 +195,8 @@ void AnimationManager::updateFrame(double time, World& world)
 					                  sampler.outputs[timeIndex + 1].z, sampler.outputs[timeIndex + 1].w };
 
 				// TODO: add cubic and step interpolation
-				OEMaths::quatf rot = OEMaths::normalise(OEMaths::linearMix(quat1, quat2, phase));
-				transManager.updateObjectRotation(obj, rot);
+                OEMaths::quatf rot = OEMaths::quatf::normalise(OEMaths::quatf::linearMix(quat1, quat2, phase));
+				transManager.updateObjectRotation(*obj, rot);
 				break;
 			}
 			case Channel::PathType::CubicScale:

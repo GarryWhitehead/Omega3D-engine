@@ -100,7 +100,7 @@ public:
 	/**
 	* Constructor : if number of threads is zero, then will create as many threads as the hardware will allow
 	*/
-	explicit ThreadPool(const uint8_t numThreads = 0);
+	explicit ThreadPool(const uint32_t numThreads = 0);
 	~ThreadPool();
 
 	// not copyable
@@ -112,7 +112,12 @@ public:
 	{
 		std::future<T> fut;
 	};
-
+    
+    uint32_t getThreadCount() const
+    {
+        return threadCount;
+    }
+    
 	/**
 	* Submits a task to the queue. 
 	* Returns a std::future, this can be used for waiting for that thread to finish.
@@ -137,7 +142,7 @@ private:
 
 	std::vector<std::thread> threads;
 	ThreadedQueue<std::unique_ptr<Task>> workers;
-
+    uint32_t threadCount = 0;
 
 	std::atomic_bool isComplete{ false };
 };
@@ -154,7 +159,6 @@ public:
 	ThreadTaskSplitter(size_t start, size_t dataSize, Func func, uint8_t numThreads = 0)
 	    : start(start)
 	    , dataSize(dataSize)
-	    ,
 	    , func(func)
 	    , pool(std::make_unique<ThreadPool>(numThreads))
 	{
@@ -169,10 +173,8 @@ public:
 	void run()
 	{
 		// calculate the data size each thread will process
-		uint8_t numThreads = pool.getThreadCount();
+        uint8_t numThreads = pool->getThreadCount();
 		size_t end = start + dataSize;
-
-		size_t chunkSize = 0;
 		size_t processed = 0;
 
 		// if the data size is smaller than the number of threads,
@@ -187,7 +189,7 @@ public:
 		// if there is only one thread available, then submit in all data in that thread
 		// otherwise split....
 		size_t pos = start;
-		if (numTheads >= 2)
+        if (numThreads >= 2)
 		{
 
 			for (uint8_t i = 0; i < numThreads - 1; ++i)
@@ -204,7 +206,8 @@ public:
 	}
 
 private:
-	std::make_unique<ThreadPool> pool;
+    
+	std::unique_ptr<ThreadPool> pool;
 
 	size_t start;
 	size_t dataSize;

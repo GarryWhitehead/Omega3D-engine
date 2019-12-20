@@ -7,10 +7,6 @@
 #include <cstdint>
 #include <vector>
 
-#define MAX_SPOT_LIGHTS 50
-#define MAX_POINT_LIGHTS 50
-#define MAX_DIR_LIGHTS 5
-
 namespace OmegaEngine
 {
 
@@ -127,6 +123,10 @@ class LightManager : public ComponentManager
 
 public:
 	
+    static constexpr uint32_t MAX_SPOT_LIGHTS = 50;
+    static constexpr uint32_t MAX_POINT_LIGHTS = 50;
+    static constexpr uint32_t MAX_DIR_LIGHTS = 5;
+    
 	LightManager();
 	~LightManager();
 

@@ -13,6 +13,24 @@ MaterialInstance::~MaterialInstance()
 {
 }
 
+Util::String MaterialInstance::convertToAlpha(const cgltf_alpha_mode mode)
+{
+    Util::String result;
+    switch(mode)
+    {
+        case cgltf_alpha_mode_opaque:
+            result = "Opaque";
+            break;
+        case cgltf_alpha_mode_mask:
+            result = "Mask";
+            break;
+        case cgltf_alpha_mode_blend:
+            result = "Blend";
+            break;
+    }
+    return result;
+}
+
 Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 {
 	// not guaranteed to have a texture or uri
@@ -24,7 +42,7 @@ Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 	return "";
 }
 
-bool MaterialInstance::prepare(cgltf_material& mat)
+bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 {
 	// two pipelines, either specular glosiness or metallic roughness
 	// according to the spec, metallic roughness shoule be preferred
@@ -32,9 +50,11 @@ bool MaterialInstance::prepare(cgltf_material& mat)
 	{
 		usingSpecularGlossiness = true;
 
-		texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
-		factors.baseColour = OEMaths::vec4f(mat.pbr_specular_glossiness.diffuse_factor);
-		factors.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
+        texturePaths[TextureGroup::TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
+		block.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
+        
+        auto* df = mat.pbr_specular_glossiness.diffuse_factor;
+        block.baseColour = OEMaths::vec4f{df[0], df[1], df[2], df[3]};
 	}
 	
 
@@ -42,43 +62,43 @@ bool MaterialInstance::prepare(cgltf_material& mat)
 	{
 		usingSpecularGlossiness = false;
 
-		texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
-		texturePaths[TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
-		factors.baseColour = OEMaths::vec4f(mat.pbr_metallic_roughness.base_color_factor);
-		factors.roughness = mat.pbr_metallic_roughness.roughness_factor;
-		factors.metallic = mat.pbr_metallic_roughness.metallic_factor;
+        texturePaths[TextureGroup::TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
+        texturePaths[TextureGroup::TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
+		block.roughness = mat.pbr_metallic_roughness.roughness_factor;
+		block.metallic = mat.pbr_metallic_roughness.metallic_factor;
+        
+        auto* bcf = mat.pbr_metallic_roughness.base_color_factor;
+        block.baseColour = OEMaths::vec4f{bcf[0], bcf[1], bcf[2], bcf[3]};
 	}
 
 	// normal texture
-	texturePaths[TextureType::Normal] = getTextureUri(mat.normal_texture);
+    texturePaths[TextureGroup::TextureType::Normal] = getTextureUri(mat.normal_texture);
 
 	// occlusion texture
-	texturePaths[TextureType::Occlusion] = getTextureUri(mat.occlusion_texture);
+    texturePaths[TextureGroup::TextureType::Occlusion] = getTextureUri(mat.occlusion_texture);
 
 	// emissive texture
-	texturePaths[TextureType::Emissive] = getTextureUri(mat.emissive_texture);
+    texturePaths[TextureGroup::TextureType::Emissive] = getTextureUri(mat.emissive_texture);
 	
 	// emissive factor
-	factors.emissive = OEMaths::vec3f(mat.emissive_factor);
+    auto* ef = mat.emissive_factor;
+    block.emissive = OEMaths::vec3f{ef[0], ef[1], ef[2]};
 
 	// specular - extension
-	auto iter = extensions.find("specular");
-	if (iter != extensions.end)
+    Util::String data = extensions.find("specular");
+    if (!data.empty())
 	{
-		factors.specular = GltfModel::tokenToVec3(iter->second);
+        block.specular = GltfExtension::tokenToVec3(data);
 	}
 	
 	// alpha blending
-	blending.alphaMaskCutOff = mat.alpha_cutoff;
-	blending.mask = convertToAlpha(mat.alpha_mode);
+	block.alphaMaskCutOff = mat.alpha_cutoff;
+	block.mask = convertToAlpha(mat.alpha_mode);
 
 	// determines the type of culling required
 	doubleSided = mat.double_sided;
-
-	// create the renderblock
-	renderState = new VulkanAPI::RenderStateBlock();
-
-
+    
+    return true;
 }
 
 bool MaterialInstance::prepare(aiMaterial* mat)
@@ -88,37 +108,36 @@ bool MaterialInstance::prepare(aiMaterial* mat)
     // factors
     aiColor4D ambient;
     mat->Get(AI_MATKEY_COLOR_AMBIENT, ambient);
-    factors.baseColour = OEMaths::vec4f(ambient.r);
+    block.baseColour = OEMaths::vec4f(ambient.r);
     
     aiColor4D diffuse;
     mat->Get(AI_MATKEY_COLOR_AMBIENT, diffuse);
-    factors.diffuse = OEMaths::vec4f(diffuse.r);
+    block.diffuse = OEMaths::vec4f(diffuse.r);
     
     aiColor4D specular;
     mat->Get(AI_MATKEY_COLOR_SPECULAR, specular);
-    factors.specular = OEMaths::vec3f(specular.r);
+    block.specular = OEMaths::vec3f(specular.r);
     
     aiColor3D emissive;
     mat->Get(AI_MATKEY_COLOR_EMISSIVE, emissive);
-    factors.specular = OEMaths::vec3f(emissive.r);
+    block.specular = OEMaths::vec3f(emissive.r);
     
     // alpha
     
     // textures
     aiString diffusePath;
     mat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath);
-    textures.baseColour = diffusePath.C_Str();
+    texturePaths[TextureGroup::TextureType::BaseColour] = diffusePath.C_Str();
     
     aiString normalPath;
     mat->GetTexture(aiTextureType_NORMALS, 0, &normalPath);
-    textures.baseColour = normalPath.C_Str();
+    texturePaths[TextureGroup::TextureType::Normal] = normalPath.C_Str();
     
     aiString emissivePath;
     mat->GetTexture(aiTextureType_EMISSIVE, 0, &emissivePath);
-    textures.emissive = emissivePath.C_Str();
+    texturePaths[TextureGroup::TextureType::Emissive] = emissivePath.C_Str();
     
-    
+    return true;
 }
-
 
 }    // namespace OmegaEngine

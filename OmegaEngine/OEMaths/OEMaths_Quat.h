@@ -2,6 +2,7 @@
 
 #include "OEMaths_VecN.h"
 #include "OEMaths_Vec3.h"
+#include "OEMaths.h"
 
 #include <cassert>
 #include <cmath>
@@ -10,7 +11,7 @@ namespace OEMaths
 {
 
 template <typename T, size_t size = 4>
-class Quarternion : public MathOperators<Quarternion, T, size>
+class Quarternion : public MathOperators<Quarternion, T, 4>
 {
 public:
 	Quarternion()
@@ -57,7 +58,7 @@ public:
 	/**
 	* Extracts a quaternin from a matrix type. This code is identical to the code in Eigen.
 	*/
-    ::OEMaths::Quarternion<T, size> matToQuat(MatN<T, 4, 4>& mat)
+    static ::OEMaths::Quarternion<T, size> matToQuat(MatN<T, 4, 4>& mat)
 	{
         ::OEMaths::Quarternion<T, size> quat;
 
@@ -106,7 +107,30 @@ public:
 		return quat;
 	}
 
+    static inline constexpr Quarternion<T, size> linearMix(const Quarternion<T, size>& q1, const Quarternion<T, size>& q2, T u)
+    {
+        Quarternion<T, size> result;
+        result.x = q1.x * (1.0f - u) + q2.x * u;
+        result.y = q1.y * (1.0f - u) + q2.y * u;
+        result.z = q1.z * (1.0f - u) + q2.z * u;
+        result.w = q1.w * (1.0f - u) + q2.w * u;
+        return result;
+    }
+    
+    static inline constexpr T length(const Quarternion<T, size>& q)
+    {
+        return std::sqrt(q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w);
+    }
 
+    static inline constexpr Quarternion<T, size> normalise(const Quarternion<T, size>& q)
+    {
+        T len = length(q);
+        assert(len > static_cast<T>(0));
+        T inv = static_cast<T>(1) / len;
+        
+        return { q.x * inv, q.y * inv, q.z * inv, q.w * inv };
+    }
+    
 public:
 	union {
 		T data[4];

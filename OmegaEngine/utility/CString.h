@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utility/Logger.h"
+
 #include <cstdint>
 #include <cstddef>
 #include <vector>
@@ -19,7 +21,8 @@ public:
 
 	String(String&& str);
 	String& operator=(String&& str);
-
+    
+    size_t operator()(const String& str) const;
 	~String();
 
 	/**
@@ -30,14 +33,17 @@ public:
 	*/
 	bool compare(String str);
 
-    static std::vector<String> split(String str, char identifier);
+    float toFloat() const;
+    uint32_t toUInt32() const;
+    uint64_t toUInt64() const;
+    int toInt() const;
     
 	bool empty() const
 	{
 		return !buffer;
 	}
 
-	size_t size() const
+	uint32_t size() const
 	{
 		return length;
 	}
@@ -46,6 +52,9 @@ public:
 	{
 		return buffer;
 	}
+    
+    // ================== static functions ==========================
+    static std::vector<String> split(String str, char identifier);
     
     /**
      * @brief Convert a numbert type to string
@@ -69,21 +78,10 @@ public:
         return String{result};
     }
     
-    /**
-     * @brief Converts a str to a value
-     */
-    template <typename T>
-    static T stringToValue(String str)
-    {
-        T value;
-        if constexpr (std::is_same_v<T, float>)
-        {
-            sprintnf(str.buffer, str.length, "%f", value);
-        }
-    }
-    
 private:
+    
 	char* buffer = nullptr;
-	size_t length = 0;
+	uint32_t length = 0;
+    
 };
 }    // namespace Util

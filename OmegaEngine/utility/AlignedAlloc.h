@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdlib.h>
+#include <mm_malloc.h>
+
 namespace Util
 {
 
@@ -7,7 +10,8 @@ class AlignedAlloc
 {
 
 public:
-	AllignedAlloc() = delete;
+    
+    AlignedAlloc() = delete;
 
 	AlignedAlloc(size_t size, size_t alignment)
 	{
@@ -30,11 +34,11 @@ public:
 #endif
 	}
 
-	AlignedAlloc(const& AllignedAlloc) = delete;
-	AlignedAlloc& operator=(const& AllignedAlloc) = delete;
+	AlignedAlloc(const AlignedAlloc&) = delete;
+	AlignedAlloc& operator=(const AlignedAlloc&) = delete;
 
 
-	void* data()
+	void* getData()
 	{
 		return data;
 	}
@@ -45,6 +49,7 @@ public:
 	}
 
 private:
+    
 	void* data = nullptr;
 };
 

@@ -38,6 +38,8 @@ private:
     Util::String cgltfSamplerToStr(const cgltf_interpolation_type type);
     Util::String cgltfPathTypeToStr(const cgltf_animation_path_type type);
     
+    friend class AnimationManager;
+    
 private:
 	Util::String name;
 	float start = std::numeric_limits<float>::max();

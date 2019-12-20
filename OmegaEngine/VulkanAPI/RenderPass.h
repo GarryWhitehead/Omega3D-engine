@@ -4,6 +4,8 @@
 
 #include "OEMaths/OEMaths.h"
 
+#include "utility/BitSetEnum.h"
+
 #include <cassert>
 #include <cstdint>
 #include <unordered_map>
@@ -16,10 +18,23 @@ namespace VulkanAPI
 class ImageView;
 class VkContext;
 
+/**
+* @brief Flags for subpass dependencies, indicating each subpass barrier property
+*/
+enum class SubpassFlags : uint64_t
+{
+   DepthRead,
+   ColourRead,
+   TopOfPipeline,
+   BottomOfPipeline,
+   Merged
+};
+
 class RenderPass
 {
 
 public:
+    
 	enum class ClearType
 	{
 		Store,
@@ -65,8 +80,7 @@ public:
 	// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
 	bool addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef = UINT32_MAX);
 
-	void addSubpassDependency(DependencyTemplate dependencyTemplate, uint32_t srcSubpass = 0,
-	                          uint32_t dstSubpass = 0);    // templated version
+	void addSubpassDependency(uint32_t subpassRef, const Util::BitSetEnum<SubpassFlags>& flags);
 
 	// Actually creates the renderpass based on the above definitions
 	void prepare();
@@ -85,6 +99,7 @@ public:
 	std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
 
 private:
+    
 	struct SubpassInfo
 	{
 		vk::SubpassDescription descr;
@@ -132,15 +147,8 @@ class FrameBuffer
 public:
 	FrameBuffer() = default;
 
-	FrameBuffer(VkContext& context)
-	    : device(context.getDevice())
-	{
-	}
-
-	~FrameBuffer()
-	{
-		device.destroy(fbuffer);
-	}
+    FrameBuffer(VkContext& context);
+    ~FrameBuffer();
 
 	void prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
 	             uint32_t layerCount);

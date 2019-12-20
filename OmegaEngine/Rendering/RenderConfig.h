@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Rendering/Renderers/RendererBase.h"
 #include "VulkanAPI/Common.h"
+
 #include "rapidjson/document.h"
 
 #include <array>

@@ -18,7 +18,7 @@ KtxReader::~KtxReader()
 
 vk::Format KtxReader::convertGlToVkFormat(uint32_t internalFormat)
 {
-	vk::Format format;
+	vk::Format format = vk::Format::eUndefined;
 	switch (internalFormat)
 	{
 	case 15:    // RGB8_ETC2
@@ -212,7 +212,7 @@ bool KtxReader::parse(const size_t fileSize)
 	return true;
 }
 
-std::vector<uint8_t> KtxReader::generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height,
+std::vector<uint8_t> KtxReader::generate(uint32_t width, uint32_t height,
                                          uint32_t arrayCount, uint32_t faceCount, uint32_t mipLevels)
 {
 	std::vector<uint8_t> output_data;
@@ -293,7 +293,7 @@ bool KtxReader::loadFile(Util::String filename)
 	return true;
 }
 
-bool KtxReader::saveFile(Util::String filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount,
+bool KtxReader::saveFile(Util::String filename, uint32_t mipLevels, uint32_t arrayCount,
                          uint32_t num_faceCount, uint32_t width, uint32_t height)
 {
 	if (filename.empty())
@@ -302,7 +302,7 @@ bool KtxReader::saveFile(Util::String filename, std::vector<uint8_t>& data, uint
 		return false;
 	}
 
-	std::vector<uint8_t> output = generate(data, width, height, arrayCount, num_faceCount, mipLevels);
+	std::vector<uint8_t> output = generate(width, height, arrayCount, num_faceCount, mipLevels);
 	if (output.empty())
 	{
 		fprintf(stderr, "Error whilst generating ktx file binary.\n");

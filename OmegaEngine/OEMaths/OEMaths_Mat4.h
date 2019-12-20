@@ -123,8 +123,72 @@ public:
         assert(idx < NUM_COLS);
         return data[idx];
     }
+    
+    /**
+     * @brief A faster version of the inverse function (comapred to the MatN version) for mat4x4
+     */
+    static MatN<T, 4, 4> inverse(MatN<T, 4, 4>& mat)
+    {
+        MatN<T, 4, 4> inv, result;
+        T det;
 
+        inv[0] = mat[1][1] * mat[2][2] * mat[3][3] - mat[1][1] * mat[2][1] * mat[3][1] - mat[2][1] * mat[1][2] * mat[3][3] +
+                 mat[2][1] * mat[1][3] * mat[3][2] + mat[3][1] * mat[1][2] * mat[2][3] - mat[3][1] * mat[1][3] * mat[2][2];
 
+        inv[4] = -mat[1][0] * mat[2][2] * mat[3][3] + mat[1][0] * mat[2][1] * mat[3][2] + mat[2][0] * mat[1][2] * mat[3][3]     - mat[2][0] * mat[1][3] * mat[3][2] - mat[3][0] * mat[1][2] * mat[2][3] + mat[3][0] * mat[1][3] * mat[2][2];
+
+        inv[8] = mat[1][0] * mat[2][1] * mat[3][3] - mat[1][0] * mat[2][3] * mat[3][1] - mat[2][0] * mat[1][1] * mat[3][3] +
+                 mat[2][0] * mat[1][3] * mat[3][1] + mat[3][0] * mat[1][1] * mat[2][3] - mat[3][0] * mat[1][3] * mat[2][1];
+
+        inv[12] = -mat[1][0] * mat[2][1] * mat[3][2] + mat[1][0] * mat[2][2] * mat[3][1] + mat[2][0] * mat[1][1] *           mat[3][2] - mat[2][0] * mat[1][2] * mat[3][1] - mat[3][0] * mat[1][1] * mat[2][2] + mat[3][0] *           mat[1][2] * mat[2][1];
+
+        inv[1] = -mat[0][1] * mat[2][2] * mat[3][3] + mat[0][1] * mat[2][3] * mat[3][2] + mat[2][1] * mat[0][2] *               mat[3][3] - mat[2][1] * mat[0][3] * mat[3][2] - mat[3][1] * mat[0][2] * mat[2][3] + mat[3][1] * mat[0][3] * mat[2][2];
+
+        inv[5] = mat[0][0] * mat[2][2] * mat[3][3] - mat[0][0] * mat[11] * mat[3][2] - mat[2][0] * mat[0][2] * mat[3][3] +
+                 mat[2][0] * mat[0][3] * mat[3][2] + mat[3][0] * mat[0][2] * mat[11] - mat[3][0] * mat[0][3] * mat[2][2];
+
+        inv[9] = -mat[0][0] * mat[2][1] * mat[3][3] + mat[0][0] * mat[2][3] * mat[3][1] + mat[2][0] * mat[0][1] * mat[3][3] -
+                 mat[2][0] * mat[0][3] * mat[3][1] - mat[3][0] * mat[0][1] * mat[2][3] + mat[3][0] * mat[0][3] * mat[2][1];
+
+        inv[13] = mat[0][0] * mat[2][1] * mat[3][2] - mat[0][0] * mat[2][2] * mat[3][1]- mat[2][0] * mat[0][1] * mat[3][2] +
+                  mat[2][0] * mat[0][2] * mat[3][1] + mat[3][0] * mat[0][1] * mat[2][2] - mat[3][0] * mat[0][2] * mat[2][1];
+
+        inv[2] = mat[0][1] * mat[1][2] * mat[3][3] - mat[0][1] * mat[1][3] * mat[3][2] - mat[1][1] * mat[0][2] * mat[3][3] +
+                 mat[1][1] * mat[0][3] * mat[3][2] + mat[3][1] * mat[0][2] * mat[1][3] - mat[3][1] * mat[0][3] * mat[1][2];
+
+        inv[6] = -mat[0][0] * mat[1][2] * mat[3][3] + mat[0][0] * mat[1][3] * mat[3][2] + mat[1][0] * mat[0][2] * mat[3][3] - mat[1][0] * mat[0][3] * mat[3][2] - mat[3][0] * mat[0][2] * mat[1][3] + mat[3][0] * mat[0][3] * mat[1][2];
+
+        inv[10] = mat[0][0] * mat[1][1] * mat[3][3] - mat[0][0] * mat[1][3] * mat[3][1] - mat[1][0] * mat[0][1] * mat[3][3] + mat[1][0] * mat[0][3] * mat[3][1] + mat[3][0] * mat[0][1] * mat[1][3] - mat[3][0] * mat[0][3] * mat[1][1];
+
+        inv[14] = -mat[0][0] * mat[1][1] * mat[3][2] + mat[0][0] * mat[1][2] * mat[3][1] + mat[1][0] * mat[0][1] * mat[3][2] - mat[1][0] * mat[0][2] * mat[3][1] - mat[3][0] * mat[0][1] * mat[1][2] + mat[3][0] * mat[0][2] * mat[1][1];
+
+        inv[3] = -mat[0][1] * mat[1][2] * mat[2][3] + mat[0][1] * mat[1][3] * mat[2][2] + mat[1][1] * mat[0][2] * mat[2][3] - mat[1][1] * mat[0][3] * mat[2][2] - mat[2][1] * mat[0][2] * mat[1][3] + mat[2][1] * mat[0][3] * mat[1][2];
+
+        inv[7] = mat[0][0] * mat[1][2] * mat[2][3] - mat[0][0] * mat[1][3] * mat[2][2] - mat[1][0] * mat[0][2] * mat[2][3] +
+                 mat[1][0] * mat[0][3] * mat[2][2] + mat[2][0] * mat[0][2] * mat[1][3] - mat[2][0] * mat[0][3] * mat[1][2];
+
+        inv[11] = -mat[0][0] * mat[1][1] * mat[2][3] + mat[0][0] * mat[1][3] * mat[2][1] + mat[1][0] * mat[0][1] * mat[2][3] - mat[1][0] * mat[0][3] * mat[2][1] - mat[2][0] * mat[0][1] * mat[1][3] + mat[2][0] * mat[0][3] * mat[1][1];
+
+        inv[15] = mat[0][0] * mat[1][1] * mat[2][2] - mat[0][0] * mat[1][2] * mat[2][1] - mat[1][0] * mat[0][1] * mat[2][2] + mat[1][0] * mat[0][2] * mat[2][1] + mat[2][0] * mat[0][1] * mat[1][2] - mat[2][0] * mat[0][2] * mat[1][1];
+
+        det = mat[0][0] * inv[0][0] + mat[0][1] * inv[1][0] + mat[0][2] * inv[2][0] + mat[0][3] * inv[3][0];
+
+        if (det == 0.0f)
+        {
+            // just return a identity matrix
+            return {};
+        }
+
+        det = 1.0f / det;
+
+        for (uint32_t i = 0; i < 16; i++)
+        {
+            result[i] = inv[i] * det;
+        }
+
+        return result;
+    }
+    
 public:
 	
     /**
@@ -136,5 +200,6 @@ public:
 
 using mat4f = MatN<float, 4, 4>;
 using mat4d = MatN<double, 4, 4>;
+
 
 } // namespace OEMaths

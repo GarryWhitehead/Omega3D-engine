@@ -5,7 +5,7 @@
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkDriver.h"
 
-#include "utility/String.h"
+#include "utility/CString.h"
 
 #include <memory>
 #include <vector>
@@ -25,6 +25,8 @@ class CameraManager;
 class LightManager;
 class RenderableManager;
 class TransformManager;
+class Renderer;
+class Scene;
 
 struct NativeWindowWrapper;
 
@@ -51,7 +53,7 @@ public:
 	/**
 	* @brief Creates a new renderer instance based on the user specified swapchain and scene
 	*/
-	Renderer* createRenderer(Swapchain& swapchain, Scene* scene);
+    Renderer* createRenderer(VulkanAPI::Swapchain& swapchain, Scene* scene);
 
 	/**
 	* @ brief Creates a new world object. This object is stored by the engine allowing

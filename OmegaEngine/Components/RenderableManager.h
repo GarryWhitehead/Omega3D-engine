@@ -3,12 +3,14 @@
 #include "Core/ObjectManager.h"
 
 #include "Types/Object.h"
+#include "Types/MappedTexture.h"
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
 #include "utility/Logger.h"
 #include "utility/BitSetEnum.h"
+#include "utility/CString.h"
 
 #include "Components/ComponentManager.h"
 
@@ -79,7 +81,7 @@ struct TextureGroup
 
 struct Material
 {
-	enum class TextureVariants : uint64_t
+	enum TextureVariants : uint64_t
 	{
 		HasBaseColour,
 		HasNormal,
@@ -127,7 +129,7 @@ struct Renderable
 	*/
 	enum class Visible : uint8_t
 	{
-		Renderable,
+		Render,
 		Shadow,
         __SENTINEL__
 	};

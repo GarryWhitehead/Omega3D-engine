@@ -75,7 +75,8 @@ public:
 	vk::Format convertGlToVkFormat(uint32_t internalFormat);
 
 	bool loadFile(Util::String filename);
-	bool saveFile(Util::String filename, std::vector<uint8_t>& data, uint32_t mipLevels, uint32_t arrayCount,
+	
+    bool saveFile(Util::String filename, uint32_t mipLevels, uint32_t arrayCount,
 	              uint32_t num_faceCount, uint32_t width, uint32_t height);
 
 	ImageOutput* getImageData()
@@ -86,9 +87,12 @@ public:
 private:
 
 	bool load(Util::String filename, size_t& fileSize);
-	bool save(Util::String, std::vector<uint8_t>& output);
-	bool parse(const size_t fileSize);
-	std::vector<uint8_t> generate(std::vector<uint8_t>& data, uint32_t width, uint32_t height, uint32_t arrayCount,
+	
+    bool save(Util::String, std::vector<uint8_t>& output);
+	
+    bool parse(const size_t fileSize);
+	
+    std::vector<uint8_t> generate(uint32_t width, uint32_t height, uint32_t arrayCount,
 	                              uint32_t faceCount, uint32_t mipLevels);
 
 	template <typename T>

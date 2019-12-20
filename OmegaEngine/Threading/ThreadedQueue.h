@@ -19,7 +19,7 @@ public:
 
 	bool tryPop(T& value)
 	{
-		std::lock_guard<std::mutex> lock{ qeueMutex };
+        std::lock_guard<std::mutex> lock{ queueMutex };
 		if (values.empty() || finished)
 		{
 			return false;

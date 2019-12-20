@@ -112,20 +112,21 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 		std::vector<uint32_t> inputRefs, outputRefs;
 
 		// if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
-		if (!parent)
+		if (!flags.testBit(Flags::Merged))
 		{
-			context.rpass = new VulkanAPI::RenderPass(engine.getDevContext());
+			context.rpass = new VulkanAPI::RenderPass();
 		}
 		else
 		{
 			assert(parent->context.rpass);
 			context.rpass = parent->context.rpass;
+            // add subpass here? - need to pass merged ref count too
 		}
 
 		// add the output attachments
 		for (ResourceHandle handle : outputs)
 		{
-			ResourceBase* base = rgraph->resources[handle];
+            ResourceBase* base = rgraph->resources[handle];
 			assert(base->type == ResourceBase::ResourceType::Texture);
 			TextureResource* tex = static_cast<TextureResource*>(rgraph->resources[handle]);
 
@@ -135,7 +136,7 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 				// not exactly a reason to fatal error maybe, but warn the user
 				tex->width = maxWidth;
 				tex->height = maxHeight;
-				LOGGER_INFO("There appears to be some discrepancy between this passes resource dimensions\n");
+				LOGGER_WARN("There appears to be some discrepancy between this passes resource dimensions\n");
 			}
 
 			outputRefs.emplace_back(tex->referenceId);
@@ -162,6 +163,7 @@ void RenderGraphPass::prepare(RenderGraphPass* parent)
 		// Add a subpass. If this is a merged pass, then this will be added to the parent
 		context.rpass->addSubPass(inputRefs, outputRefs);
 		context.rpass->addSubpassDependency(subpass.depFlags);
+        
 		break;
 	}
 	case RenderPassType::Compute:
@@ -329,9 +331,13 @@ bool RenderGraph::compile()
 		if (i < passCount - 1)
 		{
 			RenderGraphPass& nextPass = renderPasses[i + 1];
+            
+            // create a linked list
+            rpass.nextPass = &nextPass;
+            
 			if (!nextPass.inputs.empty())
 			{
-				rpass.childMergePass = &nextPass;
+                flags |= RenderGraphPass::Flags::Merged;
 				rpass.refCount = 0;
 			}
 			else
@@ -349,6 +355,7 @@ bool RenderGraph::compile()
 	// Now work out the discard flags for each pass
 
 	// And the dependencies
+    
 }
 
 void RenderGraph::initRenderPass()
@@ -376,14 +383,14 @@ void RenderGraph::initRenderPass()
 			}
 
 			// check if this is merged - will have child passes associated with it
-			if (rpass.childMergePass)
+			if (rpass.flags.testBit(RenderGraphPass::Flags::Merged))
 			{
 				// prepare this pass first
 				rpass.prepare();
 
 				// add each child pass info to this parent - creating a multi-pass
 				RenderGraphPass* child = &rpass;
-				while (!child->childMergePass)
+				while (!child->flags.testBit(RenderGraphPass::Flags::Merged))
 				{
 					child->prepare(&rpass);
 					child = child->childMergePass;
@@ -401,7 +408,6 @@ void RenderGraph::initRenderPass()
 
 			// and the command buffer - this is linked to both the pass and frame buffer
 			rpass.context.cbManager->createCmdBuffer();
-
 			break;
 		}
 

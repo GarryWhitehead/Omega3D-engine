@@ -2,7 +2,6 @@
 
 #include "Models/AnimInstance.h"
 
-#include "Models/Formats/GltfModel.h"
 #include "Models/MaterialInstance.h"
 #include "Models/MeshInstance.h"
 #include "Models/NodeInstance.h"
@@ -12,28 +11,21 @@
 
 #include "OEMaths/OEMaths.h"
 
-#define CGLTF_IMPLEMENTATION
-#include "cgltf/cgltf.h"
-
 #include <memory>
 #include <unordered_map>
 #include <vector>
 
+#include "cgltf/cgltf.h"
+
 namespace OmegaEngine
 {
-
-// <extension name, value (as string)>
-using ExtensionData = std::unordered_map<Util::String, Util::String>;
 
 class GltfModel
 {
 
 public:
-	// utility functions for dealing with gltf json data
-	static bool prepareExtensions(const cgltf_extras& extras, cgltf_data& data, ExtensionData& extensions);
-	static OEMaths::vec3f tokenToVec3(Util::String str);
-
-	// atributes
+	
+	/// atributes
 	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
 
 	/**

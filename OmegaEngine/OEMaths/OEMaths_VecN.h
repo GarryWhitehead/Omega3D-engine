@@ -174,7 +174,7 @@ public:
 // =========== helpers =====================
 
 template <typename T, size_t size, typename U>
-VecN<T, size> makeVector(U* data)
+VecN<T, size> buildVector(U* data)
 {
 	assert(data != nullptr);
 	U* ptr = static_cast<U*>(data);

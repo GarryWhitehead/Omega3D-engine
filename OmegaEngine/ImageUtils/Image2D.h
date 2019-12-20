@@ -35,10 +35,10 @@ public:
 		if (this != &other)
 		{
 			data = std::exchange(other.data, nullptr);
-			this->width = other.width;
-			this->height = other.height;
-			this->channels = other.channels;
-			this->size = other.size;
+			width = other.width;
+			height = other.height;
+			channels = other.channels;
+			size = other.size;
 		}
 		return *this;
 	}
@@ -49,12 +49,12 @@ public:
 	* @param height The height of the image in pixels
 	* @param channels The number of channels the image contains (i.e. rgba = 4)
 	*/
-	void reserve(uint32_t width, uint32_t height, uint8_t channels)
+	void reserve(uint32_t w, uint32_t h, uint8_t c)
 	{
-		this->width = width;
-		this->height = height;
-		this->channels = channels;
-		this->size = width * height * channels;
+		width = w;
+		height = h;
+		channels = c;
+		size = width * height * channels;
 
 		// allocate image memory
 		data = new pixelType[size];
