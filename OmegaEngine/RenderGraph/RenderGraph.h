@@ -27,11 +27,10 @@ class VkDriver;
 namespace OmegaEngine
 {
 
-// forward decleration
+// forward declerations
 class RenderGraph;
-class RenderGraphPass;
 class Renderer;
-
+class RenderGraphPass;
 
 /**
 * @brief A useful container for grouping together render graph variables for use externally
@@ -39,7 +38,7 @@ class Renderer;
 struct RGraphContext
 {
 	// the command buffer handle for this pass
-	VulkanAPI::CmdBufferHandle cmdBuffer;
+	VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
 
 	// the vulkan render pass for this pass
 	VulkanAPI::RenderPass* rpass = nullptr;
@@ -68,6 +67,9 @@ public:
 		Compute
 	};
     
+    RenderGraphPass() = default;
+    RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
+    
 	// not copyable
 	RenderGraphPass(const RenderGraphPass&) = delete;
 	RenderGraphPass& operator=(const RenderGraphPass&) = delete;
@@ -82,14 +84,14 @@ public:
 	void addExecute(ExecuteFunc&& func);
 
 	// init the vulkan renderpass - attachments, ref, dependencies
-	// these are can be added to a parent merged pass if defined
-	void prepare(RenderGraphPass* parent = nullptr);
+	// these can be added to a parent merged pass if defined
+	void prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* parent = nullptr);
 
 	// creates the vulkan renderpass. You must call **prepare()** first
 	void bake();
 
 	// Sets the clear colour for all attachments for this pass	
-	void setClearColour(OEMaths::colour4 clearCol);
+	void setClearColour(OEMaths::colour4& clearCol);
 
 	// sets the depth clear for this pass
 	void setDepthClear(float depthClear);
@@ -98,8 +100,8 @@ public:
 
 private:
     
-	RenderGraph* rgraph = nullptr;
-
+	RenderGraph& rGraph;
+    Util::String name;
 	Type type;
 
 	// a list of handles of input and output attachments
@@ -120,14 +122,16 @@ private:
 	// If this pass is mergeable, then this will point to a linked list of mergable passes
 	RenderGraphPass* nextPass = nullptr;
     
+    // This is only used if this pass will be used threaded, i.e. using secondary cmd buffers. If this is the case, all cmd buffers will be allocated from this pool and will be reset per frame through a call to **update**.
+    VulkanAPI::CmdPool* cmdPool = nullptr;
+    
     Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
     
 	// ======= vulkan specific ================
 	// Kept in a struct as this will be passed around when rendering passes
 	RGraphContext context;
 
-	// Renderpasses can have more than one frame buffer - if triple buffered for exmample
-	std::vector<VulkanAPI::FrameBuffer> framebuffer;
+	VulkanAPI::FrameBuffer framebuffer;
 
 	// clear colours for this pass
 	OEMaths::colour4 clearCol = { 0.0f };
@@ -173,7 +177,7 @@ public:
 	/**
 	* @brief Sets the clear colour for all attachments for this pass
 	*/
-	void setClearColour(OEMaths::colour4 clearCol);
+	void setClearColour(OEMaths::colour4& clearCol);
 
 	/**
 	* @brief Sets the depth clear for this pass
@@ -189,6 +193,7 @@ private:
 class RenderGraph
 {
 public:
+    
 	RenderGraph(VulkanAPI::VkDriver& driver);
 	~RenderGraph();
 
@@ -203,7 +208,7 @@ public:
 	* @param name The name of this pass
 	* @ return A convience render graph builder which is used by the user to create the defined pass
 	*/
-	RenderGraphBuilder createRenderPass(Util::String name);
+	RenderGraphBuilder createRenderPass(Util::String name, const RenderGraphPass::Type type);
 
 	/**
 	* @brief Takes the user-defined graph and builds the render pass.
@@ -218,29 +223,27 @@ public:
 	* The execution of the render pass. You must build the pass and call **prepare** before this function
 	*/
 	void execute();
-
-	friend class RenderGraphBuilder;
-	friend class RenderGraphPass;
-
-
+    
+    // ============== getters ==================
+    std::vector<ResourceBase*>& getResources();
+    
+    friend class RenderGraphPass;
+    friend class RenderGraphBuilder;
+    
 private:
+    
 	void CullResourcesAndPasses(ResourceBase* resource);
-
-	// Creates a new target resource
 	ResourceHandle addResource(ResourceBase* resource);
-
-	// adds a new attachment to the graph
 	AttachmentHandle addAttachment(AttachmentInfo& info);
-
-	// finds an attachment by name and returns its handle. Returns UNIT64_MAX if invalid name.
 	AttachmentHandle findAttachment(Util::String attach);
 
 	void initRenderPass();
 
 	// optimises the render graph if possible and fills in all the blanks - i.e. referneces, flags, etc.
 	bool compile();
-
+    
 private:
+    
 	VulkanAPI::VkDriver& driver;
 
 	// a list of all the render passes

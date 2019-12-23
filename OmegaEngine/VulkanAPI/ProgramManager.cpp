@@ -1,6 +1,6 @@
 #include "ProgramManager.h"
 
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 #include "utility/FileUtil.h"
 
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
@@ -9,6 +9,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
@@ -17,6 +18,10 @@ namespace VulkanAPI
 {
 
 // =================== ShaderProgram ======================
+
+ShaderProgram::ShaderProgram(VkContext& context) :
+    context(context)
+{}
 
 void ShaderProgram::addVariant(Util::String definition, uint8_t value, Shader::Type stage)
 {
@@ -38,7 +43,7 @@ void ShaderProgram::updateConstant(Util::String name, float value, Shader::Type 
 {
 }
 
-bool ShaderProgram::prepare(ShaderParser& parser, VkContext& context)
+bool ShaderProgram::prepare(ShaderParser& parser)
 {
 	ShaderCompiler compiler(*this, context);
 
@@ -255,7 +260,7 @@ void ProgramManager::pushBufferDescrUpdate(Util::String id, Buffer& buffer)
 void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
 {
 	assert(!id.empty());
-	imageDescrQueue.emplace_back(std::make_pair(id, tex));
+	imageDescrQueue.emplace_back(std::make_pair(id, std::move(tex)));
 }
 
 void ProgramManager::updateBufferDecsrSets()

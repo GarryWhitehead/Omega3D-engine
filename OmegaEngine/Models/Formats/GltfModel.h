@@ -7,6 +7,8 @@
 #include "Models/NodeInstance.h"
 #include "Models/SkinInstance.h"
 
+#include "Models/Formats/GltfExtension.h"
+
 #include "utility/CString.h"
 
 #include "OEMaths/OEMaths.h"
@@ -78,7 +80,9 @@ public:
 	* @brief Sets the world rotation for this model
 	*/
 	void setWorldRotation(OEMaths::quatf& rot);
-
+    
+    GltfExtension& getExtensions();
+    
 	friend class Scene;
 
 private:
@@ -104,6 +108,9 @@ private:
     // for linking to our own node hierachy
 	std::vector<cgltf_node*> linearisedNodes;
 
+    // all the extensions available for this model
+    GltfExtension extensions;
+    
 	// world co-ords
 	OEMaths::vec3f wTrans;
 	OEMaths::vec3f wScale = OEMaths::vec3f{1.0f};

@@ -124,19 +124,6 @@ public:
 
 // ================ matrix functions =====================
 
-template <typename T, size_t cols, size_t rows, typename U>
-MatN<T, cols, rows> makeMatrix(U* data)
-{
-	assert(data != nullptr);
-	MatN<T, cols, rows> result;
-	U* ptr = static_cast<U*>(data);
-
-	for (size_t i = 0; i < cols; ++i)
-	{
-		result[i] = makeVector(*ptr);
-		++ptr;
-	}
-}
 
 template <typename T, size_t cols, size_t rows>
 MatN<T, cols, rows> transpose(MatN<T, cols, rows>& mat)

@@ -141,13 +141,32 @@ public:
 		data[pixelPos] = pixel;
 	}
 
+    /**
+    * Sets a 2 channel pixel to the specified value at the coord point indicated.
+    * @param x The x coord in pixels
+    * @param y The y coord in pixels
+    * @param pixels A rg definition of the pixel values
+    */
+    void writeTexel2D(uint32_t x, uint32_t y, Colour2& pixels)
+    {
+        assert(x <= width);
+        assert(y <= height);
+        assert(channels == 2);
+
+        size_t pixelPos = x * channels + y * width;
+        assert(pixelPos < size);
+
+        data[pixelPos] = pixels.r;
+        data[pixelPos + 1] = pixels.g;
+    }
+    
 	/**
 	* Sets a 3 channel pixel to the specified value at the coord point indicated. 
 	* @param x The x coord in pixels
 	* @param y The y coord in pixels
 	* @param pixels A rgb definition of the pixel values
 	*/
-	void writeTexel(uint32_t x, uint32_t y, Colour3& pixels)
+	void writeTexel3D(uint32_t x, uint32_t y, Colour3& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);
@@ -167,7 +186,7 @@ public:
 	* @param y The y coord in pixels
 	* @param channel The channel to retrive (0 = red; 1 = green; 2 = blue; 3 = alpha)
 	*/
-	void writeTexel(uint32_t x, uint32_t y, Colour4& pixels)
+	void writeTexel4D(uint32_t x, uint32_t y, Colour4& pixels)
 	{
 		assert(x <= width);
 		assert(y <= height);

@@ -24,14 +24,20 @@ VkDriver::~VkDriver()
 	shutdown();
 }
 
-void VkDriver::init(const char** instanceExt, uint32_t count)
+bool VkDriver::init(const char** instanceExt, uint32_t count)
 {
 	// prepare the vulkan backend
 	// create a new vulkan instance
-	context.createInstance(instanceExt, count);
+	if (!context.createInstance(instanceExt, count))
+    {
+        return false;
+    }
 
 	// prepare the physical and abstract device including queues
-	context.prepareDevice();
+	if (!context.prepareDevice())
+    {
+        return false;
+    }
 
 	// set up the memory allocator
 	VmaAllocatorCreateInfo createInfo = {};

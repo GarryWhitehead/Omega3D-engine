@@ -34,10 +34,6 @@ public:
 	Texture() noexcept;
 	~Texture();
     
-    // copying not allowed
-    Texture(const Texture&) = delete;
-    Texture& operator=(const Texture&) = delete;
-    
     /**
      * @brief Creates a image and image view for a 2d texture
      * @param format The format of the texture - see **vk::Format**
@@ -79,8 +75,8 @@ private:
     // The texture sampler
     Sampler sampler;
 
-	std::unique_ptr<Image> image;
-	std::unique_ptr<ImageView> imageView;
+	Image* image;
+	ImageView* imageView;
 };
 
 }    // namespace VulkanAPI

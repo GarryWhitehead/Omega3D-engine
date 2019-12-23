@@ -15,7 +15,7 @@ namespace OmegaEngine
 {
 
 // forward declerations
-class RGraphContext;
+struct RGraphContext;
 
 struct SortKey
 {

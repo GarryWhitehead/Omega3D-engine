@@ -20,22 +20,70 @@ RenderPass::~RenderPass()
 }
 
 
-vk::AttachmentLoadOp RenderPass::clearFlagsToVk(const ClearType flags)
+vk::AttachmentLoadOp RenderPass::loadFlagsToVk(const LoadType flags)
 {
 	vk::AttachmentLoadOp result;
 	switch (flags)
 	{
-	case ClearType::Clear:
+	case LoadType::Clear:
 		result = vk::AttachmentLoadOp::eClear;
 		break;
-	case ClearType::DontCare:
+	case LoadType::DontCare:
 		result = vk::AttachmentLoadOp::eDontCare;
 		break;
-	case ClearType::Store:
+	case LoadType::Store:
 		result = vk::AttachmentLoadOp::eLoad;
 		break;
 	}
 	return result;
+}
+
+vk::AttachmentStoreOp RenderPass::storeFlagsToVk(const StoreType flags)
+{
+    vk::AttachmentStoreOp result;
+    switch (flags)
+    {
+    case StoreType::DontCare:
+        result = vk::AttachmentStoreOp::eDontCare;
+        break;
+    case StoreType::Store:
+        result = vk::AttachmentStoreOp::eStore;
+        break;
+    }
+    return result;
+}
+
+vk::SampleCountFlagBits RenderPass::samplesToVk(const uint32_t count)
+{
+    vk::SampleCountFlagBits result = vk::SampleCountFlagBits::e1;
+    switch (count)
+    {
+        case 1:
+            result = vk::SampleCountFlagBits::e1;
+            break;
+        case 2:
+            result = vk::SampleCountFlagBits::e2;
+            break;
+        case 4:
+            result = vk::SampleCountFlagBits::e4;
+            break;
+        case 8:
+            result = vk::SampleCountFlagBits::e8;
+            break;
+        case 16:
+            result = vk::SampleCountFlagBits::e16;
+            break;
+        case 32:
+            result = vk::SampleCountFlagBits::e32;
+            break;
+        case 64:
+            result = vk::SampleCountFlagBits::e64;
+            break;
+        default:
+            LOGGER_WARN("Unsupported sample count. Set to one.");
+            break;
+    }
+    return result;
 }
 
 bool RenderPass::isDepth(const vk::Format format)
@@ -67,37 +115,29 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 	return result;
 }
 
-void RenderPass::addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout,
-                                     const vk::ImageLayout finalLayout, const size_t reference, ClearFlags& clearFlags,
-                                     uint32_t sampleCount)
+void RenderPass::addOutputAttachment(const vk::Format format, const size_t reference, ClearFlags& clearFlags, const uint32_t sampleCount)
 {
 	// the description of this attachment
 	vk::AttachmentDescription attachDescr;
 	attachDescr.format = format;
-	attachDescr.initialLayout = initialLayout;
-	attachDescr.finalLayout = finalLayout;
+	attachDescr.initialLayout = vk::ImageLayout::eUndefined;
+	attachDescr.finalLayout = getFinalTransitionLayout(format);
 
 	// samples
 	attachDescr.samples = samplesToVk(sampleCount);
 
 	// clear flags
-	attachDescr.loadOp = clearFlagsToVk(clearFlags.attachLoad);              // pre image state
-	attachDescr.storeOp = clearFlagsToVk(clearFlags.attachStore);            // post image state
-	attachDescr.stencilLoadOp = clearFlagsToVk(clearFlags.stencilLoad);      // pre stencil state
-	attachDescr.stencilStoreOp = clearFlagsToVk(clearFlags.stencilStore);    // post stencil state
-
-	vk::AttachmentDescription attachDescr(
-	    {}, format, vk::SampleCountFlagBits::e1,
-	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare, vk::AttachmentStoreOp::eStore,
-	    clearAttachment ? vk::AttachmentLoadOp::eClear : vk::AttachmentLoadOp::eDontCare,
-	    vk::AttachmentStoreOp::eDontCare, vk::ImageLayout::eUndefined, finalLayout);
+	attachDescr.loadOp = loadFlagsToVk(clearFlags.attachLoad);              // pre image state
+	attachDescr.storeOp = storeFlagsToVk(clearFlags.attachStore);            // post image state
+	attachDescr.stencilLoadOp = loadFlagsToVk(clearFlags.stencilLoad);      // pre stencil state
+	attachDescr.stencilStoreOp = storeFlagsToVk(clearFlags.stencilStore);    // post stencil state
 
 	attachments.emplace_back(attachDescr);
 
 	// reference to the attachment
 	OutputReferenceInfo info;
 	info.ref.attachment = reference;
-	info.ref.layout = finalLayout;
+	info.ref.layout = attachDescr.finalLayout;
 	info.index = attachments.size() - 1;
 
 	outputRefs.emplace_back(info);
@@ -109,18 +149,12 @@ void RenderPass::addInputRef(const uint32_t reference)
 	// has a writer
 	vk::AttachmentReference ref;
 	ref.attachment = reference;
-	ref.layout = finalLayout;
-
+    auto iter = std::find_if(outputRefs.begin(), outputRefs.end(), [&reference](const OutputReferenceInfo& lhs) { return lhs.ref == reference; });
+    
+    static_assert(iter != outputRefs.end(), "Trying to create a input reference when the output ref doesn't exsisit.");
+    
+    ref.layout = iter->ref.layout;
 	inputRefs.emplace_back(ref);
-}
-
-void RenderPass::addOutputRef(const uint32_t reference)
-{
-	vk::AttachmentReference ref;
-	ref.attachment = reference;
-	ref.layout = ;
-
-	outputRefs.emplace_back(ref);
 }
 
 bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
@@ -190,119 +224,82 @@ bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_
 	subpasses.emplace_back(subpass);
 }
 
-void RenderPass::addSubpassDependency(uint32_t subpassRef, const Util::BitSetEnum<SubpassFlags>& flags)
+void RenderPass::addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags)
 {
 	vk::SubpassDependency depend;
     depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
     
     if (flags.testBit(SubpassFlags::TopOfPipeline))
     {
-        if (!flags.testBit(SubpassFlags::Merged))
-        {
-            depend.srcSubpass = VK_SUBPASS_EXTERNAL;
-            depend.dstSubpass = 0;
-        }
+        depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+        depend.dstSubpass = 0;
+        depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
         
         if (flags.testBit(SubpassFlags::ColourRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
             depend.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            depend.srcAccessMask = 0;
             depend.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eFragmentShader;
             depend.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
             depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
             depend.dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
             depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
     }
     else if (flags.testBit(SubpassFlags::BottomOfPipeline))
     {
-        if (!flags.testBit(SubpassFlags::Merged))
+        depend.srcSubpass = 0;
+        depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+        depend.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        
+        if (flags.testBit(SubpassFlags::Merged))
         {
             depend.srcSubpass = 0;
-            depend.dstSubpass = VK_SUBPASS_EXTERNAL;
+        }
+        
+        if (flags.testBit(SubpassFlags::ColourRead))
+        {
+            depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            depend.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+        }
+        else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
+        {
+            depend.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+        }
+        else if (flags.testBit(SubpassFlags::StencilRead))
+        {
+            depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+            depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
     }
-	if (dependencyTemplate == DependencyTemplate::Top_Of_Pipe)
-	{
-		
-		
-		
-	}
-	else if (dependencyTemplate == DependencyTemplate::Bottom_Of_Pipe)
-	{
-		depend.srcSubpass = 0;
-		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
-		depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		depend.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-		depend.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-		depend.dstAccessMask = 0;
-	}
-	else if (dependencyTemplate == DependencyTemplate::Multi_Subpass)
-	{
-		depend.srcSubpass = srcSubpass;
-		depend.dstSubpass = dstSubpass;
-		depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		depend.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		depend.srcAccessMask = 0;
-		depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-	}
-	else if (dependencyTemplate == DependencyTemplate::Stencil_Subpass_Bottom)
-	{
-		depend.srcSubpass = VK_SUBPASS_EXTERNAL;
-		depend.dstSubpass = 0;
-		
-	}
-	else if (dependencyTemplate == DependencyTemplate::Stencil_Subpass_Fragment)
-	{
-		depend.srcSubpass = 0;
-		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
-		depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-		depend.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
-		depend.srcAccessMask =
-		    vk::AccessFlagBits::eDepthStencilAttachmentRead | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-		depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-	}
-	else if (dependencyTemplate == DependencyTemplate::DepthStencilSubpassTop)
-	{
-		
-	}
-	else if (dependencyTemplate == DependencyTemplate::DepthStencilSubpassBottom)
-	{
-		depend.srcSubpass = 0;
-		depend.dstSubpass = VK_SUBPASS_EXTERNAL;
-		depend.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-		depend.dstStageMask = vk::PipelineStageFlagBits::eFragmentShader;
-		depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-		depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
-	}
-	dependency.push_back(depend);
+    else
+    {
+        if (!flags.testBit(SubpassFlags::Merged))
+        {
+            depend.srcSubpass = VK_SUBPASS_EXTERNAL;
+            depend.dstSubpass = 0;
+        }
+    }
+
+    dependencies.push_back(depend);
 }
 
 void RenderPass::prepare()
 {
 	// copy all the subpass declerations into one container
-	std::vector<vk::SubpassDescription> descrs;
-	for (const SubpassInfo& subpass : subpasses)
-	{
-		descrs.emplace_back(subpass.descr);
-	}
+	assert(!subpasses.empty());
 
-	assert(!descrs.empty);
-
-	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachment.size()), attachment.data(),
-	                                    static_cast<uint32_t>(descrs.size()), descrs.data(),
-	                                    static_cast<uint32_t>(dependency.size()), dependency.data());
+	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachments.size()), attachments.data(),
+	                                    static_cast<uint32_t>(subpasses.size()), subpasses.data(),
+	                                    static_cast<uint32_t>(dependencies.size()), dependencies.data());
 
 	VK_CHECK_RESULT(context.getDevice().createRenderPass(&createInfo, nullptr, &renderpass));
 }
@@ -369,10 +366,10 @@ void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView>& imageViews,
 	width = w;
 	height = h;
 
-	vk::FramebufferCreateInfo frameInfo({}, rpass.get(), imageViews.size(), imageViews.data(), width, height,
-	                                    layerCount);
+    vk::FramebufferCreateInfo frameInfo{{}, rpass.get(), static_cast<uint32_t>(imageViews.size()), imageViews.data(), width, height,
+        layerCount};
 
-	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &framebuffer));
+	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
 
 

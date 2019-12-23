@@ -23,11 +23,14 @@ class VkContext;
 */
 enum class SubpassFlags : uint64_t
 {
-   DepthRead,
-   ColourRead,
-   TopOfPipeline,
-   BottomOfPipeline,
-   Merged
+    DepthRead,
+    StencilRead,
+    ColourRead,
+    TopOfPipeline,
+    BottomOfPipeline,
+    Merged,
+    Threaded,
+    __SENTINEL__
 };
 
 class RenderPass
@@ -35,22 +38,28 @@ class RenderPass
 
 public:
     
-	enum class ClearType
+	enum class LoadType
 	{
 		Store,
 		Clear,
 		DontCare
 	};
+    
+    enum class StoreType
+    {
+        Store,
+        DontCare
+    };
 
 	/**
      * Describes what should be done with the images pre- and post- pass - i.e. keep or throw away the data
      */
 	struct ClearFlags
 	{
-		ClearType attachLoad = ClearType::DontCare;
-		ClearType attachStore = ClearType::DontCare;
-		ClearType stencilLoad = ClearType::DontCare;
-		ClearType stencilStore = ClearType::DontCare;
+		LoadType attachLoad = LoadType::DontCare;
+		StoreType attachStore = StoreType::DontCare;
+		LoadType stencilLoad = LoadType::DontCare;
+		StoreType stencilStore = StoreType::DontCare;
 	};
 
 	RenderPass(VkContext& context);
@@ -64,23 +73,20 @@ public:
 	static vk::ImageLayout getFinalTransitionLayout(const vk::Format format);
 	static bool isDepth(const vk::Format format);
 	static bool isStencil(const vk::Format format);
-	vk::AttachmentLoadOp clearFlagsToVk(const ClearType flags);
-
+	static vk::AttachmentLoadOp loadFlagsToVk(const LoadType flags);
+    static vk::AttachmentStoreOp storeFlagsToVk(const StoreType flags);
+    static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
+    
 	// Adds a attahment for this pass. This can be a colour or depth attachment
-	void addOutputAttachment(const vk::Format format, const vk::ImageLayout initialLayout,
-	                         const vk::ImageLayout finalLayout, const size_t reference, ClearFlags& clearFlags,
-	                         uint32_t sampleCount);
+	void addOutputAttachment(const vk::Format format, const size_t reference, ClearFlags& clearFlags, const uint32_t sampleCount);
 
 	// adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
 	void addInputRef(const uint32_t reference);
 
-	// adds an output reference to the pass
-	void addOutputRef(const uint32_t reference);
-
 	// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
 	bool addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef = UINT32_MAX);
 
-	void addSubpassDependency(uint32_t subpassRef, const Util::BitSetEnum<SubpassFlags>& flags);
+	void addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags);
 
 	// Actually creates the renderpass based on the above definitions
 	void prepare();

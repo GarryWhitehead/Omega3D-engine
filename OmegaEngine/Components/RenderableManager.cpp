@@ -9,20 +9,22 @@
 
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Descriptors.h"
 
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
 
-#include "Utility/GeneralUtil.h"
-#include "Utility/logger.h"
+#include "utility/GeneralUtil.h"
+#include "utility/Logger.h"
 
 
 namespace OmegaEngine
 {
 
-Util::String TextureGroup::texTypeToStr(const TextureType type)
+Util::String TextureGroup::texTypeToStr(const int type)
 {
-	Util::String result;
+    assert(type < static_cast<int>(TextureType::Count));
+    Util::String result;
 	switch (type)
 	{
 	case TextureType::BaseColour:
@@ -44,6 +46,17 @@ Util::String TextureGroup::texTypeToStr(const TextureType type)
 	return result;
 }
 
+// ==============================================================================
+
+Material::~Material()
+{
+   if (instance)
+   {
+       delete instance;
+       instance = nullptr;
+   }
+}
+
 // ===============================================================================================
 
 RenderableManager::RenderableManager(Engine& engine)
@@ -57,7 +70,7 @@ RenderableManager::~RenderableManager()
 {
 }
 
-void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, const size_t idx, const size_t offset)
+void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset)
 {
 	// copy the vertices and indices into the "mega" buffer
 	input.instance = mesh;
@@ -67,9 +80,9 @@ void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, const siz
 	{
 		// this is for debugging - we only allow one material per mesh so check this
 		uint32_t mat_idx = 0;
-		for (size_t i = 0; i < mesh.primitives.size(); ++i)
+		for (size_t i = 0; i < mesh->primitives.size(); ++i)
 		{
-			uint32_t newIdx = mesh.primitives[i].materialIdx;
+			uint32_t newIdx = mesh->primitives[i].materialIdx;
 			assert(idx != UINT32_MAX);
 			if (i > 0 && newIdx != mat_idx)
 			{
@@ -84,18 +97,18 @@ void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, const siz
 	}
 }
 
-void RenderableManager::addMesh(Renderable& input, MeshInstance& mesh, Object& obj, const size_t offset)
+void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset)
 {
 	size_t idx = addObject(obj);
 	addMesh(input, mesh, idx, offset);
 }
 
-bool RenderableManager::prepareTexture(Util::String path, GpuTextureInfo* tex)
+bool RenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
 {
 	if (!path.empty())
 	{
-		tex->texture = new MappedTexture;
-		if (!tex->texture->load(path))
+		tex = new MappedTexture();
+		if (!tex->load(path))
 		{
 			return false;
 		}
@@ -128,15 +141,15 @@ size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat, 
 
 		// and create the material - copy the data rather than keep the pointer to avoid issues later
 		Material newMat;
-		newMat.instance = *mat++;
-		materials.emplace_back(newMat);
+		newMat.instance = mat++;
+		materials.emplace_back(std::move(newMat));
 		input.material = &materials.back();
 	}
 
 	return startOffset;
 }
 
-void RenderableManager::addRenderable(MeshInstance& mesh, MaterialInstance* mat, const size_t matCount, Object& obj)
+void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, const size_t matCount, Object& obj)
 {
 	Renderable newRend;
 
@@ -145,7 +158,7 @@ void RenderableManager::addRenderable(MeshInstance& mesh, MaterialInstance* mat,
 
 	// note: materials don't require a slot as there might be more than one material
 	// per mesh. Instead the primitive stores a index to the required material
-	size_t matOffset;
+	size_t matOffset = -1;
 	if (mat)
 	{
 		matOffset = addMaterial(newRend, mat, matCount);
@@ -179,12 +192,12 @@ void RenderableManager::updateBuffers()
 	{
 		if (!rend.vertBuffer && !rend.indexBuffer)
 		{
-			MeshInstance& instance = rend.instance;
-			size_t vertSize = instance.vertices.size;
-			size_t indexSize = instance.indices.size() * sizeof(uint32_t);
+			MeshInstance* instance = rend.instance;
+			size_t vertSize = instance->vertices.size;
+			size_t indexSize = instance->indices.size() * sizeof(uint32_t);
 			
-			rend.vertBuffer = driver.addVertexBuffer(vertSize, instance.vertices.data);
-			rend.indexBuffer = driver.addIndexBuffer(indexSize, instance.indices.data());
+			rend.vertBuffer = driver.addVertexBuffer(vertSize, instance->vertices.data);
+			rend.indexBuffer = driver.addIndexBuffer(indexSize, instance->indices.data());
 
 			assert(rend.vertBuffer && rend.indexBuffer);
 		}
@@ -210,11 +223,11 @@ bool RenderableManager::updateVariants()
 	// create variants for all vertices associated with this manager
 	for (const Renderable& rend : renderables)
 	{
-
-		if (!manager.hasShaderVariantCached({ mesh_filename.c_str(), rend.variantBits.getUint64(), rend.renderState }))
+        VulkanAPI::ProgramManager::ShaderHash hash { mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &rend.instance->topology };
+		if (!manager.hasShaderVariantCached(hash))
 		{
 			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance({ mesh_filename.c_str(), rend.variantBits.getUint64(), rend.renderState });
+			    manager.createCachedInstance(hash);
 
 			mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex);
 		}
@@ -232,10 +245,11 @@ bool RenderableManager::updateVariants()
 
 	for (const Material& mat : materials)
 	{
-		if (!manager.hasShaderVariantCached({ mat_filename.c_str(), mat.variantBits.getUint64(), nullptr }))
+        VulkanAPI::ProgramManager::ShaderHash hash{mat_filename.c_str(), mat.variantBits.getUint64(), nullptr};
+        if (!manager.hasShaderVariantCached(hash))
 		{
 			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance({ mat_filename.c_str(), mat.variantBits.getUint64(), nullptr });
+			    manager.createCachedInstance(hash);
 
 			mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::Type::Fragment);
 		}
@@ -247,22 +261,25 @@ bool RenderableManager::updateVariants()
 	for (Renderable& rend : renderables)
 	{
 		Material* mat = rend.material;
-		rend.mergedVariant = rend.variantBits.getUint64() + mat->variantBits.getUint64();
-
+		rend.mergedVariant = rend.instance->variantBits.getUint64() + mat->variantBits.getUint64();
+        
+        VulkanAPI::ProgramManager::ShaderHash hash { mesh_filename.c_str(), rend.mergedVariant, &rend.instance->topology };
 		VulkanAPI::ShaderProgram* prog =
-		    manager.findVariant({ mesh_filename.c_str(), rend.mergedVariant, rend.renderState });
+		    manager.findVariant(hash);
 		if (!prog)
 		{
 			// create new program
 			std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes{
-				{ mesh_filename.c_str(), rend.renderState, rend.variantBits },
-				{ mat_filename.c_str(), nullptr, mat->variantBits }
+				{ mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &rend.instance->topology },
+				{ mat_filename.c_str(), mat->variantBits.getUint64(), nullptr }
 			};
 			prog = manager.build(hashes);
 		}
 		// keep reference to the shader program within the renderable for easier lookup when drawing
 		rend.program = prog;
 	}
+    
+    return true;
 }
 
 void RenderableManager::update()
@@ -277,13 +294,12 @@ void RenderableManager::update()
 		{
 			for (uint8_t i = 0; i < TextureGroup::TextureType::Count; ++i)
 			{
-				GpuTextureInfo* texGroup = group.textures[i];
-				if (texGroup)
+				MappedTexture* tex = group.textures[i];
+				if (tex)
 				{
 					// each sampler needs its own unique id - so append the tex type to the material name
-					Util::String id = group.matId.append(TextureGroup::texTypeToStr(i));
+					Util::String id = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
-					MappedTexture* tex = texGroup->texture;
 					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels);
 					driver.update2DTexture(id, 0, tex->buffer);
 				}

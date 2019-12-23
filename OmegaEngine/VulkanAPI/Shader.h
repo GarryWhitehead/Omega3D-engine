@@ -94,7 +94,7 @@ public:
 
     void addVariant(Util::String variant, const uint8_t value)
     {
-        definitions.emplace(variant, value);
+        definitions.emplace(variant.c_str(), value);
     }
 
     uint32_t* getData()
@@ -107,7 +107,7 @@ public:
         return output.size();
     }
     
-    using VariantMap = std::unordered_map<Util::String, uint8_t>;
+    using VariantMap = std::unordered_map<const char*, uint8_t>;
     
 private:
     

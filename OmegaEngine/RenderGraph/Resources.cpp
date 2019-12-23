@@ -1,15 +1,17 @@
 #include "Resources.h"
 
+# include "VulkanAPI/Image.h"
+
 namespace OmegaEngine
 {
 
 
-void AttachmentInfo::prepare(e)
+void AttachmentInfo::prepare()
 {
     
 }
 
-void AttachmentInfo::bake()
+VulkanAPI::ImageView* AttachmentInfo::bake()
 {
 
 }

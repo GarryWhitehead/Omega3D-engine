@@ -2,10 +2,17 @@
 
 #include "utility/CString.h"
 
-#include "VulkanAPI/common.h"
+#include "VulkanAPI/Common.h"
+#include "VulkanAPI/Buffer.h"
 
 #include <cstddef>
 #include <cstdint>
+
+// vulkan forward declerations
+namespace VulkanAPI
+{
+class ImageView;
+}
 
 namespace OmegaEngine
 {
@@ -52,8 +59,7 @@ struct ResourceBase
 */
 struct TextureResource : public ResourceBase
 {
-	TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level,
-	                const uint8_t layers)
+	TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level, const uint8_t layers)
 	    : width(width)
 	    , height(height)
 	    , layers(layers)
@@ -62,8 +68,16 @@ struct TextureResource : public ResourceBase
 	    , ResourceBase(ResourceType::Texture)
 	{
 	}
+    
+    void bake();
+    
+    bool isDepthFormat();
+    bool isColourFormat();
+    bool isStencilFormat();
+    
 	// the image information which will be used to create the image view
-	uint32_t width = 0;
+    uint8_t samples = 1;
+    uint32_t width = 0;
 	uint32_t height = 0;
 	uint8_t layers = 1;                            //< 3d textures not supported at present
 	uint8_t level = 0;                             //< For mult-sampling. Not used at present
@@ -76,7 +90,7 @@ struct TextureResource : public ResourceBase
 struct BufferResource : public ResourceBase
 {
 	size_t size;
-	VulkanAPI::BufferType type;
+	VulkanAPI::Buffer::Usage usage;
 };
 
 struct AttachmentInfo
@@ -95,7 +109,7 @@ struct AttachmentInfo
 	void prepare();
 
 	// creates the 'actual' vulkan resource associated with this attachment
-	void bake();
+	VulkanAPI::ImageView* bake();
 
 	Util::String name;
 	size_t index;

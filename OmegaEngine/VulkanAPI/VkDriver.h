@@ -100,7 +100,7 @@ public:
 	~VkDriver();
 
 	/// initialises the vulkan driver - includes creating the abstract device, physical device, queues, etc.
-	void init(const char** instanceExt, uint32_t count);
+	bool init(const char** instanceExt, uint32_t count);
 
 	/// Make sure you call this before closing down the engine!
 	void shutdown();

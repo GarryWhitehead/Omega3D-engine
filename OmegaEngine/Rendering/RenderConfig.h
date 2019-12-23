@@ -17,7 +17,7 @@ struct RenderConfig
 	struct General
 	{
 		// type of renderer to use - at the moment only deferred is supported
-		RendererType renderer = RendererType::Deferred;
+		//RendererType renderer = RendererType::Deferred;
 
 		std::array<float, 4> backgroundColour = { 0.0f, 0.0f, 0.0f, 1.0f };
 		bool usePostProcess = false;

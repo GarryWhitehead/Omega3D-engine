@@ -45,7 +45,8 @@ public:
 	bool prepareDevice();
 
 	// ============= getters =================
-	vk::Device& getDevice();
+    vk::Instance& getInstance();
+    vk::Device& getDevice();
 	vk::PhysicalDevice& getGpu();
 	vk::Queue& getGraphQueue();
 	vk::Queue& getPresentQueue();

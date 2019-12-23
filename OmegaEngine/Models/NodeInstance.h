@@ -93,7 +93,8 @@ public:
     
 	friend class Scene;
 	friend class TransformManager;
-
+    friend class GltfModel;
+    
 private:
     
     NodeInstance::NodeInfo* findNode(Util::String id, NodeInfo* node);
@@ -108,7 +109,7 @@ private:
     
     // all cgltf from nodes will be stored here for processing
     // after dealing with the nodes
-    std::vector<cgltf_skin> skins;
+    std::vector<cgltf_skin*> skins;
     
 };
 }    // namespace OmegaEngine

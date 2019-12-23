@@ -4,7 +4,11 @@
 
 #include "Types/AABox.h"
 
+#include "VulkanAPI/Common.h"
+
 #include "Models/Formats/GltfModel.h"
+
+#include "utility/BitSetEnum.h"
 
 #include "assimp/scene.h"
 
@@ -19,30 +23,46 @@ class MeshInstance
 {
 public:
     
-    enum class StateTopology
+    /**
+     * @brief Specifies a variant to use when compiling the shader
+     */
+    enum class Variant : uint64_t
     {
-        PointList,
-        LineList,
-        LineStrip,
-        TriangleList,
-        TriangleStrip,
-        TriangleFan,
-        PatchList
+        HasSkin,
+        TangentInput,
+        BiTangentInput,
+        HasUv,
+        HasNormal,
+        HasWeight,
+        HasJoint,
+        __SENTINEL__
     };
     
-	struct Attribute
-	{
-		uint8_t stride;
-		uint8_t width;
-	};
-
+	
 	/**
      * @brief A abstract vertex buffer. Vertices are stored as blobs of data as the shader system allows
      * numerous variants in the vertex inputs. The blob is described by the **VertexDescriptor*
      */
 	struct VertexBuffer
 	{
-		uint8_t* data = nullptr;
+		enum Attribute
+        {
+            attr_float,
+            attr_int,
+            attr_vec2,
+            attr_vec3,
+            attr_vec4,
+            atrr_mat3,
+            attr_mat4
+        };
+        
+        struct Descriptor
+        {
+            uint8_t stride;
+            uint8_t width;
+        };
+
+        uint8_t* data = nullptr;
 		size_t size = 0;
 		std::vector<Attribute> attributes;
 	};
@@ -79,10 +99,11 @@ public:
     
 	friend class RenderableManager;
 	friend class GBufferFillPass;
+    friend class Scene;
 
 private:
 	/// defines the topology to use in the program state
-	StateTopology topology;
+	vk::PrimitiveTopology topology;
 
 	/// the overall dimensions of this model. Sub-meshses contain their own dimensions
     AABBox dimensions;
@@ -95,6 +116,9 @@ private:
 
 	/// All indices associated with this particular model
 	std::vector<uint32_t> indices;
+    
+    /// variation of the mesh shader
+    Util::BitSetEnum<Variant> variantBits;
 };
 
 }    // namespace OmegaEngine

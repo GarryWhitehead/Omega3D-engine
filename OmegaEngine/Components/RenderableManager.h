@@ -31,7 +31,6 @@ class IndexBuffer;
 namespace OmegaEngine
 {
 // forard decleartions
-class GpuTextureInfo;
 class World;
 class Object;
 class Engine;
@@ -70,35 +69,39 @@ struct TextureGroup
 		}
 	}
 
-	// not copyable
-	TextureGroup(const TextureGroup&) = delete;
-	TextureGroup& operator=(const TextureGroup&) = delete;
-
-	static Util::String texTypeToStr(const TextureType type);
-
+	static Util::String texTypeToStr(const int type);
+    
+    // A texture for each pbr type
 	MappedTexture* textures[TextureType::Count];
+    
+    // keep track of the material id these textures are associated with
+    Util::String matName;
 };
 
 struct Material
 {
-	enum TextureVariants : uint64_t
-	{
-		HasBaseColour,
-		HasNormal,
-		HasMetallicRoughness,
-		HasOcclusion,
-		HasEmissive,
-        __SENTINEL__
-	};
-
+    enum Variants : uint64_t
+    {
+       HasBaseColour,
+       HasNormal,
+       HasUv,
+       HasMetallicRoughness,
+       HasOcclusion,
+       HasEmissive,
+       __SENTINEL__
+    };
+    
+    Material() = default;
+    ~Material();
+    
 	/// The material attributes
     MaterialInstance* instance;
-
-	/// shader variants associated with this material
-	Util::BitSetEnum<TextureVariants> variantBits;
-
+    
+    // shader variants associated with this material
+    Util::BitSetEnum<Variants> variantBits;
+    
 	/// each material has its own descriptor set
-	std::unique_ptr<VulkanAPI::DescriptorSet> descrSet;
+	VulkanAPI::DescriptorSet* descrSet = nullptr;
 };
 
 /**
@@ -109,21 +112,6 @@ struct Material
 	*/
 struct Renderable
 {
-	/**
-         * Specifies a variant to use when compiling the shader
-         */
-	enum class MeshVariant : uint64_t
-	{
-		HasSkin,
-		TangentInput,
-		BiTangentInput,
-		HasUv,
-		HasNormal,
-		HasWeight,
-		HasJoint,
-        __SENTINEL__
-	};
-
 	/**
 	* Bit flags for specifying the visibilty of renderables
 	*/
@@ -144,9 +132,6 @@ struct Renderable
 
 	/// the render state of this material
 	RenderStateBlock* renderState;
-
-	/// variation of the mesh shader
-	Util::BitSetEnum<MeshVariant> variantBits;
 
 	// the mesh and material varinats merged - used for looking up the completed shader program
 	uint64_t mergedVariant = 0;
@@ -182,7 +167,7 @@ public:
 	* @brief The main call here - adds a renderable consisting of mesh, and not
 	* always, material and texture data. This function adds a number of materials if required
 	*/
-	void addRenderable(MeshInstance& mesh, MaterialInstance* mat, const size_t matCount, Object& obj);
+	void addRenderable(MeshInstance* mesh, MaterialInstance* mat, const size_t matCount, Object& obj);
 
 	// === mesh related functions ===
 	/**
@@ -192,13 +177,13 @@ public:
 	* @param offset The material buffer offset which will be added to the 
 	* primitive ids. This value is obtained from **addMaterial**
 	*/
-	void addMesh(Renderable& input, MeshInstance& mesh, const size_t idx, const size_t offset);
+	void addMesh(Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset);
 
 	/**
 	* @breif Adds a mesh - use this overload when you want to add multiple meshes
 	* linked with the same material group. 
 	*/
-	void addMesh(Renderable& input, MeshInstance& mesh, Object& obj, const size_t offset);
+	void addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset);
 
 	/**
      * @brief Returns a instance of a mesh based on the specified object
@@ -221,7 +206,7 @@ public:
 private:
 	void updateBuffers();
 
-	bool prepareTexture(Util::String path, GpuTextureInfo* tex);
+	bool prepareTexture(Util::String path, MappedTexture* tex);
 
 	bool updateVariants();
 

@@ -1,6 +1,6 @@
 #include "SwapChain.h"
 
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 
 #include "VulkanAPI/VkDriver.h"
 
@@ -18,9 +18,9 @@ Swapchain::~Swapchain()
 {
 }
 
-Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapper& window, Instance& instance)
+Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapper& window, vk::Instance& instance)
 {
-	Platform::SurfaceWrapper wrapper(window, instance);
+    Platform::SurfaceWrapper wrapper{window, instance};
 	return wrapper;
 }
 
@@ -30,8 +30,6 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 	vk::PhysicalDevice gpu = context.getGpu();
 
 	// Get the basic surface properties of the physical device
-	uint32_t surfaceCount = 0;
-
 	vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface.get());
 	std::vector<vk::SurfaceFormatKHR> surfaceFormats = gpu.getSurfaceFormatsKHR(surface.get());
 	std::vector<vk::PresentModeKHR> presentModes = gpu.getSurfacePresentModesKHR(surface.get());
@@ -132,9 +130,9 @@ std::vector<ImageView> Swapchain::prepareImageViews(Swapchain& swapchain, VkCont
 	vk::Device device = context.getDevice();
 
 	// Get the image loactions created when creating the swap chain
-	std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
+	std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain.get());
 
-	for (int c = 0; c < images.size(); ++c)
+	for (size_t c = 0; c < images.size(); ++c)
 	{
 		ImageView imageView(context);
 		imageView.create(device, images[c], surfaceFormat.format, vk::ImageAspectFlagBits::eColor,

@@ -37,7 +37,7 @@ public:
 	* @param window A wrapper containg all the info needed to create a surface and swapchain
 	* @param instance A vulkan instance wrapper obtained from calling **createInstance**
 	*/
-	static Platform::SurfaceWrapper createSurface(OmegaEngine::NativeWindowWrapper& window, Instance& instance);
+	static Platform::SurfaceWrapper createSurface(OmegaEngine::NativeWindowWrapper& window, vk::Instance& instance);
 
 	/**
 	* @brief Creates the swapchain using the supplied native window surface

@@ -21,6 +21,7 @@ class CmdBuffer
 {
 
 public:
+    
 	enum class Type
 	{
 		Primary,
@@ -88,8 +89,8 @@ public:
 
 	CmdBuffer getSecondary(size_t index)
 	{
-		assert(index < secondarys.size());
-		return secondarys[index];
+		assert(index < secondary.size());
+		return secondary[index];
 	}
 
 private:
@@ -104,7 +105,7 @@ private:
     DescriptorSet* boundDescrSet = nullptr;
     
 	// primary or secondary buffer
-	CmdBufferType type;
+    Type type;
 
 	// primary command buffer
 	vk::CommandBuffer cmdBuffer;

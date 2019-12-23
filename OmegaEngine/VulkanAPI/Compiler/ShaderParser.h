@@ -21,10 +21,6 @@ public:
 	{
 	}
 
-	// not copyable
-	ShaderDescriptor(const ShaderDescriptor&) = delete;
-	ShaderDescriptor& operator=(const ShaderDescriptor&) = delete;
-
 	/// generic descriptor for different shader types
 	struct Descriptor
 	{
@@ -137,7 +133,7 @@ private:
 
 	// This will be completed by the parser and ownership moved at compile time.
 	// This is to stop having to compile this info twice when it can be easily done by the parser
-	std::unique_ptr<RenderStateBlock> renderState;
+	RenderStateBlock* renderState = nullptr;
 
 	std::vector<std::unique_ptr<ShaderDescriptor>> descriptors;
 

@@ -182,7 +182,7 @@ void Scene::update()
 			continue;
 		}
 
-        if (rend->variantBits.testBit(Renderable::MeshVariant::HasSkin))
+        if (rend->instance->variantBits.testBit(MeshInstance::Variant::HasSkin))
 		{
 			++skinnedModelCount;
 		}
@@ -199,7 +199,7 @@ void Scene::update()
 		queueInfo.renderableHandle = this;
         queueInfo.renderFunction = GBufferFillPass::drawCallback;
 		queueInfo.sortingKey =
-		    RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId, rend->variantBits.getUint64());
+		    RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId, rend->instance->variantBits.getUint64());
 		queueRend.emplace_back(queueInfo);
 	}
 	renderQueue.pushRenderables(queueRend, RenderQueue::Partition::Colour);
@@ -228,7 +228,6 @@ void Scene::updateCameraBuffer()
 	ubo.zNear = camera.getZNear();
 	ubo.zFar = camera.getZFar();
 
-	auto& driver = engine.getVkDriver();
 	driver.updateUbo("CameraUbo", sizeof(Camera::Ubo), &ubo);
 }
 

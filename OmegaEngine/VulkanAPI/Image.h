@@ -22,10 +22,6 @@ public:
 	ImageView(VkContext& context);
     ~ImageView();
     
-    // not copyable
-    ImageView(const ImageView&) = delete;
-    ImageView& operator=(const ImageView&) = delete;
-    
     /**
      * @brief Returns the aspect flags bsed on the texture format
      */
@@ -64,15 +60,9 @@ class Image
 
 public:
     
-    /// no default contructor
-    Image() = delete;
-    
+    Image() = default;
 	Image(VkContext& context, Texture& tex);
 	~Image();
-    
-    // not copyable
-    Image(const Image&) = delete;
-    Image& operator=(const Image&) = delete;
     
     /**
      * Returns the interpolation filter based on the format type

@@ -8,8 +8,6 @@ using namespace OmegaEngine;
 
 namespace VulkanAPI
 {
-// forward decleration
-class Instance;
 
 namespace Platform
 {
@@ -22,7 +20,7 @@ class SurfaceWrapper
 public:
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	using HWND = void*;
-	SurfaceWrapper(NativeWindowWrapper& window, Instance& instance);
+    SurfaceWrapper(NativeWindowWrapper& window, vk::Instance& instance);
 #endif
 
 	uint32_t getWidth() const

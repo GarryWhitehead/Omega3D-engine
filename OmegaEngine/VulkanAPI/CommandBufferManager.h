@@ -101,6 +101,13 @@ public:
 
 	void endRenderpass(const CmdBufferHandle handle);
 
+    // =============== getters ==============================================
+    
+    CmdPool* getPool()
+    {
+        return cmdPool.get();
+    }
+    
 private:
 	// =============== pipeline hasher ======================
 	struct PLineHash
@@ -134,8 +141,8 @@ private:
 	// The current vulkan context
 	VkContext& context;
 
-	// the cmd pools - one per thread
-	std::vector<std::unique_ptr<CmdPool>> cmdPools;
+	// the main cmd pool used for the main thread
+	std::unique_ptr<CmdPool> cmdPool;
 
 	// a seperate pool for the temp use of cmd buffers - these are cycled and reset per frame
 	std::unique_ptr<CmdPool> tempCmdPool;

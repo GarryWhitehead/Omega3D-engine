@@ -9,7 +9,7 @@
 namespace OmegaEngine
 {
 
-bool SkinInstance::prepare(cgltf_skin& skin, ModelNode& node)
+bool SkinInstance::prepare(cgltf_skin& skin, NodeInstance& node)
 {
 	// extract the inverse bind matrices
 	const cgltf_accessor* accessor = skin.inverse_bind_matrices;
@@ -39,7 +39,7 @@ bool SkinInstance::prepare(cgltf_skin& skin, ModelNode& node)
 		cgltf_node* boneNode = skin.joints[i];
         
         // find the node in the list
-        ModelNode::NodeInfo* foundNode = node.getNode(Util::String(boneNode->name));
+        NodeInstance::NodeInfo* foundNode = node.getNode(Util::String(boneNode->name));
         if (!foundNode)
         {
             LOGGER_ERROR("Unable to find bone in list of nodes\n");
@@ -52,6 +52,8 @@ bool SkinInstance::prepare(cgltf_skin& skin, ModelNode& node)
     {
         skeletonRoot = node.getNode(Util::String(skin.skeleton->name));
     }
+    
+    return true;
 }
 
 }

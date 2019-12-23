@@ -36,7 +36,7 @@ public:
 
 	VecN(VecN<T, 3>& vec, const T& value)
 	{
-		VecN{ vec.data[0], vec.data[1], vec.data[3], value };
+		VecN{ vec.data[0], vec.data[1], vec.data[2], value };
 	}
 
 	inline constexpr T& operator[](const size_t idx)

@@ -63,6 +63,7 @@ String::~String()
 
 size_t String::operator()(const String& str) const
 {
+
     size_t result = 2166136261;
     for (size_t i = 0; i < length; ++i)
     {
@@ -137,4 +138,26 @@ std::vector<String> String::split(String str, char identifier)
     }
 	return result;
 }
+
+Util::String String::append(Util::String lhs, Util::String rhs)
+{
+    if (!lhs.buffer)
+    {
+        return rhs;
+    }
+    if (rhs.empty())
+    {
+        return lhs;
+    }
+    
+    Util::String newStr;
+    size_t newLength = rhs.length + lhs.length + 1;
+    
+    char* newBuffer = new char[newLength];
+    memcpy(newBuffer, lhs.buffer, lhs.length);
+    memcpy(newBuffer + lhs.length, rhs.buffer, rhs.length);
+    newBuffer[newLength] = '\0';
+    return String{newBuffer};
+}
+
 }    // namespace Util

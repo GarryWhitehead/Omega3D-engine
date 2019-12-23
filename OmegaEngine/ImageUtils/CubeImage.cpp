@@ -311,7 +311,7 @@ Image2DF32::Colour3 CubeImage::fetchBilinear(OEMaths::vec3f& pos, CubeImage* cub
 	float y =
 	    std::min(texCoords.v * static_cast<float>(image->getDimensions()), static_cast<float>(image->getDimensions()));
 
-	fetchBilinear(x, y, image);
+	return fetchBilinear(x, y, image);
 }
 
 Image2DF32::Colour3 CubeImage::fetchTrilinear(const OEMaths::vec3f& reflect, CubeImage* mip1, float lerp)

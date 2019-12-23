@@ -18,6 +18,8 @@
 
 namespace OmegaEngine
 {
+// forward declerations
+class MeshInstance;
 
 class MaterialInstance
 {
@@ -70,6 +72,8 @@ private:
         Util::String mask;
         float alphaMaskCutOff = 1.0f;
     };
+    
+    friend class MeshInstance;
     
 private:
     

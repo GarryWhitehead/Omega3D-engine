@@ -69,7 +69,11 @@ public:
 
     OEMaths::colour3 fetchTrilinear(const OEMaths::vec3f& reflect, CubeImage* mip1, float lerp);
 
-
+    Image2D<float>* getFace(const Face face)
+    {
+        return faceImages[face];
+    }
+    
 private:
 	Image2D<float>* faceImages[6];
 };

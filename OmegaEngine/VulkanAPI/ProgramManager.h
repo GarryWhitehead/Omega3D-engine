@@ -132,14 +132,14 @@ private:
 class ShaderProgram
 {
 public:
-	ShaderProgram() = default;
+	ShaderProgram(VkContext& context);
 
 	/**
 	* @brief Compiles the parsed json file into data that can be used by the vulkan backend
 	* Note: You must have parsed the json file by calling **parse** before calling this function
 	* otherwise it will return an error
 	*/
-	bool prepare(ShaderParser& parser, VkContext& context);
+	bool prepare(ShaderParser& parser);
 
 	/**
      * @brief Adds a shader variant for a specifed stage to the list
@@ -177,6 +177,9 @@ public:
 	friend class CmdBuffer;
 
 private:
+    
+    VkContext& context;
+    
 	std::vector<ShaderBinding> stages;
 
 	// this block overrides all render state for this shader.
@@ -308,8 +311,8 @@ private:
 	std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
 
 	// Queued decriptor requiring updating which is done on a per frame basis
-	std::vector<std::pair<Util::String, Buffer>> bufferDescrQueue;
-	std::vector<std::pair<Util::String, Texture>> imageDescrQueue;
+	std::vector<std::pair<const char*, Buffer>> bufferDescrQueue;
+	std::vector<std::pair<const char*, Texture>> imageDescrQueue;
 };
 
 }    // namespace VulkanAPI

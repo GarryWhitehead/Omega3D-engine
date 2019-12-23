@@ -107,10 +107,6 @@ public:
 	DescriptorSet(VkContext& context);
 	~DescriptorSet();
 
-	// not copyable
-	DescriptorSet(const DescriptorSet&) = delete;
-	DescriptorSet operator=(const DescriptorSet&) = delete;
-
 	/**
      * @brief Adds a descriptor layout to this set
      */
@@ -125,16 +121,16 @@ public:
 
 	vk::DescriptorSet& get(uint32_t set)
 	{
-		assert(!descriptorSets.empty());
+		assert(!descrSets.empty());
 		return descrSets[set];
 	}
 
 	std::vector<vk::DescriptorSet> getOrdered()
 	{
-		assert(!descriptorSets.empty());
+		assert(!descrSets.empty());
 		// first get the bindings
 		std::vector<uint32_t> bindings;
-		for (auto& set : descriptorSets)
+		for (auto& set : descrSets)
 		{
 			bindings.push_back(set.first);
 		}
@@ -146,7 +142,7 @@ public:
 		std::vector<vk::DescriptorSet> sets;
 		for (auto& bind : bindings)
 		{
-			sets.push_back(descriptorSets[bind]);
+			sets.push_back(descrSets[bind]);
 		}
 		return sets;
 	}

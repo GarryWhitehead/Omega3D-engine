@@ -65,10 +65,8 @@ public:
     }
 
 public:
-
-	// ========= matrix transforms ==================
     
-    inline constexpr MatN<T, 4, 4>& setDiag(const VecN<T, 4>& vec)
+    inline constexpr MatN<T, 4, 4> setDiag(const VecN<T, 4>& vec)
     {
         data[0][0] = vec.x;
         data[1][1] = vec.y;
@@ -77,26 +75,11 @@ public:
         return *this;
     }
     
-    inline constexpr MatN<T, 4, 4>& translate(const VecN<T, 3>& trans)
-	{
-		data[3][0] = trans.x;
-		data[3][1] = trans.y;
-		data[3][2] = trans.z;
-		data[3][3]  = T(1);
-		return *this;
-	}
-
-	inline constexpr MatN<T, 4, 4>& scale(const VecN<T, 3>& scale)
-	{
-        setDiag({scale, 1.0f});
-		return *this;
-	}
-    
     inline void setUpperLeft(MatN<T, 3, 3>& mat)
     {
         for (size_t i = 0; i < 3; ++i)
         {
-			data[i].xyz = mat.data[i];
+            data[i].xyz = mat.data[i];
         }
     }
     
@@ -110,7 +93,48 @@ public:
         return result;
     }
     
-	// operator overloads
+	// ========= static matrix transforms ==================
+    
+    static inline constexpr MatN<T, 4, 4> translate(const VecN<T, 3>& trans)
+	{
+		MatN<T, 4, 4> result;
+        result.data[3][0] = trans.x;
+		result.data[3][1] = trans.y;
+		result.data[3][2] = trans.z;
+		result.data[3][3]  = T(1);
+		return result;
+	}
+
+	static inline constexpr MatN<T, 4, 4> scale(const VecN<T, 3>& scale)
+	{
+        MatN<T, 4, 4> result;
+        result.data[0][0] = scale.x;
+        result.data[1][1] = scale.y;
+        result.data[2][2] = scale.z;
+		return result;
+	}
+    
+    template <typename U>
+    static MatN<T, 4, 4> makeMatrix(U* data)
+    {
+        assert(data != nullptr);
+        MatN<T, 4, 4> result;
+        U* ptr = static_cast<U*>(data);
+
+        for (size_t i = 0; i < 4; ++i)
+        {
+            result[i][0] = static_cast<T>(*ptr);
+            ++ptr;
+            result[i][1] = static_cast<T>(*ptr);
+            ++ptr;
+            result[i][2] = static_cast<T>(*ptr);
+            ++ptr;
+            result[i][3] = static_cast<T>(*ptr);
+            ++ptr;
+        }
+    }
+    
+	// ============== operator overloads ===================
 	inline constexpr VecN<T, 4>& operator[](const size_t& idx)
 	{
 		assert(idx < NUM_COLS);

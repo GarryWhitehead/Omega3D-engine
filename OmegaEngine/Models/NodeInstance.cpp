@@ -40,12 +40,11 @@ NodeInstance::NodeInfo* NodeInstance::getNode(Util::String id)
    return findNode(id, rootNode);
 }
     
-bool NodeInstance::prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform,
-                                    GltfModel& model, size_t& nodeIdx)
+bool NodeInstance::prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx)
 {
 	NodeInfo* newNode = new NodeInfo;
 	newNode->parent = parent;
-	newNode->id = nodeIdx++;
+	//newNode->id = nodeIdx++;
 
 	if (node->mesh)
 	{
@@ -82,32 +81,33 @@ void NodeInstance::prepareTranslation(cgltf_node* node, NodeInfo* newNode)
 	// usually the gltf file will have a baked matrix or trs data
 	if (node->has_matrix)
 	{
-        newNode->localTransform = OEMaths::mat4f(node->matrix);
+        newNode->localTransform = OEMaths::mat4f::makeMatrix(node->matrix);
 	}
 	else
 	{
 		if (node->has_translation)
 		{
-			newNode->translation = OEMaths::vec3f(node->translation);
+            newNode->translation = OEMaths::vec3f{ node->translation[0], node->translation[1], node->translation[2] };
 		}
 		if (node->has_rotation)
 		{
-			newNode->rotation = OEMaths::quatf(node->rotation);
+            newNode->rotation = OEMaths::quatf{ node->rotation[0], node->rotation[1], node->rotation[2], node->rotation[3] };
 		}
 		if (node->has_scale)
 		{
-			newNode->scale = OEMaths::vec3f(node->scale);
+            newNode->scale = OEMaths::vec3f{ node->scale[0], node->scale[1], node->scale[2] };
 		}
 
 		newNode->nodeTransform =
-		    OEMaths::mat4f::translate(newNode->translation) * newNode->rotation * OEMaths::mat4f::scale(newNode->scale);
+        OEMaths::mat4f::translate(newNode->translation) * newNode->rotation * OEMaths::mat4f::scale(newNode->scale);
 	}
 }
 
 bool NodeInstance::prepare(cgltf_node* node, GltfModel& model)
 {
 	size_t nodeId = 0;
-    if (!prepareNodeHierachy(node, nullptr, OEMaths::mat4f{}, model, nodeId))
+    OEMaths::mat4f transform;
+    if (!prepareNodeHierachy(node, nullptr, transform, model, nodeId))
 	{
 		return false;
 	}

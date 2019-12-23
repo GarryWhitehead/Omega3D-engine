@@ -363,6 +363,11 @@ bool VkContext::prepareDevice()
 	device.getQueue(queueFamilyIndex.present, 0, &vkPresentQueue);
 }
 
+vk::Instance& VkContext::getInstance()
+{
+    return instance;
+}
+
 vk::Device& VkContext::getDevice()
 {
 	return device;

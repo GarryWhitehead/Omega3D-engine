@@ -33,6 +33,11 @@ public:
 	*/
 	bool compare(String str);
 
+    /**
+     * @brief Appends a string to the end of the string held by the 'this' buffer
+     */
+    static Util::String append(Util::String lhs, Util::String rhs);
+    
     float toFloat() const;
     uint32_t toUInt32() const;
     uint64_t toUInt64() const;

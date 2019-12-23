@@ -114,6 +114,8 @@ bool GltfModel::load(Util::String filename)
 		LOGGER_ERROR("Unable to open gltf file data for %s. Error code: %d\n", filename.c_str(), res);
 		return false;
 	}
+    
+    return true;
 }
 
 bool GltfModel::prepare()
@@ -143,19 +145,19 @@ bool GltfModel::prepare()
 			{
 				return false;
 			}
+            
+            // now prepare the skins. This requires finding the nodes which are joints, and
+            // adding the index values to the nodes. We expect one skin per mesh (of which there
+            // can only be one per node!)
+            for (auto& skin : newNode.skins)
+            {
+                SkinInstance newSkin;
+                newSkin.prepare(*skin, newNode);
+                skins.emplace_back(newSkin);
+            }
 		}
 	}
     
-    // now prepare the skins. This requires finding the nodes which are joints, and
-    // adding the index values to the nodes. We expect one skin per mesh (of which there
-    // can only be one per node!)
-    for (size_t index = 0; index < skins.size(); ++index)
-    {
-        SkinInstance newSkin;
-        newSkin.prepare(skins[index], linearisedNodes);
-        skins.emplace_back(newSkin);
-    }
-
 	return true;
 }
 
@@ -173,6 +175,11 @@ void GltfModel::setWorldScale(OEMaths::vec3f& scale)
 void GltfModel::setWorldRotation(OEMaths::quatf& rot)
 {
 	wRotation = rot;
+}
+
+GltfExtension& GltfModel::getExtensions()
+{
+    return extensions;
 }
 
 }    // namespace OmegaEngine

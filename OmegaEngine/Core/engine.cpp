@@ -11,7 +11,7 @@
 
 #include "Rendering/Renderer.h"
 
-#include "utility/logger.h"
+#include "utility/Logger.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
@@ -38,7 +38,11 @@ Engine::~Engine()
 
 bool Engine::init(NativeWindowWrapper& window)
 {
-	vkDriver.init(window.extensions.first, window.extensions.second);
+	if(!vkDriver.init(window.extensions.first, window.extensions.second))
+    {
+        return false;
+    }
+    return true;
 }
 
 VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
@@ -46,8 +50,8 @@ VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
 	// create a swapchain for surface rendering based on the platform specific window surface
 	VulkanAPI::Swapchain swapchain;
 
-	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, context.getInstance());
-	swapchain.prepare(context, surface);
+	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
+	swapchain.prepare(vkDriver.getContext(), surface);
 
 	return swapchain;
 }
@@ -55,20 +59,20 @@ VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
 World* Engine::createWorld(Util::String name)
 {
 	// create an empty world
-	World* world = new World;
+	World* world = new World(*this, vkDriver);
 
 	world->prepare(name);
 
 	worlds.emplace_back(std::move(world));
 	this->currentWorld = name;
 
-	// not exactly unique - maybe use a raw pointer here
 	return world;
 }
 
-Renderer* Engine::createRenderer(Swapchain& swapchain, Scene* scene)
+Renderer* Engine::createRenderer(VulkanAPI::Swapchain& swapchain, Scene* scene)
 {
-
+    Renderer* renderer = new Renderer(*this, *scene, swapchain);
+    
 }
 
 void Engine::loadConfigFile()
@@ -103,45 +107,6 @@ void Engine::loadConfigFile()
 	if (doc.HasMember("Mouse Sensitivity"))
 	{
 		engineConfig.mouseSensitivity = doc["Mouse Sensitivity"].GetFloat();
-	}
-}
-
-void Engine::startLoop()
-{
-	programState.setRunning();
-
-	// convert delta time to ms
-	const std::chrono::nanoseconds timeStep(33ms);
-
-	// fixed-step loop
-	std::chrono::nanoseconds accumulator(0ns);
-	double totalTime = 0.0;
-
-	Timer timer;
-	timer.startTimer();
-
-	while (programState.getIsRunning())
-	{
-		auto elapsedTime = timer.getTimeElapsed(true);
-		accumulator += std::chrono::duration_cast<std::chrono::nanoseconds>(elapsedTime);
-
-		// poll for any input
-		inputManager->update();
-
-		auto& world = worlds[currentWorld];
-		while (accumulator >= timeStep)
-		{
-			// update everything else
-			world->update(totalTime, static_cast<double>(elapsedTime.count()));
-
-			totalTime += static_cast<double>(timeStep.count());
-			accumulator -= timeStep;
-			//printf("updated!\n");
-		}
-
-		double interpolation = (double)accumulator.count() / (double)timeStep.count();
-		world->render(interpolation);
-		//printf("rendered!\n");
 	}
 }
 

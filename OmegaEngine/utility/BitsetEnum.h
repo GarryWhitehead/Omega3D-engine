@@ -139,7 +139,7 @@ public:
      */
     bool testBit(T idx) const
     {
-        assert(idx < sizeof(T));
+        assert(static_cast<int>(idx) < static_cast<int>(T::__SENTINEL__));
         return bitset.test(static_cast<int>(idx));
     }
     
