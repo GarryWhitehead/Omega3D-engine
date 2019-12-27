@@ -92,7 +92,7 @@ public:
 
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
-	vk::Buffer get() const
+	vk::Buffer get()
 	{
 		return vk::Buffer(buffer);
 	}
@@ -115,7 +115,7 @@ public:
 
 	void create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize size);
 
-	vk::Buffer get() const
+	vk::Buffer get()
 	{
 		return vk::Buffer(buffer);
 	}

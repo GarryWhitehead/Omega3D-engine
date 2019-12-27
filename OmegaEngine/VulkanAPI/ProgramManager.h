@@ -238,7 +238,9 @@ public:
      * @return A pointer to a shader program if one exsists with the designated hash. Otherwise returns nullptr
      */
 	ShaderProgram* findVariant(ShaderHash& hash);
-
+    
+    ShaderProgram* getVariant(ProgramManager::ShaderHash& key);
+    
 	/**
 	* @brief Creates a shader fragment that will be cached until ready for use
 	*/

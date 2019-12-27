@@ -10,7 +10,7 @@ namespace OmegaEngine
 {
 
 CompositionPass::CompositionPass(RenderGraph& rGraph, Util::String id)
-    :   RenderStageBase(id)
+    :   RenderStageBase(id.c_str())
       , rGraph(rGraph)
 {
 }
@@ -23,26 +23,8 @@ bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
     const Util::String filename = "composition.glsl";
-    VulkanAPI::ShaderProgram* prog = nullptr;
-    
     VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), 0, nullptr };
-    if (!manager->hasShaderVariant(key))
-    {
-        VulkanAPI::ShaderParser parser;
-        if (!parser.parse(filename))
-        {
-            return false;
-        }
-        prog = manager->createNewInstance(key);
-
-        // add variants and constant values
-
-        assert(prog);
-        if (!prog->prepare(parser))
-        {
-            return false;
-        }
-    }
+    VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
     
     return true;
 }

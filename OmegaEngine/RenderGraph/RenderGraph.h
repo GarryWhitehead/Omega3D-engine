@@ -42,13 +42,21 @@ struct RGraphContext
 
 	// the vulkan render pass for this pass
 	VulkanAPI::RenderPass* rpass = nullptr;
-
+    VulkanAPI::FrameBuffer framebuffer;
+    
+    // clear colours for this pass
+    OEMaths::colour4 clearCol = { 0.0f };
+    float depthClear = 1.0f;
+    
 	// useful vulkan managers
 	VulkanAPI::CmdBufferManager* cbManager = nullptr;
 	VulkanAPI::VkDriver* driver = nullptr;
 
 	// keep track of the renderer
 	Renderer* renderer = nullptr;
+    
+    // the rendergrpah this pass is associated with
+    RenderGraph* rGraph = nullptr;
 };
 
 using ExecuteFunc = std::function<void(RGraphContext&)>;
@@ -67,12 +75,7 @@ public:
 		Compute
 	};
     
-    RenderGraphPass() = default;
     RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
-    
-	// not copyable
-	RenderGraphPass(const RenderGraphPass&) = delete;
-	RenderGraphPass& operator=(const RenderGraphPass&) = delete;
 
 	// adds a input attachment reader handle to the pass
 	ResourceHandle addInput(ResourceHandle input);
@@ -125,17 +128,12 @@ private:
     // This is only used if this pass will be used threaded, i.e. using secondary cmd buffers. If this is the case, all cmd buffers will be allocated from this pool and will be reset per frame through a call to **update**.
     VulkanAPI::CmdPool* cmdPool = nullptr;
     
+    // flags depicting how the subpasses will behave
     Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
     
 	// ======= vulkan specific ================
 	// Kept in a struct as this will be passed around when rendering passes
 	RGraphContext context;
-
-	VulkanAPI::FrameBuffer framebuffer;
-
-	// clear colours for this pass
-	OEMaths::colour4 clearCol = { 0.0f };
-	float depthClear = 1.0f;
 };
 
 /**
@@ -226,6 +224,8 @@ public:
     
     // ============== getters ==================
     std::vector<ResourceBase*>& getResources();
+    
+    ResourceBase* getResource(const ResourceHandle handle);
     
     friend class RenderGraphPass;
     friend class RenderGraphBuilder;

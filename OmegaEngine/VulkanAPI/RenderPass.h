@@ -56,8 +56,8 @@ public:
      */
 	struct ClearFlags
 	{
-		LoadType attachLoad = LoadType::DontCare;
-		StoreType attachStore = StoreType::DontCare;
+		LoadType attachLoad = LoadType::Clear;
+		StoreType attachStore = StoreType::Store;
 		LoadType stencilLoad = LoadType::DontCare;
 		StoreType stencilStore = StoreType::DontCare;
 	};
@@ -156,8 +156,7 @@ public:
     FrameBuffer(VkContext& context);
     ~FrameBuffer();
 
-	void prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t width, uint32_t height,
-	             uint32_t layerCount);
+	void prepare(RenderPass& rpass, std::vector<ImageView*>& imageViews, uint32_t width, uint32_t height, uint32_t layerCount);
 
 	vk::Framebuffer& get()
 	{

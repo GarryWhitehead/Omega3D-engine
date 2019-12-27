@@ -28,6 +28,7 @@ struct TransformInfo;
 class Frustum;
 struct Renderable;
 class LightBase;
+class Skybox;
 
 class Scene
 {
@@ -55,8 +56,7 @@ public:
 
 	void updateCameraBuffer();
 
-	void updateTransformBuffer(std::vector<Scene::VisibleCandidate>& cand, const size_t staticModelCount,
-	                           const size_t skinnedModelCount);
+	void updateTransformBuffer(std::vector<Scene::VisibleCandidate>& cand, const size_t staticModelCount, const size_t skinnedModelCount);
 
 	void updateLightBuffer(std::vector<LightBase*> lights);
 
@@ -77,7 +77,10 @@ private:
 	/// Current cameras associated with this scene.
 	std::vector<Camera> cameras;
 	uint16_t currCamera = UINT16_MAX;
-
+    
+    /// the skybox to be used with this scene. Also used for global illumination
+    Skybox* skybox = nullptr;
+    
 	/// The world this scene is assocaited with
 	World& world;
 	Engine& engine;

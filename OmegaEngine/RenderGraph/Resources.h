@@ -4,6 +4,7 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Buffer.h"
+#include "VulkanAPI/RenderPass.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,6 +13,7 @@
 namespace VulkanAPI
 {
 class ImageView;
+class Texture;
 }
 
 namespace OmegaEngine
@@ -19,6 +21,7 @@ namespace OmegaEngine
 
 // forward declerations
 class RenderGraphPass;
+class RenderGraph;
 
 using AttachmentHandle = uint64_t;
 using ResourceHandle = uint64_t;
@@ -36,7 +39,10 @@ struct ResourceBase
 	    : type(rtype)
 	{
 	}
-
+    
+    // abstract virtual function
+    virtual void* bake() = 0;
+    
 	Util::String name;
 	ResourceType type;
 
@@ -59,17 +65,10 @@ struct ResourceBase
 */
 struct TextureResource : public ResourceBase
 {
-	TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level, const uint8_t layers)
-	    : width(width)
-	    , height(height)
-	    , layers(layers)
-	    , level(level)
-	    , format(format)
-	    , ResourceBase(ResourceType::Texture)
-	{
-	}
+    TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level, const uint8_t layers);
     
-    void bake();
+    void* bake() override;
+    VulkanAPI::Texture* get();
     
     bool isDepthFormat();
     bool isColourFormat();
@@ -82,6 +81,12 @@ struct TextureResource : public ResourceBase
 	uint8_t layers = 1;                            //< 3d textures not supported at present
 	uint8_t level = 0;                             //< For mult-sampling. Not used at present
 	vk::Format format = vk::Format::eUndefined;    //< The format will determine the type of attachment
+    vk::ImageUsageFlagBits imageLayout;
+    
+    // used by the vulkan backend
+    std::unique_ptr<VulkanAPI::Texture> texture;
+    
+    VulkanAPI::RenderPass::ClearFlags clearFlags;
 };
 
 /**
@@ -105,11 +110,9 @@ struct AttachmentInfo
 	AttachmentInfo(const AttachmentInfo&) = delete;
 	AttachmentInfo& operator=(const AttachmentInfo&) = delete;
 
-	// finialises the attachment
-	void prepare();
 
 	// creates the 'actual' vulkan resource associated with this attachment
-	VulkanAPI::ImageView* bake();
+	void* bake(RenderGraph& rGraph);
 
 	Util::String name;
 	size_t index;

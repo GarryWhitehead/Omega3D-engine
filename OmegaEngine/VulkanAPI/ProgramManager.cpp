@@ -311,4 +311,32 @@ void ProgramManager::updateImageDecsrSets()
 	imageDescrQueue.clear();
 }
 
+ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
+{
+    VulkanAPI::ShaderProgram* prog = nullptr;
+    
+    if (!hasShaderVariant(key))
+    {
+        VulkanAPI::ShaderParser parser;
+        if (!parser.parse(key.name))
+        {
+            return false;
+        }
+        prog = createNewInstance(key);
+
+        // add variants and constant values
+
+        assert(prog);
+        if (!prog->prepare(parser))
+        {
+            return false;
+        }
+    }
+    else
+    {
+        prog = findVariant(key);
+    }
+    return prog;
+}
+
 }    // namespace VulkanAPI

@@ -1,10 +1,8 @@
 #pragma once
 
-#include "RenderGraph/RenderGraph.h"
-
 #include "Rendering/RenderQueue.h"
 
-#include "Rendering/IblImage.h"
+#include "utility/CString.h"
 
 #include <array>
 #include <functional>
@@ -26,6 +24,7 @@ namespace OmegaEngine
 class Scene;
 class PostProcessInterface;
 class Engine;
+class RenderGraph;
 
 class RenderStageBase
 {
@@ -54,7 +53,8 @@ public:
      */
 	enum class RenderStage
 	{
-		GBufferFill,
+		IndirectLighting,      //< Part of the global illumination pipeline
+        GBufferFill,
 		LightingPass,
 		ForwardPass,
 		Skybox,
@@ -97,17 +97,11 @@ private:
 	/// The current vulkan instance
 	VulkanAPI::VkDriver& vkDriver;
 
-	/// IBL environment mapping handler
-	Ibl::IblImage ibl;
-    
-	/// keep a local copy of the render config
-	//RenderConfig renderConfig;
-
 	/// Each rendering stage of this renderer
 	std::vector<RenderStagePtr> rStages;
 
 	/// Contains the layout of the rendering stages
-	RenderGraph rGraph;
+	std::unique_ptr<RenderGraph> rGraph;
 
 	// swap chain used for rendering to surface
 	VulkanAPI::Swapchain& swapchain;

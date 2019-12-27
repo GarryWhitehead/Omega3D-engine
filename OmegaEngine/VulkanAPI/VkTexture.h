@@ -54,6 +54,8 @@ public:
      */
     ImageView* getImageView();
     
+    Image* getImage();
+    
     /**
      * @brief Returns a struct containing all user relevant info for this texture
      */

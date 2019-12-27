@@ -1,15 +1,18 @@
 #include "Renderer.h"
 
-#include "Core/scene.h"
-#include "Core/engine.h"
+#include "Core/Scene.h"
+#include "Core/Engine.h"
 
 #include "Components/RenderableManager.h"
 
-#include "Rendering/IblInterface.h"
+#include "RenderGraph/RenderGraph.h"
+
+#include "Rendering/IndirectLighting.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Rendering/LightingPass.h"
-#include "Rendering/Skybox.h"
+#include "Rendering/SkyboxPass.h"
 #include "Rendering/RenderQueue.h"
+#include "Rendering/IndirectLighting.h"
 
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/CommandBuffer.h"
@@ -17,19 +20,18 @@
 
 #include "Threading/ThreadPool.h"
 
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
 
 Renderer::Renderer(Engine& eng, Scene& scene, VulkanAPI::Swapchain& swapchain) :
-	engine(eng), 
-	scene(scene), 
-	swapchain(swapchain),
-    vkDriver(eng.getVkDriver())
+    vkDriver(eng.getVkDriver()),
+    rGraph(std::make_unique<RenderGraph>(vkDriver)),
+    swapchain(swapchain),
+    engine(eng),
+    scene(scene)
 {
-	// setup ibl if required
-	ibl.prepare();
 }
 
 Renderer::~Renderer()
@@ -44,6 +46,9 @@ void Renderer::prepare()
     {
         switch (stage)
         {
+            case RenderStage::IndirectLighting:
+                rStages.emplace_back(std::make_unique<IndirectLighting>());
+                break;
             case RenderStage::GBufferFill:
                 rStages.emplace_back(std::make_unique<GBufferFillPass>());
                 break;
@@ -55,8 +60,6 @@ void Renderer::prepare()
 			    break;
         }
     }
-
-	iblInterface->renderMaps(*vkInterface);
 }
 
 void Renderer::beginFrame()
@@ -66,9 +69,7 @@ void Renderer::beginFrame()
 
 void Renderer::update()
 {
-   
-    
-   
+
 }
 
 void Renderer::draw()
@@ -77,19 +78,19 @@ void Renderer::draw()
 
 	// optimisation and compilation of the render graph. If nothing has changed since the last frame then this 
 	// call will just return.
-	rGraph.prepare();
+	rGraph->prepare();
 			
 	// executes the user-defined callback for all of the passes in-turn. 
-	rGraph.execute();
+	rGraph->execute();
 
 	// finally send to the swap-chain presentation
-	vkDriver.submitFrame(swapchain);
+	vkDriver.endFrame();
 }
 
 void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext& context)
 {
     VulkanAPI::CmdBuffer cbSecondary = cmdBuffer.createSecondary();
-	auto& queue = scene.renderQueue.getPartition(RenderQueue::Partition::Colour);
+	auto queue = scene.renderQueue.getPartition(RenderQueue::Partition::Colour);
 
     auto thread_draw = [&cbSecondary, &queue, &context](size_t start, size_t end)
     {

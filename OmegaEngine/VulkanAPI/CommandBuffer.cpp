@@ -96,12 +96,12 @@ void CmdBuffer::setDepthBias(float biasConstant, float biasClamp, float biasSlop
 	cmdBuffer.setDepthBias(biasConstant, biasClamp, biasSlope);
 }
 
-void CmdBuffer::bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset)
+void CmdBuffer::bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset)
 {
 	cmdBuffer.bindVertexBuffers(0, 1, &buffer, &offset);
 }
 
-void CmdBuffer::bindIndexBuffer(vk::Buffer& buffer, uint32_t offset)
+void CmdBuffer::bindIndexBuffer(vk::Buffer buffer, uint32_t offset)
 {
 	cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 }

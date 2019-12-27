@@ -1,6 +1,7 @@
 #include "RenderPass.h"
 
 #include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/Image.h"
 
 #include "utility/Logger.h"
 
@@ -358,15 +359,21 @@ FrameBuffer::~FrameBuffer()
     device.destroy(fbuffer);
 }
 
-void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView>& imageViews, uint32_t w, uint32_t h, uint32_t layerCount)
+void FrameBuffer::prepare(RenderPass& rpass, std::vector<ImageView*>& imageViews, uint32_t w, uint32_t h, uint32_t layerCount)
 {
 	assert(imageViews.size() > 0);
-
+    
+    std::vector<vk::ImageView> views;
+    for (auto& view : imageViews)
+    {
+        views.emplace_back(view->get());
+    }
+    
 	// store locally the screen extents for use later
 	width = w;
 	height = h;
 
-    vk::FramebufferCreateInfo frameInfo{{}, rpass.get(), static_cast<uint32_t>(imageViews.size()), imageViews.data(), width, height,
+    vk::FramebufferCreateInfo frameInfo{{}, rpass.get(), static_cast<uint32_t>(views.size()), views.data(), width, height,
         layerCount};
 
 	VK_CHECK_RESULT(device.createFramebuffer(&frameInfo, nullptr, &fbuffer));

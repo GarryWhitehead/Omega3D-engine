@@ -16,8 +16,8 @@ namespace OmegaEngine
 {
 
 LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
-    : rGraph(rGraph)
-    , RenderStageBase(id.c_str())
+    : RenderStageBase(id.c_str()),
+      rGraph(rGraph)
 {
 }
 
@@ -25,29 +25,11 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
 	const Util::String filename = "lighting.glsl";
-    VulkanAPI::ShaderProgram* prog = nullptr;
-    
-	VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), variantBits, nullptr };
-	if (!manager->hasShaderVariant(key))
-	{
-		VulkanAPI::ShaderParser parser;
-		if (!parser.parse(filename))
-		{
-			return false;
-		}
-        prog = manager->createNewInstance(key);
-
-		// add variants and constant values
-
-		assert(prog);
-		if (!prog->prepare(parser, context))
-		{
-			return false;
-		}
-	}
+	VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), 0, nullptr };
+    VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 
 	// build the lighting render pass
-	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
+	RenderGraphBuilder builder = rGraph.createRenderPass(passId, RenderGraphPass::Type::Graphics);
 
 	// inputs from the deferred pass
 	builder.addInputAttachment("position");
@@ -64,19 +46,20 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 
 	builder.addExecute([=](RGraphContext& context) {
         
-        auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
+        VulkanAPI::CmdBuffer* cmdBuffer = context.cmdBuffer;
         
 		// bind the pipeline
 		cmdBuffer->bindPipeline(context.rpass, prog);
 
 		// bind the descriptor
         cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
-
-		cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
+		//cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 
 		// render full screen quad to screen
 		cmdBuffer->drawQuad();
 	});
+    
+    return true;
 }
 
 }    // namespace OmegaEngine

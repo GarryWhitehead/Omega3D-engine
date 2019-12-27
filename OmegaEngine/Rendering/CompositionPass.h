@@ -2,6 +2,8 @@
 
 #include "Rendering/Renderer.h"
 
+#include "utility/CString.h"
+
 namespace OmegaEngine
 {
 

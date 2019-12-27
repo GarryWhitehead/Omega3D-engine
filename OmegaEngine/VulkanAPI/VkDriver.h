@@ -108,12 +108,20 @@ public:
 	//  ================ Functions for creating buffers and adding resource data to the backend =================================
 
 	/**
-     * @brief This is for adding persistant uniform buffers to the backend. These will remain in the backend until the user calls the appropiate destroy function.
+     * @brief This is for adding persistant uniform buffers to the backend. These will remain in the backend until the user calls the appropiate destroy function. This function also creates and updates a descriptor set which will be associated with this buffer..
      * @param id This is a string id used to hash and retrieve this buffer
 	 * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-	void addUbo(Util::String id, const size_t size, VkBufferUsageFlags usage);
+	void addUboAndUpdateDescr(Util::String id, const size_t size, VkBufferUsageFlags usage);
+    
+    /**
+     * @brief This is for adding persistant uniform buffers to the backend. This should be used when a descriptor set isn't stored within the vulkan backend, i.e. materials keep track of their own sets
+     * @param id This is a string id used to hash and retrieve this buffer
+     * @param size The size of the buffer in bytes
+     * @param usage Vulkan usage flags depict what this buffer will be used for
+     */
+    void addUbo(Util::String id, const size_t size, VkBufferUsageFlags usage);
 
 	/**
      * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline

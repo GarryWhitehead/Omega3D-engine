@@ -101,7 +101,12 @@ void Texture::createArrayCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffer
 
 ImageView* Texture::getImageView()
 {
-	return imageView.get();
+	return imageView;
+}
+
+Image* Texture::getImage()
+{
+    return image;
 }
 
 }    // namespace VulkanAPI

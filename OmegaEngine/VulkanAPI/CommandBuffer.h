@@ -49,8 +49,8 @@ public:
 	void bindDescriptors(ShaderProgram* prog, const Pipeline::Type type);
     void bindDynamicDescriptors(ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
 	void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
-	void bindVertexBuffer(vk::Buffer& buffer, vk::DeviceSize offset);
-	void bindIndexBuffer(vk::Buffer& buffer, uint32_t offset);
+	void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
+	void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);
 
 	// dynamic bindings
 	void setDepthBias(float biasConstant, float biasClamp, float biasSlope);

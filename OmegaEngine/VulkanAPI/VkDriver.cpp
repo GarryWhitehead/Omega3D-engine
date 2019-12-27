@@ -6,7 +6,7 @@
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkTexture.h"
 
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 
 #include <assert.h>
 
@@ -74,10 +74,15 @@ void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
 	Buffer buffer;
 	buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
 	buffers.emplace(id, buffer);
+}
 
-	// also update all descriptors that have this id - we haven't added data to the buffer yet but the descriptor sets are only
-	// interested in the address and size of the buffer which is known now
-	progManager->pushBufferDecsr(id, buffer);
+void VkDriver::addUboAndUpdateDescr(Util::String id, size_t size, VkBufferUsageFlags usage)
+{
+    addUbo(id, size, usage);
+    
+    // also update all descriptors that have this id - we haven't added data to the buffer yet but the descriptor sets are only
+    // interested in the address and size of the buffer which is known now
+    progManager->pushBufferDecsr(id, buffer);
 }
 
 void VkDriver::add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
@@ -141,7 +146,7 @@ void VkDriver::updateUbo(Util::String id, size_t size, void* data)
 
 void VkDriver::deleteUbo(Util::String id)
 {
-	auto& iter = buffers.find({ id.c_str() });
+	auto iter = buffers.find({ id.c_str() });
 	assert(iter != buffers.end());
 	context.device.destroy(iter->second.get(), nullptr);
 	buffers.erase({ id.c_str() });
@@ -171,7 +176,7 @@ void VkDriver::deleteIndexBuffer(IndexBuffer* buffer)
 
 Texture* VkDriver::getTexture2D(Util::String name)
 {
-	auto iter = textures.find({ name.c_str });
+	auto iter = textures.find({ name.c_str() });
 	if (iter == textures.end())
 	{
 		return nullptr;
@@ -181,7 +186,7 @@ Texture* VkDriver::getTexture2D(Util::String name)
 
 Buffer* VkDriver::getBuffer(Util::String name)
 {
-	auto iter = buffers.find({ name.c_str });
+	auto iter = buffers.find({ name.c_str() });
 	if (iter == buffers.end())
 	{
 		return nullptr;

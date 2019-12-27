@@ -97,6 +97,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
 	Types/AABox.h
+    Types/Skybox.cpp Types/Skybox.h
 	
 	OEMaths/OEMaths.h
 	OEMaths/OEMaths_Mat2.h
@@ -115,14 +116,14 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	RenderGraph/RenderGraph.cpp RenderGraph/RenderGraph.h
 	RenderGraph/Resources.cpp RenderGraph/Resources.h
 
-	Rendering/IblInterface.cpp Rendering/IblInterface.h
+	Rendering/IndirectLighting.cpp Rendering/IndirectLighting.h
 	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
 	Rendering/Renderer.cpp Rendering/Renderer.h
     Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h
 	Rendering/LightingPass.cpp Rendering/LightingPass.h
 	Rendering/IblImage.cpp Rendering/IblImage.h
-	Rendering/Skybox.cpp Rendering/Skybox.h
+	Rendering/SkyboxPass.cpp Rendering/SkyboxPass.h
 	Rendering/CompositionPass.cpp Rendering/CompositionPass.h
 	Rendering/Shadow.cpp Rendering/Shadow.h
 	

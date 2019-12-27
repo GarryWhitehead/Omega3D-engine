@@ -8,7 +8,7 @@ namespace VulkanAPI
 // forward decleartions
 class Image;
 class Texture;
-class TextureContext;
+struct TextureContext;
 class Queue;
 class VkContext;
 
@@ -17,8 +17,6 @@ class ImageView
 public:
     
     /// no default contructor
-    //ImageView() = delete;
-    
 	ImageView(VkContext& context);
     ~ImageView();
     
@@ -60,7 +58,6 @@ class Image
 
 public:
     
-    Image() = default;
 	Image(VkContext& context, Texture& tex);
 	~Image();
     

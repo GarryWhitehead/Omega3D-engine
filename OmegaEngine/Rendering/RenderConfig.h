@@ -11,8 +11,6 @@ namespace OmegaEngine
 
 struct RenderConfig
 {
-	// fills the config struct with data from file if available
-	void load();
 
 	struct General
 	{

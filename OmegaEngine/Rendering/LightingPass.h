@@ -39,8 +39,6 @@ private:
 	
 	// points to the render graph associated with this pass
 	RenderGraph& rGraph;
-    
-    VulkanAPI::CommandBufferManager& cbManager;
 
 	LPassInfo passInfo;
 };

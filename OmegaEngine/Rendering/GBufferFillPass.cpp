@@ -10,7 +10,7 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Utility.h"
-#include "VulkanAPI/common.h"
+#include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkDriver.h"
 
@@ -33,7 +33,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(context);
 
-	RenderGraphBuilder builder = rGraph.createRenderPass(passId);
+	RenderGraphBuilder builder = rGraph.createRenderPass(passId, RenderGraphPass::Type::Graphics);
 
 	// create the gbuffer textures
 	gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
@@ -58,11 +58,10 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 		// for me old sanity!
 		assert(context.cbManager);
 		assert(context.renderer);
-		auto& cmdBuffer = context.cbManager->getCmdBuffer(context.cmdBuffer);
 
 		// draw the contents of the renderable rendder queue
 		Renderer* renderer = context.renderer;
-		renderer->drawQueueThreaded(*cmdBuffer, RenderQueue::Type::Colour);
+		renderer->drawQueueThreaded(*context.cmdBuffer, RenderQueue::Type::Colour);
 	});
 }
 
@@ -94,7 +93,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 			if (tex)
 			{
 				mat->descrSet->updateImageSet(matBinding.set, i, matBinding.type, tex->getSampler(),
-				                              tex->getImageView().get(), tex->getImageLayout());
+				                              tex->getImageView()->get(), tex->getImageLayout());
 			}
 		}
 	}
