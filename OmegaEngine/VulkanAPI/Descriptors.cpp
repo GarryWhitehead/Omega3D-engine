@@ -99,6 +99,31 @@ void DescriptorPool::build()
 	VK_CHECK_RESULT(context.getDevice().createDescriptorPool(&createInfo, nullptr, &pool));
 }
 
+void DescriptorPool::prepareLayouts()
+{
+    for (auto& layout : layouts)
+    {
+        layout.prepare();
+    }
+}
+
+DescriptorLayout& DescriptorPool::findSet(uint8_t setNum)
+{
+    auto iter = std::find_if(layouts.begin(), layouts.end(), [&setNum](const DescriptorLayout& lhs) { return lhs.set == setNum; });
+    assert(iter != layouts.end());
+    return *iter;
+}
+
+std::vector<vk::DescriptorSetLayout> DescriptorPool::getLayouts()
+{
+    std::vector<vk::DescriptorSetLayout> result;
+    for (auto& layout : layouts)
+    {
+        result.emplace_back(layout.get());
+    }
+    return result;
+}
+
 // ========================= DescriptorLayout ================================================
 DescriptorLayout::DescriptorLayout(VkContext& context, DescriptorPool& pool)
     : context(context)
@@ -141,7 +166,7 @@ void DescriptorSet::addLayout(DescriptorLayout& layout)
 	descrSets[layout.set] = descrSet;
 }
 
-void DescriptorSet::updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer,
+void DescriptorSet::updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, const vk::Buffer& buffer,
                                     uint32_t offset, uint32_t range)
 {
 	auto iter = descrSets.find(set);

@@ -12,6 +12,7 @@ class PipelineLayout;
 class VkContext;
 class ShaderProgram;
 class RenderPass;
+class DescriptorPool;
 
 class Pipeline
 {
@@ -23,7 +24,7 @@ public:
         Compute
     };
     
-	Pipeline();
+	Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout);
 	~Pipeline();
 
     // not copyable
@@ -32,14 +33,14 @@ public:
     
     static vk::PipelineBindPoint createBindPoint(Pipeline::Type type);
     
-	vk::PipelineVertexInputStateCreateInfo updateVertexInput(std::vector<ShaderBinding::InputBinding>& inputs);
+	vk::PipelineVertexInputStateCreateInfo updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs);
 
 	void addEmptyLayout(VkContext& context);
     
     /**
      * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
      */
-	void create(VkContext& context, RenderPass& rPass, ShaderProgram& shader);
+	void create(ShaderProgram& shader);
 	
 	Pipeline::Type getType() const
 	{
@@ -53,16 +54,16 @@ public:
 
 private:
     
-	VkContext& device;
+	VkContext& context;
 
 	// everything needeed to build the pipeline
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
 	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
-
-    Type type;
     
-    // a reference to the shader associated with this pipline
-	Shader& shader;
+    // dynamic states to be used with this pipeline
+    std::vector<vk::DynamicState> dynamicStates;
+    
+    Type type;
     
     // a reference to the renderpass associated with this pipeline
 	RenderPass& renderpass;
@@ -86,7 +87,7 @@ public:
      * created before calling this function.
      * Note: The layouts must be in the correct order as depicted by the set number
      */
-	void prepare(VkContext& context, std::vector<DescriptorLayout> &descrLayouts);
+	void prepare(VkContext& context, DescriptorPool& pool);
     
     /// returns the vulkan pipeline layout
 	vk::PipelineLayout &get()

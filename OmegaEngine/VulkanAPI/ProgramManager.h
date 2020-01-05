@@ -22,8 +22,10 @@ class ShaderParser;
 class Sampler;
 class ImageView;
 class DescriptorLayout;
+class DescriptorPool;
 class DescriptorSet;
 class PipelineLayout;
+class Pipeline;
 class Buffer;
 class Texture;
 
@@ -33,12 +35,39 @@ class Texture;
 */
 struct RenderStateBlock
 {
-	struct RasterState
+    struct DsState
+    {
+        struct StencilState
+        {
+            vk::StencilOp failOp;
+            vk::StencilOp passOp;
+            vk::StencilOp depthFailOp;
+            vk::CompareOp compareOp;
+            uint32_t compareMask = 0;
+            uint32_t writeMask = 0;
+            uint32_t reference = 0;
+        };
+        
+        /// depth state
+        bool testEnable;
+        bool writeEnable;
+        vk::CompareOp compareOp;
+        
+        /// stencil state
+        bool stencilTestEnable = VK_FALSE;
+        
+        /// only processed if the above is true
+        StencilState front;
+        StencilState back;
+    };
+    
+    struct RasterState
 	{
 		vk::CullModeFlagBits cullMode;
 		vk::PolygonMode polygonMode;
 		vk::FrontFace frontFace;
 		vk::PrimitiveTopology topology;
+        bool primRestart = false;
 	};
 
 	struct Sampler
@@ -50,6 +79,7 @@ struct RenderStateBlock
 		vk::SamplerAddressMode addrModeW;
 	};
 
+    DsState dsState;
 	RasterState rastState;
 	Sampler sampler;
 };
@@ -65,10 +95,11 @@ public:
      */
 	struct BufferBinding
 	{
-		Util::String name;
-		int16_t bind = 0;
+		std::string name;
+		uint16_t bind = 0;
 		uint16_t set = 0;
 		uint32_t size = 0;
+        vk::DescriptorType type;
 	};
 
 	/**
@@ -76,25 +107,16 @@ public:
      */
 	struct SamplerBinding
 	{
-		Util::String name;
-		int16_t bind = 0;
+        std::string name;
+		uint16_t bind = 0;
 		uint16_t set = 0;
-	};
-
-	/**
-     * @brief Input semenatics of the shader stage. Used by the pipeline attributes
-     */
-	struct InputBinding
-	{
-		uint16_t loc = 0;
-		uint32_t stride = 0;
-		vk::Format format;
+        vk::DescriptorType type;
 	};
 
 	struct SpecConstantBinding
 	{
-		Util::String name;
-		uint8_t id = 0;
+		std::string name;
+		uint16_t id = 0;
 	};
 
 	/**
@@ -106,24 +128,31 @@ public:
 		vk::Format format;
 	};
 
-	ShaderBinding() = default;
-
+public:
+    
+    ShaderBinding(VkContext& context) :
+        shader(std::make_unique<Shader>(context))
+    {}
+    
+    std::unique_ptr<Shader>& getShader()
+    {
+        return shader;
+    }
+    
 	friend class ShaderProgram;
 	friend class ShaderCompiler;
 
 private:
+    
 	std::vector<BufferBinding> bufferBindings;
 	std::vector<SamplerBinding> samplerBindings;
 	std::vector<RenderTarget> renderTargets;
-
-	// vertex shader only
-	std::vector<InputBinding> inputs;
 
 	// Specialisation constant are finalised at the pipeline creation stage
 	std::vector<SpecConstantBinding> constants;
 
 	// the compiled shader in a format ready for binding to the pipeline
-	Shader shader;
+	std::unique_ptr<Shader> shader;
 };
 
 /**
@@ -132,6 +161,32 @@ private:
 class ShaderProgram
 {
 public:
+    
+    /**
+     * @brief Input semenatics of the shader stage. Used by the pipeline attributes
+     * Only used required for the vertex shader hence why it exsists outside of the shaderbinding struct
+     */
+    struct InputBinding
+    {
+        uint16_t loc = 0;
+        uint32_t stride = 0;
+        vk::Format format;
+    };
+    
+    struct ConstantInfo
+    {
+        enum Type
+        {
+            Float,
+            Int
+        };
+        
+        Util::String name;
+        Util::String value;
+        Type type;
+        Shader::Type stage;
+    };
+    
 	ShaderProgram(VkContext& context);
 
 	/**
@@ -145,17 +200,13 @@ public:
      * @brief Adds a shader variant for a specifed stage to the list
      */
 	void addVariant(Util::String definition, uint8_t value, Shader::Type stage);
-
-	void overrideRenderState(RenderStateBlock* renderState);
-
-	/**
-     * @brief Updates a spec constant which must have been stated in the shader json with a new value which will
-     * set at pipeline generation time. If the spec constant isn't uodated, then the const value stated in the json will be used
-     * Note: only integers and floats supported at present
+    
+    /**
+     * @brief Sorts variants by specified stage, in a format ready for passing to the shader compiler
      */
-	void updateConstant(Util::String name, uint32_t value, Shader::Type stage);
-	void updateConstant(Util::String name, int32_t value, Shader::Type stage);
-	void updateConstant(Util::String name, float value, Shader::Type stage);
+    std::vector<VulkanAPI::Shader::VariantInfo> sortVariants(Shader::Type stage);
+    
+	void overrideRenderState(RenderStateBlock* renderState);
 
 	ShaderBinding::SamplerBinding& findSamplerBinding(Util::String name, const Shader::Type type);
 
@@ -172,10 +223,32 @@ public:
 	DescriptorLayout* getDescrLayout(uint8_t set);
 
 	DescriptorSet* getDescrSet();
-
+    
+    PipelineLayout* getPLineLayout();
+    
+    /**
+    * @brief Updates a spec constant which must have been stated in the shader json with a new value which will
+    * set at pipeline generation time. If the spec constant isn't uodated, then the const value stated in the json will be used
+    * Note: only integers and floats supported at present
+    */
+    template <typename T>
+    void updateConstant(Util::String name, T value, Shader::Type stage)
+    {
+        Util::String strVal = Util::String::valueToString(value);
+        if constexpr (std::is_same_v<T, int>)
+        {
+            constants.emplace_back(ConstantInfo{name, strVal, ConstantInfo::Int, stage});
+        }
+        else if constexpr (std::is_same_v<T, float>)
+        {
+            constants.emplace_back(ConstantInfo{name, strVal, ConstantInfo::Float, stage});
+        }
+    }
+    
 	friend class ShaderCompiler;
 	friend class CmdBuffer;
-
+    friend class Pipeline;
+    
 private:
     
     VkContext& context;
@@ -184,21 +257,31 @@ private:
 
 	// this block overrides all render state for this shader.
 	std::unique_ptr<RenderStateBlock> renderState;
-
+    
+    // input bindings for the vertex shader
+    std::vector<InputBinding> inputs;
+    
 	// used by the vulkan backend
-	std::vector<std::unique_ptr<DescriptorLayout>> descrLayouts;
+    std::unique_ptr<DescriptorPool> descrPool;
 
 	// it's tricky deciding the best place to store descriptor sets. In OE, they are stored in the shader program as only
 	// the shader knows the layout. Call **updateDescrSets()** set update the sets with relevant buffer/texture info. This is
 	// usually done via the driver and a **updateUniform()** call.
 	std::unique_ptr<DescriptorSet> descrSet;
 	std::unique_ptr<PipelineLayout> pLineLayout;
+    
+    // shader constants to add during compiler time
+    std::vector<ConstantInfo> constants;
+    
+    // shader variants which are added at compile time
+    std::vector<VulkanAPI::Shader::VariantInfo> variants;
 };
 
 
 class ProgramManager
 {
 public:
+    
 	struct ShaderHash
 	{
 		const char* name;
@@ -206,7 +289,7 @@ public:
 		vk::PrimitiveTopology* topology;    //< optional (leave null if not needed)
 	};
 
-	ProgramManager(VkDriver& context);
+	ProgramManager(VkDriver& driver);
 	~ProgramManager();
 
 	/**
@@ -263,7 +346,7 @@ public:
     * @brief Pushes a image dedscriptor to update this frame. This will not check if the id exsists. Thus, will only fail at the point of update, at which
     * point it will throw an exception if it does not exsist
     */
-	void pushImageDecsrUpdate(Util::String id, Texture& tex);
+	void pushImageDescrUpdate(Util::String id, Texture& tex);
 
 	/**
      * @brief A special function call for updating the material descriptor sets. The reason for updating them in this fashion is because they require the descriptor]
@@ -273,6 +356,7 @@ public:
 	void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
 
 private:
+    
 	/// For all descriptors that need checking, all shaders that are registered for the id, and updates the descr set with the buffer if found.
 	void updateBufferDecsrSets();
 
@@ -310,11 +394,11 @@ private:
 	std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
 
 	// this is where individual shaders are cached until required to assemble into a shader program
-	std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
+	std::unordered_map<ShaderHash, ShaderDescriptor*, ShaderHasher, ShaderEqual> cached;
 
 	// Queued decriptor requiring updating which is done on a per frame basis
-	std::vector<std::pair<const char*, Buffer>> bufferDescrQueue;
-	std::vector<std::pair<const char*, Texture>> imageDescrQueue;
+	std::vector<std::pair<const char*, Buffer*>> bufferDescrQueue;
+	std::vector<std::pair<const char*, Texture*>> imageDescrQueue;
 };
 
 }    // namespace VulkanAPI

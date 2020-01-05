@@ -114,7 +114,7 @@ void IndirectLighting::buildMap(RGraphContext& context, VulkanAPI::ShaderProgram
     
     // create an offscreen texture for composing the image
     VulkanAPI::Texture osTexture{};
-    osTexture.create2dTex(vk::Format::eR32G32B32A32Sfloat, specularMapDim, specularMapDim, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
+    osTexture.create2dTex(*context.driver, vk::Format::eR32G32B32A32Sfloat, specularMapDim, specularMapDim, 1, vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
         vk::ImageUsageFlagBits::eSampled);
     
     ResourceBase* base = context.rGraph->getResource(specInfo.texture);

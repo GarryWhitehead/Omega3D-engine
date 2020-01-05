@@ -157,10 +157,11 @@ class ThreadTaskSplitter
 {
 public:
 	ThreadTaskSplitter(size_t start, size_t dataSize, Func func, uint8_t numThreads = 0)
-	    : start(start)
+	    : pool(std::make_unique<ThreadPool>(numThreads)),
+          start(start)
 	    , dataSize(dataSize)
 	    , func(func)
-	    , pool(std::make_unique<ThreadPool>(numThreads))
+
 	{
 	}
 

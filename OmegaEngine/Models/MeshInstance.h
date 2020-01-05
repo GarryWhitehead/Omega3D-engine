@@ -102,6 +102,7 @@ public:
     friend class Scene;
 
 private:
+    
 	/// defines the topology to use in the program state
 	vk::PrimitiveTopology topology;
 

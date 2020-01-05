@@ -12,6 +12,8 @@ namespace VulkanAPI
 class Image;
 class ImageView;
 class StagingPool;
+class VkContext;
+class VkDriver;
 
 /**
 * A simple struct for storing all texture info and ease of passing around
@@ -31,7 +33,7 @@ class Texture
 
 public:
 
-	Texture() noexcept;
+	Texture() = default;
 	~Texture();
     
     /**
@@ -42,12 +44,12 @@ public:
      * @param mipLevels The number of levels this texture contains
      * @param usageFlags The intended usage for this image.
      */
-	void create2dTex(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
+	void create2dTex(VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
     
     /**
      * @brief Maps a image in the format specified when the texture as created, to the GPU.
      */
-	void map(StagingPool& stagePool, void* data);
+	void map(VkDriver& driver, StagingPool& stagePool, void* data);
     
     /**
      * @brief Retuens the image view for this texture
@@ -55,6 +57,10 @@ public:
     ImageView* getImageView();
     
     Image* getImage();
+    
+    Sampler* getSampler();
+    
+    vk::ImageLayout& getImageLayout();
     
     /**
      * @brief Returns a struct containing all user relevant info for this texture
@@ -69,14 +75,14 @@ private:
 
 private:
 
-	VkContext& vkContext;
-
 	// texture info
 	TextureContext texContext;
 
     // The texture sampler
-    Sampler sampler;
-
+    Sampler* sampler;
+    
+    vk::ImageLayout imageLayout;
+    
 	Image* image;
 	ImageView* imageView;
 };

@@ -19,12 +19,12 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(VkDebugReportFlagsEXT flags,
 
 	if (flags & VK_DEBUG_REPORT_ERROR_BIT_EXT)
 	{
-		printf("Vulkan Error: %s: %\n", layer_prefix, msg);
+		printf("Vulkan Error: %s: %s\n", layer_prefix, msg);
 		return VK_FALSE;
 	}
 	if (flags & VK_DEBUG_REPORT_WARNING_BIT_EXT)
 	{
-		printf("Vulkan Warning: %s: %\n", layer_prefix, msg);
+		printf("Vulkan Warning: %s: %s\n", layer_prefix, msg);
 		return VK_FALSE;
 	}
 	else
@@ -105,10 +105,8 @@ bool VkContext::findExtensionProperties(const char* name, std::vector<vk::Extens
 	return false;
 };
 
-void VkContext::prepareExtensions()
+bool VkContext::prepareExtensions(std::vector<const char*>& extensions, uint32_t extCount, std::vector<vk::ExtensionProperties>& extensionProps)
 {
-	std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
-
 	for (uint32_t i = 0; i < extCount; ++i)
 	{
 		if (!findExtensionProperties(extensions[i], extensionProps))
@@ -136,6 +134,15 @@ void VkContext::prepareExtensions()
 		extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		deviceExtensions.hasDebugUtils = true;
 	}
+    
+#ifdef VULKAN_VALIDATION_DEBUG
+    // if debug utils isn't supported, try debug report
+    if (!deviceExtensions.hasDebugUtils && findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
+    {
+        extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
+    }
+#endif
+    return true;
 }
 
 bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
@@ -151,7 +158,12 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	}
 
 	// extension properties
-	prepareExtensions();
+    std::vector<vk::ExtensionProperties> extensionProps = vk::enumerateInstanceExtensionProperties();
+    
+	if (!prepareExtensions(extensions, extCount, extensionProps))
+    {
+        return false;
+    }
 
 	// layer extensions, if any
 	std::vector<vk::LayerProperties> layerExt = vk::enumerateInstanceLayerProperties();
@@ -168,7 +180,6 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	};
 
 #ifdef VULKAN_VALIDATION_DEBUG
-
 	if (findLayerExtension("VK_LAYER_LUNARG_standard_validation"))
 	{
 		requiredLayers.push_back("VK_LAYER_LUNARG_standard_validation");
@@ -178,78 +189,73 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 		LOGGER_INFO("Unable to find validation standard layers.");
 		return false;
 	}
-
-	// if debug utils isn't supported, try debug report
-	if (!deviceExtensions.hasDebugUtils && findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
-	{
-		extensions.push_back(VK_EXT_DEBUG_REPORT_EXTENSION_NAME);
-	}
 #endif
-
+    
 	vk::InstanceCreateInfo createInfo({}, &appInfo, static_cast<uint32_t>(requiredLayers.size()), requiredLayers.data(),
 	                                  static_cast<uint32_t>(extensions.size()), extensions.data());
 
 	VK_CHECK_RESULT(vk::createInstance(&createInfo, nullptr, &instance));
 
 #ifdef VULKAN_VALIDATION_DEBUG
-
 	vk::DispatchLoaderDynamic dldi(instance);
 
 	if (deviceExtensions.hasDebugUtils)
 	{
-		vk::DebugUtilsMessengerCreateInfoEXT createInfo(
+		vk::DebugUtilsMessengerCreateInfoEXT dbgCreateInfo(
 		    {},
 		    vk::DebugUtilsMessageSeverityFlagBitsEXT::eError | vk::DebugUtilsMessageSeverityFlagBitsEXT::eInfo |
 		        vk::DebugUtilsMessageSeverityFlagBitsEXT::eVerbose | vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning,
 		    vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral | vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation,
 		    DebugMessenger, this);
 
-		auto debugReport = instance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &debugMessenger, dldi);
+		auto debugReport = instance.createDebugUtilsMessengerEXT(&dbgCreateInfo, nullptr, &debugMessenger, dldi);
 	}
 	else if (findExtensionProperties(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, extensionProps))
 	{
-		vk::DebugReportCallbackCreateInfoEXT createInfo(vk::DebugReportFlagBitsEXT::eError |
+		vk::DebugReportCallbackCreateInfoEXT cbCreateInfo(vk::DebugReportFlagBitsEXT::eError |
 		                                                    vk::DebugReportFlagBitsEXT::eWarning |
 		                                                    vk::DebugReportFlagBitsEXT::ePerformanceWarning,
 		                                                DebugCallback, this);
 
-		instance.createDebugReportCallbackEXT(&createInfo, nullptr, &debugCallback, dldi);
+		instance.createDebugReportCallbackEXT(&cbCreateInfo, nullptr, &debugCallback, dldi);
 	}
 #endif
+    
+    return true;
 }
 
 vk::PhysicalDeviceFeatures VkContext::prepareFeatures()
 {
 	vk::PhysicalDeviceFeatures requiredFeatures;
-	vk::PhysicalDeviceFeatures features = physical.getFeatures();
-	if (features.textureCompressionETC2)
+	vk::PhysicalDeviceFeatures devFeatures = physical.getFeatures();
+	if (devFeatures.textureCompressionETC2)
 	{
 		requiredFeatures.textureCompressionETC2 = VK_TRUE;
 	}
-	if (features.textureCompressionBC)
+	if (devFeatures.textureCompressionBC)
 	{
 		requiredFeatures.textureCompressionBC = VK_TRUE;
 	}
-	if (features.samplerAnisotropy)
+	if (devFeatures.samplerAnisotropy)
 	{
 		requiredFeatures.samplerAnisotropy = VK_TRUE;
 	}
-	if (features.tessellationShader)
+	if (devFeatures.tessellationShader)
 	{
 		requiredFeatures.tessellationShader = VK_TRUE;
 	}
-	if (features.geometryShader)
+	if (devFeatures.geometryShader)
 	{
 		requiredFeatures.geometryShader = VK_TRUE;
 	}
-	if (features.shaderStorageImageExtendedFormats)
+	if (devFeatures.shaderStorageImageExtendedFormats)
 	{
 		requiredFeatures.shaderStorageImageExtendedFormats = VK_TRUE;
 	}
 	return requiredFeatures;
 }
 
-bool VkContext::prepareDevice()
+bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 {
 	if (!instance)
 	{
@@ -328,7 +334,7 @@ bool VkContext::prepareDevice()
 
 	float queuePriority = 1.0f;
 	std::vector<vk::DeviceQueueCreateInfo> queueInfo = {};
-	std::set<int> uniqueQueues = { queueFamilyIndex.graphics, queueFamilyIndex.present, queueFamilyIndex.compute };
+	std::set<uint32_t> uniqueQueues = { queueFamilyIndex.graphics, queueFamilyIndex.present, queueFamilyIndex.compute };
 
 	for (auto& queue : uniqueQueues)
 	{
@@ -337,7 +343,7 @@ bool VkContext::prepareDevice()
 	}
 
 	// enable required device features
-	auto& reqFeatures = prepareFeatures();
+	auto reqFeatures = prepareFeatures();
 
 	const std::vector<const char*> swapChainExtension = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
@@ -361,6 +367,8 @@ bool VkContext::prepareDevice()
 	device.getQueue(queueFamilyIndex.compute, 0, &vkComputeQueue);
 	device.getQueue(queueFamilyIndex.graphics, 0, &vkgraphicsQueue);
 	device.getQueue(queueFamilyIndex.present, 0, &vkPresentQueue);
+    
+    return true;
 }
 
 vk::Instance& VkContext::getInstance()

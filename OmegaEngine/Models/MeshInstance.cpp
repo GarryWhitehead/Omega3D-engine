@@ -188,6 +188,7 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 
 		primitives.emplace_back(newPrimitive);
 	}
+    return true;
 }
 
 bool MeshInstance::prepare(aiScene* scene)
@@ -275,6 +276,7 @@ bool MeshInstance::prepare(aiScene* scene)
 		primitive.indexCount = indexCount;
 		primitives.emplace_back(primitive);
 	}
+    return true;
 }
 
 }    // namespace OmegaEngine

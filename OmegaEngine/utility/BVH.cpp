@@ -227,40 +227,40 @@ void Octree::insertObjectIntoTreeIterative(const Extents& extents)
 			uint8_t childIndex = 0;
 
 			// check the x-axis
-			if (objCentroid.getX() > nodeCentroid.getX())
+			if (objCentroid.x > nodeCentroid.x)
 			{
-				childBBox.bounds.min.setX(nodeCentroid.getX());
-				childBBox.bounds.max.setX(currentBBox.bounds.max.getX());
+				childBBox.bounds.min.x = nodeCentroid.x;
+				childBBox.bounds.max.x = currentBBox.bounds.max.x;
 				childIndex = 4;
 			}
 			else
 			{
-				childBBox.bounds.min.setX(currentBBox.bounds.min.getX());
-				childBBox.bounds.max.setX(nodeCentroid.getX());
+				childBBox.bounds.min.x = currentBBox.bounds.min.x;
+				childBBox.bounds.max.x = nodeCentroid.x;
 			}
 			// check the y-axis
-			if (objCentroid.getY() > nodeCentroid.getY())
+			if (objCentroid.y > nodeCentroid.y)
 			{
-				childBBox.bounds.min.setY(nodeCentroid.getY());
-				childBBox.bounds.max.setY(currentBBox.bounds.max.getY());
+				childBBox.bounds.min.y = nodeCentroid.y;
+				childBBox.bounds.max.y = currentBBox.bounds.max.y;
 				childIndex += 2;
 			}
 			else
 			{
-				childBBox.bounds.min.setY(currentBBox.bounds.min.getY());
-				childBBox.bounds.max.setY(nodeCentroid.getY());
+				childBBox.bounds.min.y = currentBBox.bounds.min.y;
+				childBBox.bounds.max.y = nodeCentroid.y;
 			}
 			// check the z-axis
-			if (objCentroid.getZ() > nodeCentroid.getZ())
+			if (objCentroid.z > nodeCentroid.z)
 			{
-				childBBox.bounds.min.setZ(nodeCentroid.getZ());
-				childBBox.bounds.max.setZ(currentBBox.bounds.max.getZ());
+				childBBox.bounds.min.z = nodeCentroid.z;
+				childBBox.bounds.max.z = currentBBox.bounds.max.z;
 				childIndex += 1;
 			}
 			else
 			{
-				childBBox.bounds.min.setZ(currentBBox.bounds.min.getZ());
-				childBBox.bounds.max.setZ(nodeCentroid.getZ());
+				childBBox.bounds.min.z = currentBBox.bounds.min.z;
+				childBBox.bounds.max.z = nodeCentroid.z;
 			}
 
 			// if child doesn't exsist, create a new one (no child is signifyed by a zero value). Otherwise, keep traversing the tree
@@ -296,7 +296,7 @@ void BVH::setupOctree()
 		{
 
 			// calculate the angle between the plane normal and the primitive point point for min values
-			float distance = planeNormals[planeIndex].dot(primitives[primIndex].min);
+			float distance = OEMaths::dot(planeNormals[planeIndex], primitives[primIndex].min);
 
 			// set dnear
 			if (distance < primitiveExtents[primIndex].distance[planeIndex].near)
@@ -310,7 +310,7 @@ void BVH::setupOctree()
 			}
 
 			// calculate the angle between the plane normal and the primitive point point for max values
-			distance = planeNormals[planeIndex].dot(primitives[primIndex].max);
+			distance = OEMaths::dot(planeNormals[planeIndex], primitives[primIndex].max);
 
 			// set dnear
 			if (distance < primitiveExtents[primIndex].distance[planeIndex].near)

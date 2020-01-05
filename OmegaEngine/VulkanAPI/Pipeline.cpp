@@ -13,8 +13,7 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::prepare(VkContext& context,
-                            std::vector<DescriptorLayout>& descrLayouts)
+void PipelineLayout::prepare(VkContext& context, DescriptorPool& pool)
 {
 	// create push constants
 	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
@@ -26,7 +25,7 @@ void PipelineLayout::prepare(VkContext& context,
 	for (size_t i = 0; i < pConstantSizes.size(); ++i)
 	{
         size_t size = pConstantSizes[i].first;
-        Shader::Type type = pConstantSizes[i].second;
+        Shader::Type type = pConstantSizes[i].first;
         
         flags |= Shader::getStageFlags(type);
         totalSize += size;
@@ -39,14 +38,18 @@ void PipelineLayout::prepare(VkContext& context,
 	}
 
 	// create the layout - the descriptor layouts must be sorted in the correct order
-	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(descrLayouts.size()), descrLayouts.data(),
-	                                          static_cast<uint32_t>(pConstants.size()), pConstants.data());
+    auto layouts = pool.getLayouts();
+    
+	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(layouts.size()), layouts.data(), static_cast<uint32_t>(pConstants.size()), pConstants.data());
 
 	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&pipelineInfo, nullptr, &layout));
 }
 
 // ================== pipeline =======================
-Pipeline::Pipeline()
+Pipeline::Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout) :
+    context(context),
+    renderpass(rpass),
+    pipelineLayout(layout)
 {
 }
 
@@ -71,7 +74,7 @@ vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
     return bindPoint;
 }
 
-vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<ShaderBinding::InputBinding>& inputs)
+vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
 {
 	vk::PipelineVertexInputStateCreateInfo vertexInputState; 
 
@@ -82,10 +85,10 @@ vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<S
 		vertexInputState.pVertexAttributeDescriptions = nullptr;
 		vertexInputState.vertexBindingDescriptionCount = 0;
 		vertexInputState.pVertexBindingDescriptions = nullptr;
-		return;
+		return vertexInputState;
 	}
     
-    for (const ShaderBinding::InputBinding& input : inputs)
+    for (const ShaderProgram::InputBinding& input : inputs)
     {
         vertexAttrDescr.push_back({ input.loc, 0, input.format, input.stride });
     }
@@ -110,34 +113,42 @@ void Pipeline::addEmptyLayout(VkContext& context)
 	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
 }
 
-void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shader)
+void Pipeline::create(ShaderProgram& program)
 { 
-	RenderStateBlock* renderState = shader;
+    auto& renderState = program.renderState;
 
 	// calculate the offset and stride size
-	vk::PipelineVertexInputStateCreateInfo vertInputState = updateVertexInput(shader.inputs);
+	vk::PipelineVertexInputStateCreateInfo vertInputState = updateVertexInput(program.inputs);
     
     // ============== primitive topology =====================
     vk::PipelineInputAssemblyStateCreateInfo assemblyState;
 	assemblyState.topology = renderState->rastState.topology;
-	assemblyState.primitiveRestartEnable = renderState->rastState.primRestart;
+    assemblyState.primitiveRestartEnable = renderState->rastState.primRestart;
+    
+    // ============== multi-sample state =====================
+    vk::PipelineMultisampleStateCreateInfo sampleState;
+    
     
     // ============== depth/stenicl state ====================
     vk::PipelineDepthStencilStateCreateInfo depthStencilState;
-    depthStencilState.depthTestEnable = shader.depth.testEnable;
-    depthStencilState.depthWriteEnable = shader.depth.writeEnable;
-    depthStencilState.depthCompareOp = shader.depth.compareOp;
+    depthStencilState.depthTestEnable = renderState->dsState.testEnable;
+    depthStencilState.depthWriteEnable = renderState->dsState.writeEnable;
+    depthStencilState.depthCompareOp = renderState->dsState.compareOp;
     
     // ============== stencil state =====================
-    depthStencilState.stencilTestEnable = VK_TRUE;
-    depthStencilState.front.failOp = failOp;
-    depthStencilState.front.depthFailOp = depthFailOp;
-    depthStencilState.front.passOp = passOp;
-    depthStencilState.front.compareMask = compareMask;
-    depthStencilState.front.writeMask = writeMask;
-    depthStencilState.front.reference = ref;
-    depthStencilState.front.compareOp = compareOp;
-    depthStencilState.back = depthStencilState.front;
+    depthStencilState.stencilTestEnable = renderState->dsState.stencilTestEnable;
+    if (renderState->dsState.stencilTestEnable)
+    {
+        depthStencilState.front.failOp = renderState->dsState.front.failOp;
+        depthStencilState.front.depthFailOp = renderState->dsState.front.depthFailOp;
+        depthStencilState.front.passOp = renderState->dsState.front.passOp;
+        depthStencilState.front.compareMask = renderState->dsState.front.compareMask;
+        depthStencilState.front.writeMask = renderState->dsState.front.writeMask;
+        depthStencilState.front.reference = renderState->dsState.front.reference;
+        depthStencilState.front.compareOp = renderState->dsState.front.compareOp;
+        depthStencilState.back = depthStencilState.front;
+    }
+    
     
     // ============ raster state =======================
     vk::PipelineRasterizationStateCreateInfo rasterState;
@@ -152,7 +163,7 @@ void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shad
     
 	// =============== viewport state ====================
 	vk::PipelineViewportStateCreateInfo viewportState;
-    vk::Viewport viewPort(0.0f, 0.0f, static_cast<float>(renderpass.getImageWidth()), static_cast<float>(renderpass.getImageHeight()), 0.0f,
+    vk::Viewport viewPort(0.0f, 0.0f, static_cast<float>(renderpass.getWidth()), static_cast<float>(renderpass.getHeight()), 0.0f,
 	                      1.0f);
 	vk::Rect2D scissor(vk::Offset2D(0, 0), vk::Extent2D((uint32_t)viewPort.width, (uint32_t)viewPort.height));
 	viewportState.pViewports = &viewPort;
@@ -161,24 +172,28 @@ void Pipeline::create(VkContext& context, RenderPass& rPass, ShaderProgram& shad
 	viewportState.scissorCount = 1;
     
     // ============= colour attachment =================
-	auto& colAttachments = renderpass.getColourAttachs();
+	auto colAttachments = renderpass.getColourAttachs();
     vk::PipelineColorBlendStateCreateInfo colourBlendState;
 	colourBlendState.attachmentCount = static_cast<uint32_t>(colAttachments.size());
 	colourBlendState.pAttachments = colAttachments.data();
     
     // aplha blending - using preset states
-    if (blendFactor == VK_TRUE)
-    {
+    //if (blendFactor == VK_TRUE)
+    //{
         // deal with blending here
-    }
+   // }
     
-	auto& shaderCreateInfo = shader.getShaderCreateInfo();
+    std::vector<vk::PipelineShaderStageCreateInfo> shaderData;
+    for (auto& stage : program.stages)
+    {
+        shaderData.emplace_back(stage.getShader()->get());
+    }
 
     // ================= create the pipeline =======================
-	vk::GraphicsPipelineCreateInfo createInfo({}, shaderCreateInfo.size(), shaderCreateInfo.data(), &vertInputState,
-	                                          &assemblyState, nullptr, &viewportState, &rasterState, &multiSampleState,
-	                                          &depthStencilState, &colorBlendState, &dynamicCreateState, pipelineLayout,
-	                                          this->renderpass.get(), 0, nullptr, 0);
+	vk::GraphicsPipelineCreateInfo createInfo({}, static_cast<uint32_t>(shaderData.size()), shaderData.data(), &vertInputState,
+	                                          &assemblyState, nullptr, &viewportState, &rasterState, &sampleState,
+	                                          &depthStencilState, &colourBlendState, &dynamicCreateState, pipelineLayout.get(),
+	                                          renderpass.get(), 0, nullptr, 0);
 
 	VK_CHECK_RESULT(context.getDevice().createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }

@@ -116,9 +116,16 @@ vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 	return result;
 }
 
-void RenderPass::addOutputAttachment(const vk::Format format, const size_t reference, ClearFlags& clearFlags, const uint32_t sampleCount)
+void RenderPass::addOutputAttachment(const vk::Format format, const uint32_t reference, ClearFlags& clearFlags, const uint32_t sampleCount)
 {
-	// the description of this attachment
+    auto iter = std::find_if(outputRefs.begin(), outputRefs.end(), [&reference](const OutputReferenceInfo& lhs) { return lhs.ref == reference; });
+    
+    // if an output reference with the same id has already been added, just return
+    if (iter != outputRefs.end())
+    {
+        return;
+    }
+    
 	vk::AttachmentDescription attachDescr;
 	attachDescr.format = format;
 	attachDescr.initialLayout = vk::ImageLayout::eUndefined;
@@ -152,13 +159,17 @@ void RenderPass::addInputRef(const uint32_t reference)
 	ref.attachment = reference;
     auto iter = std::find_if(outputRefs.begin(), outputRefs.end(), [&reference](const OutputReferenceInfo& lhs) { return lhs.ref == reference; });
     
-    static_assert(iter != outputRefs.end(), "Trying to create a input reference when the output ref doesn't exsisit.");
+    // if a reference with the same id has already been added, just return
+    if (iter != outputRefs.end())
+    {
+        return;
+    }
     
     ref.layout = iter->ref.layout;
 	inputRefs.emplace_back(ref);
 }
 
-bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef)
+bool RenderPass::addSubPass(std::vector<uint32_t>& reqInputRefs, std::vector<uint32_t>& reqOutputRefs, const uint32_t reqDepthRef)
 {
 	// override default subpass with user specified subpass
     SubpassInfo subpass;
@@ -166,47 +177,47 @@ bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_
 	    vk::PipelineBindPoint::eGraphics;    // only graphic renderpasses supported at present
 
 	// sort out the colour refs
-	for (uint32_t& ref : outputRefs)
+	for (const uint32_t ref : reqOutputRefs)
 	{
-        auto iter = std::find(attachments.begin(), attachments.end(), [&ref](const vk::AttachmentReference& lhs)
-                  { return lhs.attachment == ref; });
+        auto iter = std::find_if(outputRefs.begin(), outputRefs.end(), [&ref](const OutputReferenceInfo& lhs)
+                  { return lhs.ref.attachment == ref; });
         
-		if (iter == attachments.end())
+		if (iter == outputRefs.end())
 		{
 			LOGGER_ERROR("Inavlid colour attachment reference.");
 			return false;
 		}
 
-		subpass.colourRefs.emplace_back(iter);
+		subpass.colourRefs.emplace_back(iter->ref);
 	}
 
 	// and the input refs
-	for (uint32_t& ref : inputRefs)
+	for (const uint32_t ref : reqInputRefs)
 	{
-		auto iter = std::find(attachments.begin(), attachments.end(), [&ref](const vk::AttachmentReference& lhs)
+		auto iter = std::find_if(inputRefs.begin(), inputRefs.end(), [&ref](const vk::AttachmentReference& lhs)
         { return lhs.attachment == ref; });
         
-		if (iter == attachments.end())
+		if (iter == inputRefs.end())
 		{
 			LOGGER_ERROR("Inavlid input attachment reference.");
 			return false;
 		}
 
-		subpass.inputRefs.emplace_back(iter);
+		subpass.inputRefs.emplace_back(*iter);
 	}
 
 	// and the dpeth if required
-	if (depthRef != UINT32_MAX)
+	if (reqDepthRef != UINT32_MAX)
 	{
-		auto iter = std::find(attachments.begin(), attachments.end(), [&depthRef](const vk::AttachmentReference& lhs)
-        { return lhs.attachment == depthRef; });
+		auto iter = std::find_if(outputRefs.begin(), outputRefs.end(), [&reqDepthRef](const OutputReferenceInfo& lhs)
+        { return lhs.ref.attachment == reqDepthRef; });
         
-		if (iter == attachments.end())
+		if (iter == outputRefs.end())
 		{
 			LOGGER_ERROR("Inavlid depth attachment reference.");
 			return false;
 		}
-		subpass.depth = iter;
+		subpass.depth = &iter->ref;
 	}
 
 	subpass.descr.colorAttachmentCount = static_cast<uint32_t>(subpass.colourRefs.size());
@@ -217,7 +228,7 @@ bool RenderPass::addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_
 	subpass.descr.pInputAttachments = subpass.inputRefs.data();
 
 	// depth attachment - if required
-	if (depthRef != nullptr)
+	if (subpass.depth != nullptr)
 	{
 		subpass.descr.pDepthStencilAttachment = subpass.depth;
 	}
@@ -298,8 +309,14 @@ void RenderPass::prepare()
 	// copy all the subpass declerations into one container
 	assert(!subpasses.empty());
 
+    std::vector<vk::SubpassDescription> sDescr;
+    for (auto& sp : subpasses)
+    {
+        sDescr.emplace_back(sp.descr);
+    }
+    
 	vk::RenderPassCreateInfo createInfo({}, static_cast<uint32_t>(attachments.size()), attachments.data(),
-	                                    static_cast<uint32_t>(subpasses.size()), subpasses.data(),
+	                                    static_cast<uint32_t>(sDescr.size()), sDescr.data(),
 	                                    static_cast<uint32_t>(dependencies.size()), dependencies.data());
 
 	VK_CHECK_RESULT(context.getDevice().createRenderPass(&createInfo, nullptr, &renderpass));
@@ -308,6 +325,16 @@ void RenderPass::prepare()
 vk::RenderPass& RenderPass::get()
 {
 	return renderpass;
+}
+
+uint32_t RenderPass::getWidth() const
+{
+    return width;
+}
+
+uint32_t RenderPass::getHeight() const
+{
+    return height;
 }
 
 void RenderPass::setClearColour(OEMaths::colour4& col)
@@ -327,7 +354,14 @@ bool RenderPass::hasColourAttach()
 
 bool RenderPass::hasDepthAttach()
 {
-	return depthAttach;
+	for (auto& attach : attachments)
+    {
+        if (isDepth(attach.format))
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs()
@@ -342,7 +376,7 @@ std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs(
 		vk::PipelineColorBlendAttachmentState colour;
 		colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
 		                        vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
-		colour.blendEnable = blendFactor;
+		colour.blendEnable = VK_FALSE;      //< TODO: need to add blending
 		colAttachs.push_back(colour);
 	}
 	return colAttachs;

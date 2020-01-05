@@ -8,6 +8,7 @@ namespace VulkanAPI
 // forward declerations
 class ShaderDescriptor;
 class ShaderProgram;
+class ShaderBinding;
 class ShaderParser;
 class VkContext;
 
@@ -25,19 +26,19 @@ public:
 	bool compileStage(ShaderDescriptor* shader);
 
 private:
-	void prepareBindings(ShaderDescriptor* shader, uint16_t& bind);
+	void prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
 
 	void writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
 	void prepareInputs(ShaderDescriptor* vertShader);
 
-	void prepareOutputs(ShaderParser& compilerInfo);
+	void prepareOutputs(ShaderParser& compilerInfo, ShaderBinding& binding);
 
 private:
 	VkContext& context;
 
 	/// variants to use when compiling the shader
-	std::unordered_map<std::string, uint8_t> variants;
+	std::unordered_map<const char*, uint8_t> variants;
 
 	/// the program which will be compiled too
 	ShaderProgram& program;

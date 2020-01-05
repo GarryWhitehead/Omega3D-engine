@@ -17,6 +17,9 @@ struct TypeDescriptor
 		Int,
 		Float,
 		String,
+        Vec2,
+        Vec3,
+        Vec4,
 		Invalid
 	};
 
@@ -34,10 +37,15 @@ public:
 	void init();
 	void destroy();
 
+    bool isArray();
+    LuaTypeRef getArray();
+    
 	LuaTypeRef getGlobal();
 
 	std::vector<LuaTypeRef> getTable();
-
+    
+    static TypeDescriptor::Type arraySizeToVec(uint8_t size);
+    
 	lua_State* getState()
 	{
 		assert(luaState);

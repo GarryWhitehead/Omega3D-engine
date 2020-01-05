@@ -1,6 +1,6 @@
 #include "Image.h"
 
-#include "Utility/logger.h"
+#include "utility/Logger.h"
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/VkTexture.h"
@@ -124,29 +124,24 @@ vk::Filter Image::getFilterType(vk::Format format)
 	return filter;
 }
 
-void Image::create(VmaAllocator& vmaAlloc, VkContext& context, vk::ImageUsageFlags usageFlags)
+void Image::create(VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
 {
-    // no c++ bindings here as using VMA
-    VkImageCreateInfo imageInfo = {};
-    imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.format = tex.format;
-    imageInfo.usage = vk::ImageUsageFlagBits::eTransferDst | usageFlags;
-    imageInfo.extent.depth = 1;
-    imageInfo.extent.width = tex.width;
-    imageInfo.extent.height = tex.height;
-    imageInfo.mipLevels = tex.mipLevels;
-    imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-    imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-	if (tex.faceCount == 6)
-	{
-		image_info.flags = vk::ImageCreateFlagBits::eCubeCompatible;
+    vk::ImageCreateInfo imageInfo = { {}, vk::ImageType::e2D, tex.format, {1, tex.width, tex.height}, tex.mipLevels, 0, vk::SampleCountFlagBits::e1, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | usageFlags, vk::SharingMode::eExclusive, 0, nullptr, vk::ImageLayout::eUndefined };
+    
+    if (tex.faceCount == 6)
+    {
+        imageInfo.flags = vk::ImageCreateFlagBits::eCubeCompatible;
     }
+    
+    // so we can use the vulkan c++ style, and VMA uses the C style, memcpy into the C style struct
+    VkImageCreateInfo vkImageInfo = {};
+    memcpy(&vkImageInfo, &imageInfo, sizeof(VkImageCreateInfo));
     
     VmaAllocationCreateInfo allocInfo = {};
     allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    VMA_CHECK_RESULT(vmaCreateImage(vmaAlloc, &imageInfo, &allocInfo, &image, imageAlloc, nullptr));
+    VkImage tempImage;
+    VMA_CHECK_RESULT(vmaCreateImage(vmaAlloc, &vkImageInfo, &allocInfo, &tempImage, &imageMem, nullptr));
+    image = tempImage;
 }
 
 void Image::transition(Image& image, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::CommandBuffer& cmdBuff,
@@ -212,7 +207,7 @@ void Image::transition(Image& image, vk::ImageLayout oldLayout, vk::ImageLayout 
 }
 
 // image-based functions =======
-void Image::generateMipMap(Image& image, vk::CommandBuffer cmdBuffer)
+void Image::generateMipMap(Image& image, CmdBuffer& cmdBuffer)
 {
     TextureContext& tex = image.getContext();
     
@@ -233,20 +228,20 @@ void Image::generateMipMap(Image& image, vk::CommandBuffer cmdBuffer)
 		imageBlit.dstOffsets[1] = dstOffset;
 
 		// create image barrier - transition image to transfer
-		transition(image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer, i);
+		transition(image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get(), i);
 
 		// blit the image
-		cmdBuffer.blitImage(image.get(), vk::ImageLayout::eTransferSrcOptimal, image.get(), vk::ImageLayout::eTransferDstOptimal, 1,
+		cmdBuffer.get().blitImage(image.get(), vk::ImageLayout::eTransferSrcOptimal, image.get(), vk::ImageLayout::eTransferDstOptimal, 1,
 		                    &imageBlit, vk::Filter::eLinear);
         
-		transition(image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer, i);
+		transition(image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get(), i);
 	}
 
 	// prepare for shader read
-	transition(image, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer);
+	transition(image, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer.get());
 }
 
-void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
+void Image::blit(Image& srcImage, Image& dstImage, CmdBuffer& cmdBuffer)
 {
 	// source
     TextureContext& tex = srcImage.getContext();
@@ -265,23 +260,18 @@ void Image::blit(Image& srcImage, Image& dstImage, Queue& graphicsQueue)
 	imageBlit.dstSubresource = dst;
 	imageBlit.dstOffsets[1] = dstOffset;
 
-	// cmd buffer required for the image blit
-	CmdBuffer blitCmdBuffer(device, graphicsQueue.getIndex());
-	blitCmdBuffer.createPrimary();
-
-	transition(srcImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, blitCmdBuffer.get());
-	transition(dstImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, blitCmdBuffer.get());
+	transition(srcImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer.get());
+	transition(dstImage, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferSrcOptimal, cmdBuffer.get());
 
 	// blit the image
 	vk::Filter filter = getFilterType(tex.format);
-	blitCmdBuffer.get().blitImage(dstImage.get(), vk::ImageLayout::eTransferSrcOptimal, srcImage.get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
+	cmdBuffer.get().blitImage(dstImage.get(), vk::ImageLayout::eTransferSrcOptimal, srcImage.get(), vk::ImageLayout::eTransferDstOptimal, 1, &imageBlit, filter);
 
-	transition(srcImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, blitCmdBuffer.get());
+	transition(srcImage, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer.get());
 	transition(dstImage, vk::ImageLayout::eTransferSrcOptimal, vk::ImageLayout::eShaderReadOnlyOptimal,
-	                      blitCmdBuffer.get());
+	                      cmdBuffer.get());
 
 	// flush the cmd buffer
-	blitCmdBuffer.end();
-	blitCmdBuffer.flush();
+	cmdBuffer.flush();
 }
 }    // namespace VulkanAPI

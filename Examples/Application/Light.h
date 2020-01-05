@@ -30,6 +30,8 @@ public:
 	void updateLightPositions(double dt);
 
 private:
-
+    
+    double timer = 0.0;
+    
 	// use object handles - stored here? - or light handles to update light positions inb the manager per frame
 };

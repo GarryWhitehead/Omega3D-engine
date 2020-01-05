@@ -2,6 +2,8 @@
 
 #include "utility/Logger.h"
 
+#include <cmath>
+
 namespace OmegaEngine
 {
 
@@ -15,6 +17,55 @@ void LuaBinder::destroy()
 {
 	lua_close(luaState);
 	luaState = nullptr;
+}
+
+bool LuaBinder::isArray()
+{
+    // if there is no id for this table - assume its an array
+    if (lua_isnil(luaState, -2))
+    {
+        return true;
+    }
+    
+    return false;
+}
+
+TypeDescriptor::Type LuaBinder::arraySizeToVec(uint8_t size)
+{
+    switch (size)
+    {
+        case 2:
+            return TypeDescriptor::Vec2;
+            break;
+        case 3:
+            return TypeDescriptor::Vec3;
+            break;
+        case 4:
+            return TypeDescriptor::Vec4;
+            break;
+        default:
+            break;
+    }
+    return TypeDescriptor::Invalid;
+}
+
+LuaTypeRef LuaBinder::getArray()
+{
+    std::string keyString = lua_tostring(luaState, -2);
+    
+    uint8_t arraySize = 0;
+    std::string vecStr;
+    
+    while(lua_next(luaState, -2))
+    {
+        float value = lua_tonumber(luaState, -1);
+        vecStr += std::to_string(value) + ",";
+        lua_pop(luaState, 1);
+        ++arraySize;
+    }
+    
+    TypeDescriptor descr { arraySizeToVec(arraySize), vecStr };
+    return std::make_pair(keyString, descr);
 }
 
 std::vector<LuaTypeRef> LuaBinder::getTable()
@@ -64,7 +115,7 @@ LuaTypeRef LuaBinder::getGlobal()
 
 	// a fairly budget lamda to check for float or integer as all number types in lua are floats
 	// this may fail due to precision errors
-	auto isFloat = [](float val) { return (val != floor(val)); };
+    auto isFloat = [](float val) { return (val != std::floor(val)); };
 
 	// get the key value
 	TypeDescriptor descr;

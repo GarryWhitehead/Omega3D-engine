@@ -4,6 +4,8 @@
 
 #include "Core/Engine.h"
 
+#include "Components/TransformManager.h"
+
 #include "Models/MaterialInstance.h"
 #include "Models/MeshInstance.h"
 
@@ -21,6 +23,98 @@
 namespace OmegaEngine
 {
 
+// =================================================================================
+// User interface renderable building functions
+
+RenderableInstance::RenderableInstance(Engine& engine) :
+    engine(engine)
+{
+}
+
+RenderableInstance& RenderableInstance::addMesh(MeshInstance* instance)
+{
+    assert(instance);
+    mesh.emplace_back(instance);
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addMeshes(std::vector<MeshInstance*> instances)
+{
+    assert(!instances.empty());
+    std::copy(instances.begin(), instances.end(), mesh.begin());
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addMaterial(MaterialInstance* instance)
+{
+    assert(instance);
+    mat.emplace_back(instance);
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addMaterials(std::vector<MaterialInstance*> instances)
+{
+    assert(!instances.empty());
+    std::copy(instances.begin(), instances.end(), mat.begin());
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addSkin(SkinInstance* instance)
+{
+    assert(instance);
+    skin.emplace_back(instance);
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addSkins(std::vector<SkinInstance*> instances)
+{
+    assert(!instances.empty());
+    std::copy(instances.begin(), instances.end(), skin.begin());
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addNodeHierachy(NodeInstance* instance)
+{
+    assert(instance);
+    node.emplace_back(instance);
+    return *this;
+}
+
+RenderableInstance& RenderableInstance::addNodes(std::vector<NodeInstance*> instances)
+{
+    assert(!instances.empty());
+    std::copy(instances.begin(), instances.end(), node.begin());
+    return *this;
+}
+
+void RenderableInstance::create(Object* obj)
+{
+    assert(obj);
+    
+    // we should have the same number of meshes as we do materials - though some materials may be null, this does not matter
+    assert(mesh.size() == mat.size());
+    
+    // sanity checks - must have mesh and transform data at the minimum
+    if (mesh.empty() || node.empty())
+    {
+        throw std::runtime_error("You have called create but this instance has no mesh or transform data associated with it.");
+    }
+    
+    RenderableManager& rManager = engine.getRendManager();
+    TransformManager& tManager = engine.getTransManager();
+    
+    for (size_t i = 0; i < mesh.size(); ++i)
+    {
+        rManager.addRenderable(mesh[i], mat[i], *obj);
+    }
+    
+    for (size_t i = 0; i < node.size(); ++i)
+    {
+        tManager.addNodeHierachy(node[i], *obj, skin[i]);
+    }
+}
+
+// =================================================================================
 Util::String TextureGroup::texTypeToStr(const int type)
 {
     assert(type < static_cast<int>(TextureType::Count));
@@ -117,39 +211,32 @@ bool RenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
 	return true;
 }
 
-size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat, size_t count)
+size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
 {
-	assert(mat);
-	assert(count > 0);
-
 	size_t startOffset = materials.size();
 
-	for (size_t i = 0; i < count; ++i)
-	{
-		// sort out the textures
-		TextureGroup group;
+    // sort out the textures
+    TextureGroup group;
 
-		for (size_t j = 0; j < TextureGroup::TextureType::Count; ++j)
-		{
-			// this function does return an error value but unsure yet
-			// whether just to continue (it will be obvious that somethings gone
-			// wrong when rendered) or return an error
-			prepareTexture(mat->texturePaths[i], group.textures[j]);
-		}
+    for (size_t j = 0; j < TextureGroup::TextureType::Count; ++j)
+    {
+        // this function does return an error value but unsure yet
+        // whether just to continue (it will be obvious that somethings gone
+        // wrong when rendered) or return an error
+        prepareTexture(mat->texturePaths[j], group.textures[j]);
+    }
 
-		textures.emplace_back(std::move(group));
+    textures.emplace_back(std::move(group));
 
-		// and create the material - copy the data rather than keep the pointer to avoid issues later
-		Material newMat;
-		newMat.instance = mat++;
-		materials.emplace_back(std::move(newMat));
-		input.material = &materials.back();
-	}
-
+    Material newMat;
+    newMat.instance = mat;
+    materials.emplace_back(std::move(newMat));
+    input.material = &materials.back();
+	
 	return startOffset;
 }
 
-void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, const size_t matCount, Object& obj)
+void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj)
 {
 	Renderable newRend;
 
@@ -161,7 +248,7 @@ void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat,
 	size_t matOffset = -1;
 	if (mat)
 	{
-		matOffset = addMaterial(newRend, mat, matCount);
+        matOffset = addMaterial(newRend, mat);
 	}
 
 	// now add the mesh and material and any textures
@@ -300,8 +387,9 @@ void RenderableManager::update()
 					// each sampler needs its own unique id - so append the tex type to the material name
 					Util::String id = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
-					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels);
-					driver.update2DTexture(id, 0, tex->buffer);
+                    vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
+					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels, usageFlags);
+					driver.update2DTexture(id, tex->buffer);
 				}
 			}
 		}

@@ -2,6 +2,8 @@
 
 #include "Types/Skybox.h"
 
+#include "RenderGraph/RenderGraph.h"
+
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/CommandBuffer.h"

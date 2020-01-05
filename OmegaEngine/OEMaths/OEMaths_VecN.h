@@ -218,7 +218,7 @@ inline constexpr VecN<T, size> normalise(const VecN<T, size>& vec)
 template <typename T, size_t size>
 inline constexpr T dot(const VecN<T, size>& vec1, const VecN<T, size>& vec2)
 {
-	T result;
+	T result = static_cast<T>(0);
 	for (size_t i = 0; i < size; ++i)
 	{
 		result += vec1.data[i] * vec2.data[i];
@@ -227,7 +227,7 @@ inline constexpr T dot(const VecN<T, size>& vec1, const VecN<T, size>& vec2)
 }
 
 template <typename T, size_t size>
-inline constexpr VecN<T, size>& mix(const VecN<T, size>& vec1, const VecN<T, size>& vec2, T u)
+inline constexpr VecN<T, size> mix(const VecN<T, size>& vec1, const VecN<T, size>& vec2, T u)
 {
 	VecN<T, size> result;
 	for (size_t i = 0; i < size; ++i)

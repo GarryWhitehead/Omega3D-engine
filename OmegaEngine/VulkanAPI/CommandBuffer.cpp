@@ -13,11 +13,11 @@
 namespace VulkanAPI
 {
 
-CmdBuffer::CmdBuffer(VkContext& context, const Type type, vk::CommandPool* cmdPool, CmdBufferManager* cbManager)
-    : context(context)
+CmdBuffer::CmdBuffer(VkContext& context, const Type type, CmdPool& cmdPool, CmdBufferManager* cbManager)
+    : context(context),
+      cmdPool(cmdPool),
+      cbManager(cbManager)
     , type(type)
-    , cmdPool(cmdPool)
-    , cbManager(cbManager)
 {
 	if (type == Type::Primary)
 	{
@@ -31,13 +31,24 @@ CmdBuffer::~CmdBuffer()
 
 void CmdBuffer::prepare()
 {
-	vk::CommandBufferAllocateInfo allocInfo(*cmdPool, vk::CommandBufferLevel::ePrimary, 1);
+    vk::CommandBufferLevel level = type == Type::Primary ? vk::CommandBufferLevel::ePrimary : vk::CommandBufferLevel::eSecondary;
+    vk::CommandBufferAllocateInfo allocInfo(cmdPool.get(), level, 1);
 
 	VK_CHECK_RESULT(context.getDevice().allocateCommandBuffers(&allocInfo, &cmdBuffer));
 
 	vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
 	vk::CommandBufferBeginInfo beginInfo(usageFlags, 0);
 	VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
+}
+
+void CmdBuffer::beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents)
+{
+    cmdBuffer.beginRenderPass(beginInfo, contents);
+}
+
+void CmdBuffer::endPass()
+{
+    cmdBuffer.endRenderPass();
 }
 
 void CmdBuffer::setViewport(const vk::Viewport& viewPort)
@@ -54,7 +65,7 @@ void CmdBuffer::bindPipeline(RenderPass* renderpass, ShaderProgram* program)
     // check whether this pipeline is already bound - we don't have to do anything if so
     if (!boundPipeline || pline != boundPipeline)
     {
-        vk::PipelineBindPoint bindPoint = createBindPoint(pline->getPipelineType());
+        vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
         cmdBuffer.bindPipeline(bindPoint, pline->get());
         boundPipeline = pline;
     }
@@ -67,7 +78,7 @@ void CmdBuffer::bindDescriptors(ShaderProgram* prog, const Pipeline::Type type)
     {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(type);
         std::vector<vk::DescriptorSet> descrSets = set->getOrdered();
-        cmdBuffer.bindDescriptorSets(bindPoint, prog->pLineLayout.get(), 0, static_cast<uint32_t>(descrSets.size()), descrSets.data(), 0, nullptr);
+        cmdBuffer.bindDescriptorSets(bindPoint, prog->pLineLayout->get(), 0, static_cast<uint32_t>(descrSets.size()), descrSets.data(), 0, nullptr);
         boundDescrSet = set;
     }
 }
@@ -80,15 +91,21 @@ void CmdBuffer::bindDynamicDescriptors(ShaderProgram* prog, std::vector<uint32_t
     {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(type);
         std::vector<vk::DescriptorSet> descrSets = set->getOrdered();
-        cmdBuffer.bindDescriptorSets(bindPoint, prog->pLineLayout.get(), 0, static_cast<uint32_t>(sets.size()), sets.data(),
+        cmdBuffer.bindDescriptorSets(bindPoint, prog->pLineLayout->get(), 0, static_cast<uint32_t>(descrSets.size()), descrSets.data(),
                                      static_cast<uint32_t>(offsets.size()), offsets.data());
         boundDescrSet = set;
     }
 }
 
+void CmdBuffer::bindDynamicDescriptors(ShaderProgram* prog, const uint32_t offset, const Pipeline::Type type)
+{
+    std::vector<uint32_t> offsets = { offset };
+    bindDynamicDescriptors(prog, offsets, type);
+}
+
 void CmdBuffer::bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data)
 {
-	cmdBuffer.pushConstants(prog->pLineLayout.get(), stage, 0, size, data);
+	cmdBuffer.pushConstants(prog->pLineLayout->get(), stage, 0, size, data);
 }
 
 void CmdBuffer::setDepthBias(float biasConstant, float biasClamp, float biasSlope)
@@ -106,51 +123,15 @@ void CmdBuffer::bindIndexBuffer(vk::Buffer buffer, uint32_t offset)
 	cmdBuffer.bindIndexBuffer(buffer, offset, vk::IndexType::eUint32);
 }
 
-void CmdBuffer::executeSecondary(size_t count)
-{
-	assert(!secondary.empty());
-
-	// zero value indicates to execute all cmd buffers
-	if (count == 0)
-	{
-		count = secondary.size();
-	}
-	assert(count < secondary.size());
-
-	// trasnfer all the secondary cmd buffers into a container for execution
-	std::vector<vk::CommandBuffer> executeCmdBuffers(secondary.size());
-	for (uint32_t i = 0; i < secondary.size(); ++i)
-	{
-		executeCmdBuffers[i] = secondary[i].get();
-	}
-
-	cmdBuffer.executeCommands(static_cast<uint32_t>(executeCmdBuffers.size()), executeCmdBuffers.data());
-}
-
-CmdBuffer& CmdBuffer::createSecondary()
-{
-	CmdBuffer secBuffer = *this;
-	secBuffer.prepare();
-	secondary.emplace_back(secBuffer);
-	return secondary.back();
-}
-
-void CmdBuffer::createSecondary(size_t count)
-{
-	secondary.resize(count);
-	for (uint32_t i = 0; i < count; ++i)
-	{
-		secondary[i] = {
-			device, queueFamilyIndex, renderpass, framebuffer, viewPort, scissor,
-		};
-		secondarys[i].create();
-	}
-}
-
 // ================= drawing functions =========================
 void CmdBuffer::drawIndexed(size_t indexCount)
 {
 	cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
+}
+
+void CmdBuffer::drawIndexed(size_t indexCount, size_t offset)
+{
+    cmdBuffer.drawIndexed(indexCount, 1, 0, offset, 0);
 }
 
 void CmdBuffer::drawQuad()

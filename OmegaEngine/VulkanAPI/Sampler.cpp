@@ -2,13 +2,10 @@
 
 #include "VulkanAPI/VkContext.h"
 
-#include "Utility/Logger.h"
+#include "utility/Logger.h"
 
 namespace VulkanAPI
 {
-Sampler::Sampler()
-{
-}
 
 Sampler::Sampler(SamplerType type)
     : type(type)

@@ -7,6 +7,11 @@
 namespace VulkanAPI
 {
 
+// forward declerations
+class VkContext;
+class VkDriver;
+
+
 /**
 * @brief A simplisitic staging pool for CPU-only stages. Used when copying to GPU only mem
 */
@@ -27,7 +32,7 @@ public:
 
 	StageInfo create(const VkDeviceSize size);
 
-	StageInfo& getStage(const VkDeviceSize reqSize);
+	StageInfo& getStage(VkDeviceSize reqSize);
 
 	void release(StageInfo& stage);
 
@@ -37,7 +42,7 @@ private:
 	VmaAllocator& vmaAlloc;
 
 	// a list of free stages and their size
-	std::vector<std::pair<VkDeviceSize, StageInfo>> freeStages;
+	std::vector<StageInfo> freeStages;
 };
 
 
@@ -74,6 +79,9 @@ public:
 	}
 
 private:
+    
+    VmaAllocator* vmaAllocator = nullptr;
+    
 	VmaAllocationInfo allocInfo;
 	VmaAllocation mem;
 	VkDeviceSize size;
@@ -90,7 +98,7 @@ public:
 	
 	VertexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
+	void create(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize size);
 
 	vk::Buffer get()
 	{
@@ -113,7 +121,7 @@ class IndexBuffer
 public:
 	IndexBuffer() = default;
 
-	void create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize size);
+	void create(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize size);
 
 	vk::Buffer get()
 	{
@@ -130,7 +138,6 @@ private:
  * @brief Creates a transient CPU staging buffer, copys that specified data to that, creates a GPU buffer and copies the
  * staging pool data to that.
  */
-static void createGpuBufferAndCopy(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem,
-                                   void* data, VkDeviceSize dataSize);
+inline void createGpuBufferAndCopy(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem,  void* data, VkDeviceSize dataSize);
 
 }    // namespace VulkanAPI

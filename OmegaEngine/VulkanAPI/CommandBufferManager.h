@@ -2,6 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/CommandBuffer.h"
 
 #include "VulkanAPI/SemaphoreManager.h"
 
@@ -30,21 +31,49 @@ using CmdBufferHandle = uint64_t;
 class CmdPool
 {
 public:
-
-	CmdPool(VkContext& context, int queueIndex);
+    
+    /// Defines how many signle use command buffers to create when initialising
+    static constexpr uint8_t SingleUseCbSize = 5;
+    
+	CmdPool(VkContext& context, SemaphoreManager& spManager, uint32_t queueIndex);
 	~CmdPool();
 
 	/**
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
 	* Returns a pointer to the buffer - because we never destroy buffers, only reset them, its safe to pass around pointers.
 	*/
-	CmdBuffer* createCmdBuffer();
-
+	CmdBuffer* createPrimaryCmdBuffer(CmdBufferManager* manager);
+    
+    CmdBuffer* createSecCmdBuffer(CmdBufferManager* manager);
+    
+    /**
+     * @brief Either returns a cmd buffer from the free pool or creates a new instance. Cmd buffers should be released back to the pool after use by calling
+     * **releaseSingleUseCb**
+     */
+    std::unique_ptr<CmdBuffer> getSingleUseCb(CmdBufferManager* manager);
+    
+    void releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer);
+    
+    /**
+    * @brief Submits all the command buffers registered with the manager to the appropiate queue
+    * Note: It might affect performance having too many cmd buffers - something that needs to be considered (maybe?)
+    */
+    void submitAll(Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore);
+    
 	/**
 	* @brief Resets the command pool. Before doing this, all cmd buffers are checked to make sure they have finished their activites.
 	*/
 	void reset();
-
+    
+    void clearSecondary();
+    
+    std::vector<vk::CommandBuffer> getSecondary();
+    
+    vk::CommandPool& get()
+    {
+        return cmdPool;
+    }
+    
 private:
 	struct CmdInstance
 	{
@@ -62,6 +91,12 @@ private:
 
 	/// all the cmd buffers that have been created with this pool
 	std::vector<CmdInstance> cmdInstances;
+    
+    /// secondary command buffers which are associated with this pool
+    std::vector<std::unique_ptr<CmdBuffer>> secondary;
+    
+    /// single use cmd buffers that are recycled after use
+    std::vector<std::unique_ptr<CmdBuffer>> singleUseCbs;
 
 	/// the queue to use for this pool
 	uint32_t queueIndex;
@@ -85,28 +120,32 @@ public:
 	*/
 	Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
 
-	CmdPool* createPool();
-
+	CmdPool* createMainPool();
+    
+    std::unique_ptr<CmdPool> createSecondaryPool();
+    
+    void releasePool(std::unique_ptr<CmdPool> pool);
+    
 	void beginNewFame();
-
-	/**
-	* @brief Submits all the command buffers registered with the manager to the appropiate queue
-	* Note: It might affect performance having too many cmd buffers - something that needs to be considered (maybe?)
-	*/
-	void submitAll(Swapchain& swapchain);
-
+    
+    void submitFrame(Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore);
+    
 	// =============== renderpass functions ================================
 
 	void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer);
 
-	void endRenderpass(const CmdBufferHandle handle);
+	void endRenderpass(CmdBuffer* cmdBuffer);
 
     // =============== getters ==============================================
     
-    CmdPool* getPool()
+    CmdPool* getMainPool()
     {
-        return cmdPool.get();
+        return mainPool.get();
     }
+    
+    std::unique_ptr<CmdBuffer> getSingleUseCb();
+    
+    void releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer);
     
 private:
 	// =============== pipeline hasher ======================
@@ -142,17 +181,17 @@ private:
 	VkContext& context;
 
 	// the main cmd pool used for the main thread
-	std::unique_ptr<CmdPool> cmdPool;
+	std::unique_ptr<CmdPool> mainPool;
 
-	// a seperate pool for the temp use of cmd buffers - these are cycled and reset per frame
-	std::unique_ptr<CmdPool> tempCmdPool;
-
+    // command pools used for threading
+    std::vector<std::unique_ptr<CmdPool>> secondaryPools;
+    
 	// graphic pipelines are stored in the cmd buffer for the reason that they are inextricably linked to the cmd
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being
 	// exclusively tied to a renderpass, we can only create the pipeline once these have been created.
-	std::unordered_map<PLineHash, Pipeline, PLineHasher, PLineEqual> pipelines;
+	std::unordered_map<PLineHash, Pipeline*, PLineHasher, PLineEqual> pipelines;
 
-	SemaphoreManager spManager;
+	std::unique_ptr<SemaphoreManager> spManager;
 
 	// the current frame which to draw
 	uint8_t currFrame = 0;

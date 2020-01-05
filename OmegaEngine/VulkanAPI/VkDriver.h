@@ -27,6 +27,7 @@ class Swapchain;
 class Instance
 {
 public:
+    
 	// no copying allowed!
 	Instance(const Instance&) = delete;
 	Instance& operator=(const Instance&) = delete;
@@ -100,7 +101,7 @@ public:
 	~VkDriver();
 
 	/// initialises the vulkan driver - includes creating the abstract device, physical device, queues, etc.
-	bool init(const char** instanceExt, uint32_t count);
+	bool init(const char** instanceExt, uint32_t count, const vk::SurfaceKHR surface);
 
 	/// Make sure you call this before closing down the engine!
 	void shutdown();
@@ -134,11 +135,11 @@ public:
 	IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
 	void add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
-	                  const uint8_t mipLevels);
+	                  const uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
 
 	// ============== buffer update functions ===============================
 
-	void update2DTexture(Util::String id, size_t size, void* data);
+	void update2DTexture(Util::String id, void* data);
 
 	void updateUbo(Util::String id, size_t size, void* data);
 
@@ -157,9 +158,10 @@ public:
 	void deleteIndexBuffer(IndexBuffer* buffer);
 
 	// ======== begin/end frame functions =================================
-	void beginFrame();
+    
+	void beginFrame(Swapchain& swapchain);
 
-	void endFrame();
+	void endFrame(Swapchain& swapchain);
 
 	// ====== manager helper functions ===================================
 	CmdBufferManager& getCbManager()
@@ -176,6 +178,11 @@ public:
 	{
 		return context;
 	}
+    
+    VmaAllocator& getVma()
+    {
+        return vmaAlloc;
+    }
 
 private:
 	// managers
@@ -189,7 +196,7 @@ private:
 	VmaAllocator vmaAlloc;
 
 	// staging pool used for managing CPU stages
-	StagingPool stagingPool;
+	std::unique_ptr<StagingPool> stagingPool;
 
 	// resources associated with this device - hashed by the string id
 	VkHash::TextureMap textures;
@@ -198,17 +205,11 @@ private:
 	// mesh data - indexed via the address of the buffer
 	VkHash::VBufferMap vertBuffers;
 	VkHash::IBufferMap indexBuffers;
-
-	// Keep local track of the swapchain
-	// TODO: This may need chnaging if multiple swapchains are used!
-	Swapchain& swapchain;
-
-#ifdef VULKAN_VALIDATION_DEBUG
-
-	vk::DebugReportCallbackEXT debugCallback;
-	vk::DebugUtilsMessengerEXT debugMessenger;
-
-#endif
+    
+    // The current present KHR frame image index
+    uint32_t imageIndex;
+    vk::Semaphore beginSemaphore;
+    
 };
 
 }    // namespace VulkanAPI

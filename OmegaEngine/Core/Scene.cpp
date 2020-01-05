@@ -23,8 +23,8 @@ namespace OmegaEngine
 {
 
 Scene::Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver)
-    : world(world)
-    , driver(driver)
+    : driver(driver),
+        world(world)
     , engine(engine)
 {
 }
@@ -275,7 +275,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 			currStaticPtr->modelMatrix = transInfo->modelTransform;
 
 			// the dynamic buffer offsets are stored in the renderable for ease of access when drawing
-			rend->staticDynamicOffset = offset;
+			rend->dynamicOffset = offset;
 		}
 		else
 		{
@@ -287,7 +287,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 			// rather than throw an error, clamp the joint if it exceeds the max
 			uint32_t jointCount = std::min(TransformManager::MAX_BONE_COUNT, static_cast<uint32_t>(transInfo->jointMatrices.size()));
 			memcpy(currSkinnedPtr->jointMatrices, transInfo->jointMatrices.data(), jointCount * sizeof(OEMaths::mat4f));
-			rend->skinnedDynamicOffset = offset;
+			rend->dynamicOffset = offset;
 		}
 	}
 
@@ -350,7 +350,6 @@ void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
 	std::array<DirectionalLightUbo, LightManager::MAX_DIR_LIGHTS> dirLights;
 
 	// copy the light attributes we need for use in the light shaders.
-
 	for (LightBase* light : candLights)
 	{
 		if (light->type == LightType::Spot)

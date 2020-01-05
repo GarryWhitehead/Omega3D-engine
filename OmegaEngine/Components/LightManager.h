@@ -12,11 +12,7 @@ namespace OmegaEngine
 
 // forward declerations
 class World;
-
-struct LightPOV
-{
-	OEMaths::mat4f lightMvp;
-};
+class Shadow;
 
 enum class LightType
 {
@@ -38,7 +34,21 @@ public:
 	virtual ~LightBase() = default;
 
 	LightBase() = delete;
-
+    
+    // the public setters
+    LightBase& setPosition(const OEMaths::vec3f pos)
+    {
+        position = pos;
+        return *this;
+    }
+    
+    LightBase& setColour(const OEMaths::vec3f col)
+    {
+        colour = col;
+        return *this;
+    }
+    
+    friend class Shadow;
 	friend class Scene;
 	friend class LightManager;
 
@@ -100,9 +110,40 @@ struct SpotLight : public LightBase
 {
 public:
 
+    // the setters for public use
+    SpotLight& setFallout(float fo)
+    {
+        fallout = fo;
+        return *this;
+    }
+    
+    SpotLight& setRadius(float rad)
+    {
+        radius = rad;
+        return *this;
+    }
+    
+    SpotLight& setScale(float s)
+    {
+        scale = s;
+        return *this;
+    }
+    
+    SpotLight& setOffset(float os)
+    {
+        offset = os;
+        return *this;
+    }
+    
+    SpotLight& setIntenisty(float inten)
+    {
+        intensity = inten;
+        return *this;
+    }
+    
 	friend class Scene;
 	friend class LightManager;
-
+    
 private:
 
 	float fallout = 10.0f;
@@ -130,7 +171,6 @@ public:
 	LightManager();
 	~LightManager();
 
-
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
 
@@ -138,17 +178,13 @@ public:
 
 	size_t getLightCount() const;
 	LightBase* getLight(const size_t idx);
-
+    
+    friend class Shadow;
+    
 private:
 
 	std::vector<LightBase*> lights;
 
-
-
-	// dynamic buffer for light pov - used for shadow drawing
-	LightPOV* lightPovData = nullptr;
-	uint32_t alignedPovDataSize = 0;
-	uint32_t lightPovDataSize = 0;
 };
 
 }    // namespace OmegaEngine

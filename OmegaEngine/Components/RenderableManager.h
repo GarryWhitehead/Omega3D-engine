@@ -38,6 +38,43 @@ class RenderStateBlock;
 class MappedTexture;
 class MeshInstance;
 class MaterialInstance;
+class SkinInstance;
+class NodeInstance;
+
+/**
+ * @brief The user interface for passing models to the manager.
+ */
+class RenderableInstance
+{
+public:
+    
+    RenderableInstance(Engine& engine);
+    
+    RenderableInstance& addMesh(MeshInstance* instance);
+    RenderableInstance& addMaterial(MaterialInstance* instance);
+    RenderableInstance& addMeshes(std::vector<MeshInstance*> instances);
+    RenderableInstance& addMaterials(std::vector<MaterialInstance*> instances);
+    
+    // these are stored in the transform manager
+    RenderableInstance& addSkin(SkinInstance* instance);
+    RenderableInstance& addNodeHierachy(NodeInstance* instance);
+    RenderableInstance& addSkins(std::vector<SkinInstance*> instances);
+    RenderableInstance& addNodes(std::vector<NodeInstance*> instances);
+    
+    void create(Object* obj);
+    
+    friend class RenderableManager;
+    
+private:
+    
+    Engine& engine;
+    
+    // this is just a transient store, this class does not own these
+    std::vector<MeshInstance*> mesh;
+    std::vector<MaterialInstance*> mat;
+    std::vector<SkinInstance> skin;
+    std::vector<NodeInstance> node;
+};
 
 /**
 	* @brief A convienent way to group textures together
@@ -143,12 +180,12 @@ struct Renderable
 	VulkanAPI::ShaderProgram* program = nullptr;
 
 	/// this is set by the transform manager but held here for convience reasons when drawing
-	size_t staticDynamicOffset = 0;
-	size_t skinnedDynamicOffset = 0;
+	uint32_t dynamicOffset = 0;
 
 	// pointers to the vertex and index buffers once uploaded to the gpu
 	VulkanAPI::VertexBuffer* vertBuffer = nullptr;
 	VulkanAPI::IndexBuffer* indexBuffer = nullptr;
+    
 };
 
 class RenderableManager : public ComponentManager
@@ -167,7 +204,7 @@ public:
 	* @brief The main call here - adds a renderable consisting of mesh, and not
 	* always, material and texture data. This function adds a number of materials if required
 	*/
-	void addRenderable(MeshInstance* mesh, MaterialInstance* mat, const size_t matCount, Object& obj);
+	void addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj);
 
 	// === mesh related functions ===
 	/**
@@ -198,7 +235,7 @@ public:
 	* @return The starting index in which this group of materials is found at 
 	* within the managers larger container
 	*/
-	size_t addMaterial(Renderable& input, MaterialInstance* mat, const size_t count);
+	size_t addMaterial(Renderable& input, MaterialInstance* mat);
 
 	friend class GBufferFillPass;
 	friend class Renderer;

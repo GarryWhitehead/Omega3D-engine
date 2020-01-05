@@ -14,6 +14,8 @@
 #include "Rendering/RenderQueue.h"
 #include "Rendering/IndirectLighting.h"
 
+#include "Scripting/OEConfig.h"
+
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CommandBufferManager.h"
@@ -25,12 +27,13 @@
 namespace OmegaEngine
 {
 
-Renderer::Renderer(Engine& eng, Scene& scene, VulkanAPI::Swapchain& swapchain) :
+Renderer::Renderer(Engine& eng, Scene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config) :
     vkDriver(eng.getVkDriver()),
     rGraph(std::make_unique<RenderGraph>(vkDriver)),
     swapchain(swapchain),
     engine(eng),
-    scene(scene)
+    scene(scene),
+    config(config)
 {
 }
 
@@ -40,23 +43,22 @@ Renderer::~Renderer()
 
 void Renderer::prepare()
 {
-	// TODO: At the moment only a deffered renderer is supported. Maybe add a
-    // forward renderer as well
+	// TODO: At the moment only a deffered renderer is supported. Maybe add a forward renderer as well?!
     for (const RenderStage& stage : deferredStages)
     {
         switch (stage)
         {
             case RenderStage::IndirectLighting:
-                rStages.emplace_back(std::make_unique<IndirectLighting>());
+                rStages.emplace_back(std::make_unique<IndirectLighting>(*rGraph, "Stage_IL", *scene.skybox));
                 break;
             case RenderStage::GBufferFill:
-                rStages.emplace_back(std::make_unique<GBufferFillPass>());
+                rStages.emplace_back(std::make_unique<GBufferFillPass>(vkDriver, *rGraph, "Stage_GB", engine.getRendManager(), config));
                 break;
             case RenderStage::LightingPass:
-                rStages.emplace_back(std::make_unique<LightingPass>());
+                rStages.emplace_back(std::make_unique<LightingPass>(*rGraph, "Stage_Light"));
                 break;
 		    case RenderStage::Skybox:
-                rStages.emplace_back(std::make_unique<Skybox>());
+                rStages.emplace_back(std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", *scene.skybox));
 			    break;
         }
     }
@@ -74,7 +76,7 @@ void Renderer::update()
 
 void Renderer::draw()
 {
-	vkDriver.beginFrame();
+	vkDriver.beginFrame(swapchain);
 
 	// optimisation and compilation of the render graph. If nothing has changed since the last frame then this 
 	// call will just return.
@@ -84,12 +86,15 @@ void Renderer::draw()
 	rGraph->execute();
 
 	// finally send to the swap-chain presentation
-	vkDriver.endFrame();
+	vkDriver.endFrame(swapchain);
 }
 
-void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext& context)
+void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& primary, VulkanAPI::CmdBufferManager& manager, RGraphContext& context)
 {
-    VulkanAPI::CmdBuffer cbSecondary = cmdBuffer.createSecondary();
+    // a cmd pool per thread
+    auto cmdPool = manager.createSecondaryPool();
+    VulkanAPI::CmdBuffer* cbSecondary = cmdPool->createSecCmdBuffer(&manager);
+    
 	auto queue = scene.renderQueue.getPartition(RenderQueue::Partition::Colour);
 
     auto thread_draw = [&cbSecondary, &queue, &context](size_t start, size_t end)
@@ -99,7 +104,7 @@ void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext&
 		for (size_t idx = start; idx < end; ++idx)
         {
             RenderableQueueInfo& info = queue[idx];
-            info.renderFunction(cbSecondary, info.renderableData, context);
+            info.renderFunction(*cbSecondary, info.renderableData, context);
         }
     };
     
@@ -109,7 +114,10 @@ void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext&
     split.run();
     
 	// check all task have finished here before execute?
-	cmdBuffer.executeSecondary();
+    auto secBuffers = cmdPool->getSecondary();
+	primary.get().executeCommands(static_cast<uint32_t>(secBuffers.size()), secBuffers.data());
+    
+    manager.releasePool(std::move(cmdPool));
 }
 
 }    // namespace OmegaEngine

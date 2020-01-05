@@ -3,37 +3,45 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Buffer.h"
+#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 #include "utility/Logger.h"
 
 namespace VulkanAPI
 {
 
-Texture::Texture() noexcept
-{
-}
-
 Texture::~Texture()
 {
+    if (imageView)
+    {
+        delete imageView;
+        imageView = nullptr;
+    }
+    if (image)
+    {
+        delete image;
+        image = nullptr;
+    }
 }
 
-void Texture::create2dTex(vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags)
+void Texture::create2dTex(VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags)
 {
     texContext = TextureContext{format, width, height, mipLevels, 1, 1};
 
 	// create an empty image
-    image = std::make_unique<Image>(vkContext);
-	image->create(vmaAlloc, vkContext, usageFlags);
+    image = new Image(driver.getContext(), *this);
+	image->create(driver.getVma(), usageFlags);
 
 	// and a image view of the empty image
-    imageView = std::make_unique<ImageView>(vkContext);
-	imageView->create(vkContext.getDevice(), *image);
+    imageView = new ImageView(driver.getContext());
+	imageView->create(driver.getContext().getDevice(), *image);
 }
 
-void Texture::map(StagingPool& stagePool, void* data)
+void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
 {
 	// using VMA here, hence no c++ bindings and left in a verbose format
-	vk::DeviceMemory stagingMemory;
 	vk::Buffer stagingBuffer;
     
     size_t size = texContext.width * texContext.height * texContext.mipLevels;
@@ -53,18 +61,20 @@ void Texture::map(StagingPool& stagePool, void* data)
 	}
 
 	// now copy image to local device - first prepare the image for copying via transitioning to a transfer state. After copying, the image is transistioned ready for reading by the shader
-	CmdBuffer copyCmdBuffer(vkContext, vkContext.getGraphQueue());
-	copyCmdBuffer.createPrimary();
+	auto& manager = driver.getCbManager();
+    std::unique_ptr<CmdBuffer> cmdBuffer = manager.getSingleUseCb();
 
-	Image::transition(*image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, copyCmdBuffer.get());
-	copyCmdBuffer.get().copyBufferToImage(stagingBuffer, image.get(), vk::ImageLayout::eTransferDstOptimal,
+	Image::transition(*image, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, cmdBuffer->get());
+	cmdBuffer->get().copyBufferToImage(stagingBuffer, image->get(), vk::ImageLayout::eTransferDstOptimal,
 	                                      static_cast<uint32_t>(copyBuffers.size()), copyBuffers.data());
-	Image::transition(*image, vk::ImageLayout::eTransferDstOptimal, finalTransitionLayout, copyCmdBuffer.get());
+    // the final transition here may need improving on....
+	Image::transition(*image, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, cmdBuffer->get());
 
-	copyCmdBuffer.flush();
+	cmdBuffer->flush();
     
     // clean up the staging area
     stagePool.release(stage);
+    manager.releaseSingleUseCb(std::move(cmdBuffer));
 }
 
 void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers)
@@ -107,6 +117,16 @@ ImageView* Texture::getImageView()
 Image* Texture::getImage()
 {
     return image;
+}
+
+Sampler* Texture::getSampler()
+{
+    return sampler;
+}
+
+vk::ImageLayout& Texture::getImageLayout()
+{
+    return imageLayout;
 }
 
 }    // namespace VulkanAPI

@@ -27,7 +27,7 @@ public:
      * @param height: window height in dpi; if zero will sets window height to fullscreen size
      * @return If everything is initialsied successfully, returns a native window pointer
     */
-	bool Application::init(const char* title, uint32_t width, uint32_t height,
+	bool init(const char* title, uint32_t width, uint32_t height,
 	                       OmegaEngine::NativeWindowWrapper& output);
 
     void run();

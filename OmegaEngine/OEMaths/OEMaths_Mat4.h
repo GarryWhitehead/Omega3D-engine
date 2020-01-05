@@ -132,6 +132,7 @@ public:
             result[i][3] = static_cast<T>(*ptr);
             ++ptr;
         }
+        return result;
     }
     
 	// ============== operator overloads ===================

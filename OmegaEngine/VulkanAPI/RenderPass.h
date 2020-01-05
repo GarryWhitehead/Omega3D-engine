@@ -77,28 +77,32 @@ public:
     static vk::AttachmentStoreOp storeFlagsToVk(const StoreType flags);
     static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
     
-	// Adds a attahment for this pass. This can be a colour or depth attachment
-	void addOutputAttachment(const vk::Format format, const size_t reference, ClearFlags& clearFlags, const uint32_t sampleCount);
+	/// Adds a attahment for this pass. This can be a colour or depth attachment
+	void addOutputAttachment(const vk::Format format, const uint32_t reference, ClearFlags& clearFlags, const uint32_t sampleCount);
 
-	// adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
+	/// adds an input attachment reference. Must have an attachment description added by calling **addAttachment**
 	void addInputRef(const uint32_t reference);
 
-	// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
-	bool addSubPass(std::vector<uint32_t> inputRefs, std::vector<uint32_t>& outputRefs, uint32_t depthRef = UINT32_MAX);
+	/// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
+	bool addSubPass(std::vector<uint32_t>& inputRefs, std::vector<uint32_t>& outputRefs, const uint32_t depthRef = UINT32_MAX);
 
 	void addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags);
 
-	// Actually creates the renderpass based on the above definitions
+	/// Actually creates the renderpass based on the above definitions
 	void prepare();
 
 	// ====================== the getter and setters =================================
 	vk::RenderPass& get();
-
-	// sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
+    
+    // kind of replicated from the frame buffer
+    uint32_t getWidth() const;
+    uint32_t getHeight() const;
+    
+	/// sets the clear and depth clear colour - these will only be used if the pass has a colour and/or depth attachment
 	void setClearColour(OEMaths::colour4& col);
 	void setDepthClear(float col);
 
-	// functions that return the state of various aspects of this pass
+	/// functions that return the state of various aspects of this pass
 	bool hasColourAttach();
 	bool hasDepthAttach();
 
@@ -117,33 +121,33 @@ private:
 	struct OutputReferenceInfo
 	{
 		vk::AttachmentReference ref;
-		size_t index;    // points to the attachment description for this ref.
+		size_t index;    //< points to the attachment description for this ref.
 	};
 
 	friend class CmdBufferManager;
 
 private:
-	// keep a refernece of the device this pass was created on for destruction purposes
+	/// keep a refernece of the device this pass was created on for destruction purposes
 	VkContext& context;
 
 	vk::RenderPass renderpass;
 
-	// the colour/input attachments
+	/// the colour/input attachments
 	std::vector<vk::AttachmentDescription> attachments;
 	std::vector<OutputReferenceInfo> outputRefs;
 	std::vector<vk::AttachmentReference> inputRefs;
 
-	// subpasses - could be a single or multipass
-	std::vector<vk::SubpassDescription> subpasses;
+	/// subpasses - could be a single or multipass
+	std::vector<SubpassInfo> subpasses;
 
-	// the dependencies between renderpasses and external sources
+	/// the dependencies between renderpasses and external sources
 	std::vector<vk::SubpassDependency> dependencies;
 
-	// the clear colour for this pass - for each attachment
+	/// the clear colour for this pass - for each attachment
 	OEMaths::colour4 clearCol;
 	float depthClear = 0.0f;
 
-	// max extents of this pass
+	/// max extents of this pass
 	uint32_t width = 0;
 	uint32_t height = 0;
 };

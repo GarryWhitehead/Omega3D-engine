@@ -16,6 +16,7 @@ class Swapchain;
 class VkDriver;
 class ProgramManager;
 class CmdBuffer;
+class CmdBufferManager;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -25,10 +26,14 @@ class Scene;
 class PostProcessInterface;
 class Engine;
 class RenderGraph;
+class EngineConfig;
 
 class RenderStageBase
 {
 public:
+    
+    virtual ~RenderStageBase() = default;
+    
 	RenderStageBase(Util::String id)
 	{
 		passId = id;
@@ -68,7 +73,7 @@ public:
 	const std::array<RenderStage, 3> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass,
 		                                                RenderStage::Skybox };
 
-	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain);
+	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
 	~Renderer();
     
 	/**
@@ -88,7 +93,7 @@ public:
 	*/
 	void draw();
     
-    void drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, RGraphContext& context);
+    void drawQueueThreaded(VulkanAPI::CmdBuffer& cmdBuffer, VulkanAPI::CmdBufferManager& manager, RGraphContext& context);
     
 	using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 
@@ -109,6 +114,8 @@ private:
 	// locally stored
 	Engine& engine;
 	Scene& scene;
+    
+    EngineConfig& config;
 };
 
 }    // namespace OmegaEngine

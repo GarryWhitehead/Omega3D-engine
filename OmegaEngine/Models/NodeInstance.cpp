@@ -5,7 +5,7 @@
 
 #include "OEMaths/OEMaths_transform.h"
 
-#include "utility/logger.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
@@ -33,6 +33,7 @@ NodeInstance::NodeInfo* NodeInstance::findNode(Util::String id, NodeInfo* node)
             break;
         }
     }
+    return result;
 }
 
 NodeInstance::NodeInfo* NodeInstance::getNode(Util::String id)

@@ -33,13 +33,19 @@ public:
         Compute,
 		Count
     };
-
-	Shader();
-	~Shader();
     
-    // not copyable
-    Shader(const Shader&) = delete;
-    Shader& operator=(const Shader&) = delete;
+    /**
+     * @brief Information for passing variants to the shader and onto the compiler
+     */
+    struct VariantInfo
+    {
+      Util::String definition;
+      uint8_t value;
+      Shader::Type stage;
+    };
+    
+	Shader(VkContext& context);
+	~Shader();
     
     /**
     * Gathers the createInfo for all shaders into one blob in a format needed by the pipeline
@@ -48,8 +54,6 @@ public:
 	{
 		return createInfo;
 	}
-    
-	Sampler getSamplerType(std::string name);
     
     /**
      * @brief Takes a string of certain type and if valid, returns as a vulkan recognisible type.
@@ -63,6 +67,8 @@ public:
      */
 	static vk::ShaderStageFlagBits getStageFlags(Shader::Type type);
     
+    static Util::String shaderTypeToString(Shader::Type type);
+    
     /**
      * @brief Derieves from the type specified, the stride in bytes
      */
@@ -72,11 +78,13 @@ public:
      * @brief compiles the specified code into glsl bytecode, and then creates
      * a shader module and createInfo ready for using with a vulkan pipeline
      */
-	bool compile(VkContext& context, std::string shaderCode, const Shader::Type type);
+	bool compile(std::string shaderCode, const Shader::Type type, std::vector<VariantInfo>& variants);
     
 	friend class ShaderProgram;
 
 private:
+    
+    VkContext& context;
     
     vk::ShaderModule module;
 	Shader::Type type;

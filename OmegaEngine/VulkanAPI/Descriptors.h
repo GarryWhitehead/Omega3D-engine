@@ -25,7 +25,7 @@ public:
      */
 	struct BindingPool
 	{
-		// grouped into sets
+		/// grouped into sets
 		std::unordered_map<uint8_t, std::vector<vk::DescriptorSetLayoutBinding>> layouts;
 
 		uint32_t uboCount = 0;
@@ -39,26 +39,40 @@ public:
 	DescriptorLayout& createLayout(uint32_t set, uint32_t binding, vk::DescriptorType bindType,
 	                               vk::ShaderStageFlags flags);
 
+    /**
+     * @brief This should be called once all layouts have been added to the pool. This will create the descriptor pool with the
+     * appropiate number of descriptor bindings. If further layouts need to be added after building, you must call **rebuild**.
+     */
 	void build();
-
+    
+    /**
+     * @brief Creates all the layouts associated with this pool. Note: If you wish to only create a sub section of layouts, then you can
+     * call the descriptor layout function **prepare** directly.
+     */
+    void prepareLayouts();
+    
+    std::vector<vk::DescriptorSetLayout> getLayouts();
+    
 	vk::DescriptorPool& get()
 	{
 		assert(pool);
 		return pool;
 	}
-
+    
+    DescriptorLayout& findSet(uint8_t setNum);
+    
 private:
 
 	VkContext& context;
 
-	// a running tally of all the different resources associated with this layout
+	/// a running tally of all the different resources associated with this layout
 	BindingPool bindings;
 
-	// Each layout has its own pool - this is to avoid issues if used in a multi-threaded environment as the spec states:
-	// "that the application must not allocate and/or free descriptor sets from the same pool in multiple threads simultaneously."
+	/// Each layout has its own pool - this is to avoid issues if used in a multi-threaded environment as the spec states:
+	/// "that the application must not allocate and/or free descriptor sets from the same pool in multiple threads simultaneously."
 	vk::DescriptorPool pool;
 
-	// a list of all the descriptor layouts associated with this pool
+	/// a list of all the descriptor layouts associated with this pool
 	std::vector<DescriptorLayout> layouts;
 };
 
@@ -75,7 +89,7 @@ public:
 
 	void prepare();
 
-	vk::DescriptorSetLayout& getLayout()
+	vk::DescriptorSetLayout& get()
 	{
 		assert(descrlayout);
 		return descrlayout;
@@ -111,8 +125,8 @@ public:
      * @brief Adds a descriptor layout to this set
      */
 	void addLayout(DescriptorLayout& descriptorLayout);
-
-	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Buffer& buffer, uint32_t offset,
+    
+	void updateBufferSet(uint32_t set, uint32_t binding, vk::DescriptorType type, const vk::Buffer& buffer, uint32_t offset,
 	                     uint32_t range);
 
 	void updateImageSet(uint32_t set, uint32_t binding, vk::DescriptorType type, vk::Sampler& sampler,
@@ -157,7 +171,7 @@ public:
 private:
 	VkContext& context;
 
-	// one for all the sets that will be created
+	/// one for all the sets that will be created
 	std::unordered_map<uint8_t, vk::DescriptorSet> descrSets;
 };
 

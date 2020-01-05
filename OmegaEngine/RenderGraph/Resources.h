@@ -14,6 +14,7 @@ namespace VulkanAPI
 {
 class ImageView;
 class Texture;
+class VkDriver;
 }
 
 namespace OmegaEngine
@@ -41,7 +42,7 @@ struct ResourceBase
 	}
     
     // abstract virtual function
-    virtual void* bake() = 0;
+    virtual void* bake(VulkanAPI::VkDriver& driver) = 0;
     
 	Util::String name;
 	ResourceType type;
@@ -67,7 +68,7 @@ struct TextureResource : public ResourceBase
 {
     TextureResource(const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t level, const uint8_t layers);
     
-    void* bake() override;
+    void* bake(VulkanAPI::VkDriver& driver) override;
     VulkanAPI::Texture* get();
     
     bool isDepthFormat();
@@ -112,7 +113,7 @@ struct AttachmentInfo
 
 
 	// creates the 'actual' vulkan resource associated with this attachment
-	void* bake(RenderGraph& rGraph);
+	void* bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph);
 
 	Util::String name;
 	size_t index;

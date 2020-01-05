@@ -65,7 +65,13 @@ public:
 	void getVisibleRenderables(Frustum& frustum, std::vector<VisibleCandidate>& renderables);
 
 	void getVisibleLights(Frustum& frustum, std::vector<LightBase*>& renderables);
-
+    
+    // ====== public functions for adding items to the scene ==============
+    
+    void addSkybox(Util::String filename, float blurFactor = 0.0f);
+    
+    void addCamera(const Camera camera);
+    
 	friend class Renderer;
 
 private:
@@ -73,7 +79,9 @@ private:
 
 	/// per frame: all the renderables after visibility checks
 	RenderQueue renderQueue;
-
+    
+    /// the model graph for our objects - links parent objects with their children.
+    
 	/// Current cameras associated with this scene.
 	std::vector<Camera> cameras;
 	uint16_t currCamera = UINT16_MAX;

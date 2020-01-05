@@ -156,5 +156,28 @@ vk::SamplerAddressMode vkAddressModeToString(std::string str)
 	return result;
 }
 
+vk::DescriptorType getVkDescrTypeFromStr(std::string str)
+{
+    vk::DescriptorType result;
+    if (str == "UniformBuffer")
+    {
+        result = vk::DescriptorType::eUniformBuffer;
+    }
+    else if (str == "StorageBuffer")
+    {
+        result = vk::DescriptorType::eStorageBuffer;
+    }
+    else if (str == "CombinedImageSampler")
+    {
+        result = vk::DescriptorType::eCombinedImageSampler;
+    }
+    else
+    {
+        LOGGER_ERROR("Unsupported buffer type - %s", str.c_str());
+        assert(1);
+    }
+    return result;
+}
+
 }    // namespace VkUtils
 }    // namespace VulkanAPI

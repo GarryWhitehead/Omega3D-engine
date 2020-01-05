@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Core/Omega_Config.h"
-
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkDriver.h"
+
+#include "Scripting/OEConfig.h"
 
 #include "utility/CString.h"
 
@@ -27,12 +27,17 @@ class RenderableManager;
 class TransformManager;
 class Renderer;
 class Scene;
+class EngineConfig;
 
 struct NativeWindowWrapper;
 
 class Engine
 {
 public:
+    
+    // for now the default values for engine config are stored here
+    static constexpr float Default_ClearVal[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+    
 	Engine();
 	~Engine();
 
@@ -48,7 +53,7 @@ public:
 	* @brief This creates a new swapchain instance based upon the platform-specific
 	* ntaive window pointer created by the application
 	*/
-	VulkanAPI::Swapchain createSwapchain(NativeWindowWrapper& window);
+	VulkanAPI::Swapchain createSwapchain();
 
 	/**
 	* @brief Creates a new renderer instance based on the user specified swapchain and scene
@@ -78,16 +83,22 @@ public:
 	TransformManager& getTransManager();
 
 private:
-	// configuration for the omega engine
-	EngineConfig engineConfig;
-
+	
 	// a collection of worlds registered with the engine
 	std::vector<World*> worlds;
 	Util::String currentWorld;
-
+    
+    // A list of renderers which have been created
+    std::vector<Renderer*> renderers;
+    
 	// The vulkan devie. Only one device supported at present
 	VulkanAPI::VkDriver vkDriver;
-
+    
+    // the configuration for this engine
+    EngineConfig config;
+    
+    VulkanAPI::Platform::SurfaceWrapper surface;
+    
 	// All the managers that are required to deal with each of the component types
 	// managers are under control of the engine as this allows multiple worlds to use the same 
 	// resources from the managers

@@ -22,8 +22,7 @@ class Sampler
 {
 
 public:
-	Sampler() = delete;
-
+	
 	Sampler(SamplerType type);
 	~Sampler();
 
@@ -32,7 +31,7 @@ public:
 
 	void build(VkContext& context);
 
-	vk::Sampler &getSampler()
+	vk::Sampler& get()
 	{
 		return sampler;
 	}

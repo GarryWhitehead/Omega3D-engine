@@ -149,7 +149,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
 			}
 
 			outputRefs.emplace_back(tex->referenceId);
-            tex->bake();
+            tex->bake(driver);
 
 			// add a attachment
             context.rpass->addOutputAttachment(tex->format, tex->referenceId, tex->clearFlags, tex->samples);
@@ -407,7 +407,7 @@ void RenderGraph::initRenderPass()
 				AttachmentInfo& attach = attachments[handle];
 
 				// bake the resources
-                VulkanAPI::ImageView* view = reinterpret_cast<VulkanAPI::ImageView*>(attach.bake(*this));
+                VulkanAPI::ImageView* view = reinterpret_cast<VulkanAPI::ImageView*>(attach.bake(driver, *this));
                 views.emplace_back(view);
 			}
 
@@ -435,17 +435,8 @@ void RenderGraph::initRenderPass()
 			// create the framebuffer - this is linked to the renderpass
             rpass.context.framebuffer.prepare(*rpass.context.rpass, views, rpass.maxWidth, rpass.maxHeight, 1);
 
-			// and the command buffer - if using a cmd buffer with secondary buffers, then a separate cmd pool will be used. Otherwise, we will use the main one from the manager
-            if (rpass.flags.testBit(VulkanAPI::SubpassFlags::Threaded))
-            {
-                rpass.cmdPool = new VulkanAPI::CmdPool(driver.getContext(), driver.getContext().getGraphQueueIdx());
-                rpass.context.cmdBuffer = rpass.cmdPool->createCmdBuffer();
-            }
-            else
-            {
-                VulkanAPI::CmdPool* cmdPool = rpass.context.cbManager->getPool();
-                rpass.context.cmdBuffer = cmdPool->createCmdBuffer();
-            }
+            VulkanAPI::CmdPool* cmdPool = rpass.context.cbManager->getMainPool();
+            rpass.context.cmdBuffer = cmdPool->createPrimaryCmdBuffer(&driver.getCbManager());
 			break;
 		}
 

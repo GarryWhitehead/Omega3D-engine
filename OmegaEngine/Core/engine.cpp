@@ -1,10 +1,10 @@
-#include "Core/engine.h"
+#include "Core/Engine.h"
 
 #include "Core/Omega_Global.h"
 #include "Core/World.h"
 #include "Core/Scene.h"
 
-#include "Utility/FileUtil.h"
+#include "utility/FileUtil.h"
 
 #include "VulkanAPI/Platform/Surface.h"
 #include "VulkanAPI/SwapChain.h"
@@ -34,25 +34,34 @@ Engine::~Engine()
 			delete world;
 		}
 	}
+    worlds.clear();
+    
+    for (Renderer* rend : renderers)
+    {
+        if (rend)
+        {
+            delete rend;
+        }
+    }
+    renderers.clear();
 }
 
 bool Engine::init(NativeWindowWrapper& window)
 {
-	if(!vkDriver.init(window.extensions.first, window.extensions.second))
+	surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
+    
+    if(!vkDriver.init(window.extensions.first, window.extensions.second, surface.get()))
     {
         return false;
     }
     return true;
 }
 
-VulkanAPI::Swapchain Engine::createSwapchain(NativeWindowWrapper& window)
+VulkanAPI::Swapchain Engine::createSwapchain()
 {
 	// create a swapchain for surface rendering based on the platform specific window surface
 	VulkanAPI::Swapchain swapchain;
-
-	VulkanAPI::Platform::SurfaceWrapper surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
 	swapchain.prepare(vkDriver.getContext(), surface);
-
 	return swapchain;
 }
 
@@ -71,43 +80,10 @@ World* Engine::createWorld(Util::String name)
 
 Renderer* Engine::createRenderer(VulkanAPI::Swapchain& swapchain, Scene* scene)
 {
-    Renderer* renderer = new Renderer(*this, *scene, swapchain);
-    
-}
-
-void Engine::loadConfigFile()
-{
-	std::string json;
-	const char filename[] = "omega_engineConfig.ini";    // probably need to check the current dir here
-	if (!FileUtil::readFileIntoBuffer(filename, json))
-	{
-		return;
-	}
-
-	// if we cant parse the confid, then go with the default values
-	rapidjson::Document doc;
-	if (doc.Parse(json.c_str()).HasParseError())
-	{
-		return;
-	}
-
-	// general engine settings
-	if (doc.HasMember("FPS"))
-	{
-		engineConfig.fps = doc["FPS"].GetFloat();
-	}
-	if (doc.HasMember("Screen Width"))
-	{
-		engineConfig.screenWidth = doc["Screen Width"].GetInt();
-	}
-	if (doc.HasMember("Screen Height"))
-	{
-		engineConfig.screenHeight = doc["Screen Height"].GetInt();
-	}
-	if (doc.HasMember("Mouse Sensitivity"))
-	{
-		engineConfig.mouseSensitivity = doc["Mouse Sensitivity"].GetFloat();
-	}
+    Renderer* renderer = new Renderer(*this, *scene, swapchain, config);
+    assert(renderer);
+    renderers.emplace_back(renderer);
+    return renderer;
 }
 
 VulkanAPI::VkDriver& Engine::getVkDriver()

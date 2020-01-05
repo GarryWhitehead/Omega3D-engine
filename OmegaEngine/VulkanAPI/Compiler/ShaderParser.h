@@ -10,6 +10,9 @@
 
 namespace VulkanAPI
 {
+// forward declerations
+struct RenderStateBlock;
+class ProgramManager;
 
 class ShaderDescriptor
 {
@@ -20,7 +23,14 @@ public:
 	    : type(type)
 	{
 	}
-
+    
+    /// inputs and outputs
+    struct InOutDescriptor
+    {
+        std::string name;
+        std::string type;   //< the type of
+    };
+    
 	/// generic descriptor for different shader types
 	struct Descriptor
 	{
@@ -59,6 +69,7 @@ public:
 
 	friend class ShaderCompiler;
 	friend class ShaderParser;
+    friend class ProgramManager;
 
 private:
 
@@ -66,8 +77,8 @@ private:
 	Shader::Type type;
 
 	// sementic inputs and outputs
-	std::vector<Descriptor> inputs;
-	std::vector<Descriptor> outputs;
+	std::vector<InOutDescriptor> inputs;
+	std::vector<InOutDescriptor> outputs;
 
 	// texture samplers to import; first: name, second: sampler type
 	std::vector<Descriptor> samplers;
@@ -122,7 +133,7 @@ public:
 private:
 
 	bool parseShaderJson();
-	bool readShader(rapidjson::Document& doc, ShaderDescriptor& shader, std::string id, uint16_t& maxGroup);
+	bool readShader(rapidjson::Document& doc, ShaderDescriptor& shader, Util::String id, uint16_t& maxGroup);
 
 	friend class ShaderCompiler;
 

@@ -10,13 +10,16 @@ namespace VulkanAPI
 {
 class ProgramManager;
 class CmdBuffer;
+class VkDriver;
+class VkContext;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
 {
-//forward declerations
+// forward declerations
 class Renderer;
 class RenderableManager;
+class EngineConfig;
 
 class GBufferFillPass : public RenderStageBase
 {
@@ -44,7 +47,7 @@ public:
 		} attach;
 	};
 
-	GBufferFillPass(RenderGraph& rGraph, Util::String id, RenderableManager& rendManager);
+	GBufferFillPass(VulkanAPI::VkDriver& vkDriver, RenderGraph& rGraph, Util::String id, RenderableManager& rendManager, EngineConfig& config);
 
 	// no copying
 	GBufferFillPass(const GBufferFillPass&) = delete;
@@ -59,14 +62,19 @@ public:
 	static void drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance, RGraphContext& context);
 
 private:
-
+    
+    VulkanAPI::VkDriver& driver;
+    VulkanAPI::VkContext& vkContext;
+    
 	// reference to the render graph associated with this pass
 	RenderGraph& rGraph;
 
 	// the gbuffer uses data from the renderable manager, namely materials.
 	// other vertex data will be from the render queue, considering visibility
 	RenderableManager& rendManager;
-
+    
+    EngineConfig& config;
+    
 	GBufferInfo gbufferInfo;
 };
 

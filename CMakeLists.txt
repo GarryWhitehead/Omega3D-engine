@@ -27,8 +27,6 @@ OPTION(OMEGA_THREAD_SANITIZE "Run thread sanitizer" OFF)
 OPTION(OMEGA_ADDRESS_SANITIZE "Run address sanitizer" OFF)
 OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 
-SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
-
 # paths to shader c and spirv-headers
 SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
 SET(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")

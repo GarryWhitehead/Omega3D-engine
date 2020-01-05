@@ -4,6 +4,8 @@
 
 #include "utility/Logger.h"
 
+#include "cgltf/cgltf.h"
+
 namespace OmegaEngine
 {
 
@@ -183,6 +185,7 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 
 		samplers.emplace_back(samplerInfo);
 	}
+    return true;
 }
 
 }    // namespace OmegaEngine

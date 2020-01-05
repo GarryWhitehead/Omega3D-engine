@@ -6,13 +6,17 @@
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 
+#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Sampler.h"
+#include "VulkanAPI/Image.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
+
+#include <stdexcept>
 
 namespace VulkanAPI
 {
@@ -25,34 +29,17 @@ ShaderProgram::ShaderProgram(VkContext& context) :
 
 void ShaderProgram::addVariant(Util::String definition, uint8_t value, Shader::Type stage)
 {
+    variants.emplace_back(VulkanAPI::Shader::VariantInfo{definition, value, stage});
 }
 
 void ShaderProgram::overrideRenderState(RenderStateBlock* renderState)
 {
 }
 
-void ShaderProgram::updateConstant(Util::String name, uint32_t value, Shader::Type stage)
-{
-}
-
-void ShaderProgram::updateConstant(Util::String name, int32_t value, Shader::Type stage)
-{
-}
-
-void ShaderProgram::updateConstant(Util::String name, float value, Shader::Type stage)
-{
-}
-
 bool ShaderProgram::prepare(ShaderParser& parser)
 {
 	ShaderCompiler compiler(*this, context);
-
-	// create a variation of the shader if variants are specfied
-	if (!variants.empty())
-	{
-		compiler.addVariant(variants);
-	}
-
+    
 	if (!compiler.compile(parser))
 	{
 		return false;
@@ -68,7 +55,7 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgram::getShaderCreateInf
 	std::vector<vk::PipelineShaderStageCreateInfo> createInfos;
 	for (const ShaderBinding& bind : stages)
 	{
-		createInfos.emplace_back(bind.shader.createInfo);
+        createInfos.emplace_back(bind.shader->createInfo);
 	}
 	return createInfos;
 }
@@ -79,9 +66,9 @@ bool ShaderProgram::updateDecrSetBuffer(Util::String id, Buffer& buffer)
 	{
 		for (auto& binding : stage.bufferBindings)
 		{
-			if (binding.name.compare(id))
+			if (binding.name == std::string(id.c_str()))    // temporary measure until I remove all std::string's
 			{
-				descrSet->updateBufferSet(binding.set, binding.bind, buffer.getType(), buffer, 0, buffer.getSize());
+                descrSet->updateBufferSet(binding.set, binding.bind, binding.type, buffer.get(), 0, buffer.getSize());
 				return true;
 			}
 		}
@@ -95,10 +82,10 @@ bool ShaderProgram::updateDecrSetImage(Util::String id, Texture& tex)
 	{
 		for (auto& binding : stage.bufferBindings)
 		{
-			if (binding.name.compare(id))
+			if (binding.name == std::string(id.c_str()))
 			{
-				descrSet->updateImageSet(binding.set, binding.bind, binding.type, tex.getSampler(), tex.getImageView(),
-				                         tex.getLayout());
+				descrSet->updateImageSet(binding.set, binding.bind, binding.type, tex.getSampler()->get(), tex.getImageView()->get(),
+				                         tex.getImageLayout());
 				return true;
 			}
 		}
@@ -108,30 +95,47 @@ bool ShaderProgram::updateDecrSetImage(Util::String id, Texture& tex)
 
 ShaderBinding::SamplerBinding& ShaderProgram::findSamplerBinding(Util::String name, const Shader::Type type)
 {
-	auto iter = std::find(stages.begin(), stages.end(),
-	                      [](const ShaderBinding& lhs, const ShaderBinding& rhs) { return lhs.type == rhs.type; });
+	auto iter = std::find_if(stages.begin(), stages.end(),
+	                      [&type](const ShaderBinding& lhs) { return lhs.shader->type == type; });
 
 	assert(iter != stages.end());
 	for (auto& sampler : iter->samplerBindings)
 	{
-		if (sampler.name.compare(name))
+		if (sampler.name == std::string(name.c_str()))
 		{
 			return sampler;
 		}
 	}
 	// a binding with this name doesn't exsist
-	throw std::runtime_error("Unable to find a sampler binding with id: %s", name.c_str());
+    throw std::runtime_error("Unable to find sampler binding");
+}
+
+std::vector<VulkanAPI::Shader::VariantInfo> ShaderProgram::sortVariants(Shader::Type stage)
+{
+    std::vector<VulkanAPI::Shader::VariantInfo> ret;
+    for (auto& variant : variants)
+    {
+        if (variant.stage == stage)
+        {
+            ret.emplace_back(variant);
+        }
+    }
+    return ret;
 }
 
 DescriptorLayout* ShaderProgram::getDescrLayout(uint8_t set)
 {
-    std::find(descrLayouts.begin(), descrLayouts.end(), [](const DescriptorLayout& lhs, const DescriptorLayout rhs) { return lhs.set == rhs.set });
-    return iter->get();
+    return &descrPool->findSet(set);
 }
 
 DescriptorSet* ShaderProgram::getDescrSet()
 {
 	return descrSet.get();
+}
+
+ PipelineLayout* ShaderProgram::getPLineLayout()
+{
+    return pLineLayout.get();
 }
 
 // =================== Program Manager ==================
@@ -165,26 +169,26 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 
 	ShaderParser parser;
 
-	ShaderProgram* instance = new ShaderProgram();
+	ShaderProgram* instance = new ShaderProgram(driver.getContext());
 	for (ShaderHash& hash : hashes)
 	{
 		ShaderDescriptor* descr = findCachedVariant(hash);
 		if (!descr)
 		{
-			LOGGER_ERROR("Unable to find cached shader varinat with id: %s and varinat id: %lu", hash.name,
+            LOGGER_ERROR("Unable to find cached shader varinat with id: %s and varinat id: %llu", hash.name,
 			             hash.variantBits);
 			return nullptr;
 		}
 		else if (descr->type == Shader::Type::Vertex)
 		{
-			instanceName = descr->id;
+			instanceName = hash.name;
 			topo = hash.topology;
 		}
 		parser.addStage(descr);
 	}
 
 	// use the render state from the mesh/material
-	instance->overrideRenderState();
+	//instance->overrideRenderState();
 
 	// compile
 	ShaderCompiler compiler(*instance, driver.getContext());
@@ -197,7 +201,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 
 ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
 {
-	ShaderProgram* instance = new ShaderProgram();
+	ShaderProgram* instance = new ShaderProgram(driver.getContext());
 
 	programs.emplace(hash, instance);
 	return instance;
@@ -246,7 +250,7 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 	auto iter = cached.find(hash);
 	if (iter == cached.end())
 	{
-		return &iter->second;
+		return iter->second;
 	}
 	return nullptr;
 }
@@ -254,13 +258,13 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 void ProgramManager::pushBufferDescrUpdate(Util::String id, Buffer& buffer)
 {
 	assert(!id.empty());
-	bufferDescrQueue.emplace_back(std::make_pair(id, buffer));
+	bufferDescrQueue.emplace_back(std::make_pair(id.c_str(), &buffer));
 }
 
 void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
 {
 	assert(!id.empty());
-	imageDescrQueue.emplace_back(std::make_pair(id, std::move(tex)));
+	imageDescrQueue.emplace_back(std::make_pair(id.c_str(), &tex));
 }
 
 void ProgramManager::updateBufferDecsrSets()
@@ -275,11 +279,11 @@ void ProgramManager::updateBufferDecsrSets()
 		bool result = false;
 		for (auto& prog : programs)
 		{
-			result &= prog.second->updateDecrSetBuffer(queuePair.first, queuePair.second);
+			result &= prog.second->updateDecrSetBuffer(queuePair.first, *queuePair.second);
 		}
 		if (!result)
 		{
-			throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+			throw std::runtime_error("Unable to find buffer");
 		}
 	}
 
@@ -299,11 +303,11 @@ void ProgramManager::updateImageDecsrSets()
 		bool result = false;
 		for (auto& prog : programs)
 		{
-			result &= prog.second->updateDecrSetImage(queuePair.first, queuePair.second);
+			result &= prog.second->updateDecrSetImage(queuePair.first, *queuePair.second);
 		}
 		if (!result)
 		{
-			throw std::runtime_error("Unable to find buffer with id %s.", queuePair.first.c_str());
+			throw std::runtime_error("Unable to find buffer");
 		}
 	}
 
@@ -320,7 +324,7 @@ ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
         VulkanAPI::ShaderParser parser;
         if (!parser.parse(key.name))
         {
-            return false;
+            return nullptr;
         }
         prog = createNewInstance(key);
 
@@ -329,7 +333,7 @@ ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
         assert(prog);
         if (!prog->prepare(parser))
         {
-            return false;
+            return nullptr;
         }
     }
     else

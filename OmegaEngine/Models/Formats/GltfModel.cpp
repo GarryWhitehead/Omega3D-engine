@@ -161,25 +161,52 @@ bool GltfModel::prepare()
 	return true;
 }
 
-void GltfModel::setWorldTrans(OEMaths::vec3f& trans)
-{
-	wTrans = trans;
-}
-
-
-void GltfModel::setWorldScale(OEMaths::vec3f& scale)
-{
-	wScale = scale;
-}
-
-void GltfModel::setWorldRotation(OEMaths::quatf& rot)
-{
-	wRotation = rot;
-}
-
 GltfExtension& GltfModel::getExtensions()
 {
     return extensions;
 }
+
+// ================ user front-end functions =========================
+
+GltfModel& GltfModel::setWorldTrans(const OEMaths::vec3f trans)
+{
+	wTrans = trans;
+    return *this;
+}
+
+
+GltfModel& GltfModel::setWorldScale(const OEMaths::vec3f scale)
+{
+	wScale = scale;
+    return *this;
+}
+
+GltfModel& GltfModel::setWorldRotation(const OEMaths::quatf rot)
+{
+	wRotation = rot;
+    return *this;
+}
+
+MeshInstance* GltfModel::getMesh()
+{
+    
+}
+
+SkinInstance* GltfModel::getSkin()
+{
+    
+}
+
+NodeInstance* GltfModel::getNode()
+{
+    
+}
+   
+MaterialInstance* GltfModel::getMaterial()
+{
+    
+}
+
+
 
 }    // namespace OmegaEngine

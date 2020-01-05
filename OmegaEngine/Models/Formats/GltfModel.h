@@ -69,19 +69,25 @@ public:
 	/**
 	* @brief Sets the world translation for this model
 	*/
-	void setWorldTrans(OEMaths::vec3f& trans);
+	GltfModel& setWorldTrans(const OEMaths::vec3f trans);
 
 	/**
 	* @brief Sets the world scale for this model
 	*/
-	void setWorldScale(OEMaths::vec3f& scale);
+	GltfModel& setWorldScale(const OEMaths::vec3f scale);
 
 	/**
 	* @brief Sets the world rotation for this model
 	*/
-	void setWorldRotation(OEMaths::quatf& rot);
+	GltfModel& setWorldRotation(const OEMaths::quatf rot);
     
     GltfExtension& getExtensions();
+    
+    // ========= user front-end functions ==============
+    MeshInstance* getMesh();
+    SkinInstance* getSkin();
+    NodeInstance* getNode();
+    MaterialInstance* getMaterial();
     
 	friend class Scene;
 

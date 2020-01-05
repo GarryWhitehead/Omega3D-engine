@@ -117,7 +117,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	RenderGraph/Resources.cpp RenderGraph/Resources.h
 
 	Rendering/IndirectLighting.cpp Rendering/IndirectLighting.h
-	Rendering/RenderConfig.cpp Rendering/RenderConfig.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
 	Rendering/Renderer.cpp Rendering/Renderer.h
     Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h

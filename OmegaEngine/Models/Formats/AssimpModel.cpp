@@ -20,6 +20,7 @@ bool AssimpModel::load(Util::String filename)
 		LOGGER_ERROR("Unable to open assimp model file %s.\n", filename.c_str());
 		return false;
 	}
+    return true;
 }
 
 

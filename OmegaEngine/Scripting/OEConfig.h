@@ -4,6 +4,8 @@
 
 #include "utility/CString.h"
 
+#include "OEMaths/OEMaths.h"
+
 #include "lua/lua.hpp"
 
 #include <stdexcept>
@@ -21,7 +23,31 @@ public:
 	EngineConfig() = default;
 
 	friend class ConfigParser;
-
+    
+    /**
+     * @brief Inserts a configuration parameter into the list with the specified value. Throws if the type of value isn't supported.
+     */
+    template <typename T>
+    void insertItem(std::string name, T val)
+    {
+        if constexpr (std::is_same_v<T, float>)
+        {
+            configs.emplace(name, TypeDescriptor{ TypeDescriptor::Float, std::to_string(val) });
+        }
+        else if constexpr (std::is_same_v<T, int>)
+        {
+            configs.emplace(name, TypeDescriptor{ TypeDescriptor::Int, std::to_string(val) });
+        }
+        if constexpr (std::is_same_v<T, std::string>)
+        {
+            configs.emplace(name, TypeDescriptor{ TypeDescriptor::String, val });
+        }
+        else
+        {
+            throw std::runtime_error("Unsupported value template type used.");
+        }
+    }
+    
 	/**
 	* @brief Trys to find the specified config name in the map and if successful returns the value stored.
 	* If not successful, returns the default value which is specified by the user and inserts into the map the name and value.
@@ -33,22 +59,7 @@ public:
 		auto iter = configs.find(name);
 		if (iter == configs.end())
 		{
-			if constexpr (std::is_same_v<T, float>)
-			{
-				configs.emplace(name, TypeDescriptor{ TypeDescriptor::Float, std::to_string(defaultVal) });
-			}
-			else if constexpr (std::is_same_v<T, int>)
-			{
-				configs.emplace(name, TypeDescriptor{ TypeDescriptor::Int, std::to_string(defaultVal) });
-			}
-			if constexpr (std::is_same_v<T, std::string>)
-			{
-				configs.emplace(name, TypeDescriptor{ TypeDescriptor::String, defaultVal });
-			}
-			else
-			{
-				throw std::runtime_error("Unsupported value template type used.");
-			}
+            insertItem(name, defaultVal);
 			return defaultVal;
 		}
 
@@ -85,7 +96,15 @@ public:
 		// we shouldn't be here if there was no error. Not much to do but assert or throw!
 		throw std::runtime_error("Mismatched types between lua input and user type.");
 	}
-
+    
+    void insertVec(std::string name, const float defaultVec[], uint32_t size);
+    std::vector<float> buildVec(TypeDescriptor& decsr, uint8_t vecSize);
+    
+    // TODO: these could/should be probably templated at some point
+    OEMaths::vec2f findOrInsertVec2(std::string name, const float defaultVec[]);
+    OEMaths::vec3f findOrInsertVec3(std::string name, const float defaultVec[]);
+    OEMaths::vec4f findOrInsertVec4(std::string name, const float defaultVec[]);
+    
 	/**
 	* @brief Clears all config settings from the map
 	*/

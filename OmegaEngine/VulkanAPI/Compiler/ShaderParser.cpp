@@ -1,5 +1,6 @@
 #include "ShaderParser.h"
 
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
 
@@ -10,7 +11,7 @@ namespace VulkanAPI
 {
 
 // ================== ShaderParser =======================
-bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader, std::string id, uint16_t& maxGroup)
+bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader, Util::String id, uint16_t& maxGroup)
 {
 	maxGroup = 0;
 	const auto& shaderBlock = doc[id.c_str()];
@@ -23,7 +24,7 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 		{
 			std::string name = input["name"].GetString();
 			std::string type = input["type"].GetString();
-			shader.inputs.emplace(name, type);
+            shader.inputs.emplace_back(ShaderDescriptor::InOutDescriptor{ name, type });
 		}
 	}
 	// output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
@@ -34,11 +35,11 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 		{
 			std::string name = output["name"].GetString();
 			std::string type = output["type"].GetString();
-			shader.outputs.emplace(name, type);
+            shader.outputs.emplace_back(ShaderDescriptor::InOutDescriptor{ name, type });
 		}
 	}
 
-	// speciliastion constants - should be preferred to the usual #ddefine method
+	// speciliastion constants - should be preferred to the usual #define method
 	if (shaderBlock.HasMember("Constants"))
 	{
 		const auto& constants = shaderBlock["Constants"].GetArray();
@@ -77,7 +78,7 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 
 				descr.data.emplace_back(itemDescr);
 			}
-			shader.constants.emplace_back(descr);
+			shader.pConstants.emplace_back(descr);
 		}
 	}
 
@@ -97,17 +98,23 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 				uint16_t group = 0;
 				if (import.HasMember("group"))
 				{
-                    groupId = import["group"].GetString();
+                    group = std::stoi(import["group"].GetString());
 				}
 
 				if (VkUtils::isSamplerType(name))
 				{
-					std::string variant;
+                    ShaderDescriptor::Descriptor samplerDescr;
+                    samplerDescr.name = name;
+                    samplerDescr.type = type;
+                    samplerDescr.groupId = group;
+                    
+                    std::string variant;
 					if (import.HasMember("variant"))
 					{
-						variant = import["variant"].GetString();
+						samplerDescr.variant = import["variant"].GetString();
 					}
-					shader.samplers.emplace_back(name, type, group, variant);
+         
+                    shader.samplers.emplace_back(samplerDescr);
 				}
 				else if (VkUtils::isBufferType(name))
 				{
@@ -121,7 +128,7 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 					//	struct Blah
 					// {
 					// } sub_name;
-					if (import.HasMember["id"])
+					if (import.HasMember("id"))
 					{
 						buffer.descr.id = import["id"].GetString();
 					}
@@ -134,11 +141,11 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 						itemDescr.type = item["type"].GetString();
 
 						// check whether any arrays are specified
-						if (item.HasMember["array_constant"])
+						if (item.HasMember("array_constant"))
 						{
 							itemDescr.arrayConst = item["array_constant"].GetString();
 						}
-						if (item.HasMember["array_value"])
+						if (item.HasMember("array_value"))
 						{
 							itemDescr.arraySize = item["array_value"].GetInt();
 						}
@@ -160,11 +167,13 @@ bool ShaderParser::readShader(rapidjson::Document& doc, ShaderDescriptor& shader
 	const auto& codeBlock = shaderBlock["Code"].GetArray();
 	for (auto& c : codeBlock)
 	{
-		shader.code.push_back(c.GetString());
+		shader.code += c.GetString();
 	}
+    
+    return true;
 }
 
-bool ShaderParser::prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::StageType type)
+bool ShaderParser::prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::Type type)
 {
 	std::string shaderBuffer;
 	if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
@@ -180,14 +189,16 @@ bool ShaderParser::prepareShader(Util::String filename, ShaderDescriptor* shader
 		return false;
 	}
 
-	Util::String vertexId = Shader::ShaderTypeToString(type);
+	Util::String vertexId = Shader::shaderTypeToString(type);
 	uint16_t maxGroup = 0;
 
-	if (!readShader(doc, *shader, id, maxGroup))
+	if (!readShader(doc, *shader, vertexId, maxGroup))
 	{
-		LOGGER_ERROR("Unable to read shader block from json file; filename = %s.", filename);
+		LOGGER_ERROR("Unable to read shader block from json file; filename = %s.", filename.c_str());
 		return false;
 	}
+    
+    return true;
 }
 
 void ShaderParser::addStage(ShaderDescriptor* shader)
@@ -205,15 +216,15 @@ void ShaderParser::parseRenderBlock(rapidjson::Document& doc)
 		const rapidjson::Value& depth = doc["DepthState"];
 		if (depth.HasMember("DepthTestEnable"))
 		{
-			renderState->dsState.testEnable = depth["DepthTestEnable"].GetBool();
+            renderState->dsState.testEnable = depth["DepthTestEnable"].GetBool();
 		}
 		if (depth.HasMember("DepthWriteEnable"))
 		{
-			renderState->dsState.writeEnable = depth["DepthWriteEnable"].GetBool();
+            renderState->dsState.writeEnable = depth["DepthWriteEnable"].GetBool();
 		}
 		if (depth.HasMember("CompareOp"))
 		{
-			renderState->dsState.compareOp = VkUtils::vkCompareOpFromString(depth["CompareOp"].GetString());
+            renderState->dsState.compareOp = VkUtils::vkCompareOpFromString(depth["CompareOp"].GetString());
 		}
 	}
 
@@ -239,7 +250,7 @@ void ShaderParser::parseRenderBlock(rapidjson::Document& doc)
 		const rapidjson::Value& sampler = doc["Sampler"];
 		if (sampler.HasMember("MagFilter"))
 		{
-			renderState->sampler.magFilter = VkUtils::vkFilterToString(sampler["MagFilter"].GetString());
+            renderState->sampler.magFilter = VkUtils::vkFilterToString(sampler["MagFilter"].GetString());
 		}
 		if (sampler.HasMember("MinFilter"))
 		{

@@ -43,7 +43,7 @@ bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t f
 bool MappedTexture::load(Util::String filePath)
 {
 	// get the extension
-	auto split = filePath.split('.');
+	auto split = Util::String::split(filePath, '.');
 	Util::String ext = split.back();
 
 	if (split.size() == 1)

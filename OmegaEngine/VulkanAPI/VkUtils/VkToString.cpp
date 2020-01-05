@@ -87,7 +87,7 @@ void createVkShaderSampler(const std::string name, const std::string type, const
     }
 }
 
-void createVkShaderBuffer(const std::string name, const std::string type, std::vector<std::pair<std::string, std::string>>& items, const uint16_t bind, const uint16_t setCount, std::string& outputStr, uint32_t& outputSize)
+void createVkShaderBuffer(const std::string name, const std::string type, std::vector<ShaderDescriptor::Descriptor>& items, const uint16_t bind, const uint16_t setCount, std::string& outputStr, uint32_t& outputSize)
 {
     assert(!type.empty());
     assert(!name.empty());
@@ -112,8 +112,8 @@ void createVkShaderBuffer(const std::string name, const std::string type, std::v
     uint32_t bufferSize = 0;
     for (const auto& item : items)
     {
-        bufferTemplate +=  "    " + item.second + " " + item.first + ";\n";
-        bufferSize += vkTypeSize(item.second);
+        bufferTemplate +=  "    " + item.type + " " + item.name + ";\n";
+        bufferSize += vkTypeSize(item.type);
     }
     
     assert(bufferSize != 0);

@@ -1,13 +1,16 @@
 #include "Buffer.h"
 
+#include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/CommandBufferManager.h"
 
 #include <cstring>
 
 namespace VulkanAPI
 {
 
-void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize)
+void createGpuBufferAndCopy(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, VmaAllocation& mem, void* data, VkDeviceSize dataSize)
 {
     // get a staging pool for hosting on the CPU side
     StagingPool::StageInfo stage = pool.getStage(dataSize);
@@ -26,16 +29,20 @@ void createBuffer(VmaAllocator& vmaAlloc, StagingPool& pool, VkBuffer& buffer, V
     VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
 
     // copy from the staging area to the allocated GPU memory
-    CmdBuffer cmdBuffer;
+    auto& manager = driver.getCbManager();
+    std::unique_ptr<CmdBuffer> cmdBuffer = manager.getSingleUseCb();
     
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset = 0;
     copyRegion.dstOffset = 0;
     copyRegion.size = dataSize;
-    vkCmdCopyBuffer(cmdBuffer.get(), stage.buffer, buffer, 1, &copyRegion);
-
+    vkCmdCopyBuffer(cmdBuffer->get(), stage.buffer, buffer, 1, &copyRegion);
+    
+    cmdBuffer->flush();
+    
     // clean-up
     pool.release(stage);
+    manager.releaseSingleUseCb(std::move(cmdBuffer));
 }
 
 // ================== StagingPool =======================
@@ -46,7 +53,9 @@ StagingPool::StagingPool(VmaAllocator& vmaAlloc) :
 
 void StagingPool::release(StageInfo& stage)
 {
-	freeStages.emplace_back(std::make_pair(stage.size, stage));
+    assert(stage.size > 0);
+    assert(stage.buffer);
+    freeStages.emplace_back(stage);
 }
 
 StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
@@ -68,23 +77,22 @@ StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
 	return stage;
 }
 
-StagingPool::StageInfo& StagingPool::getStage(const VkDeviceSize reqSize)
+StagingPool::StageInfo& StagingPool::getStage(VkDeviceSize reqSize)
 {
 	// check for a free staging space that is equal of greater than the required size
 	auto iter =
-	    std::lower_bound(freeStages.begin(), freeStages.end(),
-	                     [](const std::pair<VkDeviceSize, StageInfo>& lhs,
-	                        const std::pair<VkDeviceSize, StageInfo>& rhs) -> bool { return lhs.first < rhs.first; });
+	    std::lower_bound(freeStages.begin(), freeStages.end(), reqSize,
+	                     [](const StageInfo& lhs, const VkDeviceSize rhs) { return lhs.size < rhs; });
 
 	// if we have a free staging area, return that. Otherwise allocate a new stage
 	if (iter != freeStages.end())
 	{
-		return iter->second;
+		return *iter;
 	}
 
 	StageInfo stage = create(reqSize);
-	freeStages.emplace_back(std::make_pair(reqSize, stage));
-	return freeStages.back().second;
+	freeStages.emplace_back(stage);
+	return freeStages.back();
 }
 
 // ==================== Buffer ==========================
@@ -92,7 +100,9 @@ StagingPool::StageInfo& StagingPool::getStage(const VkDeviceSize reqSize)
 void Buffer::prepare(VmaAllocator& vmaAlloc, const vk::DeviceSize buffSize, const VkBufferUsageFlags usage,
                      uint32_t memIndex)
 {
-	VkBufferCreateInfo bufferInfo = {};
+    vmaAllocator = &vmaAlloc;
+    
+    VkBufferCreateInfo bufferInfo = {};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = buffSize;
 	bufferInfo.usage = usage;
@@ -112,30 +122,30 @@ void Buffer::map(void* data, size_t dataSize)
 
 void Buffer::destroy()
 {
-	vmaDestroyBuffer(vmaAlloc, buffer, mem);
+	vmaDestroyBuffer(*vmaAllocator, buffer, mem);
 }
 
 // ================ Vertex buffer =======================
 // Note: The following functions use VMA hence don't use the vulkan hpp C++ style vulkan bindings
-// Hence, the code has been left in this verbose format - as it doesn't follow the format of the resdt of the codebase
+// Hence, the code has been left in this verbose format - as it doesn't follow the format of the rest of the codebase
 
-void VertexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize)
+void VertexBuffer::create(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, void* data, const VkDeviceSize dataSize)
 {
 	assert(data);
     
     // create the buffer and copy the data
-    createBuffer(vmaAlloc, pool, buffer, mem, data, dataSize);
+    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize);
     
 }
 
 // ======================= IndexBuffer ================================
 
-void IndexBuffer::create(VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize dataSize)
+void IndexBuffer::create(VkDriver& driver, VmaAllocator& vmaAlloc, StagingPool& pool, uint32_t* data, const VkDeviceSize dataSize)
 {
 	assert(data);
     
     // create the buffer and copy the data
-	createBuffer(vmaAlloc, pool, buffer, mem, data, dataSize);
+	createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize);
 }
 
 }    // namespace VulkanAPI

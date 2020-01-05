@@ -1,5 +1,8 @@
 #include "Light.h"
 
+#include <cmath>
+#include <algorithm>
+
 void Light::updateLightPositions(double dt)
 {
 	// update the timer first - a pretty simple fudged timer but adequate for lighting
@@ -13,8 +16,8 @@ void Light::updateLightPositions(double dt)
 	{
 		timer -= 1.0f;
 	}
-
-	for (auto& info : lights)
+    // TODO!!
+	/*for (auto& info : lights)
 	{
 		auto& light = std::get<0>(info);
 		auto& anim = std::get<1>(info);
@@ -44,5 +47,5 @@ void Light::updateLightPositions(double dt)
 		}
 
 		isDirty = true;
-	}
+	}*/
 }

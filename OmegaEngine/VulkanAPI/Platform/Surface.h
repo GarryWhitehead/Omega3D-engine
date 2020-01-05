@@ -20,9 +20,12 @@ class SurfaceWrapper
 public:
 #ifdef VK_USE_PLATFORM_WIN32_KHR
 	using HWND = void*;
-    SurfaceWrapper(NativeWindowWrapper& window, vk::Instance& instance);
 #endif
-
+    
+    SurfaceWrapper() = default;
+    
+    SurfaceWrapper(NativeWindowWrapper& window, vk::Instance& instance);
+    
 	uint32_t getWidth() const
 	{
 		return winWidth;

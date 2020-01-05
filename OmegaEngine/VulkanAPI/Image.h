@@ -9,8 +9,8 @@ namespace VulkanAPI
 class Image;
 class Texture;
 struct TextureContext;
-class Queue;
 class VkContext;
+class CmdBuffer;
 
 class ImageView
 {
@@ -69,7 +69,7 @@ public:
     /**
      * @brief Create a new VkImage instance based on the specified texture  and usage flags
      */
-	void create(VmaAllocator& vmaAlloc, VkContext& context, vk::ImageUsageFlags usageFlags);
+	void create(VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags);
     
     /**
      *@brief Tansitions the image from one layout to another.
@@ -82,12 +82,12 @@ public:
     /**
      * @brief Generates mip maps for the required levels for this image
      */
-	void generateMipMap(Image& image, vk::CommandBuffer cmdBuffer);
+	void generateMipMap(Image& image, CmdBuffer& cmdBuffer);
     
     /**
      * @brief Blits the source image to the dst image using the specified
      */
-	void blit(Image& srcImage, Image &dstImage, Queue &graphicsQueue);
+	void blit(Image& srcImage, Image &dstImage, CmdBuffer& cmdBuffer);
     
     /**
      * @brief Returns the vulkan image handle
@@ -112,7 +112,8 @@ private:
 	TextureContext& tex;
 
 	vk::Image image;
-	vk::Format format;
+    
+    // used for memory allocation info such as offsets, etc.
 	VmaAllocation imageMem;
 };
 

@@ -5,14 +5,14 @@
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
 
-#include "utility/logger.h"
+#include "utility/Logger.h"
 
 #include <fstream>
 
 namespace VulkanAPI
 {
 
-shaderc_shader_kind getShaderKind(const Shader::StageType type)
+shaderc_shader_kind getShaderKind(const Shader::Type type)
 {
     shaderc_shader_kind result;
     switch (type)
@@ -35,8 +35,8 @@ shaderc_shader_kind getShaderKind(const Shader::StageType type)
 }
 
 GlslCompiler::GlslCompiler(std::string shaderCode, const Shader::Type type) :
-    source(shaderCode),
-    kind(getShaderKind(type))
+    kind(getShaderKind(type)),
+    source(shaderCode)
 {
 }
 
@@ -49,9 +49,9 @@ bool GlslCompiler::compile(bool optimise)
     shaderc::Compiler compiler;
     shaderc::CompileOptions options;
 
-    for (auto define : defines)
+    for (auto& define : definitions)
     {
-        options.AddMacroDefinition(define.first.c_str(), std::to_string(define.second).c_str());
+        options.AddMacroDefinition(define.first, std::to_string(define.second).c_str());
     }
 
     if (optimise)
@@ -82,34 +82,61 @@ Shader::~Shader()
 {
 }
 
-vk::ShaderStageFlagBits Shader::getStageFlags(Shader::StageType type)
+Util::String Shader::shaderTypeToString(Shader::Type type)
 {
-	vk::ShaderStageFlagBits ret;
-	switch (type)
-	{
+    Util::String result;
+    switch (type)
+    {
     case Shader::Type::Vertex:
-		ret = vk::ShaderStageFlagBits::eVertex;
-		break;
+       result = "Vertex";
+       break;
     case Shader::Type::Fragment:
-		ret = vk::ShaderStageFlagBits::eFragment;
-		break;
+       result = "Fragment";
+       break;
     case Shader::Type::TesselationCon:
-        ret = vk::ShaderStageFlagBits::eTessellationControl;ompile
+       result = "TesselationCon";
+       break;
+    case Shader::Type::TesselationEval:
+       result = "TesselationEval";
+       break;
+    case Shader::Type::Geometry:
+       result = "Geometry";
+       break;
+    case Shader::Type::Compute:
+       result = "Compute";
+       break;
+    }
+    return result;
+}
+
+vk::ShaderStageFlagBits Shader::getStageFlags(Shader::Type type)
+{
+    vk::ShaderStageFlagBits ret;
+    switch (type)
+    {
+    case Shader::Type::Vertex:
+        ret = vk::ShaderStageFlagBits::eVertex;
+        break;
+    case Shader::Type::Fragment:
+        ret = vk::ShaderStageFlagBits::eFragment;
+        break;
+    case Shader::Type::TesselationCon:
+        ret = vk::ShaderStageFlagBits::eTessellationControl;
         break;
     case Shader::Type::TesselationEval:
         ret = vk::ShaderStageFlagBits::eTessellationEvaluation;
         break;
     case Shader::Type::Geometry:
-		ret = vk::ShaderStageFlagBits::eGeometry;
-		break;
+        ret = vk::ShaderStageFlagBits::eGeometry;
+        break;
     case Shader::Type::Compute:
-		ret = vk::ShaderStageFlagBits::eCompute;
-		break;
-	}
-	return ret;
+        ret = vk::ShaderStageFlagBits::eCompute;
+        break;
+    }
+    return ret;
 }
 
-bool Shader::compile(VkContext& context, std::string shaderCode, const Shader::Type type)
+bool Shader::compile(std::string shaderCode, const Shader::Type type, std::vector<VariantInfo>& variants)
 {
     if (shaderCode.empty())
     {
@@ -119,7 +146,14 @@ bool Shader::compile(VkContext& context, std::string shaderCode, const Shader::T
     
     // compile into bytecode
     GlslCompiler compiler(shaderCode, type);
-    compiler.addDefinition();
+    
+    // add definitions to compiler
+    for (auto& variant : variants)
+    {
+        compiler.addVariant(variant.definition, variant.value);
+    }
+    
+    // compile into bytecode ready for wrapping
     compiler.compile(true);
     
     // create the shader module
@@ -130,44 +164,8 @@ bool Shader::compile(VkContext& context, std::string shaderCode, const Shader::T
     // create the wrapper - this will be used by the pipeline
     vk::ShaderStageFlagBits stage = getStageFlags(type);
     createInfo = vk::PipelineShaderStageCreateInfo({}, stage, module, "main", nullptr);
-}
-
-Sampler Shader::getSamplerType(std::string name)
-{
-	Sampler sampler;
-    vk::Device device = context.getDevice();
     
-	// if no sampler declared then will use stock linear sampler
-	if (name.find("Clamp_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::Clamp);
-	}
-	if (name.find("Wrap_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::Wrap);
-	}
-	if (name.find("TriLinearWrap_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::TrilinearWrap);
-	}
-	if (name.find("LinearWrap_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::LinearWrap);
-	}
-	if (name.find("TriLinearClamp_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::TriLinearClamp);
-	}
-	if (name.find("LinearClamp_") != std::string::npos)
-	{
-		sampler.create(device, SamplerType::LinearClamp);
-	}
-	else
-	{
-		sampler.create(device, SamplerType::LinearClamp);
-	}
-
-	return sampler;
+    return true;
 }
 
 vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width)
@@ -211,6 +209,10 @@ vk::Format Shader::getVkFormatFromType(std::string type, uint32_t width)
         {
             format = vk::Format::eR32G32B32A32Sint;
         }
+        else
+        {
+            LOGGER_ERROR("Unsupported Vulkan format type specified: %s", type.c_str());
+        }
     }
 
 	return format;
@@ -226,17 +228,21 @@ uint32_t Shader::getStrideFromType(std::string type)
     {
         size = 4;
     }
-    if (type == "vec2" || type == "ivec2")
+    else if (type == "vec2" || type == "ivec2")
     {
         size = 8;
     }
-    if (type == "vec3" || type == "ivec3")
+    else if (type == "vec3" || type == "ivec3")
     {
         size = 12;
     }
-    if (type == "vec4" || type == "ivec4")
+    else if (type == "vec4" || type == "ivec4")
     {
         size = 16;
+    }
+    else
+    {
+        LOGGER_ERROR("Unsupported type specified: %s. Unable to determine stride size.", type.c_str());
     }
 
     return size;

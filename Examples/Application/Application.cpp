@@ -4,6 +4,8 @@
 
 #include <thread>
 
+using namespace std::literals::chrono_literals;
+
 Application::Application()
 {
 }
@@ -17,19 +19,21 @@ bool Application::init(const char* title, uint32_t width, uint32_t height, Omega
 	// init glfw
 	if (!glfw.init())
 	{
-		return nullptr;
+        return false;
 	}
 
 	// create a window
 	if (!glfw.createWindow(width, height, title))
 	{
-		return nullptr;
+		return false;
 	}
 
 	output.width = width;
 	output.height = height;
 	output.nativeWin = (void*)glfw.getNativeWinPointer();
 	output.extensions = glfw.getInstanceExt();
+    
+    return true;
 }
 
 void Application::run()

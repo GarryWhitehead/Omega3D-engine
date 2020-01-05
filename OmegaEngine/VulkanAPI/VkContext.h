@@ -30,7 +30,7 @@ public:
 
 	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
 
-	void prepareExtensions();
+	bool prepareExtensions(std::vector<const char*>& extensions, uint32_t extCount, std::vector<vk::ExtensionProperties>& extensionProps);
 
 	vk::PhysicalDeviceFeatures prepareFeatures();
 
@@ -42,7 +42,7 @@ public:
 	/**
 	* @brief Sets up all the vulkan devices and queues.
 	*/
-	bool prepareDevice();
+	bool prepareDevice(const vk::SurfaceKHR windowSurface);
 
 	// ============= getters =================
     vk::Instance& getInstance();
@@ -67,9 +67,9 @@ private:
 
 	struct QueueInfo
 	{
-		int compute = VK_QUEUE_FAMILY_IGNORED;
-		int present = VK_QUEUE_FAMILY_IGNORED;
-		int graphics = VK_QUEUE_FAMILY_IGNORED;
+		uint32_t compute = VK_QUEUE_FAMILY_IGNORED;
+		uint32_t present = VK_QUEUE_FAMILY_IGNORED;
+		uint32_t graphics = VK_QUEUE_FAMILY_IGNORED;
 	} queueFamilyIndex;
 
 	vk::Queue graphicsQueue;
@@ -81,6 +81,13 @@ private:
 
 	// validation layers
 	std::vector<const char*> requiredLayers;
+    
+#ifdef VULKAN_VALIDATION_DEBUG
+
+    vk::DebugReportCallbackEXT debugCallback;
+    vk::DebugUtilsMessengerEXT debugMessenger;
+
+#endif
 };
 
 

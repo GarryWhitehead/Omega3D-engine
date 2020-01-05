@@ -16,6 +16,7 @@ class VkContext;
 class CmdBufferManager;
 class ShaderProgram;
 class RenderPass;
+class CmdPool;
 
 class CmdBuffer
 {
@@ -34,12 +35,17 @@ public:
 		Multi
 	};
 
-	CmdBuffer(VkContext& context, const Type type, vk::CommandPool* cmdPool = nullptr,
-	          CmdBufferManager* cbManager = nullptr);
+	CmdBuffer(VkContext& context, const Type type, CmdPool& cmdPool, CmdBufferManager* cbManager = nullptr);
 	~CmdBuffer();
 
 	void prepare();
-
+    
+    /**
+     * @brief This begins the renderpass with the paramters stipulated by the begin info. Also states whether this pass will use secodnary buffers
+     */
+    void beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents);
+    void endPass();
+    
 	// viewport, scissors, etc.
 	void setViewport(const vk::Viewport& viewPort);
 	void setScissor(const vk::Rect2D& scissor);
@@ -48,6 +54,7 @@ public:
 	void bindPipeline(RenderPass* renderpass, ShaderProgram* program);
 	void bindDescriptors(ShaderProgram* prog, const Pipeline::Type type);
     void bindDynamicDescriptors(ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
+    void bindDynamicDescriptors(ShaderProgram* prog, const uint32_t offset, const Pipeline::Type type);
 	void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
 	void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
 	void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);
@@ -55,13 +62,8 @@ public:
 	// dynamic bindings
 	void setDepthBias(float biasConstant, float biasClamp, float biasSlope);
 
-	// secondary buffers
-	CmdBuffer& createSecondary();
-	void createSecondary(uint32_t count);
-
 	/**
 	* @brief Executes all secondary command buffers associated with the primary one
-	* Note: Will segfault if secondaries are empty or invalid count
 	* @param count If non-zero, the number of buffers to execute. Otherwise if zero, all buffers will be executed
 	*/
 	void executeSecondary(size_t count = 0);
@@ -79,6 +81,7 @@ public:
     
 	// drawing functions
 	void drawIndexed(size_t indexCount);
+    void drawIndexed(size_t indexCount, size_t offset);
 	void drawQuad();
 
 	// helper funcs
@@ -87,17 +90,11 @@ public:
 		return cmdBuffer;
 	}
 
-	CmdBuffer getSecondary(size_t index)
-	{
-		assert(index < secondary.size());
-		return secondary[index];
-	}
-
 private:
 	
 	// local vulkan context 
     VkContext& context;
-	vk::CommandPool* cmdPool = nullptr;
+    CmdPool& cmdPool;
 	CmdBufferManager* cbManager = nullptr;
     
     // current bindings - variants are used for ease
@@ -107,15 +104,11 @@ private:
 	// primary or secondary buffer
     Type type;
 
-	// primary command buffer
 	vk::CommandBuffer cmdBuffer;
     
     // view port / scissor info
 	vk::Viewport viewPort;
 	vk::Rect2D scissor;
-
-	// if were using, then store all secondary command buffers for dispatching on each thread
-	std::vector<CmdBuffer> secondary;
     
 };
 
