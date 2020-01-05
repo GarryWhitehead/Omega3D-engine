@@ -22,7 +22,7 @@ TransformManager::~TransformManager()
 {
 }
 
-bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin, size_t count)
+bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin)
 {
 	if (!node.rootNode)
 	{
@@ -34,11 +34,7 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInst
 	// may be numerous skins per mesh. Instead, the starting index of this group
 	// will be used to offset the skin indices to point at the correct skin
 	size_t skinIdx = skins.size();
-
-	for (size_t i = 0; i < count; ++i)
-	{
-		skins.emplace_back(skin[i]);
-	}
+    skins.emplace_back(*skin);
 
     TransformInfo info;
     info.root = std::move(node.rootNode);

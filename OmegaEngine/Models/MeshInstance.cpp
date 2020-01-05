@@ -31,11 +31,20 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 			return false;
 		}
 
-		// sort out the material and add to the list
-		// we alos check for duplicated materials and only return an index if so
-		MaterialInstance material;
-		material.prepare(*primitive->material, model.getExtensions());
-        newPrimitive.materialIdx = model.addMaterial(material);
+		// only one material per mesh is allowed which is the case 99% of the time
+        // cache the cgltf pointer and use to ensure this is the case
+        if (!material)
+        {
+            material->prepare(*primitive->material, model.getExtensions());
+            cached_mat_ptr = primitive->material;
+        }
+        else
+        {
+            if (cached_mat_ptr != primitive->material)
+            {
+                LOGGER_WARN("This mesh comprises of more than one material. This is not supported.");
+            }
+        }
 
 		// get the number of vertices to process
 		size_t vertCount = primitive->attributes[0].data->count;
@@ -277,6 +286,16 @@ bool MeshInstance::prepare(aiScene* scene)
 		primitives.emplace_back(primitive);
 	}
     return true;
+}
+
+MaterialInstance* MeshInstance::getMaterial()
+{
+    if (!material)
+    {
+        LOGGER_WARN("Trying to retrieve a material from a mesh that does not have one.");
+        return nullptr;
+    }
+    return material;
 }
 
 }    // namespace OmegaEngine

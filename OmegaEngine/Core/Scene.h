@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/ObjectManager.h"
+#include "Core/ModelGraph.h"
 
 #include "Models/Formats/GltfModel.h"
 
@@ -29,6 +30,7 @@ class Frustum;
 struct Renderable;
 class LightBase;
 class Skybox;
+class SkyboxInstance;
 
 class Scene
 {
@@ -41,6 +43,8 @@ public:
 	{
 		Renderable* renderable;
 		TransformInfo* transform;
+        AABBox worldAABB;
+        OEMaths::mat4f worldTransform;
 	};
 
 	Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver);
@@ -66,9 +70,11 @@ public:
 
 	void getVisibleLights(Frustum& frustum, std::vector<LightBase*>& renderables);
     
+    VisibleCandidate buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat);
+    
     // ====== public functions for adding items to the scene ==============
     
-    void addSkybox(Util::String filename, float blurFactor = 0.0f);
+    bool addSkybox(SkyboxInstance& instance);
     
     void addCamera(const Camera camera);
     
@@ -80,14 +86,16 @@ private:
 	/// per frame: all the renderables after visibility checks
 	RenderQueue renderQueue;
     
-    /// the model graph for our objects - links parent objects with their children.
+    /// the model graph for renderable objects - links parent objects with their children.
+    /// will probably become more of a scene graph at some point.
+    ModelGraph modelGraph;
     
 	/// Current cameras associated with this scene.
 	std::vector<Camera> cameras;
 	uint16_t currCamera = UINT16_MAX;
     
     /// the skybox to be used with this scene. Also used for global illumination
-    Skybox* skybox = nullptr;
+    std::unique_ptr<Skybox> skybox;
     
 	/// The world this scene is assocaited with
 	World& world;

@@ -36,7 +36,7 @@ bool Application::init(const char* title, uint32_t width, uint32_t height, Omega
     return true;
 }
 
-void Application::run()
+void Application::run(OmegaEngine::Scene& scene, OmegaEngine::Renderer& renderer)
 {
 	// convert delta time to ms
 	const NanoSeconds frameTime(33ms);

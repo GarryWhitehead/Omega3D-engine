@@ -43,28 +43,17 @@ public:
 	*/
 	bool prepare();
 
-	// helper functions
-	/**
-	* @ brief Adds a matrial to the container after checking for duplicate.
-	* If a duplicate, returns the index were the duplicate is located
-	* Otherwise adds the material and returns a index to this material
-	* @param The prepared material to add
-	*/
-	size_t addMaterial(MaterialInstance& mat);
-
-	/**
-	* @brief Adds a new skin to the container
-	* @param skin New skin to add
-	* @return index where the new skin has been added
-	*/
-	size_t addSkin(SkinInstance& skin);
-    
+	// =========== helper functions ================
     /**
      * @brief Trys to find all node heirachies.
      * @param id The id of the node to find.
      * @return If successful, returns a pointer to the node. Otherwise returns nullptr.
      */
 	NodeInstance::NodeInfo* getNode(Util::String id);
+    
+    GltfExtension& getExtensions();
+    
+    // ========= user front-end functions ==============
     
 	/**
 	* @brief Sets the world translation for this model
@@ -81,13 +70,7 @@ public:
 	*/
 	GltfModel& setWorldRotation(const OEMaths::quatf rot);
     
-    GltfExtension& getExtensions();
-    
-    // ========= user front-end functions ==============
-    MeshInstance* getMesh();
-    SkinInstance* getSkin();
-    NodeInstance* getNode();
-    MaterialInstance* getMaterial();
+    std::vector<NodeInstance> getNodes();
     
 	friend class Scene;
 

@@ -15,6 +15,22 @@ namespace OmegaEngine
 // forward declerations
 class IndirectLighting;
 class SkyboxPass;
+class MappedTexture;
+
+class SkyboxInstance
+{
+public:
+    
+    SkyboxInstance& setCubeMap(MappedTexture* cm);
+    SkyboxInstance& setBlurFactor(const float bf);
+    
+    friend class Scene;
+    
+private:
+    
+    MappedTexture* cubeMap = nullptr;
+    float blur = 0.0f;
+};
 
 class Skybox
 {
@@ -23,7 +39,7 @@ public:
     static constexpr uint32_t indicesSize = 36;
     static constexpr uint32_t verticesSize = 24;
     
-    Skybox(VulkanAPI::VkDriver& driver);
+    Skybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur = 0.0f);
     ~Skybox();
     
     /**
@@ -37,6 +53,9 @@ public:
 private:
     
     VulkanAPI::VkDriver& driver;
+    
+    // the cubemap
+    MappedTexture* cubeMap;
     
     // vertex and index buffer memory info for the cube
     VulkanAPI::VertexBuffer* vertexBuffer = nullptr;

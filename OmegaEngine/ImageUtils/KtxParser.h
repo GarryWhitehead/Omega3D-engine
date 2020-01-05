@@ -30,12 +30,6 @@ public:
 			}
 		}
 
-		// moveable but no copying allowed
-		ImageOutput(const ImageOutput&) = delete;
-		ImageOutput operator=(const ImageOutput&) = delete;
-		ImageOutput(ImageOutput&&) = default;
-		ImageOutput& operator=(ImageOutput&&) = default;
-
 		// first mip level dimensions
 		uint32_t width = 0;
 		uint32_t height = 0;

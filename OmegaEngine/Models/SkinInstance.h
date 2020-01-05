@@ -25,12 +25,6 @@ public:
 	~SkinInstance()
 	{
 	}
-	 
-	// copying and moving allowed
-	SkinInstance(const SkinInstance&) = default;
-	SkinInstance& operator=(const SkinInstance&) = default;
-	SkinInstance(SkinInstance&&) = default;
-	SkinInstance& operator=(SkinInstance&&) = default;
     
     /**
      * @brief Prepare a skin from a cgltf skin struct. Links joints with nodes in the
@@ -43,23 +37,19 @@ public:
 	friend class TransformManager;
 
 private:
+
+    Util::String name;
     
-    struct Skin
-    {
-        Util::String name;
-        
-        // links the bone node name with the inverse transform
-        std::vector<OEMaths::mat4f> invBindMatrices;
-        
-        // a list of joints - poiints to the node in the skeleon hierachy which will be transformed
-        std::vector<NodeInstance::NodeInfo*> jointNodes;
-        
-        // a pointer to the the root of the skeleton. The spec states that
-        // the mdoel doesn't need to specify this - thus will be null if this is the case.
-        NodeInstance::NodeInfo* skeletonRoot = nullptr;
-    };
+    // links the bone node name with the inverse transform
+    std::vector<OEMaths::mat4f> invBindMatrices;
     
-    std::vector<Skin> skins;
+    // a list of joints - poiints to the node in the skeleon hierachy which will be transformed
+    std::vector<NodeInstance::NodeInfo*> jointNodes;
+    
+    // a pointer to the the root of the skeleton. The spec states that
+    // the mdoel doesn't need to specify this - thus will be null if this is the case.
+    NodeInstance::NodeInfo* skeletonRoot = nullptr;
+    
 };
 
 } // namespace OmegaEngine

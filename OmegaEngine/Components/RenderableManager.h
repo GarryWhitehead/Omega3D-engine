@@ -48,32 +48,26 @@ class RenderableInstance
 {
 public:
     
-    RenderableInstance(Engine& engine);
+    RenderableInstance();
     
     RenderableInstance& addMesh(MeshInstance* instance);
     RenderableInstance& addMaterial(MaterialInstance* instance);
-    RenderableInstance& addMeshes(std::vector<MeshInstance*> instances);
-    RenderableInstance& addMaterials(std::vector<MaterialInstance*> instances);
     
     // these are stored in the transform manager
     RenderableInstance& addSkin(SkinInstance* instance);
-    RenderableInstance& addNodeHierachy(NodeInstance* instance);
-    RenderableInstance& addSkins(std::vector<SkinInstance*> instances);
-    RenderableInstance& addNodes(std::vector<NodeInstance*> instances);
+    RenderableInstance& addNode(NodeInstance* instance);
     
-    void create(Object* obj);
+    void create(Engine& engine, Object* obj);
     
     friend class RenderableManager;
     
 private:
-    
-    Engine& engine;
-    
+        
     // this is just a transient store, this class does not own these
-    std::vector<MeshInstance*> mesh;
-    std::vector<MaterialInstance*> mat;
-    std::vector<SkinInstance> skin;
-    std::vector<NodeInstance> node;
+    MeshInstance* mesh = nullptr;
+    MaterialInstance* mat = nullptr;
+    SkinInstance* skin = nullptr;
+    NodeInstance* node = nullptr;
 };
 
 /**

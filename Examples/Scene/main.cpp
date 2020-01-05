@@ -13,10 +13,13 @@
 
 #include "Types/NativeWindowWrapper.h"
 #include "Types/Object.h"
+#include "Types/Skybox.h"
+#include "Types/MappedTexture.h"
 
 #include "VulkanAPI/SwapChain.h"
 
 #include "Models/Formats/GltfModel.h"
+#include "Models/NodeInstance.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
@@ -62,10 +65,17 @@ int main(int argc, char* argv[])
     
     // we can adjust the model transformation.
     model.setWorldTrans({4.0f, 3.0f, 5.0}).setWorldScale({15.0f}).setWorldRotation({0.5, 0.0f, 0.5f, 0.5f}).prepare();
-    Object* modelObj = objManager.createObject();
-    RenderableInstance instance(engine);
-    instance.addMesh(model.getMesh()).addNodeHierachy(model.getNode()).create(modelObj);
     
+    // add each node of the model - this will 'always' be one or more
+    for (auto& node : model.getNodes())
+    {
+        Object* modelObj = objManager.createObject();
+        RenderableInstance instance;
+        MeshInstance* mesh = node.getMesh();
+        instance.addMesh(mesh).addNode(node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
+    }
+    
+    /*
     // create a stock primitive and apply our own material from file
 	// load a material json - this is slow and binary format should be preferred
 	Material mat;
@@ -76,27 +86,31 @@ int main(int argc, char* argv[])
 	model.transform(-0.2f, 0.0f, 0.0f);
 	model.type(Model::Stock::Plane);
 	model.material(mat);
-	scene->addObject(prim);
+	scene->addObject(prim);*/
 
 	// create the renderer - using a deffered renderer (only one supported at the moment)
 	Renderer* renderer = engine.createRenderer(swapchain, scene);
 	
-	scene->addSkybox("skybox/cubemap.ktx", 0.5f);
+    // load the skybox from disk
+    auto envMap = std::make_unique<MappedTexture>();
+    envMap->load("skybox/cubemap.ktx");
+    
+    SkyboxInstance skybox;
+    skybox.setCubeMap(envMap.get()).setBlurFactor(0.5f);
+	scene->addSkybox(skybox);
 
 	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
     scene->addCamera({});
 
-	// add different lights
-    SpotLight slight;
-    slight.setRadius(20.0f).setPosition({0.0f, 3.0f, 1.0f});
+	// add a selection of different style lights to the scene
+    LightInstance sLight, pLight, dLight;
+    sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(engine);
     
-	scene->addSpotLightToWorld({  }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 1000.0f, 10.0f, 0.5f,
-	                           0.5f);
-	scene->addDirectionalLightToWorld({ 0.0f, 0.0f, 0.0f }, { 8.0f, 8.0f, 0.0f }, { 0.9f, 0.8f, 0.2f }, 100.0f,
-	                                  10000.0f);
-	scene->addPointLightToWorld({ 3.0f, 1.0f, 0.0f }, { 0.0f, 0.0f, 0.0f }, { 1.0f }, 100.0f, 4000.0f, 2.0f);
+    pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(engine);
+    
+    dLight.setType(LightType::Directional).setPosition({0.0f, 6.0f, 0.0f}).setIntensity(2000.0f).create(engine);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running
-	engine.startLoop();
+    app.run(*scene, *renderer);
 }

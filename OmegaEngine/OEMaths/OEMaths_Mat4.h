@@ -83,7 +83,7 @@ public:
         }
     }
     
-    inline constexpr MatN<T, 3, 3> getUpperLeft()
+    inline constexpr MatN<T, 3, 3> getRotation()
     {
         MatN<T, 3 ,3> result;
         for (size_t i = 0; i < 3; ++i)
@@ -91,6 +91,11 @@ public:
             result.data[i] = data[i].xyz;
         }
         return result;
+    }
+    
+    inline constexpr VecN<T, 3> getTrans()
+    {
+        return data[3].xyz;
     }
     
 	// ========= static matrix transforms ==================

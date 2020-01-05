@@ -7,6 +7,13 @@
 #include <cstdint>
 #include <tuple>
 
+// forward declerations
+namespace OmegaEngine
+{
+class Scene;
+class Renderer;
+}
+
 class Application
 {
     
@@ -30,7 +37,7 @@ public:
 	bool init(const char* title, uint32_t width, uint32_t height,
 	                       OmegaEngine::NativeWindowWrapper& output);
 
-    void run();
+    void run(OmegaEngine::Scene& scene, OmegaEngine::Renderer& renderer);
 
 
 private:

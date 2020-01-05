@@ -10,8 +10,25 @@
 namespace OmegaEngine
 {
 
-Skybox::Skybox(VulkanAPI::VkDriver& driver) :
-    driver(driver)
+SkyboxInstance& SkyboxInstance::setCubeMap(MappedTexture* cm)
+{
+    assert(cm);
+    cubeMap = cm;
+    return *this;
+}
+
+SkyboxInstance& SkyboxInstance::setBlurFactor(const float bf)
+{
+    blur = std::clamp(bf, 0.0f, 1.0f);
+    return *this;
+}
+
+// ==============================================================================
+
+Skybox::Skybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur) :
+    driver(driver),
+    cubeMap(cm),
+    blurFactor(blur)
 {
 }
 

@@ -10,7 +10,7 @@
 namespace OmegaEngine
 {
 
-NodeInstance::NodeInstance() noexcept
+NodeInstance::NodeInstance()
 {
 }
 
@@ -55,8 +55,7 @@ bool NodeInstance::prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMat
 
 		if (node->skin)
 		{
-			// skins will be prepared later
-			skins.emplace_back(node->skin);
+            skin->prepare(*node->skin, *this);
 		}
 
 		// propogate transforms through node list
@@ -114,6 +113,22 @@ bool NodeInstance::prepare(cgltf_node* node, GltfModel& model)
 	}
     
 	return true;
+}
+
+MeshInstance* NodeInstance::getMesh()
+{
+    assert(mesh);
+    return mesh;
+}
+
+SkinInstance* NodeInstance::getSkin()
+{
+    if (!skin)
+    {
+        LOGGER_WARN("This model contains no skinning data though you have tried to retrieve a skin?");
+        return nullptr;
+    }
+    return skin;
 }
 
 }    // namespace OmegaEngine

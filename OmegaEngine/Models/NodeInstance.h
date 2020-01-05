@@ -15,6 +15,7 @@ namespace OmegaEngine
 // forward decleartions
 class GltfModel;
 class MeshInstance;
+class SkinInstance;
 
 class NodeInstance
 {
@@ -80,7 +81,7 @@ public:
 		std::vector<NodeInfo*> children;
 	};
 
-	NodeInstance() noexcept;
+	NodeInstance();
 	~NodeInstance();
 
 	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
@@ -90,6 +91,9 @@ public:
 	bool prepare(cgltf_node* node, GltfModel& model);
     
     NodeInstance::NodeInfo* getNode(Util::String id);
+    
+    MeshInstance* getMesh();
+    SkinInstance* getSkin();
     
 	friend class Scene;
 	friend class TransformManager;
@@ -107,9 +111,8 @@ private:
 	// the node hierachy
 	NodeInfo* rootNode = nullptr;
     
-    // all cgltf from nodes will be stored here for processing
-    // after dealing with the nodes
-    std::vector<cgltf_skin*> skins;
+    // It is assumed that skins won't be used between different nodes in multi-node models
+    SkinInstance* skin = nullptr;
     
 };
 }    // namespace OmegaEngine

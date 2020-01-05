@@ -26,92 +26,55 @@ namespace OmegaEngine
 // =================================================================================
 // User interface renderable building functions
 
-RenderableInstance::RenderableInstance(Engine& engine) :
-    engine(engine)
-{
-}
-
 RenderableInstance& RenderableInstance::addMesh(MeshInstance* instance)
 {
     assert(instance);
-    mesh.emplace_back(instance);
-    return *this;
-}
-
-RenderableInstance& RenderableInstance::addMeshes(std::vector<MeshInstance*> instances)
-{
-    assert(!instances.empty());
-    std::copy(instances.begin(), instances.end(), mesh.begin());
+    mesh = instance;
     return *this;
 }
 
 RenderableInstance& RenderableInstance::addMaterial(MaterialInstance* instance)
 {
     assert(instance);
-    mat.emplace_back(instance);
-    return *this;
-}
-
-RenderableInstance& RenderableInstance::addMaterials(std::vector<MaterialInstance*> instances)
-{
-    assert(!instances.empty());
-    std::copy(instances.begin(), instances.end(), mat.begin());
+    mat = instance;
     return *this;
 }
 
 RenderableInstance& RenderableInstance::addSkin(SkinInstance* instance)
 {
     assert(instance);
-    skin.emplace_back(instance);
+    skin = instance;
     return *this;
 }
 
-RenderableInstance& RenderableInstance::addSkins(std::vector<SkinInstance*> instances)
-{
-    assert(!instances.empty());
-    std::copy(instances.begin(), instances.end(), skin.begin());
-    return *this;
-}
-
-RenderableInstance& RenderableInstance::addNodeHierachy(NodeInstance* instance)
+RenderableInstance& RenderableInstance::addNode(NodeInstance* instance)
 {
     assert(instance);
-    node.emplace_back(instance);
+    node = instance;
     return *this;
 }
 
-RenderableInstance& RenderableInstance::addNodes(std::vector<NodeInstance*> instances)
+void RenderableInstance::create(Engine& engine, Object* obj)
 {
-    assert(!instances.empty());
-    std::copy(instances.begin(), instances.end(), node.begin());
-    return *this;
-}
-
-void RenderableInstance::create(Object* obj)
-{
-    assert(obj);
-    
-    // we should have the same number of meshes as we do materials - though some materials may be null, this does not matter
-    assert(mesh.size() == mat.size());
+    if (!obj)
+    {
+        LOGGER_WARN("Trying to create a renderable instance though the object is nullptr.");
+        return;
+    }
     
     // sanity checks - must have mesh and transform data at the minimum
-    if (mesh.empty() || node.empty())
+    if (!mesh || !node)
     {
-        throw std::runtime_error("You have called create but this instance has no mesh or transform data associated with it.");
+        LOGGER_WARN("You have called create but this instance has no mesh or transform data associated with it.");
+        return;
     }
     
     RenderableManager& rManager = engine.getRendManager();
     TransformManager& tManager = engine.getTransManager();
     
-    for (size_t i = 0; i < mesh.size(); ++i)
-    {
-        rManager.addRenderable(mesh[i], mat[i], *obj);
-    }
-    
-    for (size_t i = 0; i < node.size(); ++i)
-    {
-        tManager.addNodeHierachy(node[i], *obj, skin[i]);
-    }
+    // we don't have to check whether the material or skin in init, the managers will do that
+    rManager.addRenderable(mesh, mat, *obj);
+    tManager.addNodeHierachy(*node, *obj, skin);
 }
 
 // =================================================================================
@@ -172,21 +135,6 @@ void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const siz
 	// now adjust the material index - this is used primarily by the sorting key
 	if (offset >= 0)    // a value of -1 indicate no materials for this renderable
 	{
-		// this is for debugging - we only allow one material per mesh so check this
-		uint32_t mat_idx = 0;
-		for (size_t i = 0; i < mesh->primitives.size(); ++i)
-		{
-			uint32_t newIdx = mesh->primitives[i].materialIdx;
-			assert(idx != UINT32_MAX);
-			if (i > 0 && newIdx != mat_idx)
-			{
-				// error here? just warn for now
-				LOGGER_INFO("Warning: This mesh has more than one material for its primitives. Only one "
-				            "material per "
-				            "mesh supported at present.");
-			}
-			mat_idx = newIdx;
-		}
 		input.materialId = idx + offset;
 	}
 }

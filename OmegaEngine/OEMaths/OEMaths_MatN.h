@@ -49,7 +49,7 @@ class MatMathOperators
         {
             for (size_t i = 0; i < cols; ++i)
             {
-                result[j] += mat[i] * vec;
+                result[j] += mat[i][j] * vec[i];
             }
         }
 		return result;

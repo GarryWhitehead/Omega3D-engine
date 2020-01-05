@@ -8,7 +8,7 @@
 
 #include "Models/Formats/GltfModel.h"
 
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 
 #include "assimp/scene.h"
 
@@ -77,9 +77,6 @@ public:
 		size_t indexBase = 0;
 		size_t indexCount = 0;
 
-		// Note: this is only used for error checking.
-		uint32_t materialIdx = UINT32_MAX;
-
 		// ============ vulakn backend ==========================
 		// set by calling **update**
 		size_t indexPrimitiveOffset;    // this equates to buffer_offset + sub-offset
@@ -97,11 +94,16 @@ public:
         return dimensions;
     }
     
+    MaterialInstance* getMaterial();
+    
 	friend class RenderableManager;
 	friend class GBufferFillPass;
     friend class Scene;
 
 private:
+    
+    /// the material associated with this mesh (if it has one)
+    MaterialInstance* material = nullptr;
     
 	/// defines the topology to use in the program state
 	vk::PrimitiveTopology topology;
@@ -120,6 +122,9 @@ private:
     
     /// variation of the mesh shader
     Util::BitSetEnum<Variant> variantBits;
+    
+    // for debugging purposes - do not use
+    cgltf_material* cached_mat_ptr = nullptr;
 };
 
 }    // namespace OmegaEngine

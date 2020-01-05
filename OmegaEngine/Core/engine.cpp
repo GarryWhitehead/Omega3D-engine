@@ -21,8 +21,6 @@ namespace OmegaEngine
 
 Engine::Engine()
 {
-	// load config file if there is one, otherwise use default settings
-	loadConfigFile();
 }
 
 Engine::~Engine()

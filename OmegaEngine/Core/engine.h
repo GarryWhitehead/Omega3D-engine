@@ -71,10 +71,6 @@ public:
 	/// returns the current vulkan context
 	VulkanAPI::VkDriver& getVkDriver();
 
-	void loadConfigFile();
-
-	void startLoop();
-
 	// =========== manager getters ===================
 	AnimationManager& getAnimManager();
 	CameraManager& getCameraManager();

@@ -32,6 +32,14 @@ public:
 	*/
 	bool load(Util::String filename);
     
+    /**
+     * @brief A simple check to determine if the texture is a cube map.
+     */
+    bool isCubeMap() const
+    {
+        return faceCount == 6;
+    }
+    
     friend class RenderableManager;
     
 private:

@@ -49,7 +49,7 @@ public:
 	* @brief Adds the node hierachy - reflects the layout obtained from 
 	* wherever this originate from to make sure bone transforms are correct
 	*/
-	bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin, size_t skinCount);
+	bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin);
 
 	/**
 	* @brief Creates a single node and adds the transform data to the root

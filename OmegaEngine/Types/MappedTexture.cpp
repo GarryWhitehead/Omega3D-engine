@@ -62,12 +62,12 @@ bool MappedTexture::load(Util::String filePath)
 		}
 
 		KtxReader::ImageOutput* data = parser.getImageData();
-		this->width = data->width;
-		this->height = data->height;
-		this->mipLevels = data->mipLevels;
-		this->arrayCount = data->arrayCount;
-		this->faceCount = data->faceCount;
-		this->totalSize = data->totalSize;
+		width = data->width;
+		height = data->height;
+		mipLevels = data->mipLevels;
+		arrayCount = data->arrayCount;
+		faceCount = data->faceCount;
+		totalSize = data->totalSize;
 		assert(totalSize);
 		assert(data->data);
 
@@ -83,12 +83,12 @@ bool MappedTexture::load(Util::String filePath)
 			return false;
 		}
 
-		this->width = loader.getWidth();
-		this->height = loader.getHeight();
+		width = loader.getWidth();
+		height = loader.getHeight();
 
 		// calculate total size
 		int comp = loader.getComponentCount();
-		this->totalSize = width * height * comp;
+		totalSize = width * height * comp;
 
 		// create the buffer and copy the data across
 		buffer = new uint8_t[totalSize];

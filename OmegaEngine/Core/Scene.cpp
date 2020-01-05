@@ -1,6 +1,7 @@
 #include "Scene.h"
 
 #include "Types/Object.h"
+#include "Types/Skybox.h"
 
 #include "Core/Camera.h"
 #include "Core/Frustum.h"
@@ -108,20 +109,68 @@ void Scene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights)
 	splitWork.run();
 }
 
+Scene::VisibleCandidate Scene::buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat)
+{
+    auto& transManager = engine.getTransManager();
+    auto& rendManager = engine.getRendManager();
+    
+    const ObjHandle tHandle = transManager.getObjIndex(*obj);
+    const ObjHandle rHandle = rendManager.getObjIndex(*obj);
+    
+    VisibleCandidate candidate;
+    candidate.renderable = &rendManager.getMesh(rHandle);
+    candidate.transform = &transManager.getTransform(tHandle);
+
+    // calculate the world-orientated AABB
+    OEMaths::mat4f localMat = candidate.transform->modelTransform;
+    candidate.worldTransform = worldMat * localMat;
+    
+    candidate.worldAABB = AABBox::calculateRigidTransform(candidate.renderable->instance->getAABBox(), candidate.worldTransform);
+    return candidate;
+}
+
 void Scene::update()
 {
-	auto& transManager = engine.getTransManager();
-	auto& rendManager = engine.getRendManager();
-	auto& lightManager = engine.getLightManager();
-
-	auto& objects = world.getObjManager().getObjectsList();
-
+     auto& objects = world.getObjManager().getObjectsList();
+    
+    // we create a temp container as we will be doing the visibility checks async
 	// reserve more space than we need
 	std::vector<VisibleCandidate> candRenderableObjs(objects.size());
-	std::vector<LightBase*> candLightObjs(objects.size());
-
-	// create a temp list of all renderable and light objects that are active
-	// we create a temp container as we will be doing the visibility checks async
+    
+    // iterate through the model graph add as a possible candidate if active
+    for (ModelGraph::Node* node : modelGraph.nodes)
+    {
+        // if the parent is inactive, then all its children are too
+        if (!node->parent->isActive())
+        {
+            continue;
+        }
+        
+        OEMaths::mat4f worldMat = node->world.worldMat;
+        
+        // the parent
+        VisibleCandidate candidate = buildRendCandidate(node->parent, worldMat);
+        candRenderableObjs.emplace_back(candidate);
+        
+        // and the children if any
+        for (Object* child : node->children)
+        {
+            if (!child->isActive())
+            {
+                continue;
+            }
+            
+            VisibleCandidate childCand = buildRendCandidate(child, worldMat);
+            candRenderableObjs.emplace_back(childCand);
+        }
+    }
+    
+	// now for the lights. At the moment we iterate through the list of objects and find any that have a
+    // light component. If they are active then these are added as a potential candiate lighting source
+    auto& lightManager = engine.getLightManager();
+    
+    std::vector<LightBase*> candLightObjs(objects.size());
+    
 	for (Object& obj : objects)
 	{
 		if (!obj.isActive())
@@ -129,25 +178,11 @@ void Scene::update()
 			continue;
 		}
 
-		ObjHandle rHandle = rendManager.getObjIndex(obj);
-		ObjHandle tHandle = transManager.getObjIndex(obj);
-
-		// it should be impossible for a object to exsist that doesn't have both a transform and renderable component, but better make sure!
-		if (rHandle && tHandle)
-		{
-			VisibleCandidate candidate;
-			candidate.renderable = &rendManager.getMesh(rHandle);
-			candidate.transform = &transManager.getTransform(tHandle);
-			candRenderableObjs.emplace_back(candidate);
-		}
-		else
-		{
-			ObjHandle lHandle = lightManager.getObjIndex(obj);
-			if (lHandle)
-			{
-				candLightObjs.emplace_back(lightManager.getLight(lHandle));
-			}
-		}
+        ObjHandle lHandle = lightManager.getObjIndex(obj);
+        if (lHandle)
+        {
+            candLightObjs.emplace_back(lightManager.getLight(lHandle));
+        }
 	}
 
 	// prepare the camera frustum
@@ -282,7 +317,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 			size_t offset = skinDynAlign * skinnedCount++;
 			SkinnedUbo* currSkinnedPtr =
 			    (SkinnedUbo*)((uint64_t)skinAlignAlloc.getData() + (skinDynAlign * skinnedCount++));
-			currSkinnedPtr->modelMatrix = transInfo->modelTransform;
+			currSkinnedPtr->modelMatrix = cand.worldTransform;
 
 			// rather than throw an error, clamp the joint if it exceeds the max
 			uint32_t jointCount = std::min(TransformManager::MAX_BONE_COUNT, static_cast<uint32_t>(transInfo->jointMatrices.size()));
@@ -412,7 +447,31 @@ void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
 
 Camera* Scene::getCurrentCamera()
 {
-	return &cameras[currCamera];
+	if (cameras.empty())
+    {
+        LOGGER_WARN("Trying to retrieve a camera when none have been registered with the scene");
+        return nullptr;
+    }
+    assert(currCamera < cameras.size());
+    
+    return &cameras[currCamera];
+}
+
+bool Scene::addSkybox(SkyboxInstance& instance)
+{
+    if (!instance.cubeMap)
+    {
+        LOGGER_WARN("The cubemap enviromental texture is nullptr!");
+        return false;
+    }
+    if (!instance.cubeMap->isCubeMap())
+    {
+        LOGGER_WARN("The cubemap texture is not a cubemap!");
+        return false;
+    }
+    
+    skybox = std::make_unique<Skybox>(driver, instance.cubeMap, instance.blur);
+    assert(skybox);
 }
 
 }    // namespace OmegaEngine

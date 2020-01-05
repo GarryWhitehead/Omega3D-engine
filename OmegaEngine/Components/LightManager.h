@@ -6,6 +6,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <memory>
 
 namespace OmegaEngine
 {
@@ -13,27 +14,57 @@ namespace OmegaEngine
 // forward declerations
 class World;
 class Shadow;
+class Engine;
+class LightManager;
 
 enum class LightType
 {
 	Spot,
 	Point,
-	Directional
+	Directional,
+    None
+};
+
+class LightInstance
+{
+public:
+    
+    LightInstance& setType(LightType lt);
+    LightInstance& setPosition(const OEMaths::vec3f p);
+    LightInstance& setColour(const OEMaths::colour3 c);
+    LightInstance& setFov(float f);
+    LightInstance& setIntensity(float i);
+    LightInstance& setFallout(float fo);
+    LightInstance& setRadius(float r);
+    
+    void create(Engine& engine);
+    
+    friend class LightManager;
+    
+private:
+    
+    LightType type = LightType::None;
+    OEMaths::vec3f pos;
+    OEMaths::colour3 col = OEMaths::colour3{1.0f};
+    float fov = 90.0f;
+    float intensity = 1000.0f;
+    float fallout = 10.0f;
+    float radius = 20.0f;
+    float scale = 1.0f;
+    float offset = 0.0f;
 };
 
 class LightBase
 {
 
 public:
-
+        
 	LightBase(LightType type)
 	    : type(type)
 	{
 	}
 
 	virtual ~LightBase() = default;
-
-	LightBase() = delete;
     
     // the public setters
     LightBase& setPosition(const OEMaths::vec3f pos)
@@ -51,6 +82,7 @@ public:
     friend class Shadow;
 	friend class Scene;
 	friend class LightManager;
+    friend class LightInstance;
 
 protected:
 
@@ -68,6 +100,9 @@ protected:
 	/// the field of view of this light
 	float fov = 90.0f;
 
+    /// the light intensity in lumens
+    float intensity;
+    
 	/// Whether this is directional, spot or point light
 	LightType type;
 
@@ -78,85 +113,59 @@ protected:
 struct DirectionalLight : public LightBase
 {
 public:
-
+    
+    DirectionalLight() :
+        LightBase(LightType::Directional)
+    {}
+    
 	friend class Scene;
 	friend class LightManager;
+    friend class LightInstance;
 
 private:
 
-	/// the light intensity in lumens
-	float intensity = 10000.0f;
 };
 
 struct PointLight : public LightBase
 {
 public:
-
+    
+    PointLight() :
+        LightBase(LightType::Point)
+    {}
+    
 	friend class Scene;
 	friend class LightManager;
+    friend class LightInstance;
 
 private:
 
-	float fallOut = 10.0f;
-	
-	/// the radius of the light in pixels
-	float radius = 25.0f;
-	
-	/// the light intensity in lumens
-	float intensity = 1000.0f;
+	float fallOut;
+	float radius;
 };
 
 struct SpotLight : public LightBase
 {
 public:
-
-    // the setters for public use
-    SpotLight& setFallout(float fo)
-    {
-        fallout = fo;
-        return *this;
-    }
     
-    SpotLight& setRadius(float rad)
-    {
-        radius = rad;
-        return *this;
-    }
-    
-    SpotLight& setScale(float s)
-    {
-        scale = s;
-        return *this;
-    }
-    
-    SpotLight& setOffset(float os)
-    {
-        offset = os;
-        return *this;
-    }
-    
-    SpotLight& setIntenisty(float inten)
-    {
-        intensity = inten;
-        return *this;
-    }
+    SpotLight() :
+        LightBase(LightType::Spot)
+    {}
     
 	friend class Scene;
 	friend class LightManager;
+    friend class LightInstance;
     
 private:
 
-	float fallout = 10.0f;
-	float radius = 25.0f;
-	float scale = 1.0f;
-	float offset = 0.0f;
+	float fallout;
+	float radius;
+	float scale;
+	float offset;
 
     // this needs looking at - not set at present
     float innerCone = 0.0f;
     float outerCone = 0.0f;
-    
-	/// the light intensity in lumens
-	float intensity = 1000.0f;
 };
 
 class LightManager : public ComponentManager
@@ -174,7 +183,7 @@ public:
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
 
-	void addLight(LightBase* light);
+    void addLight(std::unique_ptr<LightBase>& light);
 
 	size_t getLightCount() const;
 	LightBase* getLight(const size_t idx);
@@ -183,7 +192,7 @@ public:
     
 private:
 
-	std::vector<LightBase*> lights;
+	std::vector<std::unique_ptr<LightBase>> lights;
 
 };
 

@@ -64,6 +64,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/Omega_Common.h
     Core/Camera.cpp Core/Camera.h
 	Core/Frustum.cpp Core/Frustum.h
+    Core/ModelGraph.cpp Core/ModelGraph.h
 
 	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
 	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h

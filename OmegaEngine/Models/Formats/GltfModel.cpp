@@ -25,31 +25,6 @@ NodeInstance::NodeInfo* GltfModel::getNode(Util::String id)
     }
     return foundNode;
 }
-    
-size_t GltfModel::addMaterial(MaterialInstance& mat)
-{
-	// check for duplicate materials first. This is possible if there are lots of primitives
-	Util::String MatName = mat.getName();
-
-	size_t index = 0;
-	for (MaterialInstance& modelMat : materials)
-	{
-		if (MatName.compare(modelMat.getName()))
-		{
-			return index;
-		}
-		++index;
-	}
-
-	materials.emplace_back(mat);
-	return index + 1;
-}
-
-size_t GltfModel::addSkin(SkinInstance& skin)
-{
-	skins.emplace_back(skin);
-	return skins.size() - 1;
-}
 
 void GltfModel::getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride)
 {
@@ -145,16 +120,6 @@ bool GltfModel::prepare()
 			{
 				return false;
 			}
-            
-            // now prepare the skins. This requires finding the nodes which are joints, and
-            // adding the index values to the nodes. We expect one skin per mesh (of which there
-            // can only be one per node!)
-            for (auto& skin : newNode.skins)
-            {
-                SkinInstance newSkin;
-                newSkin.prepare(*skin, newNode);
-                skins.emplace_back(newSkin);
-            }
 		}
 	}
     
@@ -187,26 +152,9 @@ GltfModel& GltfModel::setWorldRotation(const OEMaths::quatf rot)
     return *this;
 }
 
-MeshInstance* GltfModel::getMesh()
+std::vector<NodeInstance> GltfModel::getNodes() 
 {
-    
+    return nodes;
 }
-
-SkinInstance* GltfModel::getSkin()
-{
-    
-}
-
-NodeInstance* GltfModel::getNode()
-{
-    
-}
-   
-MaterialInstance* GltfModel::getMaterial()
-{
-    
-}
-
-
 
 }    // namespace OmegaEngine
