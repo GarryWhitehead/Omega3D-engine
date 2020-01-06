@@ -18,10 +18,7 @@ namespace Platform
 class SurfaceWrapper
 {
 public:
-#ifdef VK_USE_PLATFORM_WIN32_KHR
-	using HWND = void*;
-#endif
-    
+
     SurfaceWrapper() = default;
     
     SurfaceWrapper(NativeWindowWrapper& window, vk::Instance& instance);

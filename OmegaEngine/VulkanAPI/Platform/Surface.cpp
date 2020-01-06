@@ -8,10 +8,10 @@ namespace Platform
 {
 
 #ifdef VK_USE_PLATFORM_WIN32_KHR
-SurfaceWrapper::SurfaceWrapper(NativeWindowWrapper& win, Instance& instance)
+SurfaceWrapper::SurfaceWrapper(NativeWindowWrapper& win, vk::Instance& instance)
 {
-	HWND window = static_cast<HWND>(win.nativeWin);
-	vk::Win32SurfaceCreateInfoKHR createInfo{ 0, window, GetModuleHandle(nullptr) };
+	HWND windowPtr = static_cast<HWND>(win.nativeWin);
+	vk::Win32SurfaceCreateInfoKHR createInfo{ {}, static_cast<HINSTANCE>(0), windowPtr };
 	
 	VK_CHECK_RESULT(instance.createWin32SurfaceKHR(&createInfo, nullptr, &surface));
 }

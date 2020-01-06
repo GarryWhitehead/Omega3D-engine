@@ -76,12 +76,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\irrXML\IrrXML.vcxproj">
-      <Project>{51642014-8BB5-34C9-BEE6-F3FF10B90157}</Project>
-      <Name>IrrXML</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\lua\LUA.vcxproj">
       <Project>{D572448C-29AD-3691-9FEC-766A4B93C824}</Project>
       <Name>LUA</Name>
@@ -157,18 +151,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\Scene.vcxproj">
       <Project>{C1642772-8361-30D9-AFB7-619E02B25838}</Project>
       <Name>Scene</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\code\assimp.vcxproj">
-      <Project>{B19C1BCC-A21B-3697-9810-5D1175364A4B}</Project>
-      <Name>assimp</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\tools\assimp_cmd\assimp_cmd.vcxproj">
-      <Project>{FE7ACD75-BAA2-3D56-9DA1-774351A6E6C8}</Project>
-      <Name>assimp_cmd</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
@@ -487,24 +469,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\tools\spirv-val.vcxproj">
       <Project>{298A0BB0-34BA-31A3-AD8A-2B98BCC4152D}</Project>
       <Name>spirv-val</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\test\unit.vcxproj">
-      <Project>{F8DBB1A2-D031-325D-9F37-A2127D269935}</Project>
-      <Name>unit</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlib.vcxproj">
-      <Project>{E02A8433-8BA9-3418-937F-82F0972DDDAB}</Project>
-      <Name>zlib</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\assimp\contrib\zlib\zlibstatic.vcxproj">
-      <Project>{064A2C01-76DE-330F-A45E-5ED57279EADC}</Project>
-      <Name>zlibstatic</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>

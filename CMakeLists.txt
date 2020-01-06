@@ -4,7 +4,10 @@ CMAKE_POLICY(VERSION 3.5)
 PROJECT(OMEGA_ENGINE LANGUAGES CXX C)
 SET(CMAKE_CXX_STANDARD 17)
  
+################################################################################################################
 # compiler specific flags
+################################################################################################################
+
 IF(CMAKE_COMPILER_IS_GNUCXX OR (${CMAKE_CXX_COMPILER_ID} MATCHES "Clang"))
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wshadow -Wall -Wextra -Wno-missing-field-initializers")
 ELSEIF(MSVC)
@@ -16,6 +19,10 @@ IF(WIN32)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MATH_DEFINES=1")
 ENDIF()
 
+################################################################################################################
+# Options
+################################################################################################################
+
 OPTION(OMEGA_BUILD_SCENE_EXAMPLE "Build scene example executable" ON)
 OPTION(OMEGA_BUILD_SIMPLE_EXAMPLE "Build simple example executable" OFF)
 OPTION(OMEGA_DEBUG_VERBOSE "Enable verbose debug output" OFF)
@@ -26,6 +33,12 @@ OPTION(OMEGA_BUILD_TESTS "Run all tests" OFF)
 OPTION(OMEGA_THREAD_SANITIZE "Run thread sanitizer" OFF)
 OPTION(OMEGA_ADDRESS_SANITIZE "Run address sanitizer" OFF)
 OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
+
+################################################################################################################
+# paths
+################################################################################################################
+
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 
 # paths to shader c and spirv-headers
 SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
@@ -43,6 +56,10 @@ SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the buil
 # the cmake path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
+##############################################################################################################
+# Find vulkan libs
+##############################################################################################################
+
 # find vulkan using cmake module if the correct cmake version
 IF(NOT CMAKE_VERSION VERSION_LESS 3.7.0)
 	message(STATUS "Using cmake version which supports FindVulkan. Using this module to find Vulkan")
@@ -56,7 +73,7 @@ ELSE()
 			MESSAGE("Found Vulkan library.")
 		ENDIF()
 	ELSE()
-		FIND_LIBRARY(VULKAN_LIB NAMES vulkan HINTS "$ENV{VULKAN_SDK}/lib" "${CMAKE_SOURCE_DIR}/libs/vulkan" REQUIRED)
+		FIND_LIBRARY(VULKAN_LIB NAMES vulkan HINTS "$ENV{VULKAN_SDK}/lib" "${CMAKE_CURRENT_SOURCE_DIR}/libs/vulkan" REQUIRED)
 		IF(VULKAN_LIB)
 			SET(FOUND_VULKAN ON)
 			MESSAGE("Found Vulkan library.")
@@ -70,20 +87,37 @@ ELSE()
 	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
 
-# libraries required for Omega Engine
+###############################################################################################################
+# External libraries
+###############################################################################################################
+
 ADD_SUBDIRECTORY(external/glfw)
-# needed for shaderc 
-ADD_SUBDIRECTORY(external/SPIRV-Tools)
+ADD_SUBDIRECTORY(external/SPIRV-Tools)	
 ADD_SUBDIRECTORY(external/shaderc)
-ADD_SUBDIRECTORY(external/assimp)
 ADD_SUBDIRECTORY(external/lua)
 
+# Generating a static lib for rapid json 
 ADD_LIBRARY(RAPID_JSON STATIC external/rapidjson/include/rapidjson/rapidjson.h)
 TARGET_INCLUDE_DIRECTORIES(RAPID_JSON 
 	PUBLIC 
 	${EXTERNAL_DIR}/rapidjson 
 )
 SET_TARGET_PROPERTIES(RAPID_JSON PROPERTIES LINKER_LANGUAGE CXX)
+
+# For windows, the library is included within the repository to make life easier.
+# For other platforms, should be installed locally so the find module can find the libs.
+IF (WIN32)
+	FIND_LIBRARY(ASSIMP_LIBRARY NAMES assimp-vc142-mt PATHS ${EXTERNAL_DIR}/assimp/Libs)
+ELSE()
+	FIND_PACKAGE(FindAssimp)
+	IF(NOT ASSIMP_FOUND)
+		MESSAGE(FATAL_ERROR "Unable to find assimp library.")
+	ENDIF()
+ENDIF()
+
+###############################################################################################################
+# Sanitizers
+###############################################################################################################
 
 # linking flags - sanitizers
 SET(LINK_FLAGS)
@@ -101,6 +135,10 @@ IF(MEMORY_SANITIZE)
 	SET(OMEGA_CXX_FLAGS "${OMEGA_CXX_FLAGS} -fsanitize=memory")
 	SET(LINK_FLAGS ${LINK_FLAGS} -fsanitize=memory)
 ENDIF()
+
+################################################################################################################
+# Omega Engine specific
+################################################################################################################
 
 # build the Omega Engine library
 ADD_SUBDIRECTORY(OmegaEngine)

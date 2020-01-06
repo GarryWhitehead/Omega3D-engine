@@ -46,7 +46,7 @@ public:
 		* @brief Gets all possible vulkan extensions for creating a vulkan surface object.
 		* @return A tuple containing all surface extensions and the instance count. Null if an error occured.
 		*/
-	std::tuple<const char**, uint32_t> getInstanceExt();
+	std::pair<const char**, uint32_t> getInstanceExt();
 
 	/**
 		* @brief Returns a native window pointer

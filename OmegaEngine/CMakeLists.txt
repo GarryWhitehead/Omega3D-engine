@@ -45,12 +45,11 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/vulkan
 	${EXTERNAL_DIR}/tiny-gltf
-	${EXTERNAL_DIR}/assimp/include
 	${EXTERNAL_DIR}/rapidjson/include
 	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
 	${EXTERNAL_DIR}/stb
     # The config.h file ends up in the build folder - will probably want to install assimp using another method as this is dependent on the build folder name and location
-    ${BUILD_DIR}/external/assimp/include
+    #${BUILD_DIR}/external/assimp/include
 )
 
 # =============== source files =============================
@@ -178,6 +177,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
 	${Vulkan_LIBRARY} 
 	${RAPID_JSON} 
+	${ASSIMP_LIBRARY}
 	glfw 
 	spirv-cross-core
 	shaderc

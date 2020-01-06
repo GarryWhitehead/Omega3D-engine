@@ -1,0 +1,238 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "RAPID_JSON::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "glfw::@ca12bac854c2ac6b2230"
+		},
+		{
+			"id" : "SPIRV-Tools::@1ff997bb6f27c61d214b"
+		},
+		{
+			"id" : "spirv-tools-shared-pkg-config::@5639889913c69d5ff99e"
+		},
+		{
+			"id" : "spirv-tools-pkg-config::@5639889913c69d5ff99e"
+		},
+		{
+			"id" : "spirv-reduce::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "SPIRV-Tools-opt::@b20417be42203b59e848"
+		},
+		{
+			"id" : "spirv-link::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "spirv-dis::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "SPIRV-Tools-reduce::@9283aa6f095013631c5c"
+		},
+		{
+			"id" : "spirv-as::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "spirv-opt::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "SPIRV-Tools-shared::@1ff997bb6f27c61d214b"
+		},
+		{
+			"id" : "SPIRV-Tools-link::@22bb1f78f2e1495d61fe"
+		},
+		{
+			"id" : "spirv-val::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "spirv-cfg::@0d48aa6451d35b4d2c5b"
+		},
+		{
+			"id" : "spirv-tools-cpp-example::@5ab4dfd5b699c46b72cf"
+		},
+		{
+			"id" : "shaderc_static-pkg-config::@4ca3c72d0d502d8e8b2b"
+		},
+		{
+			"id" : "check-copyright::@4ca3c72d0d502d8e8b2b"
+		},
+		{
+			"id" : "OGLCompiler::@8f7d58e83e0518817cb6"
+		},
+		{
+			"id" : "gmock_main::@72019f8cb54e7fe6fb10"
+		},
+		{
+			"id" : "shaderc_combined-pkg-config::@4ca3c72d0d502d8e8b2b"
+		},
+		{
+			"id" : "shaderc-pkg-config::@4ca3c72d0d502d8e8b2b"
+		},
+		{
+			"id" : "gtest::@6c765ddfebc77c90c810"
+		},
+		{
+			"id" : "glslang::@eda8e825d6f67a92af23"
+		},
+		{
+			"id" : "glslang-default-resource-limits::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "glslangValidator::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "spirv-remap::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "gtest_main::@6c765ddfebc77c90c810"
+		},
+		{
+			"id" : "SPIRV::@50781fd55c5da1a73fb4"
+		},
+		{
+			"id" : "copy-tests-if-necessary::@d068c1731d303e41c193"
+		},
+		{
+			"id" : "gmock::@72019f8cb54e7fe6fb10"
+		},
+		{
+			"id" : "OSDependent::@b36f23ecf94a537a8520"
+		},
+		{
+			"id" : "SPVRemapper::@50781fd55c5da1a73fb4"
+		},
+		{
+			"id" : "HLSL::@0e7876ffd8e3ab600843"
+		},
+		{
+			"id" : "shaderc_util_io_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_mutex_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_file_finder_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_counting_includer_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_format_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_message_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "glslangtests::@46be1f7a98d2f1d62b60"
+		},
+		{
+			"id" : "shaderc_util::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_util_string_piece_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_shared_shaderc_private_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_shared::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_combined_genfile::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_shaderc_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_combined_shaderc_cpp_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_c_smoke_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_shared_shaderc_cpp_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "glslc_exe::@f8530773be02fee52b3c"
+		},
+		{
+			"id" : "glslc_file_test::@f8530773be02fee52b3c"
+		},
+		{
+			"id" : "shaderc_util_version_profile_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_shared_shaderc_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "glslc::@f8530773be02fee52b3c"
+		},
+		{
+			"id" : "glslc_stage_test::@f8530773be02fee52b3c"
+		},
+		{
+			"id" : "shaderc_shaderc_cpp_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "glslc_resource_parse_test::@f8530773be02fee52b3c"
+		},
+		{
+			"id" : "shaderc_util_compiler_test::@30387d052571abe8a72b"
+		},
+		{
+			"id" : "shaderc_shaderc_private_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc_combined_shaderc_test::@2d60bf8b3d5dffec3683"
+		},
+		{
+			"id" : "shaderc-online-compile::@7980a2d305646203fe64"
+		},
+		{
+			"id" : "LUA::@852ae875884e1f0a1041"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		},
+		{
+			"id" : "OMEGA_ENGINE::@497b31f2a0b3fb3e80fb"
+		},
+		{
+			"id" : "Scene::@e67388b41b83090ac410"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "CMakePredefinedTargets"
+	},
+	"id" : "ALL_BUILD::@6890427a1f51a3e7e1df",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : ".",
+		"source" : "."
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

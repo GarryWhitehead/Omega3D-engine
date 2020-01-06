@@ -72,7 +72,7 @@ int main(int argc, char* argv[])
         Object* modelObj = objManager.createObject();
         RenderableInstance instance;
         MeshInstance* mesh = node.getMesh();
-        instance.addMesh(mesh).addNode(node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
+        instance.addMesh(mesh).addNode(&node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
     }
     
     /*

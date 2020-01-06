@@ -1,0 +1,67 @@
+{
+	"backtrace" : 0,
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : 
+		[
+			"external/glslang/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			}
+		]
+	},
+	"dependencies" : 
+	[
+		{
+			"id" : "OGLCompiler::@8f7d58e83e0518817cb6"
+		},
+		{
+			"id" : "glslang::@eda8e825d6f67a92af23"
+		},
+		{
+			"id" : "glslang-default-resource-limits::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "glslangValidator::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "spirv-remap::@f131dad0c2343968ce8d"
+		},
+		{
+			"id" : "SPIRV::@50781fd55c5da1a73fb4"
+		},
+		{
+			"id" : "OSDependent::@b36f23ecf94a537a8520"
+		},
+		{
+			"id" : "SPVRemapper::@50781fd55c5da1a73fb4"
+		},
+		{
+			"id" : "HLSL::@0e7876ffd8e3ab600843"
+		},
+		{
+			"id" : "glslangtests::@46be1f7a98d2f1d62b60"
+		},
+		{
+			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
+		}
+	],
+	"folder" : 
+	{
+		"name" : "CMakePredefinedTargets"
+	},
+	"id" : "ALL_BUILD::@19b340e03f3df37e9326",
+	"isGeneratorProvided" : true,
+	"name" : "ALL_BUILD",
+	"paths" : 
+	{
+		"build" : "external/shaderc/third_party/glslang",
+		"source" : "external/glslang"
+	},
+	"sources" : [],
+	"type" : "UTILITY"
+}

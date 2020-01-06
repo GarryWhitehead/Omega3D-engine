@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Engine.cpp">
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Global.cpp">
@@ -20,6 +20,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\ModelGraph.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.cpp">
@@ -52,6 +55,9 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats\AssimpModel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats\GltfExtension.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\AnimInstance.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -82,6 +88,9 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\MappedTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths\OEMaths_transform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -94,10 +103,7 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.cpp">
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IndirectLighting.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderQueue.cpp">
@@ -115,7 +121,7 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblImage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.cpp">
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\SkyboxPass.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\CompositionPass.cpp">
@@ -151,7 +157,7 @@
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\RandomNumber.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\String.cpp">
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\CString.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\VulkanAPI\Platform\Surface.cpp">
@@ -219,7 +225,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Engine.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\engine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Omega_Global.h">
@@ -241,6 +247,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\Frustum.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Core\ModelGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\ImageUtils\KtxParser.h">
@@ -277,6 +286,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats\AssimpModel.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\Formats\GltfExtension.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Models\AnimInstance.h">
@@ -318,10 +330,10 @@
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\NativeWindowWrapper.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\GpuResources.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\AABox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\AABox.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Types\Skybox.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\OEMaths\OEMaths.h">
@@ -366,10 +378,7 @@
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\RenderGraph\Resources.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderConfig.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IndirectLighting.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\RenderQueue.h">
@@ -387,7 +396,7 @@
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\IblImage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\Skybox.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\SkyboxPass.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\Rendering\CompositionPass.h">
@@ -432,7 +441,7 @@
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\result.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\String.h">
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\CString.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\OmegaEngine\utility\Timer.h">

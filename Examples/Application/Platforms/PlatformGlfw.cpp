@@ -65,13 +65,13 @@ void* GlfwPlatform::getNativeWinPointer()
 #endif
 }
 
-std::tuple<const char**, uint32_t> GlfwPlatform::getInstanceExt()
+std::pair<const char**, uint32_t> GlfwPlatform::getInstanceExt()
 {
 	uint32_t count = 0;
 	const char** glfwExtensions;
 	glfwExtensions = glfwGetRequiredInstanceExtensions(&count);
 
-	return std::make_tuple(glfwExtensions, count);
+	return std::make_pair(glfwExtensions, count);
 }
 
 // ========================== evevnt handling =================================================

@@ -257,6 +257,7 @@ void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 
 AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
+	return 0;
 }
 
 bool RenderGraph::compile()

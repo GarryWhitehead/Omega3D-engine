@@ -1,7 +1,10 @@
 #pragma once
 
+#if defined(_MSC_VER) || defined(__MINGW32__)
 #include <stdlib.h>
+#else
 #include <mm_malloc.h>
+#endif
 
 namespace Util
 {

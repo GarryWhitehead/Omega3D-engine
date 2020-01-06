@@ -241,7 +241,7 @@ void CmdBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, 
 	}
 
 	// extents of the frame buffer
-	vk::Rect2D extents{ fbuffer.getWidth(), fbuffer.getHeight() };
+	vk::Rect2D extents{ { 0, 0 }, { fbuffer.getWidth(), fbuffer.getHeight() } };
 
     vk::RenderPassBeginInfo beginInfo{ rpass.get(), fbuffer.get(), extents, 1, clearValue };
     cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
