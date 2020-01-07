@@ -8,8 +8,6 @@
 
 #include "Components/ComponentManager.h"
 
-#include "Models/NodeInstance.h"
-
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -19,10 +17,11 @@ namespace OmegaEngine
 // forward decleartions
 class Object;
 class SkinInstance;
+struct NodeInfo;
 
 struct TransformInfo
 {
-	NodeInstance::NodeInfo* root = nullptr;
+	NodeInfo* root = nullptr;
 
 	// the transform of this model - calculated by calling updateTransform()
 	OEMaths::mat4f modelTransform;
@@ -59,14 +58,14 @@ public:
 	/**
 	* @brief Updates the local matrix tree; returns the root node local matrix
 	*/
-	OEMaths::mat4f updateMatrix(NodeInstance::NodeInfo* node);
+	OEMaths::mat4f updateMatrix(NodeInfo* node);
 
 	/**
 	* @brief Called after a node heirachy is added or after a animation update, this function
 	* works through the node structure combining the matrix of the child and their parent
 	* starting from a mesh node.
 	*/
-	void updateModelTransform(NodeInstance::NodeInfo* parent, TransformInfo& transInfo);
+	void updateModelTransform(NodeInfo* parent, TransformInfo& transInfo);
 
 	void updateModel(Object& obj);
 

@@ -5,6 +5,7 @@
 #include "Core/ObjectManager.h"
 
 #include "Models/SkinInstance.h"
+#include "Models/NodeInstance.h"
 
 #include "utility/Logger.h"
 
@@ -59,7 +60,7 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInst
 void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rot)
 {
     TransformInfo info;
-    info.root = new NodeInstance::NodeInfo();
+    info.root = new NodeInfo();
 	info.root->translation = translation;
 	info.root->scale = scale;
 	info.root->rotation = rot;
@@ -69,10 +70,10 @@ void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& trans
 	nodes.emplace_back(info);
 }
 
-OEMaths::mat4f TransformManager::updateMatrix(NodeInstance::NodeInfo* node)
+OEMaths::mat4f TransformManager::updateMatrix(NodeInfo* node)
 {
 	OEMaths::mat4f mat = node->nodeTransform;
-	NodeInstance::NodeInfo* parent = node->parent;
+	NodeInfo* parent = node->parent;
 	while (parent)
 	{
 		mat = parent->nodeTransform * mat;
@@ -81,7 +82,7 @@ OEMaths::mat4f TransformManager::updateMatrix(NodeInstance::NodeInfo* node)
     return mat;
 }
 
-void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, TransformInfo& transInfo)
+void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& transInfo)
 {
 	// we need to find the mesh node first - we will then update matrices working back
 	// towards the root node
@@ -112,7 +113,7 @@ void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, Tran
 			for (uint32_t i = 0; i < jointCount; ++i)
 			{
 				// get a pointer to the joint a.k.a transform node
-				NodeInstance::NodeInfo* jointNode = skin.jointNodes[i];
+				NodeInfo* jointNode = skin.jointNodes[i];
 
 				// the joint matrix is the local matrix * inverse bin matrix
 				OEMaths::mat4f jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
@@ -128,7 +129,7 @@ void TransformManager::updateModelTransform(NodeInstance::NodeInfo* parent, Tran
 	}
 
 	// now work up the child nodes - until we find a mesh
-	for (NodeInstance::NodeInfo* child : parent->children)
+	for (NodeInfo* child : parent->children)
 	{
 		updateModelTransform(child, transInfo);
 	}

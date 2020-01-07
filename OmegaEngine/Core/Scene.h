@@ -3,6 +3,8 @@
 #include "Core/ObjectManager.h"
 #include "Core/ModelGraph.h"
 
+#include "Types/AABox.h"
+
 #include "Models/Formats/GltfModel.h"
 
 #include "Rendering/RenderQueue.h"

@@ -1,12 +1,5 @@
 #pragma once
 
-#include "Models/AnimInstance.h"
-
-#include "Models/MaterialInstance.h"
-#include "Models/MeshInstance.h"
-#include "Models/NodeInstance.h"
-#include "Models/SkinInstance.h"
-
 #include "Models/Formats/GltfExtension.h"
 
 #include "utility/CString.h"
@@ -21,6 +14,13 @@
 
 namespace OmegaEngine
 {
+// forward declerations
+class NodeInstance;
+class MeshInstance;
+class AnimInstance;
+class SkinInstance;
+class MaterialInstance;
+struct NodeInfo;
 
 class GltfModel
 {
@@ -49,7 +49,7 @@ public:
      * @param id The id of the node to find.
      * @return If successful, returns a pointer to the node. Otherwise returns nullptr.
      */
-	NodeInstance::NodeInfo* getNode(Util::String id);
+	NodeInfo* getNode(Util::String id);
     
     GltfExtension& getExtensions();
     

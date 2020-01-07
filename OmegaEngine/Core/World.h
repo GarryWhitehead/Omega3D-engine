@@ -21,6 +21,7 @@ namespace OmegaEngine
 // forward declerartions
 class Scene;
 class Object;
+class Engine;
 
 class World
 {

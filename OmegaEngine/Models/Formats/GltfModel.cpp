@@ -9,6 +9,12 @@
 #define CGLTF_IMPLEMENTATION
 #include "cgltf/cgltf.h"
 
+#include "Models/MaterialInstance.h"
+#include "Models/MeshInstance.h"
+#include "Models/NodeInstance.h"
+#include "Models/SkinInstance.h"
+#include "Models/AnimInstance.h"
+
 namespace OmegaEngine
 {
 

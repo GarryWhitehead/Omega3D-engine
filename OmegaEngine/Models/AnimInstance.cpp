@@ -2,6 +2,8 @@
 
 #include "Models/Formats/GltfModel.h"
 
+#include "Models/NodeInstance.h"
+
 #include "utility/Logger.h"
 
 #include "cgltf/cgltf.h"
@@ -66,7 +68,7 @@ bool AnimInstance::prepare(cgltf_animation& anim, GltfModel& model)
 
 		// set animation flag on relevant node
 		cgltf_node* animNode = anim.channels[i].target_node;
-        NodeInstance::NodeInfo* foundNode = model.getNode(Util::String(animNode->name));
+        NodeInfo* foundNode = model.getNode(Util::String(animNode->name));
 		if (!foundNode)
 		{
 			LOGGER_ERROR("Unable to find animation node %s within the node hierachy.\n", animNode->name);

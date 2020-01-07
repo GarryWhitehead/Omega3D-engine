@@ -21,7 +21,8 @@ ELSE()
 ENDIF()
 
 # ================= include targets ====================
-TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
+TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
+    PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
 	${CMAKE_CURRENT_SOURCE_DIR}/ImageUtils
@@ -48,8 +49,6 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE PUBLIC
 	${EXTERNAL_DIR}/rapidjson/include
 	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
 	${EXTERNAL_DIR}/stb
-    # The config.h file ends up in the build folder - will probably want to install assimp using another method as this is dependent on the build folder name and location
-    #${BUILD_DIR}/external/assimp/include
 )
 
 # =============== source files =============================

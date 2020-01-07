@@ -2,6 +2,8 @@
 
 #include "Models/Formats/GltfModel.h"
 
+#include "Models/NodeInstance.h"
+
 #include "utility/Logger.h"
 
 #include <cstring>
@@ -39,7 +41,7 @@ bool SkinInstance::prepare(cgltf_skin& skin, NodeInstance& node)
 		cgltf_node* boneNode = skin.joints[i];
         
         // find the node in the list
-        NodeInstance::NodeInfo* foundNode = node.getNode(Util::String(boneNode->name));
+        NodeInfo* foundNode = node.getNode(Util::String(boneNode->name));
         if (!foundNode)
         {
             LOGGER_ERROR("Unable to find bone in list of nodes\n");

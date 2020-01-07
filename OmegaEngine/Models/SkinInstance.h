@@ -2,8 +2,6 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include "Models/NodeInstance.h"
-
 #include "utility/CString.h"
 
 #include "cgltf/cgltf.h"
@@ -13,7 +11,8 @@
 
 namespace OmegaEngine
 {
-    
+class NodeInstance;
+
 class SkinInstance
 {
 public:
@@ -44,11 +43,11 @@ private:
     std::vector<OEMaths::mat4f> invBindMatrices;
     
     // a list of joints - poiints to the node in the skeleon hierachy which will be transformed
-    std::vector<NodeInstance::NodeInfo*> jointNodes;
+    std::vector<NodeInfo*> jointNodes;
     
     // a pointer to the the root of the skeleton. The spec states that
     // the mdoel doesn't need to specify this - thus will be null if this is the case.
-    NodeInstance::NodeInfo* skeletonRoot = nullptr;
+    NodeInfo* skeletonRoot = nullptr;
     
 };
 
