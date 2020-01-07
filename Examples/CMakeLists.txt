@@ -10,16 +10,13 @@ FUNCTION(BUILD_OMEGA_APPLICATION APP_NAME)
 
 	# Common directories
 	TARGET_INCLUDE_DIRECTORIES(${APP_NAME} PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}/Application
-		${CMAKE_CURRENT_SOURCE_DIR}/Application/Platforms
 		${CMAKE_CURRENT_SOURCE_DIR}
+		${OMEGA_ROOT}
 	)
 
 	# And source files
 	TARGET_SOURCES(${APP_NAME} PRIVATE
-		Application/Application.cpp	Application/Application.h
-		Application/Light.cpp Application/Light.h
-		Application/Platforms/PlatformGlfw.cpp	Application/Platforms/PlatformGlfw.h
+		#none yet
 	)
 
 	# link with the omega engine lib

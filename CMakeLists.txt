@@ -38,7 +38,11 @@ OPTION(OMEGA_MEMORY_SANITIZE "Run memory sanitizer" OFF)
 # paths
 ################################################################################################################
 
+# the cmake path
 SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
+
+# root cmake directory
+SET(OMEGA_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
 # paths to shader c and spirv-headers
 SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
@@ -52,9 +56,6 @@ SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 # build folder path - this is required for assimp
 SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the build folder")
-
-# the cmake path
-SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
 ##############################################################################################################
 # Find vulkan libs
@@ -141,7 +142,7 @@ ENDIF()
 ################################################################################################################
 
 # build the Omega Engine library
-ADD_SUBDIRECTORY(OmegaEngine)
+ADD_SUBDIRECTORY(Source)
 
 # build examples
 ADD_SUBDIRECTORY(Examples)

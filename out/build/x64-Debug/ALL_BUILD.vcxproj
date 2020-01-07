@@ -88,7 +88,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\OmegaEngine\OMEGA_ENGINE.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Source\OMEGA_ENGINE.vcxproj">
       <Project>{41346764-D7A0-309C-AC7A-76EC0F6671F2}</Project>
       <Name>OMEGA_ENGINE</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
