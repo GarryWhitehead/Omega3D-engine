@@ -6,6 +6,9 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "OEMaths/OEMaths_transform.h"
 
+#include "Models/SkinInstance.h"
+#include "Models/NodeInstance.h"
+
 #include "Components/ComponentManager.h"
 
 #include <cstdint>

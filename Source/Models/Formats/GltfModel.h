@@ -8,8 +8,7 @@
 #include <unordered_map>
 #include <vector>
 
-#define CGLTF_IMPLEMENTATION
-#include <cgltf.h>
+#include "cgltf/cgltf.h"
 
 namespace OmegaEngine
 {

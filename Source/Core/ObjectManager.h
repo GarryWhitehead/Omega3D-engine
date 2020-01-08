@@ -2,8 +2,6 @@
 
 #include "OEMaths/OEMaths.h"
 
-#include "Types/Object.h"
-
 #include "utility/GeneralUtil.h"
 #include "utility/Logger.h"
 
@@ -18,7 +16,47 @@ namespace OmegaEngine
 {
 // forward declerations
 
+using ObjectId = uint64_t;
 using ObjHandle = uint64_t;
+
+class Object
+{
+
+public:
+    Object() = default;
+    ~Object() = default;
+
+    Object(const ObjectId id)
+        : id(id)
+    {
+    }
+
+    // operator overloads
+    bool operator==(const Object& obj) const
+    {
+        return id == obj.id;
+    }
+
+    // helper functions
+    ObjectId getId() const
+    {
+        return id;
+    }
+
+    void setId(const ObjectId objId)
+    {
+        id = objId;
+    }
+
+    inline bool isActive() const
+    {
+        return active;
+    }
+
+private:
+    ObjectId id;
+    bool active = true;
+};
 
 class ObjectManager
 {

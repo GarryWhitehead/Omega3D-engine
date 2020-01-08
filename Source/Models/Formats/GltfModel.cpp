@@ -12,6 +12,10 @@
 #include "Models/NodeInstance.h"
 #include "Models/SkinInstance.h"
 
+
+#define CGLTF_IMPLEMENTATION
+#include <cgltf/cgltf.h>
+
 namespace OmegaEngine
 {
 

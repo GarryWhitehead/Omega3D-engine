@@ -54,8 +54,23 @@ SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for
 # external directory path
 SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
+# Omega engine library public include headers
+SET(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+
 # build folder path - this is required for assimp
 SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the build folder")
+
+##############################################################################################################
+# Omega Engine libs
+##############################################################################################################
+
+# path to the libraries
+SET(OELIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libs)
+
+ADD_SUBDIRECTORY(Libs/OEMaths)
+ADD_SUBDIRECTORY(Libs/ImageUtils)	
+ADD_SUBDIRECTORY(Libs/Threading)
+ADD_SUBDIRECTORY(Libs/utility)
 
 ##############################################################################################################
 # Find vulkan libs

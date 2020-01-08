@@ -5,8 +5,6 @@
 
 #include "Types/AABox.h"
 
-#include "Models/Formats/GltfModel.h"
-
 #include "Rendering/RenderQueue.h"
 
 #include "VulkanAPI/Buffer.h"

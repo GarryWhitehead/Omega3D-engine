@@ -1,25 +1,11 @@
 
 #include "Application.h"
 
-#include "Core/Scene.h"
-#include "Core/engine.h"
-#include "Core/world.h"
-#include "Core/Camera.h"
-
-#include "Components/LightManager.h"
-#include "Components/RenderableManager.h"
-
-#include "Rendering/Renderer.h"
-
-#include "Types/NativeWindowWrapper.h"
-#include "Types/Object.h"
-#include "Types/Skybox.h"
-#include "Types/MappedTexture.h"
-
-#include "VulkanAPI/SwapChain.h"
-
-#include "Models/Formats/GltfModel.h"
-#include "Models/NodeInstance.h"
+#include "omega-engine/Engine.h"
+#include "omega-engine/Skybox.h"
+#include "omega-engine/MappedTexture.h"
+#include "omega-engine/LightManager.h"
+#include "omega-engine/RenderableManager.h"
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.
@@ -37,7 +23,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	Engine engine;
+    Engine engine;
 	if (!engine.init(window))
 	{
 		LOGGER_ERROR("Unable to initialise engine.\n");
@@ -45,7 +31,7 @@ int main(int argc, char* argv[])
 	}
 
 	// create a new empty world
-	World* world = engine.createWorld("SceneOne");
+    World* world = engine.createWorld("SceneOne");
 
 	// add a scene
 	Scene* scene = world->createScene();
@@ -72,7 +58,7 @@ int main(int argc, char* argv[])
         Object* modelObj = objManager.createObject();
         RenderableInstance instance;
         MeshInstance* mesh = node.getMesh();
-        instance.addMesh(mesh).addNode(&node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
+    instance.addMesh(mesh).addNode(&node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
     }
     
     /*

@@ -27,16 +27,12 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Application/Platforms
 	${CMAKE_CURRENT_SOURCE_DIR}/Types
 	${CMAKE_CURRENT_SOURCE_DIR}/Core
-	${CMAKE_CURRENT_SOURCE_DIR}/ImageUtils
 	${CMAKE_CURRENT_SOURCE_DIR}/Components
 	${CMAKE_CURRENT_SOURCE_DIR}/Models
 	${CMAKE_CURRENT_SOURCE_DIR}/Models/Formats
-	${CMAKE_CURRENT_SOURCE_DIR}/OEMaths
 	${CMAKE_CURRENT_SOURCE_DIR}/PostProcess
 	${CMAKE_CURRENT_SOURCE_DIR}/RenderGraph
 	${CMAKE_CURRENT_SOURCE_DIR}/Rendering
-	${CMAKE_CURRENT_SOURCE_DIR}/Threading
-	${CMAKE_CURRENT_SOURCE_DIR}/utility
 	${CMAKE_CURRENT_SOURCE_DIR}/Misc
 	${CMAKE_CURRENT_SOURCE_DIR}/Misc/Primitives
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI
@@ -44,6 +40,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Platform
 	${CMAKE_CURRENT_SOURCE_DIR}/VulkanAPI/Compiler
 	${CMAKE_CURRENT_SOURCE_DIR}
+	${OELIBRARY_DIR}
 	PRIVATE
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/cgltf
@@ -67,15 +64,9 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Core/World.cpp Core/World.h
 	Core/Scene.cpp Core/Scene.h
 	Core/Omega_Common.h Core/Omega_Common.cpp
-    Core/Camera.cpp Core/Camera.h
+    	Core/Camera.cpp Core/Camera.h
 	Core/Frustum.cpp Core/Frustum.h
-    Core/ModelGraph.cpp Core/ModelGraph.h
-
-	ImageUtils/KtxParser.cpp ImageUtils/KtxParser.h
-	ImageUtils/ImageLoader.cpp ImageUtils/ImageLoader.h
-	ImageUtils/Image2D.cpp ImageUtils/Image2D.h
-	ImageUtils/CubeImage.cpp ImageUtils/CubeImage.h
-    ImageUtils/IblUtils.h
+    	Core/ModelGraph.cpp Core/ModelGraph.h
 
 	Components/ComponentManager.h
 	Components/AnimationManager.cpp Components/AnimationManager.h
@@ -98,23 +89,10 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Misc/Primitives/Cube.cpp Misc/Primitives/Cube.h
 	Misc/Primitives/Quad.cpp Misc/Primitives/Quad.h
 	
-	Types/Object.h
 	Types/MappedTexture.cpp Types/MappedTexture.h
 	Types/NativeWindowWrapper.h
 	Types/AABox.h
-    Types/Skybox.cpp Types/Skybox.h
-	
-	OEMaths/OEMaths.h
-	OEMaths/OEMaths_Mat2.h
-	OEMaths/OEMaths_Mat3.h
-	OEMaths/OEMaths_Mat4.h
-    OEMaths/OEMaths_MatN.h
-	OEMaths/OEMaths_Quat.h
-    OEMaths/OEMaths_Vec2.h
-	OEMaths/OEMaths_Vec3.h
-	OEMaths/OEMaths_Vec4.h
-    OEMaths/OEMaths_VecN.h
-	OEMaths/OEMaths_transform.cpp OEMaths/OEMaths_transform.h
+    	Types/Skybox.cpp Types/Skybox.h
 	
 	PostProcess/PostProcessInterface.cpp PostProcess/PostProcessInterface.h
 	
@@ -124,7 +102,7 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	Rendering/IndirectLighting.cpp Rendering/IndirectLighting.h
 	Rendering/RenderQueue.cpp Rendering/RenderQueue.h
 	Rendering/Renderer.cpp Rendering/Renderer.h
-    Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h
+    	Rendering/GBufferFillPass.cpp Rendering/GBufferFillPass.h
 	Rendering/LightingPass.cpp Rendering/LightingPass.h
 	Rendering/IblImage.cpp Rendering/IblImage.h
 	Rendering/SkyboxPass.cpp Rendering/SkyboxPass.h
@@ -133,22 +111,6 @@ TARGET_SOURCES(OMEGA_ENGINE PRIVATE
 	
 	Scripting/LuaBinder.cpp Scripting/LuaBinder.h
 	Scripting/OEConfig.cpp Scripting/OEConfig.h
-
-	Threading/ThreadedQueue.h
-	Threading/ThreadPool.cpp Threading/ThreadPool.h
-	Threading/ThreadUtil.cpp Threading/ThreadUtil.h
-	
-	utility/EventManager.cpp utility/EventManager.h
-	utility/BVH.cpp utility/BVH.hpp
-	utility/FileUtil.cpp utility/FileUtil.h
-	utility/GeneralUtil.cpp utility/GeneralUtil.h
-	utility/Logger.h
-	utility/RandomNumber.cpp utility/RandomNumber.h
-	utility/result.h
-	utility/CString.cpp utility/CString.h
-	utility/Timer.h
-    utility/BitSetEnum.h
-	utility/AlignedAlloc.h
 	
 	VulkanAPI/Platform/Surface.cpp VulkanAPI/Platform/Surface.h
 
@@ -186,4 +148,8 @@ TARGET_LINK_LIBRARIES(OMEGA_ENGINE
 	glfw 
 	spirv-cross-core
 	shaderc
+	OEMATHS
+	IMAGE
+	OETHREAD
+	UTILITY
 )

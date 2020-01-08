@@ -6,11 +6,10 @@
 
 #include "utility/CString.h"
 
-#include "Models/Formats/GltfExtension.h"
-#include "Core/Omega_Common.h"
-
 #include "assimp/Importer.hpp"
 #include "assimp/scene.h"
+
+#include "cgltf/cgltf.h"
 
 #include <cstdint>
 #include <cassert>
@@ -19,6 +18,7 @@ namespace OmegaEngine
 {
 // forward declerations
 class MeshInstance;
+class GltfExtension;
 
 class MaterialInstance
 {
