@@ -76,9 +76,27 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\ImageUtils\IMAGE.vcxproj">
+      <Project>{AD08AB97-FA06-3C9C-98F5-F1409D6D3B40}</Project>
+      <Name>IMAGE</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\lua\LUA.vcxproj">
       <Project>{D572448C-29AD-3691-9FEC-766A4B93C824}</Project>
       <Name>LUA</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\OEMaths\OEMATHS.vcxproj">
+      <Project>{A6A55EBE-480F-3287-AD4E-52734DC465B1}</Project>
+      <Name>OEMATHS</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\Threading\OETHREAD.vcxproj">
+      <Project>{0DFEF5B6-9DB8-3EFD-B55E-FCA546BDFB88}</Project>
+      <Name>OETHREAD</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
@@ -88,7 +106,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Source\OMEGA_ENGINE.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Omega-Engine\OMEGA_ENGINE.vcxproj">
       <Project>{41346764-D7A0-309C-AC7A-76EC0F6671F2}</Project>
       <Name>OMEGA_ENGINE</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -151,6 +169,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Examples\Scene.vcxproj">
       <Project>{C1642772-8361-30D9-AFB7-619E02B25838}</Project>
       <Name>Scene</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\utility\UTILITY.vcxproj">
+      <Project>{58A6926C-4B20-317F-AC4A-666A0C5E2C0A}</Project>
+      <Name>UTILITY</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>

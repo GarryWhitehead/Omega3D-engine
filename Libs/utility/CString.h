@@ -1,7 +1,5 @@
 #pragma once
 
-#include "utility/Logger.h"
-
 #include <cstdint>
 #include <cstddef>
 #include <vector>

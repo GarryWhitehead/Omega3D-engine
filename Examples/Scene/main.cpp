@@ -6,6 +6,11 @@
 #include "omega-engine/MappedTexture.h"
 #include "omega-engine/LightManager.h"
 #include "omega-engine/RenderableManager.h"
+#include "omega-engine/GltfModel.h"
+
+#include "utility/Logger.h"
+
+#include <memory>
 
 // An example of building a scene using the component-object interface.
 // Very much a work in progress at the moment.

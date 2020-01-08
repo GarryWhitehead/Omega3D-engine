@@ -396,7 +396,7 @@ OMEGA_ENABLE_THREADING:BOOL=ON
 OMEGA_ENGINE_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug
 
 //Dependencies for the target
-OMEGA_ENGINE_LIB_DEPENDS:STATIC=general;C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib;general;C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/Libs/assimp-vc142-mt.lib;general;glfw;general;spirv-cross-core;general;shaderc;
+OMEGA_ENGINE_LIB_DEPENDS:STATIC=general;C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib;general;C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/Libs/assimp-vc142-mt.lib;general;glfw;general;spirv-cross-core;general;shaderc;general;OEMATHS;general;IMAGE;general;OETHREAD;general;UTILITY;
 
 //Value Computed by CMake
 OMEGA_ENGINE_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D
@@ -527,6 +527,9 @@ USE_CCACHE:BOOL=OFF
 
 //Use MSVC runtime library DLL
 USE_MSVC_RUNTIME_LIBRARY_DLL:BOOL=ON
+
+//Dependencies for the target
+UTILITY_LIB_DEPENDS:STATIC=general;OEMATHS;
 
 //Path to a file.
 Vulkan_INCLUDE_DIR:PATH=C:/VulkanSDK/1.1.121.2/Include
@@ -738,7 +741,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=50
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=54
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RC_COMPILER

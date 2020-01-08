@@ -55,7 +55,7 @@ SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for
 SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
 
 # Omega engine library public include headers
-SET(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Include)
+#SET(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Omega-Engine/Include)
 
 # build folder path - this is required for assimp
 SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the build folder")
@@ -157,17 +157,9 @@ ENDIF()
 ################################################################################################################
 
 # build the Omega Engine library
-ADD_SUBDIRECTORY(Source)
+ADD_SUBDIRECTORY(Omega-Engine)
 
 # build examples
 ADD_SUBDIRECTORY(Examples)
 
-# run some tests to make sure I haven't broke anything!
-# to add later.....
-IF(OMEGA_BUILD_TESTS)
-	ADD_SUBDIRECTORY(Tests)
-ENDIF()
 
-IF(OMEGA_BUILD_TOOLS)
-	ADD_SUBDIRECTORY(Tools)
-ENDIF()
