@@ -4,7 +4,7 @@
 
 #include "utility/CString.h"
 
-#include "Models/Formats/GltfModel.h"
+#include "ModelImporter/Formats/GltfModel.h"
 #include "Core/Omega_Common.h"
 
 #include <memory>
@@ -98,7 +98,7 @@ public:
     MeshInstance* getMesh();
     SkinInstance* getSkin();
     
-	friend class Scene;
+	friend class OEScene;
 	friend class TransformManager;
     friend class GltfModel;
     

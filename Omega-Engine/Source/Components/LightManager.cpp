@@ -9,57 +9,59 @@
 namespace OmegaEngine
 {
 
-LightInstance& LightInstance::setType(LightType lt)
+LightManager::LightInstance& LightManager::LightInstance::setType(LightType lt)
 {
     type = lt;
     return *this;
 }
 
-LightInstance& LightInstance::setPosition(const OEMaths::vec3f p)
+LightManager::LightInstance& LightManager::LightInstance::setPosition(const OEMaths::vec3f p)
 {
     pos = p;
     return *this;
 }
 
-LightInstance& LightInstance::setColour(const OEMaths::colour3 c)
+LightManager::LightInstance& LightManager::LightInstance::setColour(const OEMaths::colour3 c)
 {
     col = c;
     return *this;
 }
 
-LightInstance& LightInstance::setFov(float f)
+LightManager::LightInstance& LightManager::LightInstance::setFov(float f)
 {
     fov = f;
     return *this;
 }
 
-LightInstance& LightInstance::setIntensity(float i)
+LightManager::LightInstance& LightManager::LightInstance::setIntensity(float i)
 {
     intensity = i;
     return *this;
 }
 
-LightInstance& LightInstance::setFallout(float fo)
+LightManager::LightInstance& LightManager::LightInstance::setFallout(float fo)
 {
     fallout = fo;
     return *this;
 }
 
-LightInstance& LightInstance::setRadius(float r)
+LightManager::LightInstance& LightManager::LightInstance::setRadius(float r)
 {
     radius = r;
     return *this;
 }
 
-void LightInstance::create(Engine& engine)
+void LightManager::LightInstance::create(Engine& engine)
 {
+    OEEngine& oeEngine = reinterpret_cast<OEEngine&>(engine);
+    
     if (type == LightType::None)
     {
         LOGGER_WARN("You haven't specified a light type.");
         return;
     }
     
-    auto& lManager = engine.getLightManager();
+    auto& lManager = oeEngine.getLightManager();
     
     std::unique_ptr<LightBase> base = std::make_unique<LightBase>(type);
     base->position = pos;
@@ -92,20 +94,20 @@ void LightInstance::create(Engine& engine)
 
 // =========================================================================================
 
-LightManager::LightManager()
+OELightManager::OELightManager()
 {
 }
 
-LightManager::~LightManager()
+OELightManager::~OELightManager()
 {
 }
 
-void LightManager::calculatePointIntensity(float intensity, PointLight& light)
+void OELightManager::calculatePointIntensity(float intensity, PointLight& light)
 {
 	light.intensity = intensity * static_cast<float>(M_1_PI) * 0.25f;
 }
 
-void LightManager::calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight)
+void OELightManager::calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight)
 {
 	// first calculate the spotlight cone values
 	float outer = std::min(std::abs(outerCone), static_cast<float>(M_PI));
@@ -124,7 +126,7 @@ void LightManager::calculateSpotIntensity(float intensity, float outerCone, floa
 	spotLight.intensity = intensity / (2.0f * static_cast<float>(M_PI) * (1.0f - cosHalfOuter));
 }
 
-void LightManager::addLight(std::unique_ptr<LightBase>& light)
+void OELightManager::addLight(std::unique_ptr<LightBase>& light)
 {
     switch (light->type)
 	{
@@ -149,12 +151,12 @@ void LightManager::addLight(std::unique_ptr<LightBase>& light)
 	lights.emplace_back(std::move(light));
 }
 
-size_t LightManager::getLightCount() const
+size_t OELightManager::getLightCount() const
 {
 	return lights.size();
 }
 
-LightBase* LightManager::getLight(const size_t idx)
+LightBase* OELightManager::getLight(const size_t idx)
 {
 	assert(idx < lights.size());
 	return lights[idx].get();

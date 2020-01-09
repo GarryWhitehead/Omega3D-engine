@@ -1,9 +1,9 @@
 
 #include "ModelGraph.h"
 
-#include "utility/Logger.h"
+#include "Core/ObjectManager.h"
 
-#include "Types/Object.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {

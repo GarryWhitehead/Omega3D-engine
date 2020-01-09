@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Core/ObjectManager.h"
+
 #include <unordered_map>
 #include <vector>
 

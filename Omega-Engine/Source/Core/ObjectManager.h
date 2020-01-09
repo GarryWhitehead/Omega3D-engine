@@ -1,5 +1,7 @@
 #pragma once
 
+#include "omega-engine/ObjectManager.h"
+
 #include "OEMaths/OEMaths.h"
 
 #include "utility/GeneralUtil.h"
@@ -58,18 +60,18 @@ private:
     bool active = true;
 };
 
-class ObjectManager
+class OEObjectManager : public ObjectManager
 {
 public:
 
-	ObjectManager();
-	~ObjectManager();
+	OEObjectManager() = default;
+	~OEObjectManager();
 
 	// no copying or moving of this manager
-	ObjectManager(const ObjectManager&) = delete;
-	ObjectManager& operator=(const ObjectManager&) = delete;
-	ObjectManager(ObjectManager&&) = delete;
-	ObjectManager& operator=(ObjectManager&&) = delete;
+	OEObjectManager(const OEObjectManager&) = delete;
+	OEObjectManager& operator=(const OEObjectManager&) = delete;
+	OEObjectManager(OEObjectManager&&) = delete;
+	OEObjectManager& operator=(OEObjectManager&&) = delete;
 
 	// object creation functions 
 	Object* createObject();

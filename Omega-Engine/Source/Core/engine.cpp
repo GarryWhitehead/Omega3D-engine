@@ -6,8 +6,9 @@
 
 #include "utility/FileUtil.h"
 
-#include "VulkanAPI/Platform/Surface.h"
 #include "VulkanAPI/SwapChain.h"
+
+#include "Types/NativeWindowWrapper.h"
 
 #include "Rendering/Renderer.h"
 
@@ -19,13 +20,13 @@
 namespace OmegaEngine
 {
 
-Engine::Engine()
+OEEngine::OEEngine()
 {
 }
 
-Engine::~Engine()
+OEEngine::~OEEngine()
 {
-	for (World* world : worlds)
+	for (OEWorld* world : worlds)
 	{
 		if (world)
 		{
@@ -44,7 +45,7 @@ Engine::~Engine()
     renderers.clear();
 }
 
-bool Engine::init(NativeWindowWrapper& window)
+bool OEEngine::init(OEWindowInstance& window)
 {
 	surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
     
@@ -55,18 +56,18 @@ bool Engine::init(NativeWindowWrapper& window)
     return true;
 }
 
-VulkanAPI::Swapchain Engine::createSwapchain()
+SwapchainHandle OEEngine::createSwapchain(OEWindowInstance& window)
 {
 	// create a swapchain for surface rendering based on the platform specific window surface
 	VulkanAPI::Swapchain swapchain;
-	swapchain.prepare(vkDriver.getContext(), surface);
-	return swapchain;
+    swapchain.prepare(vkDriver.getContext(), surface);
+    return window.addSwapchain(swapchain);
 }
 
-World* Engine::createWorld(Util::String name)
+OEWorld* OEEngine::createWorld(Util::String name)
 {
 	// create an empty world
-	World* world = new World(*this, vkDriver);
+	OEWorld* world = new OEWorld(*this, vkDriver);
 
 	world->prepare(name);
 
@@ -76,41 +77,38 @@ World* Engine::createWorld(Util::String name)
 	return world;
 }
 
-Renderer* Engine::createRenderer(VulkanAPI::Swapchain& swapchain, Scene* scene)
+Renderer* OEEngine::createRenderer(OEWindowInstance& window, SwapchainHandle& handle, OEScene* scene)
 {
+    VulkanAPI::Swapchain& swapchain = window.swapchains[handle.getHandle()];
+    
     Renderer* renderer = new Renderer(*this, *scene, swapchain, config);
     assert(renderer);
     renderers.emplace_back(renderer);
     return renderer;
 }
 
-VulkanAPI::VkDriver& Engine::getVkDriver()
+VulkanAPI::VkDriver& OEEngine::getVkDriver()
 {
 	return vkDriver;
 }
 
 // ** manager helper functions **
-AnimationManager& Engine::getAnimManager()
+AnimationManager& OEEngine::getAnimManager()
 {
 	return *animManager;
 }
 
-CameraManager& Engine::getCameraManager()
-{
-	return *cameraManager;
-}
-
-LightManager& Engine::getLightManager()
+OELightManager& OEEngine::getLightManager()
 {
 	return *lightManager;
 }
 
-RenderableManager& Engine::getRendManager()
+OERenderableManager& OEEngine::getRendManager()
 {
 	return *rendManager;
 }
 
-TransformManager& Engine::getTransManager()
+TransformManager& OEEngine::getTransManager()
 {
 	return *transManager;
 }

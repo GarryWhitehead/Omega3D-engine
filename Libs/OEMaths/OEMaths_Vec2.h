@@ -1,6 +1,6 @@
 #pragma once
 
-#include "OEMaths/OEMaths_VecN.h"
+#include "OEMaths_VecN.h"
 
 #include <cstdint>
 

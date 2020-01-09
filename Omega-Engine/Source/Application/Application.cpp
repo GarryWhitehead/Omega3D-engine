@@ -6,15 +6,10 @@
 
 using namespace std::literals::chrono_literals;
 
-Application::Application()
+namespace OmegaEngine
 {
-}
 
-Application::~Application()
-{
-}
-
-bool Application::init(const char* title, uint32_t width, uint32_t height, OmegaEngine::NativeWindowWrapper& output)
+bool OEApplication::init(const char* title, uint32_t width, uint32_t height, OmegaEngine::OEWindowInstance& output)
 {
 	// init glfw
 	if (!glfw.init())
@@ -36,7 +31,7 @@ bool Application::init(const char* title, uint32_t width, uint32_t height, Omega
     return true;
 }
 
-void Application::run(OmegaEngine::Scene& scene, OmegaEngine::Renderer& renderer)
+void OEApplication::run(OmegaEngine::OEScene& scene, OmegaEngine::Renderer& renderer)
 {
 	// convert delta time to ms
 	const NanoSeconds frameTime(33ms);
@@ -59,4 +54,6 @@ void Application::run(OmegaEngine::Scene& scene, OmegaEngine::Renderer& renderer
 			std::this_thread::sleep_for(frameTime - elapsedTime);
 		}
 	}
+}
+
 }

@@ -1,8 +1,10 @@
 #pragma once
 
+#include "omega-engine/World.h"
+
 #include "Core/ObjectManager.h"
 
-#include "Models/Formats/GltfModel.h"
+#include "ModelImporter/Formats/GltfModel.h"
 
 #include "OEMaths/OEMaths.h"
 
@@ -19,15 +21,15 @@ class VkDriver;
 namespace OmegaEngine
 {
 // forward declerartions
-class Scene;
+class OEScene;
 class Object;
-class Engine;
+class OEEngine;
 
-class World
+class OEWorld : public World
 {
 public:
-	World(Engine& engine, VulkanAPI::VkDriver& driver);
-	~World();
+	OEWorld(OEEngine& engine, VulkanAPI::VkDriver& driver);
+	~OEWorld();
 
 	void update(double time, double dt);
 
@@ -41,26 +43,26 @@ public:
 	* @brief creates a new empty scene. This will be passed to the renderer for presentation.
 	* @return A pointer to the newly created scene
 	*/
-	Scene* createScene();
+	OEScene* createScene();
 
-	ObjectManager& getObjManager()
+	OEObjectManager& getObjManager()
 	{
 		return objManager;
 	}
 
 private:
     
-    Engine& engine;
+    OEEngine& engine;
     VulkanAPI::VkDriver& driver;
     
 	// name used to identify this world
 	Util::String name;
 
 	/// objects assoicated with this scene dealt with by the object manager
-	ObjectManager objManager;
+	OEObjectManager objManager;
 
 	// scenes associated with this world
-	std::vector<std::unique_ptr<Scene>> scenes;
+	std::vector<std::unique_ptr<OEScene>> scenes;
 };
 
 }    // namespace OmegaEngine

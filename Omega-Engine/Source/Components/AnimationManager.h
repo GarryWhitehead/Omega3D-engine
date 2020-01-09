@@ -3,8 +3,6 @@
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
-#include "Types/Object.h"
-
 #include "Components/ComponentManager.h"
 
 #include <memory>
@@ -17,7 +15,7 @@ namespace OmegaEngine
 // forward declerations
 class Object;
 class TransformManager;
-class Engine;
+class OEEngine;
 class AnimInstance;
 
 class AnimationManager : public ComponentManager
@@ -72,7 +70,7 @@ public:
 	void addAnimation(std::unique_ptr<AnimInstance>& animation);
 	void addAnimation(size_t channelIndex, size_t bufferIndex, Object& object);
 
-	void update(double time, Engine& engine);
+	void update(double time, OEEngine& engine);
 
 	uint32_t getBufferOffset() const
 	{

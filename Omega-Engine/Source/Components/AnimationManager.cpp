@@ -4,7 +4,7 @@
 
 #include "Components/TransformManager.h"
 
-#include "Models/AnimInstance.h"
+#include "ModelImporter/AnimInstance.h"
 
 #include "utility/Logger.h"
 
@@ -149,7 +149,7 @@ void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Obj
 	channel.object = &object;
 }
 
-void AnimationManager::update(double time, Engine& engine)
+void AnimationManager::update(double time, OEEngine& engine)
 {
 	auto& transManager = engine.getTransManager();
 

@@ -17,13 +17,46 @@ namespace OmegaEngine
 {
 // forward declerations
 class AnimationManager;
-class CameraManager;
 class LightManager;
 class RenderableManager;
 class TransformManager;
 class Renderer;
 class EngineConfig;
-struct NativeWindowWrapper;
+
+class SwapchainHandle
+{
+public:
+    
+    SwapchainHandle(uint32_t h) :
+        handle(h)
+    {}
+    
+    uint32_t getHandle() const
+    {
+        return handle;
+    }
+    
+private:
+    
+    uint32_t handle;
+};
+
+/**
+     * A wrapper containing all the information needed to create a swapchain.
+     */
+class WindowInstance
+{
+public:
+    
+    void* getNativeWindowPtr();
+    
+    uint32_t getWidth() const;
+    
+    uint32_t getHeight() const;
+    
+private:
+
+};
 
 class Engine
 {
@@ -38,18 +71,18 @@ public:
     * Note: Only one vulkan device is allowed. Multiple devices supporting multi-gpu
     * setups is not yet supported
     */
-    bool init(NativeWindowWrapper& window);
+    bool init(WindowInstance& window);
 
     /**
     * @brief This creates a new swapchain instance based upon the platform-specific
     * ntaive window pointer created by the application
     */
-    VulkanAPI::Swapchain createSwapchain();
+    SwapchainHandle createSwapchain(WindowInstance& window);
 
     /**
     * @brief Creates a new renderer instance based on the user specified swapchain and scene
     */
-    Renderer* createRenderer(VulkanAPI::Swapchain& swapchain, Scene* scene);
+    Renderer* createRenderer(WindowInstance& window, SwapchainHandle& handle, Scene* scene);
 
     /**
     * @ brief Creates a new world object. This object is stored by the engine allowing
@@ -63,7 +96,6 @@ public:
     VulkanAPI::VkDriver& getVkDriver();
 
     AnimationManager& getAnimManager();
-    CameraManager& getCameraManager();
     LightManager& getLightManager();
     RenderableManager& getRendManager();
     TransformManager& getTransManager();

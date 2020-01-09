@@ -14,14 +14,14 @@ namespace OmegaEngine
 {
 // forward declerations
 class RenderGraph;
-class Skybox;
+class OESkybox;
 
 class SkyboxPass : public RenderStageBase
 {
 
 public:
     
-	SkyboxPass(RenderGraph& rGraph, Util::String id, Skybox& skybox);
+	SkyboxPass(RenderGraph& rGraph, Util::String id, OESkybox& skybox);
 	~SkyboxPass();
 
 	// not copyable
@@ -36,7 +36,7 @@ private:
 	RenderGraph& rGraph;
     
     // keep refernce to the current skybox
-    Skybox& skybox;
+    OESkybox& skybox;
 
 	ResourceHandle output;
 };

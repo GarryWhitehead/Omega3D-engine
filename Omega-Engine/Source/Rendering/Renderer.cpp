@@ -27,7 +27,7 @@
 namespace OmegaEngine
 {
 
-Renderer::Renderer(Engine& eng, Scene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config) :
+Renderer::Renderer(OEEngine& eng, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config) :
     vkDriver(eng.getVkDriver()),
     rGraph(std::make_unique<RenderGraph>(vkDriver)),
     swapchain(swapchain),

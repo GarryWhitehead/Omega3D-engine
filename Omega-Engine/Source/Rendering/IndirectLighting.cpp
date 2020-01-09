@@ -19,7 +19,7 @@
 namespace OmegaEngine
 {
 
-IndirectLighting::IndirectLighting(RenderGraph& rGraph, Util::String id, Skybox& skybox) :
+IndirectLighting::IndirectLighting(RenderGraph& rGraph, Util::String id, OESkybox& skybox) :
     RenderStageBase(id),
     rGraph(rGraph),
     skybox(skybox)
@@ -107,7 +107,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
     return true;
 }
 
-void IndirectLighting::buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, Skybox& skybox)
+void IndirectLighting::buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, OESkybox& skybox)
 {
 	vk::ClearColorValue clearValue;
     VulkanAPI::CmdBuffer* cmdBuffer = context.cmdBuffer;

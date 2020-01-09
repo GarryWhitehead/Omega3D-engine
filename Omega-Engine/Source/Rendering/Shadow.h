@@ -6,8 +6,8 @@ namespace OmegaEngine
 {
 
 // forward decleartions
-class Scene;
-class Engine;
+class OEScene;
+class OEEngine;
 
 class Shadow
 {
@@ -18,15 +18,15 @@ public:
         OEMaths::mat4f mvp;
     };
     
-	Shadow(Engine& engine, Scene& scene);
+	Shadow(OEEngine& engine, Scene& scene);
 	~Shadow();
 
 	void updateBuffer();
 
 private:
     
-    Engine& engine;
-	Scene& scene;
+    OEEngine& engine;
+	OEScene& scene;
 };
 
 }    // namespace OmegaEngine

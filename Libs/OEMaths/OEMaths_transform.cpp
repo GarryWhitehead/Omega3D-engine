@@ -1,6 +1,6 @@
 #include "OEMaths_transform.h"
-#include "OEMaths/OEMaths_Mat4.h"
-#include "OEMaths/OEMaths_Vec3.h"
+#include "OEMaths_Mat4.h"
+#include "OEMaths_Vec3.h"
 
 namespace OEMaths
 {

@@ -1,7 +1,5 @@
 #include "ThreadPool.h"
 
-#include "utility/Logger.h"
-
 namespace OmegaEngine
 {
 
@@ -15,7 +13,7 @@ ThreadPool::ThreadPool(const uint32_t numThreads)
 		// Best warn if there are no other threads, performace will be hit!
 		if (!threadCount)
 		{
-			LOGGER_WARN("No extra threads were found for the current hardware setup.");
+			printf("No extra threads were found for the current hardware setup.");
 		}
 	}
 	else

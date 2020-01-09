@@ -3,7 +3,7 @@
 
 #include "utility/CString.h"
 
-#include "Models/Formats/GltfModel.h"
+#include "ModelImporter/Formats/GltfModel.h"
 #include "Core/Omega_Common.h"
 
 #include <vector>

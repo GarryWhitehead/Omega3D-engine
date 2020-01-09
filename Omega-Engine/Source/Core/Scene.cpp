@@ -1,14 +1,14 @@
 #include "Scene.h"
 
-#include "Types/Object.h"
 #include "Types/Skybox.h"
 
 #include "Core/Camera.h"
 #include "Core/Frustum.h"
 #include "Core/World.h"
 #include "Core/Engine.h"
+#include "Core/ObjectManager.h"
 
-#include "Models/MeshInstance.h"
+#include "ModelImporter/MeshInstance.h"
 
 #include "Threading/ThreadPool.h"
 
@@ -25,25 +25,25 @@
 namespace OmegaEngine
 {
 
-Scene::Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver)
+OEScene::OEScene(OEWorld& world, OEEngine& engine, VulkanAPI::VkDriver& driver)
     : driver(driver),
         world(world)
     , engine(engine)
 {
 }
 
-Scene::~Scene()
+OEScene::~OEScene()
 {
 }
 
-void Scene::prepare()
+void OEScene::prepare()
 {
 	// prepare the camera buffer - note: the id matches the naming of the shader ubo
 	// the data will be updated on a per frame basis in the update
     driver.addUbo("CameraUbo", sizeof(Camera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
 }
 
-void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCandidate>& renderables)
+void OEScene::getVisibleRenderables(Frustum& frustum, std::vector<OEScene::VisibleCandidate>& renderables)
 {
 	size_t workSize = renderables.size();
 
@@ -64,7 +64,7 @@ void Scene::getVisibleRenderables(Frustum& frustum, std::vector<Scene::VisibleCa
 	splitWork.run();
 }
 
-void Scene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights)
+void OEScene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights)
 {
 	size_t workSize = lights.size();
 
@@ -111,7 +111,7 @@ void Scene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights)
 	splitWork.run();
 }
 
-Scene::VisibleCandidate Scene::buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat)
+OEScene::VisibleCandidate OEScene::buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat)
 {
     auto& transManager = engine.getTransManager();
     auto& rendManager = engine.getRendManager();
@@ -131,7 +131,7 @@ Scene::VisibleCandidate Scene::buildRendCandidate(Object* obj, OEMaths::mat4f& w
     return candidate;
 }
 
-void Scene::update()
+void OEScene::update()
 {
      auto& objects = world.getObjManager().getObjectsList();
     
@@ -188,7 +188,7 @@ void Scene::update()
 	}
 
 	// prepare the camera frustum
-	Camera& camera = cameras[currCamera];
+	OECamera& camera = cameras[currCamera];
 	Frustum frustum;
 	frustum.projection(camera.getViewMatrix() * camera.getProjMatrix());
 
@@ -249,14 +249,14 @@ void Scene::update()
 	updateTransformBuffer(candRenderableObjs, staticModelCount, skinnedModelCount);
 }
 
-void Scene::updateCameraBuffer()
+void OEScene::updateCameraBuffer()
 {
-	Camera& camera = cameras[currCamera];
+	OECamera& camera = cameras[currCamera];
 
 	camera.updateViewMatrix();
 
 	// update everything in the buffer
-	Camera::Ubo ubo;
+	OECamera::Ubo ubo;
 	ubo.mvp = camera.getMvpMatrix();
 	ubo.cameraPosition = camera.getPos();
 	ubo.projection = camera.getProjMatrix();
@@ -265,10 +265,10 @@ void Scene::updateCameraBuffer()
 	ubo.zNear = camera.getZNear();
 	ubo.zFar = camera.getZFar();
 
-	driver.updateUbo("CameraUbo", sizeof(Camera::Ubo), &ubo);
+	driver.updateUbo("CameraUbo", sizeof(OECamera::Ubo), &ubo);
 }
 
-void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObjects, const size_t staticModelCount,
+void OEScene::updateTransformBuffer(std::vector<OEScene::VisibleCandidate>& candObjects, const size_t staticModelCount,
                                   const size_t skinnedModelCount)
 {
 	// transforms
@@ -347,7 +347,7 @@ void Scene::updateTransformBuffer(std::vector<Scene::VisibleCandidate>& candObje
 	}
 }
 
-void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
+void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
 {
 	// a mirror of the shader structs
 	struct PointLightUbo
@@ -447,7 +447,7 @@ void Scene::updateLightBuffer(std::vector<LightBase*> candLights)
 	}
 }
 
-Camera* Scene::getCurrentCamera()
+OECamera* OEScene::getCurrentCamera()
 {
 	if (cameras.empty())
     {
@@ -459,7 +459,7 @@ Camera* Scene::getCurrentCamera()
     return &cameras[currCamera];
 }
 
-bool Scene::addSkybox(SkyboxInstance& instance)
+bool OEScene::addSkybox(Skybox::Instance& instance)
 {
     if (!instance.cubeMap)
     {
@@ -472,7 +472,7 @@ bool Scene::addSkybox(SkyboxInstance& instance)
         return false;
     }
     
-    skybox = std::make_unique<Skybox>(driver, instance.cubeMap, instance.blur);
+    skybox = std::make_unique<OESkybox>(driver, instance.cubeMap, instance.blur);
     assert(skybox);
 }
 

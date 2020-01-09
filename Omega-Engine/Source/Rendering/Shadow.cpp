@@ -13,7 +13,7 @@
 namespace OmegaEngine
 {
 
-Shadow::Shadow(Engine& engine, Scene& scene)
+Shadow::Shadow(OEEngine& engine, OEScene& scene)
     :   engine(engine),
         scene(scene)
 {
@@ -25,7 +25,7 @@ Shadow::~Shadow()
 
 void Shadow::updateBuffer()
 {
-	Camera* camera = scene.getCurrentCamera();
+	OECamera* camera = scene.getCurrentCamera();
     LightManager& lightManager = engine.getLightManager();
     
     uint32_t count = 0;

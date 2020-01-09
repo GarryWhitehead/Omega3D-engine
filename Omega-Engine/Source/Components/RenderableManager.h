@@ -1,14 +1,16 @@
 #pragma once
 
+#include "omega-engine/RenderableManager.h"
+
 #include "Core/ObjectManager.h"
 
-#include "Types/MappedTexture.h"
+#include "ImageUtils/MappedTexture.h"
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 
 #include "utility/Logger.h"
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 #include "utility/CString.h"
 
 #include "Components/ComponentManager.h"
@@ -30,9 +32,9 @@ class IndexBuffer;
 namespace OmegaEngine
 {
 // forard decleartions
-class World;
+class OEWorld;
 class Object;
-class Engine;
+class OEEngine;
 class RenderStateBlock;
 class MappedTexture;
 class MeshInstance;
@@ -40,34 +42,6 @@ class MaterialInstance;
 class SkinInstance;
 class NodeInstance;
 
-/**
- * @brief The user interface for passing models to the manager.
- */
-class RenderableInstance
-{
-public:
-    
-    RenderableInstance();
-    
-    RenderableInstance& addMesh(MeshInstance* instance);
-    RenderableInstance& addMaterial(MaterialInstance* instance);
-    
-    // these are stored in the transform manager
-    RenderableInstance& addSkin(SkinInstance* instance);
-    RenderableInstance& addNode(NodeInstance* instance);
-    
-    void create(Engine& engine, Object* obj);
-    
-    friend class RenderableManager;
-    
-private:
-        
-    // this is just a transient store, this class does not own these
-    MeshInstance* mesh = nullptr;
-    MaterialInstance* mat = nullptr;
-    SkinInstance* skin = nullptr;
-    NodeInstance* node = nullptr;
-};
 
 /**
 	* @brief A convienent way to group textures together
@@ -181,13 +155,13 @@ struct Renderable
     
 };
 
-class RenderableManager : public ComponentManager
+class OERenderableManager : public ComponentManager, public RenderableManager
 {
 
 public:
 
-	RenderableManager(Engine& engine);
-	~RenderableManager();
+	OERenderableManager(OEEngine& engine);
+	~OERenderableManager();
 
 	/// called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
 	/// This isn't so expensive as these are persistent resources
@@ -241,7 +215,7 @@ private:
 	bool updateVariants();
 
 private:
-	Engine& engine;
+	OEEngine& engine;
 
 	// the buffers containing all the model data
 	std::vector<Renderable> renderables;

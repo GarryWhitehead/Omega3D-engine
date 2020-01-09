@@ -71,6 +71,7 @@ ADD_SUBDIRECTORY(Libs/OEMaths)
 ADD_SUBDIRECTORY(Libs/ImageUtils)	
 ADD_SUBDIRECTORY(Libs/Threading)
 ADD_SUBDIRECTORY(Libs/utility)
+ADD_SUBDIRECTORY(Libs/ModelImporter)
 
 ##############################################################################################################
 # Find vulkan libs

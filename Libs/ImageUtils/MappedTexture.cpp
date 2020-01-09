@@ -16,8 +16,7 @@ MappedTexture::~MappedTexture()
 	}
 }
 
-bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips,
-                         uint32_t size, const vk::Format format)
+bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips, uint32_t size, const ImageFormat format)
 {
 	width = w;
 	height = h;

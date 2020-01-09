@@ -4,8 +4,8 @@
 
 #include "Components/RenderableManager.h"
 
-#include "Models/MaterialInstance.h"
-#include "Models/MeshInstance.h"
+#include "ModelImporter/MaterialInstance.h"
+#include "ModelImporter/MeshInstance.h"
 
 #include "Rendering/RenderQueue.h"
 
@@ -24,7 +24,7 @@
 namespace OmegaEngine
 {
 
-GBufferFillPass::GBufferFillPass(VulkanAPI::VkDriver& driver, RenderGraph& rGraph, Util::String id, RenderableManager& rendManager, EngineConfig& config)
+GBufferFillPass::GBufferFillPass(VulkanAPI::VkDriver& driver, RenderGraph& rGraph, Util::String id, OERenderableManager& rendManager, EngineConfig& config)
     :  RenderStageBase(id),
        driver(driver),
         vkContext(driver.getContext()),
@@ -59,7 +59,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
 	gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
-    OEMaths::colour4 clear = config.findOrInsertVec4("clearValue", Engine::Default_ClearVal);
+    OEMaths::colour4 clear = config.findOrInsertVec4("clearValue", OEEngine::Default_ClearVal);
     builder.setClearColour(clear);
 	builder.setDepthClear(1.0f);
 

@@ -12,18 +12,19 @@
 
 namespace OmegaEngine
 {
-World::World(Engine& engine, VulkanAPI::VkDriver& driver) :
+
+OEWorld::OEWorld(OEEngine& engine, VulkanAPI::VkDriver& driver) :
     engine(engine),
     driver(driver)
 {
 }
 
 
-World::~World()
+OEWorld::~OEWorld()
 {
 }
 
-void World::prepare(Util::String engName)
+void OEWorld::prepare(Util::String engName)
 {
 	// this worlds name, used as a reference
 	name = engName;
@@ -31,14 +32,14 @@ void World::prepare(Util::String engName)
 	// an empty world, so not much to do for now!
 }
 
-Scene* World::createScene()
+OEScene* OEWorld::createScene()
 {
-	auto scene = std::make_unique<Scene>(*this, engine, driver);
+	auto scene = std::make_unique<OEScene>(*this, engine, driver);
 	scenes.emplace_back(std::move(scene));
 	return scenes.back().get();
 }
 
-void World::update(double time, double dt)
+void OEWorld::update(double time, double dt)
 {
 	
 }

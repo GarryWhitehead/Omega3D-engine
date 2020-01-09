@@ -4,15 +4,28 @@
 namespace OmegaEngine
 {
 class MappedTexture;
-    
-class SkyboxInstance
+
+class Skybox
 {
 public:
     
-    SkyboxInstance& setCubeMap(MappedTexture* cm);
-    
-    SkyboxInstance& setBlurFactor(const float bf);
+    class Instance
+    {
+    public:
         
+        Instance& setCubeMap(MappedTexture* cm);
+        Instance& setBlurFactor(const float bf);
+        
+        friend class OEScene;
+        
+    private:
+        
+        MappedTexture* cubeMap = nullptr;
+        float blur = 0.0f;
+    };
+
+    Skybox() = default;
+    
 private:
     
 };

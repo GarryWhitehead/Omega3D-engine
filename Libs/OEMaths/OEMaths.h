@@ -5,15 +5,15 @@
 
 #pragma once
 
-#include "OEMaths/OEMaths_Mat2.h"
-#include "OEMaths/OEMaths_Mat3.h"
-#include "OEMaths/OEMaths_Mat4.h"
-#include "OEMaths/OEMaths_MatN.h"
-#include "OEMaths/OEMaths_Quat.h"
-#include "OEMaths/OEMaths_Vec2.h"
-#include "OEMaths/OEMaths_Vec3.h"
-#include "OEMaths/OEMaths_Vec4.h"
-#include "OEMaths/OEMaths_VecN.h"
+#include "OEMaths_Mat2.h"
+#include "OEMaths_Mat3.h"
+#include "OEMaths_Mat4.h"
+#include "OEMaths_MatN.h"
+#include "OEMaths_Quat.h"
+#include "OEMaths_Vec2.h"
+#include "OEMaths_Vec3.h"
+#include "OEMaths_Vec4.h"
+#include "OEMaths_VecN.h"
 
 #include <assert.h>
 #include <cstdint>

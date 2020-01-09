@@ -1,19 +1,11 @@
 #include "ObjectManager.h"
 
-#include "Types/Object.h"
+#include "Core/ObjectManager.h"
 
 namespace OmegaEngine
 {
 
-ObjectManager::ObjectManager()
-{
-}
-
-ObjectManager::~ObjectManager()
-{
-}
-
-Object* ObjectManager::createObject()
+Object* OEObjectManager::createObject()
 {
 	ObjectId id = 0;
 	if (!freeIds.empty() && freeIds.size() > MINIMUM_FREE_IDS)
@@ -31,7 +23,7 @@ Object* ObjectManager::createObject()
 	return &objects.back();
 }
 
-void ObjectManager::destroyObject(Object& obj)
+void OEObjectManager::destroyObject(Object& obj)
 {
 	size_t count = 0;
 	for (auto& object : objects)

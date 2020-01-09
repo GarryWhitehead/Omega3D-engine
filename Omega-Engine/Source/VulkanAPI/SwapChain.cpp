@@ -4,7 +4,7 @@
 
 #include "VulkanAPI/VkDriver.h"
 
-#include "Types/NativeWindowWrapper.h"
+#include "Types/OEWindowInstance.h"
 
 #include <algorithm>
 
@@ -18,7 +18,7 @@ Swapchain::~Swapchain()
 {
 }
 
-Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::NativeWindowWrapper& window, vk::Instance& instance)
+Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::OEWindowInstance& window, vk::Instance& instance)
 {
     Platform::SurfaceWrapper wrapper{window, instance};
 	return wrapper;

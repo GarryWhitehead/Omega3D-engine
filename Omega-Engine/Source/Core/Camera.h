@@ -1,4 +1,7 @@
 #pragma once
+
+#include "omega-engine/Camera.h"
+
 #include "utility/EventManager.h"
 
 #include "OEMaths/OEMaths.h"
@@ -12,38 +15,10 @@
 namespace OmegaEngine
 {
 
-// classes for event types
-struct MouseButtonEvent : public Event
-{
-};
-
-struct KeyboardPressEvent : public Event
-{
-	bool isMovingLeft = false;
-	bool isMovingRight = false;
-	bool isMovingForward = false;
-	bool isMovingBackward = false;
-};
-
-struct MouseMoveEvent : public Event
-{
-	MouseMoveEvent()
-	{
-	}
-
-	MouseMoveEvent(double x, double y)
-	    : xpos(x)
-	    , ypos(y)
-	{
-	}
-
-	double xpos = 0.0;
-	double ypos = 0.0;
-};
-
-class Camera
+class OECamera : public Camera
 {
 public:
+    
 	enum class MoveDirection
 	{
 		Up,
@@ -75,7 +50,7 @@ public:
 		ThirdPerson
 	};
 
-	Camera() = default;
+	OECamera() = default;
 
 	// ================== getters ====================
 

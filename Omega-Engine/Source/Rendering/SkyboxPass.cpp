@@ -16,7 +16,7 @@
 namespace OmegaEngine
 {
 
-SkyboxPass::SkyboxPass(RenderGraph& rGraph, Util::String id, Skybox& skybox)
+SkyboxPass::SkyboxPass(RenderGraph& rGraph, Util::String id, OESkybox& skybox)
     :   RenderStageBase(id),
         rGraph(rGraph),
         skybox(skybox)
@@ -53,7 +53,7 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 
         cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
         cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
-        cmdBuffer->drawIndexed(Skybox::indicesSize);
+        cmdBuffer->drawIndexed(OESkybox::indicesSize);
     });
     
     return true;

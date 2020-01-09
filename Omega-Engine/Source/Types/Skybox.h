@@ -1,5 +1,7 @@
 #pragma once
 
+#include "omega-engine/Skybox.h"
+
 #include <cstdint>
 
 // vulkan forward declerations
@@ -17,30 +19,15 @@ class IndirectLighting;
 class SkyboxPass;
 class MappedTexture;
 
-class SkyboxInstance
-{
-public:
-    
-    SkyboxInstance& setCubeMap(MappedTexture* cm);
-    SkyboxInstance& setBlurFactor(const float bf);
-    
-    friend class Scene;
-    
-private:
-    
-    MappedTexture* cubeMap = nullptr;
-    float blur = 0.0f;
-};
-
-class Skybox
+class OESkybox : public Skybox
 {
 public:
     
     static constexpr uint32_t indicesSize = 36;
     static constexpr uint32_t verticesSize = 24;
     
-    Skybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur = 0.0f);
-    ~Skybox();
+    OESkybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur = 0.0f);
+    ~OESkybox();
     
     /**
      * @brief Prepares the geomtry required for drawing the skybox and pushes it to the vulkan backend

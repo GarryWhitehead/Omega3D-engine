@@ -10,14 +10,14 @@
 namespace OmegaEngine
 {
 
-SkyboxInstance& SkyboxInstance::setCubeMap(MappedTexture* cm)
+Skybox::Instance& Skybox::Instance::setCubeMap(MappedTexture* cm)
 {
     assert(cm);
     cubeMap = cm;
     return *this;
 }
 
-SkyboxInstance& SkyboxInstance::setBlurFactor(const float bf)
+Skybox::Instance& Skybox::Instance::setBlurFactor(const float bf)
 {
     blur = std::clamp(bf, 0.0f, 1.0f);
     return *this;
@@ -25,18 +25,18 @@ SkyboxInstance& SkyboxInstance::setBlurFactor(const float bf)
 
 // ==============================================================================
 
-Skybox::Skybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur) :
+OESkybox::OESkybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur) :
     driver(driver),
     cubeMap(cm),
     blurFactor(blur)
 {
 }
 
-Skybox::~Skybox()
+OESkybox::~OESkybox()
 {
 }
 
-void Skybox::prepareGeometry()
+void OESkybox::prepareGeometry()
 {
     // cube vertices
     static std::array<OEMaths::vec3f, verticesSize> vertices{

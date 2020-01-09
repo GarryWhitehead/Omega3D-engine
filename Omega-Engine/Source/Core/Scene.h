@@ -1,5 +1,8 @@
 #pragma once
 
+#include "omega-engine/Scene.h"
+#include "omega-engine/Skybox.h"
+
 #include "Core/ObjectManager.h"
 #include "Core/ModelGraph.h"
 
@@ -20,19 +23,19 @@ namespace OmegaEngine
 {
 
 // forward decleartions
-class World;
+class OEWorld;
 class GltfModel;
 class Object;
-class Engine;
-class Camera;
+class OEEngine;
+class OECamera;
 struct TransformInfo;
 class Frustum;
 struct Renderable;
 class LightBase;
-class Skybox;
+class OESkybox;
 class SkyboxInstance;
 
-class Scene
+class OEScene : public Scene
 {
 public:
 	/**
@@ -47,12 +50,12 @@ public:
         OEMaths::mat4f worldTransform;
 	};
 
-	Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver);
-	~Scene();
+	OEScene(OEWorld& world, OEEngine& engine, VulkanAPI::VkDriver& driver);
+	~OEScene();
 
-	// a scene isn't copyable
-	Scene(Scene&) = delete;
-	Scene& operator=(Scene&) = delete;
+	// a OEScene isn't copyable
+	OEScene(OEScene&) = delete;
+	OEScene& operator=(OEScene&) = delete;
 
 	void update();
 
@@ -60,11 +63,11 @@ public:
 
 	void updateCameraBuffer();
 
-	void updateTransformBuffer(std::vector<Scene::VisibleCandidate>& cand, const size_t staticModelCount, const size_t skinnedModelCount);
+	void updateTransformBuffer(std::vector<OEScene::VisibleCandidate>& cand, const size_t staticModelCount, const size_t skinnedModelCount);
 
 	void updateLightBuffer(std::vector<LightBase*> lights);
 
-	Camera* getCurrentCamera();
+	OECamera* getCurrentCamera();
 
 	void getVisibleRenderables(Frustum& frustum, std::vector<VisibleCandidate>& renderables);
 
@@ -74,9 +77,9 @@ public:
     
     // ====== public functions for adding items to the scene ==============
     
-    bool addSkybox(SkyboxInstance& instance);
+    bool addSkybox(Skybox::Instance& instance);
     
-    void addCamera(const Camera camera);
+    void addCamera(const OECamera camera);
     
 	friend class Renderer;
 
@@ -91,14 +94,14 @@ private:
     ModelGraph modelGraph;
     
 	/// Current cameras associated with this scene.
-	std::vector<Camera> cameras;
+	std::vector<OECamera> cameras;
 	uint16_t currCamera = UINT16_MAX;
     
     /// the skybox to be used with this scene. Also used for global illumination
-    std::unique_ptr<Skybox> skybox;
+    std::unique_ptr<OESkybox> skybox;
     
 	/// The world this scene is assocaited with
-	World& world;
-	Engine& engine;
+	OEWorld& world;
+	OEEngine& engine;
 };
 }    // namespace OmegaEngine

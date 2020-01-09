@@ -1,6 +1,11 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
+namespace VulkanAPI
+{
+class VkDriver;
+}
+
 namespace OmegaEngine
 {
 // forward declerartions
@@ -13,10 +18,7 @@ class World
 {
 public:
     
-    World(Engine& engine, VulkanAPI::VkDriver& driver);
-    ~World();
-
-    World() = delete;
+    World() = default;
     
     void update(double time, double dt);
 
@@ -29,6 +31,7 @@ public:
     ObjectManager& getObjManager();
 
 private:
+    
     
 };
 

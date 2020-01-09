@@ -7,7 +7,7 @@
 namespace OmegaEngine
 {
 
-void Camera::update()
+void OECamera::update()
 {
 	if (dir != MoveDirection::None)
 	{
@@ -40,104 +40,104 @@ void Camera::update()
 	}
 }
 
-void Camera::updateViewMatrix()
+void OECamera::updateViewMatrix()
 {
 	OEMaths::vec3f target = position + frontVec;
 	currentView = OEMaths::lookAt(position, target, cameraUp);
 }
 
-void Camera::rotate(float dx, float dy)
+void OECamera::rotate(float dx, float dy)
 {
 }
 
-void Camera::translate(float dx, float dy, float dz)
+void OECamera::translate(float dx, float dy, float dz)
 {
 }
 
-void Camera::updateDirection(const Camera::MoveDirection moveDir)
+void OECamera::updateDirection(const OECamera::MoveDirection moveDir)
 {
 	dir = moveDir;
 }
 
 // =================== getters ===========================
 
-OEMaths::mat4f Camera::getMvpMatrix()
+OEMaths::mat4f OECamera::getMvpMatrix()
 {
 	return currentProj * currentView * currentModel;
 }
 
-float Camera::getZNear() const
+float OECamera::getZNear() const
 {
 	return zNear;
 }
 
-float Camera::getZFar() const
+float OECamera::getZFar() const
 {
 	return zFar;
 }
 
-float Camera::getFov() const
+float OECamera::getFov() const
 {
 	return fov;
 }
 
-OEMaths::vec3f& Camera::getPos()
+OEMaths::vec3f& OECamera::getPos()
 {
 	return position;
 }
 
-OEMaths::mat4f& Camera::getProjMatrix()
+OEMaths::mat4f& OECamera::getProjMatrix()
 {
 	return currentProj;
 }
 
-OEMaths::mat4f& Camera::getViewMatrix()
+OEMaths::mat4f& OECamera::getViewMatrix()
 {
 	return currentView;
 }
 
-OEMaths::mat4f& Camera::getModelMatrix()
+OEMaths::mat4f& OECamera::getModelMatrix()
 {
 	return currentModel;
 }
 
 // ========================= setters =============================
-void Camera::setPerspective()
+void OECamera::setPerspective()
 {
 	currentProj = OEMaths::perspective(fov, aspect, zNear, zFar);
 }
 
-void Camera::setFov(const float camFov)
+void OECamera::setFov(const float camFov)
 {
 	fov = camFov;
 }
 
-void Camera::setZNear(const float zn)
+void OECamera::setZNear(const float zn)
 {
 	zNear = zn;
 }
 
-void Camera::setZFar(const float zf)
+void OECamera::setZFar(const float zf)
 {
 	zFar = zf;
 }
 
-void Camera::setAspect(const float asp)
+void OECamera::setAspect(const float asp)
 {
 	aspect = asp;
 }
 
-void Camera::setVelocity(const float vel)
+void OECamera::setVelocity(const float vel)
 {
 	velocity = vel;
 }
 
-void Camera::setType(const CameraType camType)
+void OECamera::setType(const CameraType camType)
 {
 	type = camType;
 }
 
-void Camera::setPosition(const OEMaths::vec3f& pos)
+void OECamera::setPosition(const OEMaths::vec3f& pos)
 {
 	position = pos;
 }

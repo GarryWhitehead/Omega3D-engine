@@ -1,8 +1,18 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
+#include "omega-engine/Skybox.h"
+
+namespace VulkanAPI
+{
+class VkDriver;
+}
+
 namespace OmegaEngine
 {
+class Engine;
+class World;
+class Camera;
 
 class Scene
 {
@@ -23,9 +33,9 @@ public:
 
     Camera* getCurrentCamera();
     
-    bool addSkybox(SkyboxInstance& instance);
+    bool addSkybox(Skybox::Instance& instance);
     
-    void addCamera(const Camera camera);
+    void addCamera(const Camera& camera);
 
 private:
     

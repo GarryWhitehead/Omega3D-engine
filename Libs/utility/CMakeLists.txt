@@ -9,6 +9,10 @@ TARGET_COMPILE_OPTIONS(UTILITY PRIVATE ${OMEGA_CXX_FLAGS})
 
 # =============== source files =============================
 
+TARGET_INCLUDE_DIRECTORIES(UTILITY PRIVATE
+    ${OELIBRARY_DIR}
+)
+
 TARGET_SOURCES(UTILITY PRIVATE
 	
 	EventManager.cpp EventManager.h

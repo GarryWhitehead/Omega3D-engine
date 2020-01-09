@@ -24,10 +24,12 @@ INCLUDE_DIRECTORIES(Source)
 
 # ================= include targets ====================
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
-    PUBLIC
+    	PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Include
+	${OELIBRARY_DIR}
 
-	${CMAKE_CURRENT_SOURCE_DIR}/Source
+	PRIVATE
+	Source
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/Application
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/Application/Platforms
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/Types
@@ -45,8 +47,7 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/VulkanAPI/Platform
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/VulkanAPI/Compiler
 	${CMAKE_CURRENT_SOURCE_DIR}
-	${OELIBRARY_DIR}
-	PRIVATE
+	
 	${EXTERNAL_DIR}
 	${EXTERNAL_DIR}/cgltf
 	${EXTERNAL_DIR}/vulkan
@@ -60,14 +61,14 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 TARGET_SOURCES(OMEGA_ENGINE 
 	PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Engine.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/GltfModel.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/LightManager.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/RenderableManager.h
-	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/MappedTexture.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Scene.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Skybox.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/World.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Camera.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Application.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/ObjectManager.h
 
 	PRIVATE
 	Source/Application/Application.cpp Source/Application/Application.h
@@ -89,15 +90,6 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Components/LightManager.cpp Source/Components/LightManager.h
 	Source/Components/RenderableManager.cpp Source/Components/RenderableManager.h
 	Source/Components/TransformManager.cpp Source/Components/TransformManager.h
-	
-	Source/Models/Formats/GltfModel.cpp Source/Models/Formats/GltfModel.h
-	Source/Models/Formats/AssimpModel.cpp Source/Models/Formats/AssimpModel.h
-
-	Source/Models/AnimInstance.cpp Source/Models/AnimInstance.h
-	Source/Models/MaterialInstance.cpp Source/Models/MaterialInstance.h 
-	Source/Models/MeshInstance.cpp Source/Models/MeshInstance.h
-	Source/Models/SkinInstance.cpp Source/Models/SkinInstance.h
-	Source/Models/NodeInstance.cpp Source/Models/NodeInstance.h
 
 	Source/Misc/OEMaterials.h
 	Source/Misc/Primitives/Sphere.cpp Source/Misc/Primitives/Sphere.h
@@ -105,10 +97,9 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Misc/Primitives/Cube.cpp Source/Misc/Primitives/Cube.h
 	Source/Misc/Primitives/Quad.cpp Source/Misc/Primitives/Quad.h
 	
-	Source/Types/MappedTexture.cpp Source/Types/MappedTexture.h
 	Source/Types/NativeWindowWrapper.h
 	Source/Types/AABox.h
-    Source/Types/Skybox.cpp Source/Types/Skybox.h
+    	Source/Types/Skybox.cpp Source/Types/Skybox.h
 	
 	Source/PostProcess/PostProcessInterface.cpp Source/PostProcess/PostProcessInterface.h
 	
@@ -158,16 +149,19 @@ TARGET_SOURCES(OMEGA_ENGINE
 
 # ================= linking =======================
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
+	PRIVATE
 	${Vulkan_LIBRARY} 
 	${RAPID_JSON} 
-	${ASSIMP_LIBRARY}
 	glfw 
 	spirv-cross-core
 	shaderc
+
+	PUBLIC
 	OEMATHS
 	IMAGE
 	OETHREAD
 	UTILITY
+	ImageLoader
 )
 
 # run some tests to make sure I haven't broke anything!

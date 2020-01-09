@@ -1,14 +1,16 @@
-
-#include "Application.h"
-
+#include "omega-engine/Application.h"
 #include "omega-engine/Engine.h"
 #include "omega-engine/Skybox.h"
-#include "omega-engine/MappedTexture.h"
 #include "omega-engine/LightManager.h"
 #include "omega-engine/RenderableManager.h"
-#include "omega-engine/GltfModel.h"
+#include "omega-engine/ObjectManager.h"
+#include "omega-engine/Camera.h"
 
 #include "utility/Logger.h"
+
+#include "ModelImporter/Formats/GltfModel.h"
+
+#include "ImageUtils/MappedTexture.h"
 
 #include <memory>
 
@@ -21,7 +23,7 @@ int main(int argc, char* argv[])
 {
 	Application app;
 
-	NativeWindowWrapper window;
+	WindowInstance window;
 	if (!app.init("Omega Engine Test", 1280, 800, window))
 	{
 		LOGGER_ERROR("Unable to initialise application. Exiting.....\n");
@@ -42,7 +44,7 @@ int main(int argc, char* argv[])
 	Scene* scene = world->createScene();
 
 	// create a swapchain for rendering
-	VulkanAPI::Swapchain swapchain = engine.createSwapchain();
+    SwapchainHandle swapchain = engine.createSwapchain(window);
 
 	// Use a gltf image as one of our scene objects
 	GltfModel model;
@@ -61,7 +63,7 @@ int main(int argc, char* argv[])
     for (auto& node : model.getNodes())
     {
         Object* modelObj = objManager.createObject();
-        RenderableInstance instance;
+        RenderableManager::Instance instance;
         MeshInstance* mesh = node.getMesh();
     instance.addMesh(mesh).addNode(&node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
     }
@@ -80,21 +82,22 @@ int main(int argc, char* argv[])
 	scene->addObject(prim);*/
 
 	// create the renderer - using a deffered renderer (only one supported at the moment)
-	Renderer* renderer = engine.createRenderer(swapchain, scene);
+	Renderer* renderer = engine.createRenderer(window, swapchain, scene);
 	
     // load the skybox from disk
     auto envMap = std::make_unique<MappedTexture>();
     envMap->load("skybox/cubemap.ktx");
     
-    SkyboxInstance skybox;
+    Skybox::Instance skybox;
     skybox.setCubeMap(envMap.get()).setBlurFactor(0.5f);
 	scene->addSkybox(skybox);
 
 	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
-    scene->addCamera({});
+    Camera camera;
+    scene->addCamera(camera);
 
 	// add a selection of different style lights to the scene
-    LightInstance sLight, pLight, dLight;
+    LightManager::LightInstance sLight, pLight, dLight;
     sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(engine);
     
     pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(engine);

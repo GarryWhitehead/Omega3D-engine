@@ -5,6 +5,9 @@
 
 #include "GLFW/glfw3native.h"
 
+namespace OmegaEngine
+{
+    
 GlfwPlatform::GlfwPlatform()
 {
 }
@@ -89,19 +92,19 @@ void GlfwPlatform::keyResponse(GLFWwindow* window, int key, int scan_code, int a
 	{
 		if (key == GLFW_KEY_W)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Up);    // forwrards (z-axis)
+			camera->updateDirection(OECamera::MoveDirection::Up);    // forwrards (z-axis)
 		}
 		if (key == GLFW_KEY_S)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Down);    // backwards (z-axis)
+			camera->updateDirection(OECamera::MoveDirection::Down);    // backwards (z-axis)
 		}
 		if (key == GLFW_KEY_A)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Left);    // leftwards movement (x-axis)
+			camera->updateDirection(OECamera::MoveDirection::Left);    // leftwards movement (x-axis)
 		}
 		if (key == GLFW_KEY_D)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::Right);    // rightwards movement (x-axis)
+			camera->updateDirection(OECamera::MoveDirection::Right);    // rightwards movement (x-axis)
 		}
 		break;
 	}
@@ -109,19 +112,19 @@ void GlfwPlatform::keyResponse(GLFWwindow* window, int key, int scan_code, int a
 	{
 		if (key == GLFW_KEY_W)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+			camera->updateDirection(OECamera::MoveDirection::None);
 		}
 		if (key == GLFW_KEY_S)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+			camera->updateDirection(OECamera::MoveDirection::None);
 		}
 		if (key == GLFW_KEY_A)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+			camera->updateDirection(OECamera::MoveDirection::None);
 		}
 		if (key == GLFW_KEY_D)
 		{
-			camera->updateDirection(OmegaEngine::Camera::MoveDirection::None);
+			camera->updateDirection(OECamera::MoveDirection::None);
 		}
 		break;
 	}
@@ -203,7 +206,7 @@ void GlfwPlatform::getCursorPos(GLFWwindow* window, double* xpos, double* ypos)
 	glfwGetCursorPos(window, xpos, ypos);
 }
 
-void GlfwPlatform::setCamera(OmegaEngine::Scene& scene)
+void GlfwPlatform::setCamera(OmegaEngine::OEScene& scene)
 {
 	camera = scene.getCurrentCamera();
 }
@@ -226,4 +229,6 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 {
 	GlfwPlatform* inputSys = reinterpret_cast<GlfwPlatform*>(glfwGetWindowUserPointer(window));
 	inputSys->mouseMoveResponse(xpos, ypos);
+}
+
 }

@@ -1,5 +1,7 @@
 #include "KtxParser.h"
 
+#include <array>
+
 namespace OmegaEngine
 {
 
@@ -16,28 +18,28 @@ KtxReader::~KtxReader()
 	}
 }
 
-vk::Format KtxReader::convertGlToVkFormat(uint32_t internalFormat)
+ImageFormat KtxReader::convertGlToImageFormat(uint32_t internalFormat)
 {
-	vk::Format format = vk::Format::eUndefined;
+    ImageFormat format = ImageFormat::Undefined;
 	switch (internalFormat)
 	{
 	case 15:    // RGB8_ETC2
-		format = vk::Format::eEtc2R8G8B8A8UnormBlock;
+        format = ImageFormat::Etc_RGBA_UnormBlock;
 		break;
 	case 16:
-		format = vk::Format::eEtc2R8G8B8SrgbBlock;
+		format = ImageFormat::Etc_RGBA_SrgbBlock;
 		break;
 	case 19:
-		format = vk::Format::eEtc2R8G8B8A8UnormBlock;
+		format = ImageFormat::Etc_RGB_UnormBlock;
 		break;
 	case 20:
-		format = vk::Format::eEtc2R8G8B8A8SrgbBlock;
+		format = ImageFormat::Etc_RGB_SrgbBlock;
 		break;
 	case 32849:
-		format = vk::Format::eR8G8B8Unorm;
+        format = ImageFormat::RGB_Unorm;
 		break;
 	case 32856:
-		format = vk::Format::eR8G8B8A8Unorm;
+		format = ImageFormat::RGBA_Unorm;
 		break;
 	default:
 		fprintf(stderr, "Undefined glFormat specified.");
@@ -124,7 +126,7 @@ bool KtxReader::parse(const size_t fileSize)
 		return false;
 	}
 
-	vk_format = convertGlToVkFormat(header.glInternalFormat);
+    imageFormat = convertGlToImageFormat(header.glInternalFormat);
 
 	// if mip map level is zero - adjust to one for later
 	if (!header.numberOfMipmapLevels)

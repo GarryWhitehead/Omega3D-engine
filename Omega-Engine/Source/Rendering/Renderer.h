@@ -22,9 +22,9 @@ class CmdBufferManager;
 namespace OmegaEngine
 {
 // forward declerations
-class Scene;
+class OEScene;
 class PostProcessInterface;
-class Engine;
+class OEEngine;
 class RenderGraph;
 class EngineConfig;
 
@@ -73,7 +73,7 @@ public:
 	const std::array<RenderStage, 3> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass,
 		                                                RenderStage::Skybox };
 
-	Renderer(Engine& engine, Scene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
+	Renderer(OEEngine& engine, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
 	~Renderer();
     
 	/**
@@ -112,8 +112,8 @@ private:
 	VulkanAPI::Swapchain& swapchain;
 
 	// locally stored
-	Engine& engine;
-	Scene& scene;
+	OEEngine& engine;
+	OEScene& scene;
     
     EngineConfig& config;
 };

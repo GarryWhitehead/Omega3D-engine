@@ -4,8 +4,8 @@
 
 #include "Core/ObjectManager.h"
 
-#include "Models/SkinInstance.h"
-#include "Models/NodeInstance.h"
+#include "ModelImporter/SkinInstance.h"
+#include "ModelImporter/NodeInstance.h"
 
 #include "utility/Logger.h"
 

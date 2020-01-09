@@ -1,31 +1,31 @@
 #pragma once
 
+#include "omega-engine/Application.h"
+
 #include "Platforms/PlatformGlfw.h"
 
 #include "Types/NativeWindowWrapper.h"
 
 #include <cstdint>
-#include <tuple>
 
 // forward declerations
 namespace OmegaEngine
 {
-class Scene;
-class Renderer;
-}
 
-class Application
+class OEScene;
+class Renderer;
+
+class OEApplication : public Application
 {
     
 public:
     
-    Application();
-    ~Application();
+    OEApplication() = default;
 
-    Application(const Application&) = delete;
-    Application& operator=(const Application&) = delete;
-	Application(Application&&) = delete;
-	Application& operator=(Application&&) = delete;
+    OEApplication(const OEApplication&) = delete;
+    OEApplication& operator=(const OEApplication&) = delete;
+	OEApplication(OEApplication&&) = delete;
+	OEApplication& operator=(OEApplication&&) = delete;
 
     /** 
      * initilaises the window and surface for rendering. Also prepares the vulkan backend.
@@ -35,9 +35,9 @@ public:
      * @return If everything is initialsied successfully, returns a native window pointer
     */
 	bool init(const char* title, uint32_t width, uint32_t height,
-	                       OmegaEngine::NativeWindowWrapper& output);
+	                       OmegaEngine::OEWindowInstance& output);
 
-    void run(OmegaEngine::Scene& scene, OmegaEngine::Renderer& renderer);
+    void run(OEScene& scene, Renderer& renderer);
 
 
 private:
@@ -47,3 +47,5 @@ private:
     // the running state of this app. Set to true by 'esc' keypress or window close
     bool closeApp = false;
 };
+
+}

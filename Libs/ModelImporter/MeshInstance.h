@@ -6,7 +6,7 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "Models/Formats/GltfModel.h"
+#include "ModelImporter/Formats/GltfModel.h"
 #include "Core/Omega_Common.h"
 
 #include "utility/BitsetEnum.h"
@@ -97,7 +97,7 @@ public:
     
 	friend class RenderableManager;
 	friend class GBufferFillPass;
-    friend class Scene;
+    friend class OEScene;
 
 private:
     

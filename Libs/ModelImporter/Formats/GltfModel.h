@@ -90,7 +90,7 @@ public:
     
     std::vector<NodeInstance> getNodes();
     
-	friend class Scene;
+	friend class OEScene;
 
 private:
 

@@ -4,6 +4,8 @@
 
 #include "Components/ComponentManager.h"
 
+#include "omega-engine/LightManager.h"
+
 #include <cstdint>
 #include <vector>
 #include <memory>
@@ -12,47 +14,9 @@ namespace OmegaEngine
 {
 
 // forward declerations
-class World;
+class OEWorld;
 class Shadow;
-class Engine;
-class LightManager;
-
-enum class LightType
-{
-	Spot,
-	Point,
-	Directional,
-    None
-};
-
-class LightInstance
-{
-public:
-    
-    LightInstance& setType(LightType lt);
-    LightInstance& setPosition(const OEMaths::vec3f p);
-    LightInstance& setColour(const OEMaths::colour3 c);
-    LightInstance& setFov(float f);
-    LightInstance& setIntensity(float i);
-    LightInstance& setFallout(float fo);
-    LightInstance& setRadius(float r);
-    
-    void create(Engine& engine);
-    
-    friend class LightManager;
-    
-private:
-    
-    LightType type = LightType::None;
-    OEMaths::vec3f pos;
-    OEMaths::colour3 col = OEMaths::colour3{1.0f};
-    float fov = 90.0f;
-    float intensity = 1000.0f;
-    float fallout = 10.0f;
-    float radius = 20.0f;
-    float scale = 1.0f;
-    float offset = 0.0f;
-};
+class OELightManager;
 
 class LightBase
 {
@@ -80,9 +44,9 @@ public:
     }
     
     friend class Shadow;
-	friend class Scene;
-	friend class LightManager;
-    friend class LightInstance;
+	friend class OEScene;
+	friend class OELightManager;
+    friend class LightManager;
 
 protected:
 
@@ -118,9 +82,9 @@ public:
         LightBase(LightType::Directional)
     {}
     
-	friend class Scene;
-	friend class LightManager;
-    friend class LightInstance;
+	friend class OEScene;
+	friend class OELightManager;
+    friend class LightManager;
 
 private:
 
@@ -134,9 +98,9 @@ public:
         LightBase(LightType::Point)
     {}
     
-	friend class Scene;
-	friend class LightManager;
-    friend class LightInstance;
+	friend class OEScene;
+	friend class OELightManager;
+    friend class LightManager;
 
 private:
 
@@ -152,9 +116,9 @@ public:
         LightBase(LightType::Spot)
     {}
     
-	friend class Scene;
-	friend class LightManager;
-    friend class LightInstance;
+	friend class OEScene;
+	friend class OELightManager;
+    friend class LightManager;
     
 private:
 
@@ -168,7 +132,7 @@ private:
     float outerCone = 0.0f;
 };
 
-class LightManager : public ComponentManager
+class OELightManager : public ComponentManager, public LightManager
 {
 
 public:
@@ -177,8 +141,8 @@ public:
     static constexpr uint32_t MAX_POINT_LIGHTS = 50;
     static constexpr uint32_t MAX_DIR_LIGHTS = 5;
     
-	LightManager();
-	~LightManager();
+	OELightManager();
+	~OELightManager();
 
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);

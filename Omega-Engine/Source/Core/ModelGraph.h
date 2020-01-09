@@ -40,7 +40,7 @@ public:
     bool deleteChildNode(Object* parentObj, Object* childObj);
     bool deleteNode(Object* parentObj);
     
-    friend class Scene;
+    friend class OEScene;
     
 private:
     

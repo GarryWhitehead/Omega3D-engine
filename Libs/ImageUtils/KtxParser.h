@@ -2,8 +2,6 @@
 
 #include "utility/CString.h"
 
-#include "VulkanAPI/Common.h"
-
 #include <stdio.h>
 
 #include <cstdint>
@@ -12,9 +10,21 @@
 namespace OmegaEngine
 {
 
+enum class ImageFormat
+{
+    Etc_RGBA_UnormBlock,
+    Etc_RGBA_SrgbBlock,
+    Etc_RGB_UnormBlock,
+    Etc_RGB_SrgbBlock,
+    RGBA_Unorm,
+    RGB_Unorm,
+    Undefined
+};
+
 class KtxReader
 {
 public:
+    
 	// assuming that compressed and uncompressed images are 4byte aligned
 	constexpr static uint32_t byteAlignment = 4;
 
@@ -66,7 +76,7 @@ public:
 	KtxReader();
 	~KtxReader();
 
-	vk::Format convertGlToVkFormat(uint32_t internalFormat);
+	ImageFormat convertGlToImageFormat(uint32_t internalFormat);
 
 	bool loadFile(Util::String filename);
 	
@@ -105,7 +115,7 @@ private:
 	uint8_t* valuePairData = nullptr;
 
 	// this will be converted from opengl to vulkan
-	vk::Format vk_format;
+	ImageFormat imageFormat;
 
 	// image data for each mip level
 	ImageOutput imageOutput;

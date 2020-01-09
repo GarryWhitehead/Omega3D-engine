@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Threading/ThreadedQueue.h"
+#include "ThreadedQueue.h"
 
 #include <atomic>
 #include <functional>

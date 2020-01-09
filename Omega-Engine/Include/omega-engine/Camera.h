@@ -87,14 +87,6 @@ public:
 	// ============ update functions ========================
 	void update();
 
-	void updateViewMatrix();
-
-	void rotate(float dx, float dy);
-
-	void translate(float dx, float dy, float dz);
-
-	void updateDirection(const MoveDirection dir);
-
 private:
 
 };

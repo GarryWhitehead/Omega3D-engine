@@ -11,9 +11,9 @@
 // forward declerations
 namespace OmegaEngine
 {
-class Scene;
-class Camera;
-}    // namespace OmegaEngine
+class OEScene;
+class OECamera;
+
 
 class GlfwPlatform
 {
@@ -62,7 +62,7 @@ public:
 	bool buttonState(int button);
 	void getCursorPos(GLFWwindow* window, double* xpos, double* ypos);
 
-	void setCamera(OmegaEngine::Scene& scene);
+	void setCamera(OmegaEngine::OEScene& scene);
 
 private:
 	GLFWwindow* window = nullptr;
@@ -77,9 +77,11 @@ private:
 	OEMaths::vec2f mousePos = { 0.0f };
 
 	// a pointer to the current camera held by the scene
-	OmegaEngine::Camera* camera = nullptr;
+	OmegaEngine::OECamera* camera = nullptr;
 };
 
 void keyCallback(GLFWwindow* window, int key, int scan_code, int action, int mode);
 void mouseButtonPressCallback(GLFWwindow* window, int button, int action, int mods);
 void mouseCallback(GLFWwindow* window, double xpos, double ypos);
+
+}    // namespace OmegaEngine

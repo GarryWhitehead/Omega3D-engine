@@ -2,9 +2,10 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "Types/NativeWindowWrapper.h"
-
-using namespace OmegaEngine;
+namespace OmegaEngine
+{
+class OEWindowInstance;
+}
 
 namespace VulkanAPI
 {
@@ -21,7 +22,7 @@ public:
 
     SurfaceWrapper() = default;
     
-    SurfaceWrapper(NativeWindowWrapper& window, vk::Instance& instance);
+    SurfaceWrapper(OmegaEngine::OEWindowInstance& window, vk::Instance& instance);
     
 	uint32_t getWidth() const
 	{

@@ -11,6 +11,11 @@
 
 #include <vector>
 
+namespace OmegaEngine
+{
+class OEWindowInstance;
+}
+
 namespace VulkanAPI
 {
 
@@ -46,7 +51,7 @@ public:
 	* @param window A wrapper containg all the info needed to create a surface and swapchain
 	* @param instance A vulkan instance wrapper obtained from calling **createInstance**
 	*/
-	static Platform::SurfaceWrapper createSurface(OmegaEngine::NativeWindowWrapper& window, vk::Instance& instance);
+	static Platform::SurfaceWrapper createSurface(OmegaEngine::OEWindowInstance& window, vk::Instance& instance);
 
 	/// creates the image views for the swapchain
 	static std::vector<ImageView> prepareImageViews(Swapchain& swapchain, VkContext& context,

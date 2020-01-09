@@ -1,4 +1,4 @@
-#include "utility/EventManager.h"
+#include "EventManager.h"
 
 namespace OmegaEngine
 {

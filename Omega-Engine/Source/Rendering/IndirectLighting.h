@@ -24,7 +24,7 @@ namespace OmegaEngine
 {
 class RenderGraph;
 struct RGraphContext;
-class Skybox;
+class OESkybox;
 
 class IndirectLighting : public RenderStageBase
 {
@@ -41,7 +41,7 @@ public:
 	static constexpr uint32_t specularMapDim = 512;
 	static constexpr uint8_t mipLevels = 5;
 
-	IndirectLighting(RenderGraph& rGraph, Util::String id, Skybox& skybox);
+	IndirectLighting(RenderGraph& rGraph, Util::String id, OESkybox& skybox);
 	~IndirectLighting();
 
 	void calculateCubeTransform(const uint32_t face, const float zNear, const float zFar, OEMaths::mat4f& outputProj,
@@ -49,7 +49,7 @@ public:
     
     bool prepare(VulkanAPI::ProgramManager* manager) override;
     
-	void buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, Skybox& skybox);
+	void buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, OESkybox& skybox);
 
 private:
     
@@ -57,7 +57,7 @@ private:
     RenderGraph& rGraph;
     
     // the skybox to be used for deriving gi information
-    Skybox& skybox;
+    OESkybox& skybox;
 
     struct BdrfInfo
     {

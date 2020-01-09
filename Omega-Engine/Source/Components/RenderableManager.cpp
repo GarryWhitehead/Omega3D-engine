@@ -6,8 +6,8 @@
 
 #include "Components/TransformManager.h"
 
-#include "Models/MaterialInstance.h"
-#include "Models/MeshInstance.h"
+#include "ModelImporter/MaterialInstance.h"
+#include "ModelImporter/MeshInstance.h"
 
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
@@ -26,36 +26,38 @@ namespace OmegaEngine
 // =================================================================================
 // User interface renderable building functions
 
-RenderableInstance& RenderableInstance::addMesh(MeshInstance* instance)
+RenderableManager::Instance& RenderableManager::Instance::addMesh(MeshInstance* instance)
 {
     assert(instance);
     mesh = instance;
     return *this;
 }
 
-RenderableInstance& RenderableInstance::addMaterial(MaterialInstance* instance)
+RenderableManager::Instance& RenderableManager::Instance::addMaterial(MaterialInstance* instance)
 {
     assert(instance);
     mat = instance;
     return *this;
 }
 
-RenderableInstance& RenderableInstance::addSkin(SkinInstance* instance)
+RenderableManager::Instance& RenderableManager::Instance::addSkin(SkinInstance* instance)
 {
     assert(instance);
     skin = instance;
     return *this;
 }
 
-RenderableInstance& RenderableInstance::addNode(NodeInstance* instance)
+RenderableManager::Instance& RenderableManager::Instance::addNode(NodeInstance* instance)
 {
     assert(instance);
     node = instance;
     return *this;
 }
 
-void RenderableInstance::create(Engine& engine, Object* obj)
+void RenderableManager::Instance::create(Engine& engine, Object* obj)
 {
+    OEEngine& oeEngine = reinterpret_cast<OEEngine&>(engine);
+    
     if (!obj)
     {
         LOGGER_WARN("Trying to create a renderable instance though the object is nullptr.");
@@ -69,8 +71,8 @@ void RenderableInstance::create(Engine& engine, Object* obj)
         return;
     }
     
-    RenderableManager& rManager = engine.getRendManager();
-    TransformManager& tManager = engine.getTransManager();
+    OERenderableManager& rManager = oeEngine.getRendManager();
+    TransformManager& tManager = oeEngine.getTransManager();
     
     // we don't have to check whether the material or skin in init, the managers will do that
     rManager.addRenderable(mesh, mat, *obj);
@@ -116,18 +118,18 @@ Material::~Material()
 
 // ===============================================================================================
 
-RenderableManager::RenderableManager(Engine& engine)
+OERenderableManager::OERenderableManager(OEEngine& engine)
     : engine(engine)
 {
 	// for performance purposes
 	renderables.reserve(MESH_INIT_CONTAINER_SIZE);
 }
 
-RenderableManager::~RenderableManager()
+OERenderableManager::~OERenderableManager()
 {
 }
 
-void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset)
+void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset)
 {
 	// copy the vertices and indices into the "mega" buffer
 	input.instance = mesh;
@@ -139,13 +141,13 @@ void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const siz
 	}
 }
 
-void RenderableManager::addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset)
+void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset)
 {
 	size_t idx = addObject(obj);
 	addMesh(input, mesh, idx, offset);
 }
 
-bool RenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
+bool OERenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
 {
 	if (!path.empty())
 	{
@@ -159,7 +161,7 @@ bool RenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
 	return true;
 }
 
-size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
+size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
 {
 	size_t startOffset = materials.size();
 
@@ -184,7 +186,7 @@ size_t RenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
 	return startOffset;
 }
 
-void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj)
+void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj)
 {
 	Renderable newRend;
 
@@ -213,13 +215,13 @@ void RenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat,
 	}
 }
 
-Renderable& RenderableManager::getMesh(const ObjHandle handle)
+Renderable& OERenderableManager::getMesh(const ObjHandle handle)
 {
 	assert(handle > 0 && handle < renderables.size());
 	return renderables[handle];
 }
 
-void RenderableManager::updateBuffers()
+void OERenderableManager::updateBuffers()
 {
 	VulkanAPI::VkDriver& driver = engine.getVkDriver();
 
@@ -239,7 +241,7 @@ void RenderableManager::updateBuffers()
 	}
 }
 
-bool RenderableManager::updateVariants()
+bool OERenderableManager::updateVariants()
 {
 	// parse the shader json file - this will be used by all variants
 	const Util::String mesh_filename = "gbuffer_vert.glsl";
@@ -317,7 +319,7 @@ bool RenderableManager::updateVariants()
     return true;
 }
 
-void RenderableManager::update()
+void OERenderableManager::update()
 {
 	VulkanAPI::VkDriver& driver = engine.getVkDriver();
 

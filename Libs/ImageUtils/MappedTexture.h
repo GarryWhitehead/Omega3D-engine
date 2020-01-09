@@ -5,7 +5,7 @@
 #include "ImageUtils/KtxParser.h"
 #include "ImageUtils/ImageLoader.h"
 
-#include "VulkanAPI/Common.h"
+#include <string>
 
 namespace OmegaEngine
 {
@@ -23,7 +23,7 @@ public:
 	/**
 	* @brief We can just copy a already mapped image to here.
 	*/
-	bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, const vk::Format format);
+	bool mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faceCount, uint32_t arrays, uint32_t mips, uint32_t size, const ImageFormat format);
 
 	/**
 	* @brief Loads a image file and grabs all the required elements.
@@ -40,7 +40,7 @@ public:
         return faceCount == 6;
     }
     
-    friend class RenderableManager;
+    friend class OERenderableManager;
     
 private:
 
@@ -58,7 +58,7 @@ private:
 	uint8_t *buffer = nullptr;
 
 	// vulkan info that is associated with this texture
-	vk::Format format;
+	ImageFormat format;
 };
 
 } // namespace OmegaEngine
