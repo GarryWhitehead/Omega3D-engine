@@ -4,8 +4,7 @@
 
 #include "utility/CString.h"
 
-#include "ModelImporter/Formats/GltfModel.h"
-#include "Core/Omega_Common.h"
+#include "cgltf/cgltf.h"
 
 #include <vector>
 #include <unordered_map>
@@ -35,9 +34,7 @@ public:
      */
 	bool prepare(cgltf_skin& skin, NodeInstance& node);
 
-	friend class TransformManager;
-
-private:
+    // =========================== skinning data (public) =============================================
 
     Util::String name;
     

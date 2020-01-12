@@ -8,14 +8,14 @@
 namespace OmegaEngine
 {
 
-void ModelGraph::addNode(Object* parentObj)
+void ModelGraph::addNode(OEObject* parentObj)
 {
     assert(parentObj);
     Node* node = new Node;
     node->parent = parentObj;
 }
 
-bool ModelGraph::addChildNode(Object* parentObj, Object* childObj)
+bool ModelGraph::addChildNode(OEObject* parentObj, OEObject* childObj)
 {
     if (nodes.empty())
     {
@@ -36,7 +36,7 @@ bool ModelGraph::addChildNode(Object* parentObj, Object* childObj)
     return false;
 }
 
-bool ModelGraph::deleteChildNode(Object* parentObj, Object* childObj)
+bool ModelGraph::deleteChildNode(OEObject* parentObj, OEObject* childObj)
 {
     if (nodes.empty())
     {
@@ -69,7 +69,7 @@ bool ModelGraph::deleteChildNode(Object* parentObj, Object* childObj)
     return false;
 }
 
-bool ModelGraph::deleteNode(Object* parentObj)
+bool ModelGraph::deleteNode(OEObject* parentObj)
 {
     if (nodes.empty())
     {

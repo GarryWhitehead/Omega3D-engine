@@ -3,13 +3,13 @@
 
 #include "utility/CString.h"
 
-#include "ModelImporter/Formats/GltfModel.h"
-#include "Core/Omega_Common.h"
+#include "cgltf/cgltf.h"
 
 #include <vector>
 
 namespace OmegaEngine
 {
+class GltfModel;
 
 class AnimInstance
 {
@@ -31,19 +31,36 @@ public:
 
 	bool prepare(cgltf_animation& anim, GltfModel& model);
 
+	float getStartTime() const
+	{
+		return start;
+	}
+
+	float getEndTime() const
+	{
+		return end;
+	}
+
 private:
     
     Util::String cgltfSamplerToStr(const cgltf_interpolation_type type);
     Util::String cgltfPathTypeToStr(const cgltf_animation_path_type type);
     
-    friend class AnimationManager;
-    
-private:
+public:
+
+	// =================== animation data (public) ===================================
+
 	Util::String name;
-	float start = std::numeric_limits<float>::max();
-	float end = std::numeric_limits<float>::min();
 	std::vector<Sampler> samplers;
 	std::vector<Channel> channels;
+
+private:
+
+	// =================== animation data (private) ===================================
+
+	float start = std::numeric_limits<float>::max();
+	float end = std::numeric_limits<float>::min();
+	
 };
 
 }    // namespace OmegaEngine

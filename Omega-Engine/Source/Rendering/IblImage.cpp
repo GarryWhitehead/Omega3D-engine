@@ -24,7 +24,7 @@ void IblImage::prepareBdrf()
 			for (int c = 0; c < bdrf->sampleCount; c++)
 			{
 				OEMaths::vec2f Xi = hammersley(c, bdrf->sampleCount);
-				OEMaths::vec3f H = importanceSampleGGX(Xi, N, row);
+				OEMaths::vec3f H = importanceSampleGGX(Xi, N, static_cast<float>(row));
 
 				OEMaths::vec3f L = OEMaths::normalise(2.0f * OEMaths::dot(H, V) * H - V);
 
@@ -36,15 +36,15 @@ void IblImage::prepareBdrf()
 				if (NdotL > 0.0f)
 				{
 					// cook-torrance BDRF calculations
-					float G = geometryShlickGGX(NdotV, NdotL, row);
+					float G = geometryShlickGGX(NdotV, NdotL, static_cast<float>(row));
 					float Gvis = (G * HdotV) / (NdotH * NdotV);
 					float Fc = std::pow(1.0 - HdotV, 5.0);
-					lut += OEMaths::vec2f((1.0 - Fc) * Gvis, Fc * Gvis);
+					lut += OEMaths::vec2f((1.0f - Fc) * Gvis, Fc * Gvis);
 				}
 
 				OEMaths::vec2f p = lut / (float)bdrf->sampleCount;
                 Image2DF32::Colour2 finalColour { p.x, p.y };
-                image->writeTexel2D(x, row, finalColour);
+                image->writeTexel2D(static_cast<uint32_t>(x), row, finalColour);
 			}
 		}
 	};
@@ -127,8 +127,8 @@ void IblImage::prepare()
 					mipLevel0 = std::min(mipLevel0, maxLevel);
 					float mipLevel1 = std::min(mipLevel0 + 1, maxLevel);
 
-					CubeImage* cubeImageL0 = cubeMips[mipLevel0];
-					CubeImage* cubeImageL1 = cubeMips[mipLevel1];
+					CubeImage* cubeImageL0 = cubeMips[static_cast<uint64_t>(mipLevel0)];
+					CubeImage* cubeImageL1 = cubeMips[static_cast<uint64_t>(mipLevel1)];
 
 					preFilterCol += cubeImageL0->fetchTrilinear(L, cubeImageL1, mipLevel0) * NdotL;
 					totalWeight += NdotL;

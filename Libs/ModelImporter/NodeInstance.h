@@ -4,8 +4,7 @@
 
 #include "utility/CString.h"
 
-#include "ModelImporter/Formats/GltfModel.h"
-#include "Core/Omega_Common.h"
+#include "cgltf/cgltf.h"
 
 #include <memory>
 #include <unordered_map>
@@ -87,7 +86,7 @@ public:
 	NodeInstance();
 	~NodeInstance();
 
-	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
+	bool prepareNodeHierachy(cgltf_node* node, NodeInfo* newNode, NodeInfo* parent, OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx);
     
 	void prepareTranslation(cgltf_node* node, NodeInfo* newNode);
     
@@ -97,10 +96,7 @@ public:
     
     MeshInstance* getMesh();
     SkinInstance* getSkin();
-    
-	friend class OEScene;
-	friend class TransformManager;
-    friend class GltfModel;
+	NodeInfo* getRootNode();
     
 private:
     

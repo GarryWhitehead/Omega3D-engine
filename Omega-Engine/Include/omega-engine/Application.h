@@ -1,21 +1,27 @@
 #ifndef APPLICATION_HPP
 #define APPLICATION_HPP
 
+#include "omega-engine/Engine.h"
+#include "omega-engine/Scene.h"
+#include "omega-engine/Renderer.h"
+
+#include "utility/Compiler.h"
+
 #include <cstdint>
 
 namespace OmegaEngine
 {
-class Scene;
-class Renderer;
-class OEWindowInstance;
 
 class Application
 {
     
 public:
-    
-    Application();
-    ~Application();
+
+    static Application* create(const char* title, uint32_t width, uint32_t height);
+
+    static void destroy(Application* app);
+
+    Engine* createEngine(WindowInstance* window);
 
     /**
      * initilaises the window and surface for rendering. Also prepares the vulkan backend.
@@ -24,13 +30,15 @@ public:
      * @param height: window height in dpi; if zero will sets window height to fullscreen size
      * @return If everything is initialsied successfully, returns a native window pointer
     */
-    bool init(const char* title, uint32_t width, uint32_t height,
-              OEWindowInstance& output);
+	WindowInstance* init(const char* title, uint32_t width, uint32_t height);
 
-    void run(Scene& scene, Renderer& renderer);
+    void run(Scene* scene, Renderer* renderer);
 
+    WindowInstance* getWindow();
 
-private:
+protected:
+
+    Application() = default;
 
 };
 

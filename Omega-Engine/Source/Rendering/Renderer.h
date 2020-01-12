@@ -1,5 +1,7 @@
 #pragma once
 
+#include "omega-engine/Renderer.h"
+
 #include "Rendering/RenderQueue.h"
 
 #include "utility/CString.h"
@@ -34,20 +36,20 @@ public:
     
     virtual ~RenderStageBase() = default;
     
-	RenderStageBase(Util::String id)
+	RenderStageBase(Util::String id) :
+		passId(id)
 	{
-		passId = id;
 	}
 
 	// ====== abstract functions ========
 	virtual bool prepare(VulkanAPI::ProgramManager* manager) = 0;
-
-protected:
     
-	static Util::String passId;
+protected:
+
+	Util::String passId;
 };
 
-class Renderer
+class OERenderer : public Renderer
 {
 
 public:
@@ -73,8 +75,8 @@ public:
 	const std::array<RenderStage, 3> deferredStages = { RenderStage::GBufferFill, RenderStage::LightingPass,
 		                                                RenderStage::Skybox };
 
-	Renderer(OEEngine& engine, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
-	~Renderer();
+	OERenderer(OEEngine& engine, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
+	~OERenderer();
     
 	/**
      * @brief Creates all render stages needed for the rendering pipeline

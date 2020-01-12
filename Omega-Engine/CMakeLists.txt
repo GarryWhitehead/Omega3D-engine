@@ -13,20 +13,23 @@ IF(WIN32)
 	MESSAGE("Using window32 KHR surface...")
 ENDIF()
 
-IF(ASSETS_DIR)
-	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${ASSETS_DIR}/\")
-	INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
-ELSE()
-	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PRIVATE OMEGA_ASSETS_DIR=\"${CMAKE_SOURCE_DIR}/assets/\")
-ENDIF()
+# Shader and assets path definitions
+TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC OE_SHADER_DIR=\"${SHADER_DIR}/\")
+TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC OE_ASSETS_DIR=\"${ASSETS_DIR}/\")
+INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
 
 INCLUDE_DIRECTORIES(Source)
 
 # ================= include targets ====================
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
-    	PUBLIC
+    PUBLIC
 	${CMAKE_CURRENT_SOURCE_DIR}/Include
 	${OELIBRARY_DIR}
+	${EXTERNAL_DIR}
+	${EXTERNAL_DIR}/vulkan
+	${EXTERNAL_DIR}/rapidjson/include
+	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
+	${EXTERNAL_DIR}/stb
 
 	PRIVATE
 	Source
@@ -47,14 +50,6 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/VulkanAPI/Platform
 	${CMAKE_CURRENT_SOURCE_DIR}/Source/VulkanAPI/Compiler
 	${CMAKE_CURRENT_SOURCE_DIR}
-	
-	${EXTERNAL_DIR}
-	${EXTERNAL_DIR}/cgltf
-	${EXTERNAL_DIR}/vulkan
-	${EXTERNAL_DIR}/tiny-gltf
-	${EXTERNAL_DIR}/rapidjson/include
-	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
-	${EXTERNAL_DIR}/stb
 )
 
 # =============== source files =============================
@@ -69,6 +64,7 @@ TARGET_SOURCES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Camera.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Application.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/ObjectManager.h
+	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Renderer.h
 
 	PRIVATE
 	Source/Application/Application.cpp Source/Application/Application.h
@@ -97,9 +93,9 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Misc/Primitives/Cube.cpp Source/Misc/Primitives/Cube.h
 	Source/Misc/Primitives/Quad.cpp Source/Misc/Primitives/Quad.h
 	
-	Source/Types/NativeWindowWrapper.h
+	Source/Types/NativeWindowWrapper.cpp Source/Types/NativeWindowWrapper.h 
 	Source/Types/AABox.h
-    	Source/Types/Skybox.cpp Source/Types/Skybox.h
+    Source/Types/Skybox.cpp Source/Types/Skybox.h
 	
 	Source/PostProcess/PostProcessInterface.cpp Source/PostProcess/PostProcessInterface.h
 	
@@ -153,15 +149,15 @@ TARGET_LINK_LIBRARIES(OMEGA_ENGINE
 	${Vulkan_LIBRARY} 
 	${RAPID_JSON} 
 	glfw 
-	spirv-cross-core
 	shaderc
+	LUA
 
 	PUBLIC
 	OEMATHS
 	IMAGE
 	OETHREAD
 	UTILITY
-	ImageLoader
+	ModelImporter
 )
 
 # run some tests to make sure I haven't broke anything!

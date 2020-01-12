@@ -11,6 +11,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <cstdint>
 
 #define MINIMUM_FREE_IDS 100
 
@@ -21,42 +22,25 @@ namespace OmegaEngine
 using ObjectId = uint64_t;
 using ObjHandle = uint64_t;
 
-class Object
+class OEObject : public Object
 {
 
 public:
-    Object() = default;
-    ~Object() = default;
+    OEObject() = default;
 
-    Object(const ObjectId id)
-        : id(id)
-    {
-    }
+    OEObject(const ObjectId id);
 
     // operator overloads
-    bool operator==(const Object& obj) const
-    {
-        return id == obj.id;
-    }
+	bool operator==(const OEObject& obj) const;
 
     // helper functions
-    ObjectId getId() const
-    {
-        return id;
-    }
-
-    void setId(const ObjectId objId)
-    {
-        id = objId;
-    }
-
-    inline bool isActive() const
-    {
-        return active;
-    }
+	uint64_t getId() const;
+    void setId(const ObjectId objId);
+    bool isActive() const;
 
 private:
-    ObjectId id;
+
+    uint64_t id;
     bool active = true;
 };
 
@@ -65,7 +49,6 @@ class OEObjectManager : public ObjectManager
 public:
 
 	OEObjectManager() = default;
-	~OEObjectManager();
 
 	// no copying or moving of this manager
 	OEObjectManager(const OEObjectManager&) = delete;
@@ -74,12 +57,12 @@ public:
 	OEObjectManager& operator=(OEObjectManager&&) = delete;
 
 	// object creation functions 
-	Object* createObject();
+	OEObject* createObject();
 	
 	// 
-	void destroyObject(Object &obj);
+	void destroyObject(OEObject* obj);
 
-	std::vector<Object> &getObjectsList()
+	std::vector<OEObject> &getObjectsList()
 	{
 		return objects;
 	}
@@ -90,7 +73,7 @@ private:
 
 	// this is an unordered map so we can quickly find objects based on their id. Saves having to iterate through a vector which
 	// could be costly time-wise
-	std::vector<Object> objects;
+	std::vector<OEObject> objects;
 
 	// ids of objects which has been destroyed and can be re-used
 	std::deque<uint32_t> freeIds;

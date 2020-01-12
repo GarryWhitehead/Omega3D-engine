@@ -24,9 +24,9 @@ TARGET_SOURCES(UTILITY PRIVATE
 	result.h
 	CString.cpp CString.h
 	Timer.h
-    	BitSetEnum.h
+    BitSetEnum.h
 	AlignedAlloc.h
-
+	Compiler.h
 )
 
 TARGET_LINK_LIBRARIES(UTILITY PRIVATE

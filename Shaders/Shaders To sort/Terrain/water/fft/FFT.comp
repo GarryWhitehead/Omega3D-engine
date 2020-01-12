@@ -1,0 +1,125 @@
+#version 450
+
+layout (set = 0, binding = 0, rgba32f) uniform image2D butterflySampler;
+
+layout (binding = 1) buffer ssbo1
+{
+	vec2 pingpong0[];					// dxyz buffer - both input and ouput buffer
+};
+
+layout (binding = 2) buffer ssbo2
+{
+	vec2 pingpong1[];					// dxyz buffer
+};
+
+layout (push_constant) uniform pushConstant
+{
+	float N;
+	float offset;			// the same shader is used for each buffer allowing threaded fft computations
+	float pingpong;
+	float direction;
+	float stage;
+} push;
+
+struct complex
+{
+	float r;
+	float i;
+};
+
+complex cmul(complex c0, complex c1)
+{
+	complex c;
+	c.r = c0.r * c1.r - c0.i * c1.i;
+	c.i = c0.r * c1.i + c0.i * c1.r;
+	return c;
+}
+
+complex cadd(complex c0, complex c1)
+{
+	complex c;
+	c.r = c0.r + c1.r;
+	c.i = c0.i + c1.i;
+	return c;
+}
+
+void processButterfly(ivec2 id, vec4 data)
+{
+	complex H;
+	vec2 p0;
+	vec2 q0;
+	
+	if(push.direction == 0) {			// horizontal butterfly
+		
+		uint index_p0 = uint((id.y * push.N + data.z) + push.offset);
+		uint index_q0 = uint((id.y * push.N + data.w) + push.offset);
+		
+		if(push.pingpong == 0) {
+			
+			p0 = pingpong0[index_p0];
+			q0 = pingpong0[index_q0];
+		}
+		else {
+		
+			p0 = pingpong1[index_p0];
+			q0 = pingpong1[index_q0];
+		}
+	}
+	else if(push.direction == 1) {		// vertical butterfly
+	
+		uint index_p0 = uint((data.z * push.N + id.x) + push.offset);
+		uint index_q0 = uint((data.w * push.N + id.x) + push.offset);
+		
+		if(push.pingpong == 0) {
+		
+			p0 = pingpong0[index_p0];
+			q0 = pingpong0[index_q0];
+		}
+		else {
+	
+			p0 = pingpong1[index_p0];
+			q0 = pingpong1[index_q0];
+		}
+	}
+		
+	complex p = complex(p0.x, p0.y);
+	complex q = complex(q0.x, q0.y);
+	complex w = complex(data.x, data.y);
+		
+	H = cadd(p, cmul(w, q));
+	
+	uint out_index = id.y * uint(push.N) + id.x;
+	
+	if(push.pingpong == 0) {
+	
+		pingpong1[out_index + uint(push.offset)] = vec2(H.r, H.i);
+	}
+	else {
+	
+		pingpong0[out_index + uint(push.offset)] = vec2(H.r, H.i);
+	}
+}
+
+layout (local_size_x = 16, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.y >= push.N || id.x >= push.N)
+		return;
+	
+	if(push.direction == 0) {			// horizontal 
+	
+		vec4 data = imageLoad(butterflySampler, ivec2(push.stage, id.x));
+		processButterfly(id, data);
+	}
+	
+	else if(push.direction == 1) {		// vertical
+	
+		vec4 data = imageLoad(butterflySampler, ivec2(push.stage, id.y));
+		processButterfly(id, data);
+	}
+}
+	
+		
+		

@@ -25,7 +25,7 @@ namespace OmegaEngine
 // forward decleartions
 class OEWorld;
 class GltfModel;
-class Object;
+class OEObject;
 class OEEngine;
 class OECamera;
 struct TransformInfo;
@@ -73,15 +73,15 @@ public:
 
 	void getVisibleLights(Frustum& frustum, std::vector<LightBase*>& renderables);
     
-    VisibleCandidate buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat);
+    VisibleCandidate buildRendCandidate(OEObject* obj, OEMaths::mat4f& worldMat);
     
     // ====== public functions for adding items to the scene ==============
     
-    bool addSkybox(Skybox::Instance& instance);
+    bool addSkybox(Skybox::Instance* instance);
     
-    void addCamera(const OECamera camera);
+    void setCurrentCamera(OECamera* camera);
     
-	friend class Renderer;
+	friend class OERenderer;
 
 private:
 	VulkanAPI::VkDriver& driver;
@@ -93,9 +93,8 @@ private:
     /// will probably become more of a scene graph at some point.
     ModelGraph modelGraph;
     
-	/// Current cameras associated with this scene.
-	std::vector<OECamera> cameras;
-	uint16_t currCamera = UINT16_MAX;
+	/// Current camera used by this scene. The 'world' holds the ownership of the cma
+	OECamera* camera;
     
     /// the skybox to be used with this scene. Also used for global illumination
     std::unique_ptr<OESkybox> skybox;

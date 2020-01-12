@@ -81,7 +81,7 @@ void EngineConfig::insertVec(std::string name, const float values[], uint32_t si
 
 OEMaths::vec2f EngineConfig::findOrInsertVec2(std::string name, const float defaultVec[])
 {
-    size_t size = sizeof(*defaultVec) / sizeof(float);
+    uint32_t size = sizeof(*defaultVec) / sizeof(float);
     assert(size == 2);
     
     auto iter = configs.find(name);
@@ -99,7 +99,7 @@ OEMaths::vec2f EngineConfig::findOrInsertVec2(std::string name, const float defa
 
 OEMaths::vec3f EngineConfig::findOrInsertVec3(std::string name, const float defaultVec[])
 {
-    size_t size = sizeof(*defaultVec) / sizeof(float);
+    uint32_t size = sizeof(*defaultVec) / sizeof(float);
     assert(size == 3);
     
     auto iter = configs.find(name);
@@ -117,7 +117,7 @@ OEMaths::vec3f EngineConfig::findOrInsertVec3(std::string name, const float defa
 
 OEMaths::vec4f EngineConfig::findOrInsertVec4(std::string name, const float defaultVec[])
 {
-    size_t size = sizeof(*defaultVec) / sizeof(float);
+    uint32_t size = sizeof(*defaultVec) / sizeof(float);
     assert(size == 4);
     
     auto iter = configs.find(name);

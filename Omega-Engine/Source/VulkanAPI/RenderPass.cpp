@@ -234,6 +234,7 @@ bool RenderPass::addSubPass(std::vector<uint32_t>& reqInputRefs, std::vector<uin
 	}
 
 	subpasses.emplace_back(subpass);
+	return true;
 }
 
 void RenderPass::addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags)

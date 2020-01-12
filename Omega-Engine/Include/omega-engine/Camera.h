@@ -1,11 +1,13 @@
 #pragma once
 
+#include "utility/Compiler.h"
+
 #include "OEMaths/OEMaths.h"
 
 namespace OmegaEngine
 {
 
-class Camera
+class OE_PUBLIC Camera
 {
 public:
 

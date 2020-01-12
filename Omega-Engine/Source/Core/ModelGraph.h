@@ -9,7 +9,7 @@ namespace OmegaEngine
 {
 
 // forward declerations
-class Object;
+class OEObject;
 
 class ModelGraph
 {
@@ -29,16 +29,16 @@ public:
     
     struct Node
     {
-        Object* parent = nullptr;
-        std::vector<Object*> children;
+        OEObject* parent = nullptr;
+        std::vector<OEObject*> children;
         
         Transform world;
     };
     
-    void addNode(Object* parentObj);
-    bool addChildNode(Object* parentObj, Object* childObj);
-    bool deleteChildNode(Object* parentObj, Object* childObj);
-    bool deleteNode(Object* parentObj);
+    void addNode(OEObject* parentObj);
+    bool addChildNode(OEObject* parentObj, OEObject* childObj);
+    bool deleteChildNode(OEObject* parentObj, OEObject* childObj);
+    bool deleteNode(OEObject* parentObj);
     
     friend class OEScene;
     

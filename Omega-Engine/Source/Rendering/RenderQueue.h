@@ -106,7 +106,7 @@ public:
 		return partSizes[part];
 	}
 
-	friend class Renderer;
+	friend class OERenderer;
 
 private:
 	// the offset/size for each partition

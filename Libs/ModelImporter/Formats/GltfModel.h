@@ -1,5 +1,11 @@
 #pragma once
 
+#include "ModelImporter/AnimInstance.h"
+#include "ModelImporter/MaterialInstance.h"
+#include "ModelImporter/MeshInstance.h"
+#include "ModelImporter/NodeInstance.h"
+#include "ModelImporter/SkinInstance.h"
+
 #include "utility/CString.h"
 
 #include "OEMaths/OEMaths.h"
@@ -46,7 +52,7 @@ public:
 	GltfModel();
 
 	/// atributes
-	static void getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride);
+	static uint8_t* getAttributeData(const cgltf_attribute* attrib, size_t& stride);
 
 	/**
 	* @ loads a specified gltf file
@@ -88,20 +94,19 @@ public:
 	*/
 	GltfModel& setWorldRotation(const OEMaths::quatf rot);
     
-    std::vector<NodeInstance> getNodes();
-    
-	friend class OEScene;
+	void setDirectory(Util::String dir);
 
 private:
 
 	void lineariseRecursive(cgltf_node& node, size_t index);
 	void lineariseNodes(cgltf_data* data);
 
-private:
 
-	cgltf_data* gltfData = nullptr;
+public:
 
-	std::vector<NodeInstance> nodes;
+	// ======================= model data (public) =======================================
+
+	std::vector<std::unique_ptr<NodeInstance>> nodes;
 
 	// materials and image paths pulled out of the nodes.
 	std::vector<MaterialInstance> materials;
@@ -110,6 +115,12 @@ private:
 	std::vector<SkinInstance> skins;
 
 	std::vector<AnimInstance> animations;
+
+private:
+
+	// ======================= model data (private) =======================================
+
+	cgltf_data* gltfData = nullptr;
 
 	// linearised nodes - with the name updated to store an id
     // for linking to our own node hierachy
@@ -122,6 +133,9 @@ private:
 	OEMaths::vec3f wTrans;
 	OEMaths::vec3f wScale = OEMaths::vec3f{1.0f};
 	OEMaths::quatf wRotation;
+
+	// user defined path to the model directory
+	Util::String modelDir;
 };
 
 }    // namespace OmegaEngine

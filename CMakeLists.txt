@@ -44,15 +44,16 @@ SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/CMake")
 # root cmake directory
 SET(OMEGA_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 
+# external directory path
+SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/External)
+
 # paths to shader c and spirv-headers
-SET(SHADERC_THIRD_PARTY_ROOT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external" CACHE STRING "Path to external folder" FORCE)
-SET(SPIRV-Headers_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/external/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")
+SET(SHADERC_THIRD_PARTY_ROOT_DIR "${EXTERNAL_DIR}" CACHE STRING "Path to external folder" FORCE)
+SET(SPIRV-Headers_SOURCE_DIR "${EXTERNAL_DIR}/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")
 
 # optional path for assets directory
-SET(ASSETS_DIR "" CACHE PATH "Path to assets directory location. Leave empty for default location.")
-
-# external directory path
-SET(EXTERNAL_DIR ${CMAKE_CURRENT_SOURCE_DIR}/external)
+SET(ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Assets CACHE PATH "Path to assets directory location.")
+SET(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
 
 # Omega engine library public include headers
 #SET(INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Omega-Engine/Include)

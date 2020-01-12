@@ -24,7 +24,6 @@ class Renderer;
 class OEScene;
 class EngineConfig;
 class OEWindowInstance;
-class SwaphchainHandle;
 
 class OEEngine : public Engine
 {
@@ -42,18 +41,18 @@ public:
 	* Note: Only one vulkan device is allowed. Multiple devices supporting multi-gpu
 	* setups is not yet supported
 	*/
-	bool init(OEWindowInstance& window);
+	bool init(OEWindowInstance* window);
 
 	/**
 	* @brief This creates a new swapchain instance based upon the platform-specific
 	* ntaive window pointer created by the application
 	*/
-    SwaphchainHandle createSwapchain(OEWindowInstance& window);
-
+	SwapchainHandle createSwapchain(OEWindowInstance* window);
+	
 	/**
 	* @brief Creates a new renderer instance based on the user specified swapchain and scene
 	*/
-    Renderer* createRenderer(OEWindowInstance& window, SwaphchainHandle& handle, OEScene* scene);
+	Renderer* createRenderer(SwapchainHandle& handle, OEScene* scene);
 
 	/**
 	* @ brief Creates a new world object. This object is stored by the engine allowing
@@ -68,8 +67,8 @@ public:
 
 	// =========== manager getters ===================
 	AnimationManager& getAnimManager();
-	OELightManager& getLightManager();
-	OERenderableManager& getRendManager();
+	OELightManager* getLightManager();
+	OERenderableManager* getRendManager();
 	TransformManager& getTransManager();
 
 private:
@@ -89,13 +88,16 @@ private:
     
     VulkanAPI::Platform::SurfaceWrapper surface;
     
+	// keep a list of active swapchains here
+	std::vector<std::unique_ptr<VulkanAPI::Swapchain>> swapchains;
+
 	// All the managers that are required to deal with each of the component types
 	// managers are under control of the engine as this allows multiple worlds to use the same 
 	// resources from the managers
-	AnimationManager* animManager = nullptr;
-	OELightManager* lightManager = nullptr;
-	OERenderableManager* rendManager = nullptr;
-	TransformManager* transManager = nullptr;
+	std::unique_ptr<AnimationManager> animManager;
+	std::unique_ptr<OELightManager> lightManager = nullptr;
+	std::unique_ptr<OERenderableManager> rendManager = nullptr;
+	std::unique_ptr<TransformManager> transManager = nullptr;
 };
 
 }    // namespace OmegaEngine

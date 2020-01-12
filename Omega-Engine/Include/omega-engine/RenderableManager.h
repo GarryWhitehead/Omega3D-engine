@@ -1,6 +1,8 @@
 #ifndef RENDERABLEMANAGER_HPP
 #define RENDERABLEMANAGER_HPP
 
+#include "utility/Compiler.h"
+
 namespace OmegaEngine
 {
    
@@ -14,7 +16,7 @@ class Engine;
 /**
  * @brief The user interface for passing models to the manager.
  */
-class RenderableManager
+class OE_PUBLIC RenderableManager
 {
 public:
     
@@ -25,7 +27,7 @@ public:
     {
     public:
         
-        Instance();
+        Instance() = default;
         
         Instance& addMesh(MeshInstance* instance);
         Instance& addMaterial(MaterialInstance* instance);

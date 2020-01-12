@@ -1,6 +1,6 @@
 #include "MaterialInstance.h"
 
-#include "Models/Formats/GltfModel.h"
+#include "Formats/GltfModel.h"
 
 namespace OmegaEngine
 {
@@ -37,7 +37,7 @@ Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 	if (view.texture && view.texture->image)
 	{
 		// also set variant bit
-		return view.texture->image->uri;
+		return Util::String{ view.texture->image->uri };
 	}
 	return "";
 }
@@ -50,7 +50,7 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 	{
 		usingSpecularGlossiness = true;
 
-        texturePaths[TextureGroup::TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
+        texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
 		block.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
         
         auto* df = mat.pbr_specular_glossiness.diffuse_factor;
@@ -62,8 +62,8 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 	{
 		usingSpecularGlossiness = false;
 
-        texturePaths[TextureGroup::TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
-        texturePaths[TextureGroup::TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
+        texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
+        texturePaths[TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
 		block.roughness = mat.pbr_metallic_roughness.roughness_factor;
 		block.metallic = mat.pbr_metallic_roughness.metallic_factor;
         
@@ -72,13 +72,13 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 	}
 
 	// normal texture
-    texturePaths[TextureGroup::TextureType::Normal] = getTextureUri(mat.normal_texture);
+    texturePaths[TextureType::Normal] = getTextureUri(mat.normal_texture);
 
 	// occlusion texture
-    texturePaths[TextureGroup::TextureType::Occlusion] = getTextureUri(mat.occlusion_texture);
+    texturePaths[TextureType::Occlusion] = getTextureUri(mat.occlusion_texture);
 
 	// emissive texture
-    texturePaths[TextureGroup::TextureType::Emissive] = getTextureUri(mat.emissive_texture);
+    texturePaths[TextureType::Emissive] = getTextureUri(mat.emissive_texture);
 	
 	// emissive factor
     auto* ef = mat.emissive_factor;
@@ -103,7 +103,9 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 
 bool MaterialInstance::prepare(aiMaterial* mat)
 {
-    mat->Get(AI_MATKEY_NAME, this->name);
+    // TODO!!
+
+    /*mat->Get(AI_MATKEY_NAME, this->name.c_str());
     
     // factors
     aiColor4D ambient;
@@ -127,16 +129,16 @@ bool MaterialInstance::prepare(aiMaterial* mat)
     // textures
     aiString diffusePath;
     mat->GetTexture(aiTextureType_DIFFUSE, 0, &diffusePath);
-    texturePaths[TextureGroup::TextureType::BaseColour] = diffusePath.C_Str();
+    texturePaths[TextureType::BaseColour] = diffusePath.C_Str();
     
     aiString normalPath;
     mat->GetTexture(aiTextureType_NORMALS, 0, &normalPath);
-    texturePaths[TextureGroup::TextureType::Normal] = normalPath.C_Str();
+    texturePaths[TextureType::Normal] = normalPath.C_Str();
     
     aiString emissivePath;
     mat->GetTexture(aiTextureType_EMISSIVE, 0, &emissivePath);
-    texturePaths[TextureGroup::TextureType::Emissive] = emissivePath.C_Str();
-    
+    texturePaths[TextureType::Emissive] = emissivePath.C_Str();
+    */
     return true;
 }
 

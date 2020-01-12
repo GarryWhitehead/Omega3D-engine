@@ -1,6 +1,8 @@
 #include "AnimInstance.h"
 
-#include "Models/NodeInstance.h"
+#include "Formats/GltfModel.h"
+
+#include "NodeInstance.h"
 
 #include "utility/Logger.h"
 

@@ -15,6 +15,8 @@
 
 #include "Components/ComponentManager.h"
 
+#include "ModelImporter/MaterialInstance.h"
+
 #include <memory>
 #include <unordered_map>
 
@@ -33,12 +35,11 @@ namespace OmegaEngine
 {
 // forard decleartions
 class OEWorld;
-class Object;
+class OEObject;
 class OEEngine;
 class RenderStateBlock;
 class MappedTexture;
 class MeshInstance;
-class MaterialInstance;
 class SkinInstance;
 class NodeInstance;
 
@@ -49,34 +50,16 @@ class NodeInstance;
 	*/
 struct TextureGroup
 {
-	enum TextureType : size_t
-	{
-		BaseColour,
-		Emissive,
-		MetallicRoughness,
-		Normal,
-		Occlusion,
-		Count
-	};
-
 	TextureGroup() = default;
 
 	~TextureGroup()
 	{
-		for (size_t i = 0; i < TextureType::Count; ++i)
-		{
-			if (textures[i])
-			{
-				delete textures[i];
-				textures[i] = nullptr;
-			}
-		}
 	}
 
 	static Util::String texTypeToStr(const int type);
     
     // A texture for each pbr type
-	MappedTexture* textures[TextureType::Count];
+	MappedTexture* textures[MaterialInstance::TextureType::Count];
     
     // keep track of the material id these textures are associated with
     Util::String matName;
@@ -171,7 +154,7 @@ public:
 	* @brief The main call here - adds a renderable consisting of mesh, and not
 	* always, material and texture data. This function adds a number of materials if required
 	*/
-	void addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj);
+	void addRenderable(MeshInstance* mesh, MaterialInstance* mat, OEObject& obj);
 
 	// === mesh related functions ===
 	/**
@@ -187,7 +170,7 @@ public:
 	* @breif Adds a mesh - use this overload when you want to add multiple meshes
 	* linked with the same material group. 
 	*/
-	void addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset);
+	void addMesh(Renderable& input, MeshInstance* mesh, OEObject& obj, const size_t offset);
 
 	/**
      * @brief Returns a instance of a mesh based on the specified object

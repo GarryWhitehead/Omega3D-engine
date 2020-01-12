@@ -1,12 +1,9 @@
 #ifndef SCENE_HPP
 #define SCENE_HPP
 
-#include "omega-engine/Skybox.h"
+#include "utility/Compiler.h"
 
-namespace VulkanAPI
-{
-class VkDriver;
-}
+#include "omega-engine/Skybox.h"
 
 namespace OmegaEngine
 {
@@ -14,14 +11,11 @@ class Engine;
 class World;
 class Camera;
 
-class Scene
+class OE_PUBLIC Scene
 {
 public:
-
-    Scene() = delete;
     
-    Scene(World& world, Engine& engine, VulkanAPI::VkDriver& driver);
-    ~Scene();
+    Scene() = default;
 
     // a scene isn't copyable
     Scene(Scene&) = delete;
@@ -33,9 +27,9 @@ public:
 
     Camera* getCurrentCamera();
     
-    bool addSkybox(Skybox::Instance& instance);
+    bool addSkybox(Skybox::Instance* instance);
     
-    void addCamera(const Camera& camera);
+    void addCamera(const Camera* camera);
 
 private:
     

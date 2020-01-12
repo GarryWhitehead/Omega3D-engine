@@ -88,6 +88,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\ModelImporter\ModelImporter.vcxproj">
+      <Project>{0F087C95-9932-3506-90EC-6F11BD0FF81A}</Project>
+      <Name>ModelImporter</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\Libs\OEMaths\OEMATHS.vcxproj">
       <Project>{A6A55EBE-480F-3287-AD4E-52734DC465B1}</Project>
       <Name>OEMATHS</Name>

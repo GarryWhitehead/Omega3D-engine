@@ -7,7 +7,7 @@
 
 namespace OmegaEngine
 {
-    
+
 GlfwPlatform::GlfwPlatform()
 {
 }
@@ -171,7 +171,7 @@ void GlfwPlatform::mouseMoveResponse(double xpos, double ypos)
 	float dx = mousePos.x - static_cast<float>(xpos);
 	float dy = mousePos.y - static_cast<float>(ypos);
 
-	mousePos = OEMaths::vec2f{ static_cast<float>(xpos),  static_cast<float>(ypos) };
+	mousePos = OEMaths::vec2f{ static_cast<float>(xpos), static_cast<float>(ypos) };
 
 	if (leftMousePress)
 	{
@@ -231,4 +231,4 @@ void mouseCallback(GLFWwindow* window, double xpos, double ypos)
 	inputSys->mouseMoveResponse(xpos, ypos);
 }
 
-}
+}    // namespace OmegaEngine

@@ -17,8 +17,8 @@ public:
 	String(const String& str);
 	String& operator=(const String& str);
 
-	String(String&& str);
-	String& operator=(String&& str);
+	String(String&& str) noexcept;
+	String& operator=(String&& str) noexcept;
     
     size_t operator()(const String& str) const;
 	~String();
@@ -76,7 +76,7 @@ public:
         }
         else if constexpr (std::is_same_v<T, uint64_t>)
         {
-           sprintf(result, "%ul", value);
+           sprintf(result, "%i", value);
         }
         return String{result};
     }

@@ -16,7 +16,7 @@ inline OEMaths::vec2f hammersley(uint64_t i, uint64_t N)
     bits = ((bits & 0x33333333u) << 2u) | ((bits & 0xCCCCCCCCu) >> 2u);
     bits = ((bits & 0x0F0F0F0Fu) << 4u) | ((bits & 0xF0F0F0F0u) >> 4u);
     bits = ((bits & 0x00FF00FFu) << 8u) | ((bits & 0xFF00FF00u) >> 8u);
-    float rad = float(bits) * 2.3283064365386963e-10;    // 0x100000000
+    float rad = float(bits) * 2.3283064365386963e-10f;    // 0x100000000
     return OEMaths::vec2f(float(i) / float(N), rad);
 }
 
@@ -24,7 +24,7 @@ inline OEMaths::vec3f importanceSampleGGX(OEMaths::vec2f Xi, OEMaths::vec3f N, f
 {
     float a = roughness * roughness;
 
-    float phi = 2.0 * M_PI * Xi.x;
+    float phi = 2.0f * M_PI * Xi.x;
     float cosTheta = sqrt((1.0f - Xi.y) / (1.0f + (a * a - 1.0f) * Xi.y));
     float sinTheta = sqrt(1.0f - cosTheta * cosTheta);
 

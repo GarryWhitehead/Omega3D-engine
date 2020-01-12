@@ -22,21 +22,6 @@ class IndexBuffer;
 class Swapchain;
 
 /**
-* @brief A wrapper for a vulkan instance
-*/
-class Instance
-{
-public:
-    
-	// no copying allowed!
-	Instance(const Instance&) = delete;
-	Instance& operator=(const Instance&) = delete;
-
-private:
-	vk::Instance instance;
-};
-
-/**
  * @brief Resources are hashed using the data pointer as this will be unique for each resource
  */
 namespace VkHash
@@ -100,8 +85,10 @@ public:
 	VkDriver();
 	~VkDriver();
 
+	bool createInstance(const char** instanceExt, uint32_t count);
+
 	/// initialises the vulkan driver - includes creating the abstract device, physical device, queues, etc.
-	bool init(const char** instanceExt, uint32_t count, const vk::SurfaceKHR surface);
+	bool init(const vk::SurfaceKHR surface);
 
 	/// Make sure you call this before closing down the engine!
 	void shutdown();
@@ -164,6 +151,7 @@ public:
 	void endFrame(Swapchain& swapchain);
 
 	// ====== manager helper functions ===================================
+
 	CmdBufferManager& getCbManager()
 	{
 		return *cbManager;
@@ -209,7 +197,7 @@ private:
     // The current present KHR frame image index
     uint32_t imageIndex;
     vk::Semaphore beginSemaphore;
-    
+  
 };
 
 }    // namespace VulkanAPI

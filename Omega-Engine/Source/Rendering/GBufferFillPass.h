@@ -18,7 +18,7 @@ namespace OmegaEngine
 {
 // forward declerations
 class Renderer;
-class RenderableManager;
+class OERenderableManager;
 class EngineConfig;
 
 class GBufferFillPass : public RenderStageBase
@@ -47,7 +47,7 @@ public:
 		} attach;
 	};
 
-	GBufferFillPass(VulkanAPI::VkDriver& vkDriver, RenderGraph& rGraph, Util::String id, RenderableManager& rendManager, EngineConfig& config);
+	GBufferFillPass(VulkanAPI::VkDriver& vkDriver, RenderGraph& rGraph, Util::String id, OERenderableManager& rendManager, EngineConfig& config);
 
 	// no copying
 	GBufferFillPass(const GBufferFillPass&) = delete;
@@ -71,7 +71,7 @@ private:
 
 	// the gbuffer uses data from the renderable manager, namely materials.
 	// other vertex data will be from the render queue, considering visibility
-	RenderableManager& rendManager;
+	OERenderableManager& rendManager;
     
     EngineConfig& config;
     

@@ -15,15 +15,13 @@ class VkContext;
     /**
  * Compiles a parsed shder json file into data ready for inputting into the renderer
  */
-    class ShaderCompiler
+class ShaderCompiler
 {
 public:
 	ShaderCompiler(ShaderProgram& program, VkContext& context);
 	~ShaderCompiler();
 
 	bool compile(ShaderParser& parser);
-
-	bool compileStage(ShaderDescriptor* shader);
 
 private:
 	void prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);

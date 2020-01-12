@@ -13,7 +13,7 @@ namespace OmegaEngine
 	*/
 struct ObjHash
 {
-	size_t operator()(Object const& id) const noexcept
+	size_t operator()(const OEObject& id) const
 	{
 		return std::hash<uint64_t>{}(id.getId());
 	}
@@ -21,7 +21,7 @@ struct ObjHash
 
 struct ObjEqual
 {
-	bool operator()(const Object& lhs, const Object& rhs) const
+	bool operator()(const OEObject& lhs, const OEObject& rhs) const
 	{
 		return lhs.getId() == rhs.getId();
 	}
@@ -45,7 +45,7 @@ public:
 	* This will either be a new slot or an already created one if any
 	* have been freed
 	*/
-	size_t addObject(Object& obj)
+	size_t addObject(OEObject& obj)
 	{
 		size_t retIdx;
 
@@ -69,7 +69,7 @@ public:
 	* @brief Returns an objects index value if found 
 	* Note: returns zero if not found 
 	*/
-	size_t getObjIndex(Object& obj)
+	size_t getObjIndex(OEObject& obj)
 	{
 		auto iter = objects.find(obj);
 		if (iter == objects.end())
@@ -83,7 +83,7 @@ public:
 	* @brief Removes an object from the manager and adds its slot index to
 	* to the freed list for reuse.
 	*/
-	bool removeObject(Object& obj)
+	bool removeObject(OEObject& obj)
 	{
 		auto iter = objects.find(obj);
 		if (iter == objects.end())
@@ -98,7 +98,7 @@ public:
 
 protected:
 	// the objects which contain this component and their index location
-	std::unordered_map<Object, size_t, ObjHash, ObjEqual> objects;
+	std::unordered_map<OEObject, size_t, ObjHash, ObjEqual> objects;
 
 	// free buffer indices from destroyed objects.
 	// rather than resize buffers which will be slow, empty slots in manager containers

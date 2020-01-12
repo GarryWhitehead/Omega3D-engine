@@ -61,12 +61,6 @@ public:
 
 	// dynamic bindings
 	void setDepthBias(float biasConstant, float biasClamp, float biasSlope);
-
-	/**
-	* @brief Executes all secondary command buffers associated with the primary one
-	* @param count If non-zero, the number of buffers to execute. Otherwise if zero, all buffers will be executed
-	*/
-	void executeSecondary(size_t count = 0);
     
     /**
      * @brief Flushes the queue that this cmd buffer is associated with.
@@ -80,8 +74,8 @@ public:
                        vk::Fence& fence);
     
 	// drawing functions
-	void drawIndexed(size_t indexCount);
-    void drawIndexed(size_t indexCount, size_t offset);
+	void drawIndexed(uint32_t indexCount);
+    void drawIndexed(uint32_t indexCount, int32_t offset);
 	void drawQuad();
 
 	// helper funcs

@@ -186,8 +186,7 @@ bool VkContext::createInstance(const char** glfwExtension, uint32_t extCount)
 	}
 	else
 	{
-		LOGGER_INFO("Unable to find validation standard layers.");
-		return false;
+		LOGGER_WARN("Unable to find validation standard layers.");
 	}
 #endif
     

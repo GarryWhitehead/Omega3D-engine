@@ -28,6 +28,8 @@ public:
 		bool hasDebugUtils = false;
 	};
 
+	VkContext() = default;
+
 	static bool findExtensionProperties(const char* name, std::vector<vk::ExtensionProperties>& properties);
 
 	bool prepareExtensions(std::vector<const char*>& extensions, uint32_t extCount, std::vector<vk::ExtensionProperties>& extensionProps);

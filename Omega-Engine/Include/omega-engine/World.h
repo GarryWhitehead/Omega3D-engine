@@ -1,26 +1,22 @@
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-namespace VulkanAPI
-{
-class VkDriver;
-}
+#include "utility/Compiler.h"
 
 namespace OmegaEngine
 {
 // forward declerartions
 class Scene;
-class Object;
 class ObjectManager;
-class Engine;
+class Camera;
 
-class World
+class OE_PUBLIC World
 {
 public:
     
     World() = default;
     
-    void update(double time, double dt);
+    //void update(double time, double dt);
 
     /**
     * @brief creates a new empty scene. This will be passed to the renderer for presentation.
@@ -28,7 +24,9 @@ public:
     */
     Scene* createScene();
 
-    ObjectManager& getObjManager();
+    ObjectManager* getObjManager();
+
+    Camera* createCamera();
 
 private:
     

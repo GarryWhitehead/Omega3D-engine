@@ -23,9 +23,9 @@ TransformManager::~TransformManager()
 {
 }
 
-bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin)
+bool TransformManager::addNodeHierachy(NodeInstance& node, OEObject& obj, SkinInstance* skin)
 {
-	if (!node.rootNode)
+	if (!node.getRootNode())
 	{
 		LOGGER_ERROR("Trying to add a root node that is null.\n");
 		return false;
@@ -38,7 +38,7 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, Object& obj, SkinInst
     skins.emplace_back(*skin);
 
     TransformInfo info;
-    info.root = std::move(node.rootNode);
+    info.root = std::move(node.getRootNode());
     info.skinOffset = skinIdx;
 
 	// request a slot for this object
@@ -135,26 +135,26 @@ void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tra
 	}
 }
 
-void TransformManager::updateModel(Object& obj)
+void TransformManager::updateModel(OEObject& obj)
 {
 	size_t idx = getObjIndex(obj);
 	TransformInfo& info = nodes[idx];
 	updateModelTransform(info.root->parent, info);
 }
 
-void TransformManager::updateObjectTranslation(Object& obj, const OEMaths::vec3f& trans)
+void TransformManager::updateObjectTranslation(OEObject& obj, const OEMaths::vec3f& trans)
 {
 	size_t idx = getObjIndex(obj);
 	nodes[idx].root->translation = OEMaths::vec3f{ trans.x, trans.y, trans.z };
 }
 
-void TransformManager::updateObjectScale(Object& obj, const OEMaths::vec3f& scale)
+void TransformManager::updateObjectScale(OEObject& obj, const OEMaths::vec3f& scale)
 {
 	size_t idx = getObjIndex(obj);
 	nodes[idx].root->scale = OEMaths::vec3f{ scale.x, scale.y, scale.z };
 }
 
-void TransformManager::updateObjectRotation(Object& obj, const OEMaths::quatf& rot)
+void TransformManager::updateObjectRotation(OEObject& obj, const OEMaths::quatf& rot)
 {
 	size_t idx = getObjIndex(obj);
 	nodes[idx].root->rotation = OEMaths::quatf{ rot.x, rot.y, rot.z, rot.w };

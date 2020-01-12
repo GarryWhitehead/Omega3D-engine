@@ -12,6 +12,7 @@
 
 #include <unordered_map>
 #include <vector>
+#include <memory>
 
 namespace VulkanAPI
 {
@@ -24,6 +25,8 @@ namespace OmegaEngine
 class OEScene;
 class Object;
 class OEEngine;
+class OECamera;
+//class OESkybox;
 
 class OEWorld : public World
 {
@@ -45,9 +48,11 @@ public:
 	*/
 	OEScene* createScene();
 
-	OEObjectManager& getObjManager()
+	OECamera* createCamera();
+
+	OEObjectManager* getObjManager()
 	{
-		return objManager;
+		return &objManager;
 	}
 
 private:
@@ -60,6 +65,9 @@ private:
 
 	/// objects assoicated with this scene dealt with by the object manager
 	OEObjectManager objManager;
+
+	std::vector<std::unique_ptr<OECamera>> cameras;
+	//std::vector<OESkybox> skyboxes;	// not used yet!
 
 	// scenes associated with this world
 	std::vector<std::unique_ptr<OEScene>> scenes;

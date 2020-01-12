@@ -142,4 +142,7 @@ void OECamera::setPosition(const OEMaths::vec3f& pos)
 	position = pos;
 }
 
+// ============================ front-end =====================================
+
+
 }    // namespace OmegaEngine

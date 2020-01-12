@@ -3,10 +3,10 @@
 #include "Types/Skybox.h"
 
 #include "Core/Camera.h"
-#include "Core/Frustum.h"
-#include "Core/World.h"
 #include "Core/Engine.h"
+#include "Core/Frustum.h"
 #include "Core/ObjectManager.h"
+#include "Core/World.h"
 
 #include "ModelImporter/MeshInstance.h"
 
@@ -26,8 +26,8 @@ namespace OmegaEngine
 {
 
 OEScene::OEScene(OEWorld& world, OEEngine& engine, VulkanAPI::VkDriver& driver)
-    : driver(driver),
-        world(world)
+    : driver(driver)
+    , world(world)
     , engine(engine)
 {
 }
@@ -40,7 +40,7 @@ void OEScene::prepare()
 {
 	// prepare the camera buffer - note: the id matches the naming of the shader ubo
 	// the data will be updated on a per frame basis in the update
-    driver.addUbo("CameraUbo", sizeof(Camera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
+	driver.addUbo("CameraUbo", sizeof(OECamera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
 }
 
 void OEScene::getVisibleRenderables(Frustum& frustum, std::vector<OEScene::VisibleCandidate>& renderables)
@@ -52,7 +52,7 @@ void OEScene::getVisibleRenderables(Frustum& frustum, std::vector<OEScene::Visib
 		for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
 		{
 			Renderable* rend = renderables[idx].renderable;
-            AABBox& box = rend->instance->getAABBox();
+			AABBox box{ rend->instance->dimensions.min, rend->instance->dimensions.max };
 			if (frustum.checkBoxPlaneIntersect(box))
 			{
 				rend->visibility |= Renderable::Visible::Render;
@@ -111,86 +111,86 @@ void OEScene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights
 	splitWork.run();
 }
 
-OEScene::VisibleCandidate OEScene::buildRendCandidate(Object* obj, OEMaths::mat4f& worldMat)
+OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::mat4f& worldMat)
 {
-    auto& transManager = engine.getTransManager();
-    auto& rendManager = engine.getRendManager();
-    
-    const ObjHandle tHandle = transManager.getObjIndex(*obj);
-    const ObjHandle rHandle = rendManager.getObjIndex(*obj);
-    
-    VisibleCandidate candidate;
-    candidate.renderable = &rendManager.getMesh(rHandle);
-    candidate.transform = &transManager.getTransform(tHandle);
+	auto& transManager = engine.getTransManager();
+	auto* rendManager = engine.getRendManager();
 
-    // calculate the world-orientated AABB
-    OEMaths::mat4f localMat = candidate.transform->modelTransform;
-    candidate.worldTransform = worldMat * localMat;
-    
-    candidate.worldAABB = AABBox::calculateRigidTransform(candidate.renderable->instance->getAABBox(), candidate.worldTransform);
-    return candidate;
+	const ObjHandle tHandle = transManager.getObjIndex(*obj);
+	const ObjHandle rHandle = rendManager->getObjIndex(*obj);
+
+	VisibleCandidate candidate;
+	candidate.renderable = &rendManager->getMesh(rHandle);
+	candidate.transform = &transManager.getTransform(tHandle);
+
+	// calculate the world-orientated AABB
+	OEMaths::mat4f localMat = candidate.transform->modelTransform;
+	candidate.worldTransform = worldMat * localMat;
+
+	AABBox box{ candidate.renderable->instance->dimensions.min, candidate.renderable->instance->dimensions.max };
+	candidate.worldAABB = AABBox::calculateRigidTransform(box, candidate.worldTransform);
+	return candidate;
 }
 
 void OEScene::update()
 {
-     auto& objects = world.getObjManager().getObjectsList();
-    
-    // we create a temp container as we will be doing the visibility checks async
+	auto& objects = world.getObjManager()->getObjectsList();
+
+	// we create a temp container as we will be doing the visibility checks async
 	// reserve more space than we need
 	std::vector<VisibleCandidate> candRenderableObjs(objects.size());
-    
-    // iterate through the model graph add as a possible candidate if active
-    for (ModelGraph::Node* node : modelGraph.nodes)
-    {
-        // if the parent is inactive, then all its children are too
-        if (!node->parent->isActive())
-        {
-            continue;
-        }
-        
-        OEMaths::mat4f worldMat = node->world.worldMat;
-        
-        // the parent
-        VisibleCandidate candidate = buildRendCandidate(node->parent, worldMat);
-        candRenderableObjs.emplace_back(candidate);
-        
-        // and the children if any
-        for (Object* child : node->children)
-        {
-            if (!child->isActive())
-            {
-                continue;
-            }
-            
-            VisibleCandidate childCand = buildRendCandidate(child, worldMat);
-            candRenderableObjs.emplace_back(childCand);
-        }
-    }
-    
+
+	// iterate through the model graph add as a possible candidate if active
+	for (ModelGraph::Node* node : modelGraph.nodes)
+	{
+		// if the parent is inactive, then all its children are too
+		if (!node->parent->isActive())
+		{
+			continue;
+		}
+
+		OEMaths::mat4f worldMat = node->world.worldMat;
+
+		// the parent
+		VisibleCandidate candidate = buildRendCandidate(node->parent, worldMat);
+		candRenderableObjs.emplace_back(candidate);
+
+		// and the children if any
+		for (OEObject* child : node->children)
+		{
+			if (!child->isActive())
+			{
+				continue;
+			}
+
+			VisibleCandidate childCand = buildRendCandidate(child, worldMat);
+			candRenderableObjs.emplace_back(childCand);
+		}
+	}
+
 	// now for the lights. At the moment we iterate through the list of objects and find any that have a
-    // light component. If they are active then these are added as a potential candiate lighting source
-    auto& lightManager = engine.getLightManager();
-    
-    std::vector<LightBase*> candLightObjs(objects.size());
-    
-	for (Object& obj : objects)
+	// light component. If they are active then these are added as a potential candiate lighting source
+	auto* lightManager = engine.getLightManager();
+
+	std::vector<LightBase*> candLightObjs(objects.size());
+
+	for (OEObject& obj : objects)
 	{
 		if (!obj.isActive())
 		{
 			continue;
 		}
 
-        ObjHandle lHandle = lightManager.getObjIndex(obj);
-        if (lHandle)
-        {
-            candLightObjs.emplace_back(lightManager.getLight(lHandle));
-        }
+		ObjHandle lHandle = lightManager->getObjIndex(obj);
+		if (lHandle)
+		{
+			candLightObjs.emplace_back(lightManager->getLight(lHandle));
+		}
 	}
 
 	// prepare the camera frustum
-	OECamera& camera = cameras[currCamera];
 	Frustum frustum;
-	frustum.projection(camera.getViewMatrix() * camera.getProjMatrix());
+	frustum.projection(camera->getViewMatrix() * camera->getProjMatrix());
 
 	// ============ visibility checks and culling ===================
 	// first renderables - split work tasks and run async - Sets the visibility bit if passes intersection test
@@ -219,7 +219,7 @@ void OEScene::update()
 			continue;
 		}
 
-        if (rend->instance->variantBits.testBit(MeshInstance::Variant::HasSkin))
+		if (rend->instance->variantBits.testBit(MeshInstance::Variant::HasSkin))
 		{
 			++skinnedModelCount;
 		}
@@ -234,9 +234,9 @@ void OEScene::update()
 		// frame ad that the data isn't written too - we aren't using guards though this might be required.
 		queueInfo.renderableData = (void*)&rend;
 		queueInfo.renderableHandle = this;
-        queueInfo.renderFunction = GBufferFillPass::drawCallback;
-		queueInfo.sortingKey =
-		    RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId, rend->instance->variantBits.getUint64());
+		queueInfo.renderFunction = GBufferFillPass::drawCallback;
+		queueInfo.sortingKey = RenderQueue::createSortKey(RenderQueue::Layer::Default, rend->materialId,
+		                                                  rend->instance->variantBits.getUint64());
 		queueRend.emplace_back(queueInfo);
 	}
 	renderQueue.pushRenderables(queueRend, RenderQueue::Partition::Colour);
@@ -251,25 +251,23 @@ void OEScene::update()
 
 void OEScene::updateCameraBuffer()
 {
-	OECamera& camera = cameras[currCamera];
-
-	camera.updateViewMatrix();
+	camera->updateViewMatrix();
 
 	// update everything in the buffer
 	OECamera::Ubo ubo;
-	ubo.mvp = camera.getMvpMatrix();
-	ubo.cameraPosition = camera.getPos();
-	ubo.projection = camera.getProjMatrix();
-	ubo.model = camera.getModelMatrix();    // this is just identity for now
-	ubo.view = camera.getViewMatrix();
-	ubo.zNear = camera.getZNear();
-	ubo.zFar = camera.getZFar();
+	ubo.mvp = camera->getMvpMatrix();
+	ubo.cameraPosition = camera->getPos();
+	ubo.projection = camera->getProjMatrix();
+	ubo.model = camera->getModelMatrix();    // this is just identity for now
+	ubo.view = camera->getViewMatrix();
+	ubo.zNear = camera->getZNear();
+	ubo.zFar = camera->getZFar();
 
 	driver.updateUbo("CameraUbo", sizeof(OECamera::Ubo), &ubo);
 }
 
 void OEScene::updateTransformBuffer(std::vector<OEScene::VisibleCandidate>& candObjects, const size_t staticModelCount,
-                                  const size_t skinnedModelCount)
+                                    const size_t skinnedModelCount)
 {
 	// transforms
 	struct TransformUbo
@@ -280,7 +278,7 @@ void OEScene::updateTransformBuffer(std::vector<OEScene::VisibleCandidate>& cand
 	struct SkinnedUbo
 	{
 		OEMaths::mat4f modelMatrix;
-        OEMaths::mat4f jointMatrices[TransformManager::MAX_BONE_COUNT];
+		OEMaths::mat4f jointMatrices[TransformManager::MAX_BONE_COUNT];
 		float jointCount;
 	};
 
@@ -322,7 +320,8 @@ void OEScene::updateTransformBuffer(std::vector<OEScene::VisibleCandidate>& cand
 			currSkinnedPtr->modelMatrix = cand.worldTransform;
 
 			// rather than throw an error, clamp the joint if it exceeds the max
-			uint32_t jointCount = std::min(TransformManager::MAX_BONE_COUNT, static_cast<uint32_t>(transInfo->jointMatrices.size()));
+			uint32_t jointCount =
+			    std::min(TransformManager::MAX_BONE_COUNT, static_cast<uint32_t>(transInfo->jointMatrices.size()));
 			memcpy(currSkinnedPtr->jointMatrices, transInfo->jointMatrices.data(), jointCount * sizeof(OEMaths::mat4f));
 			rend->dynamicOffset = offset;
 		}
@@ -382,9 +381,9 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
 	uint32_t pointlightCount = 0;
 	uint32_t dirLightCount = 0;
 
-	std::array<SpotLightUbo, LightManager::MAX_SPOT_LIGHTS> spotLights;
-	std::array<PointLightUbo, LightManager::MAX_POINT_LIGHTS> pointLights;
-	std::array<DirectionalLightUbo, LightManager::MAX_DIR_LIGHTS> dirLights;
+	std::array<SpotLightUbo, OELightManager::MAX_SPOT_LIGHTS> spotLights;
+	std::array<PointLightUbo, OELightManager::MAX_POINT_LIGHTS> pointLights;
+	std::array<DirectionalLightUbo, OELightManager::MAX_DIR_LIGHTS> dirLights;
 
 	// copy the light attributes we need for use in the light shaders.
 	for (LightBase* light : candLights)
@@ -447,33 +446,59 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
 	}
 }
 
-OECamera* OEScene::getCurrentCamera()
+void OEScene::setCurrentCamera(OECamera* cam)
 {
-	if (cameras.empty())
-    {
-        LOGGER_WARN("Trying to retrieve a camera when none have been registered with the scene");
-        return nullptr;
-    }
-    assert(currCamera < cameras.size());
-    
-    return &cameras[currCamera];
+	assert(cam);
+	camera = cam;
 }
 
-bool OEScene::addSkybox(Skybox::Instance& instance)
+OECamera* OEScene::getCurrentCamera()
 {
-    if (!instance.cubeMap)
-    {
-        LOGGER_WARN("The cubemap enviromental texture is nullptr!");
-        return false;
-    }
-    if (!instance.cubeMap->isCubeMap())
-    {
-        LOGGER_WARN("The cubemap texture is not a cubemap!");
-        return false;
-    }
-    
-    skybox = std::make_unique<OESkybox>(driver, instance.cubeMap, instance.blur);
-    assert(skybox);
+	return camera;
+}
+
+bool OEScene::addSkybox(Skybox::Instance* instance)
+{
+	if (!instance->cubeMap)
+	{
+		LOGGER_WARN("The cubemap enviromental texture is nullptr!");
+		return false;
+	}
+	if (!instance->cubeMap->isCubeMap())
+	{
+		LOGGER_WARN("The cubemap texture is not a cubemap!");
+		return false;
+	}
+
+	skybox = std::make_unique<OESkybox>(driver, instance->cubeMap, instance->blur);
+	assert(skybox);
+}
+
+// ============================ front-end =========================================
+
+void Scene::addCamera(const Camera* camera)
+{
+	static_cast<OEScene*>(this)->addCamera(static_cast<const OECamera*>(camera));
+}
+
+void Scene::update()
+{
+	static_cast<OEScene*>(this)->update();
+}
+
+void Scene::prepare()
+{
+	static_cast<OEScene*>(this)->prepare();
+}
+
+Camera* Scene::getCurrentCamera()
+{
+	return static_cast<OEScene*>(this)->getCurrentCamera();
+}
+
+bool Scene::addSkybox(Skybox::Instance* instance)
+{
+	return static_cast<OEScene*>(this)->addSkybox(instance);
 }
 
 }    // namespace OmegaEngine

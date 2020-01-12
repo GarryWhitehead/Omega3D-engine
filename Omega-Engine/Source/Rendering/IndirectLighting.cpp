@@ -175,7 +175,7 @@ void IndirectLighting::buildMap(RGraphContext& context, VulkanAPI::ShaderProgram
             }
 			
 			// draw cube into offscreen framebuffer
-			cmdBuffer->drawIndexed(Skybox::indicesSize);
+			cmdBuffer->drawIndexed(OESkybox::indicesSize);
 
 			// copy the offscreen buffer to the current face
 			vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);

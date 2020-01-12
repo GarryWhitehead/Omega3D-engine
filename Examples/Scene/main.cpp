@@ -21,51 +21,49 @@ using namespace OmegaEngine;
 
 int main(int argc, char* argv[])
 {
-	Application app;
-
-	WindowInstance window;
-	if (!app.init("Omega Engine Test", 1280, 800, window))
+	Application* app = Application::create("Omega Engine Test", 1280, 800);
+	if (!app)
 	{
-		LOGGER_ERROR("Unable to initialise application. Exiting.....\n");
 		exit(1);
 	}
 
-    Engine engine;
-	if (!engine.init(window))
+    Engine* engine = app->createEngine(app->getWindow());
+	if (!engine)
 	{
-		LOGGER_ERROR("Unable to initialise engine.\n");
 		exit(1);
 	}
 
 	// create a new empty world
-    World* world = engine.createWorld("SceneOne");
+    World* world = engine->createWorld("SceneOne");
 
 	// add a scene
 	Scene* scene = world->createScene();
 
 	// create a swapchain for rendering
-    SwapchainHandle swapchain = engine.createSwapchain(window);
+	SwapchainHandle swapchain = engine->createSwapchain(app->getWindow());
 
 	// Use a gltf image as one of our scene objects
 	GltfModel model;
-	if (!model.load("WaterBottle/WaterBottle.gltf"))
+	// The directory must be set to the location where all the model data is found - including textures if any
+	model.setDirectory(Util::String::append(Util::String(OE_ASSETS_DIR), "Models/WaterBottle/"));
+	if (!model.load("WaterBottle.gltf"))
 	{
 		exit(1);
 	}
     
     // we require the object manager for creating new object instances
-    auto& objManager = world->getObjManager();
+    auto* objManager = world->getObjManager();
     
     // we can adjust the model transformation.
     model.setWorldTrans({4.0f, 3.0f, 5.0}).setWorldScale({15.0f}).setWorldRotation({0.5, 0.0f, 0.5f, 0.5f}).prepare();
     
     // add each node of the model - this will 'always' be one or more
-    for (auto& node : model.getNodes())
+    for (auto& node : model.nodes)
     {
-        Object* modelObj = objManager.createObject();
+        Object* modelObj = objManager->createObject();
         RenderableManager::Instance instance;
-        MeshInstance* mesh = node.getMesh();
-    instance.addMesh(mesh).addNode(&node).addSkin(node.getSkin()).addMaterial(mesh->getMaterial()).create(engine, modelObj);
+		MeshInstance* mesh = node->getMesh();
+		instance.addMesh(mesh).addNode(node.get()).addSkin(node->getSkin()).addMaterial(mesh->material).create(*engine, modelObj);
     }
     
     /*
@@ -82,7 +80,7 @@ int main(int argc, char* argv[])
 	scene->addObject(prim);*/
 
 	// create the renderer - using a deffered renderer (only one supported at the moment)
-	Renderer* renderer = engine.createRenderer(window, swapchain, scene);
+	Renderer* renderer = engine->createRenderer(swapchain, scene);
 	
     // load the skybox from disk
     auto envMap = std::make_unique<MappedTexture>();
@@ -90,21 +88,21 @@ int main(int argc, char* argv[])
     
     Skybox::Instance skybox;
     skybox.setCubeMap(envMap.get()).setBlurFactor(0.5f);
-	scene->addSkybox(skybox);
+	scene->addSkybox(&skybox);
 
 	// and a default camera - multiple cameras can be added (TODO: switch via a designated key)
-    Camera camera;
+    Camera* camera = world->createCamera();
     scene->addCamera(camera);
 
 	// add a selection of different style lights to the scene
     LightManager::LightInstance sLight, pLight, dLight;
-    sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(engine);
+    sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(*engine);
     
-    pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(engine);
+    pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(*engine);
     
-    dLight.setType(LightType::Directional).setPosition({0.0f, 6.0f, 0.0f}).setIntensity(2000.0f).create(engine);
+    dLight.setType(LightType::Directional).setPosition({0.0f, 6.0f, 0.0f}).setIntensity(2000.0f).create(*engine);
 
 	// we could load multiple world here, but for this example we will stick with one
 	// now set the loop running
-    app.run(*scene, *renderer);
+    app->run(scene, renderer);
 }

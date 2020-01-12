@@ -1,11 +1,13 @@
 #ifndef SKYBOX_HPP
 #define SKYBOX_HPP
 
+#include "utility/Compiler.h"
+
 namespace OmegaEngine
 {
 class MappedTexture;
 
-class Skybox
+class OE_PUBLIC Skybox
 {
 public:
     

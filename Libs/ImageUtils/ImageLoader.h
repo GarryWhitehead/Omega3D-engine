@@ -2,7 +2,6 @@
 
 #include "utility/CString.h"
 
-#define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
 namespace OmegaEngine
@@ -13,14 +12,7 @@ class ImageLoader
 public:
 	
 	ImageLoader() = default;
-	~ImageLoader()
-	{
-		if (buffer)
-		{
-			stbi_image_free(buffer);
-			buffer = nullptr;
-		}
-	}
+	~ImageLoader();
 
 	// non-copyable or moveable
 	ImageLoader(const ImageLoader&) = delete;

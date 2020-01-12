@@ -4,7 +4,7 @@
 
 #include "VulkanAPI/VkDriver.h"
 
-#include "Types/OEWindowInstance.h"
+#include "Types/NativeWindowWrapper.h"
 
 #include <algorithm>
 
@@ -18,9 +18,9 @@ Swapchain::~Swapchain()
 {
 }
 
-Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::OEWindowInstance& window, vk::Instance& instance)
+Platform::SurfaceWrapper Swapchain::createSurface(OmegaEngine::OEWindowInstance* window, vk::Instance& instance)
 {
-    Platform::SurfaceWrapper wrapper{window, instance};
+    Platform::SurfaceWrapper wrapper{*window, instance};
 	return wrapper;
 }
 
@@ -122,6 +122,7 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 
 	// And finally, create the swap chain
 	VK_CHECK_RESULT(device.createSwapchainKHR(&createInfo, nullptr, &swapchain));
+	return true;
 }
 
 std::vector<ImageView> Swapchain::prepareImageViews(Swapchain& swapchain, VkContext& context, const vk::SurfaceFormatKHR& surfaceFormat)

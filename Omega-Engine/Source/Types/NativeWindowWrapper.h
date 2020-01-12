@@ -2,8 +2,6 @@
 
 #include "omega-engine/Engine.h"
 
-#include "VulkanAPI/SwapChain.h"
-
 #include <memory>
 #include <cstdint>
 #include <vector>
@@ -18,26 +16,11 @@ class OEWindowInstance : public WindowInstance
 {
 public:
     
-    void* getNativeWindowPtr()
-    {
-        return nativeWin;
-    }
+    void* getNativeWindowPtr();
+
+    uint32_t getWidth() const;
     
-    uint32_t getWidth() const
-    {
-        return width;
-    }
-    
-    uint32_t getHeight() const
-    {
-        return height;
-    }
-    
-    SwapchainHandle addSwapchain(VulkanAPI::Swapchain& sc)
-    {
-        swapchains.emplace_back(sc);
-        return SwapchainHandle{static_cast<uint32_t>(swapchains.size() - 1)};
-    }
+    uint32_t getHeight() const;
 
     friend class OEEngine;
     friend class OEApplication;
@@ -49,8 +32,6 @@ private:
 	uint32_t height = 0;
 	std::pair<const char**, uint32_t> extensions;
     
-    // keep a list of active swapchains here
-    std::vector<VulkanAPI::Swapchain> swapchains;
 };
 
 }

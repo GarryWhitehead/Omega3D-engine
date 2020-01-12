@@ -61,7 +61,7 @@ void LightManager::LightInstance::create(Engine& engine)
         return;
     }
     
-    auto& lManager = oeEngine.getLightManager();
+    auto* lManager = oeEngine.getLightManager();
     
     std::unique_ptr<LightBase> base = std::make_unique<LightBase>(type);
     base->position = pos;
@@ -72,14 +72,14 @@ void LightManager::LightInstance::create(Engine& engine)
     // create the light based on the type
     if (type == LightType::Directional)
     {
-        lManager.addLight(base);
+        lManager->addLight(base);
     }
     else if (type == LightType::Point)
     {
         PointLight* light = reinterpret_cast<PointLight*>(base.get());
         light->fallOut = fallout;
         light->radius = radius;
-        lManager.addLight(base);
+        lManager->addLight(base);
     }
     else 
     {
@@ -88,7 +88,7 @@ void LightManager::LightInstance::create(Engine& engine)
         light->radius = radius;
         light->scale = scale;
         light->offset = offset;
-        lManager.addLight(base);
+        lManager->addLight(base);
     }
 }
 

@@ -6,12 +6,12 @@
 
 #include "Components/TransformManager.h"
 
-#include "ModelImporter/MaterialInstance.h"
 #include "ModelImporter/MeshInstance.h"
 
+#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
-#include "VulkanAPI/Descriptors.h"
+#include "VulkanAPI/Utility.h"
 
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
@@ -28,77 +28,76 @@ namespace OmegaEngine
 
 RenderableManager::Instance& RenderableManager::Instance::addMesh(MeshInstance* instance)
 {
-    assert(instance);
-    mesh = instance;
-    return *this;
+	assert(instance);
+	mesh = instance;
+	return *this;
 }
 
 RenderableManager::Instance& RenderableManager::Instance::addMaterial(MaterialInstance* instance)
 {
-    assert(instance);
-    mat = instance;
-    return *this;
+	assert(instance);
+	mat = instance;
+	return *this;
 }
 
 RenderableManager::Instance& RenderableManager::Instance::addSkin(SkinInstance* instance)
 {
-    assert(instance);
-    skin = instance;
-    return *this;
+	skin = instance;
+	return *this;
 }
 
 RenderableManager::Instance& RenderableManager::Instance::addNode(NodeInstance* instance)
 {
-    assert(instance);
-    node = instance;
-    return *this;
+	assert(instance);
+	node = instance;
+	return *this;
 }
 
 void RenderableManager::Instance::create(Engine& engine, Object* obj)
 {
-    OEEngine& oeEngine = reinterpret_cast<OEEngine&>(engine);
-    
-    if (!obj)
-    {
-        LOGGER_WARN("Trying to create a renderable instance though the object is nullptr.");
-        return;
-    }
-    
-    // sanity checks - must have mesh and transform data at the minimum
-    if (!mesh || !node)
-    {
-        LOGGER_WARN("You have called create but this instance has no mesh or transform data associated with it.");
-        return;
-    }
-    
-    OERenderableManager& rManager = oeEngine.getRendManager();
-    TransformManager& tManager = oeEngine.getTransManager();
-    
-    // we don't have to check whether the material or skin in init, the managers will do that
-    rManager.addRenderable(mesh, mat, *obj);
-    tManager.addNodeHierachy(*node, *obj, skin);
+	OEEngine& oeEngine = reinterpret_cast<OEEngine&>(engine);
+
+	if (!obj)
+	{
+		LOGGER_WARN("Trying to create a renderable instance though the object is nullptr.");
+		return;
+	}
+
+	// sanity checks - must have mesh and transform data at the minimum
+	if (!mesh || !node)
+	{
+		LOGGER_WARN("You have called create but this instance has no mesh or transform data associated with it.");
+		return;
+	}
+
+	OERenderableManager* rManager = oeEngine.getRendManager();
+	TransformManager& tManager = oeEngine.getTransManager();
+
+	// we don't have to check whether the material or skin in init, the managers will do that
+	rManager->addRenderable(mesh, mat, *static_cast<OEObject*>(obj));
+	tManager.addNodeHierachy(*node, *static_cast<OEObject*>(obj), skin);
 }
 
 // =================================================================================
 Util::String TextureGroup::texTypeToStr(const int type)
 {
-    assert(type < static_cast<int>(TextureType::Count));
-    Util::String result;
+	assert(type < static_cast<int>(MaterialInstance::TextureType::Count));
+	Util::String result;
 	switch (type)
 	{
-	case TextureType::BaseColour:
+	case MaterialInstance::TextureType::BaseColour:
 		result = "BaseColour";
 		break;
-	case TextureType::Emissive:
+	case MaterialInstance::TextureType::Emissive:
 		result = "Emissive";
 		break;
-	case TextureType::MetallicRoughness:
+	case MaterialInstance::TextureType::MetallicRoughness:
 		result = "MetallicRoughness";
 		break;
-	case TextureType::Normal:
+	case MaterialInstance::TextureType::Normal:
 		result = "Normal";
 		break;
-	case TextureType::Occlusion:
+	case MaterialInstance::TextureType::Occlusion:
 		result = "Occlusion";
 		break;
 	}
@@ -109,11 +108,11 @@ Util::String TextureGroup::texTypeToStr(const int type)
 
 Material::~Material()
 {
-   if (instance)
-   {
-       delete instance;
-       instance = nullptr;
-   }
+	if (instance)
+	{
+		delete instance;
+		instance = nullptr;
+	}
 }
 
 // ===============================================================================================
@@ -131,8 +130,9 @@ OERenderableManager::~OERenderableManager()
 
 void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset)
 {
-	// copy the vertices and indices into the "mega" buffer
-	input.instance = mesh;
+	// copy the instance - we cant be 100% sure the user will keep the model in scope
+	input.instance = new MeshInstance();
+	memcpy(input.instance, mesh, sizeof(MeshInstance));
 
 	// now adjust the material index - this is used primarily by the sorting key
 	if (offset >= 0)    // a value of -1 indicate no materials for this renderable
@@ -141,7 +141,7 @@ void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, const s
 	}
 }
 
-void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, Object& obj, const size_t offset)
+void OERenderableManager::addMesh(Renderable& input, MeshInstance* mesh, OEObject& obj, const size_t offset)
 {
 	size_t idx = addObject(obj);
 	addMesh(input, mesh, idx, offset);
@@ -165,28 +165,30 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
 {
 	size_t startOffset = materials.size();
 
-    // sort out the textures
-    TextureGroup group;
+	// sort out the textures
+	TextureGroup group;
 
-    for (size_t j = 0; j < TextureGroup::TextureType::Count; ++j)
-    {
-        // this function does return an error value but unsure yet
-        // whether just to continue (it will be obvious that somethings gone
-        // wrong when rendered) or return an error
-        prepareTexture(mat->texturePaths[j], group.textures[j]);
-    }
+	for (size_t j = 0; j < MaterialInstance::TextureType::Count; ++j)
+	{
+		// this function does return an error value but unsure yet
+		// whether just to continue (it will be obvious that somethings gone
+		// wrong when rendered) or return an error
+		prepareTexture(mat->texturePaths[j], group.textures[j]);
+	}
 
-    textures.emplace_back(std::move(group));
+	textures.emplace_back(std::move(group));
 
-    Material newMat;
-    newMat.instance = mat;
-    materials.emplace_back(std::move(newMat));
-    input.material = &materials.back();
-	
+	Material newMat;
+	// we copy here, as we cant be sure that the user will keep the model in scope
+	newMat.instance = new MaterialInstance();
+	memcpy(newMat.instance, mat, sizeof(MaterialInstance));
+	materials.emplace_back(std::move(newMat));
+	input.material = &materials.back();
+
 	return startOffset;
 }
 
-void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, Object& obj)
+void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* mat, OEObject& obj)
 {
 	Renderable newRend;
 
@@ -198,7 +200,7 @@ void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* ma
 	size_t matOffset = -1;
 	if (mat)
 	{
-        matOffset = addMaterial(newRend, mat);
+		matOffset = addMaterial(newRend, mat);
 	}
 
 	// now add the mesh and material and any textures
@@ -232,7 +234,7 @@ void OERenderableManager::updateBuffers()
 			MeshInstance* instance = rend.instance;
 			size_t vertSize = instance->vertices.size;
 			size_t indexSize = instance->indices.size() * sizeof(uint32_t);
-			
+
 			rend.vertBuffer = driver.addVertexBuffer(vertSize, instance->vertices.data);
 			rend.indexBuffer = driver.addIndexBuffer(indexSize, instance->indices.data());
 
@@ -260,11 +262,12 @@ bool OERenderableManager::updateVariants()
 	// create variants for all vertices associated with this manager
 	for (const Renderable& rend : renderables)
 	{
-        VulkanAPI::ProgramManager::ShaderHash hash { mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &rend.instance->topology };
+		vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
+		VulkanAPI::ProgramManager::ShaderHash hash{ mesh_filename.c_str(), rend.instance->variantBits.getUint64(),
+			                                        &topo };
 		if (!manager.hasShaderVariantCached(hash))
 		{
-			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance(hash);
+			VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
 
 			mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex);
 		}
@@ -282,11 +285,10 @@ bool OERenderableManager::updateVariants()
 
 	for (const Material& mat : materials)
 	{
-        VulkanAPI::ProgramManager::ShaderHash hash{mat_filename.c_str(), mat.variantBits.getUint64(), nullptr};
-        if (!manager.hasShaderVariantCached(hash))
+		VulkanAPI::ProgramManager::ShaderHash hash{ mat_filename.c_str(), mat.variantBits.getUint64(), nullptr };
+		if (!manager.hasShaderVariantCached(hash))
 		{
-			VulkanAPI::ShaderDescriptor* descr =
-			    manager.createCachedInstance(hash);
+			VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
 
 			mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::Type::Fragment);
 		}
@@ -299,15 +301,16 @@ bool OERenderableManager::updateVariants()
 	{
 		Material* mat = rend.material;
 		rend.mergedVariant = rend.instance->variantBits.getUint64() + mat->variantBits.getUint64();
-        
-        VulkanAPI::ProgramManager::ShaderHash hash { mesh_filename.c_str(), rend.mergedVariant, &rend.instance->topology };
-		VulkanAPI::ShaderProgram* prog =
-		    manager.findVariant(hash);
+		
+		vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
+		VulkanAPI::ProgramManager::ShaderHash hash{ mesh_filename.c_str(), rend.mergedVariant,
+			                                        &topo };
+		VulkanAPI::ShaderProgram* prog = manager.findVariant(hash);
 		if (!prog)
 		{
 			// create new program
 			std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes{
-				{ mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &rend.instance->topology },
+				{ mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &topo },
 				{ mat_filename.c_str(), mat->variantBits.getUint64(), nullptr }
 			};
 			prog = manager.build(hashes);
@@ -315,8 +318,8 @@ bool OERenderableManager::updateVariants()
 		// keep reference to the shader program within the renderable for easier lookup when drawing
 		rend.program = prog;
 	}
-    
-    return true;
+
+	return true;
 }
 
 void OERenderableManager::update()
@@ -329,7 +332,7 @@ void OERenderableManager::update()
 		// upload textures if required
 		for (const TextureGroup& group : textures)
 		{
-			for (uint8_t i = 0; i < TextureGroup::TextureType::Count; ++i)
+			for (uint8_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
 			{
 				MappedTexture* tex = group.textures[i];
 				if (tex)
@@ -337,8 +340,9 @@ void OERenderableManager::update()
 					// each sampler needs its own unique id - so append the tex type to the material name
 					Util::String id = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
-                    vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
-					driver.add2DTexture(id, tex->format, tex->width, tex->height, tex->mipLevels, usageFlags);
+					vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
+					vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->format);
+					driver.add2DTexture(id, format, tex->width, tex->height, tex->mipLevels, usageFlags);
 					driver.update2DTexture(id, tex->buffer);
 				}
 			}

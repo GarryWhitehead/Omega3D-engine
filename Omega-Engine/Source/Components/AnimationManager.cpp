@@ -136,13 +136,13 @@ void AnimationManager::addAnimation(std::unique_ptr<AnimInstance>& animation)
 	}
 
 	// start and end times for this animation
-	animInfo.start = animation->start;
-	animInfo.end = animation->end;
+	animInfo.start = animation->getStartTime();
+	animInfo.end = animation->getEndTime();
 
 	animations.emplace_back(animInfo);
 }
 
-void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, Object& object)
+void AnimationManager::addAnimation(size_t channelIndex, size_t bufferIndex, OEObject& object)
 {
 	Channel& channel = animations[bufferIndex].channels[channelIndex];
 	// link object with animation channel
@@ -162,7 +162,7 @@ void AnimationManager::update(double time, OEEngine& engine)
 		// go through each target and caluclate the animation transform and update on the transform manager side
 		for (auto& channel : anim.channels)
 		{
-			Object* obj = channel.object;
+			OEObject* obj = channel.object;
 			Sampler& sampler = anim.samplers[channel.samplerIndex];
 
 			uint32_t timeIndex = sampler.indexFromTime(animTime);

@@ -1,8 +1,6 @@
 #include "SkinInstance.h"
 
-#include "Models/Formats/GltfModel.h"
-
-#include "Models/NodeInstance.h"
+#include "NodeInstance.h"
 
 #include "utility/Logger.h"
 

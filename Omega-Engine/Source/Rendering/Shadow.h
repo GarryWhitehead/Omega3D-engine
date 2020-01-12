@@ -18,7 +18,7 @@ public:
         OEMaths::mat4f mvp;
     };
     
-	Shadow(OEEngine& engine, Scene& scene);
+	Shadow(OEEngine& engine, OEScene& scene);
 	~Shadow();
 
 	void updateBuffer();

@@ -3,6 +3,7 @@
 #include "Utility/logger.h"
 
 #include <algorithm>
+#include <cassert>
 #include <string>
 
 namespace OmegaEngine
@@ -16,7 +17,8 @@ MappedTexture::~MappedTexture()
 	}
 }
 
-bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips, uint32_t size, const ImageFormat format)
+bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips,
+                               uint32_t size, const ImageFormat format)
 {
 	width = w;
 	height = h;
@@ -25,7 +27,7 @@ bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t f
 	arrayCount = arrays;
 	totalSize = size;
 	assert(totalSize);
-    
+
 	this->format = format;
 
 	this->buffer = new uint8_t[totalSize];
@@ -45,7 +47,7 @@ bool MappedTexture::load(Util::String filePath)
 	auto split = Util::String::split(filePath, '.');
 	Util::String ext = split.back();
 
-	if (split.size() == 1)
+	if (split.size() != 2)
 	{
 		LOGGER_ERROR("File name %s has no extension. Unable to interpret image format.", filePath.c_str());
 		return false;
@@ -87,11 +89,26 @@ bool MappedTexture::load(Util::String filePath)
 
 		// calculate total size
 		int comp = loader.getComponentCount();
-		totalSize = width * height * comp;
 
-		// create the buffer and copy the data across
-		buffer = new uint8_t[totalSize];
-		memcpy(buffer, loader.getData(), totalSize);
+		// we only support rgba textures, so the textures is only rgb, create a new buffer of the correct type
+		if (comp == 3)
+		{
+			comp = 4;
+			uint32_t oldSize = width * height * 3;
+			uint32_t newSize = width * height * comp;
+			buffer = new unsigned char[newSize];
+			assert(buffer);
+
+			// the alpha channel will be empty (memset here?)
+			memcpy(buffer, loader.getData(), oldSize);
+		}
+		else
+		{
+			totalSize = width * height * comp;
+			buffer = new uint8_t[totalSize];
+			assert(buffer);
+			memcpy(buffer, loader.getData(), totalSize);
+		}
 	}
 	else
 	{

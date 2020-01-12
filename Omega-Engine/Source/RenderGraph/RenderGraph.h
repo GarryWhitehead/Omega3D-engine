@@ -29,7 +29,7 @@ namespace OmegaEngine
 
 // forward declerations
 class RenderGraph;
-class Renderer;
+class OERenderer;
 class RenderGraphPass;
 
 /**
@@ -53,7 +53,7 @@ struct RGraphContext
 	VulkanAPI::VkDriver* driver = nullptr;
 
 	// keep track of the renderer
-	Renderer* renderer = nullptr;
+	OERenderer* renderer = nullptr;
     
     // the rendergrpah this pass is associated with
     RenderGraph* rGraph = nullptr;

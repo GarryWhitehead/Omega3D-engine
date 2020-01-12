@@ -13,7 +13,7 @@
 namespace OmegaEngine
 {
 // forward declerations
-class Object;
+class OEObject;
 class TransformManager;
 class OEEngine;
 class AnimInstance;
@@ -51,7 +51,7 @@ public:
 		};
 
         PathType type;
-		Object *object;
+		OEObject *object;
 		uint32_t samplerIndex;
 	};
 
@@ -68,7 +68,7 @@ public:
 	~AnimationManager();
 
 	void addAnimation(std::unique_ptr<AnimInstance>& animation);
-	void addAnimation(size_t channelIndex, size_t bufferIndex, Object& object);
+	void addAnimation(size_t channelIndex, size_t bufferIndex, OEObject& object);
 
 	void update(double time, OEEngine& engine);
 

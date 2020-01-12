@@ -1,0 +1,71 @@
+#version 450
+
+layout(binding = 0) readonly buffer bit_reversed_buff
+{
+	uint bit_reversed[];		
+};
+
+layout (set = 0, binding = 1, rgba32f) uniform image2D butterflyImage;
+
+layout (push_constant) uniform pushConstant
+{
+	float N;
+	float log2N;
+} push;
+
+#define PI 3.1415926535897932384626433832795
+
+struct complex
+{
+	float r;
+	float i;
+};
+
+layout (local_size_x = 1, local_size_y = 16) in;
+
+void main()
+{
+	ivec2 id = ivec2(gl_GlobalInvocationID.xy);
+	if(id.x >= push.log2N)
+		return;
+		
+	if(id.y >= push.N) 
+		return;
+		
+	float x_mod = pow(2, id.x + 1);
+	
+	float k = mod(id.y * (float(push.N) / x_mod), push.N);
+	
+	complex twiddle = complex(cos(2.0 * PI * k / float(push.N)), sin(2.0 * PI * k / float(push.N)));
+	
+	float span = pow(2, id.x);
+	
+	uint curr_wing = 0;
+	
+	if (mod(id.y, x_mod) < span) 
+		curr_wing = 1;
+		
+	if(id.x == 0) {						// if the first stage, store the indices
+	
+		if(curr_wing == 1) {			// top wing
+		
+			// store the twiddle factors and bit reversed indices 
+			imageStore(butterflyImage, id, vec4(twiddle.r, twiddle.i, bit_reversed[id.y], bit_reversed[id.y + 1])); 
+		}
+		else {							// bottom wing
+		
+			imageStore(butterflyImage, id, vec4(twiddle.r, twiddle.i, bit_reversed[id.y - 1], bit_reversed[id.y])); 
+		}
+	}
+	else {								// otherwise, store the butterfly span
+	
+		if(curr_wing == 1) {			// top wing
+		
+			imageStore(butterflyImage, id, vec4(twiddle.r, twiddle.i, id.y, id.y + span)); 
+		}
+		else {							// bottom wing
+		
+			imageStore(butterflyImage, id, vec4(twiddle.r, twiddle.i, id.y - span, id.y)); 
+		}
+	}
+}

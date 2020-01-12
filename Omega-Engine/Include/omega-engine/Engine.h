@@ -1,17 +1,12 @@
 #ifndef ENGINE_HPP
 #define ENGINE_HPP
 
+#include "utility/Compiler.h"
+
 #include "omega-engine/Scene.h"
 #include "omega-engine/World.h"
 
 #include "utility/CString.h"
-
-// forward declerations
-namespace VulkanAPI
-{
-class Swapchain;
-class VkDriver;
-}
 
 namespace OmegaEngine
 {
@@ -58,12 +53,9 @@ private:
 
 };
 
-class Engine
+class OE_PUBLIC Engine
 {
 public:
-        
-    Engine() = default;
-    ~Engine() = default;
 
     /**
     * @brief Initialises a new vulkan context. This creates a new instance and
@@ -71,18 +63,18 @@ public:
     * Note: Only one vulkan device is allowed. Multiple devices supporting multi-gpu
     * setups is not yet supported
     */
-    bool init(WindowInstance& window);
+    bool init(WindowInstance* window);
 
     /**
     * @brief This creates a new swapchain instance based upon the platform-specific
     * ntaive window pointer created by the application
     */
-    SwapchainHandle createSwapchain(WindowInstance& window);
+    SwapchainHandle createSwapchain(WindowInstance* window);
 
     /**
     * @brief Creates a new renderer instance based on the user specified swapchain and scene
     */
-    Renderer* createRenderer(WindowInstance& window, SwapchainHandle& handle, Scene* scene);
+    Renderer* createRenderer(SwapchainHandle& handle, Scene* scene);
 
     /**
     * @ brief Creates a new world object. This object is stored by the engine allowing
@@ -92,16 +84,14 @@ public:
     */
     World* createWorld(Util::String name);
 
-    /// returns the current vulkan context
-    VulkanAPI::VkDriver& getVkDriver();
+    //LightManager* getLightManager();
+    //RenderableManager* getRendManager();
 
-    AnimationManager& getAnimManager();
-    LightManager& getLightManager();
-    RenderableManager& getRendManager();
-    TransformManager& getTransManager();
-
-private:
+protected:
     
+    Engine() = default;
+	~Engine() = default;
+
 };
 
 }

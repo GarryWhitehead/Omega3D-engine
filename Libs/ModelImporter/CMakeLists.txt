@@ -9,9 +9,11 @@ TARGET_COMPILE_OPTIONS(ModelImporter PRIVATE ${OMEGA_CXX_FLAGS})
 
 # =============== source files =============================
 
-TARGET_INCLUDE_DIRECTORIES(ModelImporter PRIVATE
+TARGET_INCLUDE_DIRECTORIES(ModelImporter PUBLIC
     ${OELIBRARY_DIR}
-    ${EXTERNAL_DIR}
+	${CMAKE_CURRENT_SOURCE_DIR}/Formats
+	${EXTERNAL_DIR}
+	${OMEGA_ROOT}
 )
 
 TARGET_SOURCES(ModelImporter PRIVATE

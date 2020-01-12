@@ -26,15 +26,15 @@ Shadow::~Shadow()
 void Shadow::updateBuffer()
 {
 	OECamera* camera = scene.getCurrentCamera();
-    LightManager& lightManager = engine.getLightManager();
+    OELightManager* lightManager = engine.getLightManager();
     
     uint32_t count = 0;
-    size_t lightCount = lightManager.lights.size();
+    size_t lightCount = lightManager->lights.size();
     
     const size_t dynAlign = (sizeof(LightPOV) + 256 - 1) & ~(256 - 1);
     Util::AlignedAlloc aAlloc{ dynAlign * lightCount, dynAlign };
     
-	for (auto& light : lightManager.lights)
+	for (auto& light : lightManager->lights)
 	{
         uint32_t offset = dynAlign * count++;
         LightPOV* lightPovPtr = (LightPOV*)((uint64_t)aAlloc.getData() + offset);

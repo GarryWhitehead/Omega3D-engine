@@ -4,17 +4,8 @@
 #include "utility/FileUtil.h"
 #include "utility/Logger.h"
 
-#include "Core/World.h"
-
-#include "Models/AnimInstance.h"
-#include "Models/MaterialInstance.h"
-#include "Models/MeshInstance.h"
-#include "Models/NodeInstance.h"
-#include "Models/SkinInstance.h"
-
-
 #define CGLTF_IMPLEMENTATION
-#include <cgltf/cgltf.h>
+#include "cgltf/cgltf.h"
 
 namespace OmegaEngine
 {
@@ -44,14 +35,14 @@ bool GltfExtension::prepare(const cgltf_extras& extras, cgltf_data& data)
 	cgltf_copy_extras_json(&data, &extras, nullptr, &extSize);
 	if (!extSize)
 	{
-		return false;
+		return true;
 	}
 
 	// alloc mem for the json extension data
 	char* jsonData = new char[extSize + 1];
 
 	cgltf_result res = cgltf_copy_extras_json(&data, &extras, jsonData, &extSize);
-	if (!res)
+	if (res != cgltf_result_success)
 	{
 		LOGGER_ERROR("Unable to prepare extension data. Error code: %d\n", res);
 		return false;
@@ -62,11 +53,11 @@ bool GltfExtension::prepare(const cgltf_extras& extras, cgltf_data& data)
 	// create json file from data blob - using cgltf implementation here
 	jsmn_parser jsonParser;
 	jsmn_init(&jsonParser);
-	const int tokenCount = jsmn_parse(&jsonParser, jsonData, extSize, nullptr, 0);
+	const int tokenCount = jsmn_parse(&jsonParser, jsonData, extSize + 1, nullptr, 0);
 	if (tokenCount < 1)
 	{
-		LOGGER_ERROR("Unable to parse extensions json file.\n");
-		return false;
+		// not an error - just no data
+		return true;
 	}
 
 	// we know the token size, so allocate memory for this and get the tokens
@@ -104,15 +95,14 @@ bool GltfExtension::prepare(const cgltf_extras& extras, cgltf_data& data)
 GltfModel::GltfModel()
     : extensions(std::make_unique<GltfExtension>())
 {
-
 }
 
 NodeInfo* GltfModel::getNode(Util::String id)
 {
 	NodeInfo* foundNode = nullptr;
-	for (NodeInstance node : nodes)
+	for (auto& node : nodes)
 	{
-		foundNode = node.getNode(id);
+		foundNode = node->getNode(id);
 		if (foundNode)
 		{
 			break;
@@ -121,16 +111,16 @@ NodeInfo* GltfModel::getNode(Util::String id)
 	return foundNode;
 }
 
-void GltfModel::getAttributeData(const cgltf_attribute* attrib, uint8_t* base, size_t& stride)
+uint8_t* GltfModel::getAttributeData(const cgltf_attribute* attrib, size_t& stride)
 {
 	const cgltf_accessor* accessor = attrib->data;
-	base = static_cast<uint8_t*>(accessor->buffer_view->buffer->data);    // total data blob
-	stride = accessor->buffer_view->stride;                               // the size of each sub blob
+	stride = accessor->buffer_view->stride;    // the size of each sub blob
 	if (!stride)
 	{
 		stride = accessor->stride;
 	}
 	assert(stride);
+	return static_cast<uint8_t*>(accessor->buffer_view->buffer->data);
 }
 
 void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)
@@ -169,16 +159,21 @@ bool GltfModel::load(Util::String filename)
 	// no additional options required
 	cgltf_options options = {};
 
+	Util::String modelPath = filename;
+	if (!modelDir.empty())
+	{
+		modelPath = Util::String::append(modelDir, modelPath);
+	}
 
-	cgltf_result res = cgltf_parse_file(&options, filename.c_str(), &gltfData);
+	cgltf_result res = cgltf_parse_file(&options, modelPath.c_str(), &gltfData);
 	if (res != cgltf_result_success)
 	{
-		LOGGER_ERROR("Unable to open gltf file %s. Error code: %d\n", filename.c_str(), res);
+		LOGGER_ERROR("Unable to open gltf file %s. Error code: %d\n", modelPath.c_str(), res);
 		return false;
 	}
 
 	// the buffers need parsing separately
-	res = cgltf_load_buffers(&options, gltfData, filename.c_str());
+	res = cgltf_load_buffers(&options, gltfData, modelPath.c_str());
 	if (res != cgltf_result_success)
 	{
 		LOGGER_ERROR("Unable to open gltf file data for %s. Error code: %d\n", filename.c_str(), res);
@@ -203,6 +198,9 @@ bool GltfModel::prepare()
 	// hierachy and return the pointer.
 	lineariseNodes(gltfData);
 
+	// prepare any extensions which may be included with this model
+	extensions->prepare(gltfData->extras, *gltfData);
+
 	// for each scene, visit each node in that scene
 	cgltf_scene* sceneEnd = gltfData->scenes + gltfData->scenes_count;
 	for (const cgltf_scene* scene = gltfData->scenes; scene < sceneEnd; ++scene)
@@ -210,11 +208,27 @@ bool GltfModel::prepare()
 		cgltf_node* const* nodeEnd = scene->nodes + scene->nodes_count;
 		for (cgltf_node* const* node = scene->nodes; node < nodeEnd; ++node)
 		{
-			NodeInstance newNode;
-			if (!newNode.prepare(*node, *this))
+			auto newNode = std::make_unique<NodeInstance>();
+			if (!newNode->prepare(*node, *this))
 			{
 				return false;
 			}
+
+			// before finalising this node, we need to fix up the texture paths to be absolute
+			MaterialInstance* mat = newNode->getMesh()->material;
+			if (mat)
+			{
+				for (uint32_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
+				{
+					Util::String& path = mat->texturePaths[static_cast<MaterialInstance::TextureType>(i)];
+					if (!path.empty())
+					{
+						path = Util::String::append(modelDir, path);
+					}
+				}
+			}
+
+			nodes.emplace_back(std::move(newNode));
 		}
 	}
 
@@ -247,9 +261,9 @@ GltfModel& GltfModel::setWorldRotation(const OEMaths::quatf rot)
 	return *this;
 }
 
-std::vector<NodeInstance> GltfModel::getNodes()
+void GltfModel::setDirectory(Util::String dirPath)
 {
-	return nodes;
+	modelDir = dirPath;
 }
 
 }    // namespace OmegaEngine

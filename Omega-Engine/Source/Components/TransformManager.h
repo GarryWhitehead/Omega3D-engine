@@ -18,7 +18,7 @@
 namespace OmegaEngine
 {
 // forward decleartions
-class Object;
+class OEObject;
 class SkinInstance;
 struct NodeInfo;
 
@@ -51,7 +51,7 @@ public:
 	* @brief Adds the node hierachy - reflects the layout obtained from 
 	* wherever this originate from to make sure bone transforms are correct
 	*/
-	bool addNodeHierachy(NodeInstance& node, Object& obj, SkinInstance* skin);
+	bool addNodeHierachy(NodeInstance& node, OEObject& obj, SkinInstance* skin);
 
 	/**
 	* @brief Creates a single node and adds the transform data to the root
@@ -70,12 +70,12 @@ public:
 	*/
 	void updateModelTransform(NodeInfo* parent, TransformInfo& transInfo);
 
-	void updateModel(Object& obj);
+	void updateModel(OEObject& obj);
 
 	// object update functions
-	void updateObjectTranslation(Object& obj, const OEMaths::vec3f& trans);
-	void updateObjectScale(Object& obj, const OEMaths::vec3f& scale);
-	void updateObjectRotation(Object& obj, const OEMaths::quatf& rot);
+	void updateObjectTranslation(OEObject& obj, const OEMaths::vec3f& trans);
+	void updateObjectScale(OEObject& obj, const OEMaths::vec3f& scale);
+	void updateObjectRotation(OEObject& obj, const OEMaths::quatf& rot);
 
 	// =================== getters ==========================
 	TransformInfo& getTransform(const ObjHandle obj);

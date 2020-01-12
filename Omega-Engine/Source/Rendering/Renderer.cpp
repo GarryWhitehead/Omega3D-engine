@@ -27,7 +27,7 @@
 namespace OmegaEngine
 {
 
-Renderer::Renderer(OEEngine& eng, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config) :
+OERenderer::OERenderer(OEEngine& eng, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config) :
     vkDriver(eng.getVkDriver()),
     rGraph(std::make_unique<RenderGraph>(vkDriver)),
     swapchain(swapchain),
@@ -37,11 +37,11 @@ Renderer::Renderer(OEEngine& eng, OEScene& scene, VulkanAPI::Swapchain& swapchai
 {
 }
 
-Renderer::~Renderer()
+OERenderer::~OERenderer()
 {
 }
 
-void Renderer::prepare()
+void OERenderer::prepare()
 {
 	// TODO: At the moment only a deffered renderer is supported. Maybe add a forward renderer as well?!
     for (const RenderStage& stage : deferredStages)
@@ -52,7 +52,7 @@ void Renderer::prepare()
                 rStages.emplace_back(std::make_unique<IndirectLighting>(*rGraph, "Stage_IL", *scene.skybox));
                 break;
             case RenderStage::GBufferFill:
-                rStages.emplace_back(std::make_unique<GBufferFillPass>(vkDriver, *rGraph, "Stage_GB", engine.getRendManager(), config));
+                rStages.emplace_back(std::make_unique<GBufferFillPass>(vkDriver, *rGraph, "Stage_GB", *engine.getRendManager(), config));
                 break;
             case RenderStage::LightingPass:
                 rStages.emplace_back(std::make_unique<LightingPass>(*rGraph, "Stage_Light"));
@@ -64,17 +64,17 @@ void Renderer::prepare()
     }
 }
 
-void Renderer::beginFrame()
+void OERenderer::beginFrame()
 {
     
 }
 
-void Renderer::update()
+void OERenderer::update()
 {
 
 }
 
-void Renderer::draw()
+void OERenderer::draw()
 {
 	vkDriver.beginFrame(swapchain);
 
@@ -89,7 +89,7 @@ void Renderer::draw()
 	vkDriver.endFrame(swapchain);
 }
 
-void Renderer::drawQueueThreaded(VulkanAPI::CmdBuffer& primary, VulkanAPI::CmdBufferManager& manager, RGraphContext& context)
+void OERenderer::drawQueueThreaded(VulkanAPI::CmdBuffer& primary, VulkanAPI::CmdBufferManager& manager, RGraphContext& context)
 {
     // a cmd pool per thread
     auto cmdPool = manager.createSecondaryPool();

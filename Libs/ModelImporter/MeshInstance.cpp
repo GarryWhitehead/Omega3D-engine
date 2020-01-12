@@ -1,8 +1,8 @@
 #include "MeshInstance.h"
 
-#include "Models/MaterialInstance.h"
+#include "Formats/GltfModel.h"
 
-#include "Components/RenderableManager.h"
+#include "MaterialInstance.h"
 
 #include "utility/Logger.h"
 
@@ -10,6 +10,15 @@
 
 namespace OmegaEngine
 {
+
+MeshInstance::~MeshInstance()
+{
+	if (material)
+	{
+		delete material;
+		material = nullptr;
+	}
+}
 
 bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 {
@@ -32,24 +41,25 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		}
 
 		// only one material per mesh is allowed which is the case 99% of the time
-        // cache the cgltf pointer and use to ensure this is the case
-        if (!material)
-        {
-            material->prepare(*primitive->material, model.getExtensions());
-            cached_mat_ptr = primitive->material;
-        }
-        else
-        {
-            if (cached_mat_ptr != primitive->material)
-            {
-                LOGGER_WARN("This mesh comprises of more than one material. This is not supported.");
-            }
-        }
+		// cache the cgltf pointer and use to ensure this is the case
+		if (!material)
+		{
+			material = new MaterialInstance();
+			material->prepare(*primitive->material, model.getExtensions());
+			cached_mat_ptr = primitive->material;
+		}
+		else
+		{
+			if (cached_mat_ptr != primitive->material)
+			{
+				LOGGER_WARN("This mesh comprises of more than one material. This is not supported.");
+			}
+		}
 
 		// get the number of vertices to process
 		size_t vertCount = primitive->attributes[0].data->count;
-        
-        // ================ vertices =====================
+
+		// ================ vertices =====================
 		// somewhere to store the base pointers and stride for each attribute
 		uint8_t* posBase = nullptr;
 		uint8_t* normBase = nullptr;
@@ -58,52 +68,52 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		uint8_t* jointsBase = nullptr;
 
 		size_t posStride, normStride, uvStride, weightsStride, jointsStride;
-        uint8_t attribCount =  primitive->attributes_count;
-        uint8_t byteSize = 0;
-        
+		size_t attribCount = primitive->attributes_count;
+		size_t attribStride = 0;
+
 		cgltf_attribute* attribEnd = primitive->attributes + attribCount;
 		for (const cgltf_attribute* attrib = primitive->attributes; attrib < attribEnd; ++attrib)
 		{
 			if (attrib->type == cgltf_attribute_type_position)
 			{
-				GltfModel::getAttributeData(attrib, posBase, posStride);
-                assert(posStride == 3);
-                byteSize += 3;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
+				posBase = GltfModel::getAttributeData(attrib, posStride);
+				assert(posStride == 12);
+				attribStride += posStride;
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_normal)
 			{
-				GltfModel::getAttributeData(attrib, normBase, normStride);
-                assert(posStride == 3);
-                byteSize += 3;
-                variantBits |= MeshInstance::Variant::HasNormal;
+				normBase = GltfModel::getAttributeData(attrib, normStride);
+				assert(normStride == 12);
+				attribStride += normStride;
+				variantBits |= MeshInstance::Variant::HasNormal;
 				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_texcoord)
 			{
-				GltfModel::getAttributeData(attrib, uvBase, uvStride);
-                assert(posStride == 2);
-                byteSize += 2;
-                variantBits |= MeshInstance::Variant::HasUv;
+				uvBase = GltfModel::getAttributeData(attrib, uvStride);
+				assert(uvStride == 8);
+				attribStride += uvStride;
+				variantBits |= MeshInstance::Variant::HasUv;
 				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_joints)
 			{
-                GltfModel::getAttributeData(attrib, jointsBase, jointsStride);
-                byteSize += jointsStride;
-                variantBits |= MeshInstance::Variant::HasJoint;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_float);
+				jointsBase = GltfModel::getAttributeData(attrib, jointsStride);
+				attribStride += jointsStride;
+				variantBits |= MeshInstance::Variant::HasJoint;
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_float);
 			}
 
 			else if (attrib->type == cgltf_attribute_type_weights)
 			{
-				GltfModel::getAttributeData(attrib, weightsBase, weightsStride);
-                byteSize += weightsStride;
-                variantBits |= MeshInstance::Variant::HasWeight;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
+				weightsBase = GltfModel::getAttributeData(attrib, weightsStride);
+				attribStride += weightsStride;
+				variantBits |= MeshInstance::Variant::HasWeight;
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
 			}
 			else
 			{
@@ -117,48 +127,47 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 			LOGGER_ERROR("Gltf file contains no vertex position data. Unable to continue.\n");
 			return false;
 		}
-        
-        // store vertex as a blob of data
-        size_t attribStride = attribCount * byteSize;
-        vertices.data = new uint8_t[attribStride * vertCount];
-        
+
+		// store vertex as a blob of data
+		vertices.data = new uint8_t[attribStride * vertCount];
+
 		// now contruct the vertex data
 		for (size_t i = 0; i < vertCount; ++i)
 		{
-            uint8_t* dataPtr = vertices.data + (i * attribStride);
-            
-            // we know the positional data exsists - it's mandatory
-            *dataPtr = *posBase;
+			uint8_t* dataPtr = vertices.data + (i * attribStride);
+
+			// we know the positional data exsists - it's mandatory
+			*dataPtr = *posBase;
 			posBase += posStride;
-            dataPtr += posStride;
+			dataPtr += posStride;
 
 			if (normBase)
 			{
 				*dataPtr = *normBase;
-                normBase += normStride;
-                dataPtr += normStride;
+				normBase += normStride;
+				dataPtr += normStride;
 			}
 			if (uvBase)
 			{
 				*dataPtr = *uvBase;
-                uvBase += uvStride;
-                dataPtr += uvStride;
+				uvBase += uvStride;
+				dataPtr += uvStride;
 			}
 			if (weightsBase)
 			{
-                *dataPtr = *weightsBase;
-                weightsBase += weightsStride;
-                dataPtr += weightsStride;
+				*dataPtr = *weightsBase;
+				weightsBase += weightsStride;
+				dataPtr += weightsStride;
 			}
 			if (jointsBase)
 			{
 				*dataPtr = *jointsBase;
-                jointsBase += jointsStride;
-                dataPtr += jointsStride;
+				jointsBase += jointsStride;
+				dataPtr += jointsStride;
 			}
 		}
-        
-        // ================= indices ===================
+
+		// ================= indices ===================
 		size_t indicesCount = primitive->indices->count;
 		newPrimitive.indexBase = indices.size();
 		newPrimitive.indexCount = indicesCount;
@@ -197,7 +206,7 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 
 		primitives.emplace_back(newPrimitive);
 	}
-    return true;
+	return true;
 }
 
 bool MeshInstance::prepare(aiScene* scene)
@@ -205,69 +214,68 @@ bool MeshInstance::prepare(aiScene* scene)
 	for (size_t i = 0; i < scene->mNumMeshes; ++i)
 	{
 		Primitive primitive;
-		
+
 		const aiMesh* mesh = scene->mMeshes[i];
-        size_t vertCount = mesh->mNumVertices;
-        
-        // calculate the stride size first so we know how much mem to alloc
-        size_t stride = 0;
-        
-        // must have position data
-        if (mesh->HasPositions())
-        {
-            stride += 16;
-        }
-        if (mesh->HasNormals())
-        {
-            stride += 12;
-        }
-        if (mesh->HasTextureCoords(0))
-        {
-            stride += 8;
-        }
-        if (mesh->HasBones())
-        {
-            stride += 4;
-        }
-     
-        vertices.data = new uint8_t[vertCount * stride];
-        
+		size_t vertCount = mesh->mNumVertices;
+
+		// calculate the stride size first so we know how much mem to alloc
+		size_t stride = 0;
+
+		// must have position data
+		if (mesh->HasPositions())
+		{
+			stride += 16;
+		}
+		if (mesh->HasNormals())
+		{
+			stride += 12;
+		}
+		if (mesh->HasTextureCoords(0))
+		{
+			stride += 8;
+		}
+		if (mesh->HasBones())
+		{
+			stride += 4;
+		}
+
+		vertices.data = new uint8_t[vertCount * stride];
+
 		for (size_t j = 0; j < vertCount; ++j)
 		{
-            uint8_t* dataPtr = vertices.data + (stride * j);
-            
-            if (mesh->HasPositions())
-            {
-                const aiVector3D* position = &mesh->mVertices[j];
-                memcpy(dataPtr, position, sizeof(*position));
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
-                dataPtr += 16;
-            }
-            else
-            {
-                LOGGER_ERROR("Mesh must have position attribute.");
-                return false;
-            }
-            if (mesh->HasNormals())
-            {
-                const aiVector3D* normal = &mesh->mNormals[j];
-                memcpy(dataPtr, normal, sizeof(*normal));
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
-                dataPtr += 12;
-            }
+			uint8_t* dataPtr = vertices.data + (stride * j);
+
+			if (mesh->HasPositions())
+			{
+				const aiVector3D* position = &mesh->mVertices[j];
+				memcpy(dataPtr, position, sizeof(*position));
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
+				dataPtr += 16;
+			}
+			else
+			{
+				LOGGER_ERROR("Mesh must have position attribute.");
+				return false;
+			}
+			if (mesh->HasNormals())
+			{
+				const aiVector3D* normal = &mesh->mNormals[j];
+				memcpy(dataPtr, normal, sizeof(*normal));
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
+				dataPtr += 12;
+			}
 			if (mesh->HasTextureCoords(0))
 			{
 				aiVector3D* const* uv = &mesh->mTextureCoords[j];
-                memcpy(dataPtr, uv, sizeof(*uv));
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
-                dataPtr += 8;
+				memcpy(dataPtr, uv, sizeof(*uv));
+				vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
+				dataPtr += 8;
 			}
-            if (mesh->HasBones())
-            {
-                //const aiBone* bones = &mesh->mBones[j];
-                //memcpy(dataPtr, bones, sizeof(*bones));
-            }
-
+			if (mesh->HasBones())
+			{
+				//const aiBone* bones = &mesh->mBones[j];
+				//memcpy(dataPtr, bones, sizeof(*bones));
+			}
 		}
 
 		size_t indexCount = 0;
@@ -285,17 +293,7 @@ bool MeshInstance::prepare(aiScene* scene)
 		primitive.indexCount = indexCount;
 		primitives.emplace_back(primitive);
 	}
-    return true;
-}
-
-MaterialInstance* MeshInstance::getMaterial()
-{
-    if (!material)
-    {
-        LOGGER_WARN("Trying to retrieve a material from a mesh that does not have one.");
-        return nullptr;
-    }
-    return material;
+	return true;
 }
 
 }    // namespace OmegaEngine

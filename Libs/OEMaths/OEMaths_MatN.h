@@ -30,7 +30,7 @@ class MatMathOperators
 		{
 			for (size_t i = 0; i < cols; ++i)
 			{
-				result[j * rows + i] = 0;
+				result[i][j] = 0;
 
 				for (size_t k = 0; k < cols; ++k)
 				{

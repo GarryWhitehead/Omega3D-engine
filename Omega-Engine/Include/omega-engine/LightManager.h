@@ -1,6 +1,8 @@
 #ifndef LIGHTMANAGER_HPP
 #define LIGHTMANAGER_HPP
 
+#include "utility/Compiler.h"
+
 #include "OEMaths/OEMaths.h"
 
 namespace OmegaEngine
@@ -15,7 +17,7 @@ enum class LightType
     None
 };
 
-class LightManager
+class OE_PUBLIC LightManager
 {
 
 public:

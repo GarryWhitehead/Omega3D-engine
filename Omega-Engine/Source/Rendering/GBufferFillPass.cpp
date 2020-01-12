@@ -18,6 +18,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Image.h"
 
 #include "utility/Logger.h"
 
@@ -69,7 +70,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 		assert(context.renderer);
 
 		// draw the contents of the renderable rendder queue
-		Renderer* renderer = context.renderer;
+		OERenderer* renderer = context.renderer;
 		renderer->drawQueueThreaded(*context.cmdBuffer, driver.getCbManager(), context);
 	});
     
@@ -97,9 +98,9 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* data, 
 
 		// now update the material set with all the textures that have been defined
 		// Note: if null, this isn't a error as not all pbr materials have the full range of types
-		for (size_t i = 0; i < TextureGroup::TextureType::Count; ++i)
+		for (uint32_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
 		{
-			Util::String id = Util::String::append(mat->instance->name, TextureGroup::texTypeToStr(static_cast<TextureGroup::TextureType>(i)));
+			Util::String id = Util::String::append(mat->instance->name, TextureGroup::texTypeToStr(static_cast<MaterialInstance::TextureType>(i)));
 			VulkanAPI::Texture* tex = context.driver->getTexture2D(id);
 			if (tex)
 			{

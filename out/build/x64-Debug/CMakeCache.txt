@@ -349,6 +349,9 @@ GLFW_VULKAN_STATIC:BOOL=OFF
 //Path to a program.
 HGCOMMAND:FILEPATH=HGCOMMAND-NOTFOUND
 
+//Dependencies for the target
+IMAGE_LIB_DEPENDS:STATIC=general;UTILITY;
+
 //Enable installation of googletest. (Projects embedding googletest
 // may want to turn this OFF.)
 INSTALL_GTEST:BOOL=ON
@@ -364,6 +367,9 @@ MEMORYCHECK_COMMAND:FILEPATH=MEMORYCHECK_COMMAND-NOTFOUND
 
 //File that contains suppressions for the memory checker
 MEMORYCHECK_SUPPRESSIONS_FILE:FILEPATH=
+
+//Dependencies for the target
+ModelImporter_LIB_DEPENDS:STATIC=general;OEMATHS;
 
 //Path to a program.
 NOSETESTS_EXE:FILEPATH=NOSETESTS_EXE-NOTFOUND
@@ -396,7 +402,7 @@ OMEGA_ENABLE_THREADING:BOOL=ON
 OMEGA_ENGINE_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug
 
 //Dependencies for the target
-OMEGA_ENGINE_LIB_DEPENDS:STATIC=general;C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib;general;C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/Libs/assimp-vc142-mt.lib;general;glfw;general;spirv-cross-core;general;shaderc;general;OEMATHS;general;IMAGE;general;OETHREAD;general;UTILITY;
+OMEGA_ENGINE_LIB_DEPENDS:STATIC=general;C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib;general;glfw;general;shaderc;general;LUA;general;OEMATHS;general;IMAGE;general;OETHREAD;general;UTILITY;general;ModelImporter;
 
 //Value Computed by CMake
 OMEGA_ENGINE_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D
@@ -741,7 +747,7 @@ CMAKE_MODULE_LINKER_FLAGS_RELWITHDEBINFO-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_MT
 CMAKE_MT-ADVANCED:INTERNAL=1
 //number of local generators
-CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=54
+CMAKE_NUMBER_OF_MAKEFILES:INTERNAL=55
 //Platform information initialized
 CMAKE_PLATFORM_INFO_INITIALIZED:INTERNAL=1
 //ADVANCED property for variable: CMAKE_RC_COMPILER

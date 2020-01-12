@@ -13,6 +13,7 @@ class MappedTexture
 {
 
 public:
+
 	MappedTexture() = default;
 	~MappedTexture();
 

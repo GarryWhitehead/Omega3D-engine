@@ -267,8 +267,8 @@ void CubeImage::seamlessEdges(uint32_t dim, uint8_t channels)
 
     // TODO - this need completing
 	// now fix up the cube edges
-	size_t walkRowLeft = channels * dim;
-	size_t walkRowRight = -(channels * dim);
+	size_t walkRowLeft = static_cast<uint32_t>(channels) * dim;
+	size_t walkRowRight = -(static_cast<uint32_t>(channels) * dim);
 	size_t walkPixelLeft = channels;
 	size_t walkPixelRight = -channels;
 
@@ -283,10 +283,10 @@ void CubeImage::seamlessEdges(uint32_t dim, uint8_t channels)
 
 Image2DF32::Colour3 CubeImage::fetchBilinear(float x, float y, Image2DF32* data)
 {
-	const size_t x0 = static_cast<size_t>(x);
-	const size_t y0 = static_cast<size_t>(y);
-	const size_t x1 = x0 + 1;
-	const size_t y1 = y0 + 1;
+	const uint64_t x0 = static_cast<uint64_t>(x);
+	const uint64_t y0 = static_cast<uint64_t>(y);
+	const uint64_t x1 = x0 + 1;
+	const uint64_t y1 = y0 + 1;
 
 	const float u = x0;
 	const float v = y0;

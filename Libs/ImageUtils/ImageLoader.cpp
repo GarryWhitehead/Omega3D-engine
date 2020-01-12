@@ -2,8 +2,20 @@
 
 #include "utility/Logger.h"
 
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 namespace OmegaEngine
 {
+
+ImageLoader::~ImageLoader()
+{
+	if (buffer)
+	{
+		stbi_image_free(buffer);
+		buffer = nullptr;
+	}
+}
 
 bool ImageLoader::load(Util::String filename, int pixels)
 {
