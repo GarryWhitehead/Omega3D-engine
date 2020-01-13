@@ -457,28 +457,22 @@ OECamera* OEScene::getCurrentCamera()
 	return camera;
 }
 
-bool OEScene::addSkybox(Skybox::Instance* instance)
+bool OEScene::addSkybox(OESkybox* sb)
 {
-	if (!instance->cubeMap)
+	assert(sb);
+	if (!sb->cubeMap->isCubeMap())
 	{
-		LOGGER_WARN("The cubemap enviromental texture is nullptr!");
+		LOGGER_ERROR("Trying to add a skybox which has the incorrect texture type - must be a cubemap.");
 		return false;
 	}
-	if (!instance->cubeMap->isCubeMap())
-	{
-		LOGGER_WARN("The cubemap texture is not a cubemap!");
-		return false;
-	}
-
-	skybox = std::make_unique<OESkybox>(driver, instance->cubeMap, instance->blur);
-	assert(skybox);
+	skybox = sb;
 }
 
 // ============================ front-end =========================================
 
-void Scene::addCamera(const Camera* camera)
+void Scene::addCamera(Camera* camera)
 {
-	static_cast<OEScene*>(this)->addCamera(static_cast<const OECamera*>(camera));
+	static_cast<OEScene*>(this)->setCurrentCamera(static_cast<OECamera*>(camera));
 }
 
 void Scene::update()
@@ -496,9 +490,9 @@ Camera* Scene::getCurrentCamera()
 	return static_cast<OEScene*>(this)->getCurrentCamera();
 }
 
-bool Scene::addSkybox(Skybox::Instance* instance)
+bool Scene::addSkybox(Skybox* instance)
 {
-	return static_cast<OEScene*>(this)->addSkybox(instance);
+	return static_cast<OEScene*>(this)->addSkybox(static_cast<OESkybox*>(instance));
 }
 
 }    // namespace OmegaEngine

@@ -25,18 +25,12 @@ class NodeInstance;
 struct NodeInfo
 {
   NodeInfo() = default;
+  ~NodeInfo();
   
-  ~NodeInfo()
-  {
-      for (auto& child : children)
-      {
-          if (child)
-          {
-              delete child;
-              child = nullptr;
-          }
-      }
-  }
+  NodeInfo(const NodeInfo& rhs);
+  NodeInfo& operator=(const NodeInfo& rhs);
+  NodeInfo(NodeInfo&& rhs) = default;
+  NodeInfo& operator=(NodeInfo&& rhs) = default;
   
   void setChannelIdx(size_t idx)
   {

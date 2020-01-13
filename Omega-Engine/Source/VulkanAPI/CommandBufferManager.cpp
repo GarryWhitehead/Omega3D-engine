@@ -5,7 +5,6 @@
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
-
 #include "utility/Logger.h"
 
 namespace VulkanAPI
@@ -14,44 +13,45 @@ namespace VulkanAPI
 // ===============================================================================================================
 
 CmdPool::CmdPool(VkContext& context, SemaphoreManager& spManager, uint32_t queueIndex)
-    : context(context),
-      spManager(spManager),
-      queueIndex(queueIndex)
+    : context(context), spManager(spManager), queueIndex(queueIndex)
 {
-	// create the cmd pool - one per cmd buffer
-    vk::CommandPoolCreateInfo createInfo{ vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queueIndex };
-	context.getDevice().createCommandPool(&createInfo, nullptr, &cmdPool);
+    // create the cmd pool - one per cmd buffer
+    vk::CommandPoolCreateInfo createInfo {
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queueIndex};
+    context.getDevice().createCommandPool(&createInfo, nullptr, &cmdPool);
 }
 
 CmdPool::~CmdPool()
 {
-	context.getDevice().destroy(cmdPool, nullptr);
+    context.getDevice().destroy(cmdPool, nullptr);
 }
 
 CmdBuffer* CmdPool::createPrimaryCmdBuffer(CmdBufferManager* manager)
 {
-	CmdPool::CmdInstance instance;
+    CmdPool::CmdInstance instance;
 
-	// create a fence which will be used to sync things
-	vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-	VK_CHECK_RESULT(context.getDevice().createFence(&fence_info, nullptr, &instance.fence));
-	VK_CHECK_RESULT(context.getDevice().resetFences(1, &instance.fence));
+    // create a fence which will be used to sync things
+    vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
+    VK_CHECK_RESULT(context.getDevice().createFence(&fence_info, nullptr, &instance.fence));
+    VK_CHECK_RESULT(context.getDevice().resetFences(1, &instance.fence));
 
-	// and the semaphore used to sync between queues
-	instance.semaphore = spManager.getSemaphore();
+    // and the semaphore used to sync between queues
+    instance.semaphore = spManager.getSemaphore();
 
-	// and create the cmd buffer
-	instance.cmdBuffer = std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, manager);
-	CmdBuffer* res = instance.cmdBuffer.get();
-	cmdInstances.emplace_back(std::move(instance));
+    // and create the cmd buffer
+    instance.cmdBuffer =
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, manager);
+    CmdBuffer* res = instance.cmdBuffer.get();
+    cmdInstances.emplace_back(std::move(instance));
 
-	return res;
+    return res;
 }
 
 CmdBuffer* CmdPool::createSecCmdBuffer(CmdBufferManager* manager)
 {
     // and create the secondary cmd buffer
-    auto cmdBuffer = std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
+    auto cmdBuffer =
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
     CmdBuffer* res = cmdBuffer.get();
     secondary.emplace_back(std::move(cmdBuffer));
     return res;
@@ -59,23 +59,24 @@ CmdBuffer* CmdPool::createSecCmdBuffer(CmdBufferManager* manager)
 
 void CmdPool::reset()
 {
-	if (cmdInstances.empty())
-	{
-		LOGGER_WARN("Calling reset on a command pool which has no cmd buffers allocated!");
-		return;
-	}
+    if (cmdInstances.empty())
+    {
+        LOGGER_WARN("Calling reset on a command pool which has no cmd buffers allocated!");
+        return;
+    }
 
-	// ensure all cmd buffers are finished fror this frame before restting the pool
-	for (CmdInstance& info : cmdInstances)
-	{
-		VK_CHECK_RESULT(context.getDevice().waitForFences(1, &info.fence, VK_TRUE, UINT64_MAX));
-		VK_CHECK_RESULT(context.getDevice().resetFences(1, &info.fence));
-	}
+    // ensure all cmd buffers are finished fror this frame before restting the pool
+    for (CmdInstance& info : cmdInstances)
+    {
+        VK_CHECK_RESULT(context.getDevice().waitForFences(1, &info.fence, VK_TRUE, UINT64_MAX));
+        VK_CHECK_RESULT(context.getDevice().resetFences(1, &info.fence));
+    }
 
-	context.getDevice().resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
+    context.getDevice().resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
 }
 
-void CmdPool::submitAll(Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
+void CmdPool::submitAll(
+    Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
 {
     vk::Semaphore waitSync;
     vk::Semaphore signalSync;
@@ -102,7 +103,7 @@ void CmdPool::submitAll(Swapchain& swapchain, const uint32_t imageIndex, const v
         }
 
         VK_CHECK_RESULT(context.getDevice().resetFences(1, &fence));
-        
+
         vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eAllCommands;
         vk::SubmitInfo info {1, &waitSync, &flags, 1, &cmdBuffer, 1, &signalSync};
         VK_CHECK_RESULT(context.getGraphQueue().submit(1, &info, fence));
@@ -110,9 +111,8 @@ void CmdPool::submitAll(Swapchain& swapchain, const uint32_t imageIndex, const v
 
     // then the presentation part.....
     vk::Semaphore finalSemaphore = cmdInstances.back().semaphore;
-    vk::PresentInfoKHR presentInfo{ 1, &finalSemaphore, 1, &swapchain.get(), &imageIndex, nullptr };
+    vk::PresentInfoKHR presentInfo {1, &finalSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
     VK_CHECK_RESULT(context.getPresentQueue().presentKHR(&presentInfo));
- 
 }
 
 void CmdPool::clearSecondary()
@@ -132,15 +132,17 @@ std::vector<vk::CommandBuffer> CmdPool::getSecondary()
 
 std::unique_ptr<CmdBuffer> CmdPool::getSingleUseCb(CmdBufferManager* manager)
 {
-    // TODO: should check here that the cmd buffer has actually finished its work before returning to the user
+    // TODO: should check here that the cmd buffer has actually finished its work before returning
+    // to the user
     if (!singleUseCbs.empty())
     {
         auto& cb = singleUseCbs.back();
         singleUseCbs.pop_back();
         return std::move(cb);
     }
-    
-    auto cmdBuffer = std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
+
+    auto cmdBuffer =
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
     return cmdBuffer;
 }
 
@@ -153,8 +155,7 @@ void CmdPool::releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer)
 // ================================================================================================================
 
 CmdBufferManager::CmdBufferManager(VkContext& context)
-    : context(context),
-      spManager(std::make_unique<SemaphoreManager>(context.getDevice()))
+    : context(context), spManager(std::make_unique<SemaphoreManager>(context.getDevice()))
 {
 }
 
@@ -164,55 +165,62 @@ CmdBufferManager::~CmdBufferManager()
 
 Pipeline* CmdBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass)
 {
-	Pipeline* pline = nullptr;
+    Pipeline* pline = nullptr;
 
-	PLineHash key{ prog, rPass };
-	auto iter = pipelines.find(key);
+    PLineHash key {prog, rPass};
+    auto iter = pipelines.find(key);
 
-	// if the pipeline has already has an instance return this
-	if (iter != pipelines.end())
-	{
+    // if the pipeline has already has an instance return this
+    if (iter != pipelines.end())
+    {
         pline = iter->second;
-	}
-	else
-	{
-		// else create a new pipeline - If we are in a threaded environemt then we can't add to the list until we are out of the thread
+    }
+    else
+    {
+        // else create a new pipeline - If we are in a threaded environemt then we can't add to the
+        // list until we are out of the thread
         pline = new Pipeline(context, *rPass, *prog->getPLineLayout());
-		pline->create(*prog);
-		pipelines.emplace(key, pline);
-	}
+        pline->create(*prog);
+        pipelines.emplace(key, pline);
+    }
 
-	return pline;
+    return pline;
 }
 
 CmdPool* CmdBufferManager::createMainPool()
 {
-	mainPool =
-	    std::make_unique<CmdPool>(context, *spManager, context.getGraphQueueIdx());    // this needs to support compute queues too
-	return mainPool.get();
+    mainPool = std::make_unique<CmdPool>(
+        context,
+        *spManager,
+        context.getGraphQueueIdx()); // this needs to support compute queues too
+    return mainPool.get();
 }
 
 std::unique_ptr<CmdPool> CmdBufferManager::createSecondaryPool()
 {
-    // if there are any free pools which are intended for threaded use, then return one of these if applicable
+    // if there are any free pools which are intended for threaded use, then return one of these if
+    // applicable
     if (!secondaryPools.empty())
     {
         auto& pool = secondaryPools.back();
         secondaryPools.pop_back();
         return std::move(pool);
     }
-    
+
     // create a new pool if none are free
-    auto pool =
-        std::make_unique<CmdPool>(context, *spManager, context.getGraphQueueIdx());    // this needs to support compute queues too
+    auto pool = std::make_unique<CmdPool>(
+        context,
+        *spManager,
+        context.getGraphQueueIdx()); // this needs to support compute queues too
     return pool;
 }
 
 void CmdBufferManager::releasePool(std::unique_ptr<CmdPool> pool)
 {
     assert(pool);
-    
-    // destroy the cmd buffers - these will be allocated each frame - TODO: maybe these should be recycled?
+
+    // destroy the cmd buffers - these will be allocated each frame - TODO: maybe these should be
+    // recycled?
     pool->clearSecondary();
     pool->reset();
     secondaryPools.emplace_back(std::move(pool));
@@ -223,38 +231,46 @@ void CmdBufferManager::beginNewFame()
     mainPool->reset();
 }
 
-void CmdBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
+void CmdBufferManager::beginRenderpass(
+    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
 {
-	// setup the clear values for this pass - need one for each attachment
-	vk::ClearValue clearValue[2];
+    // setup the clear values for this pass - need one for each attachment
+    vk::ClearValue clearValue[2];
 
-	if (rpass.hasColourAttach())
-	{
-		clearValue[0].color.float32[0] = rpass.clearCol.r;
-		clearValue[0].color.float32[1] = rpass.clearCol.g;
-		clearValue[0].color.float32[2] = rpass.clearCol.b;
-		clearValue[0].color.float32[3] = rpass.clearCol.a;
-	}
-	if (rpass.hasDepthAttach())
-	{
-		clearValue[1].depthStencil = vk::ClearDepthStencilValue{ rpass.depthClear, 0 };
-	}
+    if (rpass.hasColourAttach())
+    {
+        clearValue[0].color.float32[0] = rpass.clearCol.r;
+        clearValue[0].color.float32[1] = rpass.clearCol.g;
+        clearValue[0].color.float32[2] = rpass.clearCol.b;
+        clearValue[0].color.float32[3] = rpass.clearCol.a;
+    }
+    if (rpass.hasDepthAttach())
+    {
+        clearValue[1].depthStencil = vk::ClearDepthStencilValue {rpass.depthClear, 0};
+    }
 
-	// extents of the frame buffer
-	vk::Rect2D extents{ { 0, 0 }, { fbuffer.getWidth(), fbuffer.getHeight() } };
+    // extents of the frame buffer
+    vk::Rect2D extents {{0, 0}, {fbuffer.getWidth(), fbuffer.getHeight()}};
 
-    vk::RenderPassBeginInfo beginInfo{ rpass.get(), fbuffer.get(), extents, 1, clearValue };
+    vk::RenderPassBeginInfo beginInfo {rpass.get(), fbuffer.get(), extents, 1, clearValue};
     cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
 
-	// use custom defined viewing area - at the moment set to the framebuffer size
-    vk::Viewport viewport{ 0.0f, 0.0f, static_cast<float>(fbuffer.getWidth()), static_cast<float>(fbuffer.getHeight()), 0.0f, 1.0f };
+    // use custom defined viewing area - at the moment set to the framebuffer size
+    vk::Viewport viewport {
+        0.0f,
+        0.0f,
+        static_cast<float>(fbuffer.getWidth()),
+        static_cast<float>(fbuffer.getHeight()),
+        0.0f,
+        1.0f};
 
-	cmdBuffer->setViewport(viewport);
+    cmdBuffer->setViewport(viewport);
 
-	vk::Rect2D scissor{ { static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y) },
-		                { static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height) } };
+    vk::Rect2D scissor {
+        {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
+        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
 
-	cmdBuffer->setScissor(scissor);
+    cmdBuffer->setScissor(scissor);
 }
 
 void CmdBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
@@ -262,7 +278,8 @@ void CmdBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
     cmdBuffer->endPass();
 }
 
-void CmdBufferManager::submitFrame(Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
+void CmdBufferManager::submitFrame(
+    Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
 {
     mainPool->submitAll(swapchain, imageIndex, beginSemaphore);
 }
@@ -277,4 +294,4 @@ void CmdBufferManager::releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer)
     mainPool->releaseSingleUseCb(std::move(cmdBuffer));
 }
 
-}    // namespace VulkanAPI
+} // namespace VulkanAPI

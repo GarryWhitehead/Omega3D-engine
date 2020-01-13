@@ -26,7 +26,7 @@ class OEScene;
 class Object;
 class OEEngine;
 class OECamera;
-//class OESkybox;
+class OESkybox;
 
 class OEWorld : public World
 {
@@ -40,7 +40,7 @@ public:
 	 * prepares this world ready for recieving a scene
 	 * @param name An identiying name for this world. 
 	 */
-	void prepare(Util::String name);
+	void prepare(Util::String& name);
 
 	/**
 	* @brief creates a new empty scene. This will be passed to the renderer for presentation.
@@ -49,6 +49,8 @@ public:
 	OEScene* createScene();
 
 	OECamera* createCamera();
+
+	OESkybox* createSkybox();
 
 	OEObjectManager* getObjManager()
 	{
@@ -66,8 +68,8 @@ private:
 	/// objects assoicated with this scene dealt with by the object manager
 	OEObjectManager objManager;
 
-	std::vector<std::unique_ptr<OECamera>> cameras;
-	//std::vector<OESkybox> skyboxes;	// not used yet!
+	std::vector<std::unique_ptr<OECamera> > cameras;
+	std::vector<std::unique_ptr<OESkybox> > skyboxes;	
 
 	// scenes associated with this world
 	std::vector<std::unique_ptr<OEScene>> scenes;

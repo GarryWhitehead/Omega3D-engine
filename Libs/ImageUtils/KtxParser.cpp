@@ -70,11 +70,6 @@ bool KtxReader::load(Util::String filename, size_t& fileSize)
 	}
 	fclose(file);
 
-	if (!parse(fileSize))
-	{
-		return false;
-	}
-
 	return true;
 }
 

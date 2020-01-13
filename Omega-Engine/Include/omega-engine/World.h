@@ -7,6 +7,7 @@ namespace OmegaEngine
 {
 // forward declerartions
 class Scene;
+class Skybox;
 class ObjectManager;
 class Camera;
 
@@ -23,6 +24,8 @@ public:
     * @return A pointer to the newly created scene
     */
     Scene* createScene();
+
+    Skybox* createSkybox();
 
     ObjectManager* getObjManager();
 

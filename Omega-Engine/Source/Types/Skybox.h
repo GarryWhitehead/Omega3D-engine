@@ -19,14 +19,14 @@ class IndirectLighting;
 class SkyboxPass;
 class MappedTexture;
 
-class OESkybox : public Skybox
+class OESkybox : public Skybox 
 {
 public:
     
     static constexpr uint32_t indicesSize = 36;
     static constexpr uint32_t verticesSize = 24;
     
-    OESkybox(VulkanAPI::VkDriver& driver, MappedTexture* cm, float blur = 0.0f);
+    OESkybox(VulkanAPI::VkDriver& driver);
     ~OESkybox();
     
     /**
@@ -34,15 +34,19 @@ public:
      */
     void prepareGeometry();
     
+    OESkybox& setCubeMap(MappedTexture* cm);
+	OESkybox& setBlurFactor(const float bf);
+
     friend class IndirectLighting;
     friend class SkyboxPass;
+	friend class OEScene;
     
 private:
     
     VulkanAPI::VkDriver& driver;
     
     // the cubemap
-    MappedTexture* cubeMap;
+    MappedTexture* cubeMap = nullptr;
     
     // vertex and index buffer memory info for the cube
     VulkanAPI::VertexBuffer* vertexBuffer = nullptr;

@@ -132,7 +132,7 @@ void OECamera::setVelocity(const float vel)
 	velocity = vel;
 }
 
-void OECamera::setType(const CameraType camType)
+void OECamera::setType(const Camera::CameraType camType)
 {
 	type = camType;
 }
@@ -144,5 +144,80 @@ void OECamera::setPosition(const OEMaths::vec3f& pos)
 
 // ============================ front-end =====================================
 
+void Camera::setFov(const float camFov)
+{
+	static_cast<OECamera*>(this)->setFov(camFov);
+}
+
+void Camera::setZNear(const float zn)
+{
+	static_cast<OECamera*>(this)->setZNear(zn);
+}
+
+void Camera::setZFar(const float zf)
+{
+	static_cast<OECamera*>(this)->setZFar(zf);
+}
+
+void Camera::setAspect(const float asp)
+{
+	static_cast<OECamera*>(this)->setAspect(asp);
+}
+
+void Camera::setVelocity(const float vel)
+{
+	static_cast<OECamera*>(this)->setVelocity(vel);
+}
+
+
+void Camera::setType(const CameraType camType)
+{
+	static_cast<OECamera*>(this)->setType(camType);
+}
+
+void Camera::setPosition(const OEMaths::vec3f& pos)
+{
+	static_cast<OECamera*>(this)->setPosition(pos);
+}
+
+OEMaths::mat4f Camera::getMvpMatrix()
+{
+	return static_cast<OECamera*>(this)->getMvpMatrix();
+}
+
+float Camera::getZNear() const
+{
+	return static_cast<const OECamera*>(this)->getZNear();
+}
+
+float Camera::getZFar() const
+{
+	return static_cast<const OECamera*>(this)->getZFar();
+}
+
+float Camera::getFov() const
+{
+	return static_cast<const OECamera*>(this)->getFov();
+}
+
+OEMaths::vec3f& Camera::getPos()
+{
+	return static_cast<OECamera*>(this)->getPos();
+}
+
+OEMaths::mat4f& Camera::getProjMatrix()
+{
+	return static_cast<OECamera*>(this)->getProjMatrix();
+}
+
+OEMaths::mat4f& Camera::getViewMatrix()
+{
+	return static_cast<OECamera*>(this)->getViewMatrix();
+}
+
+OEMaths::mat4f& Camera::getModelMatrix()
+{
+	return static_cast<OECamera*>(this)->getModelMatrix();
+}
 
 }    // namespace OmegaEngine

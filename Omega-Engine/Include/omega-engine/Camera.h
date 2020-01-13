@@ -17,8 +17,6 @@ public:
 		ThirdPerson
 	};
 
-	Camera() = default;
-
 	// ================== getters ====================
 
 	OEMaths::mat4f getMvpMatrix();
@@ -38,11 +36,7 @@ public:
 	OEMaths::mat4f& getModelMatrix();
 
 	// ================ setters ======================
-	/**
-     * Calculates the perspective projection matrix. Note: only perspective cameras supported at the moment
-     */
-	void setPerspective();
-
+	
 	/**
      * Set the feild of view for this camera. Default value is 40.0degrees.
      * @param fov: the field of view in degrees
@@ -86,11 +80,10 @@ public:
      */
 	void setPosition(const OEMaths::vec3f& pos);
 
-	// ============ update functions ========================
-	void update();
 
-private:
+protected:
 
+	Camera() = default;
 };
 
 }    // namespace OmegaEngine

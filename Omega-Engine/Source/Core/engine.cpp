@@ -3,23 +3,16 @@
 #include "Core/Omega_Global.h"
 #include "Core/Scene.h"
 #include "Core/World.h"
-
-#include "utility/FileUtil.h"
-
-#include "VulkanAPI/SwapChain.h"
-
-#include "Types/NativeWindowWrapper.h"
-
 #include "Rendering/Renderer.h"
-
-#include "utility/Logger.h"
-
+#include "Types/NativeWindowWrapper.h"
+#include "VulkanAPI/SwapChain.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
+#include "utility/FileUtil.h"
+#include "utility/Logger.h"
 
 namespace OmegaEngine
 {
-
 OEEngine::OEEngine()
     : transManager(std::make_unique<TransformManager>())
     , rendManager(std::make_unique<OERenderableManager>(*this))
@@ -30,132 +23,132 @@ OEEngine::OEEngine()
 
 OEEngine::~OEEngine()
 {
-	for (OEWorld* world : worlds)
-	{
-		if (world)
-		{
-			delete world;
-		}
-	}
-	worlds.clear();
+    for (OEWorld* world : worlds)
+    {
+        if (world)
+        {
+            delete world;
+        }
+    }
+    worlds.clear();
 
-	for (Renderer* rend : renderers)
-	{
-		if (rend)
-		{
-			delete rend;
-		}
-	}
-	renderers.clear();
+    for (Renderer* rend : renderers)
+    {
+        if (rend)
+        {
+            delete rend;
+        }
+    }
+    renderers.clear();
 }
 
 bool OEEngine::init(OEWindowInstance* window)
 {
-	if (!vkDriver.createInstance(window->extensions.first, window->extensions.second))
-	{
-		LOGGER_ERROR("Fatal Error whilst creating Vulkan instance.");
-		return false;
-	}
+    if (!vkDriver.createInstance(window->extensions.first, window->extensions.second))
+    {
+        LOGGER_ERROR("Fatal Error whilst creating Vulkan instance.");
+        return false;
+    }
 
-	surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
+    surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
 
-	if (!vkDriver.init(surface.get()))
-	{
-		LOGGER_ERROR("Fatal Error whilst preparing vulkan device.");
-		return false;
-	}
-	return true;
+    if (!vkDriver.init(surface.get()))
+    {
+        LOGGER_ERROR("Fatal Error whilst preparing vulkan device.");
+        return false;
+    }
+    return true;
 }
 
 SwapchainHandle OEEngine::createSwapchain(OEWindowInstance* window)
 {
-	// create a swapchain for surface rendering based on the platform specific window surface
-	auto sc = std::make_unique<VulkanAPI::Swapchain>();
-	sc->prepare(vkDriver.getContext(), surface);
-	swapchains.emplace_back(std::move(sc));
-	return SwapchainHandle{ static_cast<uint32_t>(swapchains.size() - 1) };
+    // create a swapchain for surface rendering based on the platform specific window surface
+    auto sc = std::make_unique<VulkanAPI::Swapchain>();
+    sc->prepare(vkDriver.getContext(), surface);
+    swapchains.emplace_back(std::move(sc));
+    return SwapchainHandle {static_cast<uint32_t>(swapchains.size() - 1)};
 }
 
 OEWorld* OEEngine::createWorld(Util::String name)
 {
-	// create an empty world
-	OEWorld* world = new OEWorld(*this, vkDriver);
+    // create an empty world
+    OEWorld* world = new OEWorld(*this, vkDriver);
 
-	world->prepare(name);
+    world->prepare(name);
 
-	worlds.emplace_back(std::move(world));
-	this->currentWorld = name;
+    worlds.emplace_back(std::move(world));
+    this->currentWorld = name;
 
-	return world;
+    return world;
 }
 
 Renderer* OEEngine::createRenderer(SwapchainHandle& handle, OEScene* scene)
 {
-	auto& swapchain = swapchains[handle.getHandle()];
+    auto& swapchain = swapchains[handle.getHandle()];
 
-	OERenderer* renderer = new OERenderer(*this, *scene, *swapchain, config);
-	assert(renderer);
-	renderers.emplace_back(renderer);
-	return renderer;
+    OERenderer* renderer = new OERenderer(*this, *scene, *swapchain, config);
+    assert(renderer);
+    renderers.emplace_back(renderer);
+    return renderer;
 }
 
 VulkanAPI::VkDriver& OEEngine::getVkDriver()
 {
-	return vkDriver;
+    return vkDriver;
 }
 
 // ** manager helper functions **
 AnimationManager& OEEngine::getAnimManager()
 {
-	return *animManager;
+    return *animManager;
 }
 
 OELightManager* OEEngine::getLightManager()
 {
-	return lightManager.get();
+    return lightManager.get();
 }
 
 OERenderableManager* OEEngine::getRendManager()
 {
-	return rendManager.get();
+    return rendManager.get();
 }
 
 TransformManager& OEEngine::getTransManager()
 {
-	return *transManager;
+    return *transManager;
 }
 
 // ========================== front-end =========================================
 
 bool Engine::init(WindowInstance* window)
 {
-	return static_cast<OEEngine*>(this)->init(static_cast<OEWindowInstance*>(window));
+    return static_cast<OEEngine*>(this)->init(static_cast<OEWindowInstance*>(window));
 }
 
 SwapchainHandle Engine::createSwapchain(WindowInstance* window)
 {
-	return static_cast<OEEngine*>(this)->createSwapchain(static_cast<OEWindowInstance*>(window));
+    return static_cast<OEEngine*>(this)->createSwapchain(static_cast<OEWindowInstance*>(window));
 }
 
 Renderer* Engine::createRenderer(SwapchainHandle& handle, Scene* scene)
 {
-	return static_cast<OEEngine*>(this)->createRenderer(handle, static_cast<OEScene*>(scene));
+    return static_cast<OEEngine*>(this)->createRenderer(handle, static_cast<OEScene*>(scene));
 }
 
 World* Engine::createWorld(Util::String name)
 {
-	return static_cast<OEEngine*>(this)->createWorld(name);
+    return static_cast<OEEngine*>(this)->createWorld(name);
 }
 
 /*ightManager* Engine::getLightManager()
 {
-	OELightManager* man = static_cast<OEEngine*>(this)->getLightManager();
-	return static_cast<LightManager*>(man);
+        OELightManager* man = static_cast<OEEngine*>(this)->getLightManager();
+        return static_cast<LightManager*>(man);
 }
 
 RenderableManager* Engine::getRendManager()
 {
-	return static_cast<OEEngine*>(this)->getRendManager();
+        return static_cast<OEEngine*>(this)->getRendManager();
 }*/
 
-}    // namespace OmegaEngine
+} // namespace OmegaEngine

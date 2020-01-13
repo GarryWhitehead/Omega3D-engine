@@ -10,6 +10,7 @@ namespace OmegaEngine
 class Engine;
 class World;
 class Camera;
+class Skybox;
 
 class OE_PUBLIC Scene
 {
@@ -27,9 +28,9 @@ public:
 
     Camera* getCurrentCamera();
     
-    bool addSkybox(Skybox::Instance* instance);
+    bool addSkybox(Skybox* instance);
     
-    void addCamera(const Camera* camera);
+    void addCamera(Camera* camera);
 
 private:
     

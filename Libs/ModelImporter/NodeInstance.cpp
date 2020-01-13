@@ -13,6 +13,73 @@
 namespace OmegaEngine
 {
 
+NodeInfo::~NodeInfo()
+{
+	for (auto& child : children)
+	{
+		if (child)
+		{
+			delete child;
+			child = nullptr;
+		}
+	}
+}
+
+NodeInfo::NodeInfo(const NodeInfo& rhs)
+    : id(rhs.id)
+    , skinIndex(rhs.skinIndex)
+    , channelIndex(rhs.channelIndex)
+    , hasMesh(rhs.hasMesh)
+    , translation(rhs.translation)
+    , scale(rhs.scale)
+    , rotation(rhs.rotation)
+    , localTransform(rhs.localTransform)
+    , nodeTransform(rhs.nodeTransform)
+{
+	// if there already children, delete them
+	if (!children.empty())
+	{
+		children.clear();
+	}
+	for (auto& child : rhs.children)
+	{
+		NodeInfo* newChild = new NodeInfo(*child);
+		children.push_back(newChild);
+		children.back()->parent = this;
+	}
+}
+
+NodeInfo& NodeInfo::operator=(const NodeInfo& rhs)
+{
+	if (this != &rhs)
+	{
+		id = rhs.id;
+		skinIndex = rhs.skinIndex;
+		channelIndex = rhs.channelIndex;
+		hasMesh = rhs.hasMesh;
+		translation = rhs.translation;
+		scale = rhs.scale;
+		rotation = rhs.rotation;
+		localTransform = rhs.localTransform;
+		nodeTransform = rhs.nodeTransform;
+
+		// if there already children, delete them
+		if (!children.empty())
+		{
+			children.clear();
+		}
+		for (auto& child : rhs.children)
+		{
+			NodeInfo* newChild = new NodeInfo(*child);
+			children.push_back(newChild);
+			children.back()->parent = this;
+		}
+	}
+	return *this;
+}
+
+// ================================================================================================================================
+
 NodeInstance::NodeInstance()
 {
 }
@@ -60,8 +127,7 @@ NodeInfo* NodeInstance::getNode(Util::String id)
 }
 
 bool NodeInstance::prepareNodeHierachy(cgltf_node* node, NodeInfo* newNode, NodeInfo* parent,
-                                       OEMaths::mat4f& parentTransform,
-                                       GltfModel& model, size_t& nodeIdx)
+                                       OEMaths::mat4f& parentTransform, GltfModel& model, size_t& nodeIdx)
 {
 	assert(newNode);
 	newNode->parent = parent;
