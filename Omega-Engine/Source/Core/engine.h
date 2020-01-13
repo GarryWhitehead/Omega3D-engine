@@ -2,6 +2,11 @@
 
 #include "omega-engine/Engine.h"
 
+#include "Components/AnimationManager.h"
+#include "Components/LightManager.h"
+#include "Components/RenderableManager.h"
+#include "Components/TransformManager.h"
+
 #include "VulkanAPI/Platform/Surface.h"
 #include "VulkanAPI/VkDriver.h"
 
@@ -15,11 +20,7 @@
 namespace OmegaEngine
 {
 // forward declerations
-class OEWorld;
-class AnimationManager;
-class OELightManager;
-class OERenderableManager;
-class TransformManager;
+class OEWorld;;
 class Renderer;
 class OEScene;
 class EngineConfig;
@@ -95,9 +96,9 @@ private:
 	// managers are under control of the engine as this allows multiple worlds to use the same 
 	// resources from the managers
 	std::unique_ptr<AnimationManager> animManager;
-	std::unique_ptr<OELightManager> lightManager = nullptr;
-	std::unique_ptr<OERenderableManager> rendManager = nullptr;
-	std::unique_ptr<TransformManager> transManager = nullptr;
+	std::unique_ptr<OELightManager> lightManager;
+	std::unique_ptr<OERenderableManager> rendManager;
+	std::unique_ptr<TransformManager> transManager;
 };
 
 }    // namespace OmegaEngine

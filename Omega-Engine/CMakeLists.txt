@@ -10,15 +10,16 @@ TARGET_COMPILE_OPTIONS(OMEGA_ENGINE PRIVATE ${OMEGA_CXX_FLAGS})
 # flags for vulkan surface platform
 IF(WIN32)
 	TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC VK_USE_PLATFORM_WIN32_KHR)
-	MESSAGE("Using window32 KHR surface...")
+	MESSAGE("Building for win32 KHR surface...")
+ ELSEIF(APPLE)
+    TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC VK_USE_PLATFORM_MACOS_MVK)
+    MESSAGE("Building for macos surface....")
 ENDIF()
 
 # Shader and assets path definitions
 TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC OE_SHADER_DIR=\"${SHADER_DIR}/\")
 TARGET_COMPILE_DEFINITIONS(OMEGA_ENGINE PUBLIC OE_ASSETS_DIR=\"${ASSETS_DIR}/\")
 INSTALL(DIRECTORY data/ DESTINATION ${ASSETS_DIR}/)
-
-INCLUDE_DIRECTORIES(Source)
 
 # ================= include targets ====================
 TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
@@ -115,7 +116,10 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Scripting/LuaBinder.cpp Source/Scripting/LuaBinder.h
 	Source/Scripting/OEConfig.cpp Source/Scripting/OEConfig.h
 	
-	Source/VulkanAPI/Platform/Surface.cpp Source/VulkanAPI/Platform/Surface.h
+	Source/VulkanAPI/Platform/Surface.h
+    Source/VulkanAPI/Platform/Surface_Win32.cpp
+    Source/VulkanAPI/Platform/Surface_Linux.cpp
+    Source/VulkanAPI/Platform/Surface_Cocoa.mm
 
 	Source/VulkanAPI/CommandBufferManager.cpp Source/VulkanAPI/CommandBufferManager.h
 	Source/VulkanAPI/SemaphoreManager.cpp Source/VulkanAPI/SemaphoreManager.h
@@ -144,6 +148,11 @@ TARGET_SOURCES(OMEGA_ENGINE
 )
 
 # ================= linking =======================
+
+IF(APPLE AND NOT IOS)
+    TARGET_LINK_LIBRARIES(OMEGA_ENGINE PRIVATE "-framework Cocoa")
+ENDIF()
+
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 
 	PRIVATE
 	${Vulkan_LIBRARY} 

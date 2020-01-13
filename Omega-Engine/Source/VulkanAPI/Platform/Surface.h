@@ -2,10 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 
-namespace OmegaEngine
-{
-class OEWindowInstance;
-}
+#include "Types/NativeWindowWrapper.h"
 
 namespace VulkanAPI
 {
@@ -14,14 +11,13 @@ namespace Platform
 {
 
 /**
-* @brief A wrapper for platform specific vulkan surface objects
+* @brief A base wrapper for platform specific vulkan surface objects
 */
 class SurfaceWrapper
 {
 public:
 
     SurfaceWrapper() = default;
-    
     SurfaceWrapper(OmegaEngine::OEWindowInstance& window, vk::Instance& instance);
     
 	uint32_t getWidth() const
@@ -39,7 +35,8 @@ public:
 		return surface;
 	}
 
-private:
+public:
+    
 	vk::SurfaceKHR surface;
 
 	uint32_t winWidth = 0;

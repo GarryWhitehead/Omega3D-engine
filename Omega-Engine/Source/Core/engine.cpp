@@ -4,11 +4,6 @@
 #include "Core/Scene.h"
 #include "Core/World.h"
 
-#include "Components/AnimationManager.h"
-#include "Components/LightManager.h"
-#include "Components/RenderableManager.h"
-#include "Components/TransformManager.h"
-
 #include "utility/FileUtil.h"
 
 #include "VulkanAPI/SwapChain.h"
