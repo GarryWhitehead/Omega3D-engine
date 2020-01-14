@@ -53,10 +53,6 @@ public:
 	OEScene(OEWorld& world, OEEngine& engine, VulkanAPI::VkDriver& driver);
 	~OEScene();
 
-	// a OEScene isn't copyable
-	OEScene(OEScene&) = delete;
-	OEScene& operator=(OEScene&) = delete;
-
 	void update();
 
 	void prepare();
@@ -77,7 +73,7 @@ public:
     
     // ====== public functions for adding items to the scene ==============
     
-    bool addSkybox(Skybox::Instance* instance);
+    bool addSkybox(OESkybox* sb);
     
     void setCurrentCamera(OECamera* camera);
     
@@ -97,7 +93,7 @@ private:
 	OECamera* camera;
     
     /// the skybox to be used with this scene. Also used for global illumination
-    std::unique_ptr<OESkybox> skybox;
+    OESkybox* skybox;
     
 	/// The world this scene is assocaited with
 	OEWorld& world;

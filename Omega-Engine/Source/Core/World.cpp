@@ -5,6 +5,8 @@
 #include "Components/RenderableManager.h"
 #include "Components/TransformManager.h"
 
+#include "Types/Skybox.h"
+
 #include "utility/Logger.h"
 
 #include "Core/Camera.h"
@@ -25,7 +27,7 @@ OEWorld::~OEWorld()
 {
 }
 
-void OEWorld::prepare(Util::String engName)
+void OEWorld::prepare(Util::String& engName)
 {
 	// this worlds name, used as a reference
 	name = engName;
@@ -47,6 +49,13 @@ OECamera* OEWorld::createCamera()
 	return cameras.back().get();
 }
 
+OESkybox* OEWorld::createSkybox()
+{
+	auto sb = std::make_unique<OESkybox>(driver);
+	skyboxes.emplace_back(std::move(sb));
+	return skyboxes.back().get();
+}
+
 void OEWorld::update(double time, double dt)
 {
 }
@@ -66,6 +75,11 @@ ObjectManager* World::getObjManager()
 Camera* World::createCamera()
 {
 	return static_cast<OEWorld*>(this)->createCamera();
+}
+
+Skybox* World::createSkybox()
+{
+	return static_cast<OEWorld*>(this)->createSkybox();
 }
 
 }    // namespace OmegaEngine

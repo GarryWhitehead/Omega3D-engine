@@ -4,8 +4,8 @@
 
 #include "Core/ObjectManager.h"
 
-#include "ModelImporter/SkinInstance.h"
 #include "ModelImporter/NodeInstance.h"
+#include "ModelImporter/SkinInstance.h"
 
 #include "utility/Logger.h"
 
@@ -31,15 +31,17 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, OEObject& obj, SkinIn
 		return false;
 	}
 
+	TransformInfo info;
+	info.root = new NodeInfo(*node.getRootNode());
+
 	// add skins to the manager - these don't require a slot to be requested as there
 	// may be numerous skins per mesh. Instead, the starting index of this group
 	// will be used to offset the skin indices to point at the correct skin
-	size_t skinIdx = skins.size();
-    skins.emplace_back(*skin);
-
-    TransformInfo info;
-    info.root = std::move(node.getRootNode());
-    info.skinOffset = skinIdx;
+	if (skin)
+	{
+		skins.emplace_back(*skin);
+		info.skinOffset = skins.size() - 1;
+	}
 
 	// request a slot for this object
 	size_t idx = addObject(obj);
@@ -53,14 +55,15 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, OEObject& obj, SkinIn
 
 	// update the model transform, and if skinned, joint matrices
 	updateModelTransform(info.root, info);
-    
-    return true;
+
+	return true;
 }
 
-void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rot)
+void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale,
+                                    OEMaths::quatf& rot)
 {
-    TransformInfo info;
-    info.root = new NodeInfo();
+	TransformInfo info;
+	info.root = new NodeInfo();
 	info.root->translation = translation;
 	info.root->scale = scale;
 	info.root->rotation = rot;
@@ -79,7 +82,7 @@ OEMaths::mat4f TransformManager::updateMatrix(NodeInfo* node)
 		mat = parent->nodeTransform * mat;
 		parent = parent->parent;
 	}
-    return mat;
+	return mat;
 }
 
 void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& transInfo)
@@ -91,7 +94,7 @@ void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tra
 		OEMaths::mat4f mat;
 
 		// update the matrices - child node transform * parent transform
-        mat = updateMatrix(parent);
+		mat = updateMatrix(parent);
 
 		// add updated local transfrom to the ubo buffer
 		transInfo.modelTransform = mat;
@@ -101,8 +104,8 @@ void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tra
 		{
 			// the transform data index for this object is stored on the component
 			uint32_t skinIndex = parent->skinIndex;
-            assert(skinIndex >= 0);
-            SkinInstance& skin = skins[skinIndex];
+			assert(skinIndex >= 0);
+			SkinInstance& skin = skins[skinIndex];
 
 			// get the number of joints in the skeleton
 			uint32_t jointCount = std::min(static_cast<uint32_t>(skin.jointNodes.size()), MAX_BONE_COUNT);

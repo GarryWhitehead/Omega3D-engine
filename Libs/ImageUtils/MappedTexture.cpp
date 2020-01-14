@@ -47,18 +47,25 @@ bool MappedTexture::load(Util::String filePath)
 	auto split = Util::String::split(filePath, '.');
 	Util::String ext = split.back();
 
+	// check whether a directory has been specified
+	Util::String absPath = filePath;
+	if (!dirPath.empty())
+	{
+		absPath = Util::String::append(dirPath, absPath);
+	}
+
 	if (split.size() != 2)
 	{
-		LOGGER_ERROR("File name %s has no extension. Unable to interpret image format.", filePath.c_str());
+		LOGGER_ERROR("File name %s has no extension. Unable to interpret image format.", absPath.c_str());
 		return false;
 	}
 
 	if (ext.compare("ktx"))
 	{
 		KtxReader parser;
-		if (!parser.loadFile(filePath))
+		if (!parser.loadFile(absPath))
 		{
-			LOGGER_ERROR("Unable to open ktx image file: %s", filePath.c_str());
+			LOGGER_ERROR("Unable to open ktx image file: %s", absPath.c_str());
 			return false;
 		}
 
@@ -79,7 +86,7 @@ bool MappedTexture::load(Util::String filePath)
 	else if (ext.compare("png") || ext.compare("jpg"))
 	{
 		ImageLoader loader;
-		if (!loader.load(filePath))
+		if (!loader.load(absPath))
 		{
 			return false;
 		}

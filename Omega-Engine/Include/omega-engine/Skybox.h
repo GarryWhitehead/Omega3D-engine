@@ -10,28 +10,16 @@ class MappedTexture;
 class OE_PUBLIC Skybox
 {
 public:
-    
-    class Instance
-    {
-    public:
         
-        Instance& setCubeMap(MappedTexture* cm);
-        Instance& setBlurFactor(const float bf);
+    Skybox& setCubeMap(MappedTexture* cm);
+    Skybox& setBlurFactor(const float bf);
         
-        friend class OEScene;
+protected:
         
-    private:
-        
-        MappedTexture* cubeMap = nullptr;
-        float blur = 0.0f;
-    };
-
     Skybox() = default;
-    
-private:
-    
-};
 
+};
+   
 }
 
 #endif /* SKYBOX_HPP */

@@ -44,12 +44,6 @@ public:
 		float zFar;
 	};
 
-	enum class CameraType
-	{
-		FirstPerson,
-		ThirdPerson
-	};
-
 	OECamera() = default;
 
 	// ================== getters ====================
@@ -111,7 +105,7 @@ public:
      * Note: Only first-person camera supported at present
      * @param type: enum depicting this camera type
      */
-	void setType(const CameraType camType);
+	void setType(const Camera::CameraType camType);
 
 	/**
      * Sets the start position of the camera
