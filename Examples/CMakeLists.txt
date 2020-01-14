@@ -16,9 +16,13 @@ FUNCTION(BUILD_OMEGA_APPLICATION APP_NAME)
 	)
 
 	# And source files
-	TARGET_SOURCES(${APP_NAME} PRIVATE
-		#none yet
-	)
+    IF(APPLE)
+        TARGET_SOURCES(${APP_NAME} PUBLIC
+             ${PROJECT_BINARY_DIR}/libvulkan.1.dylib
+             ${PROJECT_BINARY_DIR}/MoltenVK_icd.json
+             ${PROJECT_BINARY_DIR}/libMoltenVK.dylib
+        )
+    ENDIF()
 
 	# link with the omega engine lib
 	TARGET_LINK_LIBRARIES(${APP_NAME} PRIVATE OMEGA_ENGINE)
@@ -35,7 +39,33 @@ FUNCTION(BUILD_OMEGA_APPLICATION APP_NAME)
 ENDFUNCTION()
 
 # ========================================================================
+
+################################################################################################################
+# MoltenVk Setup (if MacOS)
+################################################################################################################
+
+# MoltenVk files will be copied to /usr/local
+IF(APPLE)
+
+    CONFIGURE_FILE(
+        ${MOLTENVK_ROOT}/macOS/lib/libvulkan.1.dylib
+        ${PROJECT_BINARY_DIR}/libvulkan.1.dylib COPYONLY
+    )
+    CONFIGURE_FILE(
+        ${MOLTENVK_ROOT}/MoltenVk/macOS/dynamic/MoltenVK_icd.json
+        ${PROJECT_BINARY_DIR}/MoltenVK_icd.json COPYONLY
+    )
+    CONFIGURE_FILE(
+        ${MOLTENVK_ROOT}/MoltenVk/macOS/dynamic/libMoltenVK.dylib
+        ${PROJECT_BINARY_DIR}/libMoltenVK.dylib COPYONLY
+    )
+    
+ENDIF()
+
+###################################################################################################################
 # Build the examples - the client can select which examples to build
+###################################################################################################################
+
 IF(OMEGA_BUILD_SCENE_EXAMPLE)
 	BUILD_OMEGA_APPLICATION(Scene)
 ENDIF()

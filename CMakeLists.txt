@@ -4,6 +4,8 @@ CMAKE_POLICY(VERSION 3.5)
 PROJECT(OMEGA_ENGINE LANGUAGES CXX C)
 SET(CMAKE_CXX_STANDARD 17)
  
+SET_PROPERTY(GLOBAL PROPERTY USE_FOLDERS ON)
+ 
 ################################################################################################################
 # compiler specific flags
 ################################################################################################################
@@ -17,6 +19,11 @@ ENDIF()
 #platform specific compiler settings
 IF(WIN32)
 	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_USE_MATH_DEFINES=1")
+ENDIF()
+
+# On macOS, this will give a policy error if not set
+IF(APPLE)
+    SET(MACOSX_RPATH 1)
 ENDIF()
 
 ################################################################################################################
@@ -61,6 +68,13 @@ SET(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
 # build folder path - this is required for assimp
 SET(BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/build" CACHE STRING "Path to the build folder")
 
+IF(APPLE)
+    SET(MOLTENVK_ROOT "NOT_DEFINED" CACHE PATH "Path to the MoltenVk repository.")
+    IF(${MOLTENVK_ROOT} STREQUAL "NOT_DEFINED")
+        MESSAGE(FATAL_ERROR "The path to the MoltenVk repository must be defined.")
+    ENDIF()
+ENDIF()
+
 ##############################################################################################################
 # Omega Engine libs
 ##############################################################################################################
@@ -104,6 +118,8 @@ IF(NOT FOUND_VULKAN)
 ELSE()
 	MESSAGE(STATUS ${VULKAN_LIB})
 ENDIF()
+
+SET(LIBVK "Vulkan::Vulkan")
 
 ###############################################################################################################
 # External libraries

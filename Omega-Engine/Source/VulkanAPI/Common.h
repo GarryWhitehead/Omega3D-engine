@@ -17,7 +17,7 @@
 		vk::Result res = (f);                                                                       \
 		if (res != vk::Result::eSuccess)                                                            \
 		{                                                                                           \
-			printf("Fatal : VkResult returned error code at %s at line %i.\n", __FILE__, __LINE__); \
+			printf("Fatal : VkResult returned error code %i at %s at line %i.\n", static_cast<int>(res), __FILE__, __LINE__); \
 			assert(res == vk::Result::eSuccess);                                                    \
 		}                                                                                           \
 	}

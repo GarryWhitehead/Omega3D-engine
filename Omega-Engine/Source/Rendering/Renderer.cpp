@@ -120,4 +120,26 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CmdBuffer& primary, VulkanAPI::Cmd
     manager.releasePool(std::move(cmdPool));
 }
 
+// ==================== front-end =============================
+
+void Renderer::prepare()
+{
+    static_cast<OERenderer*>(this)->prepare();
+}
+
+void Renderer::beginFrame()
+{
+    static_cast<OERenderer*>(this)->beginFrame();
+}
+
+void Renderer::update()
+{
+    static_cast<OERenderer*>(this)->update();
+}
+
+void Renderer::draw()
+{
+    static_cast<OERenderer*>(this)->draw();
+}
+
 }    // namespace OmegaEngine
