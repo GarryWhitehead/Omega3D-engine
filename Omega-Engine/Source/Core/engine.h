@@ -82,7 +82,7 @@ private:
     std::vector<Renderer*> renderers;
     
 	// The vulkan devie. Only one device supported at present
-	VulkanAPI::VkDriver vkDriver;
+	std::unique_ptr<VulkanAPI::VkDriver> vkDriver;
     
     // the configuration for this engine
     EngineConfig config;

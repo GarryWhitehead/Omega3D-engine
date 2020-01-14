@@ -35,7 +35,7 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
     VulkanAPI::ProgramManager::ShaderHash key { filename.c_str(), 0, nullptr };
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 
-	RenderGraphBuilder builder = rGraph.createRenderPass(passId, RenderGraphPass::Type::Graphics);
+	RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
 	//  use the output from the lighting pass as a input
 	builder.addInputAttachment("lighting");

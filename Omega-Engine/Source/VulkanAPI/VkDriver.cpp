@@ -8,13 +8,13 @@
 
 #include "utility/Logger.h"
 
-#include <assert.h>
+#include <cassert>
 
 namespace VulkanAPI
 {
 
 VkDriver::VkDriver()
-    : progManager(std::make_unique<ProgramManager>(*this))
+    : progManager(std::make_unique<ProgramManager>(context))
     , cbManager(std::make_unique<CmdBufferManager>(context))
 {
 }

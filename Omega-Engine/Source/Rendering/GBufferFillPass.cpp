@@ -42,7 +42,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	// a list of the formats required for each buffer
 	vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.getGpu());
 
-	RenderGraphBuilder builder = rGraph.createRenderPass(passId, RenderGraphPass::Type::Graphics);
+	RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
 	// create the gbuffer textures
 	gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);

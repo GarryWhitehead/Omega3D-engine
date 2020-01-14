@@ -289,7 +289,7 @@ public:
 		vk::PrimitiveTopology* topology;    //< optional (leave null if not needed)
 	};
 
-	ProgramManager(VkDriver& driver);
+	ProgramManager(VkContext& context);
 	~ProgramManager();
 
 	/**
@@ -353,7 +353,7 @@ public:
      * layout of the model shader. Rather than passing around the descriptor layout which could be difficult as it depends on whether the shader has actually been
      * initialised, this methid makes it less error prone and keeps the program data contatned within its class
      */
-	void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
+	//void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
 
 private:
     
@@ -388,7 +388,7 @@ private:
 	};
 
 private:
-	VkDriver& driver;
+	VkContext& context;
 
 	// fully compiled, complete shader programs
 	std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;

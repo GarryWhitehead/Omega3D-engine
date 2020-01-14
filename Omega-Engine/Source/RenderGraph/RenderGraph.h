@@ -206,7 +206,7 @@ public:
 	* @param name The name of this pass
 	* @ return A convience render graph builder which is used by the user to create the defined pass
 	*/
-	RenderGraphBuilder createRenderPass(Util::String name, const RenderGraphPass::Type type);
+	RenderGraphBuilder createPass(Util::String name, const RenderGraphPass::Type type);
 
 	/**
 	* @brief Takes the user-defined graph and builds the render pass.

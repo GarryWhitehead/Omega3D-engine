@@ -25,7 +25,7 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 
     // build the lighting render pass
-    RenderGraphBuilder builder = rGraph.createRenderPass(passId, RenderGraphPass::Type::Graphics);
+    RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // inputs from the deferred pass
     builder.addInputAttachment("position");

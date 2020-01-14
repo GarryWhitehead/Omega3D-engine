@@ -56,7 +56,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         VulkanAPI::ProgramManager::ShaderHash key = { "bdrf.glsl", 0, nullptr };
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         
-        RenderGraphBuilder builder = rGraph.createRenderPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
+        RenderGraphBuilder builder = rGraph.createPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
         
         bdrfInfo.texture = builder.createTexture(lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
         
@@ -75,7 +75,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         VulkanAPI::ProgramManager::ShaderHash key = { "irradiance.glsl", 0, nullptr };
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         
-        RenderGraphBuilder builder = rGraph.createRenderPass("IrradiancePass", RenderGraphPass::Type::Graphics);
+        RenderGraphBuilder builder = rGraph.createPass("IrradiancePass", RenderGraphPass::Type::Graphics);
         
         irrInfo.texture = builder.createTexture(irradianceMapDim, irradianceMapDim, vk::Format::eR32G32B32A32Sfloat);
         
@@ -92,7 +92,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         VulkanAPI::ProgramManager::ShaderHash key = { "specular.glsl", 0, nullptr };
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         
-        RenderGraphBuilder builder = rGraph.createRenderPass("SpecularPass", RenderGraphPass::Type::Graphics);
+        RenderGraphBuilder builder = rGraph.createPass("SpecularPass", RenderGraphPass::Type::Graphics);
         
         specInfo.texture = builder.createTexture(specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
         

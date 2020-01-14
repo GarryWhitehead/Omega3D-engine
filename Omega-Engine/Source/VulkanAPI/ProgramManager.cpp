@@ -139,8 +139,8 @@ DescriptorSet* ShaderProgram::getDescrSet()
 }
 
 // =================== Program Manager ==================
-ProgramManager::ProgramManager(VkDriver& driver)
-    : driver(driver)
+ProgramManager::ProgramManager(VkContext& context)
+    : context(context)
 {
 }
 
@@ -169,7 +169,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 
 	ShaderParser parser;
 
-	ShaderProgram* instance = new ShaderProgram(driver.getContext());
+	ShaderProgram* instance = new ShaderProgram(context);
 	for (ShaderHash& hash : hashes)
 	{
 		ShaderDescriptor* descr = findCachedVariant(hash);
@@ -191,7 +191,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 	//instance->overrideRenderState();
 
 	// compile
-	ShaderCompiler compiler(*instance, driver.getContext());
+	ShaderCompiler compiler(*instance, context);
 	compiler.compile(parser);
 
 	ShaderHash newHash{ instanceName, mergedVariants, topo };
@@ -201,7 +201,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 
 ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
 {
-	ShaderProgram* instance = new ShaderProgram(driver.getContext());
+	ShaderProgram* instance = new ShaderProgram(context);
 
 	programs.emplace(hash, instance);
 	return instance;

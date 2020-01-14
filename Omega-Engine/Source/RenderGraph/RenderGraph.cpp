@@ -215,11 +215,13 @@ RenderGraph::~RenderGraph()
 {
 }
 
-RenderGraphBuilder RenderGraph::createRenderPass(Util::String name, const RenderGraphPass::Type type)
+RenderGraphBuilder RenderGraph::createPass(Util::String name, const RenderGraphPass::Type type)
 {
 	// add the pass to the list
-    renderPasses.push_back(RenderGraphPass(name, type, *this));
-	return { this, &renderPasses.back() };
+    RenderGraphPass rPass{ name, type, *this};
+    renderPasses.emplace_back(rPass);
+    RenderGraphBuilder builder {this, &renderPasses.back()};
+    return builder;
 }
 
 ResourceHandle RenderGraph::addResource(ResourceBase* resource)

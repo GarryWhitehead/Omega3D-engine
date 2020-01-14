@@ -102,11 +102,6 @@ Util::String TextureGroup::texTypeToStr(const int type)
 
 Material::~Material()
 {
-    if (instance)
-    {
-        delete instance;
-        instance = nullptr;
-    }
 }
 
 // ===============================================================================================

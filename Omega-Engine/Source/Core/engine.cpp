@@ -3,18 +3,25 @@
 #include "Core/Omega_Global.h"
 #include "Core/Scene.h"
 #include "Core/World.h"
+
 #include "Rendering/Renderer.h"
+
 #include "Types/NativeWindowWrapper.h"
+
 #include "VulkanAPI/SwapChain.h"
+
+
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
+
 #include "utility/FileUtil.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
 {
 OEEngine::OEEngine()
-    : transManager(std::make_unique<TransformManager>())
+    : vkDriver(std::make_unique<VulkanAPI::VkDriver>())
+    , transManager(std::make_unique<TransformManager>())
     , rendManager(std::make_unique<OERenderableManager>(*this))
     , animManager(std::make_unique<AnimationManager>())
     , lightManager(std::make_unique<OELightManager>())
@@ -44,15 +51,15 @@ OEEngine::~OEEngine()
 
 bool OEEngine::init(OEWindowInstance* window)
 {
-    if (!vkDriver.createInstance(window->extensions.first, window->extensions.second))
+    if (!vkDriver->createInstance(window->extensions.first, window->extensions.second))
     {
         LOGGER_ERROR("Fatal Error whilst creating Vulkan instance.");
         return false;
     }
 
-    surface = VulkanAPI::Swapchain::createSurface(window, vkDriver.getContext().getInstance());
+    surface = VulkanAPI::Swapchain::createSurface(window, vkDriver->getContext().getInstance());
 
-    if (!vkDriver.init(surface.get()))
+    if (!vkDriver->init(surface.get()))
     {
         LOGGER_ERROR("Fatal Error whilst preparing vulkan device.");
         return false;
@@ -64,7 +71,7 @@ SwapchainHandle OEEngine::createSwapchain(OEWindowInstance* window)
 {
     // create a swapchain for surface rendering based on the platform specific window surface
     auto sc = std::make_unique<VulkanAPI::Swapchain>();
-    sc->prepare(vkDriver.getContext(), surface);
+    sc->prepare(vkDriver->getContext(), surface);
     swapchains.emplace_back(std::move(sc));
     return SwapchainHandle {static_cast<uint32_t>(swapchains.size() - 1)};
 }
@@ -72,7 +79,7 @@ SwapchainHandle OEEngine::createSwapchain(OEWindowInstance* window)
 OEWorld* OEEngine::createWorld(Util::String name)
 {
     // create an empty world
-    OEWorld* world = new OEWorld(*this, vkDriver);
+    OEWorld* world = new OEWorld(*this, *vkDriver);
 
     world->prepare(name);
 
@@ -94,7 +101,7 @@ Renderer* OEEngine::createRenderer(SwapchainHandle& handle, OEScene* scene)
 
 VulkanAPI::VkDriver& OEEngine::getVkDriver()
 {
-    return vkDriver;
+    return *vkDriver;
 }
 
 // ** manager helper functions **
