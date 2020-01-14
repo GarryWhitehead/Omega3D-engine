@@ -1,6 +1,6 @@
 #include "MappedTexture.h"
 
-#include "Utility/logger.h"
+#include "Utility/Logger.h"
 
 #include <algorithm>
 #include <cassert>
