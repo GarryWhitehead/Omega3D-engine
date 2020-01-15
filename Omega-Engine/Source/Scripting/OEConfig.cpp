@@ -72,10 +72,11 @@ std::vector<float> EngineConfig::buildVec(TypeDescriptor& descr, uint8_t vecSize
 void EngineConfig::insertVec(std::string name, const float values[], uint32_t size)
 {
     std::string vecString;
-    for (uint32_t i = 0; i < size; ++i)
+    for (uint32_t i = 0; i < size - 1; ++i)
     {
         vecString += std::to_string(values[i]) + ',';
     }
+    vecString += std::to_string(values[size - 1]);
     configs.emplace(name, TypeDescriptor{ LuaBinder::arraySizeToVec(size), vecString });
 }
 
@@ -117,7 +118,7 @@ OEMaths::vec3f EngineConfig::findOrInsertVec3(std::string name, const float defa
 
 OEMaths::vec4f EngineConfig::findOrInsertVec4(std::string name, const float defaultVec[])
 {
-    uint32_t size = sizeof(*defaultVec) / sizeof(float);
+    uint32_t size = sizeof(*defaultVec);
     assert(size == 4);
     
     auto iter = configs.find(name);

@@ -23,6 +23,10 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     const Util::String filename = "lighting.glsl";
     VulkanAPI::ProgramManager::ShaderHash key = {filename.c_str(), 0, nullptr};
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
+    if (!prog)
+    {
+        return false;    
+    }
 
     // build the lighting render pass
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);

@@ -81,6 +81,11 @@ struct Material
     Material() = default;
     ~Material();
     
+	Material(const Material&) = delete;
+    Material& operator=(const Material&) = delete;
+    Material(Material&&) = default;
+    Material& operator=(Material&&) = default;
+
 	/// The material attributes
     MaterialInstance* instance;
     

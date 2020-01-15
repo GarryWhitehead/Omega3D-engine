@@ -200,7 +200,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 	{
 		ShaderBinding& binding = program.stages[descr->type];
         std::vector<VulkanAPI::Shader::VariantInfo> stageVariants = program.sortVariants(descr->type);
-        binding.shader->compile(descr->code, descr->type, stageVariants);
+        binding.shader->compile(descr->appendBlock, descr->type, stageVariants);
 	};
 
 	// now we have all the data required from the shader, create some of the vulkan
