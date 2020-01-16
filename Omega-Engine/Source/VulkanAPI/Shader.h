@@ -1,16 +1,14 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
-
 #include "utility/CString.h"
 
-#include <shaderc/shaderc.hpp>
-
-#include <optional>
 #include <cstdint>
+#include <optional>
+#include <shaderc/shaderc.hpp>
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
 
 namespace VulkanAPI
 {
@@ -22,7 +20,6 @@ class Shader
 {
 
 public:
-    
     enum Type
     {
         Vertex,
@@ -31,65 +28,65 @@ public:
         Geometry,
         Fragment,
         Compute,
-		Count
+        Count,
+        Unknown
     };
-    
+
     /**
      * @brief Information for passing variants to the shader and onto the compiler
      */
     struct VariantInfo
     {
-      Util::String definition;
-      uint8_t value;
-      Shader::Type stage;
+        Util::String definition;
+        uint8_t value;
+        Shader::Type stage;
     };
-    
-	Shader(VkContext& context);
-	~Shader();
-    
+
+    Shader(VkContext& context, const Type type);
+    ~Shader();
+
     /**
-    * Gathers the createInfo for all shaders into one blob in a format needed by the pipeline
+     * Gathers the createInfo for all shaders into one blob in a format needed by the pipeline
      */
-	vk::PipelineShaderStageCreateInfo& get()
-	{
-		return createInfo;
-	}
-    
+    vk::PipelineShaderStageCreateInfo& get()
+    {
+        return createInfo;
+    }
+
     /**
      * @brief Takes a string of certain type and if valid, returns as a vulkan recognisible type.
        @param type A string of a valid type i.e. 'float', 'int', 'vec2', 'vec3', 'vec4'
        @param width The size of the type in bits - e.g. 32 for a float
      */
     static vk::Format getVkFormatFromType(std::string type, uint32_t width);
-    
+
     /**
      * @brief Converts the StageType enum into a vulkan recognisible format
      */
-	static vk::ShaderStageFlagBits getStageFlags(Shader::Type type);
-    
+    static vk::ShaderStageFlagBits getStageFlags(Shader::Type type);
+
     static Util::String shaderTypeToString(Shader::Type type);
-    
+
     /**
      * @brief Derieves from the type specified, the stride in bytes
      */
     static uint32_t getStrideFromType(std::string type);
-    
+
     /**
      * @brief compiles the specified code into glsl bytecode, and then creates
      * a shader module and createInfo ready for using with a vulkan pipeline
      */
-	bool compile(std::string shaderCode, const Shader::Type type, std::vector<VariantInfo>& variants);
-    
-	friend class ShaderProgram;
+    bool
+    compile(std::string shaderCode, const Shader::Type type, std::vector<VariantInfo>& variants);
+
+    friend class ShaderProgram;
 
 private:
-    
     VkContext& context;
-    
-    vk::ShaderModule module;
-	Shader::Type type;
-	vk::PipelineShaderStageCreateInfo createInfo;
 
+    vk::ShaderModule module;
+    Shader::Type type;
+    vk::PipelineShaderStageCreateInfo createInfo;
 };
 
 class GlslCompiler
@@ -114,11 +111,15 @@ public:
     {
         return output.size();
     }
-    
+
+    size_t getByteSize() const
+    {
+        return output.size() * sizeof(uint32_t);
+    }
+
     using VariantMap = std::unordered_map<const char*, uint8_t>;
-    
+
 private:
-    
     std::vector<uint32_t> output;
 
     shaderc_shader_kind kind;

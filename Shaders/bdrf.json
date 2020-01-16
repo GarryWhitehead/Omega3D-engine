@@ -23,7 +23,7 @@
 	
 	"VertexShader": {
 		"Outputs": [
-			{ "name": "outUv", "type": "vec2" } 
+			{ "name": "Uv", "type": "vec2" } 
 		]
 	},
 	
@@ -32,7 +32,7 @@
 			{ "name": "SampleCount", "type": "int",	"value": "1024"}
 		],
 		"Outputs": [
-			{ "name": "outCol", "type": "vec4" }
+			{ "name": "Col", "type": "vec4" }
 		]
 	}
 }

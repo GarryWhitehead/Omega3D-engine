@@ -1,4 +1,4 @@
-#pragma vertex_shader_begin
+##stage: vertex
 
 void main()
 {
@@ -6,7 +6,9 @@ void main()
 	gl_Position = vec4(outUv * 2.0f - 1.0f, 0.0f, 1.0f);
 }
 
-#pragma fragment_shader_begin
+##stage_end
+
+##stage: fragment
 
 vec2 Hammersley(uint i, uint N)
 {
@@ -81,3 +83,5 @@ void main()
 {
 	outCol = vec4(IntegrateBRDF(inUv.s, 1.0 - inUv.t), 0.0, 1.0);
 }
+
+##stage_end

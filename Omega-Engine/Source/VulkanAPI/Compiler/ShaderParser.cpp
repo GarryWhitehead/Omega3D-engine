@@ -312,7 +312,7 @@ bool ShaderParser::parseShaderJson()
     // all information into a raw format for the compiler to use
     if (doc.HasMember("ComputeShader"))
     {
-        auto compShader = std::make_unique<ShaderDescriptor>();
+        auto compShader = std::make_unique<ShaderDescriptor>(Shader::Type::Compute);
         if (!readShader(doc, *compShader, "ComputeShader", groupSize))
         {
             return false;
@@ -323,7 +323,7 @@ bool ShaderParser::parseShaderJson()
     {
         if (doc.HasMember("VertexShader"))
         {
-            auto vertShader = std::make_unique<ShaderDescriptor>();
+            auto vertShader = std::make_unique<ShaderDescriptor>(Shader::Type::Vertex);
             if (!readShader(doc, *vertShader, "VertexShader", groupSize))
             {
                 return false;
@@ -334,7 +334,7 @@ bool ShaderParser::parseShaderJson()
         // this encompasses the control and evaluation stages
         if (doc.HasMember("TesselationShader"))
         {
-            auto tessEvalShader = std::make_unique<ShaderDescriptor>();
+            auto tessEvalShader = std::make_unique<ShaderDescriptor>(Shader::Type::TesselationEval);
             if (!readShader(doc, *tessEvalShader, "TesselationShader", groupSize))
             {
                 return false;
@@ -344,7 +344,7 @@ bool ShaderParser::parseShaderJson()
 
         if (doc.HasMember("GeometryShader"))
         {
-            auto geomShader = std::make_unique<ShaderDescriptor>();
+            auto geomShader = std::make_unique<ShaderDescriptor>(Shader::Type::Geometry);
             if (!readShader(doc, *geomShader, "GeometryShader", groupSize))
             {
                 return false;
@@ -354,7 +354,7 @@ bool ShaderParser::parseShaderJson()
 
         if (doc.HasMember("FragmentShader"))
         {
-            auto fragShader = std::make_unique<ShaderDescriptor>();
+            auto fragShader = std::make_unique<ShaderDescriptor>(Shader::Type::Fragment);
             if (!readShader(doc, *fragShader, "FragmentShader", groupSize))
             {
                 return false;

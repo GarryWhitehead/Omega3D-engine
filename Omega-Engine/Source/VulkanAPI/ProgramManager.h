@@ -130,8 +130,8 @@ public:
 
 public:
     
-    ShaderBinding(VkContext& context) :
-        shader(std::make_unique<Shader>(context))
+    ShaderBinding(VkContext& context, const Shader::Type type) :
+        shader(std::make_unique<Shader>(context, type))
     {}
     
     std::unique_ptr<Shader>& getShader()
@@ -209,6 +209,8 @@ public:
 	void overrideRenderState(RenderStateBlock* renderState);
 
 	ShaderBinding::SamplerBinding& findSamplerBinding(Util::String name, const Shader::Type type);
+
+    ShaderBinding& findShaderBinding(const Shader::Type type);
 
 	// =============== decriptor set functions ==============================
 

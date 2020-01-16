@@ -16,7 +16,7 @@ class ProgramManager;
 class ShaderDescriptor
 {
 public:
-    ShaderDescriptor() = default;
+    ShaderDescriptor() = delete;
 
     ShaderDescriptor(Shader::Type type) : type(type)
     {

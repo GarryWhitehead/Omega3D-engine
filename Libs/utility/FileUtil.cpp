@@ -42,4 +42,24 @@ bool readFileIntoBuffer(std::string filename, std::string& buffer)
     return true;
 }
 
+bool readFileIntoBuffer(std::string filename, std::vector<std::string>& buffer)
+{
+    FILE* file = fopen(filename.c_str(), "r");
+    if (!file)
+    {
+        LOGGER_ERROR("Unable to open file: %s.", filename.c_str());
+        return false;
+    }
+
+    char line[128];
+    while (fgets(line, 128, file))
+    {
+        buffer.emplace_back(std::string {line});
+    }
+
+    fclose(file);
+    return true;
+}
+
+
 } // namespace FileUtil
