@@ -112,7 +112,7 @@ void ShaderCompiler::prepareBindings(
     ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind)
 {
     // add the glsl version number
-    shader->appendBlock += "#version 450\n";
+    shader->appendBlock += "#version 450\n\n";
 
     // include files
     if (!shader->includeFiles.empty())
@@ -122,6 +122,7 @@ void ShaderCompiler::prepareBindings(
             // Note: I think the glsl compiler might need the absolute path - need to check
             shader->appendBlock += "#include " + file + "\n";
         }
+        shader->appendBlock += '\n';
     }
 
     // texture samplers
@@ -131,9 +132,9 @@ void ShaderCompiler::prepareBindings(
         {
             std::string inputLine;
 
-            VkUtils::createVkShaderInput(
+            VkUtils::createVkShaderSampler(
                 sampler.name, sampler.type, bind, sampler.groupId, inputLine);
-            shader->appendBlock += inputLine + ";\n";
+            shader->appendBlock += inputLine + "\n";
 
             // store the binding data for vk descriptor creation
             DescriptorLayout layout = program.descrPool->createLayout(
@@ -147,6 +148,7 @@ void ShaderCompiler::prepareBindings(
             ShaderBinding::SamplerBinding sBind {sampler.name, bind, sampler.groupId, type};
             binding.samplerBindings.emplace_back(sBind);
         }
+        shader->appendBlock += '\n';
     }
 
     // uniform buffers
@@ -165,7 +167,7 @@ void ShaderCompiler::prepareBindings(
                 buffer.descr.groupId,
                 inputLine,
                 bufferSize);
-            shader->appendBlock += inputLine + ";\n";
+            shader->appendBlock += inputLine + ";\n\n";
 
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(buffer.descr.type);
 
@@ -179,6 +181,7 @@ void ShaderCompiler::prepareBindings(
                 buffer.descr.name, bind, buffer.descr.groupId, bufferSize, type};
             binding.bufferBindings.emplace_back(bBind);
         }
+        shader->appendBlock += '\n';
     }
 
     // push blocks
@@ -193,9 +196,10 @@ void ShaderCompiler::prepareBindings(
             VkUtils::createVkShaderBuffer(
                 constant.name, constant.type, constant.data, 0, 0, inputLine, bufferSize);
             // append to main shader text
-            shader->appendBlock += inputLine + ";\n";
+            shader->appendBlock += inputLine + constant.id + ";\n\n";
             program.pLineLayout->addPushConstant(shader->type, bufferSize);
         }
+        shader->appendBlock += '\n';
     }
 
     // specialisation constants
@@ -206,11 +210,12 @@ void ShaderCompiler::prepareBindings(
         {
             // inject constant text into temp shader text block
             shader->appendBlock += "layout (constant_id = " + std::to_string(constantId) +
-                ") const " + constant.type + " " + constant.name + " = " + constant.value + ";\n";
+                ") const " + constant.type + " " + constant.name + " = " + constant.value + ";\n\n";
 
             binding.constants.emplace_back(
                 ShaderBinding::SpecConstantBinding {constant.name, constantId});
         }
+        shader->appendBlock += '\n';
     }
 }
 
@@ -223,13 +228,15 @@ void ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nex
 
     for (auto& output : shader->outputs)
     {
-        std::string inputLine =
-            "layout (location = " + std::to_string(loc) + ") in " + output.type + " in" + output.name;
-        std::string outputLine =
-            "layout (location = " + std::to_string(loc) + ") out " + output.type + " out" + output.name;
+        std::string inputLine = "layout (location = " + std::to_string(loc) + ") in " +
+            output.type + " in" + output.name;
+        std::string outputLine = "layout (location = " + std::to_string(loc) + ") out " +
+            output.type + " out" + output.name;
         shader->appendBlock += outputLine + ";\n";
         nextShader->appendBlock += inputLine + ";\n";
     }
+    shader->appendBlock += '\n';
+    nextShader->appendBlock += '\n';
 }
 
 void ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
@@ -242,7 +249,8 @@ void ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
     uint16_t loc = 0;
     for (auto& input : vertShader->inputs)
     {
-        std::string inputLine = "layout (location = " + std::to_string(loc) + ") in " + input.type;
+        std::string inputLine =
+            "layout (location = " + std::to_string(loc) + ") in " + input.type + " in" + input.name;
         vertShader->appendBlock += inputLine + ";\n";
 
         vk::Format format = Shader::getVkFormatFromType(input.type, 32);
@@ -250,6 +258,7 @@ void ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
         ShaderProgram::InputBinding iBind {loc, stride, format};
         program.inputs.emplace_back(iBind);
     }
+    vertShader->appendBlock += '\n';
 }
 
 void ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
@@ -270,8 +279,8 @@ void ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
             ShaderBinding& fragBinding = program.findShaderBinding(descr->type);
             for (auto& output : descr->outputs)
             {
-                std::string inputLine =
-                    "layout (location = " + std::to_string(loc) + ") out " + output.type + " out" + output.name;
+                std::string inputLine = "layout (location = " + std::to_string(loc) + ") out " +
+                    output.type + " out" + output.name;
                 descr->appendBlock += inputLine + ";\n";
 
                 vk::Format format = Shader::getVkFormatFromType(output.type, 32);
@@ -303,7 +312,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
 
     // and link the output from each shader stage, with the input of the next
     // inputs for other shader stages will be determined by the output from the previous stage
-     prepareOutputs(compilerInfo);
+    prepareOutputs(compilerInfo);
 
     // add the actual code section to the block
     if (!compilerInfo.codePath.empty())
@@ -327,8 +336,11 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
     // now we have all the data required from the shader, create some of the vulkan
     // resources now to save time later
     // Create the descriptor layouts for each set
-    program.descrPool->build();
-    program.descrPool->prepareLayouts();
+    if (!program.descrPool->isEmpty())
+    {
+        program.descrPool->build();
+        program.descrPool->prepareLayouts();
+    }
 
     // create the pipeline layout - as we know the descriptor layout and any push blocks
     program.pLineLayout->prepare(context, *program.descrPool);

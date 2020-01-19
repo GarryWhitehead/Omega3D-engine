@@ -10,6 +10,8 @@ void main()
 
 ##stage: fragment
 
+const float PI = 3.14159256536;
+
 vec2 Hammersley(uint i, uint N)
 {
 	uint bits = (i << 16u) | (i >> 16u);

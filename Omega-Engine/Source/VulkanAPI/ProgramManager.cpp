@@ -21,7 +21,10 @@ namespace VulkanAPI
 
 // =================== ShaderProgram ======================
 
-ShaderProgram::ShaderProgram(VkContext& context) : context(context)
+ShaderProgram::ShaderProgram(VkContext& context)
+    : context(context)
+    , descrPool(std::make_unique<DescriptorPool>(context))
+    , pLineLayout(std::make_unique<PipelineLayout>())
 {
 }
 
@@ -250,7 +253,8 @@ bool ProgramManager::hasShaderVariant(ShaderHash& hash)
 
 ShaderDescriptor* ProgramManager::createCachedInstance(ShaderHash& hash)
 {
-    ShaderDescriptor* instance = new ShaderDescriptor(Shader::Type::Unknown);   // TODO: sort this out!!
+    ShaderDescriptor* instance =
+        new ShaderDescriptor(Shader::Type::Unknown); // TODO: sort this out!!
 
     cached.emplace(hash, instance);
     return instance;

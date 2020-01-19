@@ -34,7 +34,7 @@ OERenderer::~OERenderer()
 {
 }
 
-void OERenderer::prepare()
+bool OERenderer::prepare()
 {
     // TODO: At the moment only a deffered renderer is supported. Maybe add a forward renderer as
     // well?!
@@ -62,7 +62,10 @@ void OERenderer::prepare()
 
     for (auto& stage : rStages)
     {
-        stage->prepare(&engine.getVkDriver().getProgManager());
+        if (!stage->prepare(&engine.getVkDriver().getProgManager()))
+        {
+            return false;
+        }
     }
 }
 
@@ -122,9 +125,9 @@ void OERenderer::drawQueueThreaded(
 
 // ==================== front-end =============================
 
-void Renderer::prepare()
+bool Renderer::prepare()
 {
-    static_cast<OERenderer*>(this)->prepare();
+    return static_cast<OERenderer*>(this)->prepare();
 }
 
 void Renderer::beginFrame()

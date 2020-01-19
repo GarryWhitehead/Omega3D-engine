@@ -19,22 +19,26 @@
 		"AddressModeW": "ClampToEdge"
 	},
 	
-	"CodePath": "bdrf.glsl",
+	"CodePath": "irradianceMap.glsl",
 	
 	"VertexShader": {
+		"PushConstants": [
+			{ "name": "PushConstant", "id": "push", "items": [ { "name": "mvp", "type": "mat4" } ] }
+		],
+		"Inputs": [
+			{ "name": "Pos", "type": "vec3" }
+		],
 		"Outputs": [
-			{ "name": "Uv", "type": "vec2" } 
+			{ "name": "Uv", "type": "vec3" } 
 		]
 	},
 	
 	"FragmentShader": {
-		"Constants": [
-			{ "name": "sampleCount", "type": "int",	"value": "1024"}
+		"Imports": [
+			{ "name": "envSampler", "type": "Cube_Sampler" }
 		],
 		"Outputs": [
 			{ "name": "Col", "type": "vec4" }
 		]
 	}
 }
-
-

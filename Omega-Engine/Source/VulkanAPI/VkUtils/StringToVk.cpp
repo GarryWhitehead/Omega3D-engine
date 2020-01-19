@@ -167,7 +167,7 @@ vk::DescriptorType getVkDescrTypeFromStr(std::string str)
     {
         result = vk::DescriptorType::eStorageBuffer;
     }
-    else if (str == "CombinedImageSampler")
+    else if (str == "2D_Sampler" || str == "3D_Sampler" || str == "Cube_Sampler")
     {
         result = vk::DescriptorType::eCombinedImageSampler;
     }

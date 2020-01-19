@@ -24,7 +24,8 @@ void PipelineLayout::prepare(VkContext& context, DescriptorPool& pool)
 
 	for (size_t i = 0; i < pConstantSizes.size(); ++i)
 	{
-        size_t size = pConstantSizes[i].first;
+        size_t size = pConstantSizes[i].second;
+        assert(size > 0);
         Shader::Type type = pConstantSizes[i].first;
         
         flags |= Shader::getStageFlags(type);

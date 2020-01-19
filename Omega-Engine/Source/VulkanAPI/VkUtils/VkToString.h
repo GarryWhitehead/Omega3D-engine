@@ -15,12 +15,21 @@ bool isSamplerType(const std::string& type);
 
 bool isBufferType(const std::string& type);
 
-void createVkShaderSampler(const std::string name, const std::string type, const uint16_t bind, const uint16_t setCount,
-                           std::string& output);
+bool createVkShaderSampler(
+    const std::string name,
+    const std::string type,
+    const uint16_t bind,
+    const uint16_t setCount,
+    std::string& output);
 
-void createVkShaderInput(const std::string name, const std::string type, const uint16_t bind, const uint16_t setCount,
-                         std::string& output);
+bool createVkShaderBuffer(
+    const std::string name,
+    const std::string type,
+    const std::vector<ShaderDescriptor::Descriptor>& items,
+    const uint16_t bind,
+    const uint16_t setCount,
+    std::string& output,
+    uint32_t& bufferSize);
 
-void createVkShaderBuffer(const std::string name, const std::string type, const std::vector<ShaderDescriptor::Descriptor>& items, const uint16_t bind, const uint16_t setCount, std::string& output, uint32_t& bufferSize);
-}
-}    // namespace VulkanAPI
+} // namespace VkUtils
+} // namespace VulkanAPI

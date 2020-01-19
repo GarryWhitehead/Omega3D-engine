@@ -86,8 +86,10 @@ int main(int argc, char* argv[])
 
     // create the renderer - using a deffered renderer (only one supported at the moment)
     Renderer* renderer = engine->createRenderer(swapchain, scene);
-    renderer->prepare();
-
+    if (!renderer->prepare())
+    {
+        exit(1);
+    }
     // load the skybox from disk
     auto envMap = std::make_unique<MappedTexture>();
     envMap->setDirectory(Util::String::append(Util::String(OE_ASSETS_DIR), "Models/skybox/"));

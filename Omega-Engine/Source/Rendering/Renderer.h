@@ -80,7 +80,7 @@ public:
     /**
      * @brief Creates all render stages needed for the rendering pipeline
      */
-    void prepare();
+    bool prepare();
 
     void beginFrame();
 

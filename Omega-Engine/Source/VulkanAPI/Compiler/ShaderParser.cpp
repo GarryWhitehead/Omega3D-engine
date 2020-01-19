@@ -23,6 +23,12 @@ bool ShaderParser::readShader(
         const auto& inputs = shaderBlock["Inputs"].GetArray();
         for (auto& input : inputs)
         {
+            if (!input.HasMember("name") || !input.HasMember("type"))
+            {
+                LOGGER_ERROR("Error while parsing block: %s. Invalid 'Inputs' format", id.c_str());
+                return false;
+            }
+
             std::string name = input["name"].GetString();
             std::string type = input["type"].GetString();
             shader.inputs.emplace_back(ShaderDescriptor::InOutDescriptor {name, type});
@@ -34,6 +40,12 @@ bool ShaderParser::readShader(
         const auto& outputs = shaderBlock["Outputs"].GetArray();
         for (auto& output : outputs)
         {
+            if (!output.HasMember("name") || !output.HasMember("type"))
+            {
+                LOGGER_ERROR("Error while parsing block: %s. Invalid 'Outputs' format", id.c_str());
+                return false;
+            }
+
             std::string name = output["name"].GetString();
             std::string type = output["type"].GetString();
             shader.outputs.emplace_back(ShaderDescriptor::InOutDescriptor {name, type});
@@ -46,6 +58,14 @@ bool ShaderParser::readShader(
         const auto& constants = shaderBlock["Constants"].GetArray();
         for (auto& constant : constants)
         {
+            if (!constant.HasMember("name") || !constant.HasMember("type") ||
+                !constant.HasMember("value"))
+            {
+                LOGGER_ERROR(
+                    "Error while parsing block: %s. Invalid 'Constants' format", id.c_str());
+                return false;
+            }
+
             ShaderDescriptor::ConstantDescriptor descr;
             descr.name = constant["name"].GetString();
             descr.type = constant["type"].GetString();
@@ -61,10 +81,18 @@ bool ShaderParser::readShader(
         const auto& constants = shaderBlock["PushConstants"].GetArray();
         for (auto& constant : constants)
         {
+            if (!constant.HasMember("name"))
+            {
+                LOGGER_ERROR(
+                    "Error while parsing block: %s. Invalid 'PushConstants' format", id.c_str());
+                return false;
+            }
+
             ShaderDescriptor::PConstantDescriptor descr;
             descr.name = constant["name"].GetString();
-            descr.type = constant["type"].GetString();
+            descr.type = "PushConstant";
 
+            // push constants can have a identifier, not mandatory
             if (constant.HasMember("id"))
             {
                 descr.id = constant["id"].GetString();
@@ -73,6 +101,15 @@ bool ShaderParser::readShader(
             const auto& items = constant["items"].GetArray();
             for (auto& item : items)
             {
+                if (!item.HasMember("name") || !item.HasMember("type"))
+                {
+                    LOGGER_ERROR(
+                        "Error while parsing block: %s. Invalid item format within PushConstants "
+                        "block",
+                        id.c_str());
+                    return false;
+                }
+
                 ShaderDescriptor::Descriptor itemDescr;
                 itemDescr.name = item["name"].GetString();
                 itemDescr.type = item["type"].GetString();
@@ -84,13 +121,20 @@ bool ShaderParser::readShader(
     }
 
     // all samplers, ubos to import
-    if (shaderBlock.HasMember("Import"))
+    if (shaderBlock.HasMember("Imports"))
     {
-        const auto& imports = shaderBlock["Import"].GetArray();
+        const auto& imports = shaderBlock["Imports"].GetArray();
         if (!imports.Empty())
         {
             for (auto& import : imports)
             {
+                if (!import.HasMember("name") || !import.HasMember("type"))
+                {
+                    LOGGER_ERROR(
+                        "Error while parsing block: %s. Invalid 'Imports' format", id.c_str());
+                    return false;
+                }
+
                 std::string name = import["name"].GetString();
                 std::string type = import["type"].GetString();
 
@@ -102,7 +146,7 @@ bool ShaderParser::readShader(
                     group = std::stoi(import["group"].GetString());
                 }
 
-                if (VkUtils::isSamplerType(name))
+                if (VkUtils::isSamplerType(type))
                 {
                     ShaderDescriptor::Descriptor samplerDescr;
                     samplerDescr.name = name;
@@ -117,7 +161,7 @@ bool ShaderParser::readShader(
 
                     shader.samplers.emplace_back(samplerDescr);
                 }
-                else if (VkUtils::isBufferType(name))
+                else if (VkUtils::isBufferType(type))
                 {
                     // extra data for a buffer: the types and names of the buffer
                     ShaderDescriptor::BufferDescriptor buffer;
@@ -137,6 +181,15 @@ bool ShaderParser::readShader(
                     const auto& items = import["items"].GetArray();
                     for (auto& item : items)
                     {
+                        if (!item.HasMember("name") || !item.HasMember("type"))
+                        {
+                            LOGGER_ERROR(
+                                "Error while parsing block: %s. Invalid item format within Buffer "
+                                "block",
+                                id.c_str());
+                            return false;
+                        }
+
                         ShaderDescriptor::Descriptor itemDescr;
                         itemDescr.name = item["name"].GetString();
                         itemDescr.type = item["type"].GetString();
@@ -153,6 +206,14 @@ bool ShaderParser::readShader(
                         buffer.data.emplace_back(itemDescr);
                     }
                     shader.ubos.emplace_back(buffer);
+                }
+                else
+                {
+                    LOGGER_ERROR(
+                        "Invalid 'Imports' type specified of: %s specified for block: %s",
+                        type.c_str(),
+                        id.c_str());
+                    return false;
                 }
             }
         }
