@@ -30,19 +30,21 @@ void IndirectLighting::calculateCubeTransform(
     OEMaths::mat4f& outputProj,
     OEMaths::mat4f& outputView)
 {
-    OEMaths::vec3f target[6] = {OEMaths::vec3f(1.0f, 0.0f, 0.0f),
-                                OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, -1.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-                                OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
+    OEMaths::vec3f target[6] = {
+        OEMaths::vec3f(1.0f, 0.0f, 0.0f),
+        OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, -1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+        OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
 
-    OEMaths::vec3f cameraUp[6] = {OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 0.0f, -1.0f),
-                                  OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
+    OEMaths::vec3f cameraUp[6] = {
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 0.0f, -1.0f),
+        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
 
     outputProj = outputProj.scale(OEMaths::vec3f {-1.0f, 1.0f, 1.0f}) *
         OEMaths::perspective(90.0f, 1.0f, zNear, zFar);
