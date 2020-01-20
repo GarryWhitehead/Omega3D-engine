@@ -28,7 +28,13 @@ public:
         std::string name;
         std::string type; //< the type of
     };
-
+    
+    struct SubDescriptor
+    {
+        std::string name;
+        std::string type;
+    };
+    
     /// generic descriptor for different shader types
     struct Descriptor
     {
@@ -46,7 +52,7 @@ public:
     struct BufferDescriptor
     {
         Descriptor descr;
-        std::vector<Descriptor> data;
+        std::vector<SubDescriptor> data;
     };
 
     /// Specialisation constants
@@ -62,8 +68,8 @@ public:
     {
         std::string name;
         std::string type;
-        std::string id;
-        std::vector<Descriptor> data;
+        std::string id;     // optional
+        std::vector<SubDescriptor> data;
     };
 
     friend class ShaderCompiler;
@@ -100,15 +106,23 @@ private:
     std::string appendBlock;
 };
 
+enum class ParserReturnCode
+{
+    Success,
+    NotFound,
+    InvalidTypeFormat,
+    MissingStageEnd,
+    UnknownShaderType
+};
+
 /**
  * Raw data obtained from a json sampler file.
  */
 class ShaderParser
 {
 public:
-    ShaderParser()
-    {
-    }
+    
+    ShaderParser() = default;
 
     /**
      * @brief Loads a shader json file into a string buffer and parses the json file to extract all
@@ -116,24 +130,29 @@ public:
      * @param filename The path to the shader json to load
      * @param output The string buffer in which the json file will be contained within
      */
-    bool parse(Util::String filename);
-
-    void parseRenderBlock(rapidjson::Document& doc);
+    bool loadAndParse(Util::String filename);
 
     /**
      * @brief Takes a empty shader descriptor and parses form the specified json file and shader
      * type, the relevant data This function is solely used when using wanting to merge different
      * shader stages from different files. Usually this will be cached with the shader manager.
      */
-    bool prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::Type type);
+    bool loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type);
 
     void addStage(ShaderDescriptor* shader);
 
 private:
-    bool parseShaderJson();
-    bool readShader(
-        rapidjson::Document& doc, ShaderDescriptor& shader, Util::String id, uint16_t& maxGroup);
-
+    
+    void parseRenderBlock(rapidjson::Document& doc);
+    
+    // grabs all the data from the string buffer ready for compiling
+    bool parseShader();
+    
+    // parses an individual shader stage as stated by a ##stage: block
+    ParserReturnCode parseShaderStage(const uint32_t startIdx);
+    
+    ParserReturnCode parseLine(const std::string type, const std::string line, std::string& output);
+    
     friend class ShaderCompiler;
 
 private:
@@ -150,7 +169,7 @@ private:
     std::string codePath;
 
     // input buffer
-    std::string buffer;
+    std::vector<std::string> buffer;
 };
 
 

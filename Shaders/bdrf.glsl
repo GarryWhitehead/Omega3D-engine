@@ -1,4 +1,31 @@
+////////////////////////////////////////
+##pipeline:
+
+// depth-stencil
+DepthTestEnable: true
+DepthWriteEnable: true
+CompareOp: LessOrEqual
+
+// raster
+PolygonMode: Fill
+CullMode: Back
+FrontFace: CounterClockwise
+
+// sampler
+MagFilter: Nearest
+MinFilter: Nearest
+AddressModeU: ClampToEdge
+AddressModeV: ClampToEdge
+AddressModeW: ClampToEdge
+
+##end_pipeline
+
+/////////////////////////////////////
 ##stage: vertex
+
+#output: Name=Uv, Type=vec2
+
+#code_block:
 
 void main()
 {
@@ -6,9 +33,17 @@ void main()
 	gl_Position = vec4(outUv * 2.0f - 1.0f, 0.0f, 1.0f);
 }
 
-##stage_end
+#end_code_block
 
+##end_stage
+
+////////////////////////////////////
 ##stage: fragment
+
+#constant: Name=sampleCount, Type=int, Value=1024
+#output: Name=Col, Type=vec4
+
+#code_block:
 
 const float PI = 3.14159256536;
 
@@ -86,4 +121,6 @@ void main()
 	outCol = vec4(IntegrateBRDF(inUv.s, 1.0 - inUv.t), 0.0, 1.0);
 }
 
-##stage_end
+#end_code_block
+
+##end_stage

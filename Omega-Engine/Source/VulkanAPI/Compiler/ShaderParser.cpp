@@ -11,68 +11,134 @@ namespace VulkanAPI
 {
 
 // ================== ShaderParser =======================
-bool ShaderParser::readShader(
-    rapidjson::Document& doc, ShaderDescriptor& shader, Util::String id, uint16_t& maxGroup)
+
+ParserReturnCode ShaderParser::parseLine(const std::string type, const std::string line, std::string& output)
 {
-    maxGroup = 0;
-    const auto& shaderBlock = doc[id.c_str()];
-
-    // input semantics - glsl code: layout (location = 0) in [TYPE] [NAME]
-    if (shaderBlock.HasMember("Inputs"))
+    size_t startPos = line.find(type);
+    if (startPos == std::string::npos)
     {
-        const auto& inputs = shaderBlock["Inputs"].GetArray();
-        for (auto& input : inputs)
-        {
-            if (!input.HasMember("name") || !input.HasMember("type"))
-            {
-                LOGGER_ERROR("Error while parsing block: %s. Invalid 'Inputs' format", id.c_str());
-                return false;
-            }
-
-            std::string name = input["name"].GetString();
-            std::string type = input["type"].GetString();
-            shader.inputs.emplace_back(ShaderDescriptor::InOutDescriptor {name, type});
-        }
-    }
-    // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
-    if (shaderBlock.HasMember("Outputs"))
-    {
-        const auto& outputs = shaderBlock["Outputs"].GetArray();
-        for (auto& output : outputs)
-        {
-            if (!output.HasMember("name") || !output.HasMember("type"))
-            {
-                LOGGER_ERROR("Error while parsing block: %s. Invalid 'Outputs' format", id.c_str());
-                return false;
-            }
-
-            std::string name = output["name"].GetString();
-            std::string type = output["type"].GetString();
-            shader.outputs.emplace_back(ShaderDescriptor::InOutDescriptor {name, type});
-        }
+        return ParserReturnCode::NotFound;
     }
 
-    // speciliastion constants - should be preferred to the usual #define method
-    if (shaderBlock.HasMember("Constants"))
+    // find the next = ; this is done more for debugging puproses
+    size_t pos = line.find_first_of('=', startPos);
+    if (pos == std::string::npos)
     {
-        const auto& constants = shaderBlock["Constants"].GetArray();
-        for (auto& constant : constants)
-        {
-            if (!constant.HasMember("name") || !constant.HasMember("type") ||
-                !constant.HasMember("value"))
-            {
-                LOGGER_ERROR(
-                    "Error while parsing block: %s. Invalid 'Constants' format", id.c_str());
-                return false;
-            }
+        return ParserReturnCode::InvalidTypeFormat;
+    }
+    std::string value = line.substr(0, pos);
+    
+    size_t endPos = value.find_first_of(',');
+    if (endPos == std::string::npos)
+    {
+        return ParserReturnCode::InvalidTypeFormat;
+    }
+    
+    output = value.substr(endPos - 1, line.size());
+    output.erase(remove_if(output.begin(), output.end(), isspace), output.end());   // remove whitespace
+    
+    // if we are here, the shader doc hasn't been formatted correctly.
+    return ParserReturnCode::Success;
+}
 
+ParserReturnCode ShaderParser::parseShaderStage(const uint32_t startIdx)
+{
+    // Get the shader stage type from the string e.g. ##stage: Vertex
+    size_t pos = buffer[startIdx].find_last_of(":");
+    std::string stageStr = buffer[startIdx].substr(pos, buffer[startIdx].size());
+    stageStr.erase(remove_if(stageStr.begin(), stageStr.end(), isspace), stageStr.end());   // remove whitespace
+    
+    Shader::Type stage = Shader::strToShaderType(stageStr);
+    if (stage == Shader::Type::Unknown)
+    {
+        return ParserReturnCode::UnknownShaderType;
+    }
+    
+    auto shader = std::make_unique<ShaderDescriptor>(stage);
+    bool foundEndMarker = false;
+    
+    for (size_t idx = startIdx; idx < buffer.size(); ++idx)
+    {
+        std::string& line = buffer[idx];
+        if (line.find("##end_stage") != std::string::npos)
+        {
+            foundEndMarker = true;
+            break;
+        }
+        
+        // check for each supported stage variable type - must begin with '#'
+        // input semantics - glsl code: layout (location = 0) in [TYPE] [NAME]
+        if (line.find("#inputs:") != std::string::npos)
+        {
+            ShaderDescriptor::InOutDescriptor descr;
+            ParserReturnCode ret = parseLine("Name", line, descr.name);
+            ret = parseLine("Type", line, descr.type);
+            
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            shader.inputs.emplace_back(descr);
+        }
+        // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
+        else if (line.find("#output:") != std::string::npos)
+        {
+            ShaderDescriptor::InOutDescriptor descr;
+            ParserReturnCode ret = parseLine("Name", line, descr.name);
+            ret = parseLine("Type", line, descr.type);
+            
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            shader.inputs.emplace_back(descr);
+        }
+        // speciliastion constants - should be preferred to the usual #define method
+        else if (line.find("#constant:") != std::string::npos)
+        {
             ShaderDescriptor::ConstantDescriptor descr;
-            descr.name = constant["name"].GetString();
-            descr.type = constant["type"].GetString();
-            descr.value = constant["value"].GetString();
+            ParserReturnCode ret = parseLine("Name", line, descr.name);
+            ret = parseLine("Type", line, descr.type);
+            ret = parseLine("Value", line, descr.value);
+            
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            shader.constants.emplace_back(descr);
+        }
+        else if (line.find("#push_constant:") != std::string::npos)
+        {
+            ShaderDescriptor::PConstantDescriptor descr;
+            ParserReturnCode ret = parseLine("Name", line, descr.name);
+            
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            descr.type = "PushConstant";
+            
+            
+            std::vector<std::pair<std::string, std::string>> tempBuffer;
+            parseBuffer(idx + 1, tempBuffer);
+            
+            if (tempBuffer.empty())
+            {
+                return ParserReturnCode::InvalidBufferFormat;
+            }
+            
             shader.constants.emplace_back(descr);
         }
     }
+    
+    
+    maxGroup = 0;
+    assert(startIdx < buffer.size());
+    assert(endIdx < buffer.size());
+
+    
+    
+    
 
     // push constants - one per shader stage supported - due to the size limit that can be pushed,
     // this shouldn't be an issue
@@ -234,35 +300,6 @@ bool ShaderParser::readShader(
     return true;
 }
 
-bool ShaderParser::prepareShader(Util::String filename, ShaderDescriptor* shader, Shader::Type type)
-{
-    std::string shaderBuffer;
-    if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
-    {
-        return false;
-    }
-
-    rapidjson::Document doc;
-
-    if (doc.Parse(buffer.c_str()).HasParseError())
-    {
-        LOGGER_ERROR("Error whilst trying to parse shader json file.");
-        return false;
-    }
-
-    Util::String vertexId = Shader::shaderTypeToString(type);
-    uint16_t maxGroup = 0;
-
-    if (!readShader(doc, *shader, vertexId, maxGroup))
-    {
-        LOGGER_ERROR(
-            "Unable to read shader block from json file; filename = %s.", filename.c_str());
-        return false;
-    }
-
-    return true;
-}
-
 void ShaderParser::addStage(ShaderDescriptor* shader)
 {
     descriptors.emplace_back(shader);
@@ -353,25 +390,39 @@ void ShaderParser::parseRenderBlock(rapidjson::Document& doc)
     }
 }
 
-bool ShaderParser::parseShaderJson()
+bool ShaderParser::parseShader()
 {
-    rapidjson::Document doc;
-
-    rapidjson::ParseResult res = doc.Parse(buffer.c_str());
-    if (!res)
+    uint32_t idx = 0;
+    
+    for (const std::string& line : buffer)
     {
-        LOGGER_ERROR(
-            "Error whilst trying to parse shader json file. Error Code: %i; at position: %u",
-            res.Code(),
-            res.Offset());
-        return false;
+        if (line.empty() || line.find("//") != std::string::npos)
+        {
+            continue;
+        }
+        
+        // check for each supported command
+        if (line.find("##stage:") != std::string::npos)
+        {
+            if (parseShaderStage(idx) != ParserReturnCode::Success)
+            {
+                // deal with parse code
+                return false;
+            }
+        }
+        else if (line.find("##pipeline:") != std::string::npos)
+        {
+           
+        }
+        ++idx;
     }
-
+    
     parseRenderBlock(doc);
 
     // If a compute shdaer life is a bit easier, otherwise check for each shader stage and extract
     // all information into a raw format for the compiler to use
-    if (doc.HasMember("ComputeShader"))
+    ParserReturnCode ret = findStage(Shader::Type::Compute, startIdx, endIdx);
+    if (ret == ParserReturnCode::Success)
     {
         auto compShader = std::make_unique<ShaderDescriptor>(Shader::Type::Compute);
         if (!readShader(doc, *compShader, "ComputeShader", groupSize))
@@ -379,55 +430,37 @@ bool ShaderParser::parseShaderJson()
             return false;
         }
         descriptors.emplace_back(std::move(compShader));
+        return true;
     }
-    else
+    else if (ret != ParserReturnCode::NotFound)
     {
-        if (doc.HasMember("VertexShader"))
+        // print error here!
+        return false;
+    }
+    
+    for (uint8_t i = 0; i < Shader::Type::Count; ++i)
+    {
+        ret = findStage(static_cast<Shader::Type>(i), startIdx, endIdx);
+        if (ret == ParserReturnCode::Success)
         {
-            auto vertShader = std::make_unique<ShaderDescriptor>(Shader::Type::Vertex);
-            if (!readShader(doc, *vertShader, "VertexShader", groupSize))
+            auto shader = std::make_unique<ShaderDescriptor>(static_cast<Shader::Type>(i));
+            if (!parseShaderStage(*shader, "VertexShader", groupSize, startIdx, endIdx))
             {
                 return false;
             }
             descriptors.emplace_back(std::move(vertShader));
         }
-
-        // this encompasses the control and evaluation stages
-        if (doc.HasMember("TesselationShader"))
+        else if (ret != ParserReturnCode::NotFound)
         {
-            auto tessEvalShader = std::make_unique<ShaderDescriptor>(Shader::Type::TesselationEval);
-            if (!readShader(doc, *tessEvalShader, "TesselationShader", groupSize))
-            {
-                return false;
-            }
-            descriptors.emplace_back(std::move(tessEvalShader));
-        }
-
-        if (doc.HasMember("GeometryShader"))
-        {
-            auto geomShader = std::make_unique<ShaderDescriptor>(Shader::Type::Geometry);
-            if (!readShader(doc, *geomShader, "GeometryShader", groupSize))
-            {
-                return false;
-            }
-            descriptors.emplace_back(std::move(geomShader));
-        }
-
-        if (doc.HasMember("FragmentShader"))
-        {
-            auto fragShader = std::make_unique<ShaderDescriptor>(Shader::Type::Fragment);
-            if (!readShader(doc, *fragShader, "FragmentShader", groupSize))
-            {
-                return false;
-            }
-            descriptors.emplace_back(std::move(fragShader));
+            // print error here!
+            return false;
         }
     }
-
+    
     return true;
 }
 
-bool ShaderParser::parse(Util::String filename)
+bool ShaderParser::loadAndParse(Util::String filename)
 {
     // we use the definition from cmake for the shader path. Will add a user override for this at
     // some point
@@ -442,11 +475,41 @@ bool ShaderParser::parse(Util::String filename)
     renderState = new RenderStateBlock();
     assert(renderState);
 
-    if (!parseShaderJson())
+    if (!parseShader())
     {
         return false;
     }
 
     return true;
 }
+
+bool ShaderParser::loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type)
+{
+    std::string shaderBuffer;
+    if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
+    {
+        return false;
+    }
+
+    rapidjson::Document doc;
+
+    if (doc.Parse(buffer.c_str()).HasParseError())
+    {
+        LOGGER_ERROR("Error whilst trying to parse shader json file.");
+        return false;
+    }
+
+    Util::String vertexId = Shader::shaderTypeToString(type);
+    uint16_t maxGroup = 0;
+
+    if (!readShader(doc, *shader, vertexId, maxGroup))
+    {
+        LOGGER_ERROR(
+            "Unable to read shader block from json file; filename = %s.", filename.c_str());
+        return false;
+    }
+
+    return true;
+}
+
 } // namespace VulkanAPI
