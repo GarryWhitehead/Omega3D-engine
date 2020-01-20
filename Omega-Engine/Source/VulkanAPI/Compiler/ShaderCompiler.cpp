@@ -22,91 +22,6 @@ ShaderCompiler::~ShaderCompiler()
 {
 }
 
-uint32_t ShaderCompiler::findDesignator(std::vector<std::string>& buffer, uint32_t startIdx)
-{
-    uint32_t idx = 0;
-    for (size_t i = startIdx, end = buffer.size(); i < end; ++i)
-    {
-        size_t pos = buffer[i].find("##stage:");
-        if (pos != std::string::npos)
-        {
-            return idx + startIdx;
-        }
-        ++idx;
-    }
-    // an error occured if we get here
-    return UINT32_MAX;
-}
-
-Shader::Type ShaderCompiler::getDesignatorStage(const std::string& line)
-{
-    if (line.find("vertex") != std::string::npos)
-    {
-        return Shader::Type::Vertex;
-    }
-    else if (line.find("fragment") != std::string::npos)
-    {
-        return Shader::Type::Fragment;
-    }
-    else if (line.find("geometry") != std::string::npos)
-    {
-        return Shader::Type::Geometry;
-    }
-    else if (line.find("tesselationControl") != std::string::npos)
-    {
-        return Shader::Type::TesselationCon;
-    }
-    else if (line.find("tesselationEvaluation") != std::string::npos)
-    {
-        return Shader::Type::TesselationEval;
-    }
-    return Shader::Type::Unknown;
-}
-
-
-bool ShaderCompiler::appendCodeBlocks(ShaderParser& compilerInfo)
-{
-    // first, try and read the file into the buffer...
-    std::vector<std::string> buffer;
-    std::string filename = OE_SHADER_DIR + compilerInfo.codePath;
-
-    if (!FileUtil::readFileIntoBuffer(filename, buffer))
-    {
-        return false;
-    }
-
-    uint32_t lineIdx = 0;
-
-    // find the ##stage: designator for each stage
-    for (auto& descr : compilerInfo.descriptors)
-    {
-        lineIdx = findDesignator(buffer, lineIdx);
-        if (lineIdx == UINT32_MAX)
-        {
-            // not an error nesecerially, the code for this stage may have been added by the
-            // individual shader stage
-            LOGGER_WARN("Formatting error. No designator found within code block for stage.");
-            return true;
-        }
-
-        // find the stage, i.e ##stage: fragment
-        Shader::Type type = getDesignatorStage(buffer[lineIdx++]);
-        if (type == descr->type)
-        {
-            while (lineIdx < buffer.size())
-            {
-                // add code to the append block until we hit a ##stagend designator
-                if (buffer[lineIdx].find("##stage_end") != std::string::npos)
-                {
-                    break;
-                }
-                descr->appendBlock += buffer[lineIdx++];
-            }
-        }
-    }
-
-    return true;
-}
 
 void ShaderCompiler::prepareBindings(
     ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind)
@@ -130,22 +45,30 @@ void ShaderCompiler::prepareBindings(
     {
         for (auto& sampler : shader->samplers)
         {
-            std::string inputLine;
+            std::string name, type, inputLine;
+            uint32_t groupId = 0;
 
-            VkUtils::createVkShaderSampler(
-                sampler.name, sampler.type, bind, sampler.groupId, inputLine);
+            bool result = ShaderDescriptor::getTypeValue("Name", shader->samplers, name);
+            result &= ShaderDescriptor::getTypeValue("Type", shader->samplers, type);
+            result &= ShaderDescriptor::getTypeValue("GroupId", shader->samplers, groupId);
+            if (!result)
+            {
+                return false;
+            }
+
+            VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
             shader->appendBlock += inputLine + "\n";
 
             // store the binding data for vk descriptor creation
             DescriptorLayout layout = program.descrPool->createLayout(
-                sampler.groupId,
+                groupId,
                 bind,
                 vk::DescriptorType::eCombinedImageSampler,
                 Shader::getStageFlags(shader->type));
 
             // add to the binding information
-            vk::DescriptorType type = VkUtils::getVkDescrTypeFromStr(sampler.type);
-            ShaderBinding::SamplerBinding sBind {sampler.name, bind, sampler.groupId, type};
+            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(type);
+            ShaderBinding::SamplerBinding sBind {name, bind, groupId, descrType};
             binding.samplerBindings.emplace_back(sBind);
         }
         shader->appendBlock += '\n';

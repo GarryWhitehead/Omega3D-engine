@@ -2,28 +2,28 @@
 ##pipeline:
 
 // depth-stencil
-DepthTestEnable: true
-DepthWriteEnable: true
-CompareOp: LessOrEqual
+DepthTestEnable=true;
+DepthWriteEnable=true; 
+CompareOp=LessOrEqual;
 
 // raster
-PolygonMode: Fill
-CullMode: Back
-FrontFace: CounterClockwise
+PolygonMode=Fill;
+CullMode=Back;
+FrontFace=CounterClockwise;
 
 // sampler
-MagFilter: Nearest
-MinFilter: Nearest
-AddressModeU: ClampToEdge
-AddressModeV: ClampToEdge
-AddressModeW: ClampToEdge
+MagFilter=Nearest;
+MinFilter=Nearest;
+AddressModeU=ClampToEdge
+AddressModeV=ClampToEdge
+AddressModeW=ClampToEdge
 
 ##end_pipeline
 
 /////////////////////////////////////
 ##stage: vertex
 
-#output: Name=Uv, Type=vec2
+#output: Name=Uv, Type=vec2;
 
 #code_block:
 
@@ -40,8 +40,8 @@ void main()
 ////////////////////////////////////
 ##stage: fragment
 
-#constant: Name=sampleCount, Type=int, Value=1024
-#output: Name=Col, Type=vec4
+#constant: Name=sampleCount, Type=int, Value=1024;
+#output: Name=Col, Type=vec4;
 
 #code_block:
 

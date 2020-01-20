@@ -1,9 +1,9 @@
 #pragma once
 
 #include "VulkanAPI/Shader.h"
-#include "rapidjson/document.h"
-#include "rapidjson/rapidjson.h"
 
+#include <cstdint>
+#include <regex>
 #include <string>
 #include <vector>
 
@@ -22,55 +22,65 @@ public:
     {
     }
 
-    /// inputs and outputs
-    struct InOutDescriptor
-    {
-        std::string name;
-        std::string type; //< the type of
-    };
-    
-    struct SubDescriptor
-    {
-        std::string name;
-        std::string type;
-    };
-    
-    /// generic descriptor for different shader types
-    struct Descriptor
-    {
-        std::string name;
-        std::string type;
-        std::string id; //< Buffers only - optional sub-name for a struct
-        uint16_t groupId; //< specifies an explicit set number
-        std::string variant; //< if set, specifies to inject a #ifdef statemnet
-        std::string
-            arrayConst; //< if set, specifies that this type is an array set by a constant value
-        uint32_t arraySize = UINT32_MAX; //< if not uint32_max, indicates the type is an array
-    };
+    using Descriptor = std::pair<std::string, std::string>;
+    using TypeDescriptors = std::vector<Descriptor>;
+    using ItemDescriptors = std::vector<Descriptor>;
 
-    /// uniform buffers
+    /// buffers
     struct BufferDescriptor
     {
-        Descriptor descr;
-        std::vector<SubDescriptor> data;
+        static const uint8_t DescrSize = 2;
+        TypeDescriptors descriptors;
+        ItemDescriptors items;
     };
 
-    /// Specialisation constants
-    struct ConstantDescriptor
+    // extracts a value from a type descriptor pair
+    template <typename T>
+    static bool getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
     {
-        std::string name;
-        std::string type;
-        std::string value;
-    };
+        if (descr.empty())
+        {
+            return false;
+        }
 
-    /// push constants
-    struct PConstantDescriptor
-    {
-        std::string name;
-        std::string type;
-        std::string id;     // optional
-        std::vector<SubDescriptor> data;
-    };
+        auto iter = std::find_if(descr.begin(), descr.end(), [&type](const Descriptor& lhs) {
+            return lhs.first == type;
+        });
+
+        if (iter == descr.end())
+        {
+            return false;
+        }
+
+        auto isNumber = [](const std::string& str) -> bool {
+            return std::regex_match(str, std::regex("(\\+|-)?[0-9]*(\\.?([0-9]+))$"));
+        };
+
+        std::string value = iter->second;
+        if constexpr (std::is_same_v<T, float>)
+        {
+            if (!isNumber(value))
+            {
+                out = std::stof(value);
+            }
+        }
+        else if constexpr (std::is_same_v<T, int>)
+        {
+            if (!isNumber(value))
+            {
+                out = std::stoi(value);
+            }
+        }
+        else if constexpr (std::is_same_v<T, std::string>)
+        {
+            out = value;
+        }
+        else
+        {
+            return false;
+        }
+        return true;
+    }
 
     friend class ShaderCompiler;
     friend class ShaderParser;
@@ -81,23 +91,23 @@ private:
     Shader::Type type;
 
     // sementic inputs and outputs
-    std::vector<InOutDescriptor> inputs;
-    std::vector<InOutDescriptor> outputs;
+    TypeDescriptors inputs;
+    TypeDescriptors outputs;
 
     // texture samplers to import; first: name, second: sampler type
-    std::vector<Descriptor> samplers;
+    TypeDescriptors samplers;
 
     // uniform buffers to import; first: name, second: buffer type
     std::vector<BufferDescriptor> ubos;
 
     // first: name, second: type, third: value
-    std::vector<ConstantDescriptor> constants;
-    std::vector<PConstantDescriptor> pConstants;
+    TypeDescriptors constants;
+    std::vector<BufferDescriptor> pConstants;
 
     std::vector<std::string> includeFiles;
 
     // the glsl code in text format
-    std::string codePath;
+    std::string codeBlock;
 
     // variants for this stage
     GlslCompiler::VariantMap variants;
@@ -112,7 +122,12 @@ enum class ParserReturnCode
     NotFound,
     InvalidTypeFormat,
     MissingStageEnd,
-    UnknownShaderType
+    UnknownShaderType,
+    InvalidLine,
+    MissingSemiColon,
+    IncorrectTypeCount,
+    MissingCodeBlockEnd,
+    MissingEndIdentifier
 };
 
 /**
@@ -121,7 +136,6 @@ enum class ParserReturnCode
 class ShaderParser
 {
 public:
-    
     ShaderParser() = default;
 
     /**
@@ -142,31 +156,28 @@ public:
     void addStage(ShaderDescriptor* shader);
 
 private:
-    
-    void parseRenderBlock(rapidjson::Document& doc);
-    
+    ParserReturnCode parsePipelineBlock(uint32_t& idx);
+
     // grabs all the data from the string buffer ready for compiling
     bool parseShader();
-    
+
     // parses an individual shader stage as stated by a ##stage: block
-    ParserReturnCode parseShaderStage(const uint32_t startIdx);
-    
-    ParserReturnCode parseLine(const std::string type, const std::string line, std::string& output);
-    
+    ParserReturnCode parseShaderStage(uint32_t& idx);
+
+    ParserReturnCode parseLine(
+        const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount);
+
+    ParserReturnCode parseBuffer(size_t& idx, ShaderDescriptor::ItemDescriptors& output);
+
     friend class ShaderCompiler;
 
 private:
     // used to work out the maximum set number across all stages
     uint16_t groupSize = 0;
 
-    // This will be completed by the parser and ownership moved at compile time.
-    // This is to stop having to compile this info twice when it can be easily done by the parser
-    RenderStateBlock* renderState = nullptr;
+    ShaderDescriptor::TypeDescriptors pipelineDescrs;
 
     std::vector<std::unique_ptr<ShaderDescriptor>> descriptors;
-
-    // path to the main glsl shader code
-    std::string codePath;
 
     // input buffer
     std::vector<std::string> buffer;
