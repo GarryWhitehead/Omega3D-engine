@@ -25,7 +25,7 @@ bool createVkShaderSampler(
 bool createVkShaderBuffer(
     const std::string name,
     const std::string type,
-    const std::vector<ShaderDescriptor::Descriptor>& items,
+    const std::vector<ShaderDescriptor::TypeDescriptors>& items,
     const uint16_t bind,
     const uint16_t setCount,
     std::string& output,

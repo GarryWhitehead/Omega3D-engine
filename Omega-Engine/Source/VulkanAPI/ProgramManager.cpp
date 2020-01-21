@@ -216,7 +216,11 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
 
     // compile
     ShaderCompiler compiler(*instance, context);
-    compiler.compile(parser);
+    if (!compiler.compile(parser))
+    {
+        printf("Fatal Error: %s\n", compiler.getErrorString().c_str());
+        return nullptr;
+    }
 
     ShaderHash newHash {instanceName, mergedVariants, topo};
     programs.emplace(newHash, instance);
@@ -347,8 +351,9 @@ ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
     if (!hasShaderVariant(key))
     {
         VulkanAPI::ShaderParser parser;
-        if (!parser.parse(key.name))
+        if (!parser.loadAndParse(key.name))
         {
+            printf("Fatal Error: %s\n", parser.getErrorString().c_str());
             return nullptr;
         }
         prog = createNewInstance(key);

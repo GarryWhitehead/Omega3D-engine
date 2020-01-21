@@ -1,16 +1,52 @@
-##stage: vertex
+////////////////////////////////////////
+##pipeline:
 
+// depth-stencil
+DepthTestEnable=True;
+DepthWriteEnable=True; 
+CompareOp=LessOrEqual;
+
+// raster
+PolygonMode=Fill;
+CullMode=Back;
+FrontFace=CounterClockwise;
+
+// sampler
+MagFilter=Nearest;
+MinFilter=Nearest;
+AddressModeU=ClampToEdge;
+AddressModeV=ClampToEdge;
+AddressModeW=ClampToEdge;
+
+##end_pipeline
+
+/////////////////////////////////////
+##stage: Vertex
+
+#input: Name=Pos, Type=vec3;
+#output: Name=Uv, Type=vec3;
+
+#push_constant: Name=PushBuffer, id=push;
+#item: Name=mvp, Type=mat4;
+
+#code_block:
 void main()
 {
 	outUv = inPos;
 	
 	gl_Position = push.mvp * vec4(inPos.xyz, 1.0);
 }
+#end_code_block
 
-##stage_end
+##end_stage
 
-##stage: fragment
+////////////////////////////////////
+##stage: Fragment
 
+#import_sampler: Name=envSampler, Type=Cube_Sampler;
+#output: Name=Col, Type=vec4;
+
+#code_block:
 #define PI 3.1415926535897932384626433832795
 
 void main()
@@ -50,5 +86,6 @@ void main()
 	
 	outCol = vec4(PI * irrColour / float(sampleCount), 1.0);
 }
+#end_code_block
 
-##stage_end
+##end_stage

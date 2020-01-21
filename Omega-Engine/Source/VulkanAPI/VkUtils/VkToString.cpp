@@ -104,7 +104,7 @@ bool createVkShaderSampler(
 bool createVkShaderBuffer(
     const std::string name,
     const std::string type,
-    const std::vector<ShaderDescriptor::Descriptor>& items,
+    const std::vector<ShaderDescriptor::TypeDescriptors>& items,
     const uint16_t bind,
     const uint16_t setCount,
     std::string& outputStr,
@@ -121,8 +121,8 @@ bool createVkShaderBuffer(
     }
     else if (type == "StorageBuffer")
     {
-        bufferTemplate = "layout (std140, binding = " + std::to_string(bind) + ") buffer " + name +
-            "\n{\n";
+        bufferTemplate =
+            "layout (std140, binding = " + std::to_string(bind) + ") buffer " + name + "\n{\n";
     }
     else if (type == "PushConstant")
     {
@@ -141,8 +141,16 @@ bool createVkShaderBuffer(
     uint32_t bufferSize = 0;
     for (const auto& item : items)
     {
-        bufferTemplate += "    " + item.type + " " + item.name + ";\n";
-        bufferSize += vkTypeSize(item.type);
+        std::string name, type;
+        bool result = ShaderDescriptor::getTypeValue("Name", item, name);
+        result &= ShaderDescriptor::getTypeValue("Type", item, type);
+        if (!result)
+        {
+            return false;
+        }
+
+        bufferTemplate += "    " + type + " " + name + ";\n";
+        bufferSize += vkTypeSize(type);
     }
 
     assert(bufferSize != 0);

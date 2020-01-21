@@ -29,58 +29,13 @@ public:
     /// buffers
     struct BufferDescriptor
     {
-        static const uint8_t DescrSize = 2;
         TypeDescriptors descriptors;
-        ItemDescriptors items;
+        std::vector<ItemDescriptors> items;
     };
 
     // extracts a value from a type descriptor pair
     template <typename T>
-    static bool getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
-    {
-        if (descr.empty())
-        {
-            return false;
-        }
-
-        auto iter = std::find_if(descr.begin(), descr.end(), [&type](const Descriptor& lhs) {
-            return lhs.first == type;
-        });
-
-        if (iter == descr.end())
-        {
-            return false;
-        }
-
-        auto isNumber = [](const std::string& str) -> bool {
-            return std::regex_match(str, std::regex("(\\+|-)?[0-9]*(\\.?([0-9]+))$"));
-        };
-
-        std::string value = iter->second;
-        if constexpr (std::is_same_v<T, float>)
-        {
-            if (!isNumber(value))
-            {
-                out = std::stof(value);
-            }
-        }
-        else if constexpr (std::is_same_v<T, int>)
-        {
-            if (!isNumber(value))
-            {
-                out = std::stoi(value);
-            }
-        }
-        else if constexpr (std::is_same_v<T, std::string>)
-        {
-            out = value;
-        }
-        else
-        {
-            return false;
-        }
-        return true;
-    }
+    static bool getTypeValue(const std::string type, const TypeDescriptors descr, T& out);
 
     friend class ShaderCompiler;
     friend class ShaderParser;
@@ -154,17 +109,18 @@ public:
     bool loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type);
 
     void addStage(ShaderDescriptor* shader);
-    
+
     static Shader::Type strToShaderType(std::string& str);
-    
+
+    std::string getErrorString();
+
 private:
-    
     struct ParserErrorCache
     {
         uint32_t lineNumber;
         ParserReturnCode code;
     };
-    
+
     ParserReturnCode parsePipelineBlock(uint32_t& idx);
 
     // grabs all the data from the string buffer ready for compiling
@@ -190,10 +146,69 @@ private:
 
     // input buffer
     std::vector<std::string> buffer;
-    
+
     // for error handling only
     ParserErrorCache errorCache;
 };
 
+template <typename T>
+static bool ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
+{
+    if (descr.empty())
+    {
+        return false;
+    }
 
+    auto iter = std::find_if(
+        descr.begin(), descr.end(), [&type](const Descriptor& lhs) { return lhs.first == type; });
+
+    if (iter == descr.end())
+    {
+        return false;
+    }
+
+    auto isNumber = [](const std::string& str) -> bool {
+        return std::regex_match(str, std::regex("(\\+|-)?[0-9]*(\\.?([0-9]+))$"));
+    };
+
+    std::string value = iter->second;
+    if constexpr (std::is_same_v<T, float>)
+    {
+        if (!isNumber(value))
+        {
+            out = std::stof(value);
+        }
+    }
+    else if constexpr (std::is_same_v<T, int>)
+    {
+        if (!isNumber(value))
+        {
+            out = std::stoi(value);
+        }
+    }
+    else if constexpr (std::is_same_v<T, std::string>)
+    {
+        out = value;
+    }
+    else if constexpr (std::is_same_v<T, bool>)
+    {
+        if (value == "True")
+        {
+            out = true;
+        }
+        else if (value == "False")
+        {
+            out = false;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+    return true;
+}
 } // namespace VulkanAPI

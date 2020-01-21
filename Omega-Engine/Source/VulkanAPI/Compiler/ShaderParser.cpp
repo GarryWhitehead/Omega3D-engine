@@ -10,6 +10,16 @@
 namespace VulkanAPI
 {
 
+std::string ShaderParser::getErrorString()
+{
+    // TODO:: make this more verbose
+    std::string result = "Shader compiling failed with error code: " +
+        std::to_string(static_cast<int>(errorCache.code)) +
+        "; at line: " + std::to_string(errorCache.lineNumber);
+
+    return result;
+}
+
 // ================== ShaderParser =======================
 
 Shader::Type ShaderParser::strToShaderType(std::string& str)
@@ -37,7 +47,7 @@ Shader::Type ShaderParser::strToShaderType(std::string& str)
     }
     else if (str == "Compute")
     {
-       result = Shader::Type::Compute;
+        result = Shader::Type::Compute;
     }
     else
     {
@@ -49,14 +59,14 @@ Shader::Type ShaderParser::strToShaderType(std::string& str)
 ParserReturnCode ShaderParser::parseLine(
     const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount)
 {
-    // all cmd designators end with a colon - use this to remove the main-type identifier
-    size_t pos = line.find(':');
-    if (pos == std::string::npos)
-    {
-        return ParserReturnCode::InvalidLine;
-    }
+    std::string typeValues = line;
 
-    std::string typeValues = line.substr(0, pos);
+    // we assume that if the line has a colon-  it has a cmd line designator so remove it
+    size_t pos = line.find(':');
+    if (pos != std::string::npos)
+    {
+        typeValues = line.substr(pos + 1, line.size());
+    }
 
     // now use the id=value, format to extract the data.
     while (typeValues.find('=') != std::string::npos)
@@ -71,16 +81,20 @@ ParserReturnCode ShaderParser::parseLine(
             {
                 return ParserReturnCode::MissingSemiColon;
             }
+            // clear to signal we have reached the end identifier
+            typeValues.clear();
         }
-        temp = temp.substr(pos, temp.size());
+        else
+        {
+            typeValues = typeValues.substr(pos + 1, typeValues.size());
+        }
 
-        pos = temp.find('=');
-        std::string id = temp.substr(pos, temp.size());
-        std::string value = temp.substr(0, pos);
+        temp = temp.substr(0, pos);
 
-        // remove any whitespace form both before finishing
-        id.erase(remove_if(id.begin(), id.end(), isspace), id.end());
-        value.erase(remove_if(value.begin(), value.end(), isspace), value.end());
+        pos = temp.find(' =');
+        std::string id = temp.substr(0, pos);
+        std::string value = temp.substr(pos + 1, temp.size());
+
         output.emplace_back(std::make_pair(id, value));
     }
 
@@ -102,17 +116,23 @@ ParserReturnCode ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::Item
     constexpr uint8_t typeCount = 2;
     while (buffer[idx].find("#item:") != std::string::npos)
     {
-        if (buffer[idx].empty() || buffer[idx].find("//") != std::string::npos)
+        std::string& line = buffer[idx];
+
+        // remove whitespace, newlines, etc. to stop false positives
+        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
+
+        if (line.empty() || line.find("//") != std::string::npos)
         {
             continue;
         }
 
-        ParserReturnCode ret = parseLine(buffer[idx++], output, typeCount);
+        ParserReturnCode ret = parseLine(line, output, typeCount);
         if (ret != ParserReturnCode::Success)
         {
-            errorCache = ParserErrorCache{idx, ret};
+            errorCache = ParserErrorCache {idx, ret};
             return ret;
         }
+        ++idx;
     }
     return ParserReturnCode::Success;
 }
@@ -121,9 +141,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
 {
     // Get the shader stage type from the string e.g. ##stage: Vertex
     size_t pos = buffer[idx].find_last_of(":");
-    std::string stageStr = buffer[idx].substr(pos, buffer[idx].size());
-    stageStr.erase(
-        remove_if(stageStr.begin(), stageStr.end(), isspace), stageStr.end()); // remove whitespace
+    std::string stageStr = buffer[idx].substr(pos + 1, buffer[idx].size());
 
     Shader::Type stage = strToShaderType(stageStr);
     if (stage == Shader::Type::Unknown)
@@ -137,6 +155,9 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
     for (; idx < buffer.size(); ++idx)
     {
         std::string& line = buffer[idx];
+
+        // remove whitespace, newlines, etc. to stop false positives
+        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
 
         if (line.empty() || line.find("//") != std::string::npos)
         {
@@ -152,7 +173,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
         // TODO: lots of duplicated code here - refactor this with a templated function at some
         // point check for each supported stage variable type - must begin with '#' input semantics
         // - glsl code: layout (location = 0) in [TYPE] [NAME]
-        if (line.find("#inputs:") != std::string::npos)
+        if (line.find("#input:") != std::string::npos)
         {
             ShaderDescriptor::TypeDescriptors descr;
             ParserReturnCode ret = parseLine(line, descr, 2);
@@ -196,22 +217,37 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             }
             // this is required for compiling
             constant.descriptors.emplace_back(std::make_pair("Type", "PushConstant"));
-            ret = parseBuffer(++idx, constant.items);
-            if (ret != ParserReturnCode::Success)
+
+            // parse each item.....
+            uint32_t itemIdx = idx + 1;
+            std::string itemLine = buffer[itemIdx];
+
+            while (itemLine.find("#item:") != std::string::npos && itemIdx < buffer.size())
             {
-                return ret;
+                ShaderDescriptor::TypeDescriptors descr;
+                ret = parseBuffer(itemIdx, descr);
+                if (ret != ParserReturnCode::Success)
+                {
+                    return ret;
+                }
+                constant.items.emplace_back(descr);
+                itemLine = buffer[++itemIdx];
             }
             shader->pConstants.emplace_back(constant);
+            // bit nasty this, but will do for now as we have checked we are not overflowing the buffer
+            idx = itemIdx - 1;
         }
         else if (line.find("#import_buffer:") != std::string::npos)
         {
             ShaderDescriptor::BufferDescriptor buffer;
-            ParserReturnCode ret = parseLine(line, buffer.descriptors, buffer.DescrSize);
+            ParserReturnCode ret = parseLine(line, buffer.descriptors, 2);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
-            ret = parseBuffer(++idx, buffer.items);
+
+            ShaderDescriptor::TypeDescriptors descr;
+            ret = parseBuffer(++idx, descr);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
@@ -234,7 +270,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             bool foundCodeBlockEnd = false;
             while (idx < buffer.size())
             {
-                if (buffer[idx].find("##end_code_block") != std::string::npos)
+                if (buffer[idx].find("#end_code_block") != std::string::npos)
                 {
                     foundCodeBlockEnd = true;
                     break;
@@ -247,6 +283,12 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             }
         }
     }
+    if (!foundEndMarker)
+    {
+        return ParserReturnCode::MissingEndIdentifier;
+    }
+
+    descriptors.emplace_back(std::move(shader));
 
     return ParserReturnCode::Success;
 }
@@ -263,6 +305,9 @@ ParserReturnCode ShaderParser::parsePipelineBlock(uint32_t& idx)
     for (; idx < buffer.size(); ++idx)
     {
         std::string& line = buffer[idx];
+
+        // remove whitespace, newlines, etc. to stop false positives
+        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
 
         if (line.empty() || line.find("//") != std::string::npos)
         {
@@ -293,8 +338,13 @@ bool ShaderParser::parseShader()
 {
     uint32_t idx = 0;
 
-    for (const std::string& line : buffer)
+    for (uint32_t idx = 0; idx < buffer.size(); ++idx)
     {
+        std::string& line = buffer[idx];
+
+        // remove any whitespace, newlines, etc. now to stop false positives
+        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
+
         if (line.empty() || line.find("//") != std::string::npos)
         {
             continue;
@@ -304,22 +354,21 @@ bool ShaderParser::parseShader()
         if (line.find("##stage:") != std::string::npos)
         {
             ParserReturnCode ret = parseShaderStage(idx);
-            if (ret  != ParserReturnCode::Success)
+            if (ret != ParserReturnCode::Success)
             {
-                errorCache = ParserErrorCache{idx, ret};
+                errorCache = ParserErrorCache {idx, ret};
                 return false;
             }
         }
         else if (line.find("##pipeline:") != std::string::npos)
         {
             ParserReturnCode ret = parsePipelineBlock(idx);
-            if (ret  != ParserReturnCode::Success)
+            if (ret != ParserReturnCode::Success)
             {
-                errorCache = ParserErrorCache{idx, ret};
+                errorCache = ParserErrorCache {idx, ret};
                 return false;
             }
         }
-        ++idx;
     }
 
     return true;

@@ -24,7 +24,8 @@ enum class CompilerReturnCode
     InvalidSampler,
     InvalidBuffer,
     MissingCodeBlock,
-    ErrorCompilingGlsl
+    ErrorCompilingGlsl,
+    InvalidPipelineType
 };
 
 /**
@@ -36,24 +37,33 @@ public:
     ShaderCompiler(ShaderProgram& program, VkContext& context);
     ~ShaderCompiler();
 
-    CompilerReturnCode compile(ShaderParser& parser);
+    bool compile(ShaderParser& parser);
+
+    std::string getErrorString(); 
 
 private:
-    
+
     struct CompilerErrorCache
     {
         std::string name;
         std::string type;
         CompilerReturnCode code;
     };
-    
-    CompilerReturnCode prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
+
+    CompilerReturnCode compileAll(ShaderParser& parser);
+
+    CompilerReturnCode
+    prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
 
     CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
     CompilerReturnCode prepareInputs(ShaderDescriptor* vertShader);
 
     CompilerReturnCode prepareOutputs(ShaderParser& compilerInfo);
+
+    CompilerReturnCode preparePipelineBlock(ShaderParser& compilerInfo);
+
+    bool getBool(std::string type);
 
 private:
     VkContext& context;
@@ -63,7 +73,7 @@ private:
 
     // the program which will be compiled too
     ShaderProgram& program;
-    
+
     // for error handling purposes only
     CompilerErrorCache errorCache;
 };

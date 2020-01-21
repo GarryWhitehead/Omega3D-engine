@@ -112,7 +112,9 @@ OERenderableManager::OERenderableManager(OEEngine& engine) : engine(engine)
     renderables.reserve(MESH_INIT_CONTAINER_SIZE);
 }
 
-OERenderableManager::~OERenderableManager() {}
+OERenderableManager::~OERenderableManager()
+{
+}
 
 void OERenderableManager::addMesh(
     Renderable& input, MeshInstance* mesh, const size_t idx, const size_t offset)
@@ -237,9 +239,12 @@ bool OERenderableManager::updateVariants()
     const Util::String mesh_filename = "gbuffer_vert.glsl";
     VulkanAPI::ShaderParser mesh_parser;
 
-    if (!mesh_parser.parse(mesh_filename))
+    if (!mesh_parser.loadAndParse(mesh_filename))
     {
-        LOGGER_ERROR("Unable to parse mesh vertex shader stage: %s", mesh_filename.c_str());
+        LOGGER_ERROR(
+            "Unable to parse mesh vertex shader stage: %s\n Failed with error: %s",
+            mesh_filename.c_str(),
+            mesh_parser.getErrorString().c_str());
         return false;
     }
 
@@ -257,7 +262,13 @@ bool OERenderableManager::updateVariants()
         {
             VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
 
-            mesh_parser.prepareShader(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex);
+            if (!mesh_parser.loadAndParse(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex))
+            {
+                printf(
+                    "Fatal error parsing mesh shader: Failed with error: %s",
+                    mesh_parser.getErrorString());
+                return false;
+            }
         }
     }
 
@@ -266,8 +277,11 @@ bool OERenderableManager::updateVariants()
     const Util::String mat_filename = "gbuffer_frag.glsl";
     VulkanAPI::ShaderParser mat_parser;
 
-    if (!mat_parser.parse(mat_filename))
+    if (!mat_parser.loadAndParse(mat_filename))
     {
+        printf(
+            "Fatal error parsing material shader: Failed with error: %s",
+            mat_parser.getErrorString());
         return false;
     }
 
@@ -279,7 +293,13 @@ bool OERenderableManager::updateVariants()
         {
             VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
 
-            mesh_parser.prepareShader(mat_filename, descr, VulkanAPI::Shader::Type::Fragment);
+            if (!mesh_parser.loadAndParse(mat_filename, descr, VulkanAPI::Shader::Type::Fragment))
+            {
+                printf(
+                    "Fatal error parsing mesh shader: Failed with error: %s",
+                    mat_parser.getErrorString());
+                return false;
+            }
         }
     }
 

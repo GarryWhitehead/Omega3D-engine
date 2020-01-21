@@ -59,7 +59,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // bdrf
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"bdrf.json", 0, nullptr};
+        VulkanAPI::ProgramManager::ShaderHash key = {"bdrf.glsl", 0, nullptr};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -83,7 +83,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // irradiance
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"irradianceMap.json", 0, nullptr};
+        VulkanAPI::ProgramManager::ShaderHash key = {"irradianceMap.glsl", 0, nullptr};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -105,7 +105,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // specular
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"specularMap.json", 0, nullptr};
+        VulkanAPI::ProgramManager::ShaderHash key = {"specularMap.glsl", 0, nullptr};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
