@@ -12,6 +12,40 @@ namespace VulkanAPI
 
 // ================== ShaderParser =======================
 
+Shader::Type ShaderParser::strToShaderType(std::string& str)
+{
+    Shader::Type result;
+    if (str == "Vertex")
+    {
+        result = Shader::Type::Vertex;
+    }
+    else if (str == "Fragment")
+    {
+        result = Shader::Type::Fragment;
+    }
+    else if (str == "TesselationCon")
+    {
+        result = Shader::Type::TesselationCon;
+    }
+    else if (str == "TesselationEval")
+    {
+        result = Shader::Type::TesselationEval;
+    }
+    else if (str == "Geometry")
+    {
+        result = Shader::Type::Geometry;
+    }
+    else if (str == "Compute")
+    {
+       result = Shader::Type::Compute;
+    }
+    else
+    {
+        result = Shader::Type::Unknown;
+    }
+    return result;
+}
+
 ParserReturnCode ShaderParser::parseLine(
     const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount)
 {
@@ -61,7 +95,7 @@ ParserReturnCode ShaderParser::parseLine(
     return ParserReturnCode::Success;
 }
 
-ParserReturnCode ShaderParser::parseBuffer(size_t& idx, ShaderDescriptor::ItemDescriptors& output)
+ParserReturnCode ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::ItemDescriptors& output)
 {
     assert(idx < buffer.size());
 
@@ -76,6 +110,7 @@ ParserReturnCode ShaderParser::parseBuffer(size_t& idx, ShaderDescriptor::ItemDe
         ParserReturnCode ret = parseLine(buffer[idx++], output, typeCount);
         if (ret != ParserReturnCode::Success)
         {
+            errorCache = ParserErrorCache{idx, ret};
             return ret;
         }
     }
@@ -90,7 +125,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
     stageStr.erase(
         remove_if(stageStr.begin(), stageStr.end(), isspace), stageStr.end()); // remove whitespace
 
-    Shader::Type stage = Shader::strToShaderType(stageStr);
+    Shader::Type stage = strToShaderType(stageStr);
     if (stage == Shader::Type::Unknown)
     {
         return ParserReturnCode::UnknownShaderType;
@@ -119,42 +154,42 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
         // - glsl code: layout (location = 0) in [TYPE] [NAME]
         if (line.find("#inputs:") != std::string::npos)
         {
-            ShaderDescriptor::InputDescriptor input;
-            ParserReturnCode ret = parseLine(line, input.descriptors, input.DescrSize);
+            ShaderDescriptor::TypeDescriptors descr;
+            ParserReturnCode ret = parseLine(line, descr, 2);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
-            shader->inputs.emplace_back(input);
+            shader->inputs.emplace_back(descr);
         }
         // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
         else if (line.find("#output:") != std::string::npos)
         {
-            ShaderDescriptor::OutputDescriptor output;
-            ParserReturnCode ret = parseLine(line, output.descriptors, output.DescrSize);
+            ShaderDescriptor::TypeDescriptors descr;
+            ParserReturnCode ret = parseLine(line, descr, 2);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
-            shader->outputs.emplace_back(output);
+            shader->outputs.emplace_back(descr);
         }
         // speciliastion constants - should be preferred to the usual #define method
         else if (line.find("#constant:") != std::string::npos)
         {
-            ShaderDescriptor::ConstantDescriptor constant;
-            ParserReturnCode ret = parseLine(line, constant.descriptors, constant.DescrSize);
+            ShaderDescriptor::TypeDescriptors descr;
+            ParserReturnCode ret = parseLine(line, descr, 3);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
-            shader->constants.emplace_back(constant);
+            shader->constants.emplace_back(descr);
         }
         // push constants - one per shader stage supported - due to the size limit that can be
         // pushed, this shouldn't be an issue
         else if (line.find("#push_constant:") != std::string::npos)
         {
-            ShaderDescriptor::PConstantDescriptor constant;
-            ParserReturnCode ret = parseLine(line, constant.descriptors, constant.DescrSize);
+            ShaderDescriptor::BufferDescriptor constant;
+            ParserReturnCode ret = parseLine(line, constant.descriptors, 2);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
@@ -185,13 +220,13 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
         }
         else if (line.find("#import_sampler:") != std::string::npos)
         {
-            ShaderDescriptor::SamplerDescriptor sampler;
-            ParserReturnCode ret = parseLine(line, sampler.descriptors, sampler.DescrSize);
+            ShaderDescriptor::TypeDescriptors descr;
+            ParserReturnCode ret = parseLine(line, descr, 2);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
-            shader->ubos.emplace_back(buffer);
+            shader->samplers.emplace_back(descr);
         }
         else if (line.find("#code_block:") != std::string::npos)
         {
@@ -268,17 +303,19 @@ bool ShaderParser::parseShader()
         // check for each supported command
         if (line.find("##stage:") != std::string::npos)
         {
-            if (parseShaderStage(idx) != ParserReturnCode::Success)
+            ParserReturnCode ret = parseShaderStage(idx);
+            if (ret  != ParserReturnCode::Success)
             {
-                // deal with parse code
+                errorCache = ParserErrorCache{idx, ret};
                 return false;
             }
         }
         else if (line.find("##pipeline:") != std::string::npos)
         {
-            if (parsePipelineBlock(idx) != ParserReturnCode::Success)
+            ParserReturnCode ret = parsePipelineBlock(idx);
+            if (ret  != ParserReturnCode::Success)
             {
-                // deal with parse code
+                errorCache = ParserErrorCache{idx, ret};
                 return false;
             }
         }

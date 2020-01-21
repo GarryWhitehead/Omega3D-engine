@@ -14,6 +14,19 @@ class ShaderBinding;
 class ShaderParser;
 class VkContext;
 
+enum class CompilerReturnCode
+{
+    Success,
+    InvalidOutput,
+    InvalidInput,
+    InvalidPushConstant,
+    InvalidConstant,
+    InvalidSampler,
+    InvalidBuffer,
+    MissingCodeBlock,
+    ErrorCompilingGlsl
+};
+
 /**
  * Compiles a parsed shder json file into data ready for inputting into the renderer
  */
@@ -23,31 +36,36 @@ public:
     ShaderCompiler(ShaderProgram& program, VkContext& context);
     ~ShaderCompiler();
 
-    bool compile(ShaderParser& parser);
+    CompilerReturnCode compile(ShaderParser& parser);
 
 private:
-    void prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
+    
+    struct CompilerErrorCache
+    {
+        std::string name;
+        std::string type;
+        CompilerReturnCode code;
+    };
+    
+    CompilerReturnCode prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
 
-    void writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
+    CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
-    void prepareInputs(ShaderDescriptor* vertShader);
+    CompilerReturnCode prepareInputs(ShaderDescriptor* vertShader);
 
-    void prepareOutputs(ShaderParser& compilerInfo);
-
-    bool appendCodeBlocks(ShaderParser& compilerInfo);
-
-    uint32_t findDesignator(std::vector<std::string>& buffer, uint32_t startIdx);
-
-    Shader::Type getDesignatorStage(const std::string& line);
+    CompilerReturnCode prepareOutputs(ShaderParser& compilerInfo);
 
 private:
     VkContext& context;
 
-    /// variants to use when compiling the shader
+    // variants to use when compiling the shader
     std::unordered_map<const char*, uint8_t> variants;
 
-    /// the program which will be compiled too
+    // the program which will be compiled too
     ShaderProgram& program;
+    
+    // for error handling purposes only
+    CompilerErrorCache errorCache;
 };
 
 } // namespace VulkanAPI

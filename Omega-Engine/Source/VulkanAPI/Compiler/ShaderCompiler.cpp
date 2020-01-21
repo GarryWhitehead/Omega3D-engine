@@ -23,7 +23,7 @@ ShaderCompiler::~ShaderCompiler()
 }
 
 
-void ShaderCompiler::prepareBindings(
+CompilerReturnCode ShaderCompiler::prepareBindings(
     ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind)
 {
     // add the glsl version number
@@ -46,14 +46,14 @@ void ShaderCompiler::prepareBindings(
         for (auto& sampler : shader->samplers)
         {
             std::string name, type, inputLine;
-            uint32_t groupId = 0;
+            uint16_t groupId = 0;
 
-            bool result = ShaderDescriptor::getTypeValue("Name", shader->samplers, name);
-            result &= ShaderDescriptor::getTypeValue("Type", shader->samplers, type);
-            result &= ShaderDescriptor::getTypeValue("GroupId", shader->samplers, groupId);
+            bool result = ShaderDescriptor::getTypeValue("Name", sampler, name);
+            result &= ShaderDescriptor::getTypeValue("Type", sampler, type);
+            result &= ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
             if (!result)
             {
-                return false;
+                return CompilerReturnCode::InvalidSampler;
             }
 
             VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
@@ -79,29 +79,37 @@ void ShaderCompiler::prepareBindings(
     {
         for (auto& buffer : shader->ubos)
         {
-            std::string inputLine;
+            std::string name, type, inputLine;
+            uint16_t groupId = 0;
             uint32_t bufferSize;
-
+            
+            bool result = ShaderDescriptor::getTypeValue("Name", buffer.descriptors, name);
+            result &= ShaderDescriptor::getTypeValue("Type", buffer.descriptors, type);
+            result &= ShaderDescriptor::getTypeValue("GroupId", buffer.descriptors, groupId);
+            if (!result)
+            {
+                return CompilerReturnCode::InvalidBuffer;
+            }
+            
             VkUtils::createVkShaderBuffer(
-                buffer.descr.name,
-                buffer.descr.type,
-                buffer.data,
+                name,
+                type,
+                buffer.items,
                 bind,
-                buffer.descr.groupId,
+                groupId,
                 inputLine,
                 bufferSize);
             shader->appendBlock += inputLine + ";\n\n";
 
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(buffer.descr.type);
+            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(type);
 
             // add the layout to the descriptors
             DescriptorLayout layout = program.descrPool->createLayout(
-                buffer.descr.groupId, bind, descrType, Shader::getStageFlags(shader->type));
+                groupId, bind, descrType, Shader::getStageFlags(shader->type));
 
             // add to the binding information
-            vk::DescriptorType type = VkUtils::getVkDescrTypeFromStr(buffer.descr.type);
             ShaderBinding::BufferBinding bBind {
-                buffer.descr.name, bind, buffer.descr.groupId, bufferSize, type};
+                name, bind, groupId, bufferSize, descrType};
             binding.bufferBindings.emplace_back(bBind);
         }
         shader->appendBlock += '\n';
@@ -112,14 +120,23 @@ void ShaderCompiler::prepareBindings(
     {
         for (const auto& constant : shader->pConstants)
         {
-            std::string inputLine;
+            std::string name, type, id, inputLine;
             uint32_t bufferSize;
-
+            
+            bool result = ShaderDescriptor::getTypeValue("Name", constant.descriptors, name);
+            result &= ShaderDescriptor::getTypeValue("Type", constant.descriptors, type);
+            if (!result)
+            {
+                return CompilerReturnCode::InvalidPushConstant;
+            }
+            // not mandatory
+            ShaderDescriptor::getTypeValue("id", constant.descriptors, name);
+            
             // inject pipeline text into temp string block
             VkUtils::createVkShaderBuffer(
-                constant.name, constant.type, constant.data, 0, 0, inputLine, bufferSize);
+                name, type, constant.items, 0, 0, inputLine, bufferSize);
             // append to main shader text
-            shader->appendBlock += inputLine + constant.id + ";\n\n";
+            shader->appendBlock += inputLine + id + ";\n\n";
             program.pLineLayout->addPushConstant(shader->type, bufferSize);
         }
         shader->appendBlock += '\n';
@@ -128,21 +145,33 @@ void ShaderCompiler::prepareBindings(
     // specialisation constants
     if (!shader->constants.empty())
     {
+        std::string name, type, value;
         uint16_t constantId = 0;
+        
         for (const auto& constant : shader->constants)
         {
+            bool result = ShaderDescriptor::getTypeValue("Name", constant, name);
+            result &= ShaderDescriptor::getTypeValue("Type", constant, type);
+            result &= ShaderDescriptor::getTypeValue("GroupId", constant, value);
+            if (!result)
+            {
+                return CompilerReturnCode::InvalidConstant;
+            }
+            
             // inject constant text into temp shader text block
             shader->appendBlock += "layout (constant_id = " + std::to_string(constantId) +
-                ") const " + constant.type + " " + constant.name + " = " + constant.value + ";\n\n";
+                ") const " + type + " " + name + " = " + value + ";\n\n";
 
             binding.constants.emplace_back(
-                ShaderBinding::SpecConstantBinding {constant.name, constantId});
+                ShaderBinding::SpecConstantBinding {name, constantId});
         }
         shader->appendBlock += '\n';
     }
+    
+    return CompilerReturnCode::Success;
 }
 
-void ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader)
+CompilerReturnCode ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader)
 {
     assert(shader);
     assert(nextShader);
@@ -151,40 +180,61 @@ void ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nex
 
     for (auto& output : shader->outputs)
     {
+        std::string name, type;
+        bool result = ShaderDescriptor::getTypeValue("Name", output, name);
+        result &= ShaderDescriptor::getTypeValue("Type", output, type);
+        if (!result)
+        {
+            return CompilerReturnCode::InvalidOutput;
+        }
+        
         std::string inputLine = "layout (location = " + std::to_string(loc) + ") in " +
-            output.type + " in" + output.name;
+            type + " in" + name;
         std::string outputLine = "layout (location = " + std::to_string(loc) + ") out " +
-            output.type + " out" + output.name;
+            type + " out" + name;
         shader->appendBlock += outputLine + ";\n";
         nextShader->appendBlock += inputLine + ";\n";
     }
     shader->appendBlock += '\n';
     nextShader->appendBlock += '\n';
+    
+    return CompilerReturnCode::Success;
 }
 
-void ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
+CompilerReturnCode ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
 {
     if (vertShader->inputs.empty())
     {
-        return;
+        // not an error if there are no inputs into the vertex shader
+        return CompilerReturnCode::Success;
     }
 
     uint16_t loc = 0;
     for (auto& input : vertShader->inputs)
     {
+        std::string name, type;
+        bool result = ShaderDescriptor::getTypeValue("Name", input, name);
+        result &= ShaderDescriptor::getTypeValue("Type", input, type);
+        if (!result)
+        {
+            return CompilerReturnCode::InvalidInput;
+        }
+        
         std::string inputLine =
-            "layout (location = " + std::to_string(loc) + ") in " + input.type + " in" + input.name;
+            "layout (location = " + std::to_string(loc) + ") in " + type + " in" + name;
         vertShader->appendBlock += inputLine + ";\n";
 
-        vk::Format format = Shader::getVkFormatFromType(input.type, 32);
-        uint32_t stride = Shader::getStrideFromType(input.type);
+        vk::Format format = Shader::getVkFormatFromType(type, 32);
+        uint32_t stride = Shader::getStrideFromType(type);
         ShaderProgram::InputBinding iBind {loc, stride, format};
         program.inputs.emplace_back(iBind);
     }
     vertShader->appendBlock += '\n';
+    
+    return CompilerReturnCode::Success;
 }
 
-void ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
+CompilerReturnCode ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
 {
     size_t descrCount = compilerInfo.descriptors.size();
 
@@ -202,19 +252,28 @@ void ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
             ShaderBinding& fragBinding = program.findShaderBinding(descr->type);
             for (auto& output : descr->outputs)
             {
+                std::string name, type;
+                bool result = ShaderDescriptor::getTypeValue("Name", output, name);
+                result &= ShaderDescriptor::getTypeValue("Type", output, type);
+                if (!result)
+                {
+                    return CompilerReturnCode::InvalidOutput;
+                }
+                
                 std::string inputLine = "layout (location = " + std::to_string(loc) + ") out " +
-                    output.type + " out" + output.name;
+                    type + " out" + name;
                 descr->appendBlock += inputLine + ";\n";
 
-                vk::Format format = Shader::getVkFormatFromType(output.type, 32);
+                vk::Format format = Shader::getVkFormatFromType(type, 32);
                 ShaderBinding::RenderTarget rTarget {loc++, format};
                 fragBinding.renderTargets.emplace_back(rTarget);
             }
         }
     }
+    return CompilerReturnCode::Success;
 }
 
-bool ShaderCompiler::compile(ShaderParser& compilerInfo)
+CompilerReturnCode ShaderCompiler::compile(ShaderParser& compilerInfo)
 {
     uint16_t bindCount = 0;
 
@@ -233,27 +292,24 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
         program.stages.emplace_back(std::move(binding));
     }
 
-    // and link the output from each shader stage, with the input of the next
-    // inputs for other shader stages will be determined by the output from the previous stage
-    prepareOutputs(compilerInfo);
-
-    // add the actual code section to the block
-    if (!compilerInfo.codePath.empty())
-    {
-        if (!appendCodeBlocks(compilerInfo))
-        {
-            return false;
-        }
-    }
-
     // finalise the shder code blocks and compile into glsl byte code
     for (auto& descr : compilerInfo.descriptors)
     {
-        printf("%s\n", descr->appendBlock.c_str());
+        // finish off the shader block by adding the actual glsl code!
+        if (descr->codeBlock.empty())
+        {
+            return CompilerReturnCode::MissingCodeBlock;
+        }
+        descr->appendBlock += descr->codeBlock;
+        
         ShaderBinding& binding = program.findShaderBinding(descr->type);
         std::vector<VulkanAPI::Shader::VariantInfo> stageVariants =
             program.sortVariants(descr->type);
-        binding.shader->compile(descr->appendBlock, descr->type, stageVariants);
+        
+        if (!binding.shader->compile(descr->appendBlock, descr->type, stageVariants))
+        {
+            return CompilerReturnCode::ErrorCompilingGlsl;
+        }
     };
 
     // now we have all the data required from the shader, create some of the vulkan
@@ -268,7 +324,7 @@ bool ShaderCompiler::compile(ShaderParser& compilerInfo)
     // create the pipeline layout - as we know the descriptor layout and any push blocks
     program.pLineLayout->prepare(context, *program.descrPool);
 
-    return true;
+    return CompilerReturnCode::Success;
 }
 
 } // namespace VulkanAPI

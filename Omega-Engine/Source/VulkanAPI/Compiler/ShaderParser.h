@@ -91,17 +91,17 @@ private:
     Shader::Type type;
 
     // sementic inputs and outputs
-    TypeDescriptors inputs;
-    TypeDescriptors outputs;
+    std::vector<TypeDescriptors> inputs;
+    std::vector<TypeDescriptors> outputs;
 
     // texture samplers to import; first: name, second: sampler type
-    TypeDescriptors samplers;
+    std::vector<TypeDescriptors> samplers;
 
     // uniform buffers to import; first: name, second: buffer type
     std::vector<BufferDescriptor> ubos;
 
     // first: name, second: type, third: value
-    TypeDescriptors constants;
+    std::vector<TypeDescriptors> constants;
     std::vector<BufferDescriptor> pConstants;
 
     std::vector<std::string> includeFiles;
@@ -154,8 +154,17 @@ public:
     bool loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type);
 
     void addStage(ShaderDescriptor* shader);
-
+    
+    static Shader::Type strToShaderType(std::string& str);
+    
 private:
+    
+    struct ParserErrorCache
+    {
+        uint32_t lineNumber;
+        ParserReturnCode code;
+    };
+    
     ParserReturnCode parsePipelineBlock(uint32_t& idx);
 
     // grabs all the data from the string buffer ready for compiling
@@ -167,7 +176,7 @@ private:
     ParserReturnCode parseLine(
         const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount);
 
-    ParserReturnCode parseBuffer(size_t& idx, ShaderDescriptor::ItemDescriptors& output);
+    ParserReturnCode parseBuffer(uint32_t& idx, ShaderDescriptor::ItemDescriptors& output);
 
     friend class ShaderCompiler;
 
@@ -181,6 +190,9 @@ private:
 
     // input buffer
     std::vector<std::string> buffer;
+    
+    // for error handling only
+    ParserErrorCache errorCache;
 };
 
 
