@@ -34,6 +34,26 @@ std::string ShaderCompiler::getErrorString()
     return result;
 }
 
+void ShaderCompiler::printShaderCode(const std::string& block)
+{
+    uint32_t line = 0;
+
+    printf("Shader Code Block:\n");
+    printf("%i   ", line++);
+    for (auto& c : block)
+    {
+        if (c == '\n')
+        {
+            printf("\n%i   ", line++);
+        }
+        else
+        {
+            printf("%s", c);
+        }
+    }
+    printf("\n\n");
+}
+
 bool ShaderCompiler::getBool(std::string type)
 {
     if (type == "True")
@@ -143,12 +163,13 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
 
             bool result = ShaderDescriptor::getTypeValue("Name", sampler, name);
             result &= ShaderDescriptor::getTypeValue("Type", sampler, type);
-            result &= ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
             if (!result)
             {
                 return CompilerReturnCode::InvalidSampler;
             }
 
+            // not a mandatory variable
+            result &= ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
             VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
             shader->appendBlock += inputLine + "\n";
 
@@ -178,12 +199,15 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
 
             bool result = ShaderDescriptor::getTypeValue("Name", buffer.descriptors, name);
             result &= ShaderDescriptor::getTypeValue("Type", buffer.descriptors, type);
-            result &= ShaderDescriptor::getTypeValue("GroupId", buffer.descriptors, groupId);
+            
             if (!result)
             {
                 return CompilerReturnCode::InvalidBuffer;
             }
 
+            // not a mandatory component
+            ShaderDescriptor::getTypeValue("GroupId", buffer.descriptors, groupId);
+            
             VkUtils::createVkShaderBuffer(
                 name, type, buffer.items, bind, groupId, inputLine, bufferSize);
             shader->appendBlock += inputLine + ";\n\n";
@@ -406,6 +430,7 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
 
         if (!binding.shader->compile(descr->appendBlock, descr->type, stageVariants))
         {
+            printShaderCode(descr->appendBlock);
             return CompilerReturnCode::ErrorCompilingGlsl;
         }
     };

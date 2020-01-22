@@ -65,6 +65,8 @@ private:
 
     bool getBool(std::string type);
 
+    static void printShaderCode(const std::string& block);
+
 private:
     VkContext& context;
 

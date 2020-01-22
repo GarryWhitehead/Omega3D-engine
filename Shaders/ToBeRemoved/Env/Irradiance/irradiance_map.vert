@@ -9,11 +9,6 @@ layout (push_constant) uniform PushConstant
 	mat4 mvp;
 } push;
 
-out gl_PerVertex 
-{
-	vec4 gl_Position;
-};
-
 void main()
 {
 	outUv = inPos;

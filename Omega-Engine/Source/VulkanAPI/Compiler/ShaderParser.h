@@ -82,7 +82,8 @@ enum class ParserReturnCode
     MissingSemiColon,
     IncorrectTypeCount,
     MissingCodeBlockEnd,
-    MissingEndIdentifier
+    MissingEndIdentifier,
+    BufferHasNoItems
 };
 
 /**
@@ -132,7 +133,12 @@ private:
     ParserReturnCode parseLine(
         const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount);
 
-    ParserReturnCode parseBuffer(uint32_t& idx, ShaderDescriptor::ItemDescriptors& output);
+    ParserReturnCode parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& output);
+
+    ParserReturnCode
+    parseBufferItems(uint32_t& idx, ShaderDescriptor::BufferDescriptor& bufferDescr);
+
+    ParserReturnCode parseIncludeFile(const std::string line, std::string& output);
 
     friend class ShaderCompiler;
 
@@ -152,7 +158,8 @@ private:
 };
 
 template <typename T>
-static bool ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
+static bool
+ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
 {
     if (descr.empty())
     {

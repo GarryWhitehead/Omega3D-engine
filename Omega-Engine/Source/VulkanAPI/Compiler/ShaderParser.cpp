@@ -109,7 +109,8 @@ ParserReturnCode ShaderParser::parseLine(
     return ParserReturnCode::Success;
 }
 
-ParserReturnCode ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::ItemDescriptors& output)
+ParserReturnCode
+ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& output)
 {
     assert(idx < buffer.size());
 
@@ -126,14 +127,44 @@ ParserReturnCode ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::Item
             continue;
         }
 
-        ParserReturnCode ret = parseLine(line, output, typeCount);
+        ShaderDescriptor::TypeDescriptors descr;
+        ParserReturnCode ret = parseLine(line, descr, typeCount);
         if (ret != ParserReturnCode::Success)
         {
             errorCache = ParserErrorCache {idx, ret};
             return ret;
         }
+        output.items.emplace_back(descr);
         ++idx;
     }
+    return ParserReturnCode::Success;
+}
+
+ParserReturnCode ShaderParser::parseIncludeFile(const std::string line, std::string& output)
+{
+    size_t pos = line.find(':');
+    if (pos != std::string::npos)
+    {
+        output = line.substr(pos + 1, line.size());
+    }
+    else
+    {
+        return ParserReturnCode::InvalidLine;
+    }
+    size_t first_pos = output.find_first_of('"');
+    if (first_pos == std::string::npos)
+    {
+        return ParserReturnCode::InvalidLine;
+    }
+    output = output.substr(first_pos + 1, output.size());
+
+    size_t last_pos = output.find_last_of('"');
+    if (last_pos == std::string::npos)
+    {
+        return ParserReturnCode::InvalidLine;
+    }
+    output = output.substr(0, last_pos);
+
     return ParserReturnCode::Success;
 }
 
@@ -172,6 +203,16 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
 
         // TODO: lots of duplicated code here - refactor this with a templated function at some
         // point check for each supported stage variable type - must begin with '#' input semantics
+        if (line.find("#include_file:") != std::string::npos)
+        {
+            std::string include;
+            ParserReturnCode ret = parseIncludeFile(line, include);
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            shader->includeFiles.emplace_back(include);
+        }
         // - glsl code: layout (location = 0) in [TYPE] [NAME]
         if (line.find("#input:") != std::string::npos)
         {
@@ -218,24 +259,18 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             // this is required for compiling
             constant.descriptors.emplace_back(std::make_pair("Type", "PushConstant"));
 
-            // parse each item.....
-            uint32_t itemIdx = idx + 1;
-            std::string itemLine = buffer[itemIdx];
-
-            while (itemLine.find("#item:") != std::string::npos && itemIdx < buffer.size())
+            // collect all items
+            ret = parseBuffer(++idx, constant);
+            if (ret != ParserReturnCode::Success)
             {
-                ShaderDescriptor::TypeDescriptors descr;
-                ret = parseBuffer(itemIdx, descr);
-                if (ret != ParserReturnCode::Success)
-                {
-                    return ret;
-                }
-                constant.items.emplace_back(descr);
-                itemLine = buffer[++itemIdx];
+                return ret;
             }
+            if (constant.items.empty())
+            {
+                return ParserReturnCode::BufferHasNoItems;
+            }
+
             shader->pConstants.emplace_back(constant);
-            // bit nasty this, but will do for now as we have checked we are not overflowing the buffer
-            idx = itemIdx - 1;
         }
         else if (line.find("#import_buffer:") != std::string::npos)
         {
@@ -246,12 +281,17 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
                 return ret;
             }
 
-            ShaderDescriptor::TypeDescriptors descr;
-            ret = parseBuffer(++idx, descr);
+            // collect all items
+            ret = parseBuffer(++idx, buffer);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
             }
+            if (buffer.items.empty())
+            {
+                return ParserReturnCode::BufferHasNoItems;
+            }
+
             shader->ubos.emplace_back(buffer);
         }
         else if (line.find("#import_sampler:") != std::string::npos)

@@ -141,15 +141,24 @@ bool createVkShaderBuffer(
     uint32_t bufferSize = 0;
     for (const auto& item : items)
     {
-        std::string name, type;
+        std::string name, type, offset;
         bool result = ShaderDescriptor::getTypeValue("Name", item, name);
         result &= ShaderDescriptor::getTypeValue("Type", item, type);
         if (!result)
         {
             return false;
         }
+        ShaderDescriptor::getTypeValue("Offset", item, offset);
+        if (!offset.empty())
+        {
+            bufferTemplate += "\tlayout (offset = " + offset + ") ";
+        }
+        else
+        {
+            bufferTemplate += "\t";
+        }
 
-        bufferTemplate += "    " + type + " " + name + ";\n";
+        bufferTemplate += type + " " + name + ";\n";
         bufferSize += vkTypeSize(type);
     }
 
