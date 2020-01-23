@@ -37,6 +37,12 @@ public:
     template <typename T>
     static bool getTypeValue(const std::string type, const TypeDescriptors descr, T& out);
 
+    static bool hasDescriptor(std::string id, std::vector<TypeDescriptors>& descrs);
+    static Descriptor* findDescriptor(std::string id, std::vector<TypeDescriptors>& descrs);
+    static bool hasId(std::string id, TypeDescriptors& descrs);
+    static Descriptor* findId(std::string id, TypeDescriptors& descrs);
+    static bool checkForFlag(std::string flag, std::string line);
+    
     friend class ShaderCompiler;
     friend class ShaderParser;
     friend class ProgramManager;
@@ -83,7 +89,10 @@ enum class ParserReturnCode
     IncorrectTypeCount,
     MissingCodeBlockEnd,
     MissingEndIdentifier,
-    BufferHasNoItems
+    BufferHasNoItems,
+    MissingBufferStartMarker,
+    MissingBufferEndMarker,
+    InvalidConstantForArray
 };
 
 /**
@@ -139,7 +148,9 @@ private:
     parseBufferItems(uint32_t& idx, ShaderDescriptor::BufferDescriptor& bufferDescr);
 
     ParserReturnCode parseIncludeFile(const std::string line, std::string& output);
-
+    
+    ParserReturnCode debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor* shader);
+    
     friend class ShaderCompiler;
 
 private:
@@ -158,7 +169,7 @@ private:
 };
 
 template <typename T>
-static bool
+bool
 ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptors descr, T& out)
 {
     if (descr.empty())

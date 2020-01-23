@@ -27,7 +27,9 @@ AddressModeW=ClampToEdge;
 #output: Name=Uv, Type=vec3;
 
 #push_constant: Name=PushBuffer, id=push;
-#item: Name=mvp, Type=mat4;
+[[
+  Name=mvp, Type=mat4;
+]]
 
 #code_block:
 void main()

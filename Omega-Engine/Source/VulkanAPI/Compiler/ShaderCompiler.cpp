@@ -148,7 +148,7 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
         for (const auto& file : shader->includeFiles)
         {
             // Note: I think the glsl compiler might need the absolute path - need to check
-            shader->appendBlock += "#include " + file + "\n";
+            shader->appendBlock += "#include \"" + file + "\"\n";
         }
         shader->appendBlock += '\n';
     }
@@ -158,7 +158,7 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
     {
         for (auto& sampler : shader->samplers)
         {
-            std::string name, type, inputLine;
+            std::string name, type, variant, inputLine;
             uint16_t groupId = 0;
 
             bool result = ShaderDescriptor::getTypeValue("Name", sampler, name);
@@ -169,10 +169,22 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
             }
 
             // not a mandatory variable
-            result &= ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
+            ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
+            
+            // check whether there is a variant
+            ShaderDescriptor::getTypeValue("Variant", sampler, variant);
+            if (!variant.empty())
+            {
+                shader->appendBlock += "#ifdef " + variant + "\n";
+            }
+            
             VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
             shader->appendBlock += inputLine + "\n";
-
+            if (!variant.empty())
+            {
+                shader->appendBlock += "#endif\n";
+            }
+            
             // store the binding data for vk descriptor creation
             DescriptorLayout layout = program.descrPool->createLayout(
                 groupId,

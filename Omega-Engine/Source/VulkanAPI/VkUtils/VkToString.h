@@ -20,7 +20,8 @@ bool createVkShaderSampler(
     const std::string type,
     const uint16_t bind,
     const uint16_t setCount,
-    std::string& output);
+    std::string& output,
+    uint32_t arraySize = 0);
 
 bool createVkShaderBuffer(
     const std::string name,

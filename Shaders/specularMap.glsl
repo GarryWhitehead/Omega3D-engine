@@ -27,7 +27,9 @@ AddressModeW=ClampToEdge;
 #output: Name=Uv, Type=vec3;
 
 #push_constant: Name=PushBuffer, id=push;
-#item: Name=mvp, Type=mat4, Offset=0;
+[[
+  Name=mvp, Type=mat4, Offset=0;
+]]
 
 #code_block:
 void main()
@@ -47,8 +49,10 @@ void main()
 #output: Name=Col, Type=vec4;
 
 #push_constant: Name=PushBuffer, id=push;
-#item: Name=roughness, Type=float, Offset=64;
-#item: Name=sampleCount, Type=int, Offset=68;
+[[
+  Name=roughness, Type=float, Offset=64;
+  Name=sampleCount, Type=int, Offset=68;
+]]
 
 #code_block:
 #define PI 3.1415926535897932384626433832795

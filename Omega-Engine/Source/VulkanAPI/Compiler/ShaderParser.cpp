@@ -10,6 +10,77 @@
 namespace VulkanAPI
 {
 
+bool ShaderDescriptor::hasDescriptor(std::string id, std::vector<TypeDescriptors>& typeDescrs)
+{
+    for (const TypeDescriptors& typeDescr : typeDescrs)
+    {
+        for (const Descriptor& descr : typeDescr)
+        {
+            if (descr.first == id)
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+ShaderDescriptor::Descriptor* ShaderDescriptor::findDescriptor(std::string id, std::vector<TypeDescriptors>& typeDescrs)
+{
+    for (TypeDescriptors& typeDescr : typeDescrs)
+    {
+        for (Descriptor& descr : typeDescr)
+        {
+            if (descr.first == id)
+            {
+                return &descr;
+            }
+        }
+    }
+    return nullptr;
+}
+
+bool ShaderDescriptor::hasId(std::string id, TypeDescriptors& descrs)
+{
+
+    for (const Descriptor& descr : descrs)
+    {
+        if (descr.first == id)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+ShaderDescriptor::Descriptor* ShaderDescriptor::findId(std::string id, TypeDescriptors& descrs)
+{
+    uint32_t count = 0;
+    
+    for (Descriptor& descr : descrs)
+    {
+        if (descr.first == id)
+        {
+            return &descr;
+        }
+    }
+    ++count;
+
+    return nullptr;
+}
+
+bool ShaderDescriptor::checkForFlag(std::string flag, std::string line)
+{
+    // flags are split by the + denoter
+    if (line.find(flag) != std::string::npos)
+    {
+        return true;
+    }
+    return false;
+}
+
+// ==========================================================
+
 std::string ShaderParser::getErrorString()
 {
     // TODO:: make this more verbose
@@ -69,6 +140,7 @@ ParserReturnCode ShaderParser::parseLine(
     }
 
     // now use the id=value, format to extract the data.
+    bool haveFlag = false;
     while (typeValues.find('=') != std::string::npos)
     {
         std::string temp = typeValues;
@@ -81,20 +153,48 @@ ParserReturnCode ShaderParser::parseLine(
             {
                 return ParserReturnCode::MissingSemiColon;
             }
-            // clear to signal we have reached the end identifier
+            // clear to signal we have reached the end identifier and the break on the next loop
             typeValues.clear();
         }
         else
         {
+            // remove the id-value pair that is processed this iteration so we don't duplicate
             typeValues = typeValues.substr(pos + 1, typeValues.size());
         }
-
+        // discard everything else except for the current id-value pair
         temp = temp.substr(0, pos);
 
-        pos = temp.find(' =');
+        pos = temp.find('=');
         std::string id = temp.substr(0, pos);
         std::string value = temp.substr(pos + 1, temp.size());
-
+        
+        // check if the id has a special flag as denoted by {}
+        if (id.find('{') != std::string::npos && id.find('}') != std::string::npos)
+        {
+            std::string flag = id;
+            size_t start_pos = flag.find('{');
+            
+            // remove the flag from the id
+            id = id.substr(0, start_pos);
+            
+            // isolate the flag
+            flag = flag.substr(start_pos + 1, flag.size());
+            size_t end_pos = flag.find('}');
+            flag = flag.substr(0, end_pos);
+            
+            // add the flag to the descriptors
+            // if a flag already exsists, merge with that one
+            if (haveFlag)
+            {
+                ShaderDescriptor::Descriptor* descr = ShaderDescriptor::findId("Flag", output);
+                descr->second += "+" + flag;
+            }
+            else
+            {
+                output.emplace_back(std::make_pair("Flag", flag));
+            }
+        }
+        
         output.emplace_back(std::make_pair(id, value));
     }
 
@@ -113,20 +213,55 @@ ParserReturnCode
 ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& output)
 {
     assert(idx < buffer.size());
-
+    
+    // read the buffer items into a temp buffer for easier parsing. Must begin and end in '[[' / ']]'
     constexpr uint8_t typeCount = 2;
-    while (buffer[idx].find("#item:") != std::string::npos)
+    std::vector<std::string> tempBuffer;
+    
+    bool foundStartMarker = false;
+    bool foundEndMarker = false;
+    
+    // find the start
+    while (idx < buffer.size())
     {
-        std::string& line = buffer[idx];
-
-        // remove whitespace, newlines, etc. to stop false positives
-        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
-
-        if (line.empty() || line.find("//") != std::string::npos)
+        if (buffer[idx++].find("[[") != std::string::npos)
         {
-            continue;
+            foundStartMarker = true;
+            break;
         }
-
+    }
+    if (!foundStartMarker)
+    {
+        return ParserReturnCode::MissingBufferStartMarker;
+    }
+    
+    // find the end
+    while (idx < buffer.size())
+    {
+        if (buffer[idx].find("]]") != std::string::npos)
+        {
+            foundEndMarker = true;
+            break;
+        }
+        
+        // remove whitespace, newlines, etc. as we go
+        std::string line = buffer[idx++];
+        line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
+        tempBuffer.emplace_back(line);
+    }
+    if (!foundStartMarker)
+    {
+        return ParserReturnCode::MissingBufferEndMarker;
+    }
+    
+    // check we actually have items to process...
+    if (tempBuffer.empty())
+    {
+        return ParserReturnCode::BufferHasNoItems;
+    }
+    
+    for (const std::string& line : tempBuffer)
+    {
         ShaderDescriptor::TypeDescriptors descr;
         ParserReturnCode ret = parseLine(line, descr, typeCount);
         if (ret != ParserReturnCode::Success)
@@ -137,6 +272,7 @@ ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& out
         output.items.emplace_back(descr);
         ++idx;
     }
+    
     return ParserReturnCode::Success;
 }
 
@@ -166,6 +302,24 @@ ParserReturnCode ShaderParser::parseIncludeFile(const std::string line, std::str
     output = output.substr(0, last_pos);
 
     return ParserReturnCode::Success;
+}
+
+ParserReturnCode ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor* shader)
+{
+    // if array size has specified and the size is based on a constant value then check this constant exsists.
+    if (ShaderDescriptor::hasId("Array_size", buffer.descriptors) && ShaderDescriptor::hasId("Flags", buffer.descriptors))
+    {
+        ShaderDescriptor::Descriptor* descr = ShaderDescriptor::findId("Flags", buffer.descriptors);
+        if (ShaderDescriptor::checkForFlag("array_from_constant", descr->second))
+        {
+            ShaderDescriptor::Descriptor* arrayDescr = ShaderDescriptor::findId("Array_size", buffer.descriptors);
+            std::string constantId = arrayDescr->first;
+            if (!ShaderDescriptor::findDescriptor(constantId, shader->constants))
+            {
+                return ParserReturnCode::InvalidConstantForArray;
+            }
+        }
+    }
 }
 
 ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
@@ -280,6 +434,13 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             {
                 return ret;
             }
+            
+            // do a debug check if certain ids' are present and flags are set
+            ret = debugBuffer(buffer, shader.get());
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
 
             // collect all items
             ret = parseBuffer(++idx, buffer);
@@ -376,8 +537,6 @@ ParserReturnCode ShaderParser::parsePipelineBlock(uint32_t& idx)
 
 bool ShaderParser::parseShader()
 {
-    uint32_t idx = 0;
-
     for (uint32_t idx = 0; idx < buffer.size(); ++idx)
     {
         std::string& line = buffer[idx];

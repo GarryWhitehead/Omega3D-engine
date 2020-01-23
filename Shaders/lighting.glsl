@@ -50,8 +50,9 @@ void main()
 #constant: Name=MAX_DIR_LIGHTS, 	Type=int, 	Value=5;
 
 #push_constant: Name=PushBuffer,	id=push;
-#item: Name=IBLAmbient, Type=float;
-#item: Name=useIBL,		Type=bool;
+[[
+  Name=IBLAmbient,  Type=float;
+]]
 
 #import_sampler: Name=positionSampler, 		Type=2D_Sampler;
 #import_sampler: Name=baseColourSampler,	Type=2D_Sampler;
@@ -64,9 +65,11 @@ void main()
 #import_sampler: Name=prefilterSampler,		Type=Cube_Sampler,	variant=IBL_ENABLED;
 
 #import_buffer: Name=LightUbo, Type=Uniform_Buffer,	id=light_ubo;
-#item: Name=spotLights, 	Type={Struct}SpotLight, 		array_size={constant}MAX_SPOT_LIGHTS;
-#item: Name=pointLights, 	Type={Struct}PointLight, 		array_size={constant}MAX_POINT_LIGHTS;
-#item: Name=dirLights, 		Type={Struct}DirectionalLight, 	array_size={constant}MAX_DIR_LIGHTS;
+[[
+  Name=spotLights, 	Type={External}SpotLight, 		    Array_size={constant}MAX_SPOT_LIGHTS;
+  Name=pointLights, Type={External}PointLight, 		    Array_size={constant}MAX_POINT_LIGHTS;
+  Name=dirLights, 	Type={External}DirectionalLight, 	Array_size={constant}MAX_DIR_LIGHTS;
+]]
 
 #output: Name=Frag, Type=vec4;
 

@@ -70,7 +70,8 @@ bool createVkShaderSampler(
     const std::string type,
     const uint16_t bind,
     const uint16_t setCount,
-    std::string& output)
+    std::string& output,
+    uint32_t arraySize)
 {
     assert(!type.empty());
     assert(!name.empty());
@@ -80,15 +81,15 @@ bool createVkShaderSampler(
 
     if (type == "2D_Sampler")
     {
-        output = samplerTemplate + "smapler2D " + name;
+        output = samplerTemplate + "smapler2D ";
     }
     else if (type == "3D_Sampler")
     {
-        output = samplerTemplate + "smapler3D " + name;
+        output = samplerTemplate + "smapler3D ";
     }
     else if (type == "Cube_Sampler")
     {
-        output = samplerTemplate + "samplerCube " + name;
+        output = samplerTemplate + "samplerCube ";
     }
     else
     {
@@ -98,7 +99,19 @@ bool createVkShaderSampler(
             name.c_str());
         return false;
     }
-    output += ";";
+    
+    // check whether this is a sampler array...
+    if (arraySize > 0)
+    {
+        output += "[" + std::to_string(arraySize) + "];\n";
+    }
+    else
+    {
+        output += name + ";";
+    }
+    
+    
+    return true;
 }
 
 bool createVkShaderBuffer(
@@ -141,15 +154,30 @@ bool createVkShaderBuffer(
     uint32_t bufferSize = 0;
     for (const auto& item : items)
     {
-        std::string name, type, offset;
-        bool result = ShaderDescriptor::getTypeValue("Name", item, name);
-        result &= ShaderDescriptor::getTypeValue("Type", item, type);
+        std::string itemName, itemType, offset;
+        bool result = ShaderDescriptor::getTypeValue("Name", item, itemName);
+        result &= ShaderDescriptor::getTypeValue("Type", item, itemType);
         if (!result)
         {
             return false;
         }
-        ShaderDescriptor::getTypeValue("Offset", item, offset);
-        if (!offset.empty())
+        
+        // check for flags......
+        std::string flags;
+        bool usingExternal = false;
+        
+        if (ShaderDescriptor::getTypeValue("Offset", item, flags))
+        {
+            // external flags indicate that this item is using an external type. The only fallout from this is that we
+            // cannot determine the buffer size.
+            if (ShaderDescriptor::checkForFlag("External", flags))
+            {
+                usingExternal = true;
+            }
+        }
+        
+        // offsets are not mandatory
+        if (ShaderDescriptor::getTypeValue("Offset", item, offset))
         {
             bufferTemplate += "\tlayout (offset = " + offset + ") ";
         }
@@ -157,14 +185,31 @@ bool createVkShaderBuffer(
         {
             bufferTemplate += "\t";
         }
-
-        bufferTemplate += type + " " + name + ";\n";
-        bufferSize += vkTypeSize(type);
+        
+        // add the item type and name.....
+        bufferTemplate += type + " " + name;
+        
+        // check whether this is an array
+        std::string array;
+        if (ShaderDescriptor::getTypeValue("Size_array", item, array))
+        {
+            bufferTemplate += "[" + array + "];\n";
+        }
+        else
+        {
+            bufferTemplate += ";\n";
+        }
+        
+        if (!usingExternal)
+        {
+            bufferSize += vkTypeSize(type);
+        }
     }
 
-    assert(bufferSize != 0);
     outputStr = bufferTemplate + "}";
     outputSize = bufferSize;
+    
+    return true;
 }
 
 } // namespace VkUtils
