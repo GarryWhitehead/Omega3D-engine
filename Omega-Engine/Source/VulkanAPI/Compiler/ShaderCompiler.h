@@ -53,7 +53,7 @@ private:
     CompilerReturnCode compileAll(ShaderParser& parser);
 
     CompilerReturnCode
-    prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind);
+    prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding);
 
     CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
@@ -67,11 +67,16 @@ private:
 
     static void printShaderCode(const std::string& block);
 
+    uint8_t getCurrentBinding(const uint8_t groupId);
+
 private:
     VkContext& context;
 
     // variants to use when compiling the shader
     std::unordered_map<const char*, uint8_t> variants;
+
+    // the current binding for each set currently active <set, bind>
+    std::unordered_map<uint8_t, uint8_t> currentBinding;
 
     // the program which will be compiled too
     ShaderProgram& program;

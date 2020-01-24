@@ -26,6 +26,15 @@ AddressModeW=ClampToEdge;
 #output: Name=Uv, 		 Type=vec2;
 #output: Name=CameraPos, Type=vec3;
 
+#import_buffer: Name=CameraUbo, Type=UniformBuffer, id=ubo;
+[[
+	Name=mvp, 		Type=mat4;
+	Name=view, 		Type=mat4;
+	Name=model, 	Type=mat4;
+	Name=cameraPos, Type=vec3;
+	Name=pad0, 		Type=float;
+]]
+	
 #code_block:
 void main()
 {	
@@ -64,7 +73,7 @@ void main()
 #import_sampler: Name=irradianceSampler,	Type=Cube_Sampler,	variant=IBL_ENABLED;
 #import_sampler: Name=prefilterSampler,		Type=Cube_Sampler,	variant=IBL_ENABLED;
 
-#import_buffer: Name=LightUbo, Type=Uniform_Buffer,	id=light_ubo;
+#import_buffer: Name=LightUbo, Type=UniformBuffer,	id=light_ubo;
 [[
   Name=spotLights, 	Type={External}SpotLight, 		    Array_size={constant}MAX_SPOT_LIGHTS;
   Name=pointLights, Type={External}PointLight, 		    Array_size={constant}MAX_POINT_LIGHTS;
@@ -76,7 +85,7 @@ void main()
 #code_block:
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {	
-	vec3 brdf = (texture(brdfLutSampler, vec2(NdotV, 1.0 - roughness))).rgb;
+	vec3 bdrf = (texture(bdrfLutSampler, vec2(NdotV, 1.0 - roughness))).rgb;
 	
 	// specular contribution
 		// this should be a pbr input!
@@ -90,7 +99,7 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	vec3 b = textureLod(prefilterSampler, reflection, lodc).rgb;
 	vec3 specularLight = mix(a, b, lod - lodf);
 	
-	vec3 specular = specularLight * (specularColour * brdf.x + brdf.y);
+	vec3 specular = specularLight * (specularColour * bdrf.x + bdrf.y);
 	
 	// diffuse contribution
 	vec3 diffuseLight = texture(irradianceSampler, N).rgb;
@@ -170,11 +179,10 @@ void main()
 	}
 	
 	// add IBL contribution if needed
-	if (push.useIBLContribution) 
-	{
-		float NdotV = max(dot(N, V), 0.0);
-		colour += calculateIBL(N, NdotV, roughness, R, baseColour, specularColour);
-	}
+#ifdef IBL_ENABLED
+	float NdotV = max(dot(N, V), 0.0);
+	colour += calculateIBL(N, NdotV, roughness, R, baseColour, specularColour);
+#endif
 	
 	// occlusion
 	colour = mix(colour, colour * occlusion, 1.0);
@@ -190,7 +198,7 @@ void main()
 		SpotLight light = light_ubo.spotLights[i];
 		
 		vec4 shadowClip	= light.viewMatrix * vec4(inPos, 1.0);
-		float shadowFactor = shadowPCF(shadowClip, Depth_shadowSampler);
+		float shadowFactor = shadowPCF(shadowClip, shadowSampler);
 			
 		outFrag *= shadowFactor;
 	}
@@ -200,7 +208,7 @@ void main()
 		PointLight light = light_ubo.pointLights[i];
 		
 		vec4 shadowClip	= light.viewMatrix * vec4(inPos, 1.0);
-		float shadowFactor = shadowPCF(shadowClip, Depth_shadowSampler);
+		float shadowFactor = shadowPCF(shadowClip, shadowSampler);
 			
 		outFrag *= shadowFactor;
 	}

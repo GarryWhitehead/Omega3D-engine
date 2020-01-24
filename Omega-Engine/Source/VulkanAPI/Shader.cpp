@@ -4,10 +4,59 @@
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"
+#include "file.h"
+#include "libshaderc_util/io.h"
 #include "utility/Logger.h"
 
 namespace VulkanAPI
 {
+
+IncludeInterface::~IncludeInterface()
+{
+}
+
+shaderc_include_result* IncludeInterface::GetInclude(
+    const char* requested_source,
+    shaderc_include_type include_type,
+    const char* requesting_source,
+    size_t)
+{
+
+    const std::string full_path = (include_type == shaderc_include_type_relative)
+        ? fileFinder.FindRelativeReadableFilepath(requesting_source, requested_source)
+        : fileFinder.FindReadableFilepath(requested_source);
+
+    if (full_path.empty())
+    {
+        LOGGER_ERROR("Unable to find or open include file: %s", requested_source);
+        return nullptr;
+    }
+
+    // Read the file and save its full path and contents into stable addresses.
+    FileInfo* new_file_info = new FileInfo {full_path, {}};
+    if (!shaderc_util::ReadFile(full_path, &(new_file_info->contents)))
+    {
+        LOGGER_ERROR("Unable to read include file: %s", requested_source);
+        return nullptr;
+    }
+
+    includedFiles.insert(full_path);
+
+    return new shaderc_include_result {new_file_info->full_path.data(),
+                                       new_file_info->full_path.length(),
+                                       new_file_info->contents.data(),
+                                       new_file_info->contents.size(),
+                                       new_file_info};
+}
+
+void IncludeInterface::ReleaseInclude(shaderc_include_result* include_result)
+{
+    FileInfo* info = static_cast<FileInfo*>(include_result->user_data);
+    delete info;
+    delete include_result;
+}
+
+// ============================================================================================================================
 
 shaderc_shader_kind getShaderKind(const Shader::Type type)
 {
@@ -32,7 +81,7 @@ shaderc_shader_kind getShaderKind(const Shader::Type type)
 }
 
 GlslCompiler::GlslCompiler(std::string shaderCode, const Shader::Type type)
-    : kind(getShaderKind(type)), source(shaderCode), sourceName("OE_SHADER")
+    : kind(getShaderKind(type)), source(shaderCode), sourceName(OE_SHADER_DIR)
 {
 }
 
@@ -54,6 +103,15 @@ bool GlslCompiler::compile(bool optimise)
     {
         options.SetOptimizationLevel(shaderc_optimization_level_size);
     }
+
+    options.SetSourceLanguage(shaderc_source_language_glsl);
+    options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_1);
+
+    // we need to create a new instantation of the includer interface - using the one from shaerc -
+    // though could use our own.
+    std::unique_ptr<IncludeInterface> includer(new IncludeInterface(&fileFinder));
+    const auto& used_source_files = includer->filePathTrace();
+    options.SetIncluder(std::move(includer));
 
     auto result = compiler.CompileGlslToSpv(source, kind, sourceName.c_str(), options);
     if (result.GetCompilationStatus() != shaderc_compilation_status_success)

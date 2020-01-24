@@ -48,7 +48,7 @@ void ShaderCompiler::printShaderCode(const std::string& block)
         }
         else
         {
-            printf("%s", c);
+            printf("%c", c);
         }
     }
     printf("\n\n");
@@ -67,6 +67,23 @@ bool ShaderCompiler::getBool(std::string type)
 
     // rather than return a error code, we just return false.
     return false;
+}
+
+uint8_t ShaderCompiler::getCurrentBinding(const uint8_t groupId)
+{
+    uint8_t bind = 0;
+
+    // if the set hasn't been used yet create a new one
+    if (currentBinding.empty() || currentBinding.find(groupId) == currentBinding.end())
+    {
+        currentBinding.emplace(groupId, 1);
+    }
+    else
+    {
+        bind = currentBinding[groupId];
+        currentBinding[groupId]++;
+    }
+    return bind;
 }
 
 CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerInfo)
@@ -136,8 +153,7 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
 }
 
 
-CompilerReturnCode
-ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding, uint16_t& bind)
+CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding)
 {
     // add the glsl version number
     shader->appendBlock += "#version 450\n\n";
@@ -151,6 +167,30 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
             shader->appendBlock += "#include \"" + file + "\"\n";
         }
         shader->appendBlock += '\n';
+    }
+
+    // specialisation constants - order is important here as buffers,et.c might be dependebt on these constants 
+    if (!shader->constants.empty())
+    {
+        std::string name, type, value;
+        uint16_t constantId = 0;
+
+        for (const auto& constant : shader->constants)
+        {
+            bool result = ShaderDescriptor::getTypeValue("Name", constant, name);
+            result &= ShaderDescriptor::getTypeValue("Type", constant, type);
+            result &= ShaderDescriptor::getTypeValue("Value", constant, value);
+            if (!result)
+            {
+                return CompilerReturnCode::InvalidConstant;
+            }
+
+            // inject constant text into temp shader text block
+            shader->appendBlock += "layout (constant_id = " + std::to_string(constantId++) +
+                ") const " + type + " " + name + " = " + value + ";\n\n";
+
+            binding.constants.emplace_back(ShaderBinding::SpecConstantBinding {name, constantId});
+        }
     }
 
     // texture samplers
@@ -170,21 +210,23 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
 
             // not a mandatory variable
             ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
-            
+
             // check whether there is a variant
             ShaderDescriptor::getTypeValue("Variant", sampler, variant);
             if (!variant.empty())
             {
                 shader->appendBlock += "#ifdef " + variant + "\n";
             }
-            
+
+            uint8_t bind = getCurrentBinding(groupId);
+
             VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
             shader->appendBlock += inputLine + "\n";
             if (!variant.empty())
             {
                 shader->appendBlock += "#endif\n";
             }
-            
+
             // store the binding data for vk descriptor creation
             DescriptorLayout layout = program.descrPool->createLayout(
                 groupId,
@@ -205,13 +247,13 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
     {
         for (auto& buffer : shader->ubos)
         {
-            std::string name, type, inputLine;
+            std::string name, type, subId, inputLine;
             uint16_t groupId = 0;
             uint32_t bufferSize;
 
             bool result = ShaderDescriptor::getTypeValue("Name", buffer.descriptors, name);
             result &= ShaderDescriptor::getTypeValue("Type", buffer.descriptors, type);
-            
+
             if (!result)
             {
                 return CompilerReturnCode::InvalidBuffer;
@@ -219,10 +261,15 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
 
             // not a mandatory component
             ShaderDescriptor::getTypeValue("GroupId", buffer.descriptors, groupId);
-            
+
+            uint8_t bind = getCurrentBinding(groupId);
+
             VkUtils::createVkShaderBuffer(
                 name, type, buffer.items, bind, groupId, inputLine, bufferSize);
-            shader->appendBlock += inputLine + ";\n\n";
+
+            // not mandatory - adds a sub-id to the buffer
+            ShaderDescriptor::getTypeValue("id", buffer.descriptors, subId);
+            shader->appendBlock += inputLine + subId + ";\n\n";
 
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(type);
 
@@ -251,7 +298,7 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
             {
                 return CompilerReturnCode::InvalidPushConstant;
             }
-            // not mandatory
+            // not mandatory - adds a sub-id to the buffer
             ShaderDescriptor::getTypeValue("id", constant.descriptors, id);
 
             // inject pipeline text into temp string block
@@ -259,31 +306,6 @@ ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding
             // append to main shader text
             shader->appendBlock += inputLine + id + ";\n\n";
             program.pLineLayout->addPushConstant(shader->type, bufferSize);
-        }
-        shader->appendBlock += '\n';
-    }
-
-    // specialisation constants
-    if (!shader->constants.empty())
-    {
-        std::string name, type, value;
-        uint16_t constantId = 0;
-
-        for (const auto& constant : shader->constants)
-        {
-            bool result = ShaderDescriptor::getTypeValue("Name", constant, name);
-            result &= ShaderDescriptor::getTypeValue("Type", constant, type);
-            result &= ShaderDescriptor::getTypeValue("Value", constant, value);
-            if (!result)
-            {
-                return CompilerReturnCode::InvalidConstant;
-            }
-
-            // inject constant text into temp shader text block
-            shader->appendBlock += "layout (constant_id = " + std::to_string(constantId) +
-                ") const " + type + " " + name + " = " + value + ";\n\n";
-
-            binding.constants.emplace_back(ShaderBinding::SpecConstantBinding {name, constantId});
         }
         shader->appendBlock += '\n';
     }
@@ -313,8 +335,10 @@ ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShad
             "layout (location = " + std::to_string(loc) + ") in " + type + " in" + name;
         std::string outputLine =
             "layout (location = " + std::to_string(loc) + ") out " + type + " out" + name;
+
         shader->appendBlock += outputLine + ";\n";
         nextShader->appendBlock += inputLine + ";\n";
+        ++loc;
     }
     shader->appendBlock += '\n';
     nextShader->appendBlock += '\n';
@@ -396,8 +420,6 @@ CompilerReturnCode ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
 
 CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
 {
-    uint16_t bindCount = 0;
-
     // compile the pipeline block
     CompilerReturnCode ret = preparePipelineBlock(compilerInfo);
     if (ret != CompilerReturnCode::Success)
@@ -409,7 +431,7 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     for (auto& descr : compilerInfo.descriptors)
     {
         ShaderBinding binding(context, descr->type);
-        prepareBindings(descr.get(), binding, bindCount);
+        prepareBindings(descr.get(), binding);
 
         // prepare the input semantics, this is only required for the vertex shader
         if (descr->type == Shader::Type::Vertex)

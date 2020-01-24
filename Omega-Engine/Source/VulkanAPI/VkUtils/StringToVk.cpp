@@ -174,7 +174,7 @@ vk::DescriptorType getVkDescrTypeFromStr(std::string str)
     else
     {
         LOGGER_ERROR("Unsupported buffer type - %s", str.c_str());
-        assert(1);
+        assert(0);
     }
     return result;
 }

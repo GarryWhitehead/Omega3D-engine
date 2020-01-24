@@ -1,12 +1,14 @@
 #pragma once
 
 #include "VulkanAPI/Common.h"
+#include "libshaderc_util/file_finder.h"
 #include "utility/CString.h"
 
 #include <cstdint>
 #include <optional>
 #include <shaderc/shaderc.hpp>
 #include <string>
+#include <unordered_set>
 #include <unordered_map>
 #include <vector>
 
@@ -15,6 +17,49 @@ namespace VulkanAPI
 // forward decleartions
 class VkContext;
 class Sampler;
+
+// This is a callback class to impelement shaderc's include interface
+class IncludeInterface : public shaderc::CompileOptions::IncluderInterface
+{
+public:
+    explicit IncludeInterface(const shaderc_util::FileFinder* fileFinder)
+        : fileFinder(*fileFinder)
+    {
+    }
+
+    ~IncludeInterface() override;
+
+    shaderc_include_result* GetInclude(
+        const char* requested_source,
+        shaderc_include_type type,
+        const char* requesting_source,
+        size_t include_depth) override;
+
+    // Releases an include result.
+    void ReleaseInclude(shaderc_include_result* includeResult) override;
+
+    // Returns a reference to the member storing the set of included files.
+    const std::unordered_set<std::string>& filePathTrace() const
+    {
+        return includedFiles;
+    }
+
+private:
+
+    // Used by GetInclude() to get the full filepath.
+    const shaderc_util::FileFinder& fileFinder;
+
+    // The full path and content of a source file.
+    struct FileInfo
+    {
+        const std::string full_path;
+        std::vector<char> contents;
+    };
+
+    // The set of full paths of included files.
+    std::unordered_set<std::string> includedFiles;
+};
+
 
 class Shader
 {
@@ -126,6 +171,9 @@ private:
     std::string source;
     std::string sourceName;
     VariantMap definitions;
+
+    // required for delaing with #include
+    shaderc_util::FileFinder fileFinder;
 };
 
 } // namespace VulkanAPI

@@ -31,7 +31,7 @@ SkyboxPass::~SkyboxPass()
 bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
-    const Util::String filename = "SkyboxPass.glsl";
+    const Util::String filename = "skybox.glsl";
     VulkanAPI::ProgramManager::ShaderHash key { filename.c_str(), 0, nullptr };
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 

@@ -31,6 +31,8 @@ TARGET_INCLUDE_DIRECTORIES(OMEGA_ENGINE
 	${EXTERNAL_DIR}/rapidjson/include
 	${EXTERNAL_DIR}/VulkanMemoryAllocator/src
 	${EXTERNAL_DIR}/stb
+	${EXTERNAL_DIR}/shaderc/libshaderc_util/include
+	${EXTERNAL_DIR}/shaderc/glslc/src/
 
 	PRIVATE
 	Source

@@ -16,7 +16,7 @@ bool isSamplerType(const std::string& type)
 
 bool isBufferType(const std::string& type)
 {
-    return (type == "Uniform_Buffer" || type == "Storage_Buffer");
+    return (type == "UniformBuffer" || type == "StorageBuffer");
 }
 
 uint32_t vkTypeSize(const std::string& type)
@@ -60,7 +60,7 @@ uint32_t vkTypeSize(const std::string& type)
     }
     else
     {
-        LOGGER_INFO("Unrecognised glsl type. Size set to zero.");
+        LOGGER_WARN("Type: %s; Unrecognised glsl type. Size set to zero.", type.c_str());
     }
     return size;
 }
@@ -81,7 +81,7 @@ bool createVkShaderSampler(
 
     if (type == "2D_Sampler")
     {
-        output = samplerTemplate + "smapler2D ";
+        output = samplerTemplate + "sampler2D ";
     }
     else if (type == "3D_Sampler")
     {
@@ -166,7 +166,7 @@ bool createVkShaderBuffer(
         std::string flags;
         bool usingExternal = false;
         
-        if (ShaderDescriptor::getTypeValue("Offset", item, flags))
+        if (ShaderDescriptor::getTypeValue("Flag", item, flags))
         {
             // external flags indicate that this item is using an external type. The only fallout from this is that we
             // cannot determine the buffer size.
@@ -187,11 +187,11 @@ bool createVkShaderBuffer(
         }
         
         // add the item type and name.....
-        bufferTemplate += type + " " + name;
+        bufferTemplate += itemType + " " + itemName;
         
         // check whether this is an array
         std::string array;
-        if (ShaderDescriptor::getTypeValue("Size_array", item, array))
+        if (ShaderDescriptor::getTypeValue("Array_size", item, array))
         {
             bufferTemplate += "[" + array + "];\n";
         }
@@ -202,7 +202,7 @@ bool createVkShaderBuffer(
         
         if (!usingExternal)
         {
-            bufferSize += vkTypeSize(type);
+            bufferSize += vkTypeSize(itemType);
         }
     }
 
