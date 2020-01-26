@@ -154,7 +154,7 @@ void CmdBuffer::flush()
 	vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
 
 	VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
-	queue.waitIdle();
+	//queue.waitIdle();
 }
 
 void CmdBuffer::submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence)
@@ -165,7 +165,7 @@ void CmdBuffer::submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaph
 	vk::SubmitInfo submitInfo(1, &waitSemaphore, &stageFlag, 1, &cmdBuffer, 1, &signalSemaphore);
 
 	VK_CHECK_RESULT(queue.submit(1, &submitInfo, fence));
-	queue.waitIdle();
+	//queue.waitIdle();
 }
 
 

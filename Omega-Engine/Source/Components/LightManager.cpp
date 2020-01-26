@@ -63,26 +63,32 @@ void LightManager::LightInstance::create(Engine& engine)
     
     auto* lManager = oeEngine.getLightManager();
     
-    std::unique_ptr<LightBase> base = std::make_unique<LightBase>(type);
-    base->position = pos;
-    base->colour = col;
-    base->fov = fov;
-    base->intensity = intensity;
-    
     // create the light based on the type
     if (type == LightType::Directional)
     {
+        std::unique_ptr<LightBase> base = std::make_unique<DirectionalLight>();
+        DirectionalLight* light = reinterpret_cast<DirectionalLight*>(base.get());
+        light->position = pos;
+        light->colour = col;
+        light->fov = fov;
+        light->intensity = intensity;
         lManager->addLight(base);
     }
     else if (type == LightType::Point)
     {
+        std::unique_ptr<LightBase> base = std::make_unique<PointLight>();
         PointLight* light = reinterpret_cast<PointLight*>(base.get());
+        light->position = pos;
+        light->colour = col;
+        light->fov = fov;
+        light->intensity = intensity;
         light->fallOut = fallout;
         light->radius = radius;
         lManager->addLight(base);
     }
     else 
     {
+        std::unique_ptr<LightBase> base = std::make_unique<SpotLight>();
         SpotLight* light = reinterpret_cast<SpotLight*>(base.get());
         light->fallout = fallout;
         light->radius = radius;

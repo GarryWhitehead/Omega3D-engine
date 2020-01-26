@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
+#include <deque>
 
 #define MAX_FRAMES_IN_FLIGHT 3
 
@@ -35,22 +36,26 @@ public:
     /// Defines how many signle use command buffers to create when initialising
     static constexpr uint8_t SingleUseCbSize = 5;
     
-	CmdPool(VkContext& context, SemaphoreManager& spManager, uint32_t queueIndex);
+	CmdPool(
+        VkContext& context,
+        CmdBufferManager* cbManager,
+        SemaphoreManager& spManager,
+        uint32_t queueIndex);
 	~CmdPool();
 
 	/**
 	* @brief Creates a new instance of a cmd buffer, including reseting fences.
 	* Returns a pointer to the buffer - because we never destroy buffers, only reset them, its safe to pass around pointers.
 	*/
-	CmdBuffer* createPrimaryCmdBuffer(CmdBufferManager* manager);
+	CmdBuffer* createPrimaryCmdBuffer();
     
-    CmdBuffer* createSecCmdBuffer(CmdBufferManager* manager);
+    CmdBuffer* createSecCmdBuffer();
     
     /**
      * @brief Either returns a cmd buffer from the free pool or creates a new instance. Cmd buffers should be released back to the pool after use by calling
      * **releaseSingleUseCb**
      */
-    std::unique_ptr<CmdBuffer> getSingleUseCb(CmdBufferManager* manager);
+    std::unique_ptr<CmdBuffer> getSingleUseCb();
     
     void releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer);
     
@@ -88,6 +93,7 @@ private:
 
 	VkContext& context;
 	SemaphoreManager& spManager;
+    CmdBufferManager* cbManager = nullptr;
 
 	/// all the cmd buffers that have been created with this pool
 	std::vector<CmdInstance> cmdInstances;
@@ -96,7 +102,7 @@ private:
     std::vector<std::unique_ptr<CmdBuffer>> secondary;
     
     /// single use cmd buffers that are recycled after use
-    std::vector<std::unique_ptr<CmdBuffer>> singleUseCbs;
+    std::deque<std::unique_ptr<CmdBuffer>> singleUseCbs;
 
 	/// the queue to use for this pool
 	uint32_t queueIndex;

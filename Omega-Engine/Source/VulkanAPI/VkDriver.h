@@ -3,7 +3,6 @@
 #include "VulkanAPI/Buffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkContext.h"
-
 #include "utility/CString.h"
 
 #include <unordered_map>
@@ -29,52 +28,54 @@ namespace VkHash
 
 struct ResourceIdKey
 {
-	const char* key;
+    const char* key;
 };
 
 struct ResourceIdHasher
 {
-	size_t operator()(const ResourceIdKey& id) const noexcept
-	{
-		return std::hash<const char*>{}(id.key);
-	}
+    size_t operator()(const ResourceIdKey& id) const noexcept
+    {
+        return std::hash<const char*> {}(id.key);
+    }
 };
 
 struct ResourceIdEqualTo
 {
-	bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
-	{
-		return lhs.key == rhs.key;
-	}
+    bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
+    {
+        return lhs.key == rhs.key;
+    }
 };
 
 struct ResourcePtrKey
 {
-	void* key;
+    void* key;
 };
 
 struct ResourcePtrHasher
 {
-	size_t operator()(const ResourcePtrKey& id) const noexcept
-	{
-		return std::hash<void*>{}(id.key);
-	}
+    size_t operator()(const ResourcePtrKey& id) const noexcept
+    {
+        return std::hash<void*> {}(id.key);
+    }
 };
 
 struct ResourcePtrEqualTo
 {
-	bool operator()(const ResourcePtrKey& lhs, const ResourcePtrKey& rhs) const
-	{
-		return lhs.key == rhs.key;
-	}
+    bool operator()(const ResourcePtrKey& lhs, const ResourcePtrKey& rhs) const
+    {
+        return lhs.key == rhs.key;
+    }
 };
 
 using TextureMap = std::unordered_map<ResourceIdKey, Texture, ResourceIdHasher, ResourceIdEqualTo>;
 using BufferMap = std::unordered_map<ResourceIdKey, Buffer, ResourceIdHasher, ResourceIdEqualTo>;
-using VBufferMap = std::unordered_map<ResourcePtrKey, VertexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
-using IBufferMap = std::unordered_map<ResourcePtrKey, IndexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
+using VBufferMap =
+    std::unordered_map<ResourcePtrKey, VertexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
+using IBufferMap =
+    std::unordered_map<ResourcePtrKey, IndexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
 
-};    // namespace VkHash
+}; // namespace VkHash
 
 using DynBufferHandle = uint64_t;
 
@@ -82,122 +83,141 @@ class VkDriver
 {
 
 public:
-	VkDriver();
-	~VkDriver();
+    VkDriver();
+    ~VkDriver();
 
-	bool createInstance(const char** instanceExt, uint32_t count);
+    bool createInstance(const char** instanceExt, uint32_t count);
 
-	/// initialises the vulkan driver - includes creating the abstract device, physical device, queues, etc.
-	bool init(const vk::SurfaceKHR surface);
+    /// initialises the vulkan driver - includes creating the abstract device, physical device,
+    /// queues, etc.
+    bool init(const vk::SurfaceKHR surface);
 
-	/// Make sure you call this before closing down the engine!
-	void shutdown();
+    /// Make sure you call this before closing down the engine!
+    void shutdown();
 
-	//  ================ Functions for creating buffers and adding resource data to the backend =================================
+    //  ======= Functions for creating buffers and adding resource data to the backend ======
 
-	/**
-     * @brief This is for adding persistant uniform buffers to the backend. These will remain in the backend until the user calls the appropiate destroy function. This function also creates and updates a descriptor set which will be associated with this buffer..
+    /**
+     * @brief This is for adding persistant uniform buffers to the backend. These will remain in the
+     * backend until the user calls the appropiate destroy function. This function also creates and
+     * updates a descriptor set which will be associated with this buffer..
      * @param id This is a string id used to hash and retrieve this buffer
-	 * @param size The size of the buffer in bytes
+     * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-	void addUboAndUpdateDescr(Util::String id, const size_t size, VkBufferUsageFlags usage);
-    
+    void addUboAndUpdateDescr(Util::String& id, const size_t size, VkBufferUsageFlags usage);
+
     /**
-     * @brief This is for adding persistant uniform buffers to the backend. This should be used when a descriptor set isn't stored within the vulkan backend, i.e. materials keep track of their own sets
+     * @brief This is for adding persistant uniform buffers to the backend. This should be used when
+     * a descriptor set isn't stored within the vulkan backend, i.e. materials keep track of their
+     * own sets
      * @param id This is a string id used to hash and retrieve this buffer
      * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
     void addUbo(Util::String id, const size_t size, VkBufferUsageFlags usage);
 
-	/**
-     * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex attribute bindings in preperation to using with the relevant pipeline
+    /**
+     * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex
+     * attribute bindings in preperation to using with the relevant pipeline
      */
-	VertexBuffer* addVertexBuffer(const size_t size, void* data);
+    VertexBuffer* addVertexBuffer(const size_t size, void* data);
 
-	/**
-     @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend. Note: it is presumed to be of the type uint32_t.
-    */
-	IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
+    /**
+ @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend.
+ Note: it is presumed to be of the type uint32_t.
+*/
+    IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
-	void add2DTexture(Util::String id, vk::Format format, const uint32_t width, const uint32_t height,
-	                  const uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
+    void add2DTexture(
+        Util::String& id,
+        vk::Format format,
+        const uint32_t width,
+        const uint32_t height,
+        const uint8_t mipLevels,
+        vk::ImageUsageFlags usageFlags);
 
-	// ============== buffer update functions ===============================
+    void add2DTextureAndPushDecr(
+        Util::String& id,
+        vk::Format format,
+        const uint32_t width,
+        const uint32_t height,
+        const uint8_t mipLevels,
+        vk::ImageUsageFlags usageFlags);
 
-	void update2DTexture(Util::String id, void* data);
+    // ============== buffer update functions ===============================
 
-	void updateUbo(Util::String id, size_t size, void* data);
+    void update2DTexture(Util::String& id, void* data);
 
-	// ============= retrieve resources ====================================
+    void updateUbo(Util::String id, size_t size, void* data);
 
-	Texture* getTexture2D(Util::String name);
+    // ============= retrieve resources ====================================
 
-	Buffer* getBuffer(Util::String name);
+    Texture* getTexture2D(Util::String& name);
 
-	// =============== delete buffer =======================================
+    Buffer* getBuffer(Util::String& name);
 
-	void deleteUbo(Util::String id);
+    // =============== delete buffer =======================================
 
-	void deleteVertexBuffer(VertexBuffer* buffer);
+    void deleteUbo(Util::String& id);
 
-	void deleteIndexBuffer(IndexBuffer* buffer);
+    void deleteVertexBuffer(VertexBuffer* buffer);
 
-	// ======== begin/end frame functions =================================
-    
-	void beginFrame(Swapchain& swapchain);
+    void deleteIndexBuffer(IndexBuffer* buffer);
 
-	void endFrame(Swapchain& swapchain);
+    // ======== begin/end frame functions =================================
 
-	// ====== manager helper functions ===================================
+    void beginFrame(Swapchain& swapchain);
 
-	CmdBufferManager& getCbManager()
-	{
-		return *cbManager;
-	}
+    void endFrame(Swapchain& swapchain);
 
-	ProgramManager& getProgManager()
-	{
-		return *progManager;
-	}
+    // ====== manager helper functions ===================================
 
-	VkContext& getContext()
-	{
-		return context;
-	}
-    
+    CmdBufferManager& getCbManager()
+    {
+        return *cbManager;
+    }
+
+    ProgramManager& getProgManager()
+    {
+        return *progManager;
+    }
+
+    VkContext& getContext()
+    {
+        return context;
+    }
+
     VmaAllocator& getVma()
     {
         return vmaAlloc;
     }
 
 private:
-	// managers
-	std::unique_ptr<ProgramManager> progManager;
-	std::unique_ptr<CmdBufferManager> cbManager;
+    // managers
+    std::unique_ptr<ProgramManager> progManager;
+    std::unique_ptr<CmdBufferManager> cbManager;
 
-	// the current device context
-	VkContext context;
+    // the current device context
+    VkContext context;
 
-	// external mem allocator
-	VmaAllocator vmaAlloc;
+    // external mem allocator
+    VmaAllocator vmaAlloc;
 
-	// staging pool used for managing CPU stages
-	std::unique_ptr<StagingPool> stagingPool;
+    // staging pool used for managing CPU stages
+    std::unique_ptr<StagingPool> stagingPool;
 
-	// resources associated with this device - hashed by the string id
-	VkHash::TextureMap textures;
-	VkHash::BufferMap buffers;
+    // resources associated with this device - hashed by the string id
+    VkHash::TextureMap textures;
+    VkHash::BufferMap buffers;
 
-	// mesh data - indexed via the address of the buffer
-	VkHash::VBufferMap vertBuffers;
-	VkHash::IBufferMap indexBuffers;
-    
+    // mesh data - indexed via the address of the buffer
+    VkHash::VBufferMap vertBuffers;
+    VkHash::IBufferMap indexBuffers;
+
     // The current present KHR frame image index
     uint32_t imageIndex;
     vk::Semaphore beginSemaphore;
-  
 };
 
-}    // namespace VulkanAPI
+} // namespace VulkanAPI

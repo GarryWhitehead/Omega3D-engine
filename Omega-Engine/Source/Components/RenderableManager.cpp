@@ -98,12 +98,6 @@ Util::String TextureGroup::texTypeToStr(const int type)
     return result;
 }
 
-// ==============================================================================
-
-Material::~Material()
-{
-}
-
 // ===============================================================================================
 
 OERenderableManager::OERenderableManager(OEEngine& engine) : engine(engine)
@@ -137,18 +131,22 @@ void OERenderableManager::addMesh(
     addMesh(input, mesh, idx, offset);
 }
 
-bool OERenderableManager::prepareTexture(Util::String path, MappedTexture* tex)
+MappedTexture* OERenderableManager::prepareTexture(Util::String& path)
 {
+    MappedTexture* tex = nullptr;
+
     if (!path.empty())
     {
         tex = new MappedTexture();
+        assert(tex);
+
         if (!tex->load(path))
         {
-            return false;
+            return nullptr;
         }
     }
     // it's not an error if the path is empty.
-    return true;
+    return tex;
 }
 
 size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
@@ -157,13 +155,14 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
 
     // sort out the textures
     TextureGroup group;
+    group.matName = mat->name;
 
     for (size_t j = 0; j < MaterialInstance::TextureType::Count; ++j)
     {
         // this function does return an error value but unsure yet
         // whether just to continue (it will be obvious that somethings gone
         // wrong when rendered) or return an error
-        prepareTexture(mat->texturePaths[j], group.textures[j]);
+        group.textures[j] = prepareTexture(mat->texturePaths[j]);
     }
 
     textures.emplace_back(std::move(group));
@@ -339,7 +338,7 @@ void OERenderableManager::update()
     if (materialDirty)
     {
         // upload textures if required
-        for (const TextureGroup& group : textures)
+        for (TextureGroup& group : textures)
         {
             for (uint8_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
             {
@@ -348,14 +347,15 @@ void OERenderableManager::update()
                 {
                     // each sampler needs its own unique id - so append the tex type to the material
                     // name
-                    Util::String id =
+                    assert(!group.matName.empty());
+                    group.matName =
                         Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
                     vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
                     vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->format);
                     driver.add2DTexture(
-                        id, format, tex->width, tex->height, tex->mipLevels, usageFlags);
-                    driver.update2DTexture(id, tex->buffer);
+                        group.matName, format, tex->width, tex->height, tex->mipLevels, usageFlags);
+                    driver.update2DTexture(group.matName, tex->buffer);
                 }
             }
         }

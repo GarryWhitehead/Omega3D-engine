@@ -1,6 +1,8 @@
 #pragma once
 #include "VulkanAPI/Common.h"
 
+#include "VulkanAPI/VkTexture.h"
+
 #include <cstdint>
 
 namespace VulkanAPI
@@ -8,7 +10,6 @@ namespace VulkanAPI
 // forward decleartions
 class Image;
 class Texture;
-struct TextureContext;
 class VkContext;
 class CmdBuffer;
 
@@ -108,9 +109,7 @@ public:
 private:
     
 	vk::Device device;
-
-	TextureContext& tex;
-
+	TextureContext tex;
 	vk::Image image;
     
     // used for memory allocation info such as offsets, etc.

@@ -97,7 +97,7 @@ void OERenderer::drawQueueThreaded(
 {
     // a cmd pool per thread
     auto cmdPool = manager.createSecondaryPool();
-    VulkanAPI::CmdBuffer* cbSecondary = cmdPool->createSecCmdBuffer(&manager);
+    VulkanAPI::CmdBuffer* cbSecondary = cmdPool->createSecCmdBuffer();
 
     auto queue = scene.renderQueue.getPartition(RenderQueue::Partition::Colour);
 

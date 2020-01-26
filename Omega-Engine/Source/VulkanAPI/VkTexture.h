@@ -35,6 +35,11 @@ public:
 
 	Texture() = default;
 	~Texture();
+
+    Texture(const Texture&) = delete;
+    Texture& operator=(const Texture&) = delete;
+    Texture(Texture&&) = default;
+    Texture& operator=(Texture&&) = default;
     
     /**
      * @brief Creates a image and image view for a 2d texture
@@ -46,6 +51,8 @@ public:
      */
 	void create2dTex(VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
     
+    void destroy();
+
     /**
      * @brief Maps a image in the format specified when the texture as created, to the GPU.
      */
@@ -79,12 +86,12 @@ private:
 	TextureContext texContext;
 
     // The texture sampler
-    Sampler* sampler;
+    Sampler* sampler = nullptr;
     
     vk::ImageLayout imageLayout;
     
-	Image* image;
-	ImageView* imageView;
+	Image* image = nullptr;
+	ImageView* imageView = nullptr;
 };
 
 }    // namespace VulkanAPI
