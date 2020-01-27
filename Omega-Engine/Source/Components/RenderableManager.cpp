@@ -235,7 +235,7 @@ void OERenderableManager::updateBuffers()
 bool OERenderableManager::updateVariants()
 {
     // parse the shader json file - this will be used by all variants
-    const Util::String mesh_filename = "gbuffer_vert.glsl";
+    const Util::String mesh_filename = "mrt.glsl";
     VulkanAPI::ShaderParser mesh_parser;
 
     if (!mesh_parser.loadAndParse(mesh_filename))
@@ -251,7 +251,7 @@ bool OERenderableManager::updateVariants()
 
     // Note - we try and create as many shader variants as possible for vertex and material shaders
     // as creating them whilst the engine is actually rendering will be costly in terms of
-    // performance create variants for all vertices associated with this manager
+    // performance
     for (const Renderable& rend : renderables)
     {
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
@@ -264,7 +264,7 @@ bool OERenderableManager::updateVariants()
             if (!mesh_parser.loadAndParse(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex))
             {
                 printf(
-                    "Fatal error parsing mesh shader: Failed with error: %s",
+                    "Fatal error parsing mesh shader: %s",
                     mesh_parser.getErrorString().c_str());
                 return false;
             }
@@ -330,7 +330,7 @@ bool OERenderableManager::updateVariants()
     return true;
 }
 
-void OERenderableManager::update()
+bool OERenderableManager::update()
 {
     VulkanAPI::VkDriver& driver = engine.getVkDriver();
 
@@ -361,7 +361,10 @@ void OERenderableManager::update()
         }
 
         // create material shader varinats if needed
-        updateVariants();
+        if (!updateVariants())
+        {
+            return false;
+        }
     }
 
     // upload meshes to the vulkan backend
@@ -372,6 +375,8 @@ void OERenderableManager::update()
         // amount of allocations that can be performed
         updateBuffers();
     }
+
+    return true;
 }
 
 } // namespace OmegaEngine

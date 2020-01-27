@@ -32,7 +32,7 @@ public:
     */
 	WindowInstance* init(const char* title, uint32_t width, uint32_t height);
 
-    void run(Scene* scene, Renderer* renderer);
+    bool run(Scene* scene, Renderer* renderer);
 
     WindowInstance* getWindow();
 

@@ -210,7 +210,6 @@ bool Shader::compile(
     // compile into bytecode ready for wrapping
     if (!compiler.compile(true))
     {
-        LOGGER_ERROR("Error trying to compile shader: check code: \n%s\n", shaderCode.c_str());
         return false;
     }
 

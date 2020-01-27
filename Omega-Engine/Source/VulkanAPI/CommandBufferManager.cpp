@@ -26,7 +26,7 @@ CmdPool::CmdPool(VkContext& context, CmdBufferManager* cbManager, SemaphoreManag
     for (uint8_t i = 0; i < SingleUseCbSize; ++i)
     {
         auto cmdBuffer =
-            std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, cbManager);
+            std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, cbManager);
         cmdBuffer->prepare();
         singleUseCbs[i] = std::move(cmdBuffer);
     }

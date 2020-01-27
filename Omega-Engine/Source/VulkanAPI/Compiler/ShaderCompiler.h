@@ -2,16 +2,16 @@
 
 #include "VulkanAPI/Shader.h"
 
+#include "VulkanAPI/Compiler/ShaderParser.h"
+
 #include <cstdint>
 #include <unordered_map>
 
 namespace VulkanAPI
 {
 // forward declerations
-class ShaderDescriptor;
 class ShaderProgram;
 class ShaderBinding;
-class ShaderParser;
 class VkContext;
 
 enum class CompilerReturnCode
@@ -25,7 +25,8 @@ enum class CompilerReturnCode
     InvalidBuffer,
     MissingCodeBlock,
     ErrorCompilingGlsl,
-    InvalidPipelineType
+    InvalidPipelineType,
+    MissingNameOrType
 };
 
 /**
@@ -39,10 +40,9 @@ public:
 
     bool compile(ShaderParser& parser);
 
-    std::string getErrorString(); 
+    std::string getErrorString();
 
 private:
-
     struct CompilerErrorCache
     {
         std::string name;
@@ -50,10 +50,29 @@ private:
         CompilerReturnCode code;
     };
 
+    enum class ImportType
+    {
+        Buffer,
+        Sampler,
+        PushConstant
+    };
+
+    struct ImportInfo
+    {
+        // mandatory
+        std::string name;
+        std::string type;
+        // optional
+        std::string subId;
+        std::string variant;
+        uint16_t groupId = 0;
+        uint8_t bind = 0;
+        uint32_t bufferSize = 0;
+    };
+
     CompilerReturnCode compileAll(ShaderParser& parser);
 
-    CompilerReturnCode
-    prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding);
+    CompilerReturnCode prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding);
 
     CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
@@ -68,6 +87,13 @@ private:
     static void printShaderCode(const std::string& block);
 
     uint8_t getCurrentBinding(const uint8_t groupId);
+
+    CompilerReturnCode prepareImport(
+        ShaderDescriptor* shader,
+        ImportType type,
+        ShaderDescriptor::TypeDescriptors& descr,
+        ImportInfo& output,
+        std::vector<ShaderDescriptor::ItemDescriptors> items = {});
 
 private:
     VkContext& context;

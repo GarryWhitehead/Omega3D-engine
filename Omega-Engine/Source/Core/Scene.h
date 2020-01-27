@@ -53,7 +53,7 @@ public:
 	OEScene(OEWorld& world, OEEngine& engine, VulkanAPI::VkDriver& driver);
 	~OEScene();
 
-	void update(const double time);
+	bool update(const double time);
 
 	void prepare();
 

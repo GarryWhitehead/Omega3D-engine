@@ -40,7 +40,7 @@ public:
     */
 	OEWindowInstance* init(const char* title, uint32_t width, uint32_t height);
 
-    void run(OEScene* scene, OERenderer* renderer);
+    bool run(OEScene* scene, OERenderer* renderer);
 
     OEWindowInstance* getWindow();
 

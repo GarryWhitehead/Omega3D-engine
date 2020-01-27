@@ -152,6 +152,63 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
     return CompilerReturnCode::Success;
 }
 
+CompilerReturnCode ShaderCompiler::prepareImport(
+    ShaderDescriptor* shader,
+    ImportType importType,
+    ShaderDescriptor::TypeDescriptors& descr,
+    ImportInfo& output,
+    std::vector<ShaderDescriptor::ItemDescriptors> items)
+{
+    std::string inputLine;
+
+    bool result = ShaderDescriptor::getTypeValue("Name", descr, output.name);
+    result &= ShaderDescriptor::getTypeValue("Type", descr, output.type);
+    if (!result)
+    {
+        return CompilerReturnCode::MissingNameOrType;
+    }
+
+    // check whether there is a variant
+    ShaderDescriptor::getTypeValue("Variant", descr, output.variant);
+    if (!output.variant.empty())
+    {
+        shader->appendBlock += "#ifdef " + output.variant + "\n";
+    }
+
+    // not a mandatory variable
+    ShaderDescriptor::getTypeValue("GroupId", descr, output.groupId);
+    output.bind = getCurrentBinding(output.groupId);
+
+    if (importType == ImportType::Sampler)
+    {
+        VkUtils::createVkShaderSampler(
+            output.name, output.type, output.bind, output.groupId, inputLine);
+        shader->appendBlock += inputLine + "\n";
+    }
+    else
+    {
+        VkUtils::createVkShaderBuffer(
+            output.name,
+            output.type,
+            items,
+            output.bind,
+            output.groupId,
+            inputLine,
+            output.bufferSize);
+
+        // not mandatory - adds a sub-id to the buffer
+        std::string subId;
+        ShaderDescriptor::getTypeValue("id", descr, subId);
+        shader->appendBlock += inputLine + subId + ";\n";
+    }
+
+    if (!output.variant.empty())
+    {
+        shader->appendBlock += "#endif\n";
+    }
+
+    return CompilerReturnCode::Success;
+}
 
 CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding)
 {
@@ -169,7 +226,8 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
         shader->appendBlock += '\n';
     }
 
-    // specialisation constants - order is important here as buffers,et.c might be dependebt on these constants 
+    // specialisation constants - order is important here as buffers,et.c might be dependebt on
+    // these constants
     if (!shader->constants.empty())
     {
         std::string name, type, value;
@@ -198,45 +256,25 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
     {
         for (auto& sampler : shader->samplers)
         {
-            std::string name, type, variant, inputLine;
-            uint16_t groupId = 0;
-
-            bool result = ShaderDescriptor::getTypeValue("Name", sampler, name);
-            result &= ShaderDescriptor::getTypeValue("Type", sampler, type);
-            if (!result)
+            ImportInfo importInfo;
+            CompilerReturnCode ret =
+                prepareImport(shader, ImportType::Sampler, sampler, importInfo);
+            if (ret != CompilerReturnCode::Success)
             {
-                return CompilerReturnCode::InvalidSampler;
-            }
-
-            // not a mandatory variable
-            ShaderDescriptor::getTypeValue("GroupId", sampler, groupId);
-
-            // check whether there is a variant
-            ShaderDescriptor::getTypeValue("Variant", sampler, variant);
-            if (!variant.empty())
-            {
-                shader->appendBlock += "#ifdef " + variant + "\n";
-            }
-
-            uint8_t bind = getCurrentBinding(groupId);
-
-            VkUtils::createVkShaderSampler(name, type, bind, groupId, inputLine);
-            shader->appendBlock += inputLine + "\n";
-            if (!variant.empty())
-            {
-                shader->appendBlock += "#endif\n";
+                return ret;
             }
 
             // store the binding data for vk descriptor creation
             DescriptorLayout layout = program.descrPool->createLayout(
-                groupId,
-                bind,
+                importInfo.groupId,
+                importInfo.bind,
                 vk::DescriptorType::eCombinedImageSampler,
                 Shader::getStageFlags(shader->type));
 
             // add to the binding information
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(type);
-            ShaderBinding::SamplerBinding sBind {name, bind, groupId, descrType};
+            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
+            ShaderBinding::SamplerBinding sBind {
+                importInfo.name, importInfo.bind, importInfo.groupId, descrType};
             binding.samplerBindings.emplace_back(sBind);
         }
         shader->appendBlock += '\n';
@@ -247,38 +285,35 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
     {
         for (auto& buffer : shader->ubos)
         {
-            std::string name, type, subId, inputLine;
-            uint16_t groupId = 0;
-            uint32_t bufferSize;
-
-            bool result = ShaderDescriptor::getTypeValue("Name", buffer.descriptors, name);
-            result &= ShaderDescriptor::getTypeValue("Type", buffer.descriptors, type);
-
-            if (!result)
+            ImportInfo importInfo;
+            CompilerReturnCode ret = prepareImport(
+                shader, ImportType::Buffer, buffer.descriptors, importInfo, buffer.items);
+            if (ret != CompilerReturnCode::Success)
             {
-                return CompilerReturnCode::InvalidBuffer;
+                return ret;
             }
 
-            // not a mandatory component
-            ShaderDescriptor::getTypeValue("GroupId", buffer.descriptors, groupId);
-
-            uint8_t bind = getCurrentBinding(groupId);
-
-            VkUtils::createVkShaderBuffer(
-                name, type, buffer.items, bind, groupId, inputLine, bufferSize);
-
-            // not mandatory - adds a sub-id to the buffer
-            ShaderDescriptor::getTypeValue("id", buffer.descriptors, subId);
-            shader->appendBlock += inputLine + subId + ";\n\n";
-
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(type);
-
             // add the layout to the descriptors
+            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
             DescriptorLayout layout = program.descrPool->createLayout(
-                groupId, bind, descrType, Shader::getStageFlags(shader->type));
+                importInfo.groupId,
+                importInfo.bind,
+                descrType,
+                Shader::getStageFlags(shader->type));
 
             // add to the binding information
-            ShaderBinding::BufferBinding bBind {name, bind, groupId, bufferSize, descrType};
+            ShaderBinding::BufferBinding bBind {
+                importInfo.name,
+                importInfo.bind,
+                importInfo.groupId,
+                importInfo.bufferSize,
+                descrType};
+
+            // check for special buffer attributes e.g. dynamic
+            if (importInfo.type == "DynamicUniform")
+            {
+                bBind.flags |= ShaderBinding::BufferFlags::Dynamic;
+            }
             binding.bufferBindings.emplace_back(bBind);
         }
         shader->appendBlock += '\n';
@@ -287,25 +322,16 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
     // push blocks
     if (!shader->pConstants.empty())
     {
-        for (const auto& constant : shader->pConstants)
+        for (auto& constant : shader->pConstants)
         {
-            std::string name, type, id, inputLine;
-            uint32_t bufferSize;
-
-            bool result = ShaderDescriptor::getTypeValue("Name", constant.descriptors, name);
-            result &= ShaderDescriptor::getTypeValue("Type", constant.descriptors, type);
-            if (!result)
+            ImportInfo importInfo;
+            CompilerReturnCode ret = prepareImport(
+                shader, ImportType::PushConstant, constant.descriptors, importInfo, constant.items);
+            if (ret != CompilerReturnCode::Success)
             {
-                return CompilerReturnCode::InvalidPushConstant;
+                return ret;
             }
-            // not mandatory - adds a sub-id to the buffer
-            ShaderDescriptor::getTypeValue("id", constant.descriptors, id);
-
-            // inject pipeline text into temp string block
-            VkUtils::createVkShaderBuffer(name, type, constant.items, 0, 0, inputLine, bufferSize);
-            // append to main shader text
-            shader->appendBlock += inputLine + id + ";\n\n";
-            program.pLineLayout->addPushConstant(shader->type, bufferSize);
+            program.pLineLayout->addPushConstant(shader->type, importInfo.bufferSize);
         }
         shader->appendBlock += '\n';
     }

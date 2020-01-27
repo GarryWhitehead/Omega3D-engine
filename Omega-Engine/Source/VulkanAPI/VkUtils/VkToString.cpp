@@ -16,7 +16,7 @@ bool isSamplerType(const std::string& type)
 
 bool isBufferType(const std::string& type)
 {
-    return (type == "UniformBuffer" || type == "StorageBuffer");
+    return (type == "UniformBuffer" || type == "DynamicUniform" || type == "StorageBuffer");
 }
 
 uint32_t vkTypeSize(const std::string& type)
@@ -127,7 +127,7 @@ bool createVkShaderBuffer(
     assert(!name.empty());
 
     std::string bufferTemplate;
-    if (type == "UniformBuffer")
+    if (type == "UniformBuffer" || type == "DynamicUniform")
     {
         bufferTemplate = "layout (set = " + std::to_string(setCount) +
             ", binding = " + std::to_string(bind) + ") uniform " + name + "\n{\n";

@@ -153,7 +153,7 @@ public:
 
     /// called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
     /// This isn't so expensive as these are persistent resources
-    void update();
+    bool update();
 
     /**
      * @brief The main call here - adds a renderable consisting of mesh, and not

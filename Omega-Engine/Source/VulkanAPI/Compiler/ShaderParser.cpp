@@ -100,7 +100,7 @@ bool ShaderDescriptor::checkForFlag(std::string flag, std::string line)
 std::string ShaderParser::getErrorString()
 {
     // TODO:: make this more verbose
-    std::string result = "Shader compiling failed with error code: " +
+    std::string result = "Shader parsing failed with error code: " +
         std::to_string(static_cast<int>(errorCache.code)) +
         "; at line: " + std::to_string(errorCache.lineNumber);
 

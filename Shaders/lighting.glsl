@@ -28,11 +28,11 @@ AddressModeW=ClampToEdge;
 
 #import_buffer: Name=CameraUbo, Type=UniformBuffer, id=ubo;
 [[
-	Name=mvp, 		Type=mat4;
-	Name=view, 		Type=mat4;
-	Name=model, 	Type=mat4;
-	Name=cameraPos, Type=vec3;
-	Name=pad0, 		Type=float;
+	Name=mvp, 			Type=mat4;
+	Name=projection,	Type=mat4;
+	Name=view, 			Type=mat4;
+	Name=cameraPos,		Type=vec3;
+	Name=pad0, 			Type=float;
 ]]
 	
 #code_block:
@@ -69,9 +69,9 @@ void main()
 #import_sampler: Name=pbrSampler,			Type=2D_Sampler;
 #import_sampler: Name=emissiveSampler,		Type=2D_Sampler;
 #import_sampler: Name=shadowSampler,		Type=2D_Sampler;
-#import_sampler: Name=bdrfLutSampler,		Type=2D_Sampler,	variant=IBL_ENABLED;
-#import_sampler: Name=irradianceSampler,	Type=Cube_Sampler,	variant=IBL_ENABLED;
-#import_sampler: Name=prefilterSampler,		Type=Cube_Sampler,	variant=IBL_ENABLED;
+#import_sampler: Name=bdrfLutSampler,		Type=2D_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=irradianceSampler,	Type=Cube_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=prefilterSampler,		Type=Cube_Sampler,	Variant=IBL_ENABLED;
 
 #import_buffer: Name=LightUbo, Type=UniformBuffer,	id=light_ubo;
 [[
@@ -83,6 +83,8 @@ void main()
 #output: Name=Frag, Type=vec4;
 
 #code_block:
+
+#ifdef IBL_ENABLED
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {	
 	vec3 bdrf = (texture(bdrfLutSampler, vec2(NdotV, 1.0 - roughness))).rgb;
@@ -110,6 +112,7 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	
 	return diffuse + specular;
 }
+#endif
 
 void main()
 {	
