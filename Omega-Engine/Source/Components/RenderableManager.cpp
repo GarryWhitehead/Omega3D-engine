@@ -266,7 +266,7 @@ bool OERenderableManager::updateVariants()
             {
                 printf(
                     "Fatal error parsing mesh shader: Failed with error: %s",
-                    mesh_parser.getErrorString());
+                    mesh_parser.getErrorString().c_str());
                 return false;
             }
         }
@@ -281,7 +281,7 @@ bool OERenderableManager::updateVariants()
     {
         printf(
             "Fatal error parsing material shader: Failed with error: %s",
-            mat_parser.getErrorString());
+            mat_parser.getErrorString().c_str());
         return false;
     }
 
@@ -297,7 +297,7 @@ bool OERenderableManager::updateVariants()
             {
                 printf(
                     "Fatal error parsing mesh shader: Failed with error: %s",
-                    mat_parser.getErrorString());
+                    mat_parser.getErrorString().c_str());
                 return false;
             }
         }

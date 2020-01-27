@@ -157,9 +157,11 @@ ENDIF()
 IF(APPLE)
 
 	EXECUTE_PROCESS(
-		COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/MoltenVK-Setup.sh 
+		COMMAND bash "${CMAKE_CURRENT_SOURCE_DIR}/MoltenVK-Setup.sh"
 		RESULT_VARIABLE CMD_ERROR
+        OUTPUT_VARIABLE OUTPUT_MSG
 	)
+    MESSAGE(${OUTPUT_MSG})
 ENDIF()
 
 ###############################################################################################################
