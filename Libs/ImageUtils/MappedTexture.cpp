@@ -93,6 +93,7 @@ bool MappedTexture::load(Util::String filePath)
 
 		width = loader.getWidth();
 		height = loader.getHeight();
+        format = ImageFormat::RGBA_Unorm; 
 
 		// calculate total size
 		int comp = loader.getComponentCount();

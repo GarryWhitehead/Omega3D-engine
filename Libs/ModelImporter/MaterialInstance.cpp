@@ -44,7 +44,9 @@ Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 
 bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 {
-	// two pipelines, either specular glosiness or metallic roughness
+    name = mat.name;
+
+    // two pipelines, either specular glosiness or metallic roughness
 	// according to the spec, metallic roughness shoule be preferred
 	if (mat.has_pbr_specular_glossiness)
 	{

@@ -12,13 +12,24 @@ namespace VulkanAPI
 
 // ===============================================================================================================
 
-CmdPool::CmdPool(VkContext& context, SemaphoreManager& spManager, uint32_t queueIndex)
-    : context(context), spManager(spManager), queueIndex(queueIndex)
+CmdPool::CmdPool(VkContext& context, CmdBufferManager* cbManager, SemaphoreManager& spManager, uint32_t queueIndex)
+    : context(context), spManager(spManager), cbManager(cbManager), queueIndex(queueIndex)
 {
-    // create the cmd pool - one per cmd buffer
+    assert(cbManager);
+
     vk::CommandPoolCreateInfo createInfo {
         vk::CommandPoolCreateFlagBits::eResetCommandBuffer, queueIndex};
     context.getDevice().createCommandPool(&createInfo, nullptr, &cmdPool);
+
+    // create the required number of single submit cmd buffers
+    singleUseCbs.resize(SingleUseCbSize);
+    for (uint8_t i = 0; i < SingleUseCbSize; ++i)
+    {
+        auto cmdBuffer =
+            std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, cbManager);
+        cmdBuffer->prepare();
+        singleUseCbs[i] = std::move(cmdBuffer);
+    }
 }
 
 CmdPool::~CmdPool()
@@ -26,7 +37,7 @@ CmdPool::~CmdPool()
     context.getDevice().destroy(cmdPool, nullptr);
 }
 
-CmdBuffer* CmdPool::createPrimaryCmdBuffer(CmdBufferManager* manager)
+CmdBuffer* CmdPool::createPrimaryCmdBuffer()
 {
     CmdPool::CmdInstance instance;
 
@@ -40,18 +51,18 @@ CmdBuffer* CmdPool::createPrimaryCmdBuffer(CmdBufferManager* manager)
 
     // and create the cmd buffer
     instance.cmdBuffer =
-        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, manager);
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, cbManager);
     CmdBuffer* res = instance.cmdBuffer.get();
     cmdInstances.emplace_back(std::move(instance));
 
     return res;
 }
 
-CmdBuffer* CmdPool::createSecCmdBuffer(CmdBufferManager* manager)
+CmdBuffer* CmdPool::createSecCmdBuffer()
 {
     // and create the secondary cmd buffer
     auto cmdBuffer =
-        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, cbManager);
     CmdBuffer* res = cmdBuffer.get();
     secondary.emplace_back(std::move(cmdBuffer));
     return res;
@@ -130,19 +141,21 @@ std::vector<vk::CommandBuffer> CmdPool::getSecondary()
     return ret;
 }
 
-std::unique_ptr<CmdBuffer> CmdPool::getSingleUseCb(CmdBufferManager* manager)
+std::unique_ptr<CmdBuffer> CmdPool::getSingleUseCb()
 {
     // TODO: should check here that the cmd buffer has actually finished its work before returning
     // to the user
+    // TODO: using a deque here, probably expensive reagrds performance so find a better way
+    // We remove from the front and add to the back. This way we can be more certain that cmd buffer will have finished their tasks
     if (!singleUseCbs.empty())
     {
-        auto& cb = singleUseCbs.back();
-        singleUseCbs.pop_back();
+        std::unique_ptr<CmdBuffer> cb = std::move(singleUseCbs.front());
+        singleUseCbs.pop_front();
         return std::move(cb);
     }
 
     auto cmdBuffer =
-        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, manager);
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, cbManager);
     return cmdBuffer;
 }
 
@@ -157,6 +170,8 @@ void CmdPool::releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer)
 CmdBufferManager::CmdBufferManager(VkContext& context)
     : context(context), spManager(std::make_unique<SemaphoreManager>(context.getDevice()))
 {
+    assert(context.getDevice());
+    createMainPool();
 }
 
 CmdBufferManager::~CmdBufferManager()
@@ -191,6 +206,7 @@ CmdPool* CmdBufferManager::createMainPool()
 {
     mainPool = std::make_unique<CmdPool>(
         context,
+        this,
         *spManager,
         context.getGraphQueueIdx()); // this needs to support compute queues too
     return mainPool.get();
@@ -210,6 +226,7 @@ std::unique_ptr<CmdPool> CmdBufferManager::createSecondaryPool()
     // create a new pool if none are free
     auto pool = std::make_unique<CmdPool>(
         context,
+        this,
         *spManager,
         context.getGraphQueueIdx()); // this needs to support compute queues too
     return pool;
@@ -286,7 +303,7 @@ void CmdBufferManager::submitFrame(
 
 std::unique_ptr<CmdBuffer> CmdBufferManager::getSingleUseCb()
 {
-    return mainPool->getSingleUseCb(this);
+    return mainPool->getSingleUseCb();
 }
 
 void CmdBufferManager::releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer)

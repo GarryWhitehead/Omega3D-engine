@@ -132,8 +132,12 @@ OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::ma
 	return candidate;
 }
 
-void OEScene::update()
+void OEScene::update(const double time)
 {
+	// update the managers first
+    engine.getAnimManager().update(time, engine);
+    engine.getRendManager()->update();
+
 	auto& objects = world.getObjManager()->getObjectsList();
 
 	// we create a temp container as we will be doing the visibility checks async
@@ -473,11 +477,6 @@ bool OEScene::addSkybox(OESkybox* sb)
 void Scene::addCamera(Camera* camera)
 {
 	static_cast<OEScene*>(this)->setCurrentCamera(static_cast<OECamera*>(camera));
-}
-
-void Scene::update()
-{
-	static_cast<OEScene*>(this)->update();
 }
 
 void Scene::prepare()

@@ -22,8 +22,6 @@ public:
     Scene(Scene&) = delete;
     Scene& operator=(Scene&) = delete;
 
-    void update();
-
     void prepare();
 
     Camera* getCurrentCamera();

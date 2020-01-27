@@ -35,6 +35,7 @@ int main(int argc, char* argv[])
 
     // add a scene
     Scene* scene = world->createScene();
+    scene->prepare();
 
     // create a swapchain for rendering
     SwapchainHandle swapchain = engine->createSwapchain(app->getWindow());

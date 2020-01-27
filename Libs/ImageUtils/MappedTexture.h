@@ -63,7 +63,7 @@ private:
 	uint8_t* buffer = nullptr;
 
 	// vulkan info that is associated with this texture
-	ImageFormat format;
+	ImageFormat format = ImageFormat::Undefined;
 
 	Util::String dirPath;
 };
