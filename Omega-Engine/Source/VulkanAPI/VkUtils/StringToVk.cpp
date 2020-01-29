@@ -159,7 +159,7 @@ vk::SamplerAddressMode vkAddressModeToString(std::string str)
 vk::DescriptorType getVkDescrTypeFromStr(std::string str)
 {
     vk::DescriptorType result;
-    if (str == "UniformBuffer")
+    if (str == "UniformBuffer" || str == "DynamicUniform")
     {
         result = vk::DescriptorType::eUniformBuffer;
     }

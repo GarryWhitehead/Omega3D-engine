@@ -23,7 +23,7 @@ bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
 	// load the shaders
     const Util::String filename = "composition.glsl";
-    VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), 0, nullptr };
+    VulkanAPI::ProgramManager::ShaderHash key = { filename.c_str(), 0};
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
     
     return true;

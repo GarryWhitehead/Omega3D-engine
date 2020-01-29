@@ -89,7 +89,6 @@ struct RenderStateBlock
 class ShaderBinding
 {
 public:
-
     enum class BufferFlags : uint32_t
     {
         Dynamic,
@@ -207,7 +206,9 @@ public:
     /**
      * @brief Adds a shader variant for a specifed stage to the list
      */
-    void addVariant(Util::String definition, uint8_t value, Shader::Type stage);
+    void addVariant(Util::String& definition, uint8_t value, Shader::Type stage);
+
+    void addVariants(GlslCompiler::VariantMap& map, const Shader::Type type);
 
     /**
      * @brief Sorts variants by specified stage, in a format ready for passing to the shader
@@ -295,9 +296,11 @@ class ProgramManager
 public:
     struct ShaderHash
     {
-        const char* name;
-        uint64_t variantBits;
-        vk::PrimitiveTopology* topology; //< optional (leave null if not needed)
+        const char* name = nullptr;
+        uint64_t variantBits = 0;
+        // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
+        // UINT32 MAX
+        uint32_t topology = UINT32_MAX;
     };
 
     ProgramManager(VkContext& context);
@@ -308,7 +311,9 @@ public:
      * must have been created by calling **createCachedInstance** before this fucntion is called.
      * Also, the shader must be in a valid state - namely, there must be a vertex shader.
      */
-    ShaderProgram* build(std::vector<ShaderHash>& hashes);
+    ShaderProgram* build(ShaderParser& parser, std::vector<ShaderHash>& hashes);
+
+    bool compile(ShaderParser& parser, ShaderProgram* prog);
 
     /**
      * @brief Creates a new shader program instance. This will be inserted into the map.
@@ -340,7 +345,8 @@ public:
     /**
      * @brief Creates a shader fragment that will be cached until ready for use
      */
-    ShaderDescriptor* createCachedInstance(ShaderHash& hash);
+    ShaderDescriptor*
+    createCachedInstance(ShaderHash& hash, ShaderDescriptor* descr, const Shader::Type type);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
@@ -391,7 +397,8 @@ private:
         {
             size_t h1 = std::hash<const char*> {}(id.name);
             size_t h2 = std::hash<uint64_t> {}(id.variantBits);
-            size_t h3 = std::hash<vk::PrimitiveTopology*> {}(id.topology);
+            size_t h3 = std::hash<vk::PrimitiveTopology> {}(
+                static_cast<vk::PrimitiveTopology>(id.topology));
             return h1 ^ (h2 << 1) ^ (h3 << 1);
         }
     };

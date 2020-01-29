@@ -28,9 +28,10 @@ AddressModeW=ClampToEdge;
 #input: Name=Pos, 		Type=vec4;
 #input: Name=Uv, 		Type=vec2;
 #input: Name=Normal, 	Type=vec3;
-#input: Name=Tangent,	Type=vec4;
-#input: Name=Weights, 	Type=vec4,	Variant=HAS_SKIN;
-#input: Name=BoneId, 	Type=vec4,	Variant=HAS_SKIN;
+#input: Name=Tangent,	Type=vec4,	Variant=HAS_TANGENT;
+#input: Name=BiTangent,	Type=vec4,	Variant=HAS_BITANGENT;
+#input: Name=Weights, 	Type=vec4,	Variant=HAS_WEIGHTS;
+#input: Name=BoneId, 	Type=vec4,	Variant=HAS_BONES;
 
 #output: Name=Uv, 		Type=vec2;
 #output: Name=Normal, 	Type=vec3;
@@ -41,14 +42,14 @@ AddressModeW=ClampToEdge;
 	Name=mvp, Type=mat4;
 ]]
 
-#import_buffer:	Name:MeshUbo, Type=DynanmicUniform, id=mesh_ubo;
+#import_buffer:	Name=MeshUbo, Type=DynamicUniform, id=mesh_ubo;
 [[
 	Name=modelMatrix, Type=mat4;
 ]]
 
-#import_buffer:	Name:SkinUbo, Type=DynanmicUniform, id=skin_ubo, Varinat=HAS_SKIN;
+#import_buffer:	Name=SkinUbo, Type=DynamicUniform, id=skin_ubo, Variant=HAS_SKIN;
 [[
-	Name=bones, 	Type=mat4, 		Array_Size{Constant}=MAX_BONES;
+	Name=bones, 	Type=mat4, 		Array_size{constant}=MAX_BONES;
 	Name=boneCount, Type=float;
 ]]
 
@@ -98,7 +99,7 @@ void main()
 #import_sampler: Name=normalMap, 		Type=2D_Sampler,	Variant=HAS_NORMAL;
 #import_sampler: Name=mrMap, 			Type=2D_Sampler,	Variant=HAS_METALLICROUGHNESS;
 #import_sampler: Name=emissiveMap, 		Type=2D_Sampler,	Variant=HAS_EMISSIVE;
-#import_sampler: Name=aoMap, 			Type=2D_Sampler,	Variant=HAS_AO;
+#import_sampler: Name=aoMap, 			Type=2D_Sampler,	Variant=HAS_OCCLUSION;
 
 #push_constant: Name=MaterialPush, id=material;
 [[

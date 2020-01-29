@@ -73,9 +73,6 @@ private:
     // the glsl code in text format
     std::string codeBlock;
 
-    // variants for this stage
-    GlslCompiler::VariantMap variants;
-
     // used by the compiler to prepare the code block for inputs, etc.
     std::string appendBlock;
 };
@@ -95,7 +92,8 @@ enum class ParserReturnCode
     BufferHasNoItems,
     MissingBufferStartMarker,
     MissingBufferEndMarker,
-    InvalidConstantForArray
+    InvalidConstantForArray,
+    InvalidCommand
 };
 
 /**
@@ -104,6 +102,9 @@ enum class ParserReturnCode
 class ShaderParser
 {
 public:
+
+    constexpr static int64_t EOL = -1;
+
     ShaderParser() = default;
 
     /**
@@ -114,14 +115,9 @@ public:
      */
     bool loadAndParse(Util::String filename);
 
-    /**
-     * @brief Takes a empty shader descriptor and parses form the specified json file and shader
-     * type, the relevant data This function is solely used when using wanting to merge different
-     * shader stages from different files. Usually this will be cached with the shader manager.
-     */
-    bool loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type);
+    bool addStage(ShaderDescriptor* shader);
 
-    void addStage(ShaderDescriptor* shader);
+    ShaderDescriptor* getShaderDescriptor(const Shader::Type type);
 
     static Shader::Type strToShaderType(std::string& str);
 
@@ -137,18 +133,16 @@ private:
     ParserReturnCode parsePipelineBlock(uint32_t& idx);
 
     // grabs all the data from the string buffer ready for compiling
+    // if a specific shader descriptor is specified, then only that stage will be parsed 
     bool parseShader();
 
     // parses an individual shader stage as stated by a ##stage: block
-    ParserReturnCode parseShaderStage(uint32_t& idx);
+    ParserReturnCode parseShaderStage(uint32_t& idx, ShaderDescriptor* shader);
 
     ParserReturnCode parseLine(
         const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount);
 
     ParserReturnCode parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& output);
-
-    ParserReturnCode
-    parseBufferItems(uint32_t& idx, ShaderDescriptor::BufferDescriptor& bufferDescr);
 
     ParserReturnCode parseIncludeFile(const std::string line, std::string& output);
 

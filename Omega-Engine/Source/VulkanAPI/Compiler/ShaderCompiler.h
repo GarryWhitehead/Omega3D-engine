@@ -76,7 +76,7 @@ private:
 
     CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
 
-    CompilerReturnCode prepareInputs(ShaderDescriptor* vertShader);
+    CompilerReturnCode prepareVertexInputs(ShaderDescriptor* vertShader);
 
     CompilerReturnCode prepareOutputs(ShaderParser& compilerInfo);
 

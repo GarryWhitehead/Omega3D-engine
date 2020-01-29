@@ -3,9 +3,11 @@
 #include "Components/ComponentManager.h"
 #include "Core/ObjectManager.h"
 #include "ImageUtils/MappedTexture.h"
+#include "ModelImporter/MeshInstance.h"
 #include "ModelImporter/MaterialInstance.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
+#include "VulkanAPI/Shader.h"
 #include "omega-engine/RenderableManager.h"
 #include "utility/BitsetEnum.h"
 #include "utility/CString.h"
@@ -34,7 +36,6 @@ class OEObject;
 class OEEngine;
 class RenderStateBlock;
 class MappedTexture;
-class MeshInstance;
 class SkinInstance;
 class NodeInstance;
 
@@ -85,6 +86,9 @@ struct Material
     Material(Material&&) = default;
     Material& operator=(Material&&) = default;
 
+    static VulkanAPI::GlslCompiler::VariantMap
+    createVariants(Util::BitSetEnum<Material::Variants>& bits);
+
     /// The material attributes
     MaterialInstance* instance;
 
@@ -112,6 +116,9 @@ struct Renderable
         Shadow,
         __SENTINEL__
     };
+
+    static VulkanAPI::GlslCompiler::VariantMap
+    createVariants(Util::BitSetEnum<MeshInstance::Variant>& bits);
 
     /// all the model data
     MeshInstance* instance;

@@ -25,7 +25,8 @@ bool ShaderDescriptor::hasDescriptor(std::string id, std::vector<TypeDescriptors
     return false;
 }
 
-bool ShaderDescriptor::hasDescriptorValue(std::string value, std::vector<TypeDescriptors>& typeDescrs)
+bool ShaderDescriptor::hasDescriptorValue(
+    std::string value, std::vector<TypeDescriptors>& typeDescrs)
 {
     for (const TypeDescriptors& typeDescr : typeDescrs)
     {
@@ -150,22 +151,22 @@ ParserReturnCode ShaderParser::parseLine(
 
     // we assume that if the line has a colon-  it has a cmd line designator so remove it
     size_t pos = line.find(':');
-    if (pos != std::string::npos)
+    if (pos != EOL)
     {
         typeValues = line.substr(pos + 1, line.size());
     }
 
     // now use the id=value, format to extract the data.
     bool haveFlag = false;
-    while (typeValues.find('=') != std::string::npos)
+    while (typeValues.find('=') != EOL)
     {
         std::string temp = typeValues;
         pos = temp.find_first_of(',');
-        if (pos == std::string::npos)
+        if (pos == EOL)
         {
             // could be the end of the line - check for a ;
             pos = temp.find_first_of(';');
-            if (pos == std::string::npos)
+            if (pos == EOL)
             {
                 return ParserReturnCode::MissingSemiColon;
             }
@@ -185,7 +186,7 @@ ParserReturnCode ShaderParser::parseLine(
         std::string value = temp.substr(pos + 1, temp.size());
 
         // check if the id has a special flag as denoted by {}
-        if (value.find('{') != std::string::npos && value.find('}') != std::string::npos)
+        if (value.find('{') != EOL && value.find('}') != EOL)
         {
             std::string flag = value;
             size_t start_pos = flag.find('{');
@@ -244,7 +245,7 @@ ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& out
     // find the start
     while (idx < buffer.size())
     {
-        if (buffer[idx++].find("[[") != std::string::npos)
+        if (buffer[idx++].find("[[") != EOL)
         {
             foundStartMarker = true;
             break;
@@ -258,7 +259,7 @@ ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& out
     // find the end
     while (idx < buffer.size())
     {
-        if (buffer[idx].find("]]") != std::string::npos)
+        if (buffer[idx].find("]]") != EOL)
         {
             foundEndMarker = true;
             break;
@@ -298,7 +299,7 @@ ShaderParser::parseBuffer(uint32_t& idx, ShaderDescriptor::BufferDescriptor& out
 ParserReturnCode ShaderParser::parseIncludeFile(const std::string line, std::string& output)
 {
     size_t pos = line.find(':');
-    if (pos != std::string::npos)
+    if (pos != EOL)
     {
         output = line.substr(pos + 1, line.size());
     }
@@ -307,14 +308,14 @@ ParserReturnCode ShaderParser::parseIncludeFile(const std::string line, std::str
         return ParserReturnCode::InvalidLine;
     }
     size_t first_pos = output.find_first_of('"');
-    if (first_pos == std::string::npos)
+    if (first_pos == EOL)
     {
         return ParserReturnCode::InvalidLine;
     }
     output = output.substr(first_pos + 1, output.size());
 
     size_t last_pos = output.find_last_of('"');
-    if (last_pos == std::string::npos)
+    if (last_pos == EOL)
     {
         return ParserReturnCode::InvalidLine;
     }
@@ -351,19 +352,9 @@ ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDesc
     return ParserReturnCode::Success;
 }
 
-ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
+ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor* shader)
 {
-    // Get the shader stage type from the string e.g. ##stage: Vertex
-    size_t pos = buffer[idx].find_last_of(":");
-    std::string stageStr = buffer[idx].substr(pos + 1, buffer[idx].size());
-
-    Shader::Type stage = strToShaderType(stageStr);
-    if (stage == Shader::Type::Unknown)
-    {
-        return ParserReturnCode::UnknownShaderType;
-    }
-
-    auto shader = std::make_unique<ShaderDescriptor>(stage);
+    assert(shader);
     bool foundEndMarker = false;
 
     for (; idx < buffer.size(); ++idx)
@@ -373,12 +364,12 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
         // remove whitespace, newlines, etc. to stop false positives
         line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
 
-        if (line.empty() || line.find("//") != std::string::npos)
+        if (line.empty() || line.find("//") != EOL)
         {
             continue;
         }
 
-        if (line.find("##end_stage") != std::string::npos)
+        if (line.find("##end_stage") != EOL)
         {
             foundEndMarker = true;
             break;
@@ -397,7 +388,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             shader->includeFiles.emplace_back(include);
         }
         // - glsl code: layout (location = 0) in [TYPE] [NAME]
-        if (line.find("#input:") != std::string::npos)
+        else if (line.find("#input:") != EOL)
         {
             ShaderDescriptor::TypeDescriptors descr;
             ParserReturnCode ret = parseLine(line, descr, 2);
@@ -408,7 +399,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             shader->inputs.emplace_back(descr);
         }
         // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
-        else if (line.find("#output:") != std::string::npos)
+        else if (line.find("#output:") != EOL)
         {
             ShaderDescriptor::TypeDescriptors descr;
             ParserReturnCode ret = parseLine(line, descr, 2);
@@ -419,7 +410,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             shader->outputs.emplace_back(descr);
         }
         // speciliastion constants - should be preferred to the usual #define method
-        else if (line.find("#constant:") != std::string::npos)
+        else if (line.find("#constant:") != EOL)
         {
             ShaderDescriptor::TypeDescriptors descr;
             ParserReturnCode ret = parseLine(line, descr, 3);
@@ -431,7 +422,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
         }
         // push constants - one per shader stage supported - due to the size limit that can be
         // pushed, this shouldn't be an issue
-        else if (line.find("#push_constant:") != std::string::npos)
+        else if (line.find("#push_constant:") != EOL)
         {
             ShaderDescriptor::BufferDescriptor constant;
             ParserReturnCode ret = parseLine(line, constant.descriptors, 2);
@@ -455,7 +446,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
 
             shader->pConstants.emplace_back(constant);
         }
-        else if (line.find("#import_buffer:") != std::string::npos)
+        else if (line.find("#import_buffer:") != EOL)
         {
             ShaderDescriptor::BufferDescriptor buffer;
             ParserReturnCode ret = parseLine(line, buffer.descriptors, 2);
@@ -476,7 +467,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             }
 
             // do a debug check if certain ids' are present and flags are set
-            ret = debugBuffer(buffer, shader.get());
+            ret = debugBuffer(buffer, shader);
             if (ret != ParserReturnCode::Success)
             {
                 return ret;
@@ -484,7 +475,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
 
             shader->ubos.emplace_back(buffer);
         }
-        else if (line.find("#import_sampler:") != std::string::npos)
+        else if (line.find("#import_sampler:") != EOL)
         {
             ShaderDescriptor::TypeDescriptors descr;
             ParserReturnCode ret = parseLine(line, descr, 2);
@@ -494,13 +485,13 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
             }
             shader->samplers.emplace_back(descr);
         }
-        else if (line.find("#code_block:") != std::string::npos)
+        else if (line.find("#code_block:") != EOL)
         {
             ++idx;
             bool foundCodeBlockEnd = false;
             while (idx < buffer.size())
             {
-                if (buffer[idx].find("#end_code_block") != std::string::npos)
+                if (buffer[idx].find("#end_code_block") != EOL)
                 {
                     foundCodeBlockEnd = true;
                     break;
@@ -512,20 +503,21 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx)
                 return ParserReturnCode::MissingCodeBlockEnd;
             }
         }
+        else
+        {
+            // if the line has a hash but the command isn't recognised, then this is an error
+            if (line.find('#') != EOL)
+            {
+                return ParserReturnCode::InvalidCommand;
+            }
+        }
     }
     if (!foundEndMarker)
     {
         return ParserReturnCode::MissingEndIdentifier;
     }
 
-    descriptors.emplace_back(std::move(shader));
-
     return ParserReturnCode::Success;
-}
-
-void ShaderParser::addStage(ShaderDescriptor* shader)
-{
-    descriptors.emplace_back(shader);
 }
 
 ParserReturnCode ShaderParser::parsePipelineBlock(uint32_t& idx)
@@ -539,12 +531,12 @@ ParserReturnCode ShaderParser::parsePipelineBlock(uint32_t& idx)
         // remove whitespace, newlines, etc. to stop false positives
         line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
 
-        if (line.empty() || line.find("//") != std::string::npos)
+        if (line.empty() || line.find("//") != EOL)
         {
             continue;
         }
 
-        if (line.find("##end_pipeline") != std::string::npos)
+        if (line.find("##end_pipeline") != EOL)
         {
             foundEndMarker = true;
             break;
@@ -573,22 +565,36 @@ bool ShaderParser::parseShader()
         // remove any whitespace, newlines, etc. now to stop false positives
         line.erase(remove_if(line.begin(), line.end(), isspace), line.end());
 
-        if (line.empty() || line.find("//") != std::string::npos)
+        if (line.empty() || line.find("//") != EOL)
         {
             continue;
         }
 
         // check for each supported command
-        if (line.find("##stage:") != std::string::npos)
+        if (line.find("##stage:") != EOL)
         {
-            ParserReturnCode ret = parseShaderStage(idx);
+            // Get the shader stage type from the string e.g. ##stage: Vertex
+            size_t pos = buffer[idx].find_last_of(":");
+            std::string stageStr = buffer[idx].substr(pos + 1, buffer[idx++].size());
+
+            Shader::Type stage = strToShaderType(stageStr);
+            if (stage == Shader::Type::Unknown)
+            {
+                errorCache = ParserErrorCache {idx, ParserReturnCode::UnknownShaderType};
+                return false;
+            }
+
+            auto shader = std::make_unique<ShaderDescriptor>(stage);
+            ParserReturnCode ret = parseShaderStage(idx, shader.get());
             if (ret != ParserReturnCode::Success)
             {
                 errorCache = ParserErrorCache {idx, ret};
                 return false;
             }
+
+            descriptors.emplace_back(std::move(shader));
         }
-        else if (line.find("##pipeline:") != std::string::npos)
+        else if (line.find("##pipeline:") != EOL)
         {
             ParserReturnCode ret = parsePipelineBlock(idx);
             if (ret != ParserReturnCode::Success)
@@ -600,6 +606,18 @@ bool ShaderParser::parseShader()
     }
 
     return true;
+}
+
+ShaderDescriptor* ShaderParser::getShaderDescriptor(const Shader::Type type)
+{
+    for (auto& descr : descriptors)
+    {
+        if (descr->type == type)
+        {
+            return descr.get();
+        }
+    }
+    return nullptr;
 }
 
 bool ShaderParser::loadAndParse(Util::String filename)
@@ -621,23 +639,19 @@ bool ShaderParser::loadAndParse(Util::String filename)
     return true;
 }
 
-bool ShaderParser::loadAndParse(Util::String filename, ShaderDescriptor* shader, Shader::Type type)
+bool ShaderParser::addStage(ShaderDescriptor* shader)
 {
-    std::string shaderBuffer;
-    if (!FileUtil::readFileIntoBuffer(filename.c_str(), buffer))
+    assert(shader);
+
+    // to a quick debug to make sure this stage hasn't already been added
+    for (auto& descr : descriptors)
     {
-        return false;
+        if (descr->type == shader->type)
+        {
+            return false;
+        }
     }
-
-    Util::String vertexId = Shader::shaderTypeToString(type);
-    uint16_t maxGroup = 0;
-
-    /*if (!readShader(doc, *shader, vertexId, maxGroup))
-    {
-        LOGGER_ERROR(
-            "Unable to read shader block from json file; filename = %s.", filename.c_str());
-        return false;
-    }*/
+    descriptors.emplace_back(shader);
 
     return true;
 }

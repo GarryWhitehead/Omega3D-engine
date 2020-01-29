@@ -28,13 +28,22 @@ ShaderProgram::ShaderProgram(VkContext& context)
 {
 }
 
-void ShaderProgram::addVariant(Util::String definition, uint8_t value, Shader::Type stage)
+void ShaderProgram::addVariant(Util::String& definition, uint8_t value, Shader::Type stage)
 {
     variants.emplace_back(VulkanAPI::Shader::VariantInfo {definition, value, stage});
 }
 
+void ShaderProgram::addVariants(GlslCompiler::VariantMap& map, const Shader::Type type)
+{
+    for (auto& def : map)
+    {
+        addVariant(Util::String(def.first), def.second, type);
+    }
+}
+
 void ShaderProgram::overrideRenderState(RenderStateBlock* renderState)
 {
+    // TODO
 }
 
 bool ShaderProgram::prepare(ShaderParser& parser)
@@ -177,7 +186,7 @@ ProgramManager::~ProgramManager()
     }
 }
 
-ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
+ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderHash>& hashes)
 {
     if (hashes.empty())
     {
@@ -187,9 +196,7 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
     // ids for the new hash
     uint64_t mergedVariants = 0;
     const char* instanceName; // we use the vertex name as the identifing id
-    vk::PrimitiveTopology* topo;
-
-    ShaderParser parser;
+    uint32_t topo;
 
     ShaderProgram* instance = new ShaderProgram(context);
     for (ShaderHash& hash : hashes)
@@ -208,23 +215,31 @@ ShaderProgram* ProgramManager::build(std::vector<ShaderHash>& hashes)
             instanceName = hash.name;
             topo = hash.topology;
         }
-        parser.addStage(descr);
+        if (!parser.addStage(descr))
+        {
+            LOGGER_ERROR("Error wilst building shader program. This is likely due to trying to add "
+                         "the same stage twice.");
+            return nullptr;
+        }
     }
 
     // use the render state from the mesh/material
     // instance->overrideRenderState();
 
-    // compile
-    ShaderCompiler compiler(*instance, context);
-    if (!compiler.compile(parser))
-    {
-        printf("Fatal Error: %s\n", compiler.getErrorString().c_str());
-        return nullptr;
-    }
-
     ShaderHash newHash {instanceName, mergedVariants, topo};
     programs.emplace(newHash, instance);
     return instance;
+}
+
+bool ProgramManager::compile(ShaderParser& parser, ShaderProgram* prog)
+{
+    ShaderCompiler compiler(*prog, context);
+    if (!compiler.compile(parser))
+    {
+        printf("Fatal Error: %s\n", compiler.getErrorString().c_str());
+        return false;
+    }
+    return true;
 }
 
 ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
@@ -238,7 +253,7 @@ ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
 ShaderProgram* ProgramManager::findVariant(ShaderHash& hash)
 {
     auto iter = programs.find(hash);
-    if (iter == programs.end())
+    if (iter != programs.end())
     {
         return iter->second;
     }
@@ -255,10 +270,15 @@ bool ProgramManager::hasShaderVariant(ShaderHash& hash)
     return true;
 }
 
-ShaderDescriptor* ProgramManager::createCachedInstance(ShaderHash& hash)
+ShaderDescriptor* ProgramManager::createCachedInstance(
+    ShaderHash& hash, ShaderDescriptor* descr, const Shader::Type type)
 {
-    ShaderDescriptor* instance =
-        new ShaderDescriptor(Shader::Type::Unknown); // TODO: sort this out!!
+    ShaderDescriptor* instance = new ShaderDescriptor(type);
+    assert(instance);
+    assert(descr);
+
+    // make a copy of the shader as we don't expect the parser to stay in scope for long
+    memcpy(instance, descr, sizeof(*descr));
 
     cached.emplace(hash, instance);
     return instance;
@@ -276,8 +296,8 @@ bool ProgramManager::hasShaderVariantCached(ShaderHash& hash)
 
 ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
 {
-    auto iter = cached.find(hash);
-    if (iter == cached.end())
+    auto iter = cached.find({hash});
+    if (iter != cached.end())
     {
         return iter->second;
     }
@@ -353,7 +373,7 @@ ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
         VulkanAPI::ShaderParser parser;
         if (!parser.loadAndParse(key.name))
         {
-            printf("Fatal Error: %s\n", parser.getErrorString().c_str());
+            printf("Fatal Error: %s; shader name: %s\n", parser.getErrorString().c_str(), key.name);
             return nullptr;
         }
         prog = createNewInstance(key);

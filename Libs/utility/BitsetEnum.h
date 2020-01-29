@@ -137,7 +137,16 @@ public:
     /**
      * @brief Check whether the specified bit is set
      */
-    bool testBit(T idx) const
+    bool testBit(const T idx) const
+    {
+        assert(static_cast<int>(idx) < static_cast<int>(T::__SENTINEL__));
+        return bitset.test(static_cast<int>(idx));
+    }
+
+	 /**
+     * @brief Check whether the specified bit is set
+     */
+    bool testBit(const T idx)
     {
         assert(static_cast<int>(idx) < static_cast<int>(T::__SENTINEL__));
         return bitset.test(static_cast<int>(idx));

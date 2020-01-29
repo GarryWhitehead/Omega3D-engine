@@ -142,7 +142,7 @@ public:
 
     bool compile(bool optimise);
 
-    void addVariant(Util::String variant, const uint8_t value)
+    void addVariant(Util::String& variant, const uint8_t value)
     {
         definitions.emplace(variant.c_str(), value);
     }

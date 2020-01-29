@@ -7,7 +7,6 @@
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/ProgramManager.h"
-#include "VulkanAPI/Shader.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/GeneralUtil.h"
@@ -98,6 +97,70 @@ Util::String TextureGroup::texTypeToStr(const int type)
     return result;
 }
 
+// ===============================================================================================
+
+VulkanAPI::GlslCompiler::VariantMap
+Material::createVariants(Util::BitSetEnum<Material::Variants>& bits)
+{
+    VulkanAPI::GlslCompiler::VariantMap map;
+    if (bits.testBit(HasBaseColour))
+    {
+        map.emplace("HAS_BASECOLOUR", 1);
+    }
+    if (bits.testBit(HasNormal))
+    {
+        map.emplace("HAS_NORMAL", 1);
+    }
+    if (bits.testBit(HasUv))
+    {
+        map.emplace("HAS_UV", 1);
+    }
+    if (bits.testBit(HasMetallicRoughness))
+    {
+        map.emplace("HAS_METALLICROUGHNESS", 1);
+    }
+    if (bits.testBit(HasOcclusion))
+    {
+        map.emplace("HAS_OCCLUSION", 1);
+    }
+    if (bits.testBit(HasEmissive))
+    {
+        map.emplace("HAS_EMISSIVE", 1);
+    }
+    return map;
+}
+
+VulkanAPI::GlslCompiler::VariantMap
+Renderable::createVariants(Util::BitSetEnum<MeshInstance::Variant>& bits)
+{
+    VulkanAPI::GlslCompiler::VariantMap map;
+    
+    if (bits.testBit(MeshInstance::Variant::HasSkin))
+    {
+        map.emplace("HAS_SKIN", 1);
+    }
+    if (bits.testBit(MeshInstance::Variant::BiTangentInput))
+    {
+        map.emplace("HAS_BITANGENT", 1);
+    }
+    if (bits.testBit(MeshInstance::Variant::HasJoint))
+    {
+        map.emplace("HAS_BONES", 1);
+    }
+    if (bits.testBit(MeshInstance::Variant::HasNormal))
+    {
+        map.emplace("HAS_NORMAL", 1);
+    }
+    if (bits.testBit(MeshInstance::Variant::HasWeight))
+    {
+        map.emplace("HAS_WEIGHTS", 1);
+    }
+    if (bits.testBit(MeshInstance::Variant::TangentInput))
+    {
+        map.emplace("HAS_TANGENT", 1);
+    }
+    return map;
+}
 // ===============================================================================================
 
 OERenderableManager::OERenderableManager(OEEngine& engine) : engine(engine)
@@ -234,20 +297,19 @@ void OERenderableManager::updateBuffers()
 
 bool OERenderableManager::updateVariants()
 {
-    // parse the shader json file - this will be used by all variants
-    const Util::String mesh_filename = "mrt.glsl";
-    VulkanAPI::ShaderParser mesh_parser;
+    // parse the shader file - this will be used by all variants
+    const Util::String filename = "mrt.glsl";
+    VulkanAPI::ShaderParser parser;
 
-    if (!mesh_parser.loadAndParse(mesh_filename))
+    if (!parser.loadAndParse(filename))
     {
-        LOGGER_ERROR(
-            "Unable to parse mesh vertex shader stage: %s\n Failed with error: %s",
-            mesh_filename.c_str(),
-            mesh_parser.getErrorString().c_str());
+        printf("Fatal error parsing mrt shader: %s", parser.getErrorString().c_str());
         return false;
     }
 
     VulkanAPI::ProgramManager manager = engine.getVkDriver().getProgManager();
+    Util::String meshId = Util::String::append("mesh_", filename);
+    Util::String matId = Util::String::append("material_", filename);
 
     // Note - we try and create as many shader variants as possible for vertex and material shaders
     // as creating them whilst the engine is actually rendering will be costly in terms of
@@ -256,49 +318,29 @@ bool OERenderableManager::updateVariants()
     {
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
         VulkanAPI::ProgramManager::ShaderHash hash {
-            mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &topo};
+            meshId.c_str(), rend.instance->variantBits.getUint64(), static_cast<uint32_t>(topo)};
         if (!manager.hasShaderVariantCached(hash))
         {
-            VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
-
-            if (!mesh_parser.loadAndParse(mesh_filename, descr, VulkanAPI::Shader::Type::Vertex))
-            {
-                printf(
-                    "Fatal error parsing mesh shader: %s",
-                    mesh_parser.getErrorString().c_str());
-                return false;
-            }
+            VulkanAPI::ShaderDescriptor* descr =
+                parser.getShaderDescriptor(VulkanAPI::Shader::Type::Vertex);
+            assert(descr);
+            manager.createCachedInstance(hash, descr, VulkanAPI::Shader::Type::Vertex);
         }
     }
 
     // ======== create variants required for all materials currently associated with the manager
-    // ======== parse the shader json file - this will be used by all variants
-    const Util::String mat_filename = "gbuffer_frag.glsl";
     VulkanAPI::ShaderParser mat_parser;
-
-    if (!mat_parser.loadAndParse(mat_filename))
-    {
-        printf(
-            "Fatal error parsing material shader: Failed with error: %s",
-            mat_parser.getErrorString().c_str());
-        return false;
-    }
 
     for (const Material& mat : materials)
     {
         VulkanAPI::ProgramManager::ShaderHash hash {
-            mat_filename.c_str(), mat.variantBits.getUint64(), nullptr};
+            matId.c_str(), mat.variantBits.getUint64()};
         if (!manager.hasShaderVariantCached(hash))
         {
-            VulkanAPI::ShaderDescriptor* descr = manager.createCachedInstance(hash);
-
-            if (!mesh_parser.loadAndParse(mat_filename, descr, VulkanAPI::Shader::Type::Fragment))
-            {
-                printf(
-                    "Fatal error parsing mesh shader: Failed with error: %s",
-                    mat_parser.getErrorString().c_str());
-                return false;
-            }
+            VulkanAPI::ShaderDescriptor* descr =
+                parser.getShaderDescriptor(VulkanAPI::Shader::Type::Fragment);
+            assert(descr);
+            manager.createCachedInstance(hash, descr, VulkanAPI::Shader::Type::Fragment);
         }
     }
 
@@ -311,17 +353,35 @@ bool OERenderableManager::updateVariants()
         Material* mat = rend.material;
         rend.mergedVariant = rend.instance->variantBits.getUint64() + mat->variantBits.getUint64();
 
-        vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
-        VulkanAPI::ProgramManager::ShaderHash hash {
-            mesh_filename.c_str(), rend.mergedVariant, &topo};
+        vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(
+            rend.instance->topology); // TODO : check that the topology is correct
+        VulkanAPI::ProgramManager::ShaderHash hash {meshId.c_str(), rend.mergedVariant, static_cast<uint32_t>(topo)};
         VulkanAPI::ShaderProgram* prog = manager.findVariant(hash);
         if (!prog)
         {
             // create new program
+            VulkanAPI::ShaderParser variantParser;
             std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes {
-                {mesh_filename.c_str(), rend.instance->variantBits.getUint64(), &topo},
-                {mat_filename.c_str(), mat->variantBits.getUint64(), nullptr}};
-            prog = manager.build(hashes);
+                {meshId.c_str(), rend.instance->variantBits.getUint64(), static_cast<uint32_t>(topo)},
+                {matId.c_str(), mat->variantBits.getUint64()}};
+
+            // create the variant shader program
+            prog = manager.build(variantParser, hashes);
+            assert(prog);
+
+            // add variant definitions before compiling
+            VulkanAPI::GlslCompiler::VariantMap matVariants =
+                Material::createVariants(mat->variantBits);
+            VulkanAPI::GlslCompiler::VariantMap meshVariants =
+                Renderable::createVariants(rend.instance->variantBits);
+
+            prog->addVariants(matVariants, VulkanAPI::Shader::Type::Fragment);
+            prog->addVariants(meshVariants, VulkanAPI::Shader::Type::Vertex);
+
+            if (manager.compile(variantParser, prog))
+            {
+                return false;
+            }
         }
         // keep reference to the shader program within the renderable for easier lookup when drawing
         rend.program = prog;

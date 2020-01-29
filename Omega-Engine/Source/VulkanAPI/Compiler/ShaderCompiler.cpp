@@ -187,14 +187,17 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     }
     else
     {
-        VkUtils::createVkShaderBuffer(
-            output.name,
-            output.type,
-            items,
-            output.bind,
-            output.groupId,
-            inputLine,
-            output.bufferSize);
+        if (!VkUtils::createVkShaderBuffer(
+                output.name,
+                output.type,
+                items,
+                output.bind,
+                output.groupId,
+                inputLine,
+                output.bufferSize))
+        {
+            return CompilerReturnCode::InvalidBuffer;
+        }
 
         // not mandatory - adds a sub-id to the buffer
         std::string subId;
@@ -302,12 +305,11 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
                 Shader::getStageFlags(shader->type));
 
             // add to the binding information
-            ShaderBinding::BufferBinding bBind {
-                importInfo.name,
-                importInfo.bind,
-                importInfo.groupId,
-                importInfo.bufferSize,
-                descrType};
+            ShaderBinding::BufferBinding bBind {importInfo.name,
+                                                importInfo.bind,
+                                                importInfo.groupId,
+                                                importInfo.bufferSize,
+                                                descrType};
 
             // check for special buffer attributes e.g. dynamic
             if (importInfo.type == "DynamicUniform")
@@ -316,7 +318,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
             }
             binding.bufferBindings.emplace_back(bBind);
         }
-        shader->appendBlock += '\n';
+        shader->appendBlock += '\n\n';
     }
 
     // push blocks
@@ -372,7 +374,7 @@ ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShad
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
+CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor* vertShader)
 {
     if (vertShader->inputs.empty())
     {
@@ -391,15 +393,29 @@ CompilerReturnCode ShaderCompiler::prepareInputs(ShaderDescriptor* vertShader)
             return CompilerReturnCode::InvalidInput;
         }
 
+        // check whether there is a variant
+        std::string variant;
+        ShaderDescriptor::getTypeValue("Variant", input, variant);
+        if (!variant.empty())
+        {
+            vertShader->appendBlock += "#ifdef " + variant + "\n";
+        }
+
         std::string inputLine =
             "layout (location = " + std::to_string(loc) + ") in " + type + " in" + name;
         vertShader->appendBlock += inputLine + ";\n";
 
+        if (!variant.empty())
+        {
+            vertShader->appendBlock += "#endif\n";
+        }
+
         vk::Format format = Shader::getVkFormatFromType(type, 32);
         uint32_t stride = Shader::getStrideFromType(type);
-        ShaderProgram::InputBinding iBind {loc, stride, format};
+        ShaderProgram::InputBinding iBind {loc++, stride, format};
         program.inputs.emplace_back(iBind);
     }
+    
     vertShader->appendBlock += '\n';
 
     return CompilerReturnCode::Success;
@@ -462,7 +478,7 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
         // prepare the input semantics, this is only required for the vertex shader
         if (descr->type == Shader::Type::Vertex)
         {
-            prepareInputs(descr.get());
+            prepareVertexInputs(descr.get());
         }
 
         program.stages.emplace_back(std::move(binding));
