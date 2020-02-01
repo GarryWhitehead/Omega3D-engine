@@ -16,11 +16,10 @@ class ProgramManager;
 class ShaderDescriptor
 {
 public:
-    ShaderDescriptor() = delete;
+    ShaderDescriptor() = default;
 
-    ShaderDescriptor(Shader::Type type) : type(type)
-    {
-    }
+    ShaderDescriptor(Shader::Type type);
+    ~ShaderDescriptor() = default;
 
     using Descriptor = std::pair<std::string, std::string>;
     using TypeDescriptors = std::vector<Descriptor>;
@@ -115,7 +114,7 @@ public:
      */
     bool loadAndParse(Util::String filename);
 
-    bool addStage(ShaderDescriptor* shader);
+    bool addStage(ShaderDescriptor& shader);
 
     ShaderDescriptor* getShaderDescriptor(const Shader::Type type);
 
@@ -137,7 +136,7 @@ private:
     bool parseShader();
 
     // parses an individual shader stage as stated by a ##stage: block
-    ParserReturnCode parseShaderStage(uint32_t& idx, ShaderDescriptor* shader);
+    ParserReturnCode parseShaderStage(uint32_t& idx, ShaderDescriptor& shader);
 
     ParserReturnCode parseLine(
         const std::string line, ShaderDescriptor::TypeDescriptors& output, const uint8_t typeCount);
@@ -147,7 +146,7 @@ private:
     ParserReturnCode parseIncludeFile(const std::string line, std::string& output);
 
     ParserReturnCode
-    debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor* shader);
+    debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor& shader);
 
     friend class ShaderCompiler;
 
@@ -157,7 +156,7 @@ private:
 
     ShaderDescriptor::TypeDescriptors pipelineDescrs;
 
-    std::vector<std::unique_ptr<ShaderDescriptor>> descriptors;
+    std::vector<ShaderDescriptor> descriptors;
 
     // input buffer
     std::vector<std::string> buffer;

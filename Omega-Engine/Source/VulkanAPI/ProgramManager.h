@@ -346,7 +346,7 @@ public:
      * @brief Creates a shader fragment that will be cached until ready for use
      */
     ShaderDescriptor*
-    createCachedInstance(ShaderHash& hash, ShaderDescriptor* descr, const Shader::Type type);
+    createCachedInstance(ShaderHash& hash, ShaderDescriptor& descr, const Shader::Type type);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
@@ -419,7 +419,7 @@ private:
     std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
 
     // this is where individual shaders are cached until required to assemble into a shader program
-    std::unordered_map<ShaderHash, ShaderDescriptor*, ShaderHasher, ShaderEqual> cached;
+    std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
 
     // Queued decriptor requiring updating which is done on a per frame basis
     std::vector<std::pair<const char*, Buffer*>> bufferDescrQueue;

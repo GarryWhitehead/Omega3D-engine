@@ -10,6 +10,10 @@
 namespace VulkanAPI
 {
 
+ShaderDescriptor::ShaderDescriptor(Shader::Type type) : type(type)
+{
+}
+
 bool ShaderDescriptor::hasDescriptor(std::string id, std::vector<TypeDescriptors>& typeDescrs)
 {
     for (const TypeDescriptors& typeDescr : typeDescrs)
@@ -109,6 +113,7 @@ std::string ShaderParser::getErrorString()
 }
 
 // ================== ShaderParser =======================
+
 
 Shader::Type ShaderParser::strToShaderType(std::string& str)
 {
@@ -325,7 +330,7 @@ ParserReturnCode ShaderParser::parseIncludeFile(const std::string line, std::str
 }
 
 ParserReturnCode
-ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor* shader)
+ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor& shader)
 {
     // if array size has specified and the size is based on a constant value then check this
     // constant exsists.
@@ -342,7 +347,7 @@ ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDesc
                 ShaderDescriptor::Descriptor* arrayDescr =
                     ShaderDescriptor::findId("Array_size", descrs);
                 std::string constantValue = arrayDescr->second;
-                if (!ShaderDescriptor::hasDescriptorValue(constantValue, shader->constants))
+                if (!ShaderDescriptor::hasDescriptorValue(constantValue, shader.constants))
                 {
                     return ParserReturnCode::InvalidConstantForArray;
                 }
@@ -352,9 +357,8 @@ ShaderParser::debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDesc
     return ParserReturnCode::Success;
 }
 
-ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor* shader)
+ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor& shader)
 {
-    assert(shader);
     bool foundEndMarker = false;
 
     for (; idx < buffer.size(); ++idx)
@@ -385,7 +389,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
             {
                 return ret;
             }
-            shader->includeFiles.emplace_back(include);
+            shader.includeFiles.emplace_back(include);
         }
         // - glsl code: layout (location = 0) in [TYPE] [NAME]
         else if (line.find("#input:") != EOL)
@@ -396,7 +400,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
             {
                 return ret;
             }
-            shader->inputs.emplace_back(descr);
+            shader.inputs.emplace_back(descr);
         }
         // output semantics - glsl code: layout (location = 0) out [TYPE] [NAME]
         else if (line.find("#output:") != EOL)
@@ -407,7 +411,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
             {
                 return ret;
             }
-            shader->outputs.emplace_back(descr);
+            shader.outputs.emplace_back(descr);
         }
         // speciliastion constants - should be preferred to the usual #define method
         else if (line.find("#constant:") != EOL)
@@ -418,7 +422,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
             {
                 return ret;
             }
-            shader->constants.emplace_back(descr);
+            shader.constants.emplace_back(descr);
         }
         // push constants - one per shader stage supported - due to the size limit that can be
         // pushed, this shouldn't be an issue
@@ -444,7 +448,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
                 return ParserReturnCode::BufferHasNoItems;
             }
 
-            shader->pConstants.emplace_back(constant);
+            shader.pConstants.emplace_back(constant);
         }
         else if (line.find("#import_buffer:") != EOL)
         {
@@ -473,7 +477,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
                 return ret;
             }
 
-            shader->ubos.emplace_back(buffer);
+            shader.ubos.emplace_back(buffer);
         }
         else if (line.find("#import_sampler:") != EOL)
         {
@@ -483,7 +487,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
             {
                 return ret;
             }
-            shader->samplers.emplace_back(descr);
+            shader.samplers.emplace_back(descr);
         }
         else if (line.find("#code_block:") != EOL)
         {
@@ -496,7 +500,7 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor*
                     foundCodeBlockEnd = true;
                     break;
                 }
-                shader->codeBlock.append(buffer[idx++]);
+                shader.codeBlock.append(buffer[idx++]);
             }
             if (!foundCodeBlockEnd)
             {
@@ -584,8 +588,8 @@ bool ShaderParser::parseShader()
                 return false;
             }
 
-            auto shader = std::make_unique<ShaderDescriptor>(stage);
-            ParserReturnCode ret = parseShaderStage(idx, shader.get());
+            ShaderDescriptor shader(stage);
+            ParserReturnCode ret = parseShaderStage(idx, shader);
             if (ret != ParserReturnCode::Success)
             {
                 errorCache = ParserErrorCache {idx, ret};
@@ -610,11 +614,11 @@ bool ShaderParser::parseShader()
 
 ShaderDescriptor* ShaderParser::getShaderDescriptor(const Shader::Type type)
 {
-    for (auto& descr : descriptors)
+    for (ShaderDescriptor& descr : descriptors)
     {
-        if (descr->type == type)
+        if (descr.type == type)
         {
-            return descr.get();
+            return &descr;
         }
     }
     return nullptr;
@@ -639,14 +643,12 @@ bool ShaderParser::loadAndParse(Util::String filename)
     return true;
 }
 
-bool ShaderParser::addStage(ShaderDescriptor* shader)
+bool ShaderParser::addStage(ShaderDescriptor& shader)
 {
-    assert(shader);
-
     // to a quick debug to make sure this stage hasn't already been added
     for (auto& descr : descriptors)
     {
-        if (descr->type == shader->type)
+        if (descr.type == shader.type)
         {
             return false;
         }

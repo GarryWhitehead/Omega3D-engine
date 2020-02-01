@@ -129,7 +129,10 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
 		}
 
 		// store vertex as a blob of data
-		vertices.data = new uint8_t[attribStride * vertCount];
+        vertices.vertCount = vertCount;
+        vertices.strideSize = attribStride;
+        vertices.size = attribStride * vertCount;
+        vertices.data = new uint8_t[vertices.size];
 
 		// now contruct the vertex data
 		for (size_t i = 0; i < vertCount; ++i)

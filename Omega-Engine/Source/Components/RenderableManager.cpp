@@ -99,6 +99,30 @@ Util::String TextureGroup::texTypeToStr(const int type)
 
 // ===============================================================================================
 
+void Material::addVariant(const MaterialInstance::TextureType type)
+{
+    switch (type)
+    {
+        case MaterialInstance::TextureType::BaseColour:
+            variantBits |= Variants::HasBaseColour;
+            break;
+        case MaterialInstance::TextureType::Normal:
+            variantBits |= Variants::HasNormal;
+            break;
+        case MaterialInstance::TextureType::MetallicRoughness:
+            variantBits |= Variants::HasMetallicRoughness;
+            break;
+        case MaterialInstance::TextureType::Emissive:
+            variantBits |= Variants::HasEmissive;
+            break;
+        case MaterialInstance::TextureType::Occlusion:
+            variantBits |= Variants::HasOcclusion;
+            break;
+        default:
+            LOGGER_WARN("Invalid material variant bit. Ingnoring....");
+    }
+}
+
 VulkanAPI::GlslCompiler::VariantMap
 Material::createVariants(Util::BitSetEnum<Material::Variants>& bits)
 {
@@ -134,7 +158,7 @@ VulkanAPI::GlslCompiler::VariantMap
 Renderable::createVariants(Util::BitSetEnum<MeshInstance::Variant>& bits)
 {
     VulkanAPI::GlslCompiler::VariantMap map;
-    
+
     if (bits.testBit(MeshInstance::Variant::HasSkin))
     {
         map.emplace("HAS_SKIN", 1);
@@ -214,6 +238,7 @@ MappedTexture* OERenderableManager::prepareTexture(Util::String& path)
 
 size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat)
 {
+    Material newMat;
     size_t startOffset = materials.size();
 
     // sort out the textures
@@ -226,11 +251,12 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
         // whether just to continue (it will be obvious that somethings gone
         // wrong when rendered) or return an error
         group.textures[j] = prepareTexture(mat->texturePaths[j]);
+        newMat.addVariant(static_cast <MaterialInstance::TextureType>(j));
     }
 
     textures.emplace_back(std::move(group));
 
-    Material newMat;
+
     // we copy here, as we cant be sure that the user will keep the model in scope
     newMat.instance = new MaterialInstance();
     memcpy(newMat.instance, mat, sizeof(MaterialInstance));
@@ -311,9 +337,9 @@ bool OERenderableManager::updateVariants()
     Util::String meshId = Util::String::append("mesh_", filename);
     Util::String matId = Util::String::append("material_", filename);
 
-    // Note - we try and create as many shader variants as possible for vertex and material shaders
-    // as creating them whilst the engine is actually rendering will be costly in terms of
-    // performance
+    // Note - we try and create as many shader variants as possible for vertex and material
+    // shaders as creating them whilst the engine is actually rendering will be costly in terms
+    // of performance
     for (const Renderable& rend : renderables)
     {
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
@@ -324,30 +350,27 @@ bool OERenderableManager::updateVariants()
             VulkanAPI::ShaderDescriptor* descr =
                 parser.getShaderDescriptor(VulkanAPI::Shader::Type::Vertex);
             assert(descr);
-            manager.createCachedInstance(hash, descr, VulkanAPI::Shader::Type::Vertex);
+            manager.createCachedInstance(hash, *descr, VulkanAPI::Shader::Type::Vertex);
         }
     }
 
     // ======== create variants required for all materials currently associated with the manager
-    VulkanAPI::ShaderParser mat_parser;
-
     for (const Material& mat : materials)
     {
-        VulkanAPI::ProgramManager::ShaderHash hash {
-            matId.c_str(), mat.variantBits.getUint64()};
+        VulkanAPI::ProgramManager::ShaderHash hash {matId.c_str(), mat.variantBits.getUint64()};
         if (!manager.hasShaderVariantCached(hash))
         {
             VulkanAPI::ShaderDescriptor* descr =
                 parser.getShaderDescriptor(VulkanAPI::Shader::Type::Fragment);
             assert(descr);
-            manager.createCachedInstance(hash, descr, VulkanAPI::Shader::Type::Fragment);
+            manager.createCachedInstance(hash, *descr, VulkanAPI::Shader::Type::Fragment);
         }
     }
 
     // ============ create progrms for each mesh/material variant combo ========================
-    // We do this here for two reasons  1) Creating the shaders during time critical moments could
-    // really impede performance 2) Its easier to update the material descriptor set as we have all
-    // the information available here.
+    // We do this here for two reasons  1) Creating the shaders during time critical moments
+    // could really impede performance 2) Its easier to update the material descriptor set as we
+    // have all the information available here.
     for (Renderable& rend : renderables)
     {
         Material* mat = rend.material;
@@ -355,14 +378,17 @@ bool OERenderableManager::updateVariants()
 
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(
             rend.instance->topology); // TODO : check that the topology is correct
-        VulkanAPI::ProgramManager::ShaderHash hash {meshId.c_str(), rend.mergedVariant, static_cast<uint32_t>(topo)};
+        VulkanAPI::ProgramManager::ShaderHash hash {
+            meshId.c_str(), rend.mergedVariant, static_cast<uint32_t>(topo)};
         VulkanAPI::ShaderProgram* prog = manager.findVariant(hash);
         if (!prog)
         {
             // create new program
             VulkanAPI::ShaderParser variantParser;
             std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes {
-                {meshId.c_str(), rend.instance->variantBits.getUint64(), static_cast<uint32_t>(topo)},
+                {meshId.c_str(),
+                 rend.instance->variantBits.getUint64(),
+                 static_cast<uint32_t>(topo)},
                 {matId.c_str(), mat->variantBits.getUint64()}};
 
             // create the variant shader program
@@ -378,12 +404,13 @@ bool OERenderableManager::updateVariants()
             prog->addVariants(matVariants, VulkanAPI::Shader::Type::Fragment);
             prog->addVariants(meshVariants, VulkanAPI::Shader::Type::Vertex);
 
-            if (manager.compile(variantParser, prog))
+            if (!manager.compile(variantParser, prog))
             {
                 return false;
             }
         }
-        // keep reference to the shader program within the renderable for easier lookup when drawing
+        // keep reference to the shader program within the renderable for easier lookup when
+        // drawing
         rend.program = prog;
     }
 
@@ -405,8 +432,8 @@ bool OERenderableManager::update()
                 MappedTexture* tex = group.textures[i];
                 if (tex)
                 {
-                    // each sampler needs its own unique id - so append the tex type to the material
-                    // name
+                    // each sampler needs its own unique id - so append the tex type to the
+                    // material name
                     assert(!group.matName.empty());
                     group.matName =
                         Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
@@ -425,15 +452,17 @@ bool OERenderableManager::update()
         {
             return false;
         }
+        materialDirty = false;
     }
 
     // upload meshes to the vulkan backend
     if (meshDirty)
     {
-        // create a "mega" buffer from all the vertex and index data we have. Best pratice in vulkan
-        // with regards to buffers is to create as few as possible - there is a upper limit on the
-        // amount of allocations that can be performed
+        // create a "mega" buffer from all the vertex and index data we have. Best pratice in
+        // vulkan with regards to buffers is to create as few as possible - there is a upper
+        // limit on the amount of allocations that can be performed
         updateBuffers();
+        meshDirty = false;
     }
 
     return true;

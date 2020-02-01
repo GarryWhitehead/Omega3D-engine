@@ -72,11 +72,11 @@ private:
 
     CompilerReturnCode compileAll(ShaderParser& parser);
 
-    CompilerReturnCode prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding);
+    CompilerReturnCode prepareBindings(ShaderDescriptor& shader, ShaderBinding& binding);
 
-    CompilerReturnCode writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader);
+    CompilerReturnCode writeInputs(ShaderDescriptor& shader, ShaderDescriptor& nextShader);
 
-    CompilerReturnCode prepareVertexInputs(ShaderDescriptor* vertShader);
+    CompilerReturnCode prepareVertexInputs(ShaderDescriptor& vertShader);
 
     CompilerReturnCode prepareOutputs(ShaderParser& compilerInfo);
 
@@ -89,7 +89,7 @@ private:
     uint8_t getCurrentBinding(const uint8_t groupId);
 
     CompilerReturnCode prepareImport(
-        ShaderDescriptor* shader,
+        ShaderDescriptor& shader,
         ImportType type,
         ShaderDescriptor::TypeDescriptors& descr,
         ImportInfo& output,

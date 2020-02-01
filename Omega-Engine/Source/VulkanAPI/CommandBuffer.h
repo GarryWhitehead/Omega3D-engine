@@ -43,7 +43,8 @@ public:
         CmdBufferManager* cbManager = nullptr);
     ~CmdBuffer();
 
-    void prepare();
+    void alloc();
+    void begin();
 
     /**
      * @brief This begins the renderpass with the paramters stipulated by the begin info. Also

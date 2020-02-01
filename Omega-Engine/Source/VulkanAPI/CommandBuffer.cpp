@@ -16,24 +16,24 @@ CmdBuffer::CmdBuffer(
     VkContext& context, const Type type, CmdPool& cmdPool, CmdBufferManager* cbManager)
     : context(context), cmdPool(cmdPool), cbManager(cbManager), type(type)
 {
-    if (type == Type::Primary)
-    {
-        prepare();
-    }
+    alloc();
 }
 
 CmdBuffer::~CmdBuffer()
 {
 }
 
-void CmdBuffer::prepare()
+void CmdBuffer::alloc()
 {
     vk::CommandBufferLevel level = type == Type::Primary ? vk::CommandBufferLevel::ePrimary
                                                          : vk::CommandBufferLevel::eSecondary;
     vk::CommandBufferAllocateInfo allocInfo(cmdPool.get(), level, 1);
 
     VK_CHECK_RESULT(context.getDevice().allocateCommandBuffers(&allocInfo, &cmdBuffer));
+}
 
+void CmdBuffer::begin()
+{    
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, 0);
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));

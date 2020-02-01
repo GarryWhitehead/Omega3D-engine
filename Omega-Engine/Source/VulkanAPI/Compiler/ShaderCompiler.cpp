@@ -153,7 +153,7 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
 }
 
 CompilerReturnCode ShaderCompiler::prepareImport(
-    ShaderDescriptor* shader,
+    ShaderDescriptor& shader,
     ImportType importType,
     ShaderDescriptor::TypeDescriptors& descr,
     ImportInfo& output,
@@ -172,7 +172,7 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     ShaderDescriptor::getTypeValue("Variant", descr, output.variant);
     if (!output.variant.empty())
     {
-        shader->appendBlock += "#ifdef " + output.variant + "\n";
+        shader.appendBlock += "#ifdef " + output.variant + "\n";
     }
 
     // not a mandatory variable
@@ -183,7 +183,7 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     {
         VkUtils::createVkShaderSampler(
             output.name, output.type, output.bind, output.groupId, inputLine);
-        shader->appendBlock += inputLine + "\n";
+        shader.appendBlock += inputLine + "\n";
     }
     else
     {
@@ -202,41 +202,41 @@ CompilerReturnCode ShaderCompiler::prepareImport(
         // not mandatory - adds a sub-id to the buffer
         std::string subId;
         ShaderDescriptor::getTypeValue("id", descr, subId);
-        shader->appendBlock += inputLine + subId + ";\n";
+        shader.appendBlock += inputLine + subId + ";\n";
     }
 
     if (!output.variant.empty())
     {
-        shader->appendBlock += "#endif\n";
+        shader.appendBlock += "#endif\n";
     }
 
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, ShaderBinding& binding)
+CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, ShaderBinding& binding)
 {
     // add the glsl version number
-    shader->appendBlock += "#version 450\n\n";
+    shader.appendBlock += "#version 450\n\n";
 
     // include files
-    if (!shader->includeFiles.empty())
+    if (!shader.includeFiles.empty())
     {
-        for (const auto& file : shader->includeFiles)
+        for (const auto& file : shader.includeFiles)
         {
             // Note: I think the glsl compiler might need the absolute path - need to check
-            shader->appendBlock += "#include \"" + file + "\"\n";
+            shader.appendBlock += "#include \"" + file + "\"\n";
         }
-        shader->appendBlock += '\n';
+        shader.appendBlock += '\n';
     }
 
     // specialisation constants - order is important here as buffers,et.c might be dependebt on
     // these constants
-    if (!shader->constants.empty())
+    if (!shader.constants.empty())
     {
         std::string name, type, value;
         uint16_t constantId = 0;
 
-        for (const auto& constant : shader->constants)
+        for (const auto& constant : shader.constants)
         {
             bool result = ShaderDescriptor::getTypeValue("Name", constant, name);
             result &= ShaderDescriptor::getTypeValue("Type", constant, type);
@@ -247,7 +247,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
             }
 
             // inject constant text into temp shader text block
-            shader->appendBlock += "layout (constant_id = " + std::to_string(constantId++) +
+            shader.appendBlock += "layout (constant_id = " + std::to_string(constantId++) +
                 ") const " + type + " " + name + " = " + value + ";\n\n";
 
             binding.constants.emplace_back(ShaderBinding::SpecConstantBinding {name, constantId});
@@ -255,9 +255,9 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
     }
 
     // texture samplers
-    if (!shader->samplers.empty())
+    if (!shader.samplers.empty())
     {
-        for (auto& sampler : shader->samplers)
+        for (auto& sampler : shader.samplers)
         {
             ImportInfo importInfo;
             CompilerReturnCode ret =
@@ -272,7 +272,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
                 importInfo.groupId,
                 importInfo.bind,
                 vk::DescriptorType::eCombinedImageSampler,
-                Shader::getStageFlags(shader->type));
+                Shader::getStageFlags(shader.type));
 
             // add to the binding information
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
@@ -280,13 +280,13 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
                 importInfo.name, importInfo.bind, importInfo.groupId, descrType};
             binding.samplerBindings.emplace_back(sBind);
         }
-        shader->appendBlock += '\n';
+        shader.appendBlock += '\n';
     }
 
     // uniform buffers
-    if (!shader->ubos.empty())
+    if (!shader.ubos.empty())
     {
-        for (auto& buffer : shader->ubos)
+        for (auto& buffer : shader.ubos)
         {
             ImportInfo importInfo;
             CompilerReturnCode ret = prepareImport(
@@ -302,7 +302,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
                 importInfo.groupId,
                 importInfo.bind,
                 descrType,
-                Shader::getStageFlags(shader->type));
+                Shader::getStageFlags(shader.type));
 
             // add to the binding information
             ShaderBinding::BufferBinding bBind {importInfo.name,
@@ -318,13 +318,13 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
             }
             binding.bufferBindings.emplace_back(bBind);
         }
-        shader->appendBlock += '\n\n';
+        shader.appendBlock += '\n\n';
     }
 
     // push blocks
-    if (!shader->pConstants.empty())
+    if (!shader.pConstants.empty())
     {
-        for (auto& constant : shader->pConstants)
+        for (auto& constant : shader.pConstants)
         {
             ImportInfo importInfo;
             CompilerReturnCode ret = prepareImport(
@@ -333,23 +333,20 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor* shader, Sha
             {
                 return ret;
             }
-            program.pLineLayout->addPushConstant(shader->type, importInfo.bufferSize);
+            program.pLineLayout->addPushConstant(shader.type, importInfo.bufferSize);
         }
-        shader->appendBlock += '\n';
+        shader.appendBlock += '\n';
     }
 
     return CompilerReturnCode::Success;
 }
 
 CompilerReturnCode
-ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShader)
+ShaderCompiler::writeInputs(ShaderDescriptor& shader, ShaderDescriptor& nextShader)
 {
-    assert(shader);
-    assert(nextShader);
-
     uint16_t loc = 0;
 
-    for (auto& output : shader->outputs)
+    for (auto& output : shader.outputs)
     {
         std::string name, type;
         bool result = ShaderDescriptor::getTypeValue("Name", output, name);
@@ -364,26 +361,26 @@ ShaderCompiler::writeInputs(ShaderDescriptor* shader, ShaderDescriptor* nextShad
         std::string outputLine =
             "layout (location = " + std::to_string(loc) + ") out " + type + " out" + name;
 
-        shader->appendBlock += outputLine + ";\n";
-        nextShader->appendBlock += inputLine + ";\n";
+        shader.appendBlock += outputLine + ";\n";
+        nextShader.appendBlock += inputLine + ";\n";
         ++loc;
     }
-    shader->appendBlock += '\n';
-    nextShader->appendBlock += '\n';
+    shader.appendBlock += '\n';
+    nextShader.appendBlock += '\n';
 
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor* vertShader)
+CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor& vertShader)
 {
-    if (vertShader->inputs.empty())
+    if (vertShader.inputs.empty())
     {
         // not an error if there are no inputs into the vertex shader
         return CompilerReturnCode::Success;
     }
 
     uint16_t loc = 0;
-    for (auto& input : vertShader->inputs)
+    for (auto& input : vertShader.inputs)
     {
         std::string name, type;
         bool result = ShaderDescriptor::getTypeValue("Name", input, name);
@@ -398,16 +395,16 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor* vertSha
         ShaderDescriptor::getTypeValue("Variant", input, variant);
         if (!variant.empty())
         {
-            vertShader->appendBlock += "#ifdef " + variant + "\n";
+            vertShader.appendBlock += "#ifdef " + variant + "\n";
         }
 
         std::string inputLine =
             "layout (location = " + std::to_string(loc) + ") in " + type + " in" + name;
-        vertShader->appendBlock += inputLine + ";\n";
+        vertShader.appendBlock += inputLine + ";\n";
 
         if (!variant.empty())
         {
-            vertShader->appendBlock += "#endif\n";
+            vertShader.appendBlock += "#endif\n";
         }
 
         vk::Format format = Shader::getVkFormatFromType(type, 32);
@@ -416,7 +413,7 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor* vertSha
         program.inputs.emplace_back(iBind);
     }
     
-    vertShader->appendBlock += '\n';
+    vertShader.appendBlock += '\n';
 
     return CompilerReturnCode::Success;
 }
@@ -427,17 +424,17 @@ CompilerReturnCode ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
 
     for (size_t i = 0; i < descrCount; ++i)
     {
-        ShaderDescriptor* descr = compilerInfo.descriptors[i].get();
+        ShaderDescriptor& descr = compilerInfo.descriptors[i];
         if (i + 1 < descrCount)
         {
-            ShaderDescriptor* nextDescr = compilerInfo.descriptors[i + 1].get();
+            ShaderDescriptor& nextDescr = compilerInfo.descriptors[i + 1];
             writeInputs(descr, nextDescr);
         }
-        else if (descr->type == Shader::Type::Fragment && !descr->outputs.empty())
+        else if (descr.type == Shader::Type::Fragment && !descr.outputs.empty())
         {
             uint16_t loc = 0;
-            ShaderBinding& fragBinding = program.findShaderBinding(descr->type);
-            for (auto& output : descr->outputs)
+            ShaderBinding& fragBinding = program.findShaderBinding(descr.type);
+            for (auto& output : descr.outputs)
             {
                 std::string name, type;
                 bool result = ShaderDescriptor::getTypeValue("Name", output, name);
@@ -449,7 +446,7 @@ CompilerReturnCode ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
 
                 std::string inputLine =
                     "layout (location = " + std::to_string(loc) + ") out " + type + " out" + name;
-                descr->appendBlock += inputLine + ";\n";
+                descr.appendBlock += inputLine + ";\n";
 
                 vk::Format format = Shader::getVkFormatFromType(type, 32);
                 ShaderBinding::RenderTarget rTarget {loc++, format};
@@ -472,13 +469,13 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     // compile the bindings for each stage
     for (auto& descr : compilerInfo.descriptors)
     {
-        ShaderBinding binding(context, descr->type);
-        prepareBindings(descr.get(), binding);
+        ShaderBinding binding(context, descr.type);
+        prepareBindings(descr, binding);
 
         // prepare the input semantics, this is only required for the vertex shader
-        if (descr->type == Shader::Type::Vertex)
+        if (descr.type == Shader::Type::Vertex)
         {
-            prepareVertexInputs(descr.get());
+            prepareVertexInputs(descr);
         }
 
         program.stages.emplace_back(std::move(binding));
@@ -494,19 +491,19 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     for (auto& descr : compilerInfo.descriptors)
     {
         // finish off the shader block by adding the actual glsl code!
-        if (descr->codeBlock.empty())
+        if (descr.codeBlock.empty())
         {
             return CompilerReturnCode::MissingCodeBlock;
         }
-        descr->appendBlock += descr->codeBlock;
+        descr.appendBlock += descr.codeBlock;
 
-        ShaderBinding& binding = program.findShaderBinding(descr->type);
+        ShaderBinding& binding = program.findShaderBinding(descr.type);
         std::vector<VulkanAPI::Shader::VariantInfo> stageVariants =
-            program.sortVariants(descr->type);
+            program.sortVariants(descr.type);
 
-        if (!binding.shader->compile(descr->appendBlock, descr->type, stageVariants))
+        if (!binding.shader->compile(descr.appendBlock, descr.type, stageVariants))
         {
-            printShaderCode(descr->appendBlock);
+            printShaderCode(descr.appendBlock);
             return CompilerReturnCode::ErrorCompilingGlsl;
         }
     };

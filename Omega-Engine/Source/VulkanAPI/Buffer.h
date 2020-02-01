@@ -32,7 +32,7 @@ public:
 
 	StageInfo create(const VkDeviceSize size);
 
-	StageInfo& getStage(VkDeviceSize reqSize);
+	StageInfo getStage(VkDeviceSize reqSize);
 
 	void release(StageInfo& stage);
 

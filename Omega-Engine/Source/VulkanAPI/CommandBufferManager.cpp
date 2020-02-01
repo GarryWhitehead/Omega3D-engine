@@ -27,7 +27,6 @@ CmdPool::CmdPool(VkContext& context, CmdBufferManager* cbManager, SemaphoreManag
     {
         auto cmdBuffer =
             std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, cbManager);
-        cmdBuffer->prepare();
         singleUseCbs[i] = std::move(cmdBuffer);
     }
 }
@@ -150,12 +149,13 @@ std::unique_ptr<CmdBuffer> CmdPool::getSingleUseCb()
     if (!singleUseCbs.empty())
     {
         std::unique_ptr<CmdBuffer> cb = std::move(singleUseCbs.front());
+        cb->begin();
         singleUseCbs.pop_front();
         return std::move(cb);
     }
 
     auto cmdBuffer =
-        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Secondary, *this, cbManager);
+        std::make_unique<CmdBuffer>(context, CmdBuffer::Type::Primary, *this, cbManager);
     return cmdBuffer;
 }
 

@@ -89,6 +89,8 @@ struct Material
     static VulkanAPI::GlslCompiler::VariantMap
     createVariants(Util::BitSetEnum<Material::Variants>& bits);
 
+    void addVariant(const MaterialInstance::TextureType type);
+
     /// The material attributes
     MaterialInstance* instance;
 

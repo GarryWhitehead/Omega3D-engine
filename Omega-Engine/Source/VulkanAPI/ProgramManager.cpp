@@ -215,7 +215,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderHas
             instanceName = hash.name;
             topo = hash.topology;
         }
-        if (!parser.addStage(descr))
+        if (!parser.addStage(*descr))
         {
             LOGGER_ERROR("Error wilst building shader program. This is likely due to trying to add "
                          "the same stage twice.");
@@ -271,17 +271,10 @@ bool ProgramManager::hasShaderVariant(ShaderHash& hash)
 }
 
 ShaderDescriptor* ProgramManager::createCachedInstance(
-    ShaderHash& hash, ShaderDescriptor* descr, const Shader::Type type)
+    ShaderHash& hash, ShaderDescriptor& descr, const Shader::Type type)
 {
-    ShaderDescriptor* instance = new ShaderDescriptor(type);
-    assert(instance);
-    assert(descr);
-
-    // make a copy of the shader as we don't expect the parser to stay in scope for long
-    memcpy(instance, descr, sizeof(*descr));
-
-    cached.emplace(hash, instance);
-    return instance;
+    cached.emplace(hash, descr);
+    return &cached[hash];
 }
 
 bool ProgramManager::hasShaderVariantCached(ShaderHash& hash)
@@ -299,7 +292,7 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
     auto iter = cached.find({hash});
     if (iter != cached.end())
     {
-        return iter->second;
+        return &iter->second;
     }
     return nullptr;
 }

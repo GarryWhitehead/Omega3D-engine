@@ -77,7 +77,9 @@ public:
 		};
 
 		uint8_t* data = nullptr;
-		size_t size = 0;
+		uint64_t size = 0;
+        uint32_t strideSize = 0;
+        uint32_t vertCount = 0;
 		std::vector<Attribute> attributes;
 	};
 

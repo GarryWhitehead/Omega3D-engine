@@ -87,7 +87,7 @@ StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
     return stage;
 }
 
-StagingPool::StageInfo& StagingPool::getStage(VkDeviceSize reqSize)
+StagingPool::StageInfo StagingPool::getStage(VkDeviceSize reqSize)
 {
     // check for a free staging space that is equal of greater than the required size
     auto iter = std::lower_bound(
@@ -99,8 +99,9 @@ StagingPool::StageInfo& StagingPool::getStage(VkDeviceSize reqSize)
     // if we have a free staging area, return that. Otherwise allocate a new stage
     if (iter != freeStages.end())
     {
+        StageInfo stage = *iter;
         freeStages.erase(iter);
-        return *iter;
+        return stage;
     }
 
     return create(reqSize);

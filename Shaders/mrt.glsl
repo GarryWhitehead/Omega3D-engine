@@ -159,17 +159,16 @@ void main()
 	vec4 baseColour;
 	
 	if (material.alphaMask == 0.0) {
-		if (material.haveBaseColourMap > 0) {
-			baseColour = texture(baseColourMap, inUv) * material.baseColorFactor;
-		}
-		else {
-			baseColour = material.baseColorFactor;
-		}
-		if (baseColour.a < material.alphaMaskCutoff) {
-			discard;
-		}	
+#ifdef HAVE_BASECOLOUR 
+		baseColour = texture(baseColourMap, inUv) * material.baseColourFactor;
+#else
+		baseColour = material.baseColourFactor;
+#endif
 	}
-
+	if (baseColour.a < material.alphaMaskCutoff) {
+		discard;
+	}	
+	
 	// normal
 	vec3 normal; 
 #ifdef HAS_NORMAL
@@ -189,7 +188,7 @@ void main()
 	metallic = material.metallicFactor;
 
 #ifdef HAS_METALLICROUGHNESS
-	vec4 mrSample = texture(mrMap, mr_uv);
+	vec4 mrSample = texture(mrMap, inUv);
 	roughness = clamp(mrSample.g * roughness, 0.0, 1.0);
 	metallic = mrSample.b * metallic;
 #else
@@ -203,15 +202,15 @@ void main()
 	vec3 specular;
 
 #ifdef HAS_METALLICROUGHNESS
-	roughness = 1.0 - texture(mrMap, mr_uv).a;
-	specular = texture(mrMap, mr_uv).rgb;
+	roughness = 1.0 - texture(mrMap, inUv).a;
+	specular = texture(mrMap, inUv).rgb;
 #else
 	roughness = 0.0;
 	specular = vec3(0.0);
 #endif
 	
 #ifdef HAS_BASECOLOUR
-	diffuse = texture(baseColourMap, baseColour_uv);
+	diffuse = texture(baseColourMap, inUv);
 #else
 	diffuse = material.baseColorFactor;
 #endif
@@ -233,14 +232,14 @@ void main()
 	// ao
 	float ambient = 1.0;
 #ifdef HAS_AO
-    ambient = texture(aoMap, occlusion_uv).x;
+    ambient = texture(aoMap, inUv).x;
 #endif
 	outColour.a = ambient;
 
 	// emmisive
 	vec3 emissive;
 #ifdef HAS_EMISSIVE
-    emissive = texture(emissiveMap, emissive_uv).rgb;
+    emissive = texture(emissiveMap, inUv).rgb;
 	emissive *= material.emissiveFactor.rgb;
 #else
    	emissive = material.emissiveFactor.rgb;
