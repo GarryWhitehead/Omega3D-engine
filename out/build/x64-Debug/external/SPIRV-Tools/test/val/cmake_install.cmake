@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools/test/val
+# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/SPIRV-Tools/test/val
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

@@ -295,7 +295,7 @@ void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* ma
     }
 }
 
-Renderable& OERenderableManager::getMesh(const ObjHandle handle)
+Renderable& OERenderableManager::getMesh(const uint64_t handle)
 {
     assert(handle > 0 && handle < renderables.size());
     return renderables[handle];

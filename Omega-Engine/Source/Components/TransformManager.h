@@ -78,7 +78,7 @@ public:
 	void updateObjectRotation(OEObject& obj, const OEMaths::quatf& rot);
 
 	// =================== getters ==========================
-	TransformInfo& getTransform(const ObjHandle obj);
+	TransformInfo& getTransform(const uint64_t obj);
 
 private:
 

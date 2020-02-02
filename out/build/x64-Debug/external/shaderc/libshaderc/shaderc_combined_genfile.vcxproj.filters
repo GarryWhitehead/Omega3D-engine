@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\4525e693ae45c1253aa78a4e887c7dc6\shaderc_combined.lib.rule">
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\e91299c0a2290099a9d45ddeeb85ec98\shaderc_combined.lib.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\2aee04fb6107309e216186e14338940d\shaderc_combined_genfile.rule">
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\CMakeFiles\b751fd85f133a6881e8bdd7cf30e2b72\shaderc_combined_genfile.rule">
       <Filter>CMake Rules</Filter>
     </CustomBuild>
-    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc\CMakeLists.txt" />
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc\CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\CMakeFiles\shaderc_combined_genfile" />
+    <None Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\libshaderc\CMakeFiles\shaderc_combined_genfile" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="CMake Rules">

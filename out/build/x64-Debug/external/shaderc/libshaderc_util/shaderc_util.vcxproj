@@ -32,14 +32,14 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\Debug\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\libshaderc_util\Debug\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">shaderc_util.dir\Debug\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">shaderc_util</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -59,10 +59,10 @@
     </ClCompile>
     <ResourceCompile>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;NV_EXTENSIONS;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\glslang\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\glslang\SPIRV\..\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-Tools\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\SPIRV-headers\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -74,10 +74,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\CMakeLists.txt">
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc_util/CMakeLists.txt</Message>
+    <CustomBuild Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\CMakeLists.txt">
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc_util/CMakeLists.txt</Message>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc_util/CMakeFiles/generate.stamp"
+"C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe" "-SC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D" "-BC:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug" --check-stamp-file "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc_util/CMakeFiles/generate.stamp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -86,31 +86,31 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckCSourceCompiles.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckIncludeFile.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\CheckLibraryExists.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageHandleStandardArgs.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindPackageMessage.cmake;C:\Program Files (x86)\Microsoft Visual Studio\2019\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\share\cmake-3.15\Modules\FindThreads.cmake;%(AdditionalInputs)</AdditionalInputs>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\CMakeFiles\generate.stamp</Outputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\libshaderc_util\CMakeFiles\generate.stamp</Outputs>
       <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\counting_includer.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\file_finder.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\format.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\io.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\mutex.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\message.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\resources.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\spirv_tools_wrapper.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\string_piece.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\universal_unistd.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\include\libshaderc_util\version_profile.h" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\args.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\compiler.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\file_finder.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\io.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\message.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\resources.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\shader_stage.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\spirv_tools_wrapper.cc" />
-    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\shaderc\libshaderc_util\src\version_profile.cc" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\counting_includer.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\file_finder.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\format.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\io.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\mutex.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\message.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\resources.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\spirv_tools_wrapper.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\string_piece.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\universal_unistd.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include\libshaderc_util\version_profile.h" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\args.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\compiler.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\file_finder.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\io.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\message.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\resources.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\shader_stage.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\spirv_tools_wrapper.cc" />
+    <ClCompile Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\src\version_profile.cc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\ZERO_CHECK.vcxproj">
@@ -119,43 +119,43 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
       <Project>{13B2173B-CF1E-3578-A8DA-0F1514329722}</Project>
       <Name>HLSL</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
       <Project>{BA27FA8F-1125-3732-928A-C5661BE85FAF}</Project>
       <Name>OGLCompiler</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
       <Project>{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}</Project>
       <Name>OSDependent</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
       <Project>{7606B6F7-5933-3A49-BB93-71C68AF76D00}</Project>
       <Name>SPIRV</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
       <Project>{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}</Project>
       <Name>SPIRV-Tools</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
       <Project>{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}</Project>
       <Name>SPIRV-Tools-opt</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\glslang.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\glslang\glslang.vcxproj">
       <Project>{B4284582-40A1-3D87-AEE7-651C2594453B}</Project>
       <Name>glslang</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

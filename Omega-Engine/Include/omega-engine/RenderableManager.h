@@ -2,7 +2,6 @@
 #define RENDERABLEMANAGER_HPP
 
 #include "omega-engine/Engine.h"
-#include "omega-engine/ObjectManager.h"
 
 #include "utility/Compiler.h"
 

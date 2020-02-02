@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Components/ComponentManager.h"
-#include "Core/ObjectManager.h"
 #include "ImageUtils/MappedTexture.h"
 #include "ModelImporter/MeshInstance.h"
 #include "ModelImporter/MaterialInstance.h"
@@ -189,7 +188,7 @@ public:
     /**
      * @brief Returns a instance of a mesh based on the specified object
      */
-    Renderable& getMesh(const ObjHandle obj);
+    Renderable& getMesh(const uint64_t obj);
 
     // === material related functions ===
     /**

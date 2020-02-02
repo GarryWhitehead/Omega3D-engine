@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/ObjectManager.h"
+#include "Types/Object.h"
 
 #include <unordered_map>
 #include <vector>

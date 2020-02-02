@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc
+# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -34,33 +34,33 @@ endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include/shaderc" TYPE FILE FILES
-    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc/include/shaderc/env.h"
-    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc/include/shaderc/status.h"
-    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc/include/shaderc/visibility.h"
-    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc/include/shaderc/shaderc.h"
-    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc/include/shaderc/shaderc.hpp"
+    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc/include/shaderc/env.h"
+    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc/include/shaderc/status.h"
+    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc/include/shaderc/visibility.h"
+    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc/include/shaderc/shaderc.h"
+    "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc/include/shaderc/shaderc.hpp"
     )
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc/Debug/shaderc.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc/Debug/shaderc.lib")
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc/Debug/shaderc_shared.lib")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY OPTIONAL FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc/Debug/shaderc_shared.lib")
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Dd][Ee][Bb][Uu][Gg])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc/Debug/shaderc_shared.dll")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/bin" TYPE SHARED_LIBRARY FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc/Debug/shaderc_shared.dll")
   endif()
 endif()
 
 if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc/${CMAKE_INSTALL_CONFIG_NAME}/shaderc_combined.lib")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc/${CMAKE_INSTALL_CONFIG_NAME}/shaderc_combined.lib")
 endif()
 

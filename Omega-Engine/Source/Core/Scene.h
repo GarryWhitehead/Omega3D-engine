@@ -3,9 +3,6 @@
 #include "omega-engine/Scene.h"
 #include "omega-engine/Skybox.h"
 
-#include "Core/ObjectManager.h"
-#include "Core/ModelGraph.h"
-
 #include "Types/AABox.h"
 
 #include "Rendering/RenderQueue.h"
@@ -84,10 +81,6 @@ private:
 
 	/// per frame: all the renderables after visibility checks
 	RenderQueue renderQueue;
-    
-    /// the model graph for renderable objects - links parent objects with their children.
-    /// will probably become more of a scene graph at some point.
-    ModelGraph modelGraph;
     
 	/// Current camera used by this scene. The 'world' holds the ownership of the cma
 	OECamera* camera;

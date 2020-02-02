@@ -101,17 +101,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ALL_BUILD", "ALL_BUILD.vcxp
 		{298A0BB0-34BA-31A3-AD8A-2B98BCC4152D} = {298A0BB0-34BA-31A3-AD8A-2B98BCC4152D}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Continuous", "external\shaderc\third_party\glslang\Continuous.vcxproj", "{7146B769-F753-3FE8-911A-3EBE8618ADD8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Continuous", "External\shaderc\third_party\glslang\Continuous.vcxproj", "{7146B769-F753-3FE8-911A-3EBE8618ADD8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Experimental", "external\shaderc\third_party\glslang\Experimental.vcxproj", "{C56E35E9-D577-3C6D-AC10-F5B6E1240C18}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Experimental", "External\shaderc\third_party\glslang\Experimental.vcxproj", "{C56E35E9-D577-3C6D-AC10-F5B6E1240C18}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HLSL", "external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj", "{13B2173B-CF1E-3578-A8DA-0F1514329722}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "HLSL", "External\shaderc\third_party\glslang\hlsl\HLSL.vcxproj", "{13B2173B-CF1E-3578-A8DA-0F1514329722}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -129,7 +129,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "INSTALL", "INSTALL.vcxproj"
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LUA", "external\lua\LUA.vcxproj", "{D572448C-29AD-3691-9FEC-766A4B93C824}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "LUA", "External\lua\LUA.vcxproj", "{D572448C-29AD-3691-9FEC-766A4B93C824}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -140,12 +140,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ModelImporter", "Libs\Model
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nightly", "external\shaderc\third_party\glslang\Nightly.vcxproj", "{B041FF7A-B6AC-32A4-9BD8-96D4B5A39EFF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Nightly", "External\shaderc\third_party\glslang\Nightly.vcxproj", "{B041FF7A-B6AC-32A4-9BD8-96D4B5A39EFF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NightlyMemoryCheck", "external\shaderc\third_party\glslang\NightlyMemoryCheck.vcxproj", "{4AA0C322-8B30-397B-8636-7D9C791881E9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "NightlyMemoryCheck", "External\shaderc\third_party\glslang\NightlyMemoryCheck.vcxproj", "{4AA0C322-8B30-397B-8636-7D9C791881E9}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -160,7 +160,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OETHREAD", "Libs\Threading\
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLCompiler", "external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj", "{BA27FA8F-1125-3732-928A-C5661BE85FAF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGLCompiler", "External\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj", "{BA27FA8F-1125-3732-928A-C5661BE85FAF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -186,7 +186,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OMEGA_ENGINE", "Omega-Engin
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSDependent", "external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj", "{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OSDependent", "External\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj", "{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -196,7 +196,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RAPID_JSON", "RAPID_JSON.vc
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV", "external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj", "{7606B6F7-5933-3A49-BB93-71C68AF76D00}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV", "External\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj", "{7606B6F7-5933-3A49-BB93-71C68AF76D00}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -207,7 +207,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV", "external\shaderc\t
 		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools", "external\SPIRV-Tools\source\SPIRV-Tools.vcxproj", "{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools", "External\SPIRV-Tools\source\SPIRV-Tools.vcxproj", "{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{B34BCFE5-87AF-3470-9B5D-139986066985} = {B34BCFE5-87AF-3470-9B5D-139986066985}
@@ -215,27 +215,27 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools", "external\SPI
 		{F9CBA220-C14C-37B5-A33D-14A033934D86} = {F9CBA220-C14C-37B5-A33D-14A033934D86}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-link", "external\SPIRV-Tools\source\link\SPIRV-Tools-link.vcxproj", "{6F101571-AB98-3B00-B89A-F3ADB27E1E79}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-link", "External\SPIRV-Tools\source\link\SPIRV-Tools-link.vcxproj", "{6F101571-AB98-3B00-B89A-F3ADB27E1E79}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-opt", "external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj", "{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-opt", "External\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj", "{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-reduce", "external\SPIRV-Tools\source\reduce\SPIRV-Tools-reduce.vcxproj", "{733CD0AA-D1CE-3EFE-95C7-DC75B9368814}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-reduce", "External\SPIRV-Tools\source\reduce\SPIRV-Tools-reduce.vcxproj", "{733CD0AA-D1CE-3EFE-95C7-DC75B9368814}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-shared", "external\SPIRV-Tools\source\SPIRV-Tools-shared.vcxproj", "{16132C07-58C6-3695-871F-FEF92C1772E6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-shared", "External\SPIRV-Tools\source\SPIRV-Tools-shared.vcxproj", "{16132C07-58C6-3695-871F-FEF92C1772E6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{B34BCFE5-87AF-3470-9B5D-139986066985} = {B34BCFE5-87AF-3470-9B5D-139986066985}
@@ -243,7 +243,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPIRV-Tools-shared", "exter
 		{F9CBA220-C14C-37B5-A33D-14A033934D86} = {F9CBA220-C14C-37B5-A33D-14A033934D86}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPVRemapper", "external\shaderc\third_party\glslang\SPIRV\SPVRemapper.vcxproj", "{35D46BC5-97E4-3F45-9796-5273CBDBBC91}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SPVRemapper", "External\shaderc\third_party\glslang\SPIRV\SPVRemapper.vcxproj", "{35D46BC5-97E4-3F45-9796-5273CBDBBC91}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
@@ -280,37 +280,37 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ZERO_CHECK", "ZERO_CHECK.vc
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "add-copyright", "external\shaderc\add-copyright.vcxproj", "{D7694189-59BF-359A-9E4E-12EF7374AE0E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "add-copyright", "External\shaderc\add-copyright.vcxproj", "{D7694189-59BF-359A-9E4E-12EF7374AE0E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build-version", "external\shaderc\build-version.vcxproj", "{EC41377C-B381-379A-A00B-3FD8FE500C07}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build-version", "External\shaderc\build-version.vcxproj", "{EC41377C-B381-379A-A00B-3FD8FE500C07}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check-copyright", "external\shaderc\check-copyright.vcxproj", "{3B6F5032-C3FF-3BAE-BF73-CF86D0E837A7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "check-copyright", "External\shaderc\check-copyright.vcxproj", "{3B6F5032-C3FF-3BAE-BF73-CF86D0E837A7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "copy-tests-if-necessary", "external\shaderc\third_party\copy-tests-if-necessary.vcxproj", "{3C219672-FAB8-3AA6-B618-E641B03901F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "copy-tests-if-necessary", "External\shaderc\third_party\copy-tests-if-necessary.vcxproj", "{3C219672-FAB8-3AA6-B618-E641B03901F8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core_tables", "external\SPIRV-Tools\source\core_tables.vcxproj", "{B34BCFE5-87AF-3470-9B5D-139986066985}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core_tables", "External\SPIRV-Tools\source\core_tables.vcxproj", "{B34BCFE5-87AF-3470-9B5D-139986066985}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enum_string_mapping", "external\SPIRV-Tools\source\enum_string_mapping.vcxproj", "{4CB315BD-BCCE-31BF-85CD-8F2843788F61}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "enum_string_mapping", "External\SPIRV-Tools\source\enum_string_mapping.vcxproj", "{4CB315BD-BCCE-31BF-85CD-8F2843788F61}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extinst_tables", "external\SPIRV-Tools\source\extinst_tables.vcxproj", "{F9CBA220-C14C-37B5-A33D-14A033934D86}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extinst_tables", "External\SPIRV-Tools\source\extinst_tables.vcxproj", "{F9CBA220-C14C-37B5-A33D-14A033934D86}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{EF6FD91C-487D-3343-9A8A-27E8C3B60FDF} = {EF6FD91C-487D-3343-9A8A-27E8C3B60FDF}
@@ -321,12 +321,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "extinst_tables", "external\
 		{9F946F38-AAC2-35BD-8D94-AD37EEA1FBBB} = {9F946F38-AAC2-35BD-8D94-AD37EEA1FBBB}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw", "external\glfw\src\glfw.vcxproj", "{D39CEE3C-1F01-3082-B101-6C4A2DA85399}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glfw", "External\glfw\src\glfw.vcxproj", "{D39CEE3C-1F01-3082-B101-6C4A2DA85399}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "external\shaderc\third_party\glslang\glslang\glslang.vcxproj", "{B4284582-40A1-3D87-AEE7-651C2594453B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "External\shaderc\third_party\glslang\glslang\glslang.vcxproj", "{B4284582-40A1-3D87-AEE7-651C2594453B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -334,12 +334,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "external\shaderc
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang-default-resource-limits", "external\shaderc\third_party\glslang\StandAlone\glslang-default-resource-limits.vcxproj", "{8BBA88BE-D4CA-387A-8A3C-42137ED75405}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang-default-resource-limits", "External\shaderc\third_party\glslang\StandAlone\glslang-default-resource-limits.vcxproj", "{8BBA88BE-D4CA-387A-8A3C-42137ED75405}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangValidator", "external\shaderc\third_party\glslang\StandAlone\glslangValidator.vcxproj", "{E2D02BE7-8B31-3096-AB38-FDBA976A8178}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangValidator", "External\shaderc\third_party\glslang\StandAlone\glslangValidator.vcxproj", "{E2D02BE7-8B31-3096-AB38-FDBA976A8178}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -353,7 +353,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangValidator", "externa
 		{8BBA88BE-D4CA-387A-8A3C-42137ED75405} = {8BBA88BE-D4CA-387A-8A3C-42137ED75405}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangtests", "external\shaderc\third_party\glslang\gtests\glslangtests.vcxproj", "{1CFA8579-80A9-3271-844F-7437089B5802}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangtests", "External\shaderc\third_party\glslang\gtests\glslangtests.vcxproj", "{1CFA8579-80A9-3271-844F-7437089B5802}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -368,7 +368,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslangtests", "external\sh
 		{64C398C8-78A4-3A81-BB6C-28937AF54407} = {64C398C8-78A4-3A81-BB6C-28937AF54407}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc", "external\shaderc\glslc\glslc.vcxproj", "{2481462D-7C7E-3264-9B21-16508AB373B8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc", "External\shaderc\glslc\glslc.vcxproj", "{2481462D-7C7E-3264-9B21-16508AB373B8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -382,7 +382,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc", "external\shaderc\g
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_exe", "external\shaderc\glslc\glslc_exe.vcxproj", "{38C1D84E-1889-368F-BCE8-6A83247619BE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_exe", "External\shaderc\glslc\glslc_exe.vcxproj", "{38C1D84E-1889-368F-BCE8-6A83247619BE}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -398,7 +398,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_exe", "external\shade
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_file_test", "external\shaderc\glslc\glslc_file_test.vcxproj", "{01EED1AD-53DA-31A1-A79D-5F60E29D9494}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_file_test", "External\shaderc\glslc\glslc_file_test.vcxproj", "{01EED1AD-53DA-31A1-A79D-5F60E29D9494}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -416,7 +416,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_file_test", "external
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_resource_parse_test", "external\shaderc\glslc\glslc_resource_parse_test.vcxproj", "{AD65B97D-632D-3545-89A5-661A32FEC16C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_resource_parse_test", "External\shaderc\glslc\glslc_resource_parse_test.vcxproj", "{AD65B97D-632D-3545-89A5-661A32FEC16C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -434,7 +434,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_resource_parse_test",
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_stage_test", "external\shaderc\glslc\glslc_stage_test.vcxproj", "{9D073BD1-94D9-3590-9D6B-F457F5670B3C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_stage_test", "External\shaderc\glslc\glslc_stage_test.vcxproj", "{9D073BD1-94D9-3590-9D6B-F457F5670B3C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -452,33 +452,33 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslc_stage_test", "externa
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock", "external\shaderc\third_party\googletest\googlemock\gmock.vcxproj", "{64C398C8-78A4-3A81-BB6C-28937AF54407}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock", "External\shaderc\third_party\googletest\googlemock\gmock.vcxproj", "{64C398C8-78A4-3A81-BB6C-28937AF54407}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock_main", "external\shaderc\third_party\googletest\googlemock\gmock_main.vcxproj", "{28B5494A-3A94-3B0C-941E-78FDEA423F57}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gmock_main", "External\shaderc\third_party\googletest\googlemock\gmock_main.vcxproj", "{28B5494A-3A94-3B0C-941E-78FDEA423F57}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "external\shaderc\third_party\googletest\googletest\gtest.vcxproj", "{570ADA89-836D-3F85-85C9-FA53C01380F8}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest", "External\shaderc\third_party\googletest\googletest\gtest.vcxproj", "{570ADA89-836D-3F85-85C9-FA53C01380F8}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest_main", "external\shaderc\third_party\googletest\googletest\gtest_main.vcxproj", "{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gtest_main", "External\shaderc\third_party\googletest\googletest\gtest_main.vcxproj", "{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{570ADA89-836D-3F85-85C9-FA53C01380F8} = {570ADA89-836D-3F85-85C9-FA53C01380F8}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "install-headers", "external\shaderc\third_party\spirv-headers\install-headers.vcxproj", "{AB0750D6-684C-3A99-9694-9F63A46C55AF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "install-headers", "External\shaderc\third_party\spirv-headers\install-headers.vcxproj", "{AB0750D6-684C-3A99-9694-9F63A46C55AF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc", "external\shaderc\libshaderc\shaderc.vcxproj", "{4F4C7D7F-A013-320B-AAA5-B96C448E007D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc", "External\shaderc\libshaderc\shaderc.vcxproj", "{4F4C7D7F-A013-320B-AAA5-B96C448E007D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -491,26 +491,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc", "external\shaderc
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc-online-compile", "external\shaderc\examples\online-compile\shaderc-online-compile.vcxproj", "{871A688F-9874-3C2D-8F34-7BAC7A0BFD2F}"
-	ProjectSection(ProjectDependencies) = postProject
-		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
-		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
-		{F403F5E4-A2FE-3EEF-9DA1-F504017951B0} = {F403F5E4-A2FE-3EEF-9DA1-F504017951B0}
-		{7606B6F7-5933-3A49-BB93-71C68AF76D00} = {7606B6F7-5933-3A49-BB93-71C68AF76D00}
-		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
-		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
-		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
-		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
-		{4F4C7D7F-A013-320B-AAA5-B96C448E007D} = {4F4C7D7F-A013-320B-AAA5-B96C448E007D}
-		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc-pkg-config", "external\shaderc\shaderc-pkg-config.vcxproj", "{93814563-4AA1-3341-B835-727FBC2F4669}"
-	ProjectSection(ProjectDependencies) = postProject
-		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_c_smoke_test", "external\shaderc\libshaderc\shaderc_c_smoke_test.vcxproj", "{70EFDB85-C008-3B3B-BEBA-FB7E3DBA01B6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc-online-compile", "External\shaderc\examples\online-compile\shaderc-online-compile.vcxproj", "{871A688F-9874-3C2D-8F34-7BAC7A0BFD2F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -524,12 +505,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_c_smoke_test", "ext
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined-pkg-config", "external\shaderc\shaderc_combined-pkg-config.vcxproj", "{813E42F6-CEA9-38F3-92FB-0BAA366A81FA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc-pkg-config", "External\shaderc\shaderc-pkg-config.vcxproj", "{93814563-4AA1-3341-B835-727FBC2F4669}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_genfile", "external\shaderc\libshaderc\shaderc_combined_genfile.vcxproj", "{94750AE9-848A-33E0-9135-D519CF176BA9}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_c_smoke_test", "External\shaderc\libshaderc\shaderc_c_smoke_test.vcxproj", "{70EFDB85-C008-3B3B-BEBA-FB7E3DBA01B6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -543,7 +524,26 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_genfile", 
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_cpp_test", "external\shaderc\libshaderc\shaderc_combined_shaderc_cpp_test.vcxproj", "{71A42D69-86E3-3AB8-B7A0-612EFE3D79DF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined-pkg-config", "External\shaderc\shaderc_combined-pkg-config.vcxproj", "{813E42F6-CEA9-38F3-92FB-0BAA366A81FA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_genfile", "External\shaderc\libshaderc\shaderc_combined_genfile.vcxproj", "{94750AE9-848A-33E0-9135-D519CF176BA9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
+		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
+		{F403F5E4-A2FE-3EEF-9DA1-F504017951B0} = {F403F5E4-A2FE-3EEF-9DA1-F504017951B0}
+		{7606B6F7-5933-3A49-BB93-71C68AF76D00} = {7606B6F7-5933-3A49-BB93-71C68AF76D00}
+		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
+		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
+		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
+		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
+		{4F4C7D7F-A013-320B-AAA5-B96C448E007D} = {4F4C7D7F-A013-320B-AAA5-B96C448E007D}
+		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_cpp_test", "External\shaderc\libshaderc\shaderc_combined_shaderc_cpp_test.vcxproj", "{71A42D69-86E3-3AB8-B7A0-612EFE3D79DF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{64C398C8-78A4-3A81-BB6C-28937AF54407} = {64C398C8-78A4-3A81-BB6C-28937AF54407}
@@ -552,7 +552,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_cp
 		{94750AE9-848A-33E0-9135-D519CF176BA9} = {94750AE9-848A-33E0-9135-D519CF176BA9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_test", "external\shaderc\libshaderc\shaderc_combined_shaderc_test.vcxproj", "{3E96666D-A709-3B54-AB27-36BE376D2D39}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_test", "External\shaderc\libshaderc\shaderc_combined_shaderc_test.vcxproj", "{3E96666D-A709-3B54-AB27-36BE376D2D39}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 		{64C398C8-78A4-3A81-BB6C-28937AF54407} = {64C398C8-78A4-3A81-BB6C-28937AF54407}
@@ -561,7 +561,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_combined_shaderc_te
 		{94750AE9-848A-33E0-9135-D519CF176BA9} = {94750AE9-848A-33E0-9135-D519CF176BA9}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_cpp_test", "external\shaderc\libshaderc\shaderc_shaderc_cpp_test.vcxproj", "{8DB67EC0-E931-342E-8E78-26B9886D4999}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_cpp_test", "External\shaderc\libshaderc\shaderc_shaderc_cpp_test.vcxproj", "{8DB67EC0-E931-342E-8E78-26B9886D4999}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -578,7 +578,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_cpp_test", 
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_private_test", "external\shaderc\libshaderc\shaderc_shaderc_private_test.vcxproj", "{ABC8ECA2-D6C8-3EB5-9C9B-FF388CACE374}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_private_test", "External\shaderc\libshaderc\shaderc_shaderc_private_test.vcxproj", "{ABC8ECA2-D6C8-3EB5-9C9B-FF388CACE374}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -595,7 +595,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_private_tes
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_test", "external\shaderc\libshaderc\shaderc_shaderc_test.vcxproj", "{E79FA513-595D-33BF-87F1-EF57A2895F76}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_test", "External\shaderc\libshaderc\shaderc_shaderc_test.vcxproj", "{E79FA513-595D-33BF-87F1-EF57A2895F76}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -612,7 +612,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shaderc_test", "ext
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared", "external\shaderc\libshaderc\shaderc_shared.vcxproj", "{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared", "External\shaderc\libshaderc\shaderc_shared.vcxproj", "{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -625,7 +625,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared", "external\
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_cpp_test", "external\shaderc\libshaderc\shaderc_shared_shaderc_cpp_test.vcxproj", "{A0EDF262-FD94-3BAA-A7D3-F66F10E5002D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_cpp_test", "External\shaderc\libshaderc\shaderc_shared_shaderc_cpp_test.vcxproj", "{A0EDF262-FD94-3BAA-A7D3-F66F10E5002D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
@@ -635,7 +635,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_cpp_
 		{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1} = {B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_private_test", "external\shaderc\libshaderc\shaderc_shared_shaderc_private_test.vcxproj", "{D3528028-D215-3977-9936-B6B81B736B47}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_private_test", "External\shaderc\libshaderc\shaderc_shared_shaderc_private_test.vcxproj", "{D3528028-D215-3977-9936-B6B81B736B47}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
@@ -645,7 +645,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_priv
 		{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1} = {B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_test", "external\shaderc\libshaderc\shaderc_shared_shaderc_test.vcxproj", "{368E6EE0-79B9-34DF-93E9-9A5BED608ECA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_test", "External\shaderc\libshaderc\shaderc_shared_shaderc_test.vcxproj", "{368E6EE0-79B9-34DF-93E9-9A5BED608ECA}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
@@ -655,12 +655,12 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_shared_shaderc_test
 		{B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1} = {B62D13C8-E277-3ACA-B95E-E1CE42DF0FA1}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_static-pkg-config", "external\shaderc\shaderc_static-pkg-config.vcxproj", "{749C3E76-84FE-32F0-9DB2-10D431838BD5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_static-pkg-config", "External\shaderc\shaderc_static-pkg-config.vcxproj", "{749C3E76-84FE-32F0-9DB2-10D431838BD5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util", "external\shaderc\libshaderc_util\shaderc_util.vcxproj", "{AEF46BF8-8521-32B8-9281-93918F129841}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util", "External\shaderc\libshaderc_util\shaderc_util.vcxproj", "{AEF46BF8-8521-32B8-9281-93918F129841}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -672,23 +672,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util", "external\sh
 		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_compiler_test", "external\shaderc\libshaderc_util\shaderc_util_compiler_test.vcxproj", "{66A1264D-DE5E-332D-BF69-92D8D86A994E}"
-	ProjectSection(ProjectDependencies) = postProject
-		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
-		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
-		{F403F5E4-A2FE-3EEF-9DA1-F504017951B0} = {F403F5E4-A2FE-3EEF-9DA1-F504017951B0}
-		{7606B6F7-5933-3A49-BB93-71C68AF76D00} = {7606B6F7-5933-3A49-BB93-71C68AF76D00}
-		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
-		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
-		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
-		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
-		{64C398C8-78A4-3A81-BB6C-28937AF54407} = {64C398C8-78A4-3A81-BB6C-28937AF54407}
-		{570ADA89-836D-3F85-85C9-FA53C01380F8} = {570ADA89-836D-3F85-85C9-FA53C01380F8}
-		{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E} = {A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}
-		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
-	EndProjectSection
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_counting_includer_test", "external\shaderc\libshaderc_util\shaderc_util_counting_includer_test.vcxproj", "{70E0CCCF-975D-3288-8079-24F481E5EFE7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_compiler_test", "External\shaderc\libshaderc_util\shaderc_util_compiler_test.vcxproj", "{66A1264D-DE5E-332D-BF69-92D8D86A994E}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -704,7 +688,23 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_counting_inclu
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_file_finder_test", "external\shaderc\libshaderc_util\shaderc_util_file_finder_test.vcxproj", "{C85254DC-F2BD-3F61-B8AB-5F8E53A93AC4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_counting_includer_test", "External\shaderc\libshaderc_util\shaderc_util_counting_includer_test.vcxproj", "{70E0CCCF-975D-3288-8079-24F481E5EFE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
+		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
+		{F403F5E4-A2FE-3EEF-9DA1-F504017951B0} = {F403F5E4-A2FE-3EEF-9DA1-F504017951B0}
+		{7606B6F7-5933-3A49-BB93-71C68AF76D00} = {7606B6F7-5933-3A49-BB93-71C68AF76D00}
+		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
+		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
+		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
+		{B4284582-40A1-3D87-AEE7-651C2594453B} = {B4284582-40A1-3D87-AEE7-651C2594453B}
+		{64C398C8-78A4-3A81-BB6C-28937AF54407} = {64C398C8-78A4-3A81-BB6C-28937AF54407}
+		{570ADA89-836D-3F85-85C9-FA53C01380F8} = {570ADA89-836D-3F85-85C9-FA53C01380F8}
+		{A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E} = {A846ABF8-3C32-3E0D-8F24-5C5A8CE6C10E}
+		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_file_finder_test", "External\shaderc\libshaderc_util\shaderc_util_file_finder_test.vcxproj", "{C85254DC-F2BD-3F61-B8AB-5F8E53A93AC4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -721,7 +721,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_file_finder_te
 		{4F8C528C-CB91-366E-AD07-3E4A30F5B11A} = {4F8C528C-CB91-366E-AD07-3E4A30F5B11A}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_format_test", "external\shaderc\libshaderc_util\shaderc_util_format_test.vcxproj", "{FBBDCC5A-5DE8-339B-8E42-28F97F320049}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_format_test", "External\shaderc\libshaderc_util\shaderc_util_format_test.vcxproj", "{FBBDCC5A-5DE8-339B-8E42-28F97F320049}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -737,7 +737,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_format_test", 
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_io_test", "external\shaderc\libshaderc_util\shaderc_util_io_test.vcxproj", "{8BEA377A-C946-30C7-9A8B-8F51FFEEA10F}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_io_test", "External\shaderc\libshaderc_util\shaderc_util_io_test.vcxproj", "{8BEA377A-C946-30C7-9A8B-8F51FFEEA10F}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -754,7 +754,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_io_test", "ext
 		{4F8C528C-CB91-366E-AD07-3E4A30F5B11A} = {4F8C528C-CB91-366E-AD07-3E4A30F5B11A}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_message_test", "external\shaderc\libshaderc_util\shaderc_util_message_test.vcxproj", "{A8859CEB-9F87-33E2-A42A-9A4045DAC30A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_message_test", "External\shaderc\libshaderc_util\shaderc_util_message_test.vcxproj", "{A8859CEB-9F87-33E2-A42A-9A4045DAC30A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -770,7 +770,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_message_test",
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_mutex_test", "external\shaderc\libshaderc_util\shaderc_util_mutex_test.vcxproj", "{616896D6-30A0-33D4-A92F-73E3DAB75C5A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_mutex_test", "External\shaderc\libshaderc_util\shaderc_util_mutex_test.vcxproj", "{616896D6-30A0-33D4-A92F-73E3DAB75C5A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -786,7 +786,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_mutex_test", "
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_string_piece_test", "external\shaderc\libshaderc_util\shaderc_util_string_piece_test.vcxproj", "{94B1647D-708D-3A9E-900B-D2F227CA5CA5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_string_piece_test", "External\shaderc\libshaderc_util\shaderc_util_string_piece_test.vcxproj", "{94B1647D-708D-3A9E-900B-D2F227CA5CA5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -802,7 +802,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_string_piece_t
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_version_profile_test", "external\shaderc\libshaderc_util\shaderc_util_version_profile_test.vcxproj", "{4858CA35-958A-355B-9F24-AA53A86FF204}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_version_profile_test", "External\shaderc\libshaderc_util\shaderc_util_version_profile_test.vcxproj", "{4858CA35-958A-355B-9F24-AA53A86FF204}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -818,25 +818,25 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderc_util_version_profil
 		{AEF46BF8-8521-32B8-9281-93918F129841} = {AEF46BF8-8521-32B8-9281-93918F129841}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-as", "external\SPIRV-Tools\tools\spirv-as.vcxproj", "{9E5ECFD2-D4A8-3B21-8A84-D3F4E15D6F06}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-as", "External\SPIRV-Tools\tools\spirv-as.vcxproj", "{9E5ECFD2-D4A8-3B21-8A84-D3F4E15D6F06}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-cfg", "external\SPIRV-Tools\tools\spirv-cfg.vcxproj", "{F77F0BED-3520-373E-B605-662A66662784}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-cfg", "External\SPIRV-Tools\tools\spirv-cfg.vcxproj", "{F77F0BED-3520-373E-B605-662A66662784}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-dis", "external\SPIRV-Tools\tools\spirv-dis.vcxproj", "{25B8697F-7A53-334B-9843-7884B630330A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-dis", "External\SPIRV-Tools\tools\spirv-dis.vcxproj", "{25B8697F-7A53-334B-9843-7884B630330A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-link", "external\SPIRV-Tools\tools\spirv-link.vcxproj", "{CE5F6FE1-1862-398D-8CEA-FD1DF6664871}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-link", "External\SPIRV-Tools\tools\spirv-link.vcxproj", "{CE5F6FE1-1862-398D-8CEA-FD1DF6664871}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{6F101571-AB98-3B00-B89A-F3ADB27E1E79} = {6F101571-AB98-3B00-B89A-F3ADB27E1E79}
@@ -844,14 +844,14 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-link", "external\SPIR
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-opt", "external\SPIRV-Tools\tools\spirv-opt.vcxproj", "{D5ED9480-4E9C-3797-A548-3B0C503D1905}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-opt", "External\SPIRV-Tools\tools\spirv-opt.vcxproj", "{D5ED9480-4E9C-3797-A548-3B0C503D1905}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-reduce", "external\SPIRV-Tools\tools\spirv-reduce.vcxproj", "{2BBE76D4-AAF2-3649-819E-43A0F3D64BF6}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-reduce", "External\SPIRV-Tools\tools\spirv-reduce.vcxproj", "{2BBE76D4-AAF2-3649-819E-43A0F3D64BF6}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
@@ -859,7 +859,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-reduce", "external\SP
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-remap", "external\shaderc\third_party\glslang\StandAlone\spirv-remap.vcxproj", "{F9602671-C600-3DFC-8D4A-B9B015AE6E8C}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-remap", "External\shaderc\third_party\glslang\StandAlone\spirv-remap.vcxproj", "{F9602671-C600-3DFC-8D4A-B9B015AE6E8C}"
 	ProjectSection(ProjectDependencies) = postProject
 		{13B2173B-CF1E-3578-A8DA-0F1514329722} = {13B2173B-CF1E-3578-A8DA-0F1514329722}
 		{BA27FA8F-1125-3732-928A-C5661BE85FAF} = {BA27FA8F-1125-3732-928A-C5661BE85FAF}
@@ -873,75 +873,75 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-remap", "external\sha
 		{8BBA88BE-D4CA-387A-8A3C-42137ED75405} = {8BBA88BE-D4CA-387A-8A3C-42137ED75405}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-build-version", "external\SPIRV-Tools\source\spirv-tools-build-version.vcxproj", "{A33D6E8B-28EB-3A4E-B296-E5145EC40A23}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-build-version", "External\SPIRV-Tools\source\spirv-tools-build-version.vcxproj", "{A33D6E8B-28EB-3A4E-B296-E5145EC40A23}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-cpp-example", "external\SPIRV-Tools\examples\cpp-interface\spirv-tools-cpp-example.vcxproj", "{AC770FB9-E248-3B07-8913-5F690151AD6B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-cpp-example", "External\SPIRV-Tools\examples\cpp-interface\spirv-tools-cpp-example.vcxproj", "{AC770FB9-E248-3B07-8913-5F690151AD6B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A} = {774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-header-DebugInfo", "external\SPIRV-Tools\source\spirv-tools-header-DebugInfo.vcxproj", "{EF6FD91C-487D-3343-9A8A-27E8C3B60FDF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-header-DebugInfo", "External\SPIRV-Tools\source\spirv-tools-header-DebugInfo.vcxproj", "{EF6FD91C-487D-3343-9A8A-27E8C3B60FDF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-pkg-config", "external\SPIRV-Tools\spirv-tools-pkg-config.vcxproj", "{DEEBFCA6-8F9D-366A-96D9-2ED1AA8F6D45}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-pkg-config", "External\SPIRV-Tools\spirv-tools-pkg-config.vcxproj", "{DEEBFCA6-8F9D-366A-96D9-2ED1AA8F6D45}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-shared-pkg-config", "external\SPIRV-Tools\spirv-tools-shared-pkg-config.vcxproj", "{4B095375-BF48-337D-82A7-2DC55B8CD3E4}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-shared-pkg-config", "External\SPIRV-Tools\spirv-tools-shared-pkg-config.vcxproj", "{4B095375-BF48-337D-82A7-2DC55B8CD3E4}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-vimsyntax", "external\SPIRV-Tools\source\spirv-tools-vimsyntax.vcxproj", "{3046F16A-F89E-309C-B027-D25F5DA94A10}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-tools-vimsyntax", "External\SPIRV-Tools\source\spirv-tools-vimsyntax.vcxproj", "{3046F16A-F89E-309C-B027-D25F5DA94A10}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-val", "external\SPIRV-Tools\tools\spirv-val.vcxproj", "{298A0BB0-34BA-31A3-AD8A-2B98BCC4152D}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spirv-val", "External\SPIRV-Tools\tools\spirv-val.vcxproj", "{298A0BB0-34BA-31A3-AD8A-2B98BCC4152D}"
 	ProjectSection(ProjectDependencies) = postProject
 		{2494CC8A-4112-37FA-904D-6A24DE7BAE4D} = {2494CC8A-4112-37FA-904D-6A24DE7BAE4D}
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-debuginfo", "external\SPIRV-Tools\source\spv-tools-debuginfo.vcxproj", "{81C1A69B-04CA-3645-9AD3-E1208111FB7B}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-debuginfo", "External\SPIRV-Tools\source\spv-tools-debuginfo.vcxproj", "{81C1A69B-04CA-3645-9AD3-E1208111FB7B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-gs", "external\SPIRV-Tools\source\spv-tools-spv-amd-gs.vcxproj", "{DF0EEE9E-DE55-3BAC-987F-916D614D12EF}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-gs", "External\SPIRV-Tools\source\spv-tools-spv-amd-gs.vcxproj", "{DF0EEE9E-DE55-3BAC-987F-916D614D12EF}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-sb", "external\SPIRV-Tools\source\spv-tools-spv-amd-sb.vcxproj", "{08047013-23CC-3F71-8605-78205B0A05D2}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-sb", "External\SPIRV-Tools\source\spv-tools-spv-amd-sb.vcxproj", "{08047013-23CC-3F71-8605-78205B0A05D2}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-sevp", "external\SPIRV-Tools\source\spv-tools-spv-amd-sevp.vcxproj", "{0BA5ABCC-FA4B-3D9C-B59C-718028AC3AD7}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-sevp", "External\SPIRV-Tools\source\spv-tools-spv-amd-sevp.vcxproj", "{0BA5ABCC-FA4B-3D9C-B59C-718028AC3AD7}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-stm", "external\SPIRV-Tools\source\spv-tools-spv-amd-stm.vcxproj", "{9F946F38-AAC2-35BD-8D94-AD37EEA1FBBB}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "spv-tools-spv-amd-stm", "External\SPIRV-Tools\source\spv-tools-spv-amd-stm.vcxproj", "{9F946F38-AAC2-35BD-8D94-AD37EEA1FBBB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testdata", "external\shaderc\libshaderc_util\testdata.vcxproj", "{4F8C528C-CB91-366E-AD07-3E4A30F5B11A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testdata", "External\shaderc\libshaderc_util\testdata.vcxproj", "{4F8C528C-CB91-366E-AD07-3E4A30F5B11A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uninstall", "external\glfw\uninstall.vcxproj", "{AEB1404E-6D98-3453-B163-57B6033A03E0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "uninstall", "External\glfw\uninstall.vcxproj", "{AEB1404E-6D98-3453-B163-57B6033A03E0}"
 	ProjectSection(ProjectDependencies) = postProject
 		{0C61801E-A871-36A9-8E10-FBCB73BD3382} = {0C61801E-A871-36A9-8E10-FBCB73BD3382}
 	EndProjectSection

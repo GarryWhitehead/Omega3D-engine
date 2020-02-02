@@ -8,8 +8,8 @@ namespace OmegaEngine
 // forward declerartions
 class Scene;
 class Skybox;
-class ObjectManager;
 class Camera;
+class Object;
 
 class OE_PUBLIC World
 {
@@ -27,9 +27,13 @@ public:
 
     Skybox* createSkybox();
 
-    ObjectManager* getObjManager();
-
     Camera* createCamera();
+
+    Object* createParentObj();
+
+    Object* createChildObj(Object* parent);
+
+    void destroyObject(Object* obj);
 
 private:
     

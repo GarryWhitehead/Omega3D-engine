@@ -4,7 +4,7 @@
 #include "omega-engine/Camera.h"
 #include "omega-engine/Engine.h"
 #include "omega-engine/LightManager.h"
-#include "omega-engine/ObjectManager.h"
+#include "omega-engine/Object.h"
 #include "omega-engine/RenderableManager.h"
 #include "omega-engine/Skybox.h"
 #include "utility/Logger.h"
@@ -50,19 +50,22 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // we require the object manager for creating new object instances
-    auto* objManager = world->getObjManager();
-
     // we can adjust the model transformation.
     model.setWorldTrans({4.0f, 3.0f, 5.0})
         .setWorldScale({15.0f})
         .setWorldRotation({0.5, 0.0f, 0.5f, 0.5f})
         .prepare();
 
-    // add each node of the model - this will 'always' be one or more
+    // we casn piece different meshes together so we have a parent object and their children
+    
+    // Or, we can have models that have no chilren, this is done via the createParentObj() as above
     for (auto& node : model.nodes)
     {
-        Object* modelObj = objManager->createObject();
+        Object* modelObj = world->createParentObj();
+        
+        // set the world matrix
+        world.setModelWorldMatrix(modelObj, mat);
+
         RenderableInstance instance;
         MeshInstance* mesh = node->getMesh();
         instance.addMesh(mesh)

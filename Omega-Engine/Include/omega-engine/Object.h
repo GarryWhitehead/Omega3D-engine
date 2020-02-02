@@ -22,21 +22,6 @@ private:
 
 };
 
-
-class OE_PUBLIC ObjectManager
-{
-public:
-	ObjectManager() = default;
-
-	// object creation functions
-	Object* createObject();
-
-	//
-	void destroyObject(Object* obj);
-
-private:
-};
-
 }    // namespace OmegaEngine
 
 #endif /* ObjectManager_hpp */

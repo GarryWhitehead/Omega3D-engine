@@ -41,7 +41,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\glslc\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <CompileAs>CompileAsCpp</CompileAs>
@@ -56,15 +56,15 @@
       <RuntimeTypeInfo>true</RuntimeTypeInfo>
       <UseFullPaths>false</UseFullPaths>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;OE_SHADER_DIR="C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Shaders/";OE_ASSETS_DIR="C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Assets/";CMAKE_INTDIR="Debug";%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ObjectFileName>$(IntDir)</ObjectFileName>
     </ClCompile>
     <ResourceCompile>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;NOMINMAX;_CRT_NONSTDC_NO_DEPRECATE;_USE_MATH_DEFINES=1;VK_USE_PLATFORM_WIN32_KHR;OE_SHADER_DIR=\"C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Shaders/\";OE_ASSETS_DIR=\"C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Assets/\";CMAKE_INTDIR=\"Debug\";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\glslc\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ResourceCompile>
     <Midl>
-      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\external\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Examples;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\vulkan;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\rapidjson\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\VulkanMemoryAllocator\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\stb;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\libshaderc_util\include;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\External\shaderc\glslc\src;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Libs\ModelImporter\Formats;C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
       <HeaderFileName>%(Filename).h</HeaderFileName>
       <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
@@ -72,7 +72,7 @@
       <ProxyFileName>%(Filename)_p.c</ProxyFileName>
     </Midl>
     <Link>
-      <AdditionalDependencies>..\Omega-Engine\Debug\OMEGA_ENGINE.lib;C:\VulkanSDK\1.1.121.2\Lib\vulkan-1.lib;..\external\glfw\src\Debug\glfw3.lib;..\external\shaderc\libshaderc\Debug\shaderc.lib;..\external\shaderc\libshaderc_util\Debug\shaderc_util.lib;..\external\shaderc\third_party\glslang\SPIRV\Debug\SPIRVd.lib;..\external\shaderc\third_party\glslang\glslang\Debug\glslangd.lib;..\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\Debug\OSDependentd.lib;..\external\shaderc\third_party\glslang\OGLCompilersDLL\Debug\OGLCompilerd.lib;..\external\shaderc\third_party\glslang\hlsl\Debug\HLSLd.lib;..\external\SPIRV-Tools\source\opt\Debug\SPIRV-Tools-opt.lib;..\external\SPIRV-Tools\source\Debug\SPIRV-Tools.lib;..\external\lua\Debug\LUA.lib;..\Libs\ImageUtils\Debug\IMAGE.lib;..\Libs\Threading\Debug\OETHREAD.lib;..\Libs\utility\Debug\UTILITY.lib;..\Libs\ModelImporter\Debug\ModelImporter.lib;..\Libs\OEMaths\Debug\OEMATHS.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
+      <AdditionalDependencies>..\Omega-Engine\Debug\OMEGA_ENGINE.lib;C:\VulkanSDK\1.1.121.2\Lib\vulkan-1.lib;..\External\glfw\src\Debug\glfw3.lib;..\External\shaderc\libshaderc\Debug\shaderc.lib;..\External\shaderc\libshaderc_util\Debug\shaderc_util.lib;..\External\shaderc\third_party\glslang\SPIRV\Debug\SPIRVd.lib;..\External\shaderc\third_party\glslang\glslang\Debug\glslangd.lib;..\External\shaderc\third_party\glslang\glslang\OSDependent\Windows\Debug\OSDependentd.lib;..\External\shaderc\third_party\glslang\OGLCompilersDLL\Debug\OGLCompilerd.lib;..\External\shaderc\third_party\glslang\hlsl\Debug\HLSLd.lib;..\External\SPIRV-Tools\source\opt\Debug\SPIRV-Tools-opt.lib;..\External\SPIRV-Tools\source\Debug\SPIRV-Tools.lib;..\External\lua\Debug\LUA.lib;..\Libs\ImageUtils\Debug\IMAGE.lib;..\Libs\Threading\Debug\OETHREAD.lib;..\Libs\utility\Debug\UTILITY.lib;..\Libs\ModelImporter\Debug\ModelImporter.lib;..\Libs\OEMaths\Debug\OEMATHS.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib</AdditionalDependencies>
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalOptions>%(AdditionalOptions) /machine:x64</AdditionalOptions>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -112,7 +112,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\World.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\Camera.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\Application.h" />
-    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\ObjectManager.h" />
+    <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\Object.h" />
     <ClInclude Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\Omega-Engine\Include\omega-engine\Renderer.h" />
   </ItemGroup>
   <ItemGroup>
@@ -122,7 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\hlsl\HLSL.vcxproj">
       <Project>{13B2173B-CF1E-3578-A8DA-0F1514329722}</Project>
       <Name>HLSL</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -134,7 +134,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\lua\LUA.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\lua\LUA.vcxproj">
       <Project>{D572448C-29AD-3691-9FEC-766A4B93C824}</Project>
       <Name>LUA</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -158,7 +158,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\OGLCompilersDLL\OGLCompiler.vcxproj">
       <Project>{BA27FA8F-1125-3732-928A-C5661BE85FAF}</Project>
       <Name>OGLCompiler</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -170,25 +170,25 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\glslang\OSDependent\Windows\OSDependent.vcxproj">
       <Project>{F403F5E4-A2FE-3EEF-9DA1-F504017951B0}</Project>
       <Name>OSDependent</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\SPIRV\SPIRV.vcxproj">
       <Project>{7606B6F7-5933-3A49-BB93-71C68AF76D00}</Project>
       <Name>SPIRV</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\SPIRV-Tools\source\SPIRV-Tools.vcxproj">
       <Project>{2494CC8A-4112-37FA-904D-6A24DE7BAE4D}</Project>
       <Name>SPIRV-Tools</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\SPIRV-Tools\source\opt\SPIRV-Tools-opt.vcxproj">
       <Project>{774B8ECC-D929-3EEB-AC49-FDD1F5A0AF2A}</Project>
       <Name>SPIRV-Tools-opt</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
@@ -200,25 +200,25 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\glfw\src\glfw.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\glfw\src\glfw.vcxproj">
       <Project>{D39CEE3C-1F01-3082-B101-6C4A2DA85399}</Project>
       <Name>glfw</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\third_party\glslang\glslang\glslang.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\third_party\glslang\glslang\glslang.vcxproj">
       <Project>{B4284582-40A1-3D87-AEE7-651C2594453B}</Project>
       <Name>glslang</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc\shaderc.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\libshaderc\shaderc.vcxproj">
       <Project>{4F4C7D7F-A013-320B-AAA5-B96C448E007D}</Project>
       <Name>shaderc</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </ProjectReference>
-    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\external\shaderc\libshaderc_util\shaderc_util.vcxproj">
+    <ProjectReference Include="C:\Users\THEGM\Documents\Visual Studio 2017\Projects\Omega3D\out\build\x64-Debug\External\shaderc\libshaderc_util\shaderc_util.vcxproj">
       <Project>{AEF46BF8-8521-32B8-9281-93918F129841}</Project>
       <Name>shaderc_util</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>

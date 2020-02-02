@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/examples/online-compile
+# Install script for directory: C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/examples/online-compile
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

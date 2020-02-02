@@ -66,7 +66,7 @@ TARGET_SOURCES(OMEGA_ENGINE
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/World.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Camera.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Application.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/ObjectManager.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Object.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Renderer.h
 
 	PRIVATE
@@ -76,7 +76,6 @@ TARGET_SOURCES(OMEGA_ENGINE
 
 	Source/Core/Engine.cpp Source/Core/Engine.h
 	Source/Core/Omega_Global.h Source/Core/Omega_Global.cpp
-	Source/Core/ObjectManager.cpp Source/Core/ObjectManager.h
 	Source/Core/World.cpp Source/Core/World.h
 	Source/Core/Scene.cpp Source/Core/Scene.h
 	Source/Core/Omega_Common.h Source/Core/Omega_Common.cpp
@@ -99,6 +98,7 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Types/NativeWindowWrapper.cpp Source/Types/NativeWindowWrapper.h 
 	Source/Types/AABox.h
     Source/Types/Skybox.cpp Source/Types/Skybox.h
+	Source/Types/Object.cpp Source/Types/Object.h
 	
 	Source/PostProcess/PostProcessInterface.cpp Source/PostProcess/PostProcessInterface.h
 	

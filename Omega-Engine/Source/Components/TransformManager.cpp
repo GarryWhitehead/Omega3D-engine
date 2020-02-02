@@ -2,8 +2,6 @@
 
 #include "Components/RenderableManager.h"
 
-#include "Core/ObjectManager.h"
-
 #include "ModelImporter/NodeInstance.h"
 #include "ModelImporter/SkinInstance.h"
 
@@ -163,7 +161,7 @@ void TransformManager::updateObjectRotation(OEObject& obj, const OEMaths::quatf&
 	nodes[idx].root->rotation = OEMaths::quatf{ rot.x, rot.y, rot.z, rot.w };
 }
 
-TransformInfo& TransformManager::getTransform(const ObjHandle handle)
+TransformInfo& TransformManager::getTransform(const uint64_t handle)
 {
 	assert(handle > 0 && handle < nodes.size());
 	return nodes[handle];

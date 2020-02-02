@@ -40,7 +40,14 @@ public:
     bool deleteChildNode(OEObject* parentObj, OEObject* childObj);
     bool deleteNode(OEObject* parentObj);
     
-    friend class OEScene;
+    void addWorldTransform(OEObject* parent, const OEMaths::mat4f& worldMat);
+    void addWorldTransform(
+        OEObject* parent,
+        const OEMaths::vec3f& scale,
+        const OEMaths::vec3f& trans,
+        const OEMaths::quatf& rot);
+
+    std::vector<Node*>& getNodeList();
     
 private:
     

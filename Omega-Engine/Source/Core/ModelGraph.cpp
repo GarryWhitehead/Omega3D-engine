@@ -1,8 +1,7 @@
 
 #include "ModelGraph.h"
 
-#include "Core/ObjectManager.h"
-
+#include "Types/Object.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -13,6 +12,7 @@ void ModelGraph::addNode(OEObject* parentObj)
     assert(parentObj);
     Node* node = new Node;
     node->parent = parentObj;
+    nodes.emplace_back(node);
 }
 
 bool ModelGraph::addChildNode(OEObject* parentObj, OEObject* childObj)
@@ -22,7 +22,7 @@ bool ModelGraph::addChildNode(OEObject* parentObj, OEObject* childObj)
         LOGGER_WARN("Trying to insert a child into an empty model graph");
         return false;
     }
-    
+
     for (auto* node : nodes)
     {
         if (node->parent->getId() == parentObj->getId())
@@ -31,8 +31,9 @@ bool ModelGraph::addChildNode(OEObject* parentObj, OEObject* childObj)
             return true;
         }
     }
-    
-    LOGGER_ERROR("Parent with id of %llu does not exsist within the model graph", parentObj->getId());
+
+    LOGGER_ERROR(
+        "Parent with id of %llu does not exsist within the model graph", parentObj->getId());
     return false;
 }
 
@@ -43,7 +44,7 @@ bool ModelGraph::deleteChildNode(OEObject* parentObj, OEObject* childObj)
         LOGGER_WARN("Trying to idelete a child when the model graph is empry");
         return false;
     }
-    
+
     for (auto* node : nodes)
     {
         if (node->parent->getId() == parentObj->getId())
@@ -60,12 +61,14 @@ bool ModelGraph::deleteChildNode(OEObject* parentObj, OEObject* childObj)
             }
             ++count;
         }
-        
-        LOGGER_ERROR("Chiild with id of %llu does not exsist within the model graph", childObj->getId());
+
+        LOGGER_ERROR(
+            "Chiild with id of %llu does not exsist within the model graph", childObj->getId());
         return false;
     }
-    
-    LOGGER_ERROR("Parent with id of %llu does not exsist within the model graph", parentObj->getId());
+
+    LOGGER_ERROR(
+        "Parent with id of %llu does not exsist within the model graph", parentObj->getId());
     return false;
 }
 
@@ -73,10 +76,10 @@ bool ModelGraph::deleteNode(OEObject* parentObj)
 {
     if (nodes.empty())
     {
-       LOGGER_WARN("Trying to idelete a child when the model graph is empry");
-       return false;
+        LOGGER_WARN("Trying to idelete a child when the model graph is empry");
+        return false;
     }
-       
+
     for (auto* node : nodes)
     {
         size_t count = 0;
@@ -89,8 +92,43 @@ bool ModelGraph::deleteNode(OEObject* parentObj)
         ++count;
     }
 
-    LOGGER_ERROR("Parent with id of %llu does not exsist within the model graph", parentObj->getId());
+    LOGGER_ERROR(
+        "Parent with id of %llu does not exsist within the model graph", parentObj->getId());
     return false;
 }
 
+void ModelGraph::addWorldTransform(OEObject* parent, const OEMaths::mat4f& worldMat)
+{
+    for (auto* node : nodes)
+    {
+        if (*parent == *node->parent)
+        {
+            node->world.worldMat = worldMat;
+        }
+    }
 }
+
+void ModelGraph::addWorldTransform(
+    OEObject* parent,
+    const OEMaths::vec3f& scale,
+    const OEMaths::vec3f& trans,
+    const OEMaths::quatf& rot)
+{
+    for (auto* node : nodes)
+    {
+        if (*parent == *node->parent)
+        {
+            node->world.scale = scale;
+            node->world.trans = trans;
+            node->world.rot = rot;
+            node->world.worldMat = OEMaths::mat4f::translate(trans) * rot * OEMaths::mat4f::scale(scale);
+        }
+    }
+}
+
+std::vector<ModelGraph::Node*>& ModelGraph::getNodeList()
+{
+    return nodes;
+}
+
+} // namespace OmegaEngine

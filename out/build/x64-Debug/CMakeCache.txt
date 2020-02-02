@@ -17,11 +17,11 @@
 //Path to a program.
 ASCIIDOCTOR_EXE:FILEPATH=ASCIIDOCTOR_EXE-NOTFOUND
 
-//Path to assets directory location. Leave empty for default location.
-ASSETS_DIR:PATH=
+//Path to assets directory location.
+ASSETS_DIR:PATH=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/Assets
 
 //Path to a library.
-ASSIMP_LIBRARY:FILEPATH=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/assimp/Libs/assimp-vc142-mt.lib
+ASSIMP_LIBRARY:FILEPATH=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/assimp/Libs/assimp-vc142-mt.lib
 
 //Path to the build folder
 BUILD_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/build
@@ -323,7 +323,7 @@ ENABLE_SPVREMAPPER:BOOL=ON
 GITCOMMAND:FILEPATH=C:/Program Files/Git/cmd/git.exe
 
 //Value Computed by CMake
-GLFW_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/glfw
+GLFW_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/glfw
 
 //Build the GLFW documentation
 GLFW_BUILD_DOCS:BOOL=ON
@@ -338,7 +338,7 @@ GLFW_BUILD_TESTS:BOOL=OFF
 GLFW_INSTALL:BOOL=ON
 
 //Value Computed by CMake
-GLFW_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/glfw
+GLFW_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/glfw
 
 //Force use of high-performance GPU on hybrid systems
 GLFW_USE_HYBRID_HPG:BOOL=OFF
@@ -423,7 +423,7 @@ PYTHON_EXECUTABLE:FILEPATH=C:/Users/THEGM/AppData/Local/Programs/Python/Python38
 RE2_BUILD_TESTING:STRING=OFF
 
 //Location of effcee source
-SHADERC_EFFCEE_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/effcee
+SHADERC_EFFCEE_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/effcee
 
 //Enables support of Nvidia-specific extensions
 SHADERC_ENABLE_NV_EXTENSIONS:BOOL=ON
@@ -435,13 +435,13 @@ SHADERC_ENABLE_SHARED_CRT:BOOL=OFF
 SHADERC_ENABLE_SPVC:BOOL=OFF
 
 //Location of glslang source
-SHADERC_GLSLANG_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/glslang
+SHADERC_GLSLANG_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/glslang
 
 //Location of googletest source
-SHADERC_GOOGLE_TEST_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/googletest
+SHADERC_GOOGLE_TEST_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/googletest
 
 //Location of re2 source
-SHADERC_RE2_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/re2
+SHADERC_RE2_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/re2
 
 //Skip installation
 SHADERC_SKIP_INSTALL:BOOL=OFF
@@ -450,16 +450,16 @@ SHADERC_SKIP_INSTALL:BOOL=OFF
 SHADERC_SKIP_TESTS:BOOL=OFF
 
 //Location of SPIRV-Cross source
-SHADERC_SPIRV_CROSS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/spirv-cross
+SHADERC_SPIRV_CROSS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/spirv-cross
 
 //Location of spirv-headers source
-SHADERC_SPIRV_HEADERS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/spirv-headers
+SHADERC_SPIRV_HEADERS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/spirv-headers
 
 //Location of spirv-tools source
-SHADERC_SPIRV_TOOLS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/spirv-tools
+SHADERC_SPIRV_TOOLS_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/spirv-tools
 
 //Path to external folder
-SHADERC_THIRD_PARTY_ROOT_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external
+SHADERC_THIRD_PARTY_ROOT_DIR:STRING=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External
 
 //Name of the computer/site where compile is being run
 SITE:STRING=DESKTOP-VC7FC65
@@ -477,10 +477,10 @@ SLURM_SBATCH_COMMAND:FILEPATH=SLURM_SBATCH_COMMAND-NOTFOUND
 SLURM_SRUN_COMMAND:FILEPATH=SLURM_SRUN_COMMAND-NOTFOUND
 
 //Value Computed by CMake
-SPIRV-Headers_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/spirv-headers
+SPIRV-Headers_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/spirv-headers
 
 //Value Computed by CMake
-SPIRV-Headers_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Headers
+SPIRV-Headers_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/SPIRV-Headers
 
 //Dependencies for the target
 SPIRV-Tools-link_LIB_DEPENDS:STATIC=general;SPIRV-Tools-opt;
@@ -544,37 +544,37 @@ Vulkan_INCLUDE_DIR:PATH=C:/VulkanSDK/1.1.121.2/Include
 Vulkan_LIBRARY:FILEPATH=C:/VulkanSDK/1.1.121.2/Lib/vulkan-1.lib
 
 //Value Computed by CMake
-glslang_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/glslang
+glslang_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/glslang
 
 //Dependencies for the target
 glslang_LIB_DEPENDS:STATIC=general;OGLCompiler;general;OSDependent;general;HLSL;
 
 //Value Computed by CMake
-glslang_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/glslang
+glslang_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/glslang
 
 //Dependencies for the target
 glslc_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OGLCompiler;general;HLSL;general;glslang;general;SPIRV;general;shaderc_util;general;shaderc;
 
 //Value Computed by CMake
-gmock_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/googletest/googlemock
+gmock_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/googletest/googlemock
 
 //Value Computed by CMake
-gmock_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/googletest/googlemock
+gmock_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/googletest/googlemock
 
 //Build all of Google Mock's own tests.
 gmock_build_tests:BOOL=OFF
 
 //Value Computed by CMake
-googletest-distribution_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/googletest
+googletest-distribution_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/googletest
 
 //Value Computed by CMake
-googletest-distribution_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/googletest
+googletest-distribution_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/googletest
 
 //Value Computed by CMake
-gtest_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/googletest/googletest
+gtest_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/googletest/googletest
 
 //Value Computed by CMake
-gtest_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/googletest/googletest
+gtest_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/googletest/googletest
 
 //Build gtest's sample programs.
 gtest_build_samples:BOOL=OFF
@@ -596,25 +596,25 @@ gtest_hide_internal_symbols:BOOL=OFF
 gtest_main_LIB_DEPENDS:STATIC=general;gtest;
 
 //Value Computed by CMake
-libshaderc_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc
+libshaderc_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc
 
 //Value Computed by CMake
-libshaderc_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc
+libshaderc_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc
 
 //Value Computed by CMake
-libshaderc_util_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/libshaderc_util
+libshaderc_util_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/libshaderc_util
 
 //Value Computed by CMake
-libshaderc_util_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc/libshaderc_util
+libshaderc_util_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc/libshaderc_util
 
 //Value Computed by CMake
-shaderc_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc
+shaderc_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc
 
 //Dependencies for the target
 shaderc_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OGLCompiler;general;glslang;general;shaderc_util;general;SPIRV;general;SPIRV-Tools;
 
 //Value Computed by CMake
-shaderc_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/shaderc
+shaderc_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/shaderc
 
 //Dependencies for the target
 shaderc_shared_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OGLCompiler;general;glslang;general;shaderc_util;general;SPIRV;general;SPIRV-Tools;
@@ -623,10 +623,10 @@ shaderc_shared_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OG
 shaderc_util_LIB_DEPENDS:STATIC=general;glslang;general;OSDependent;general;OGLCompiler;general;HLSL;general;glslang;general;SPIRV;general;SPIRV-Tools-opt;
 
 //Value Computed by CMake
-spirv-tools_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/SPIRV-Tools
+spirv-tools_BINARY_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/SPIRV-Tools
 
 //Value Computed by CMake
-spirv-tools_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/external/SPIRV-Tools
+spirv-tools_SOURCE_DIR:STATIC=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/External/SPIRV-Tools
 
 
 ########################
@@ -847,7 +847,7 @@ Vulkan_INCLUDE_DIR-ADVANCED:INTERNAL=1
 Vulkan_LIBRARY-ADVANCED:INTERNAL=1
 //CMAKE_INSTALL_PREFIX during last run
 _GNUInstallDirs_LAST_CMAKE_INSTALL_PREFIX:INTERNAL=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/install/x64-Debug
-generated_dir:INTERNAL=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/external/shaderc/third_party/googletest/googletest/generated
+generated_dir:INTERNAL=C:/Users/THEGM/Documents/Visual Studio 2017/Projects/Omega3D/out/build/x64-Debug/External/shaderc/third_party/googletest/googletest/generated
 //ADVANCED property for variable: gmock_build_tests
 gmock_build_tests-ADVANCED:INTERNAL=1
 //ADVANCED property for variable: gtest_build_samples

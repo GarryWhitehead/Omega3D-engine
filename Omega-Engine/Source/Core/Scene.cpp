@@ -6,8 +6,8 @@
 #include "Core/Camera.h"
 #include "Core/Engine.h"
 #include "Core/Frustum.h"
-#include "Core/ObjectManager.h"
 #include "Core/World.h"
+#include "Core/ModelGraph.h"
 #include "ModelImporter/MeshInstance.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Threading/ThreadPool.h"
@@ -108,8 +108,8 @@ OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::ma
     auto& transManager = engine.getTransManager();
     auto* rendManager = engine.getRendManager();
 
-    const ObjHandle tHandle = transManager.getObjIndex(*obj);
-    const ObjHandle rHandle = rendManager->getObjIndex(*obj);
+    const uint64_t tHandle = transManager.getObjIndex(*obj);
+    const uint64_t rHandle = rendManager->getObjIndex(*obj);
 
     VisibleCandidate candidate;
     candidate.renderable = &rendManager->getMesh(rHandle);
@@ -135,14 +135,15 @@ bool OEScene::update(const double time)
         return false;
     }
 
-    auto& objects = world.getObjManager()->getObjectsList();
+    auto& objects = world.getObjectsList();
+    auto& models = world.getModelGraph().getNodeList();
 
     // we create a temp container as we will be doing the visibility checks async
     // reserve more space than we need
     std::vector<VisibleCandidate> candRenderableObjs(objects.size());
 
     // iterate through the model graph add as a possible candidate if active
-    for (ModelGraph::Node* node : modelGraph.nodes)
+    for (ModelGraph::Node* node : models)
     {
         // if the parent is inactive, then all its children are too
         if (!node->parent->isActive())
@@ -183,7 +184,7 @@ bool OEScene::update(const double time)
             continue;
         }
 
-        ObjHandle lHandle = lightManager->getObjIndex(obj);
+        uint64_t lHandle = lightManager->getObjIndex(obj);
         if (lHandle)
         {
             candLightObjs.emplace_back(lightManager->getLight(lHandle));
