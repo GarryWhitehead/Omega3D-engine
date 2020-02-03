@@ -9,32 +9,22 @@ template <typename T>
 class VecN<T, 3> : public MathOperators<VecN, T, 3>
 {
 public:
-	VecN() :
-		x(T(0)),
-		y(T(0)),
-		z(T(0))
-	{
-	}
+    VecN() : x(T(0)), y(T(0)), z(T(0))
+    {
+    }
 
-	VecN(const T& n)
-	    : x(n)
-	    , y(n)
-	    , z(n)
-	{
-	}
+    VecN(const T& n) : x(n), y(n), z(n)
+    {
+    }
 
-	VecN(const T& in_x, const T& in_y, const T& in_z)
-	    : x(in_x)
-	    , y(in_y)
-	    , z(in_z)
-	{
-	}
+    VecN(const T& in_x, const T& in_y, const T& in_z) : x(in_x), y(in_y), z(in_z)
+    {
+    }
 
-	VecN(VecN<T, 2>& vec, const T& value)
-	{
-		VecN{ vec.data[0], vec.data[1], value };
-	}
-    
+    VecN(VecN<T, 2>& vec, const T& value) : x(vec.x), y(vec.y), z(value)
+    {
+    }
+
     /**
      * Only makes sense to cross a vector3, hence why this function is here
      */
@@ -46,13 +36,13 @@ public:
         result.z = vec1.x * vec2.y - vec1.y * vec2.x;
         return result;
     }
-    
+
     inline constexpr T& operator[](const size_t idx)
     {
         assert(idx < 3);
         return data[idx];
     }
-    
+
     inline constexpr T operator[](const size_t idx) const
     {
         assert(idx < 3);
@@ -60,28 +50,28 @@ public:
     }
 
 public:
-	union
-	{
-		T data[3];
+    union
+    {
+        T data[3];
 
-		VecN<T, 2> xy;
-		VecN<T, 2> st;
-		VecN<T, 2> rg;
+        VecN<T, 2> xy;
+        VecN<T, 2> st;
+        VecN<T, 2> rg;
 
-		struct
-		{
-			T x;
-			T y;
-			T z;
-		};
+        struct
+        {
+            T x;
+            T y;
+            T z;
+        };
 
-		struct
-		{
-			T r;
-			T g;
-			T b;
-		};
-	};
+        struct
+        {
+            T r;
+            T g;
+            T b;
+        };
+    };
 };
 
 using vec3f = VecN<float, 3>;
@@ -96,4 +86,4 @@ using vec3i64 = VecN<int64_t, 3>;
 // colour storage
 using colour3 = VecN<float, 3>;
 
-}    // namespace OEMaths
+} // namespace OEMaths

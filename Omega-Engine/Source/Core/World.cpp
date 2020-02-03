@@ -100,7 +100,8 @@ OEObject* OEWorld::createParentObj(const OEMaths::mat4f& worldMat)
     return obj;
 }
 
-OEObject* OEWorld::createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
+OEObject* OEWorld::createParentObj(
+    const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
 {
     return createParentObj(OEMaths::mat4f::translate(trans) * rot * OEMaths::mat4f::scale(scale));
 }
@@ -127,12 +128,18 @@ ModelGraph& OEWorld::getModelGraph()
 
 // ===================== front-end =====================================
 
+Object* World::createObj()
+{
+    return static_cast<OEWorld*>(this)->createObject();
+}
+
 Object* World::createParentObj(const OEMaths::mat4f& world)
 {
     return static_cast<OEWorld*>(this)->createParentObj(world);
 }
 
-Object* World::createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
+Object* World::createParentObj(
+    const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
 {
     return static_cast<OEWorld*>(this)->createParentObj(trans, scale, rot);
 }

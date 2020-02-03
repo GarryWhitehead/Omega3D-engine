@@ -163,8 +163,8 @@ void TransformManager::updateObjectRotation(OEObject& obj, const OEMaths::quatf&
 
 TransformInfo& TransformManager::getTransform(const uint64_t handle)
 {
-	assert(handle > 0 && handle < nodes.size());
-	return nodes[handle];
+	assert(handle > 0 && handle <= nodes.size());
+	return nodes[handle - 1];
 }
 
 }    // namespace OmegaEngine

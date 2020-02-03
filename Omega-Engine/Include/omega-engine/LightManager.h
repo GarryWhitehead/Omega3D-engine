@@ -8,6 +8,7 @@
 namespace OmegaEngine
 {
 class Engine;
+class Object;
 
 enum class LightType
 {
@@ -34,7 +35,7 @@ public:
         LightInstance& setFallout(float fo);
         LightInstance& setRadius(float r);
         
-        void create(Engine& engine);
+        void create(Engine& engine, Object* obj);
         
         friend class LightManager;
         

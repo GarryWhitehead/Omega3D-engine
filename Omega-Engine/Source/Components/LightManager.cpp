@@ -51,7 +51,7 @@ LightManager::LightInstance& LightManager::LightInstance::setRadius(float r)
     return *this;
 }
 
-void LightManager::LightInstance::create(Engine& engine)
+void LightManager::LightInstance::create(Engine& engine, Object* obj)
 {
     OEEngine& oeEngine = reinterpret_cast<OEEngine&>(engine);
     
@@ -72,7 +72,7 @@ void LightManager::LightInstance::create(Engine& engine)
         light->colour = col;
         light->fov = fov;
         light->intensity = intensity;
-        lManager->addLight(base);
+        lManager->addLight(base, static_cast<OEObject*>(obj));
     }
     else if (type == LightType::Point)
     {
@@ -84,7 +84,7 @@ void LightManager::LightInstance::create(Engine& engine)
         light->intensity = intensity;
         light->fallOut = fallout;
         light->radius = radius;
-        lManager->addLight(base);
+        lManager->addLight(base, static_cast<OEObject*>(obj));
     }
     else 
     {
@@ -94,7 +94,7 @@ void LightManager::LightInstance::create(Engine& engine)
         light->radius = radius;
         light->scale = scale;
         light->offset = offset;
-        lManager->addLight(base);
+        lManager->addLight(base, static_cast<OEObject*>(obj));
     }
 }
 
@@ -132,8 +132,11 @@ void OELightManager::calculateSpotIntensity(float intensity, float outerCone, fl
 	spotLight.intensity = intensity / (2.0f * static_cast<float>(M_PI) * (1.0f - cosHalfOuter));
 }
 
-void OELightManager::addLight(std::unique_ptr<LightBase>& light)
+void OELightManager::addLight(std::unique_ptr<LightBase>& light, OEObject* obj)
 {
+    // first add the object which will give us a free slot
+    size_t idx = addObject(*obj);
+
     switch (light->type)
 	{
 	case LightType::Spot:
@@ -150,11 +153,19 @@ void OELightManager::addLight(std::unique_ptr<LightBase>& light)
         break;
 	}
     case LightType::Directional:
+        // nothing to be done with directional lights right now
         break;
 	}
 
-	// nothing to be done with directional lights right now
-	lights.emplace_back(std::move(light));
+    // check whether we just add to the back or use a freed slot
+    if (lights.size() < idx)
+    {
+        lights.emplace_back(std::move(light));
+    }
+    else
+    {
+        lights[idx] = std::move(light);
+    }
 }
 
 size_t OELightManager::getLightCount() const

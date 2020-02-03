@@ -147,7 +147,7 @@ public:
 	void calculatePointIntensity(float intensity, PointLight& light);
 	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
 
-    void addLight(std::unique_ptr<LightBase>& light);
+    void addLight(std::unique_ptr<LightBase>& light, OEObject* obj);
 
 	size_t getLightCount() const;
 	LightBase* getLight(const size_t idx);

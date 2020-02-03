@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
     {
         exit(1);
     }
+    model.prepare();
 
     // we casn piece different meshes together so we have a parent object and their children
     
@@ -101,14 +102,17 @@ int main(int argc, char* argv[])
 
     // add a selection of different style lights to the scene
     LightManager::LightInstance sLight, pLight, dLight;
-    sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(*engine);
+    Object* lightObj = world->createObj();
+    sLight.setType(LightType::Spot).setPosition({3.0f, 1.0f, 1.0f}).create(*engine, lightObj);
 
-    pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(*engine);
+    Object* lightObj2 = world->createObj();
+    pLight.setType(LightType::Point).setPosition({0.0f, 2.0f, 3.0f}).create(*engine, lightObj2);
 
+    Object* lightObj3 = world->createObj();
     dLight.setType(LightType::Directional)
         .setPosition({0.0f, 6.0f, 0.0f})
         .setIntensity(2000.0f)
-        .create(*engine);
+        .create(*engine, lightObj3);
 
     // we could load multiple worlds here, but for this example we will stick with one
     // now set the loop running

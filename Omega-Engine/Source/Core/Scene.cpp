@@ -192,7 +192,9 @@ bool OEScene::update(const double time)
     }
 
     // prepare the camera frustum
+    // update the camera matrices before constructing the fustrum
     Frustum frustum;
+    camera->updateViewMatrix();
     frustum.projection(camera->getViewMatrix() * camera->getProjMatrix());
 
     // ============ visibility checks and culling ===================
@@ -255,8 +257,6 @@ bool OEScene::update(const double time)
 
 void OEScene::updateCameraBuffer()
 {
-    camera->updateViewMatrix();
-
     // update everything in the buffer
     OECamera::Ubo ubo;
     ubo.mvp = camera->getMvpMatrix();
