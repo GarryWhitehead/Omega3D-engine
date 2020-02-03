@@ -69,7 +69,8 @@ public:
         data[0][0] = vec.x;
         data[1][1] = vec.y;
         data[2][2] = vec.z;
-        data[3][3] = vec.w return *this;
+        data[3][3] = vec.w;
+        return *this;
     }
 
     inline void setUpperLeft(MatN<T, 3, 3>& mat)

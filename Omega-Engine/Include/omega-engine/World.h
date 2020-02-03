@@ -29,7 +29,9 @@ public:
 
     Camera* createCamera();
 
-    Object* createParentObj();
+    Object* createParentObj(const OEMaths::mat4f& world);
+    
+    Object* createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot);
 
     Object* createChildObj(Object* parent);
 

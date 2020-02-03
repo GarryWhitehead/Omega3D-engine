@@ -55,7 +55,9 @@ public:
     OEObject* createObject();
 
     // Part of the user interface - creates and objects and adds as a parent to the model graph
-    OEObject* createParentObj();
+    OEObject* createParentObj(const OEMaths::mat4f& world);
+    
+    OEObject* createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot);
 
     // Part of the user interface - creates and objects and adds as a child to the specified parent
     // in the model graph. Returns nullptr if parent is not found

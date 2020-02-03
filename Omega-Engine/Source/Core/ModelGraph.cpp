@@ -7,11 +7,12 @@
 namespace OmegaEngine
 {
 
-void ModelGraph::addNode(OEObject* parentObj)
+void ModelGraph::addNode(OEObject* parentObj, const OEMaths::mat4f& world)
 {
     assert(parentObj);
     Node* node = new Node;
     node->parent = parentObj;
+    node->world.worldMat = world;
     nodes.emplace_back(node);
 }
 

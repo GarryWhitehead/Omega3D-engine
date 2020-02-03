@@ -90,14 +90,19 @@ void OEWorld::destroyObject(OEObject* obj)
     freeIds.push_front(obj->getId());
 }
 
-OEObject* OEWorld::createParentObj()
+OEObject* OEWorld::createParentObj(const OEMaths::mat4f& worldMat)
 {
     OEObject* obj = createObject();
     if (obj)
     {
-        modelGraph.addNode(obj);
+        modelGraph.addNode(obj, worldMat);
     }
     return obj;
+}
+
+OEObject* OEWorld::createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
+{
+    return createParentObj(OEMaths::mat4f::translate(trans) * rot * OEMaths::mat4f::scale(scale));
 }
 
 OEObject* OEWorld::createChildObj(OEObject* parent)
@@ -122,9 +127,14 @@ ModelGraph& OEWorld::getModelGraph()
 
 // ===================== front-end =====================================
 
-Object* World::createParentObj()
+Object* World::createParentObj(const OEMaths::mat4f& world)
 {
-    return static_cast<OEWorld*>(this)->createParentObj();
+    return static_cast<OEWorld*>(this)->createParentObj(world);
+}
+
+Object* World::createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot)
+{
+    return static_cast<OEWorld*>(this)->createParentObj(trans, scale, rot);
 }
 
 Object* World::createChildObj(Object* obj)

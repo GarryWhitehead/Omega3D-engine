@@ -50,21 +50,13 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
-    // we can adjust the model transformation.
-    model.setWorldTrans({4.0f, 3.0f, 5.0})
-        .setWorldScale({15.0f})
-        .setWorldRotation({0.5, 0.0f, 0.5f, 0.5f})
-        .prepare();
-
     // we casn piece different meshes together so we have a parent object and their children
     
     // Or, we can have models that have no chilren, this is done via the createParentObj() as above
     for (auto& node : model.nodes)
     {
-        Object* modelObj = world->createParentObj();
-        
-        // set the world matrix
-        world.setModelWorldMatrix(modelObj, mat);
+        // TODO: use a transform instance here to make this more user-friendly
+        Object* modelObj = world->createParentObj({4.0f, 3.0f, 5.0}, {15.0f}, {0.5, 0.0f, 0.5f, 0.5f});
 
         RenderableInstance instance;
         MeshInstance* mesh = node->getMesh();

@@ -35,7 +35,7 @@ public:
         Transform world;
     };
     
-    void addNode(OEObject* parentObj);
+    void addNode(OEObject* parentObj, const OEMaths::mat4f& world);
     bool addChildNode(OEObject* parentObj, OEObject* childObj);
     bool deleteChildNode(OEObject* parentObj, OEObject* childObj);
     bool deleteNode(OEObject* parentObj);
