@@ -109,6 +109,7 @@ StagingPool::StageInfo StagingPool::getStage(VkDeviceSize reqSize)
 
 // ==================== Buffer ==========================
 
+
 void Buffer::prepare(
     VmaAllocator& vmaAlloc,
     const vk::DeviceSize buffSize,
@@ -120,11 +121,12 @@ void Buffer::prepare(
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = buffSize;
-    bufferInfo.usage = usage;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
 
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    allocCreateInfo.memoryTypeBits = memIndex;
+    allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    //allocCreateInfo.memoryTypeBits = memIndex;
 
     VMA_CHECK_RESULT(
         vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer, &mem, &allocInfo));
@@ -133,6 +135,7 @@ void Buffer::prepare(
 void Buffer::map(void* data, size_t dataSize)
 {
     assert(data);
+    assert(allocInfo.pMappedData);
     memcpy(allocInfo.pMappedData, data, dataSize);
 }
 

@@ -15,66 +15,62 @@ RenderQueue::~RenderQueue()
 {
 }
 
-void RenderQueue::reset()
+void RenderQueue::resetAll()
 {
-	renderables.clear();
-	partOffsets.fill(0);
-	partSizes.fill(0);
+    for (size_t i = 0; i < RenderQueue::Type::Count; ++i)
+    {
+        renderables[i].clear();
+    }
 }
 
-void RenderQueue::pushRenderables(std::vector<RenderableQueueInfo>& newRenderables, const Partition part)
+void RenderQueue::pushRenderables(
+    std::vector<RenderableQueueInfo>& newRenderables, const RenderQueue::Type type)
 {
-	partOffsets[part] = renderables.size();
-	partSizes[part] = newRenderables.size();
-	std::copy(renderables.end(), newRenderables.begin(), newRenderables.end());
+    size_t newSize = newRenderables.size();
+    std::vector<RenderableQueueInfo>& rQueue = renderables[type];
+    rQueue.clear();
+    rQueue.resize(newSize);
+
+    std::copy(newRenderables.begin(), newRenderables.end(), rQueue.begin());
 }
 
-std::vector<RenderableQueueInfo> RenderQueue::getPartition(const RenderQueue::Partition part)
+std::vector<RenderableQueueInfo> RenderQueue::getQueue(const RenderQueue::Type type)
 {
-	if (partSizes[part] > 0 || renderables.empty())
-	{
-		return {};
-	}
-
-	auto beginIter = renderables.begin() + partOffsets[part];
-	auto endIter = beginIter + partSizes[part];
-
-	std::vector<RenderableQueueInfo> output(beginIter, endIter);
-	return output;
+    return renderables[type];
 }
 
-void RenderQueue::sortPartition(const Partition part)
+void RenderQueue::sortQueue(const RenderQueue::Type type)
 {
-	auto beginIter = renderables.begin() + partOffsets[part];
-	auto endIter = beginIter + partSizes[part];
+    std::vector<RenderableQueueInfo>& rQueue = renderables[type];
+    if (rQueue.empty())
+    {
+        return;
+    }
 
-	// TODO : use a radix sort instead
-	std::sort(beginIter, endIter, [](const RenderableQueueInfo& lhs, RenderableQueueInfo& rhs) {
-		return lhs.sortingKey.u.flags < rhs.sortingKey.u.flags;
-	});
+    // TODO : use a radix sort instead
+    std::sort(
+        rQueue.begin(), rQueue.end(), [](const RenderableQueueInfo& lhs, RenderableQueueInfo& rhs) {
+            return lhs.sortingKey.u.flags < rhs.sortingKey.u.flags;
+        });
 }
 
 void RenderQueue::sortAll()
 {
-	for (size_t i = 0; i < Partition::Count; ++i)
-	{
-		if (!partSizes[i])
-		{
-			continue;
-		}
-		sortPartition(static_cast<const Partition>(i));
-	}
+    for (size_t i = 0; i < RenderQueue::Type::Count; ++i)
+    {
+        sortQueue(static_cast<RenderQueue::Type>(i));
+    }
 }
 
 SortKey RenderQueue::createSortKey(Layer layer, size_t materialId, uint64_t variantId)
 {
-	SortKey key;
+    SortKey key;
 
-	key.u.s.layerId = (uint64_t)layer;    // layer is the highest priority to group
-	key.u.s.textureId = materialId;       // then materials
-	key.u.s.shaderId = variantId;         // then shader variant
-	key.u.s.depthId = 0;                  // TODO - this is camera-view . mesh_centre - camera-pos
+    key.u.s.layerId = (uint64_t) layer; // layer is the highest priority to group
+    key.u.s.textureId = materialId; // then materials
+    key.u.s.shaderId = variantId; // then shader variant
+    key.u.s.depthId = 0; // TODO - this is camera-view . mesh_centre - camera-pos
 
-	return key;
+    return key;
 }
-}    // namespace OmegaEngine
+} // namespace OmegaEngine

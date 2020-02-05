@@ -69,9 +69,9 @@ OEObject* OEWorld::createObject()
         id = nextId++;
     }
 
-    OEObject object(id);
+    OEObject* object = new OEObject(id);
     objects.emplace_back(object);
-    return &objects.back();
+    return objects.back();
 }
 
 void OEWorld::destroyObject(OEObject* obj)
@@ -79,7 +79,7 @@ void OEWorld::destroyObject(OEObject* obj)
     size_t count = 0;
     for (auto& object : objects)
     {
-        if (*obj == object)
+        if (*obj == *object)
         {
             break;
         }
@@ -116,7 +116,7 @@ OEObject* OEWorld::createChildObj(OEObject* parent)
     return obj;
 }
 
-std::vector<OEObject>& OEWorld::getObjectsList()
+std::vector<OEObject*>& OEWorld::getObjectsList()
 {
     return objects;
 }

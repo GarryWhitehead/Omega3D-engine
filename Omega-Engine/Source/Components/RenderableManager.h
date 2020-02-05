@@ -188,7 +188,7 @@ public:
     /**
      * @brief Returns a instance of a mesh based on the specified object
      */
-    Renderable& getMesh(const uint64_t obj);
+    Renderable& getMesh(const ObjectHandle& obj);
 
     // === material related functions ===
     /**

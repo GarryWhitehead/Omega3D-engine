@@ -45,9 +45,9 @@ public:
 	* This will either be a new slot or an already created one if any
 	* have been freed
 	*/
-	size_t addObject(OEObject& obj)
+	ObjectHandle addObject(OEObject& obj)
 	{
-		size_t retIdx;
+		uint64_t retIdx = 0;
 
 		// if theres no free slots, then create a new one
 		if (freeSlots.empty())
@@ -62,21 +62,21 @@ public:
 			objects.emplace(obj, retIdx);
 			freeSlots.pop_back();
 		}
-		return index;
+		return ObjectHandle(retIdx);
 	}
 
 	/**
 	* @brief Returns an objects index value if found 
 	* Note: returns zero if not found 
 	*/
-	size_t getObjIndex(OEObject& obj)
+    ObjectHandle getObjIndex(OEObject& obj)
 	{
 		auto iter = objects.find(obj);
 		if (iter == objects.end())
 		{
-			return 0;	//< zero indicates an error
+			return ObjectHandle{UINT64_MAX}; //< zero indicates an error
 		}
-		return iter->second;
+		return ObjectHandle(iter->second);
 	}
 
 	/**
@@ -106,8 +106,7 @@ protected:
 	std::vector<size_t> freeSlots;
 
 	// the current index into the main manager buffers which will be allocated
-	// to the next object that is added. The index starts from one as zero is reserved
-	// as primarily a error indicator (though can be used for other things)
-	size_t index = 1;
+	// to the next object that is added.
+	uint64_t index = 0;
 };
 }    // namespace OmegaEngine

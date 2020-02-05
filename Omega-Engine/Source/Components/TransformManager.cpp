@@ -42,9 +42,9 @@ bool TransformManager::addNodeHierachy(NodeInstance& node, OEObject& obj, SkinIn
 	}
 
 	// request a slot for this object
-	size_t idx = addObject(obj);
+	ObjectHandle handle = addObject(obj);
 
-	if (idx > nodes.size())
+	if (handle.get() >= nodes.size())
 	{
 		// We must take ownership here to stop dangling pointers.
 		// We have no idea when the model data will go out of scope
@@ -138,33 +138,33 @@ void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& tra
 
 void TransformManager::updateModel(OEObject& obj)
 {
-	size_t idx = getObjIndex(obj);
-	TransformInfo& info = nodes[idx];
+	ObjectHandle handle = getObjIndex(obj);
+	TransformInfo& info = nodes[handle.get()];
 	updateModelTransform(info.root->parent, info);
 }
 
 void TransformManager::updateObjectTranslation(OEObject& obj, const OEMaths::vec3f& trans)
 {
-	size_t idx = getObjIndex(obj);
-	nodes[idx].root->translation = OEMaths::vec3f{ trans.x, trans.y, trans.z };
+    ObjectHandle handle = getObjIndex(obj);
+    nodes[handle.get()].root->translation = OEMaths::vec3f {trans.x, trans.y, trans.z};
 }
 
 void TransformManager::updateObjectScale(OEObject& obj, const OEMaths::vec3f& scale)
 {
-	size_t idx = getObjIndex(obj);
-	nodes[idx].root->scale = OEMaths::vec3f{ scale.x, scale.y, scale.z };
+    ObjectHandle handle = getObjIndex(obj);
+    nodes[handle.get()].root->scale = OEMaths::vec3f {scale.x, scale.y, scale.z};
 }
 
 void TransformManager::updateObjectRotation(OEObject& obj, const OEMaths::quatf& rot)
 {
-	size_t idx = getObjIndex(obj);
-	nodes[idx].root->rotation = OEMaths::quatf{ rot.x, rot.y, rot.z, rot.w };
+    ObjectHandle handle = getObjIndex(obj);
+    nodes[handle.get()].root->rotation = OEMaths::quatf {rot.x, rot.y, rot.z, rot.w};
 }
 
-TransformInfo& TransformManager::getTransform(const uint64_t handle)
+TransformInfo& TransformManager::getTransform(const ObjectHandle& handle)
 {
-	assert(handle > 0 && handle <= nodes.size());
-	return nodes[handle - 1];
+	assert(handle.get() <= nodes.size());
+	return nodes[handle.get()];
 }
 
 }    // namespace OmegaEngine

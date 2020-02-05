@@ -21,7 +21,7 @@ ThreadPool::ThreadPool(const uint32_t numThreads)
 		threadCount = numThreads;
 	}
 
-	threads.resize(numThreads);
+	threads.resize(threadCount);
 	for (uint8_t i = 0; i < threadCount; ++i)
 	{
 		threads[i] = std::thread(&ThreadPool::worker, this);

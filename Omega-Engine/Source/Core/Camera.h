@@ -114,6 +114,8 @@ public:
 	void setPosition(const OEMaths::vec3f& pos);
 
 	// ============ update functions ========================
+    void prepare();
+
 	void update();
 
 	void updateViewMatrix();

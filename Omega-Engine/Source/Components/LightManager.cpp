@@ -135,7 +135,7 @@ void OELightManager::calculateSpotIntensity(float intensity, float outerCone, fl
 void OELightManager::addLight(std::unique_ptr<LightBase>& light, OEObject* obj)
 {
     // first add the object which will give us a free slot
-    size_t idx = addObject(*obj);
+    ObjectHandle handle = addObject(*obj);
 
     switch (light->type)
 	{
@@ -158,13 +158,13 @@ void OELightManager::addLight(std::unique_ptr<LightBase>& light, OEObject* obj)
 	}
 
     // check whether we just add to the back or use a freed slot
-    if (lights.size() < idx)
+        if (handle.get() >= lights.size())
     {
         lights.emplace_back(std::move(light));
     }
     else
     {
-        lights[idx] = std::move(light);
+        lights[handle.get()] = std::move(light);
     }
 }
 
@@ -173,10 +173,10 @@ size_t OELightManager::getLightCount() const
 	return lights.size();
 }
 
-LightBase* OELightManager::getLight(const size_t idx)
+LightBase* OELightManager::getLight(const ObjectHandle& handle)
 {
-	assert(idx < lights.size());
-	return lights[idx].get();
+	assert(handle.get() < lights.size());
+	return lights[handle.get()].get();
 }
 
 }    // namespace OmegaEngine

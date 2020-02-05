@@ -65,7 +65,7 @@ public:
 
     void destroyObject(OEObject* obj);
 
-    std::vector<OEObject>& getObjectsList();
+    std::vector<OEObject*>& getObjectsList();
 
     ModelGraph& getModelGraph();
 
@@ -91,9 +91,8 @@ private:
     // ============== object management ==================
     uint32_t nextId = 0;
 
-    // this is an unordered map so we can quickly find objects based on their id. Saves having to
-    // iterate through a vector which could be costly time-wise
-    std::vector<OEObject> objects;
+    // the complete list of all objects associated with all registered scenes
+    std::vector<OEObject*> objects;
 
     // ids of objects which has been destroyed and can be re-used
     std::deque<uint32_t> freeIds;

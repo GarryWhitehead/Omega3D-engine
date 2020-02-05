@@ -9,6 +9,8 @@
 
 #include "VulkanAPI/Buffer.h"
 
+#include "utility/CString.h"
+
 #include <vector>
 
 namespace VulkanAPI
@@ -35,6 +37,15 @@ class SkyboxInstance;
 class OEScene : public Scene
 {
 public:
+	
+	// ubo buffer names used by the scene
+    const Util::String cameraUboName = "CameraUbo";
+    const Util::String staticTransUboName = "StaticTransform";
+    const Util::String skinnedTransUboName = "SkinnedTransform";
+    const Util::String spotlightUboName = "SpotLights";
+    const Util::String pointlightUboName = "PointLights";
+    const Util::String dirlightUboName = "DirectionalLights";
+
 	/**
 	* @brief A temp struct used to gather viable renderable objects data ready for visibilty checks
 	* and passing to the render queue

@@ -98,6 +98,8 @@ int main(int argc, char* argv[])
 
     // and a default camera
     Camera* camera = world->createCamera();
+    // using dedfault parameters, need to still call "prepare()"
+    camera->prepare();
     scene->addCamera(camera);
 
     // add a selection of different style lights to the scene

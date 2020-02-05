@@ -105,7 +105,7 @@ public:
      * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-    void addUboAndUpdateDescr(Util::String& id, const size_t size, VkBufferUsageFlags usage);
+    void addUboAndUpdateDescr(const Util::String& id, const size_t size, VkBufferUsageFlags usage);
 
     /**
      * @brief This is for adding persistant uniform buffers to the backend. This should be used when
@@ -115,7 +115,7 @@ public:
      * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-    void addUbo(Util::String id, const size_t size, VkBufferUsageFlags usage);
+    void addUbo(const Util::String& id, const size_t size, VkBufferUsageFlags usage);
 
     /**
      * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex
@@ -130,7 +130,7 @@ public:
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
     void add2DTexture(
-        Util::String& id,
+        const Util::String& id,
         vk::Format format,
         const uint32_t width,
         const uint32_t height,
@@ -138,7 +138,7 @@ public:
         vk::ImageUsageFlags usageFlags);
 
     void add2DTextureAndPushDecr(
-        Util::String& id,
+        const Util::String& id,
         vk::Format format,
         const uint32_t width,
         const uint32_t height,
@@ -147,19 +147,19 @@ public:
 
     // ============== buffer update functions ===============================
 
-    void update2DTexture(Util::String& id, void* data);
+    void update2DTexture(const Util::String& id, void* data);
 
-    void updateUbo(Util::String id, size_t size, void* data);
+    void updateUbo(const Util::String& id, const size_t size, void* data);
 
     // ============= retrieve resources ====================================
 
-    Texture* getTexture2D(Util::String& name);
+    Texture* getTexture2D(const Util::String& name);
 
-    Buffer* getBuffer(Util::String& name);
+    Buffer* getBuffer(const Util::String& name);
 
     // =============== delete buffer =======================================
 
-    void deleteUbo(Util::String& id);
+    void deleteUbo(const Util::String& id);
 
     void deleteVertexBuffer(VertexBuffer* buffer);
 

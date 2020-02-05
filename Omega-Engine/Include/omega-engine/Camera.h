@@ -80,6 +80,7 @@ public:
      */
 	void setPosition(const OEMaths::vec3f& pos);
 
+	void prepare();
 
 protected:
 

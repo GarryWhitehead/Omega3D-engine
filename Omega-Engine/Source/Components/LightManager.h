@@ -150,7 +150,7 @@ public:
     void addLight(std::unique_ptr<LightBase>& light, OEObject* obj);
 
 	size_t getLightCount() const;
-	LightBase* getLight(const size_t idx);
+    LightBase* getLight(const ObjectHandle& handle);
     
     friend class Shadow;
     

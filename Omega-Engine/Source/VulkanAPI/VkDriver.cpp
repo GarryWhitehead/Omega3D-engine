@@ -63,7 +63,7 @@ void VkDriver::shutdown()
 
 // =========== functions for buffer/texture creation ================
 
-void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUbo(const Util::String& id, const size_t size, VkBufferUsageFlags usage)
 {
     // check if the buffer already exists with the same id. If so, check the size of the current
     // buffer against the size of the requested buffer. If the space is too small, destroy the
@@ -87,7 +87,7 @@ void VkDriver::addUbo(Util::String id, size_t size, VkBufferUsageFlags usage)
     buffers.emplace(key, buffer);
 }
 
-void VkDriver::addUboAndUpdateDescr(Util::String& id, size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUboAndUpdateDescr(const Util::String& id, const size_t size, VkBufferUsageFlags usage)
 {
     addUbo(id, size, usage);
 
@@ -98,7 +98,7 @@ void VkDriver::addUboAndUpdateDescr(Util::String& id, size_t size, VkBufferUsage
 }
 
 void VkDriver::add2DTexture(
-    Util::String& id,
+    const Util::String& id,
     vk::Format format,
     const uint32_t width,
     const uint32_t height,
@@ -116,7 +116,7 @@ void VkDriver::add2DTexture(
 }
 
 void VkDriver::add2DTextureAndPushDecr(
-    Util::String& id,
+    const Util::String& id,
     vk::Format format,
     const uint32_t width,
     const uint32_t height,
@@ -152,7 +152,7 @@ IndexBuffer* VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
 
 // ========================= resource updates ===================================================
 
-void VkDriver::update2DTexture(Util::String& id, void* data)
+void VkDriver::update2DTexture(const Util::String& id, void* data)
 {
     auto iter = textures.find({id.c_str()});
     assert(iter != textures.end());
@@ -161,7 +161,7 @@ void VkDriver::update2DTexture(Util::String& id, void* data)
     iter->second.map(*this, *stagingPool, data);
 }
 
-void VkDriver::updateUbo(Util::String id, size_t size, void* data)
+void VkDriver::updateUbo(const Util::String& id, const size_t size, void* data)
 {
     auto iter = buffers.find({id.c_str()});
     assert(iter != buffers.end());
@@ -174,7 +174,7 @@ void VkDriver::updateUbo(Util::String id, size_t size, void* data)
 // ============================ delete resources ==============================================
 
 
-void VkDriver::deleteUbo(Util::String& id)
+void VkDriver::deleteUbo(const Util::String& id)
 {
     auto iter = buffers.find({id.c_str()});
     assert(iter != buffers.end());
@@ -204,7 +204,7 @@ void VkDriver::deleteIndexBuffer(IndexBuffer* buffer)
 
 // ======================== resource retrieval ===================================
 
-Texture* VkDriver::getTexture2D(Util::String& name)
+Texture* VkDriver::getTexture2D(const Util::String& name)
 {
     auto iter = textures.find({name.c_str()});
     if (iter == textures.end())
@@ -214,7 +214,7 @@ Texture* VkDriver::getTexture2D(Util::String& name)
     return &iter->second;
 }
 
-Buffer* VkDriver::getBuffer(Util::String& name)
+Buffer* VkDriver::getBuffer(const Util::String& name)
 {
     auto iter = buffers.find({name.c_str()});
     if (iter == buffers.end())

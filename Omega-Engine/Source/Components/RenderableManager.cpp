@@ -214,8 +214,8 @@ void OERenderableManager::addMesh(
 void OERenderableManager::addMesh(
     Renderable& input, MeshInstance* mesh, OEObject& obj, const size_t offset)
 {
-    size_t idx = addObject(obj);
-    addMesh(input, mesh, idx, offset);
+    ObjectHandle handle = addObject(obj);
+    addMesh(input, mesh, handle.get(), offset);
 }
 
 MappedTexture* OERenderableManager::prepareTexture(Util::String& path)
@@ -271,7 +271,7 @@ void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* ma
     Renderable newRend;
 
     // first add the object which will give us a free slot
-    size_t idx = addObject(obj);
+    ObjectHandle handle = addObject(obj);
 
     // note: materials don't require a slot as there might be more than one material
     // per mesh. Instead the primitive stores a index to the required material
@@ -282,23 +282,23 @@ void OERenderableManager::addRenderable(MeshInstance* mesh, MaterialInstance* ma
     }
 
     // now add the mesh and material and any textures
-    addMesh(newRend, mesh, idx, matOffset);
+    addMesh(newRend, mesh, handle.get(), matOffset);
 
     // check whether we just add to the back or use a freed slot
-    if (renderables.size() < idx)
+    if (handle.get() >= renderables.size())
     {
         renderables.emplace_back(newRend);
     }
     else
     {
-        renderables[idx] = std::move(newRend);
+        renderables[handle.get()] = std::move(newRend);
     }
 }
 
-Renderable& OERenderableManager::getMesh(const uint64_t handle)
+Renderable& OERenderableManager::getMesh(const ObjectHandle& handle)
 {
-    assert(handle > 0 && handle <= renderables.size());
-    return renderables[handle - 1];
+    assert(handle.get() <= renderables.size());
+    return renderables[handle.get()];
 }
 
 void OERenderableManager::updateBuffers()

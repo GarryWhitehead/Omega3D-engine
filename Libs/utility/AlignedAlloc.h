@@ -1,5 +1,5 @@
 #pragma once
-
+#include <cassert>
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #include <stdlib.h>
 #else
@@ -13,47 +13,47 @@ class AlignedAlloc
 {
 
 public:
-    
-    AlignedAlloc() = delete;
+    AlignedAlloc() = default;
 
-	AlignedAlloc(size_t size, size_t alignment)
-	{
+    AlignedAlloc(size_t size, size_t alignment)
+    {
+        assert(size > 0);
+
 #if defined(_MSC_VER) || defined(__MINGW32__)
-		data = _aligned_malloc(size, alignment);
+        data = _aligned_malloc(size, alignment);
 #else
-		if (!posix_memalign(&data, alignment, size))
-		{
-			data = nullptr;
-		}
+        if (!posix_memalign(&data, alignment, size))
+        {
+            data = nullptr;
+        }
 #endif
-	}
+    }
 
-	~AlignedAlloc()
-	{
+    ~AlignedAlloc()
+    {
 #if defined(_MSC_VER) || defined(__MINGW32__)
-		_aligned_free(data);
+        _aligned_free(data);
 #else
-		free(data);
+        free(data);
 #endif
-	}
+    }
 
-	AlignedAlloc(const AlignedAlloc&) = delete;
-	AlignedAlloc& operator=(const AlignedAlloc&) = delete;
+    AlignedAlloc(const AlignedAlloc&) = delete;
+    AlignedAlloc& operator=(const AlignedAlloc&) = delete;
 
 
-	void* getData()
-	{
-		return data;
-	}
+    void* getData()
+    {
+        return data;
+    }
 
-	bool empty()
-	{
-		return !data;
-	}
+    bool empty()
+    {
+        return !data;
+    }
 
 private:
-    
-	void* data = nullptr;
+    void* data = nullptr;
 };
 
-}    // namespace Util
+} // namespace Util
