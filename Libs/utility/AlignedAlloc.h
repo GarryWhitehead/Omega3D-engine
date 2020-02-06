@@ -15,7 +15,7 @@ class AlignedAlloc
 public:
     AlignedAlloc() = default;
 
-    AlignedAlloc(size_t size, size_t alignment)
+    void alloc(size_t size, size_t alignment)
     {
         assert(size > 0);
 

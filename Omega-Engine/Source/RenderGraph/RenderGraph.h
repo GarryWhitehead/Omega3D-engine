@@ -78,10 +78,10 @@ public:
     RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
 
 	// adds a input attachment reader handle to the pass
-	ResourceHandle addInput(ResourceHandle input);
+	ResourceHandle addInput(const ResourceHandle input);
 
 	// adds a colour/depth/stencil attachment writer to the pass
-	ResourceHandle addOutput(ResourceHandle output);
+	ResourceHandle addOutput(const ResourceHandle output);
 
 	// A callback function which will be called each frame
 	void addExecute(ExecuteFunc&& func);
@@ -94,10 +94,10 @@ public:
 	void bake();
 
 	// Sets the clear colour for all attachments for this pass	
-	void setClearColour(OEMaths::colour4& clearCol);
+	void setClearColour(const OEMaths::colour4& clearCol);
 
 	// sets the depth clear for this pass
-	void setDepthClear(float depthClear);
+	void setDepthClear(const float depthClear);
 
 	friend class RenderGraph;
 
@@ -175,7 +175,7 @@ public:
 	/**
 	* @brief Sets the clear colour for all attachments for this pass
 	*/
-	void setClearColour(OEMaths::colour4& clearCol);
+	void setClearColour(const OEMaths::colour4& clearCol);
 
 	/**
 	* @brief Sets the depth clear for this pass
@@ -215,7 +215,7 @@ public:
 	* 2. init render passes, framebuffers and command buffers for each pass
 	* 3. 
 	*/
-	void prepare();
+	bool prepare();
 
 	/**
 	* The execution of the render pass. You must build the pass and call **prepare** before this function
@@ -235,7 +235,7 @@ private:
 	void CullResourcesAndPasses(ResourceBase* resource);
 	ResourceHandle addResource(ResourceBase* resource);
 	AttachmentHandle addAttachment(AttachmentInfo& info);
-	AttachmentHandle findAttachment(Util::String attach);
+	AttachmentHandle findAttachment(const Util::String& attach);
 
 	void initRenderPass();
 
@@ -254,6 +254,8 @@ private:
 
 	// The entirety of the attachments for this graph
 	std::vector<AttachmentInfo> attachments;
+
+	bool rebuild = true;
 };
 
 }    // namespace OmegaEngine

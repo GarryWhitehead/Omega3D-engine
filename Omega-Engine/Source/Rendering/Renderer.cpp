@@ -75,15 +75,14 @@ void OERenderer::beginFrame()
 
 void OERenderer::update()
 {
+    // optimisation and compilation of the render graph. If nothing has changed since the last frame
+    // then this call will just return.
+    rGraph->prepare();
 }
 
 void OERenderer::draw()
 {
     vkDriver.beginFrame(swapchain);
-
-    // optimisation and compilation of the render graph. If nothing has changed since the last frame
-    // then this call will just return.
-    rGraph->prepare();
 
     // executes the user-defined callback for all of the passes in-turn.
     rGraph->execute();

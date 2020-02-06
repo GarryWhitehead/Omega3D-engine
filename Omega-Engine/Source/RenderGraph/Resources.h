@@ -101,16 +101,7 @@ struct BufferResource : public ResourceBase
 
 struct AttachmentInfo
 {
-	AttachmentInfo()
-	{
-	}
-	~AttachmentInfo()
-	{
-	}
-
-	AttachmentInfo(const AttachmentInfo&) = delete;
-	AttachmentInfo& operator=(const AttachmentInfo&) = delete;
-
+    AttachmentInfo() = default;
 
 	// creates the 'actual' vulkan resource associated with this attachment
 	void* bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph);

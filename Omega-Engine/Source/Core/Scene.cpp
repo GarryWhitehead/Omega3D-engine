@@ -67,34 +67,37 @@ void OEScene::getVisibleLights(Frustum& frustum, std::vector<LightBase*>& lights
             LightBase* light = lights[idx];
             light->isVisible = false;
 
-            if (light->type != LightType::Directional)
+            if (light->type == LightType::Directional)
             {
-                float radius;
-                OEMaths::vec3f pos;
+                // no visisbility check on directional light
+                light->isVisible = true;
+                continue;
+            }
 
-                if (light->type == LightType::Point)
-                {
-                    PointLight* pLight = reinterpret_cast<PointLight*>(light);
-                    radius = pLight->radius;
-                    pos = pLight->position;
-                }
-                else if (light->type == LightType::Spot)
-                {
-                    SpotLight* sLight = reinterpret_cast<SpotLight*>(light);
-                    radius = sLight->radius;
-                    pos = sLight->position;
-                }
-                else
-                {
-                    LOGGER_WARN("Unrecognisied light type detected. This shouldn't happen!");
-                    continue;
-                }
+            float radius;
+            OEMaths::vec3f pos;
+            if (light->type == LightType::Point)
+            {
+                PointLight* pLight = reinterpret_cast<PointLight*>(light);
+                radius = pLight->radius;
+                pos = pLight->position;
+            }
+            else if (light->type == LightType::Spot)
+            {
+                SpotLight* sLight = reinterpret_cast<SpotLight*>(light);
+                radius = sLight->radius;
+                pos = sLight->position;
+            }
+            else
+            {
+                LOGGER_WARN("Unrecognisied light type detected. This shouldn't happen!");
+                continue;
+            }
 
-                // check whether this light is with the frustum boundaries
-                if (frustum.checkSphereIntersect(pos, radius))
-                {
-                    light->isVisible = true;
-                }
+            // check whether this light is with the frustum boundaries
+            if (frustum.checkSphereIntersect(pos, radius))
+            {
+                light->isVisible = true;
             }
         }
     };
@@ -119,9 +122,8 @@ OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::ma
     OEMaths::mat4f localMat = candidate.transform->modelTransform;
     candidate.worldTransform = worldMat * localMat;
 
-    AABBox box {
-        candidate.renderable->instance->dimensions.min,
-        candidate.renderable->instance->dimensions.max};
+    AABBox box {candidate.renderable->instance->dimensions.min,
+                candidate.renderable->instance->dimensions.max};
     candidate.worldAABB = AABBox::calculateRigidTransform(box, candidate.worldTransform);
     return candidate;
 }
@@ -256,6 +258,8 @@ bool OEScene::update(const double time)
 
     // we also update the transforms every frame though could have a dirty flag
     updateTransformBuffer(candRenderableObjs, staticModelCount, skinnedModelCount);
+
+    updateLightBuffer(candLightObjs);
 }
 
 void OEScene::updateCameraBuffer()
@@ -299,12 +303,12 @@ void OEScene::updateTransformBuffer(
 
     if (skinnedModelCount > 0)
     {
-        skinAlignAlloc Util::AlignedAlloc(skinDynAlign * skinnedModelCount, skinDynAlign);
+        skinAlignAlloc.alloc(skinDynAlign * skinnedModelCount, skinDynAlign);
         assert(!skinAlignAlloc.empty());
     }
     if (staticModelCount > 0)
     {
-        Util::AlignedAlloc staticAlignAlloc {staticDynAlign * staticModelCount, staticDynAlign};
+        staticAlignAlloc.alloc(staticDynAlign * staticModelCount, staticDynAlign);
         assert(!staticAlignAlloc.empty());
     }
 
@@ -411,19 +415,23 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
     // copy the light attributes we need for use in the light shaders.
     for (LightBase* light : candLights)
     {
+        if (!light->isVisible)
+        {
+            continue;
+        }
+
         if (light->type == LightType::Spot)
         {
             const auto& spotLight = static_cast<SpotLight*>(light);
 
             // fill in the data to be sent to the gpu
-            SpotLightUbo ubo {
-                light->lightMvp,
-                OEMaths::vec4f {spotLight->position, 1.0f},
-                OEMaths::vec4f {spotLight->target, 1.0f},
-                {spotLight->colour, spotLight->intensity},
-                spotLight->scale,
-                spotLight->offset,
-                spotLight->fallout};
+            SpotLightUbo ubo {light->lightMvp,
+                              OEMaths::vec4f {spotLight->position, 1.0f},
+                              OEMaths::vec4f {spotLight->target, 1.0f},
+                              {spotLight->colour, spotLight->intensity},
+                              spotLight->scale,
+                              spotLight->offset,
+                              spotLight->fallout};
             spotLights[spotlightCount++] = ubo;
         }
         else if (light->type == LightType::Point)
@@ -431,11 +439,10 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
             const auto& pointLight = static_cast<PointLight*>(light);
 
             // fill in the data to be sent to the gpu
-            PointLightUbo ubo {
-                light->lightMvp,
-                OEMaths::vec4f {pointLight->position, 1.0f},
-                {pointLight->colour, pointLight->intensity},
-                pointLight->fallOut};
+            PointLightUbo ubo {light->lightMvp,
+                               OEMaths::vec4f {pointLight->position, 1.0f},
+                               {pointLight->colour, pointLight->intensity},
+                               pointLight->fallOut};
             pointLights[pointlightCount++] = ubo;
         }
         else if (light->type == LightType::Directional)
@@ -443,11 +450,10 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
             const auto& dirLight = static_cast<DirectionalLight*>(light);
 
             // fill in the data to be sent to the gpu
-            DirectionalLightUbo ubo {
-                dirLight->lightMvp,
-                OEMaths::vec4f {dirLight->position, 1.0f},
-                OEMaths::vec4f {dirLight->target, 1.0f},
-                {dirLight->colour, dirLight->intensity}};
+            DirectionalLightUbo ubo {dirLight->lightMvp,
+                                     OEMaths::vec4f {dirLight->position, 1.0f},
+                                     OEMaths::vec4f {dirLight->target, 1.0f},
+                                     {dirLight->colour, dirLight->intensity}};
             dirLights[dirLightCount++] = ubo;
         }
     }

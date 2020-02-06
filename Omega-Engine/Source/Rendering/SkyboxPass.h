@@ -38,7 +38,7 @@ private:
     // keep refernce to the current skybox
     OESkybox& skybox;
 
-	ResourceHandle output;
+	ResourceHandle offscreenTex;
 };
 
 }    // namespace OmegaEngine

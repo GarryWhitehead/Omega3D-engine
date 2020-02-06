@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <assert.h>
 #include <stdint.h>
+#include <limits>
 
 namespace OmegaEngine
 {
@@ -69,12 +70,12 @@ void RenderGraphBuilder::addExecute(ExecuteFunc&& func)
     rPass->addExecute(std::move(func));
 }
 
-void RenderGraphBuilder::setClearColour(OEMaths::colour4& clearCol)
+void RenderGraphBuilder::setClearColour(const OEMaths::colour4& clearCol)
 {
     rPass->setClearColour(clearCol);
 }
 
-void RenderGraphBuilder::setDepthClear(float depthClear)
+void RenderGraphBuilder::setDepthClear(const float depthClear)
 {
     rPass->setDepthClear(depthClear);
 }
@@ -197,12 +198,12 @@ void RenderGraphPass::addExecute(ExecuteFunc&& func)
     execFunc = std::move(func);
 }
 
-void RenderGraphPass::setClearColour(OEMaths::colour4& colour)
+void RenderGraphPass::setClearColour(const OEMaths::colour4& colour)
 {
     context.clearCol = colour;
 }
 
-void RenderGraphPass::setDepthClear(float depth)
+void RenderGraphPass::setDepthClear(const float depth)
 {
     context.depthClear = depth;
 }
@@ -228,9 +229,8 @@ RenderGraphBuilder RenderGraph::createPass(Util::String name, const RenderGraphP
 
 ResourceHandle RenderGraph::addResource(ResourceBase* resource)
 {
-    size_t index = resources.size();
     resources.emplace_back(resource);
-    return index;
+    return resources.size() - 1;
 }
 
 void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
@@ -261,7 +261,8 @@ void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 
 AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
-    return 0;
+    attachments.emplace_back(info);
+    return attachments.size() - 1;
 }
 
 bool RenderGraph::compile()
@@ -277,6 +278,7 @@ bool RenderGraph::compile()
             // work out how many resources read from this resource
             for (ResourceHandle& handle : rpass.inputs)
             {
+                assert(handle < resources.size());
                 ResourceBase* resource = resources[handle];
                 ++resource->inputCount;
             }
@@ -284,19 +286,14 @@ bool RenderGraph::compile()
             // for the outputs, set the pass which writes to this resource
             for (ResourceHandle& handle : rpass.outputs)
             {
+                if (handle >= resources.size())
+                {
+                    LOGGER_ERROR("There are more output attachments than there are resources.");
+                    return false;
+                }
                 ResourceBase* resource = resources[handle];
                 resource->outputPass = &rpass;
             }
-        }
-    }
-
-    // cull passes and reources
-    for (ResourceBase* resource : resources)
-    {
-        // we can't cull resources which are used as inputs for passes
-        if (resource->inputCount == 0)
-        {
-            CullResourcesAndPasses(resource);
         }
     }
 
@@ -318,13 +315,10 @@ bool RenderGraph::compile()
         RenderGraphPass& rpass = renderPasses[i];
 
         // passes with no refences are treated as culled
-        if (rpass.refCount == 0)
-        {
-            continue;
-        }
-
         uint32_t refId = 0;
-        uint32_t maxWidth, maxHeight;
+        uint32_t maxWidth = std::numeric_limits<uint32_t>::min(); 
+        uint32_t maxHeight = std::numeric_limits<uint32_t>::min();
+
         for (const ResourceHandle handle : rpass.outputs)
         {
             ResourceBase* base = resources[handle];
@@ -454,13 +448,23 @@ void RenderGraph::initRenderPass()
     }
 }
 
-void RenderGraph::prepare()
+bool RenderGraph::prepare()
 {
+    if (!rebuild)
+    {
+        return true;
+    }
+
     // start by optimising the graph and filling out the structure
-    compile();
+    if (!compile())
+    {
+        return false;
+    }
 
     // init the renderpass resources - command buffer, frame buffers, etc.
     initRenderPass();
+
+    rebuild = false;
 }
 
 void RenderGraph::execute()
@@ -479,7 +483,7 @@ void RenderGraph::execute()
     }
 }
 
-AttachmentHandle RenderGraph::findAttachment(Util::String req)
+AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
 {
     uint64_t index = 0;
     for (AttachmentInfo& attach : attachments)
