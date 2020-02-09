@@ -8,8 +8,8 @@
 
 #include <algorithm>
 #include <assert.h>
-#include <stdint.h>
 #include <limits>
+#include <stdint.h>
 
 namespace OmegaEngine
 {
@@ -24,10 +24,11 @@ ResourceHandle RenderGraphBuilder::createTexture(
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
+    const vk::ImageUsageFlagBits usageBits,
     uint32_t levels,
     uint32_t layers)
 {
-    TextureResource* tex = new TextureResource(width, height, format, levels, layers);
+    TextureResource* tex = new TextureResource(width, height, format, levels, layers, usageBits);
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 
@@ -177,7 +178,13 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
 
             // Add a subpass. If this is a merged pass, then this will be added to the parent
             context.rpass->addSubPass(inputRefs, outputRefs);
-            context.rpass->addSubpassDependency(parent->flags);
+
+            uint64_t flagBits = flags.getUint64();
+            if (parent)
+            {
+                flagBits = parent->flags.getUint64();
+            }
+            context.rpass->addSubpassDependency(flagBits);
 
             break;
         }
@@ -316,7 +323,7 @@ bool RenderGraph::compile()
 
         // passes with no refences are treated as culled
         uint32_t refId = 0;
-        uint32_t maxWidth = std::numeric_limits<uint32_t>::min(); 
+        uint32_t maxWidth = std::numeric_limits<uint32_t>::min();
         uint32_t maxHeight = std::numeric_limits<uint32_t>::min();
 
         for (const ResourceHandle handle : rpass.outputs)
@@ -353,31 +360,49 @@ bool RenderGraph::compile()
                 }
             }
         }
+        rpass.maxWidth = maxWidth;
+        rpass.maxHeight = maxHeight;
 
-        // if the outputs from this pass are used as inputs in another pass, we can probably merge
-        // we create a linked list of passes - wth the fact that the parent isn't nullptr denoting
-        // that these are merged. The ref count of merged passes, except for the parent is set to
-        // zero to ensure that the passes that are merged aren't also created seperately
-        // TODO: check - there maybe other circumstances in which a pass can not be merged
-        if (i < passCount - 1)
+        // if the pass has an input (reader), then we treat this as a merged subpass.
+        if (!rpass.inputs.empty())
         {
-            RenderGraphPass& nextPass = renderPasses[i + 1];
-
-            // create a linked list
-            rpass.nextPass = &nextPass;
-
-            if (!nextPass.inputs.empty())
+            // a few sanity checks - you can't read from the first pass
+            if (i == 0)
             {
-                rpass.flags |= VulkanAPI::SubpassFlags::Merged;
-                rpass.refCount = 0;
+                LOGGER_ERROR(
+                    "You are trying to read from the first pass - you must have an output!");
+                return false;
+            }
+            // there must be enough outputs from the last pass to read from
+            RenderGraphPass& prevPass = renderPasses[i - 1];
+            if (rpass.inputs.size() > prevPass.outputs.size())
+            {
+                LOGGER_ERROR("There are more inputs than there are outputs!");
+                return false;
+            }
+
+            // inform the renderpass that this is a merged subpass
+            rpass.flags |= VulkanAPI::SubpassFlags::Merged;
+
+            // Work out the root pass of this merge - this pass will contain the list of subpasses
+            if (!prevPass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
+            {
+                rpass.mergedRootIdx = i - 1;
+                prevPass.flags.testBit(VulkanAPI::SubpassFlags::MergedRoot);
             }
             else
             {
-                // if the previous pass was a merge - then this will be the final pass in the merge
-                RenderGraphPass& prevPass = renderPasses[i - 1];
-                if (prevPass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
+                assert(prevPass.mergedRootIdx != UINT64_MAX);
+                rpass.mergedRootIdx = prevPass.mergedRootIdx;
+
+                // check if this is the final pass in the merge
+                if (i < passCount - 1)
                 {
-                    rpass.refCount = 0;
+                    RenderGraphPass& nextPass = renderPasses[i + 1];
+                    if (!nextPass.inputs.empty())
+                    {
+                        rpass.flags |= VulkanAPI::SubpassFlags::MergedFinal;
+                    }
                 }
             }
         }
@@ -398,7 +423,7 @@ void RenderGraph::initRenderPass()
         {
             case RenderGraphPass::Type::Graphics: {
                 std::vector<VulkanAPI::ImageView*> views(rpass.outputs.size());
-                for (size_t i = 0; rpass.outputs.size(); ++i)
+                for (size_t i = 0; i < rpass.outputs.size(); ++i)
                 {
                     AttachmentHandle handle = rpass.outputs[i];
                     assert(handle < attachments.size());
@@ -413,21 +438,27 @@ void RenderGraph::initRenderPass()
                 // check if this is merged - will have child passes associated with it
                 if (rpass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
                 {
-                    // prepare this pass first
-                    rpass.prepare(driver);
-
-                    // add each child pass info to this parent - creating a multi-pass
-                    RenderGraphPass* child = &rpass;
-                    while (!child->flags.testBit(VulkanAPI::SubpassFlags::Merged))
+                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedRoot))
                     {
-                        child->prepare(driver, &rpass);
-                        child = child->nextPass;
+                        // prepare this pass first
+                        rpass.prepare(driver);
                     }
-                    rpass.bake();
+                    else
+                    {
+                        RenderGraphPass* rootPass = &renderPasses[rpass.mergedRootIdx];
+                        rpass.prepare(driver, rootPass);
+                    }
+
+                    // if the ifnal pass is the merged list, we can create it
+                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedFinal))
+                    {
+                        rpass.bake();
+                    }
                 }
                 else
                 {
                     // create the renderpass
+                    rpass.prepare(driver);
                     rpass.bake();
                 }
 

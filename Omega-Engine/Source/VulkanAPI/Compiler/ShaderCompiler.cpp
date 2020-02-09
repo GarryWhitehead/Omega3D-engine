@@ -7,6 +7,7 @@
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
+#include "VulkanAPI/Utility.h"
 #include "utility/FileUtil.h"
 #include "utility/Logger.h"
 
@@ -407,8 +408,8 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor& vertSha
             vertShader.appendBlock += "#endif\n";
         }
 
-        vk::Format format = Shader::getVkFormatFromType(type, 32);
-        uint32_t stride = Shader::getStrideFromType(type);
+        vk::Format format = VkUtil::getVkFormatFromType(type, 32);
+        uint32_t stride = VkUtil::getStrideFromType(type);
         ShaderProgram::InputBinding iBind {loc++, stride, format};
         program.inputs.emplace_back(iBind);
     }
@@ -448,7 +449,7 @@ CompilerReturnCode ShaderCompiler::prepareOutputs(ShaderParser& compilerInfo)
                     "layout (location = " + std::to_string(loc) + ") out " + type + " out" + name;
                 descr.appendBlock += inputLine + ";\n";
 
-                vk::Format format = Shader::getVkFormatFromType(type, 32);
+                vk::Format format = VkUtil::getVkFormatFromType(type, 32);
                 ShaderBinding::RenderTarget rTarget {loc++, format};
                 fragBinding.renderTargets.emplace_back(rTarget);
             }

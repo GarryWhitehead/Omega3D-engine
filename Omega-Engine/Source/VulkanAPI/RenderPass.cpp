@@ -2,6 +2,7 @@
 
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
 #include <assert.h>
@@ -85,31 +86,10 @@ vk::SampleCountFlagBits RenderPass::samplesToVk(const uint32_t count)
     return result;
 }
 
-bool RenderPass::isDepth(const vk::Format format)
-{
-    std::vector<vk::Format> depthFormats = {vk::Format::eD16Unorm,
-                                            vk::Format::eX8D24UnormPack32,
-                                            vk::Format::eD32Sfloat,
-                                            vk::Format::eD16UnormS8Uint,
-                                            vk::Format::eD24UnormS8Uint,
-                                            vk::Format::eD32SfloatS8Uint};
-    return std::find(depthFormats.begin(), depthFormats.end(), format) != std::end(depthFormats);
-}
-
-bool RenderPass::isStencil(const vk::Format format)
-{
-    std::vector<vk::Format> stencilFormats = {vk::Format::eS8Uint,
-                                              vk::Format::eD16UnormS8Uint,
-                                              vk::Format::eD24UnormS8Uint,
-                                              vk::Format::eD32SfloatS8Uint};
-    return std::find(stencilFormats.begin(), stencilFormats.end(), format) !=
-        std::end(stencilFormats);
-}
-
 vk::ImageLayout RenderPass::getFinalTransitionLayout(vk::Format format)
 {
     vk::ImageLayout result;
-    if (RenderPass::isStencil(format) || RenderPass::isDepth(format))
+    if (VkUtil::isStencil(format) || VkUtil::isDepth(format))
     {
         result = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
     }
@@ -260,57 +240,64 @@ bool RenderPass::addSubPass(
     return true;
 }
 
-void RenderPass::addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags)
+void RenderPass::addSubpassDependency(const uint64_t& flags)
 {
     vk::SubpassDependency depend;
     depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
-    if (flags.testBit(SubpassFlags::TopOfPipeline))
+    if ((flags & (uint64_t) SubpassFlags::TopOfPipeline) == (uint64_t) SubpassFlags::TopOfPipeline)
     {
         depend.srcSubpass = VK_SUBPASS_EXTERNAL;
         depend.dstSubpass = 0;
         depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
         depend.srcAccessMask = vk::AccessFlagBits::eShaderRead;
 
-        if (flags.testBit(SubpassFlags::ColourRead))
+        if ((flags & (uint64_t) SubpassFlags::ColourRead) == (uint64_t) SubpassFlags::ColourRead)
         {
             depend.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
             depend.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
-        else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
+        else if (
+            (flags & (uint64_t) SubpassFlags::DepthRead) == (uint64_t) SubpassFlags::DepthRead &&
+            (flags & (uint64_t) SubpassFlags::StencilRead) == (uint64_t) SubpassFlags::StencilRead)
         {
             depend.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
             depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
-        else if (flags.testBit(SubpassFlags::StencilRead))
+        else if (
+            (flags & (uint64_t) SubpassFlags::StencilRead) == (uint64_t) SubpassFlags::StencilRead)
         {
             depend.dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
             depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
     }
-    else if (flags.testBit(SubpassFlags::BottomOfPipeline))
+    else if (
+        (flags & (uint64_t) SubpassFlags::BottomOfPipeline) ==
+        (uint64_t) SubpassFlags::BottomOfPipeline)
     {
         depend.srcSubpass = 0;
         depend.dstSubpass = VK_SUBPASS_EXTERNAL;
         depend.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
         depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-        if (flags.testBit(SubpassFlags::Merged))
+        if ((flags & (uint64_t) SubpassFlags::Merged) == (uint64_t) SubpassFlags::Merged)
         {
             depend.srcSubpass = 0;
         }
 
-        if (flags.testBit(SubpassFlags::ColourRead))
+        if ((flags & (uint64_t) SubpassFlags::ColourRead) == (uint64_t) SubpassFlags::ColourRead)
         {
             depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
             depend.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
-        else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
+        else if (
+            (flags & (uint64_t) SubpassFlags::DepthRead) == (uint64_t) SubpassFlags::DepthRead &&
+            (flags & (uint64_t) SubpassFlags::StencilRead) == (uint64_t) SubpassFlags::StencilRead)
         {
             depend.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
             depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
-        else if (flags.testBit(SubpassFlags::StencilRead))
+        else if ((flags & (uint64_t) SubpassFlags::StencilRead) == (uint64_t) SubpassFlags::StencilRead)
         {
             depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
             depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
@@ -318,7 +305,7 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flag
     }
     else
     {
-        if (!flags.testBit(SubpassFlags::Merged))
+        if (!(flags & (uint64_t) SubpassFlags::Merged) == (uint64_t) SubpassFlags::Merged)
         {
             depend.srcSubpass = VK_SUBPASS_EXTERNAL;
             depend.dstSubpass = 0;
@@ -385,7 +372,7 @@ bool RenderPass::hasDepthAttach()
 {
     for (auto& attach : attachments)
     {
-        if (isDepth(attach.format))
+        if (VkUtil::isDepth(attach.format))
         {
             return true;
         }

@@ -1,63 +1,79 @@
 #include "Resources.h"
 
 #include "RenderGraph/RenderGraph.h"
-
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkTexture.h"
+#include "VulkanAPI/utility.h"
 
 
 namespace OmegaEngine
 {
 
-TextureResource::TextureResource(const uint32_t width, const uint32_t height, const vk::Format format,
-                                 const uint8_t level, const uint8_t layers)
+TextureResource::TextureResource(
+    const uint32_t width,
+    const uint32_t height,
+    const vk::Format format,
+    const uint8_t level,
+    const uint8_t layers,
+    const vk::ImageUsageFlagBits usageBits)
     : ResourceBase(ResourceType::Texture)
     , width(width)
     , height(height)
     , layers(layers)
     , level(level)
     , format(format)
+    , imageUsage(usageBits)
 {
 }
 
 void* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
-	texture->create2dTex(driver, format, width, height, level, imageLayout);
-	return reinterpret_cast<void*>(texture->getImageView());
+    texture = std::make_unique<VulkanAPI::Texture>();
+    texture->create2dTex(driver, format, width, height, level, imageUsage);
+    return reinterpret_cast<void*>(texture->getImageView());
 }
 
 VulkanAPI::Texture* TextureResource::get()
 {
-	return texture.get();
+    return texture.get();
 }
 
 bool TextureResource::isDepthFormat()
 {
-    // TODO!
-	return true;
+    if (VulkanAPI::VkUtil::isDepth(format))
+    {
+        return true;
+    }
+    return false;
 }
 
 bool TextureResource::isColourFormat()
 {
-	// TODO!
-	return true;
+    if (!VulkanAPI::VkUtil::isDepth(format) && !VulkanAPI::VkUtil::isStencil(format))
+    {
+        return true;
+    }
+    return false;
 }
 
 bool TextureResource::isStencilFormat()
 {
-	// TODO!
-	return true;
+    if (VulkanAPI::VkUtil::isStencil(format))
+    {
+        return true;
+    }
+    return false;
 }
 
 // =============================================================================
 
 void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
 {
-	ResourceBase* base = rGraph.getResource(resource);
-	void* data = base->bake(driver);
-	return data;
+    ResourceBase* base = rGraph.getResource(resource);
+    void* data = base->bake(driver);
+    return data;
 }
 
-}    // namespace OmegaEngine
+} // namespace OmegaEngine

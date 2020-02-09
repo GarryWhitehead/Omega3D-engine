@@ -29,6 +29,8 @@ enum class SubpassFlags : uint64_t
     TopOfPipeline,
     BottomOfPipeline,
     Merged,
+	MergedRoot,
+    MergedFinal,
     Threaded,
     __SENTINEL__
 };
@@ -71,8 +73,6 @@ public:
 
 	// static functions
 	static vk::ImageLayout getFinalTransitionLayout(const vk::Format format);
-	static bool isDepth(const vk::Format format);
-	static bool isStencil(const vk::Format format);
 	static vk::AttachmentLoadOp loadFlagsToVk(const LoadType flags);
     static vk::AttachmentStoreOp storeFlagsToVk(const StoreType flags);
     static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
@@ -86,7 +86,7 @@ public:
 	/// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These must have already been added as attachments, otherwise this will throw an error
 	bool addSubPass(std::vector<uint32_t>& inputRefs, std::vector<uint32_t>& outputRefs, const uint32_t depthRef = UINT32_MAX);
 
-	void addSubpassDependency(const Util::BitSetEnum<SubpassFlags>& flags);
+	void addSubpassDependency(const uint64_t& flags);
 
 	/// Actually creates the renderpass based on the above definitions
 	void prepare();

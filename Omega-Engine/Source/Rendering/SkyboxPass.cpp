@@ -31,9 +31,6 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
-    //  use the output from the lighting pass as a input
-    builder.addInputAttachment("lighting");
-
     offscreenTex = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
     builder.addOutputAttachment("SkyboxPass", offscreenTex);
 

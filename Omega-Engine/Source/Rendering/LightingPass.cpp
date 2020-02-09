@@ -31,13 +31,6 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     // build the lighting render pass
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
-    // inputs from the deferred pass
-    builder.addInputAttachment("position");
-    builder.addInputAttachment("colour");
-    builder.addInputAttachment("normal");
-    builder.addInputAttachment("emissive");
-    builder.addInputAttachment("pbr");
-
     // create the gbuffer textures
     passInfo.output = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
