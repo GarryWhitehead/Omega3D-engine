@@ -65,9 +65,6 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 	builder.setDepthClear(1.0f);
 
 	builder.addExecute([=](RGraphContext& context) {
-		// for me old sanity!
-		assert(context.cbManager);
-		assert(context.renderer);
 
 		// draw the contents of the renderable rendder queue
 		OERenderer* renderer = context.renderer;

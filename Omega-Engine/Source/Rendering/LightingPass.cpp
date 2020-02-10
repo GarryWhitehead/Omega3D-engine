@@ -38,17 +38,16 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     passInfo.output = builder.addOutputAttachment("lighting", passInfo.output);
 
     builder.addExecute([=](RGraphContext& context) {
-        VulkanAPI::CmdBuffer* cmdBuffer = context.cmdBuffer;
 
         // bind the pipeline
-        cmdBuffer->bindPipeline(context.rpass, prog);
+        context.cmdBuffer->bindPipeline(context.rpass, prog);
 
         // bind the descriptor
-        cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+        context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
         // cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 
         // render full screen quad to screen
-        cmdBuffer->drawQuad();
+        context.cmdBuffer->drawQuad();
     });
 
     return true;

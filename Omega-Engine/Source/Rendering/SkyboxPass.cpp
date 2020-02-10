@@ -36,17 +36,16 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 
     // everything required to draw the skybox to the cmd buffer
     builder.addExecute([&](RGraphContext& context) {
-        auto& cmdBuffer = context.cmdBuffer;
 
-        cmdBuffer->bindPipeline(context.rpass, prog);
+        context.cmdBuffer->bindPipeline(context.rpass, prog);
 
-        cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
-        cmdBuffer->bindPushBlock(
+        context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+        context.cmdBuffer->bindPushBlock(
             prog, vk::ShaderStageFlagBits::eFragment, sizeof(float), &skybox.blurFactor);
 
-        cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
-        cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
-        cmdBuffer->drawIndexed(OESkybox::indicesSize);
+        context.cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
+        context.cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
+        context.cmdBuffer->drawIndexed(OESkybox::indicesSize);
     });
 
     return true;

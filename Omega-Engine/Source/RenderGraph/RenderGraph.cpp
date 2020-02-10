@@ -14,209 +14,6 @@
 namespace OmegaEngine
 {
 
-RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass)
-{
-    this->rGraph = rGraph;
-    this->rPass = rPass;
-}
-
-ResourceHandle RenderGraphBuilder::createTexture(
-    const uint32_t width,
-    const uint32_t height,
-    const vk::Format format,
-    const vk::ImageUsageFlagBits usageBits,
-    uint32_t levels,
-    uint32_t layers)
-{
-    TextureResource* tex = new TextureResource(width, height, format, levels, layers, usageBits);
-    return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
-}
-
-ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
-{
-    buffer->type = ResourceBase::ResourceType::Buffer;
-    return rGraph->addResource(reinterpret_cast<ResourceBase*>(buffer));
-}
-
-AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name)
-{
-    // link the input with the outputted resource
-    AttachmentHandle handle = rGraph->findAttachment(name);
-    if (handle == UINT64_MAX)
-    {
-        LOGGER_ERROR("Unable to find corresponding output attachment whilst trying to add input "
-                     "attachment.");
-        return UINT64_MAX;
-    }
-
-    rPass->addInput(handle);
-    return handle;
-}
-
-AttachmentHandle
-RenderGraphBuilder::addOutputAttachment(Util::String name, const ResourceHandle resource)
-{
-    AttachmentInfo info;
-    info.name = name;
-    info.resource = resource;
-
-    AttachmentHandle handle = rGraph->addAttachment(info);
-    rPass->addOutput(handle);
-    return handle;
-}
-
-void RenderGraphBuilder::addExecute(ExecuteFunc&& func)
-{
-    assert(func);
-    rPass->addExecute(std::move(func));
-}
-
-void RenderGraphBuilder::setClearColour(const OEMaths::colour4& clearCol)
-{
-    rPass->setClearColour(clearCol);
-}
-
-void RenderGraphBuilder::setDepthClear(const float depthClear)
-{
-    rPass->setDepthClear(depthClear);
-}
-
-// ============================== render graph pass =================================
-
-RenderGraphPass::RenderGraphPass(Util::String name, const Type type, RenderGraph& rGraph)
-    : rGraph(rGraph), name(name), type(type)
-{
-}
-
-ResourceHandle RenderGraphPass::addInput(const ResourceHandle input)
-{
-    // make sure that this handle doesn't already exsist in the list
-    // This is just a waste of memory having reduntant resources
-    auto iter = std::find(inputs.begin(), inputs.end(), input);
-    if (iter != inputs.end())
-    {
-        return *iter;
-    }
-    inputs.emplace_back(input);
-    return input;
-}
-
-ResourceHandle RenderGraphPass::addOutput(const ResourceHandle output)
-{
-    // make sure that this handle doesn't already exsist in the list
-    // This is just a waste of memory having reduntant resources
-    auto iter = std::find(outputs.begin(), outputs.end(), output);
-    if (iter != outputs.end())
-    {
-        return *iter;
-    }
-    outputs.emplace_back(output);
-    return output;
-}
-
-void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* parent)
-{
-    switch (type)
-    {
-        case Type::Graphics: {
-            // used for signyfing to the subpass the reference ids associated with it
-            std::vector<uint32_t> inputRefs, outputRefs;
-
-            // if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
-            if (!flags.testBit(VulkanAPI::SubpassFlags::Merged))
-            {
-                context.rpass = new VulkanAPI::RenderPass(driver.getContext());
-            }
-            else
-            {
-                assert(parent->context.rpass);
-                context.rpass = parent->context.rpass;
-            }
-
-            auto& resources = rGraph.getResources();
-
-            // add the output attachments
-            for (ResourceHandle handle : outputs)
-            {
-                ResourceBase* base = resources[handle];
-                assert(base->type == ResourceBase::ResourceType::Texture);
-                TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
-                // bake the texture
-                if (tex->width != maxWidth || tex->height != maxHeight)
-                {
-                    // not exactly a reason to fatal error maybe, but warn the user
-                    // maybe do a blit here instead? The answer is yes, TODO!!!!!
-                    tex->width = maxWidth;
-                    tex->height = maxHeight;
-                    LOGGER_WARN("There appears to be some discrepancy between this passes resource "
-                                "dimensions\n");
-                }
-
-                outputRefs.emplace_back(tex->referenceId);
-                tex->bake(driver);
-
-                // add a attachment
-                context.rpass->addOutputAttachment(
-                    tex->format, tex->referenceId, tex->clearFlags, tex->samples);
-            }
-
-            // input attachments
-            for (ResourceHandle handle : inputs)
-            {
-                ResourceBase* base = resources[handle];
-                assert(base->type == ResourceBase::ResourceType::Texture);
-                TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
-                // for clear flags, we always 'store' for the loadOp
-                // check the format here, if stencil set the stencil Op flags??
-                tex->clearFlags.attachLoad = VulkanAPI::RenderPass::LoadType::Store;
-
-                inputRefs.emplace_back(tex->referenceId);
-                context.rpass->addInputRef(tex->referenceId);
-            }
-
-            // Add a subpass. If this is a merged pass, then this will be added to the parent
-            context.rpass->addSubPass(inputRefs, outputRefs);
-
-            uint64_t flagBits = flags.getUint64();
-            if (parent)
-            {
-                flagBits = parent->flags.getUint64();
-            }
-            context.rpass->addSubpassDependency(flagBits);
-
-            break;
-        }
-        case Type::Compute: {
-            break;
-        }
-    }
-}
-
-void RenderGraphPass::bake()
-{
-    // create the renderpass
-    context.rpass->prepare();
-}
-
-void RenderGraphPass::addExecute(ExecuteFunc&& func)
-{
-    execFunc = std::move(func);
-}
-
-void RenderGraphPass::setClearColour(const OEMaths::colour4& colour)
-{
-    context.clearCol = colour;
-}
-
-void RenderGraphPass::setDepthClear(const float depth)
-{
-    context.depthClear = depth;
-}
-
-// =========================== RenderGraph ===============================
-
 RenderGraph::RenderGraph(VulkanAPI::VkDriver& driver) : driver(driver)
 {
 }
@@ -229,8 +26,8 @@ RenderGraphBuilder RenderGraph::createPass(Util::String name, const RenderGraphP
 {
     // add the pass to the list
     RenderGraphPass rPass {name, type, *this};
-    renderPasses.emplace_back(rPass);
-    RenderGraphBuilder builder {this, &renderPasses.back()};
+    rGraphPasses.emplace_back(rPass);
+    RenderGraphBuilder builder {this, &rGraphPasses.back()};
     return builder;
 }
 
@@ -275,7 +72,7 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 bool RenderGraph::compile()
 {
 
-    for (RenderGraphPass& rpass : renderPasses)
+    for (RenderGraphPass& rpass : rGraphPasses)
     {
         if (rpass.type == RenderGraphPass::Type::Graphics)
         {
@@ -311,15 +108,15 @@ bool RenderGraph::compile()
     }
 
     // finialise the attachments
-    size_t passCount = renderPasses.size();
+    size_t passCount = rGraphPasses.size();
 
     // fill some of the subpass dependency flags
-    renderPasses[0].flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
-    renderPasses[passCount - 1].flags |= VulkanAPI::SubpassFlags::BottomOfPipeline;
+    rGraphPasses[0].flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
+    rGraphPasses[passCount - 1].flags |= VulkanAPI::SubpassFlags::BottomOfPipeline;
 
     for (size_t i = 0; i < passCount; ++i)
     {
-        RenderGraphPass& rpass = renderPasses[i];
+        RenderGraphPass& rpass = rGraphPasses[i];
 
         // passes with no refences are treated as culled
         uint32_t refId = 0;
@@ -374,7 +171,7 @@ bool RenderGraph::compile()
                 return false;
             }
             // there must be enough outputs from the last pass to read from
-            RenderGraphPass& prevPass = renderPasses[i - 1];
+            RenderGraphPass& prevPass = rGraphPasses[i - 1];
             if (rpass.inputs.size() > prevPass.outputs.size())
             {
                 LOGGER_ERROR("There are more inputs than there are outputs!");
@@ -388,7 +185,7 @@ bool RenderGraph::compile()
             if (!prevPass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
             {
                 rpass.mergedRootIdx = i - 1;
-                prevPass.flags.testBit(VulkanAPI::SubpassFlags::MergedRoot);
+                prevPass.flags.testBit(VulkanAPI::SubpassFlags::MergedBegin);
             }
             else
             {
@@ -398,10 +195,10 @@ bool RenderGraph::compile()
                 // check if this is the final pass in the merge
                 if (i < passCount - 1)
                 {
-                    RenderGraphPass& nextPass = renderPasses[i + 1];
+                    RenderGraphPass& nextPass = rGraphPasses[i + 1];
                     if (!nextPass.inputs.empty())
                     {
-                        rpass.flags |= VulkanAPI::SubpassFlags::MergedFinal;
+                        rpass.flags |= VulkanAPI::SubpassFlags::MergedEnd;
                     }
                 }
             }
@@ -412,7 +209,7 @@ bool RenderGraph::compile()
 
 void RenderGraph::initRenderPass()
 {
-    for (RenderGraphPass& rpass : renderPasses)
+    for (RenderGraphPass& rpass : rGraphPasses)
     {
         if (rpass.refCount == 0)
         {
@@ -432,25 +229,25 @@ void RenderGraph::initRenderPass()
                     // bake the resources
                     VulkanAPI::ImageView* view =
                         reinterpret_cast<VulkanAPI::ImageView*>(attach.bake(driver, *this));
-                    views.emplace_back(view);
+                    views[i] = view;
                 }
 
                 // check if this is merged - will have child passes associated with it
                 if (rpass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
                 {
-                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedRoot))
+                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedBegin))
                     {
                         // prepare this pass first
                         rpass.prepare(driver);
                     }
                     else
                     {
-                        RenderGraphPass* rootPass = &renderPasses[rpass.mergedRootIdx];
+                        RenderGraphPass* rootPass = &rGraphPasses[rpass.mergedRootIdx];
                         rpass.prepare(driver, rootPass);
                     }
 
                     // if the ifnal pass is the merged list, we can create it
-                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedFinal))
+                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedEnd))
                     {
                         rpass.bake();
                     }
@@ -463,7 +260,7 @@ void RenderGraph::initRenderPass()
                 }
 
                 // create the framebuffer - this is linked to the renderpass
-                rpass.context.framebuffer.prepare(
+                rpass.context.framebuffer->prepare(
                     *rpass.context.rpass, views, rpass.maxWidth, rpass.maxHeight, 1);
 
                 VulkanAPI::CmdPool* cmdPool = rpass.context.cbManager->getMainPool();
@@ -501,14 +298,14 @@ bool RenderGraph::prepare()
 void RenderGraph::execute()
 {
     // iterate over all passes and execute the registered callback function
-    for (RenderGraphPass& rpass : renderPasses)
+    for (RenderGraphPass& rpass : rGraphPasses)
     {
         // start the render pass
         VulkanAPI::CmdBufferManager& manager = driver.getCbManager();
 
         assert(rpass.context.cmdBuffer);
         manager.beginRenderpass(
-            rpass.context.cmdBuffer, *rpass.context.rpass, rpass.context.framebuffer);
+            rpass.context.cmdBuffer, *rpass.context.rpass, *rpass.context.framebuffer);
 
         rpass.execFunc(rpass.context);
     }
@@ -526,6 +323,30 @@ AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
         ++index;
     }
     return UINT64_MAX;
+}
+
+RPassHandle RenderGraph::createRenderPass()
+{
+    renderpasses.emplace_back(std::make_unique<VulkanAPI::RenderPass>(driver.getContext()));
+    return RPassHandle {renderpasses.size() - 1};
+}
+
+FBufferHandle RenderGraph::createFrameBuffer()
+{
+    framebuffers.emplace_back(std::make_unique<VulkanAPI::FrameBuffer>(driver.getContext()));
+    return FBufferHandle {framebuffers.size() - 1};
+}
+
+VulkanAPI::RenderPass* RenderGraph::getRenderpass(RPassHandle& handle)
+{
+    assert(handle.get() < renderpasses.size());
+    return renderpasses[handle.get()].get();
+}
+
+VulkanAPI::FrameBuffer* RenderGraph::getFramebuffer(FBufferHandle& handle)
+{
+    assert(handle.get() < framebuffers.size());
+    return framebuffers[handle.get()].get();
 }
 
 std::vector<ResourceBase*>& RenderGraph::getResources()

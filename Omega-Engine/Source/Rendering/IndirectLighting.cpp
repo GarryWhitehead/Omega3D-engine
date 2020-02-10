@@ -75,9 +75,8 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         bdrfInfo.attachment = builder.addOutputAttachment("BdrfSampler", bdrfInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
-            VulkanAPI::CmdBuffer* cmdBuffer = context.cmdBuffer;
-            cmdBuffer->bindPipeline(context.rpass, prog);
-            cmdBuffer->drawQuad();
+            context.cmdBuffer->bindPipeline(context.rpass, prog);
+            context.cmdBuffer->drawQuad();
         });
     }
 
@@ -136,7 +135,6 @@ void IndirectLighting::buildMap(
     OESkybox& skybox)
 {
     vk::ClearColorValue clearValue;
-    VulkanAPI::CmdBuffer* cmdBuffer = context.cmdBuffer;
 
     // create an offscreen texture for composing the image
     VulkanAPI::Texture osTexture {};
@@ -178,12 +176,12 @@ void IndirectLighting::buildMap(
             vk::Viewport viewPort =
                 vk::Viewport {0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f};
 
-            cmdBuffer->setViewport(viewPort);
+            context.cmdBuffer->setViewport(viewPort);
 
-            cmdBuffer->bindPipeline(context.rpass, prog);
-            cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
-            cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
-            cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
+            context.cmdBuffer->bindPipeline(context.rpass, prog);
+            context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+            context.cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
+            context.cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
 
             // calculate view for each cube side
             OEMaths::mat4f proj, view;
@@ -205,7 +203,7 @@ void IndirectLighting::buildMap(
                 pushBlock.roughness = static_cast<float>(mip) / static_cast<float>(mipLevels - 1);
                 pushBlock.mvp = mvp;
 
-                cmdBuffer->bindPushBlock(
+                context.cmdBuffer->bindPushBlock(
                     prog,
                     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                     sizeof(SpecularMapPushBlock),
@@ -213,12 +211,12 @@ void IndirectLighting::buildMap(
             }
             else
             {
-                cmdBuffer->bindPushBlock(
+                context.cmdBuffer->bindPushBlock(
                     prog, vk::ShaderStageFlagBits::eVertex, sizeof(OEMaths::mat4f), &mvp);
             }
 
             // draw cube into offscreen framebuffer
-            cmdBuffer->drawIndexed(OESkybox::indicesSize);
+            context.cmdBuffer->drawIndexed(OESkybox::indicesSize);
 
             // copy the offscreen buffer to the current face
             vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
@@ -234,8 +232,8 @@ void IndirectLighting::buildMap(
                 *osImage,
                 vk::ImageLayout::eColorAttachmentOptimal,
                 vk::ImageLayout::eTransferSrcOptimal,
-                cmdBuffer->get());
-            cmdBuffer->get().copyImage(
+                context.cmdBuffer->get());
+            context.cmdBuffer->get().copyImage(
                 osImage->get(),
                 vk::ImageLayout::eTransferSrcOptimal,
                 image->get(),
@@ -248,7 +246,7 @@ void IndirectLighting::buildMap(
                 *osImage,
                 vk::ImageLayout::eTransferSrcOptimal,
                 vk::ImageLayout::eColorAttachmentOptimal,
-                cmdBuffer->get());
+                context.cmdBuffer->get());
         }
     }
 
@@ -256,7 +254,7 @@ void IndirectLighting::buildMap(
         *image,
         vk::ImageLayout::eTransferDstOptimal,
         vk::ImageLayout::eShaderReadOnlyOptimal,
-        cmdBuffer->get());
+        context.cmdBuffer->get());
 }
 
 

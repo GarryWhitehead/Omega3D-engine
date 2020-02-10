@@ -29,169 +29,25 @@ class RenderGraph;
 class OERenderer;
 class RenderGraphPass;
 
-/**
- * @brief A useful container for grouping together render graph variables for use externally
- */
-struct RGraphContext
-{
-    // the command buffer handle for this pass
-    VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
-
-    // the vulkan render pass for this pass
-    VulkanAPI::RenderPass* rpass = nullptr;
-    VulkanAPI::FrameBuffer framebuffer;
-
-    // clear colours for this pass
-    OEMaths::colour4 clearCol = {0.0f};
-    float depthClear = 1.0f;
-
-    // useful vulkan managers
-    VulkanAPI::CmdBufferManager* cbManager = nullptr;
-    VulkanAPI::VkDriver* driver = nullptr;
-
-    // keep track of the renderer
-    OERenderer* renderer = nullptr;
-
-    // the rendergrpah this pass is associated with
-    RenderGraph* rGraph = nullptr;
-};
-
-using ExecuteFunc = std::function<void(RGraphContext&)>;
-
-class RenderGraphPass
+class VkHandle
 {
 public:
-    // At the moment, vulkan doesn't support compute subpasses. Thus,
-    // if a compute stage is required. Then the renderpass will end, and the
-    // compute pass will be deployed, and any remaining graphic passes will be
-    // started in another pass after the compute finishes. This isn't ideal performance wise, as
-    // switching between different pipelines is expensive, so compute calls should be batched,
-    // ideally before the the graphics renderpass
-    enum Type
+    VkHandle() = delete;
+    explicit VkHandle(const uint64_t handle) : handle(handle)
     {
-        Graphics,
-        Compute
-    };
+    }
 
-    RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
-
-    // adds a input attachment reader handle to the pass
-    ResourceHandle addInput(const ResourceHandle input);
-
-    // adds a colour/depth/stencil attachment writer to the pass
-    ResourceHandle addOutput(const ResourceHandle output);
-
-    // A callback function which will be called each frame
-    void addExecute(ExecuteFunc&& func);
-
-    // init the vulkan renderpass - attachments, ref, dependencies
-    // these can be added to a parent merged pass if defined
-    void prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* parent = nullptr);
-
-    // creates the vulkan renderpass. You must call **prepare()** first
-    void bake();
-
-    // Sets the clear colour for all attachments for this pass
-    void setClearColour(const OEMaths::colour4& clearCol);
-
-    // sets the depth clear for this pass
-    void setDepthClear(const float depthClear);
-
-    friend class RenderGraph;
+    uint64_t get()
+    {
+        return handle;
+    }
 
 private:
-    RenderGraph& rGraph;
-    Util::String name;
-    Type type;
-
-    // a list of handles of input and output attachments
-    std::vector<ResourceHandle> inputs; // input attachments
-    std::vector<ResourceHandle> outputs; // colour/depth/stencil attachments
-
-    // the execute function to be used by this pass
-    ExecuteFunc execFunc;
-
-    // ====== compiler set =========
-    // reference count for the number of outputs
-    size_t refCount = 0;
-
-    // the max dimesnions of the resources within this pass.
-    uint32_t maxWidth = 0;
-    uint32_t maxHeight = 0;
-
-    // If this pass is mergeable, then this will point to the root pass index
-    uint64_t mergedRootIdx = UINT64_MAX;
-
-    // This is only used if this pass will be used threaded, i.e. using secondary cmd buffers. If
-    // this is the case, all cmd buffers will be allocated from this pool and will be reset per
-    // frame through a call to **update**.
-    VulkanAPI::CmdPool* cmdPool = nullptr;
-
-    // flags depicting how the subpasses will behave
-    Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
-
-    // ======= vulkan specific ================
-    // Kept in a struct as this will be passed around when rendering passes
-    RGraphContext context;
+    uint64_t handle;
 };
 
-/**
- * @brief Useful helper functions for building the rendergraph
- */
-class RenderGraphBuilder
-{
-public:
-    RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPass);
-
-    /**
-     * @ creates a texture resource for using as a render target in a graphics  pass
-     */
-    ResourceHandle createTexture(
-        const uint32_t width,
-        const uint32_t height,
-        const vk::Format format,
-        const vk::ImageUsageFlagBits usageBits = vk::ImageUsageFlagBits::eSampled,
-        uint32_t levels = 1,
-        uint32_t layers = 1);
-
-    /**
-     * @ creates a buffer resource for using as a render target in a compute pass
-     */
-    ResourceHandle createBuffer(BufferResource* buffer);
-
-    /**
-     * @brief Adds a input attachment to the render pass. There must be a corresponding output
-     * attachment otherwise returns UINT64_MAX as error.
-     */
-    AttachmentHandle addInputAttachment(Util::String name);
-
-    /**
-     * @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass
-     */
-    AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
-
-    /**
-     * @brief Adds a function to execute each frame for this renderpass
-     * @param func The function to execute. Must be of the format (void*)(RenderPassContext&)
-     *
-     */
-    void addExecute(ExecuteFunc&& func);
-
-    /**
-     * @brief Sets the clear colour for all attachments for this pass
-     */
-    void setClearColour(const OEMaths::colour4& clearCol);
-
-    /**
-     * @brief Sets the depth clear for this pass
-     */
-    void setDepthClear(float depthClear);
-
-private:
-    // a reference to the graph and pass we are building
-    RenderGraph* rGraph = nullptr;
-    RenderGraphPass* rPass = nullptr;
-};
+using FBufferHandle = typename VkHandle;
+using RPassHandle = typename VkHandle;
 
 class RenderGraph
 {
@@ -228,10 +84,15 @@ public:
      */
     void execute();
 
+    RPassHandle createRenderPass();
+    FBufferHandle createFrameBuffer();
+
     // ============== getters ==================
     std::vector<ResourceBase*>& getResources();
-
     ResourceBase* getResource(const ResourceHandle handle);
+
+    VulkanAPI::RenderPass* getRenderpass(RPassHandle& handle);
+    VulkanAPI::FrameBuffer* getFramebuffer(FBufferHandle& handle);
 
     friend class RenderGraphPass;
     friend class RenderGraphBuilder;
@@ -252,13 +113,17 @@ private:
     VulkanAPI::VkDriver& driver;
 
     // a list of all the render passes
-    std::vector<RenderGraphPass> renderPasses;
+    std::vector<RenderGraphPass> rGraphPasses;
 
     // a virtual list of all the resources associated with this graph
     std::vector<ResourceBase*> resources;
 
     // The entirety of the attachments for this graph
     std::vector<AttachmentInfo> attachments;
+
+    // all allocated renderpasses and framebuffers are registered here.
+    std::vector<std::unique_ptr<VulkanAPI::RenderPass>> renderpasses;
+    std::vector<std::unique_ptr<VulkanAPI::FrameBuffer>> framebuffers;
 
     bool rebuild = true;
 };
