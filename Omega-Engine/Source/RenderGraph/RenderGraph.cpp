@@ -1,5 +1,8 @@
 #include "RenderGraph.h"
 
+#include "RenderGraph/RenderGraphBuilder.h"
+#include "RenderGraph/RenderGraphPass.h"
+
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
@@ -144,16 +147,19 @@ bool RenderGraph::compile()
                     if (tex->isDepthFormat())
                     {
                         rpass.flags |= VulkanAPI::SubpassFlags::DepthRead;
+                        tex->imageUsage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
                     }
                     if (tex->isStencilFormat())
                     {
                         rpass.flags |= VulkanAPI::SubpassFlags::StencilRead;
+                        tex->imageUsage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
                     }
                 }
                 else
                 {
                     // assume must be a colour format
                     rpass.flags |= VulkanAPI::SubpassFlags::ColourRead;
+                    tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
                 }
             }
         }
@@ -260,10 +266,11 @@ void RenderGraph::initRenderPass()
                 }
 
                 // create the framebuffer - this is linked to the renderpass
-                rpass.context.framebuffer->prepare(
-                    *rpass.context.rpass, views, rpass.maxWidth, rpass.maxHeight, 1);
+                VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
+                VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
+                fbuffer->prepare(*renderpass, views, rpass.maxWidth, rpass.maxHeight, 1);
 
-                VulkanAPI::CmdPool* cmdPool = rpass.context.cbManager->getMainPool();
+                VulkanAPI::CmdPool* cmdPool = driver.getCbManager().getMainPool();
                 rpass.context.cmdBuffer = cmdPool->createPrimaryCmdBuffer();
                 break;
             }
@@ -304,8 +311,10 @@ void RenderGraph::execute()
         VulkanAPI::CmdBufferManager& manager = driver.getCbManager();
 
         assert(rpass.context.cmdBuffer);
+        VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
+        VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
         manager.beginRenderpass(
-            rpass.context.cmdBuffer, *rpass.context.rpass, *rpass.context.framebuffer);
+            rpass.context.cmdBuffer, *renderpass, *fbuffer);
 
         rpass.execFunc(rpass.context);
     }
@@ -337,13 +346,13 @@ FBufferHandle RenderGraph::createFrameBuffer()
     return FBufferHandle {framebuffers.size() - 1};
 }
 
-VulkanAPI::RenderPass* RenderGraph::getRenderpass(RPassHandle& handle)
+VulkanAPI::RenderPass* RenderGraph::getRenderpass(const RPassHandle& handle)
 {
     assert(handle.get() < renderpasses.size());
     return renderpasses[handle.get()].get();
 }
 
-VulkanAPI::FrameBuffer* RenderGraph::getFramebuffer(FBufferHandle& handle)
+VulkanAPI::FrameBuffer* RenderGraph::getFramebuffer(const FBufferHandle& handle)
 {
     assert(handle.get() < framebuffers.size());
     return framebuffers[handle.get()].get();

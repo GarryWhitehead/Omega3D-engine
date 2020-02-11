@@ -1,5 +1,9 @@
 #include "RenderGraphPass.h"
 
+#include "RenderGraph/RenderGraph.h"
+
+#include "utility/Logger.h"
+
 namespace OmegaEngine
 {
 
@@ -56,11 +60,11 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             VulkanAPI::RenderPass* rpass;
             if (parent)
             {
-                rpass = parent->context.rpass;
+                rpass = rGraph.getRenderpass(parent->context.rpass);
             }
             else
             {
-                rpass = context.rpass;
+                rpass = rGraph.getRenderpass(context.rpass);
             }
 
             auto& resources = rGraph.getResources();
@@ -127,7 +131,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
 void RenderGraphPass::bake()
 {
     // create the renderpass
-    context.rpass->prepare();
+    rGraph.getRenderpass(context.rpass)->prepare();
 }
 
 void RenderGraphPass::addExecute(ExecuteFunc&& func)

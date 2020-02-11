@@ -1,7 +1,24 @@
 #pragma once
 
+#include "RenderGraph/RenderHandle.h"
+#include "RenderGraph/Resources.h"
+#include "utility/BitsetEnum.h"
+#include "utility/CString.h"
+
+#include <functional>
+
+namespace VulkanAPI
+{
+class VkDriver;
+class CmdBuffer;
+class CmdPool;
+} // namespace VulkanAPI
+
 namespace OmegaEngine
 {
+
+class RenderGraph;
+class OERenderer;
 
 /**
  * @brief A useful container for grouping together render graph variables for use externally
@@ -21,11 +38,8 @@ struct RGraphContext
 
     // useful vulkan managers - not owned by this struct
     VulkanAPI::VkDriver* driver = nullptr;
-
-    // keep track of the renderer
     OERenderer* renderer = nullptr;
 
-    // the rendergrpah this pass is associated with
     RenderGraph* rGraph = nullptr;
 };
 

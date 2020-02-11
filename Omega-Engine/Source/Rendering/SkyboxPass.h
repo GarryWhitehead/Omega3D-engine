@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderGraph/Resources.h"
+#include "RenderGraph/RenderGraphBuilder.h"
 
 #include "Rendering/Renderer.h"
 

@@ -1,6 +1,7 @@
 #include "LightingPass.h"
 
 #include "RenderGraph/RenderGraph.h"
+#include "RenderGraph/RenderGraphPass.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
@@ -40,7 +41,8 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     builder.addExecute([=](RGraphContext& context) {
 
         // bind the pipeline
-        context.cmdBuffer->bindPipeline(context.rpass, prog);
+        VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+        context.cmdBuffer->bindPipeline(renderpass, prog);
 
         // bind the descriptor
         context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);

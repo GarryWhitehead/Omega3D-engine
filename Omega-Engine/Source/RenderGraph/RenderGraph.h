@@ -2,6 +2,8 @@
 
 #include "OEMaths/OEMaths.h"
 #include "RenderGraph/Resources.h"
+#include "RenderGraph/RenderGraphPass.h"
+#include "RenderGraph/RenderHandle.h"
 #include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/RenderPass.h"
 #include "utility/BitSetEnum.h"
@@ -9,6 +11,7 @@
 
 #include <functional>
 #include <vector>
+#include <memory>
 
 // forward decleartion
 namespace VulkanAPI
@@ -28,26 +31,7 @@ namespace OmegaEngine
 class RenderGraph;
 class OERenderer;
 class RenderGraphPass;
-
-class VkHandle
-{
-public:
-    VkHandle() = delete;
-    explicit VkHandle(const uint64_t handle) : handle(handle)
-    {
-    }
-
-    uint64_t get()
-    {
-        return handle;
-    }
-
-private:
-    uint64_t handle;
-};
-
-using FBufferHandle = typename VkHandle;
-using RPassHandle = typename VkHandle;
+class RenderGraphBuilder;
 
 class RenderGraph
 {
@@ -91,8 +75,8 @@ public:
     std::vector<ResourceBase*>& getResources();
     ResourceBase* getResource(const ResourceHandle handle);
 
-    VulkanAPI::RenderPass* getRenderpass(RPassHandle& handle);
-    VulkanAPI::FrameBuffer* getFramebuffer(FBufferHandle& handle);
+    VulkanAPI::RenderPass* getRenderpass(const RPassHandle& handle);
+    VulkanAPI::FrameBuffer* getFramebuffer(const FBufferHandle& handle);
 
     friend class RenderGraphPass;
     friend class RenderGraphBuilder;

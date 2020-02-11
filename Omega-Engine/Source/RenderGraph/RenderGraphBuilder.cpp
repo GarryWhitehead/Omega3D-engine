@@ -1,5 +1,9 @@
 #include "RenderGraphBuilder.h"
 
+#include "RenderGraph/RenderGraph.h"
+
+#include "utility/Logger.h"
+
 namespace OmegaEngine
 {
 

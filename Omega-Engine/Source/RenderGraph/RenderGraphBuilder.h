@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderGraph/RenderGraphPass.h"
 #include "RenderGraph/Resources.h"
 #include "utility/CString.h"
 

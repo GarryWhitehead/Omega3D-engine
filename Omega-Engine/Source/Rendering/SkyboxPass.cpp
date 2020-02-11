@@ -1,6 +1,7 @@
 #include "SkyboxPass.h"
 
 #include "RenderGraph/RenderGraph.h"
+#include "RenderGraph/RenderGraphPass.h"
 #include "Types/Skybox.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CommandBufferManager.h"
@@ -37,7 +38,8 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
     // everything required to draw the skybox to the cmd buffer
     builder.addExecute([&](RGraphContext& context) {
 
-        context.cmdBuffer->bindPipeline(context.rpass, prog);
+        VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+        context.cmdBuffer->bindPipeline(renderpass, prog);
 
         context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
         context.cmdBuffer->bindPushBlock(

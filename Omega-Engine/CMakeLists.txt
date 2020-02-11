@@ -106,6 +106,7 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/RenderGraph/Resources.cpp Source/RenderGraph/Resources.h
 	Source/RenderGraph/RenderGraphBuilder.cpp Source/RenderGraph/RenderGraphBuilder.h
 	Source/RenderGraph/RenderGraphPass.cpp Source/RenderGraph/RenderGraphPass.h
+	Source/RenderGraph/RenderHandle.h
 
 	Source/Rendering/IndirectLighting.cpp Source/Rendering/IndirectLighting.h
 	Source/Rendering/RenderQueue.cpp Source/Rendering/RenderQueue.h

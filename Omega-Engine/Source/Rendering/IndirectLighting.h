@@ -7,7 +7,7 @@
 
 #include "utility/CString.h"
 
-#include "RenderGraph/RenderGraph.h"
+#include "RenderGraph/RenderGraphBuilder.h"
 
 #include "Rendering/Renderer.h"
 

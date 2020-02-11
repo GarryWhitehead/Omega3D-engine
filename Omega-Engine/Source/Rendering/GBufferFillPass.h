@@ -1,6 +1,6 @@
 #pragma once
 
-#include "RenderGraph/RenderGraph.h"
+#include "RenderGraph/RenderGraphBuilder.h"
 #include "Rendering/Renderer.h"
 
 #include "VulkanAPI/Shader.h"

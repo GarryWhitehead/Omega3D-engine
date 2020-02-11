@@ -2,6 +2,8 @@
 
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
+#include "RenderGraph/RenderGraph.h"
+#include "RenderGraph/RenderGraphPass.h"
 #include "Rendering/SkyboxPass.h"
 #include "Types/Skybox.h"
 #include "VulkanAPI/CommandBuffer.h"
@@ -30,21 +32,19 @@ void IndirectLighting::calculateCubeTransform(
     OEMaths::mat4f& outputProj,
     OEMaths::mat4f& outputView)
 {
-    OEMaths::vec3f target[6] = {
-        OEMaths::vec3f(1.0f, 0.0f, 0.0f),
-        OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, -1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-        OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
+    OEMaths::vec3f target[6] = {OEMaths::vec3f(1.0f, 0.0f, 0.0f),
+                                OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, -1.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+                                OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
 
-    OEMaths::vec3f cameraUp[6] = {
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 0.0f, -1.0f),
-        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
+    OEMaths::vec3f cameraUp[6] = {OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 0.0f, -1.0f),
+                                  OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
 
     outputProj = outputProj.scale(OEMaths::vec3f {-1.0f, 1.0f, 1.0f}) *
         OEMaths::perspective(90.0f, 1.0f, zNear, zFar);
@@ -75,7 +75,8 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         bdrfInfo.attachment = builder.addOutputAttachment("BdrfSampler", bdrfInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
-            context.cmdBuffer->bindPipeline(context.rpass, prog);
+            VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
+            context.cmdBuffer->bindPipeline(renderpass, prog);
             context.cmdBuffer->drawQuad();
         });
     }
@@ -178,7 +179,8 @@ void IndirectLighting::buildMap(
 
             context.cmdBuffer->setViewport(viewPort);
 
-            context.cmdBuffer->bindPipeline(context.rpass, prog);
+            VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+            context.cmdBuffer->bindPipeline(renderpass, prog);
             context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
             context.cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
             context.cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
