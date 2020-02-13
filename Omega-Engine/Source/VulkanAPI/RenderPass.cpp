@@ -243,71 +243,81 @@ bool RenderPass::addSubPass(
 
 void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassFlags>& flags)
 {
-    vk::SubpassDependency depend;
-    depend.dependencyFlags = vk::DependencyFlagBits::eByRegion;
+    vk::SubpassDependency depend[2];
+    depend[0].dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
     if (flags.testBit(SubpassFlags::TopOfPipeline))
     {
-        depend.srcSubpass = VK_SUBPASS_EXTERNAL;
-        depend.dstSubpass = 0;
-        depend.srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        depend.srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+        depend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        depend[0].dstSubpass = 0;
+        depend[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        depend[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
-            depend.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            depend.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            depend[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            depend[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (
             (flags.testBit(SubpassFlags::DepthRead)) && flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            depend[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            depend[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            depend.dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            depend[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+            depend[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
     }
     else if (flags.testBit(SubpassFlags::BottomOfPipeline))
     {
-        depend.srcSubpass = 0;
-        depend.dstSubpass = VK_SUBPASS_EXTERNAL;
-        depend.dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        depend.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        depend[0].srcSubpass = 0;
+        depend[0].dstSubpass = VK_SUBPASS_EXTERNAL;
+        depend[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        depend[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
         if (flags.testBit(SubpassFlags::Merged))
         {
-            depend.srcSubpass = 0;
+            depend[0].srcSubpass = 0;
         }
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            depend.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            depend[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            depend[0].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            depend[0].srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            depend[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::StencilRead))
         {
-            depend.srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            depend.srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            depend[0].srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+            depend[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
     }
     else
     {
         if (!flags.testBit(SubpassFlags::Merged))
         {
-            depend.srcSubpass = VK_SUBPASS_EXTERNAL;
-            depend.dstSubpass = 0;
+            depend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+            depend[0].dstSubpass = 0;
         }
     }
 
-    dependencies.push_back(depend);
+    dependencies.emplace_back(depend[0]);
+
+    // and the next dependency stage
+    depend[1].srcSubpass = depend[0].dstSubpass;
+    depend[1].dstSubpass = depend[0].srcSubpass;
+    depend[1].srcStageMask = depend[0].dstStageMask;
+    depend[1].dstStageMask = depend[0].srcStageMask;
+    depend[1].srcAccessMask = depend[0].dstAccessMask;
+    depend[1].dstAccessMask = depend[0].srcAccessMask;
+    
+    dependencies.emplace_back(depend[1]);
 }
 
 void RenderPass::prepare()

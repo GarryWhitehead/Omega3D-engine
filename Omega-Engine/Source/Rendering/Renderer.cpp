@@ -73,11 +73,15 @@ void OERenderer::beginFrame()
 {
 }
 
-void OERenderer::update()
+bool OERenderer::update()
 {
     // optimisation and compilation of the render graph. If nothing has changed since the last frame
     // then this call will just return.
-    rGraph->prepare();
+    if (!rGraph->prepare())
+    {
+        return false;
+    }
+    return true;
 }
 
 void OERenderer::draw()

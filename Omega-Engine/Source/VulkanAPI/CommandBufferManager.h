@@ -113,7 +113,7 @@ private:
 class CmdBufferManager
 {
 public:
-	CmdBufferManager(VkContext& context);
+    CmdBufferManager(VkContext& context, SemaphoreManager& spManager);
 	~CmdBufferManager();
 
 	// not copyable
@@ -185,6 +185,7 @@ private:
 private:
 	// The current vulkan context
 	VkContext& context;
+    SemaphoreManager& spManager;
 
 	// the main cmd pool used for the main thread
 	std::unique_ptr<CmdPool> mainPool;
@@ -196,8 +197,6 @@ private:
 	// buffer during draw operations. The majority of the required data comes from the shader, but due to each pipeline being
 	// exclusively tied to a renderpass, we can only create the pipeline once these have been created.
 	std::unordered_map<PLineHash, Pipeline*, PLineHasher, PLineEqual> pipelines;
-
-	std::unique_ptr<SemaphoreManager> spManager;
 
 	// the current frame which to draw
 	uint8_t currFrame = 0;

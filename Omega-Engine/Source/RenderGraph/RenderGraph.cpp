@@ -113,13 +113,12 @@ bool RenderGraph::compile()
     // finialise the attachments
     size_t passCount = rGraphPasses.size();
 
-    // fill some of the subpass dependency flags
-    rGraphPasses[0].flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
-    rGraphPasses[passCount - 1].flags |= VulkanAPI::SubpassFlags::BottomOfPipeline;
-
     for (size_t i = 0; i < passCount; ++i)
     {
         RenderGraphPass& rpass = rGraphPasses[i];
+        
+        // TODO: this needs some work
+        rpass.flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
 
         // passes with no refences are treated as culled
         uint32_t refId = 0;
@@ -136,7 +135,7 @@ bool RenderGraph::compile()
                 // used by the attachment descriptor
                 tex->referenceId = refId++;
 
-                // use the resource with max dimensions - they should all be identical really
+                // use the resource with max dimensions 
                 maxWidth = std::max(maxWidth, tex->width);
                 maxHeight = std::max(maxHeight, tex->height);
 
@@ -300,6 +299,7 @@ bool RenderGraph::prepare()
     initRenderPass();
 
     rebuild = false;
+    return true;
 }
 
 void RenderGraph::execute()
@@ -313,6 +313,7 @@ void RenderGraph::execute()
         assert(rpass.context.cmdBuffer);
         VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
+        rpass.context.cmdBuffer->begin();
         manager.beginRenderpass(
             rpass.context.cmdBuffer, *renderpass, *fbuffer);
 

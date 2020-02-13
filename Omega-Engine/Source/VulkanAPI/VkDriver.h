@@ -19,6 +19,7 @@ class Texture;
 class VertexBuffer;
 class IndexBuffer;
 class Swapchain;
+class SemaphoreManager;
 
 /**
  * @brief Resources are hashed using the data pointer as this will be unique for each resource
@@ -197,6 +198,7 @@ private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
     std::unique_ptr<CmdBufferManager> cbManager;
+    std::unique_ptr<SemaphoreManager> spManager;
 
     // the current device context
     VkContext context;
@@ -217,6 +219,7 @@ private:
 
     // The current present KHR frame image index
     uint32_t imageIndex;
+
     vk::Semaphore beginSemaphore;
 };
 

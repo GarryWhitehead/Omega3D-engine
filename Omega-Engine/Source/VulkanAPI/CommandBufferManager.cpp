@@ -167,8 +167,8 @@ void CmdPool::releaseSingleUseCb(std::unique_ptr<CmdBuffer> cmdBuffer)
 
 // ================================================================================================================
 
-CmdBufferManager::CmdBufferManager(VkContext& context)
-    : context(context), spManager(std::make_unique<SemaphoreManager>(context.getDevice()))
+CmdBufferManager::CmdBufferManager(VkContext& context, SemaphoreManager& spManager)
+    : context(context), spManager(spManager)
 {
     assert(context.getDevice());
     createMainPool();
@@ -207,7 +207,7 @@ CmdPool* CmdBufferManager::createMainPool()
     mainPool = std::make_unique<CmdPool>(
         context,
         this,
-        *spManager,
+        spManager,
         context.getGraphQueueIdx()); // this needs to support compute queues too
     return mainPool.get();
 }
@@ -227,7 +227,7 @@ std::unique_ptr<CmdPool> CmdBufferManager::createSecondaryPool()
     auto pool = std::make_unique<CmdPool>(
         context,
         this,
-        *spManager,
+        spManager,
         context.getGraphQueueIdx()); // this needs to support compute queues too
     return pool;
 }

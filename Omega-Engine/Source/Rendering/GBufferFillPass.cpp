@@ -57,8 +57,8 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
     gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
     gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
     gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
-    gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
     gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
+    gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
     gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
 
     OEMaths::colour4 clear = config.findOrInsertVec4("clearValue", OEEngine::Default_ClearVal);

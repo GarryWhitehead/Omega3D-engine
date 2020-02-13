@@ -96,7 +96,18 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
         }
 
         // and the renderer
-        renderer->update();
+        if (!renderer->update())
+        {
+            return false;
+        }
+
+        // user define pre-render callback to be added here (or virtual)
+
+        // TODP: multi view option- with each view drawn.
+        // begin the rendering for this frame
+        renderer->draw();
+
+        // user defined post-render callback to be added here
 
         // calculate whether we have any time remaining this frame
         NanoSeconds endTime = timer.getCurrentTime();

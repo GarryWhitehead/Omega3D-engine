@@ -3,13 +3,14 @@
 
 namespace VulkanAPI
 {
+class VkContext;
 
 class SemaphoreManager
 {
 
 public:
 
-	SemaphoreManager(vk::Device dev);
+	SemaphoreManager(VkContext& context);
 	~SemaphoreManager();
 
 	vk::Semaphore getSemaphore();
@@ -17,7 +18,8 @@ public:
 
 private:
 
-	vk::Device device;
+	VkContext& context;
+
 	std::vector<vk::Semaphore> semaphores;
 };
 

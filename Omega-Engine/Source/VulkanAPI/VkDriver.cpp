@@ -14,6 +14,7 @@ namespace VulkanAPI
 
 VkDriver::VkDriver()
     : progManager(std::make_unique<ProgramManager>(context))
+    , spManager(std::make_unique<SemaphoreManager>(context))
 {
 }
 
@@ -50,8 +51,12 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
     // we can now create the staging pool now we have the VMA up and running....
     stagingPool = std::make_unique<StagingPool>(vmaAlloc);
 
-    // and the command buffer manager - note: the pool is init on construction so must be done after driver init
-    cbManager = std::make_unique<CmdBufferManager>(context);
+    // and the command buffer manager - note: the pool is init on construction so must be done after
+    // driver init
+    cbManager = std::make_unique<CmdBufferManager>(context, *spManager);
+
+    // create the semaphore for signalling a new frame is ready now
+    beginSemaphore = spManager->getSemaphore();
 
     return true;
 }
@@ -87,7 +92,8 @@ void VkDriver::addUbo(const Util::String& id, const size_t size, VkBufferUsageFl
     buffers.emplace(key, buffer);
 }
 
-void VkDriver::addUboAndUpdateDescr(const Util::String& id, const size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUboAndUpdateDescr(
+    const Util::String& id, const size_t size, VkBufferUsageFlags usage)
 {
     addUbo(id, size, usage);
 

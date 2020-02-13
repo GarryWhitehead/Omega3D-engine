@@ -1,7 +1,7 @@
 #include "RenderGraphPass.h"
 
 #include "RenderGraph/RenderGraph.h"
-
+#include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -46,6 +46,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
         case Type::Graphics: {
             // used for signyfing to the subpass the reference ids associated with it
             std::vector<uint32_t> inputRefs, outputRefs;
+            uint32_t depthRef = UINT32_MAX;
 
             // if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
             if (!flags.testBit(VulkanAPI::SubpassFlags::Merged) ||
@@ -86,9 +87,19 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
                     LOGGER_WARN("There appears to be some discrepancy between this passes resource "
                                 "dimensions\n");
                 }
-
-                outputRefs.emplace_back(tex->referenceId);
                 tex->bake(driver);
+
+                if (!VulkanAPI::VkUtil::isDepth(tex->format) ||
+                    !VulkanAPI::VkUtil::isStencil(tex->format))
+                {
+                    outputRefs.emplace_back(tex->referenceId);
+                }
+                else
+                {
+                    // only one depth/stencil ref per pass
+                    assert(depthRef == UINT32_MAX);
+                    depthRef = tex->referenceId;
+                }
 
                 // add a attachment
                 rpass->addOutputAttachment(
