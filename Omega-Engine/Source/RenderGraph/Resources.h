@@ -56,8 +56,6 @@ struct ResourceBase
     // used by the attachment descriptor
     uint32_t referenceId = 0;
 
-    // the renderpass that this resource is used as a output
-    RenderGraphPass* outputPass = nullptr;
 };
 
 /**

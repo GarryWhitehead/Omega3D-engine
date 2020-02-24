@@ -13,29 +13,29 @@ RenderGraphPass::RenderGraphPass(Util::String name, const Type type, RenderGraph
 {
 }
 
-ResourceHandle RenderGraphPass::addInput(const ResourceHandle input)
+ResourceHandle RenderGraphPass::addRead(const ResourceHandle input)
 {
     // make sure that this handle doesn't already exsist in the list
     // This is just a waste of memory having reduntant resources
-    auto iter = std::find(inputs.begin(), inputs.end(), input);
-    if (iter != inputs.end())
+    auto iter = std::find(reads.begin(), reads.end(), input);
+    if (iter != reads.end())
     {
         return *iter;
     }
-    inputs.emplace_back(input);
+    reads.emplace_back(input);
     return input;
 }
 
-ResourceHandle RenderGraphPass::addOutput(const ResourceHandle output)
+ResourceHandle RenderGraphPass::addWrite(const ResourceHandle output)
 {
     // make sure that this handle doesn't already exsist in the list
     // This is just a waste of memory having reduntant resources
-    auto iter = std::find(outputs.begin(), outputs.end(), output);
-    if (iter != outputs.end())
+    auto iter = std::find(writes.begin(), writes.end(), output);
+    if (iter != writes.end())
     {
         return *iter;
     }
-    outputs.emplace_back(output);
+    writes.emplace_back(output);
     return output;
 }
 
@@ -71,7 +71,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             auto& resources = rGraph.getResources();
 
             // add the output attachments
-            for (ResourceHandle handle : outputs)
+            for (ResourceHandle handle : writes)
             {
                 ResourceBase* base = resources[handle];
                 assert(base->type == ResourceBase::ResourceType::Texture);
@@ -107,7 +107,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             }
 
             // input attachments
-            for (ResourceHandle handle : inputs)
+            for (ResourceHandle handle : reads)
             {
                 ResourceBase* base = resources[handle];
                 assert(base->type == ResourceBase::ResourceType::Texture);

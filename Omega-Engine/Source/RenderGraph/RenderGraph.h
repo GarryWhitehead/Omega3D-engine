@@ -1,17 +1,17 @@
 #pragma once
 
 #include "OEMaths/OEMaths.h"
-#include "RenderGraph/Resources.h"
 #include "RenderGraph/RenderGraphPass.h"
 #include "RenderGraph/RenderHandle.h"
+#include "RenderGraph/Resources.h"
 #include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/RenderPass.h"
 #include "utility/BitSetEnum.h"
 #include "utility/CString.h"
 
 #include <functional>
-#include <vector>
 #include <memory>
+#include <vector>
 
 // forward decleartion
 namespace VulkanAPI
@@ -22,6 +22,8 @@ class CmdBuffer;
 class FrameBuffer;
 class RenderPass;
 class VkDriver;
+class Image;
+class ImageView;
 } // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -71,7 +73,15 @@ public:
     RPassHandle createRenderPass();
     FBufferHandle createFrameBuffer();
 
-    // ============== getters ==================
+    ResourceHandle importResource(
+        Util::String name,
+        const VulkanAPI::Image& image,
+        VulkanAPI::ImageView& imageView,
+        const uint32_t width,
+        const uint32_t height);
+
+    ResourceHandle moveResource(const ResourceHandle from, const ResourceHandle to);
+
     std::vector<ResourceBase*>& getResources();
     ResourceBase* getResource(const ResourceHandle handle);
 
@@ -101,6 +111,9 @@ private:
 
     // a virtual list of all the resources associated with this graph
     std::vector<ResourceBase*> resources;
+
+    // used for moving resources - pair = from, to handles
+    std::vector<std::pair<ResourceHandle, ResourceHandle>> aliases;
 
     // The entirety of the attachments for this graph
     std::vector<AttachmentInfo> attachments;

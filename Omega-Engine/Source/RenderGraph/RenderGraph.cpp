@@ -2,7 +2,6 @@
 
 #include "RenderGraph/RenderGraphBuilder.h"
 #include "RenderGraph/RenderGraphPass.h"
-
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/RenderPass.h"
@@ -40,30 +39,46 @@ ResourceHandle RenderGraph::addResource(ResourceBase* resource)
     return resources.size() - 1;
 }
 
+ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const ResourceHandle to)
+{
+    ResourceBase* res = resources[from];
+    aliases.push_back({from, to});
+    return addResource(res);
+}
+
+ResourceHandle RenderGraph::importResource(
+    Util::String name,
+    const VulkanAPI::Image& image,
+    VulkanAPI::ImageView& imageView,
+    const uint32_t width,
+    const uint32_t height)
+{
+}
+
 void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
 {
     // the render pass that outputs to this resource
-    RenderGraphPass* rpass = resource->outputPass;
+    // RenderGraphPass* rpass = resource->outputPass;
 
-    if (rpass)
-    {
-        --rpass->refCount;
+    /* if (rpass)
+     {
+         --rpass->refCount;
 
-        // this pass has no more write attahment dependencies so can be culled
-        if (rpass->refCount == 0)
-        {
-            for (ResourceHandle& handle : rpass->inputs)
-            {
-                ResourceBase* rsrc = resources[handle];
-                --resource->inputCount;
-                if (rsrc->inputCount == 0)
-                {
-                    // no input dependencies, so see if we can cull this pass
-                    CullResourcesAndPasses(rsrc);
-                }
-            }
-        }
-    }
+         // this pass has no more write attahment dependencies so can be culled
+         if (rpass->refCount == 0)
+         {
+             for (ResourceHandle& handle : rpass->inputs)
+             {
+                 ResourceBase* rsrc = resources[handle];
+                 --resource->inputCount;
+                 if (rsrc->inputCount == 0)
+                 {
+                     // no input dependencies, so see if we can cull this pass
+                     CullResourcesAndPasses(rsrc);
+                 }
+             }
+         }
+     }*/
 }
 
 AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
@@ -74,32 +89,41 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 
 bool RenderGraph::compile()
 {
+    // start by re-ordering the passes - starting from the "root" node (i.e. the backbuffer), work
+    // backwards and find all passes which write to this node. Then take these passes and find the
+    // resource writes, and so on.... traverse bottom up - the last pass will (must) be the
+    // backbuffer
+    uint64_t idx = rGraphPasses.size() - 1;
+    RenderGraphPass& lastPass = rGraphPasses[--idx];
 
-    for (RenderGraphPass& rpass : rGraphPasses)
+    // we make a assertion here that the last pass can only write to the backbuffer
+    assert(lastPass.writes.size() == 1);
+    ResourceHandle curHandle = lastPass.writes[0];
+
+    std::vector<uint32_t> passIdxStack;
+
+    passIdxStack.emplace_back(idx);
+
+
+    while (!passIdxStack.empty())
     {
-        if (rpass.type == RenderGraphPass::Type::Graphics)
+        RenderGraphPass& curPass = rGraphPasses[passIdxStack.back()];
+        passIdxStack.pop_back();
+
+        std::vector<ResourceHandle> resourceStack;
+
+        for (ResourceHandle handle : curPass.writes)
         {
-            // the number of resources this pass references too
-            rpass.refCount = rpass.outputs.size();
+            resourceStack.emplace_back(handle);
+        }
 
-            // work out how many resources read from this resource
-            for (ResourceHandle& handle : rpass.inputs)
+        while (!resourceStack.empty())
+        {
+            ResourceHandle curHandle = resourceStack.back(); 
+            // get writer from resource and see if they are the same (needs to be setup)
+            if (handle == curHandle)
             {
-                assert(handle < resources.size());
-                ResourceBase* resource = resources[handle];
-                ++resource->inputCount;
-            }
-
-            // for the outputs, set the pass which writes to this resource
-            for (ResourceHandle& handle : rpass.outputs)
-            {
-                if (handle >= resources.size())
-                {
-                    LOGGER_ERROR("There are more output attachments than there are resources.");
-                    return false;
-                }
-                ResourceBase* resource = resources[handle];
-                resource->outputPass = &rpass;
+                resourceStack.emplace_back(idx);
             }
         }
     }
@@ -116,7 +140,7 @@ bool RenderGraph::compile()
     for (size_t i = 0; i < passCount; ++i)
     {
         RenderGraphPass& rpass = rGraphPasses[i];
-        
+
         // TODO: this needs some work
         rpass.flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
 
@@ -135,7 +159,7 @@ bool RenderGraph::compile()
                 // used by the attachment descriptor
                 tex->referenceId = refId++;
 
-                // use the resource with max dimensions 
+                // use the resource with max dimensions
                 maxWidth = std::max(maxWidth, tex->width);
                 maxHeight = std::max(maxHeight, tex->height);
 
@@ -314,8 +338,7 @@ void RenderGraph::execute()
         VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
         rpass.context.cmdBuffer->begin();
-        manager.beginRenderpass(
-            rpass.context.cmdBuffer, *renderpass, *fbuffer);
+        manager.beginRenderpass(rpass.context.cmdBuffer, *renderpass, *fbuffer);
 
         rpass.execFunc(rpass.context);
     }

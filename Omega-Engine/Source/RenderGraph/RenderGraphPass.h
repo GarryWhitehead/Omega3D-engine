@@ -63,10 +63,10 @@ public:
     RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
 
     // adds a input attachment reader handle to the pass
-    ResourceHandle addInput(const ResourceHandle input);
+    ResourceHandle addRead(const ResourceHandle input);
 
     // adds a colour/depth/stencil attachment writer to the pass
-    ResourceHandle addOutput(const ResourceHandle output);
+    ResourceHandle addWrite(const ResourceHandle output);
 
     // A callback function which will be called each frame
     void addExecute(ExecuteFunc&& func);
@@ -92,16 +92,13 @@ private:
     Type type;
 
     // a list of handles of input and output attachments
-    std::vector<ResourceHandle> inputs; // input attachments
-    std::vector<ResourceHandle> outputs; // colour/depth/stencil attachments
+    std::vector<ResourceHandle> reads; // input attachments
+    std::vector<ResourceHandle> writes; // colour/depth/stencil attachments
 
     // the execute function to be used by this pass
     ExecuteFunc execFunc;
 
     // ====== compiler set =========
-    // reference count for the number of outputs
-    size_t refCount = 0;
-
     // the max dimesnions of the resources within this pass.
     uint32_t maxWidth = 0;
     uint32_t maxHeight = 0;

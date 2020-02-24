@@ -13,7 +13,7 @@ RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPa
     this->rPass = rPass;
 }
 
-ResourceHandle RenderGraphBuilder::createTexture(
+ResourceHandle RenderGraphBuilder::createRenderTarget(
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
@@ -31,7 +31,7 @@ ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(buffer));
 }
 
-AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name)
+AttachmentHandle RenderGraphBuilder::addReader(Util::String name)
 {
     // link the input with the outputted resource
     AttachmentHandle handle = rGraph->findAttachment(name);
@@ -42,19 +42,19 @@ AttachmentHandle RenderGraphBuilder::addInputAttachment(Util::String name)
         return UINT64_MAX;
     }
 
-    rPass->addInput(handle);
+    rPass->addRead(handle);
     return handle;
 }
 
 AttachmentHandle
-RenderGraphBuilder::addOutputAttachment(Util::String name, const ResourceHandle resource)
+RenderGraphBuilder::addWriter(Util::String name, const ResourceHandle resource)
 {
     AttachmentInfo info;
     info.name = name;
     info.resource = resource;
 
     AttachmentHandle handle = rGraph->addAttachment(info);
-    rPass->addOutput(handle);
+    rPass->addWrite(handle);
     return handle;
 }
 

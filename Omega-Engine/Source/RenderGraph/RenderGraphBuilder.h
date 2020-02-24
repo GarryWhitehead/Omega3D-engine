@@ -21,7 +21,7 @@ public:
     /**
      * @ creates a texture resource for using as a render target in a graphics  pass
      */
-    ResourceHandle createTexture(
+    ResourceHandle createRenderTarget(
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,
@@ -38,12 +38,12 @@ public:
      * @brief Adds a input attachment to the render pass. There must be a corresponding output
      * attachment otherwise returns UINT64_MAX as error.
      */
-    AttachmentHandle addInputAttachment(Util::String name);
+    AttachmentHandle addReader(Util::String name);
 
     /**
      * @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass
      */
-    AttachmentHandle addOutputAttachment(Util::String name, const ResourceHandle resource);
+    AttachmentHandle addWriter(Util::String name, const ResourceHandle resource);
 
     /**
      * @brief Adds a function to execute each frame for this renderpass
