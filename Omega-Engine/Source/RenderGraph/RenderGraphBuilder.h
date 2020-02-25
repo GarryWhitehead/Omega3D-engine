@@ -4,6 +4,12 @@
 #include "RenderGraph/Resources.h"
 #include "utility/CString.h"
 
+namespace VulkanAPI
+{
+class Image;
+class ImageView;
+}
+
 namespace OmegaEngine
 {
 
@@ -28,6 +34,13 @@ public:
         const vk::ImageUsageFlagBits usageBits = vk::ImageUsageFlagBits::eSampled,
         uint32_t levels = 1,
         uint32_t layers = 1);
+
+    ResourceHandle importRenderTarget(
+        const uint32_t width,
+        const uint32_t height,
+        const vk::Format format,
+        const VulkanAPI::Image& image,
+        const VulkanAPI::ImageView& view);
 
     /**
      * @ creates a buffer resource for using as a render target in a compute pass

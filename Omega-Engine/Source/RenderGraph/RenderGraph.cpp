@@ -27,7 +27,7 @@ RenderGraph::~RenderGraph()
 RenderGraphBuilder RenderGraph::createPass(Util::String name, const RenderGraphPass::Type type)
 {
     // add the pass to the list
-    RenderGraphPass rPass {name, type, *this};
+    RenderGraphPass rPass {name, type, *this, static_cast<uint32_t>(rGraphPasses.size())};
     rGraphPasses.emplace_back(rPass);
     RenderGraphBuilder builder {this, &rGraphPasses.back()};
     return builder;
@@ -53,6 +53,8 @@ ResourceHandle RenderGraph::importResource(
     const uint32_t width,
     const uint32_t height)
 {
+   // TODO
+    return ResourceHandle {0};
 }
 
 void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
@@ -89,57 +91,89 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 
 bool RenderGraph::compile()
 {
+    // TODO: deal with aliases here (moved resources)
+    
+    for (RenderGraphPass& rgPass : rGraphPasses)
+    {
+        // set the number of reads for each resource
+        for (const ResourceHandle& handle : rgPass.reads)
+        {
+            ResourceBase* res = resources[handle];
+            res->readCount++;
+        }
+
+        // set which pass is writing to the resource
+        for (const ResourceHandle& handle : rgPass.writes)
+        {
+            ResourceBase* res = resources[handle];
+            res->writer = &rgPass;
+        }
+    }
+
+    std::vector<uint32_t> reorderedPasses;
+    std::vector<RenderGraphPass*> passStack;
+
     // start by re-ordering the passes - starting from the "root" node (i.e. the backbuffer), work
     // backwards and find all passes which write to this node. Then take these passes and find the
     // resource writes, and so on.... traverse bottom up - the last pass will (must) be the
     // backbuffer
-    uint64_t idx = rGraphPasses.size() - 1;
-    RenderGraphPass& lastPass = rGraphPasses[--idx];
+
+    uint64_t lastIdx = rGraphPasses.size() - 1;
+    RenderGraphPass& lastPass = rGraphPasses[lastIdx];
+    reorderedPasses.emplace_back(lastIdx);
 
     // we make a assertion here that the last pass can only write to the backbuffer
     assert(lastPass.writes.size() == 1);
     ResourceHandle curHandle = lastPass.writes[0];
+    ResourceBase* bbRes = resources[curHandle];
 
-    std::vector<uint32_t> passIdxStack;
+    passStack.emplace_back(bbRes->writer);
 
-    passIdxStack.emplace_back(idx);
-
-
-    while (!passIdxStack.empty())
+    while (!passStack.empty())
     {
-        RenderGraphPass& curPass = rGraphPasses[passIdxStack.back()];
-        passIdxStack.pop_back();
+        RenderGraphPass* curPass = passStack.back();
+        assert(curPass);
+        passStack.pop_back();
+
+        reorderedPasses.emplace_back(curPass->index);
 
         std::vector<ResourceHandle> resourceStack;
-
-        for (ResourceHandle handle : curPass.writes)
+        for (ResourceHandle handle : curPass->writes)
         {
             resourceStack.emplace_back(handle);
         }
 
         while (!resourceStack.empty())
         {
-            ResourceHandle curHandle = resourceStack.back(); 
-            // get writer from resource and see if they are the same (needs to be setup)
-            if (handle == curHandle)
-            {
-                resourceStack.emplace_back(idx);
-            }
+            ResourceHandle curHandle = resourceStack.back();
+            ResourceBase* res = resources[curHandle];
+
+            passStack.emplace_back(res->writer);
         }
     }
 
-    // tidy up reference counts - total references, both inputs and outputs
-    for (ResourceBase* resource : resources)
-    {
-        resource->refCount += resource->inputCount;
-    }
+    std::reverse(reorderedPasses.begin(), reorderedPasses.end());
 
-    // finialise the attachments
-    size_t passCount = rGraphPasses.size();
+    // now tidy up the passes by removing duplicates - the first time the pass is seen will be
+    // its position within# the ordered passes, all subsequent passes will be removed
+    std::unordered_set<uint32_t> seen;
+    auto newEnd = std::remove_if(
+        reorderedPasses.begin(), reorderedPasses.end(), [&seen](const uint32_t& value) {
+            if (seen.find(value) != std::end(seen))
+            {
+                return true;
+            }
+            seen.insert(value);
+            return false;
+        });
+    reorderedPasses.erase(newEnd, reorderedPasses.end());
+
+    // Now we have the optimal pass order, finialise the attachments
+    size_t passCount = reorderedPasses.size();
 
     for (size_t i = 0; i < passCount; ++i)
     {
-        RenderGraphPass& rpass = rGraphPasses[i];
+        RenderGraphPass& rpass = rGraphPasses[reorderedPasses[i]];
 
         // TODO: this needs some work
         rpass.flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
@@ -149,7 +183,7 @@ bool RenderGraph::compile()
         uint32_t maxWidth = std::numeric_limits<uint32_t>::min();
         uint32_t maxHeight = std::numeric_limits<uint32_t>::min();
 
-        for (const ResourceHandle handle : rpass.outputs)
+        for (const ResourceHandle handle : rpass.writes)
         {
             ResourceBase* base = resources[handle];
             if (base->type == ResourceBase::ResourceType::Texture)
@@ -186,53 +220,13 @@ bool RenderGraph::compile()
                 }
             }
         }
+
         rpass.maxWidth = maxWidth;
         rpass.maxHeight = maxHeight;
 
-        // if the pass has an input (reader), then we treat this as a merged subpass.
-        if (!rpass.inputs.empty())
-        {
-            // a few sanity checks - you can't read from the first pass
-            if (i == 0)
-            {
-                LOGGER_ERROR(
-                    "You are trying to read from the first pass - you must have an output!");
-                return false;
-            }
-            // there must be enough outputs from the last pass to read from
-            RenderGraphPass& prevPass = rGraphPasses[i - 1];
-            if (rpass.inputs.size() > prevPass.outputs.size())
-            {
-                LOGGER_ERROR("There are more inputs than there are outputs!");
-                return false;
-            }
-
-            // inform the renderpass that this is a merged subpass
-            rpass.flags |= VulkanAPI::SubpassFlags::Merged;
-
-            // Work out the root pass of this merge - this pass will contain the list of subpasses
-            if (!prevPass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
-            {
-                rpass.mergedRootIdx = i - 1;
-                prevPass.flags.testBit(VulkanAPI::SubpassFlags::MergedBegin);
-            }
-            else
-            {
-                assert(prevPass.mergedRootIdx != UINT64_MAX);
-                rpass.mergedRootIdx = prevPass.mergedRootIdx;
-
-                // check if this is the final pass in the merge
-                if (i < passCount - 1)
-                {
-                    RenderGraphPass& nextPass = rGraphPasses[i + 1];
-                    if (!nextPass.inputs.empty())
-                    {
-                        rpass.flags |= VulkanAPI::SubpassFlags::MergedEnd;
-                    }
-                }
-            }
-        }
+        // TODO: need to deal with merging passes too!
     }
+
     return true;
 }
 
@@ -240,18 +234,13 @@ void RenderGraph::initRenderPass()
 {
     for (RenderGraphPass& rpass : rGraphPasses)
     {
-        if (rpass.refCount == 0)
-        {
-            continue;
-        }
-
         switch (rpass.type)
         {
             case RenderGraphPass::Type::Graphics: {
-                std::vector<VulkanAPI::ImageView*> views(rpass.outputs.size());
-                for (size_t i = 0; i < rpass.outputs.size(); ++i)
+                std::vector<VulkanAPI::ImageView*> views(rpass.writes.size());
+                for (size_t i = 0; i < rpass.writes.size(); ++i)
                 {
-                    AttachmentHandle handle = rpass.outputs[i];
+                    AttachmentHandle handle = rpass.writes[i];
                     assert(handle < attachments.size());
                     AttachmentInfo& attach = attachments[handle];
 

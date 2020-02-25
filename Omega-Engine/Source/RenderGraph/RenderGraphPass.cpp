@@ -8,8 +8,9 @@ namespace OmegaEngine
 {
 
 
-RenderGraphPass::RenderGraphPass(Util::String name, const Type type, RenderGraph& rGraph)
-    : rGraph(rGraph), name(name), type(type)
+RenderGraphPass::RenderGraphPass(
+    Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
+    : rGraph(rGraph), name(name), type(type), index(index)
 {
 }
 

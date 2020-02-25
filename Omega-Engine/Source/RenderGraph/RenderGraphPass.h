@@ -60,7 +60,7 @@ public:
         Compute
     };
 
-    RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph);
+    RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph, const uint32_t index);
 
     // adds a input attachment reader handle to the pass
     ResourceHandle addRead(const ResourceHandle input);
@@ -90,6 +90,8 @@ private:
     RenderGraph& rGraph;
     Util::String name;
     Type type;
+
+    const uint32_t index = 0;
 
     // a list of handles of input and output attachments
     std::vector<ResourceHandle> reads; // input attachments

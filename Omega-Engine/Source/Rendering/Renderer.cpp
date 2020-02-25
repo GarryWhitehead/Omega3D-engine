@@ -9,6 +9,7 @@
 #include "Rendering/LightingPass.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/SkyboxPass.h"
+#include "Rendering/CompositionPass.h"
 #include "Scripting/OEConfig.h"
 #include "Threading/ThreadPool.h"
 #include "VulkanAPI/CommandBuffer.h"
@@ -59,6 +60,9 @@ bool OERenderer::prepare()
                 break;
         }
     }
+
+    // the last stage is always the composition pass - writes to the surface
+    rStages.emplace_back(std::make_unique<CompositionPass>(*rGraph, "Stage_Comp", swapchain));
 
     for (auto& stage : rStages)
     {

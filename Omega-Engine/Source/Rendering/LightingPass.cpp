@@ -32,11 +32,18 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     // build the lighting render pass
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
+    // read from the gbuffer targets
+    builder.addReader("position");
+    builder.addReader("colour");
+    builder.addReader("normal");
+    builder.addReader("pbr");
+    builder.addReader("emissive");
+
     // create the gbuffer textures
-    passInfo.output = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    passInfo.output = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
     // create the output taragets
-    passInfo.output = builder.addOutputAttachment("lighting", passInfo.output);
+    passInfo.output = builder.addWriter("lighting", passInfo.output);
 
     builder.addExecute([=](RGraphContext& context) {
 

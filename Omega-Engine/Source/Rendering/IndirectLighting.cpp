@@ -70,9 +70,9 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
             rGraph.createPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
 
         bdrfInfo.texture =
-            builder.createTexture(lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
+            builder.createRenderTarget(lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
 
-        bdrfInfo.attachment = builder.addOutputAttachment("BdrfSampler", bdrfInfo.texture);
+        bdrfInfo.attachment = builder.addWriter("BdrfSampler", bdrfInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
             VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
@@ -93,10 +93,10 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         RenderGraphBuilder builder =
             rGraph.createPass("IrradiancePass", RenderGraphPass::Type::Graphics);
 
-        irrInfo.texture = builder.createTexture(
+        irrInfo.texture = builder.createRenderTarget(
             irradianceMapDim, irradianceMapDim, vk::Format::eR32G32B32A32Sfloat);
 
-        irrInfo.attachment = builder.addOutputAttachment("IrradianceSampler", irrInfo.texture);
+        irrInfo.attachment = builder.addWriter("IrradianceSampler", irrInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
             buildMap(context, prog, irradianceMapDim, MapType::Irradiance, skybox);
@@ -116,9 +116,9 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
             rGraph.createPass("SpecularPass", RenderGraphPass::Type::Graphics);
 
         specInfo.texture =
-            builder.createTexture(specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
+            builder.createRenderTarget(specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
 
-        specInfo.attachment = builder.addOutputAttachment("SpecularSampler", specInfo.texture);
+        specInfo.attachment = builder.addWriter("SpecularSampler", specInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
             buildMap(context, prog, specularMapDim, MapType::Specular, skybox);

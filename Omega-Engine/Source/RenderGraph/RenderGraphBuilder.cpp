@@ -25,6 +25,16 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 
+ResourceHandle RenderGraphBuilder::importRenderTarget(
+    const uint32_t width,
+    const uint32_t height,
+    const vk::Format format,
+    const VulkanAPI::Image& image,
+    const VulkanAPI::ImageView& view)
+{
+    
+}
+
 ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
 {
     buffer->type = ResourceBase::ResourceType::Buffer;

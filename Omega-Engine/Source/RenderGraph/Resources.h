@@ -3,8 +3,8 @@
 #include "VulkanAPI/Buffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/RenderPass.h"
-#include "utility/CString.h"
 #include "utility/BitsetEnum.h"
+#include "utility/CString.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -48,14 +48,12 @@ struct ResourceBase
 
     // ==== set by the compiler =====
     // the number of passes this resource is being used as a input
-    size_t inputCount = 0;
+    size_t readCount = 0;
 
-    // the reference count after culling
-    size_t refCount = 0;
+    RenderGraphPass* writer = nullptr;
 
     // used by the attachment descriptor
     uint32_t referenceId = 0;
-
 };
 
 /**

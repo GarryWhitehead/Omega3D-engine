@@ -46,20 +46,21 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // create the gbuffer textures
-    gbufferInfo.tex.position = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.colour = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.normal = builder.createTexture(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.pbr = builder.createTexture(2048, 2048, vk::Format::eR16G16Sfloat);
-    gbufferInfo.tex.emissive = builder.createTexture(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.depth = builder.createTexture(2048, 2048, depthFormat);
+    gbufferInfo.tex.position = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.colour = builder.createRenderTarget(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.normal = builder.createRenderTarget(2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.pbr = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16Sfloat);
+    gbufferInfo.tex.emissive =
+        builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.depth = builder.createRenderTarget(2048, 2048, depthFormat);
 
     // create the output taragets
-    gbufferInfo.attach.position = builder.addOutputAttachment("position", gbufferInfo.tex.position);
-    gbufferInfo.attach.colour = builder.addOutputAttachment("colour", gbufferInfo.tex.colour);
-    gbufferInfo.attach.normal = builder.addOutputAttachment("normal", gbufferInfo.tex.normal);
-    gbufferInfo.attach.pbr = builder.addOutputAttachment("pbr", gbufferInfo.tex.pbr);
-    gbufferInfo.attach.emissive = builder.addOutputAttachment("emissive", gbufferInfo.tex.emissive);
-    gbufferInfo.attach.depth = builder.addOutputAttachment("depth", gbufferInfo.tex.depth);
+    gbufferInfo.attach.position = builder.addWriter("position", gbufferInfo.tex.position);
+    gbufferInfo.attach.colour = builder.addWriter("colour", gbufferInfo.tex.colour);
+    gbufferInfo.attach.normal = builder.addWriter("normal", gbufferInfo.tex.normal);
+    gbufferInfo.attach.pbr = builder.addWriter("pbr", gbufferInfo.tex.pbr);
+    gbufferInfo.attach.emissive = builder.addWriter("emissive", gbufferInfo.tex.emissive);
+    gbufferInfo.attach.depth = builder.addWriter("depth", gbufferInfo.tex.depth);
 
     OEMaths::colour4 clear = config.findOrInsertVec4("clearValue", OEEngine::Default_ClearVal);
     builder.setClearColour(clear);
