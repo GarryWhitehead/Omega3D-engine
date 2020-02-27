@@ -126,7 +126,7 @@ TARGET_SOURCES(OMEGA_ENGINE
     Source/VulkanAPI/Platform/Surface_Linux.cpp
     Source/VulkanAPI/Platform/Surface_Cocoa.mm
 
-	Source/VulkanAPI/CommandBufferManager.cpp Source/VulkanAPI/CommandBufferManager.h
+	Source/VulkanAPI/CBufferManager.cpp Source/VulkanAPI/CBufferManager.h
 	Source/VulkanAPI/SemaphoreManager.cpp Source/VulkanAPI/SemaphoreManager.h
 	Source/VulkanAPI/ProgramManager.cpp Source/VulkanAPI/ProgramManager.h
 

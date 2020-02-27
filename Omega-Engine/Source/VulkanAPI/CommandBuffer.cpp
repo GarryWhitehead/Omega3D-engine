@@ -1,7 +1,6 @@
 #include "CommandBuffer.h"
 
 #include "OEMaths/OEMaths.h"
-#include "VulkanAPI/CommandBufferManager.h"
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/RenderPass.h"
@@ -12,28 +11,31 @@
 namespace VulkanAPI
 {
 
-CmdBuffer::CmdBuffer(
-    VkContext& context, const Type type, CmdPool& cmdPool, CmdBufferManager* cbManager)
-    : context(context), cmdPool(cmdPool), cbManager(cbManager), type(type)
+CmdBuffer::CmdBuffer(VkContext& context, const Type type) : context(context), type(type)
 {
     alloc();
 }
 
 CmdBuffer::~CmdBuffer()
 {
+    
 }
 
 void CmdBuffer::alloc()
 {
+    // create the fence
+    vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
+    VK_CHECK_RESULT(context.getVkState().device.createFence(&fence_info, nullptr, &cmdFence));
+    VK_CHECK_RESULT(context.getVkState().device.resetFences(1, &cmdFence));
+
     vk::CommandBufferLevel level = type == Type::Primary ? vk::CommandBufferLevel::ePrimary
                                                          : vk::CommandBufferLevel::eSecondary;
-    vk::CommandBufferAllocateInfo allocInfo(cmdPool.get(), level, 1);
-
-    VK_CHECK_RESULT(context.getDevice().allocateCommandBuffers(&allocInfo, &cmdBuffer));
+    vk::CommandBufferAllocateInfo allocInfo(cmdPool, level, 1);
+    VK_CHECK_RESULT(context.getVkState.device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
 }
 
 void CmdBuffer::begin()
-{    
+{
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, 0);
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
@@ -186,5 +188,12 @@ void CmdBuffer::submit(
     // queue.waitIdle();
 }
 
+void CmdBuffer::reset()
+{
+    VK_CHECK_RESULT(context.getVkState().device.waitForFences(1, &cmdFence, VK_TRUE, UINT64_MAX));
+    VK_CHECK_RESULT(context.getVkState().device.resetFences(1, &cmdFence));
+
+    context.getVkState().device.resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
+}
 
 } // namespace VulkanAPI

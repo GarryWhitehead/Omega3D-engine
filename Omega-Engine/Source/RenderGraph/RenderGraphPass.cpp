@@ -49,7 +49,10 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             std::vector<uint32_t> inputRefs, outputRefs;
             uint32_t depthRef = UINT32_MAX;
 
-            // if this isn't a merged pass, create a new renderpass. Otherwise, use the parent pass
+            // Note: This is integrated yet - merged passes needs some work - will be user defined
+            // rather than automagic as I want to reduce the potential for tons of boilerplate and
+            // bugs if this isn't a merged pass, create a new renderpass. Otherwise, use the parent
+            // pass
             if (!flags.testBit(VulkanAPI::SubpassFlags::Merged) ||
                 flags.testBit(VulkanAPI::SubpassFlags::MergedBegin))
             {
@@ -75,51 +78,42 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             for (ResourceHandle handle : writes)
             {
                 ResourceBase* base = resources[handle];
-                assert(base->type == ResourceBase::ResourceType::Texture);
-                TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
-                // bake the texture
-                if (tex->width != maxWidth || tex->height != maxHeight)
+                if (base->type == ResourceBase::ResourceType::Texture)
                 {
-                    // not exactly a reason to fatal error maybe, but warn the user
-                    // maybe do a blit here instead? The answer is yes, TODO!!!!!
-                    tex->width = maxWidth;
-                    tex->height = maxHeight;
-                    LOGGER_WARN("There appears to be some discrepancy between this passes resource "
-                                "dimensions\n");
-                }
-                tex->bake(driver);
+                    TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
 
-                if (!VulkanAPI::VkUtil::isDepth(tex->format) ||
-                    !VulkanAPI::VkUtil::isStencil(tex->format))
+                    // bake the texture
+                    if (tex->width != maxWidth || tex->height != maxHeight)
+                    {
+                        // not exactly a reason to fatal error maybe, but warn the user
+                        // maybe do a blit here instead? The answer is yes, TODO!!!!!
+                        tex->width = maxWidth;
+                        tex->height = maxHeight;
+                        LOGGER_WARN(
+                            "There appears to be some discrepancy between this passes resource "
+                            "dimensions\n");
+                    }
+                    tex->bake(driver);
+
+                    if (!VulkanAPI::VkUtil::isDepth(tex->format) ||
+                        !VulkanAPI::VkUtil::isStencil(tex->format))
+                    {
+                        outputRefs.emplace_back(tex->referenceId);
+                    }
+                    else
+                    {
+                        // only one depth/stencil ref per pass
+                        assert(depthRef == UINT32_MAX);
+                        depthRef = tex->referenceId;
+                    }
+
+                    // add a attachment
+                    rpass->addOutputAttachment(
+                        tex->format, tex->referenceId, tex->clearFlags, tex->samples);
+                }
+                else if (base->type == ResourceBase::ResourceType::Imported)
                 {
-                    outputRefs.emplace_back(tex->referenceId);
                 }
-                else
-                {
-                    // only one depth/stencil ref per pass
-                    assert(depthRef == UINT32_MAX);
-                    depthRef = tex->referenceId;
-                }
-
-                // add a attachment
-                rpass->addOutputAttachment(
-                    tex->format, tex->referenceId, tex->clearFlags, tex->samples);
-            }
-
-            // input attachments
-            for (ResourceHandle handle : reads)
-            {
-                ResourceBase* base = resources[handle];
-                assert(base->type == ResourceBase::ResourceType::Texture);
-                TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
-                // for clear flags, we always 'store' for the loadOp
-                // check the format here, if stencil set the stencil Op flags??
-                tex->clearFlags.attachLoad = VulkanAPI::RenderPass::LoadType::Store;
-
-                inputRefs.emplace_back(tex->referenceId);
-                rpass->addInputRef(tex->referenceId);
             }
 
             // Add a subpass. If this is a merged pass, then this will be added to the parent

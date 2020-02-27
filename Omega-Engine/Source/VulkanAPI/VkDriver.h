@@ -197,7 +197,6 @@ public:
 private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
-    std::unique_ptr<CmdBufferManager> cbManager;
     std::unique_ptr<SemaphoreManager> spManager;
 
     // the current device context

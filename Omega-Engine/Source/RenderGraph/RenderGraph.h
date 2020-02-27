@@ -22,7 +22,6 @@ class CmdBuffer;
 class FrameBuffer;
 class RenderPass;
 class VkDriver;
-class Image;
 class ImageView;
 } // namespace VulkanAPI
 
@@ -75,7 +74,6 @@ public:
 
     ResourceHandle importResource(
         Util::String name,
-        const VulkanAPI::Image& image,
         VulkanAPI::ImageView& imageView,
         const uint32_t width,
         const uint32_t height);

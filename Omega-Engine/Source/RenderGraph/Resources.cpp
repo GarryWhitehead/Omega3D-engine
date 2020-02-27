@@ -12,13 +12,14 @@ namespace OmegaEngine
 {
 
 TextureResource::TextureResource(
+    Util::String name,
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
     const uint8_t level,
     const uint8_t layers,
     const vk::ImageUsageFlagBits usageBits)
-    : ResourceBase(ResourceType::Texture)
+    : ResourceBase(name, ResourceType::Texture)
     , width(width)
     , height(height)
     , layers(layers)
@@ -65,6 +66,13 @@ bool TextureResource::isStencilFormat()
         return true;
     }
     return false;
+}
+
+ImportedResource::ImportedResource(
+    Util::String name, const uint32_t width, const uint32_t height, VulkanAPI::ImageView* imageView)
+    : ResourceBase(name, ResourceType::Imported) ,
+    width(width), height(height), imageView(imageView)
+{
 }
 
 // =============================================================================

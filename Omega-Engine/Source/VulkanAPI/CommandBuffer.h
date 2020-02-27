@@ -2,7 +2,6 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Pipeline.h"
-
 #include "utility/Logger.h"
 
 #include <cstdint>
@@ -36,11 +35,7 @@ public:
         Multi
     };
 
-    CmdBuffer(
-        VkContext& context,
-        const Type type,
-        CmdPool& cmdPool,
-        CmdBufferManager* cbManager = nullptr);
+    CmdBuffer(VkContext& context, const Type type);
     ~CmdBuffer();
 
     void alloc();
@@ -81,6 +76,8 @@ public:
      */
     void submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence);
 
+    void reset();
+
     // drawing functions
     void drawIndexed(uint32_t indexCount);
     void drawIndexed(uint32_t indexCount, int32_t offset);
@@ -100,17 +97,21 @@ public:
 private:
     // local vulkan context
     VkContext& context;
-    CmdPool& cmdPool;
-    CmdBufferManager* cbManager = nullptr;
 
     // current bindings - variants are used for ease
     Pipeline* boundPipeline = nullptr;
     DescriptorSet* boundDescrSet = nullptr;
 
+    /// the queue to use for this pool
+    uint32_t queueIndex;
+
     // primary or secondary buffer
     Type type;
 
     vk::CommandBuffer cmdBuffer;
+
+    // a command buffer has its own internal fence for syncing between frames
+    vk::Fence cmdFence;
 
     // view port / scissor info
     vk::Viewport viewPort;

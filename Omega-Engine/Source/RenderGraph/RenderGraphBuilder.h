@@ -36,10 +36,9 @@ public:
         uint32_t layers = 1);
 
     ResourceHandle importRenderTarget(
+        Util::String name,
         const uint32_t width,
         const uint32_t height,
-        const vk::Format format,
-        const VulkanAPI::Image& image,
         const VulkanAPI::ImageView& view);
 
     /**

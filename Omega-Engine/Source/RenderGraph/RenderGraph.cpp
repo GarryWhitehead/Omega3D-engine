@@ -47,14 +47,11 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
 }
 
 ResourceHandle RenderGraph::importResource(
-    Util::String name,
-    const VulkanAPI::Image& image,
-    VulkanAPI::ImageView& imageView,
-    const uint32_t width,
-    const uint32_t height)
+    Util::String name, VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height)
 {
-   // TODO
-    return ResourceHandle {0};
+    ImportedResource* ires = new ImportedResource(name, width, height, &imageView);
+    resources.emplace_back(ires);
+    return resources.size() - 1;
 }
 
 void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
@@ -92,7 +89,7 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 bool RenderGraph::compile()
 {
     // TODO: deal with aliases here (moved resources)
-    
+
     for (RenderGraphPass& rgPass : rGraphPasses)
     {
         // set the number of reads for each resource

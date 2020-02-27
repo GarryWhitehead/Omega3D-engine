@@ -32,16 +32,14 @@ struct ResourceBase
     enum class ResourceType
     {
         Texture,
+        Imported,
         Buffer
     };
 
     virtual ~ResourceBase() = default;
-    ResourceBase(const ResourceType rtype) : type(rtype)
+    ResourceBase(Util::String name, const ResourceType rtype) : name(name), type(rtype)
     {
     }
-
-    // abstract virtual function
-    virtual void* bake(VulkanAPI::VkDriver& driver) = 0;
 
     Util::String name;
     ResourceType type;
@@ -56,12 +54,11 @@ struct ResourceBase
     uint32_t referenceId = 0;
 };
 
-/**
- * @brief All the information needed to build a vulkan texture
- */
+// All the information needed to build a vulkan texture
 struct TextureResource : public ResourceBase
 {
     TextureResource(
+        Util::String name,
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,
@@ -69,7 +66,7 @@ struct TextureResource : public ResourceBase
         const uint8_t layers,
         const vk::ImageUsageFlagBits usageBits);
 
-    void* bake(VulkanAPI::VkDriver& driver) override;
+    void* bake(VulkanAPI::VkDriver& driver);
     VulkanAPI::Texture* get();
 
     bool isDepthFormat();
@@ -92,9 +89,23 @@ struct TextureResource : public ResourceBase
     VulkanAPI::RenderPass::ClearFlags clearFlags;
 };
 
-/**
- * @brief A buffer resource
- */
+// used for imported texture targets 
+struct ImportedResource : public ResourceBase
+{
+    ImportedResource(
+        Util::String name,
+        const uint32_t width,
+        const uint32_t height,
+        VulkanAPI::ImageView* imageView);
+
+    // This is owned elsewhere - for instance the swapchain
+    VulkanAPI::ImageView* imageView = nullptr;
+
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
+
+// A buffer resource
 struct BufferResource : public ResourceBase
 {
     size_t size;

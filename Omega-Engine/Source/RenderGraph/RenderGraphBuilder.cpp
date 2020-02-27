@@ -26,13 +26,12 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
 }
 
 ResourceHandle RenderGraphBuilder::importRenderTarget(
+    Util::String name,
     const uint32_t width,
     const uint32_t height,
-    const vk::Format format,
-    const VulkanAPI::Image& image,
     const VulkanAPI::ImageView& view)
 {
-    
+    return rGraph->importResource(name, view, width, height);
 }
 
 ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
