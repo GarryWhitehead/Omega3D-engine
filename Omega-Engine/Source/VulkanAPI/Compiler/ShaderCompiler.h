@@ -12,7 +12,7 @@ namespace VulkanAPI
 // forward declerations
 class ShaderProgram;
 class ShaderBinding;
-class VkContext;
+class VkDriver;
 
 enum class CompilerReturnCode
 {
@@ -35,7 +35,7 @@ enum class CompilerReturnCode
 class ShaderCompiler
 {
 public:
-    ShaderCompiler(ShaderProgram& program, VkContext& context);
+    ShaderCompiler(ShaderProgram& program, VkDriver& driver);
     ~ShaderCompiler();
 
     bool compile(ShaderParser& parser);
@@ -96,7 +96,7 @@ private:
         std::vector<ShaderDescriptor::ItemDescriptors> items = {});
 
 private:
-    VkContext& context;
+    VkDriver& driver;
 
     // variants to use when compiling the shader
     std::unordered_map<const char*, uint8_t> variants;

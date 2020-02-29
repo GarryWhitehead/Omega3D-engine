@@ -28,6 +28,7 @@ public:
      * @ creates a texture resource for using as a render target in a graphics  pass
      */
     ResourceHandle createRenderTarget(
+        Util::String name,
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,

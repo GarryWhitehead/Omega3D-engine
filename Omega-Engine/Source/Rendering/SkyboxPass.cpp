@@ -4,7 +4,7 @@
 #include "RenderGraph/RenderGraphPass.h"
 #include "Types/Skybox.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Utility.h"
@@ -27,7 +27,7 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "skybox.glsl";
-    VulkanAPI::ProgramManager::ShaderHash key {filename.c_str(), 0};
+    VulkanAPI::ProgramManager::ShaderKey key {filename.c_str(), 0};
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);

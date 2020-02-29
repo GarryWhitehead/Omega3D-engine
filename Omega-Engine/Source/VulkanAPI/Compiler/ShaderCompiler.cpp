@@ -4,7 +4,9 @@
 #include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/VkContext.h"
+#include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
 #include "VulkanAPI/Utility.h"
@@ -14,8 +16,8 @@
 namespace VulkanAPI
 {
 
-ShaderCompiler::ShaderCompiler(ShaderProgram& program, VkContext& context)
-    : context(context), program(program)
+ShaderCompiler::ShaderCompiler(ShaderProgram& program, VkDriver& driver)
+    : driver(driver), program(program)
 {
 }
 
@@ -216,6 +218,8 @@ CompilerReturnCode ShaderCompiler::prepareImport(
 
 CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, ShaderBinding& binding)
 {
+    auto& cbManager = driver.getCbManager();
+
     // add the glsl version number
     shader.appendBlock += "#version 450\n\n";
 
@@ -269,7 +273,8 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
             }
 
             // store the binding data for vk descriptor creation
-            DescriptorLayout layout = program.descrPool->createLayout(
+            cbManager.addDescriptorLayout(
+                Util::String {importInfo.name.c_str()},
                 importInfo.groupId,
                 importInfo.bind,
                 vk::DescriptorType::eCombinedImageSampler,
@@ -299,7 +304,8 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
 
             // add the layout to the descriptors
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
-            DescriptorLayout layout = program.descrPool->createLayout(
+            cbManager.addDescriptorLayout(
+                Util::String {importInfo.name.c_str()},
                 importInfo.groupId,
                 importInfo.bind,
                 descrType,
@@ -508,18 +514,6 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
             return CompilerReturnCode::ErrorCompilingGlsl;
         }
     };
-
-    // now we have all the data required from the shader, create some of the vulkan
-    // resources now to save time later
-    // Create the descriptor layouts for each set
-    if (!program.descrPool->isEmpty())
-    {
-        program.descrPool->build();
-        program.descrPool->prepareLayouts();
-    }
-
-    // create the pipeline layout - as we know the descriptor layout and any push blocks
-    program.pLineLayout->prepare(context, *program.descrPool);
 
     return CompilerReturnCode::Success;
 }

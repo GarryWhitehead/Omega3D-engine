@@ -15,6 +15,7 @@ TARGET_INCLUDE_DIRECTORIES(UTILITY PRIVATE
 
 TARGET_SOURCES(UTILITY PRIVATE
 	
+	MurmurHash.cpp MurmurHash.h
 	EventManager.cpp EventManager.h
 	BVH.cpp BVH.hpp
 	FileUtil.cpp FileUtil.h

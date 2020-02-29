@@ -31,8 +31,7 @@ TextureResource::TextureResource(
 
 void* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
-    texture = std::make_unique<VulkanAPI::Texture>();
-    texture->create2dTex(driver, format, width, height, level, imageUsage);
+    driver.add2DTexture(name, format, width, height, level, imageUsage);
     return reinterpret_cast<void*>(texture->getImageView());
 }
 

@@ -1,6 +1,6 @@
 #include "VkDriver.h"
 
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkContext.h"
@@ -97,10 +97,7 @@ void VkDriver::addUboAndUpdateDescr(
 {
     addUbo(id, size, usage);
 
-    // also update all descriptors that have this id - we haven't added data to the buffer yet but
-    // the descriptor sets are only interested in the address and size of the buffer which is known
-    // now
-    progManager->pushBufferDescrUpdate(id, buffers[{id.c_str()}]);
+    cbManager->updateDescriptor(id, buffers[{id.c_str()}]);
 }
 
 void VkDriver::add2DTexture(
@@ -249,5 +246,49 @@ void VkDriver::endFrame(Swapchain& swapchain)
     cbManager->submitFrame(swapchain, imageIndex, beginSemaphore);
 }
 
+void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
+{
+    // setup the clear values for this pass - need one for each attachment
+    vk::ClearValue clearValue[2];
+
+    if (rpass.hasColourAttach())
+    {
+        clearValue[0].color.float32[0] = rpass.clearCol.r;
+        clearValue[0].color.float32[1] = rpass.clearCol.g;
+        clearValue[0].color.float32[2] = rpass.clearCol.b;
+        clearValue[0].color.float32[3] = rpass.clearCol.a;
+    }
+    if (rpass.hasDepthAttach())
+    {
+        clearValue[1].depthStencil = vk::ClearDepthStencilValue {rpass.depthClear, 0};
+    }
+
+    // extents of the frame buffer
+    vk::Rect2D extents {{0, 0}, {fbuffer.getWidth(), fbuffer.getHeight()}};
+
+    vk::RenderPassBeginInfo beginInfo {rpass.get(), fbuffer.get(), extents, 1, clearValue};
+    cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
+
+    // use custom defined viewing area - at the moment set to the framebuffer size
+    vk::Viewport viewport {0.0f,
+                           0.0f,
+                           static_cast<float>(fbuffer.getWidth()),
+                           static_cast<float>(fbuffer.getHeight()),
+                           0.0f,
+                           1.0f};
+
+    cmdBuffer->setViewport(viewport);
+
+    vk::Rect2D scissor {
+        {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
+        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
+
+    cmdBuffer->setScissor(scissor);
+}
+
+void CBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
+{
+    cmdBuffer->endPass();
+}
 
 } // namespace VulkanAPI

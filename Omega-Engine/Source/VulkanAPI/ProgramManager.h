@@ -4,6 +4,7 @@
 #include "VulkanAPI/Shader.h"
 #include "utility/BitSetEnum.h"
 #include "utility/CString.h"
+#include "utility/MurmurHash.h"
 
 #include <memory>
 #include <string>
@@ -222,14 +223,6 @@ public:
 
     ShaderBinding& findShaderBinding(const Shader::Type type);
 
-    // =============== decriptor set functions ==============================
-
-    bool updateDecrSetBuffer(Util::String id, Buffer& buffer);
-
-    bool updateDecrSetImage(Util::String id, Texture& tex);
-
-    // ================== getters ==========================
-
     std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
 
     DescriptorLayout* getDescrLayout(uint8_t set);
@@ -273,14 +266,6 @@ private:
     // input bindings for the vertex shader
     std::vector<InputBinding> inputs;
 
-    // used by the vulkan backend
-    std::unique_ptr<DescriptorPool> descrPool;
-
-    // it's tricky deciding the best place to store descriptor sets. In OE, they are stored in the
-    // shader program as only the shader knows the layout. Call **updateDescrSets()** set update the
-    // sets with relevant buffer/texture info. This is usually done via the driver and a
-    // **updateUniform()** call.
-    std::unique_ptr<DescriptorSet> descrSet;
     std::unique_ptr<PipelineLayout> pLineLayout;
 
     // shader constants to add during compiler time
@@ -294,7 +279,7 @@ private:
 class ProgramManager
 {
 public:
-    struct ShaderHash
+    struct ShaderKey
     {
         const char* name = nullptr;
         uint64_t variantBits = 0;
@@ -311,7 +296,7 @@ public:
      * must have been created by calling **createCachedInstance** before this fucntion is called.
      * Also, the shader must be in a valid state - namely, there must be a vertex shader.
      */
-    ShaderProgram* build(ShaderParser& parser, std::vector<ShaderHash>& hashes);
+    ShaderProgram* build(ShaderParser& parser, std::vector<ShaderKey>& hashes);
 
     bool compile(ShaderParser& parser, ShaderProgram* prog);
 
@@ -322,14 +307,14 @@ public:
      * @param variantBits The variant flags used by this shader
      * @return A pointer to the newly created shader program
      */
-    ShaderProgram* createNewInstance(ShaderHash& hash);
+    ShaderProgram* createNewInstance(ShaderKey& hash);
 
     /**
      * @brief Checks whether a shader has been created based on the hash
      * @param hash The key of the variant to check
      * @return A boolean set to true if the shader exsists, otherwise false
      */
-    bool hasShaderVariant(ShaderHash& hash);
+    bool hasShaderVariant(ShaderKey& hash);
 
     /**
      * @brief Checks whether a shader has been created based on the hash and returns the program if
@@ -338,74 +323,33 @@ public:
      * @return A pointer to a shader program if one exsists with the designated hash. Otherwise
      * returns nullptr
      */
-    ShaderProgram* findVariant(ShaderHash& hash);
+    ShaderProgram* findVariant(ShaderKey& hash);
 
-    ShaderProgram* getVariant(ProgramManager::ShaderHash& key);
+    ShaderProgram* getVariant(ProgramManager::ShaderKey& key);
 
     /**
      * @brief Creates a shader fragment that will be cached until ready for use
      */
     ShaderDescriptor*
-    createCachedInstance(ShaderHash& hash, ShaderDescriptor& descr, const Shader::Type type);
+    createCachedInstance(ShaderKey& hash, ShaderDescriptor& descr, const Shader::Type type);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
      */
-    bool hasShaderVariantCached(ShaderHash& hash);
+    bool hasShaderVariantCached(ShaderKey& hash);
 
-    ShaderDescriptor* findCachedVariant(ShaderHash& hash);
-
-    /**
-     * @brief Pushes a buffer dedscriptor to update this frame. This will not check if the id
-     * exsists. Thus, will only fail at the point of update, at which point it will throw an
-     * exception if it does not exsist
-     */
-    void pushBufferDescrUpdate(Util::String id, Buffer& buffer);
-
-    /**
-     * @brief Pushes a image dedscriptor to update this frame. This will not check if the id
-     * exsists. Thus, will only fail at the point of update, at which point it will throw an
-     * exception if it does not exsist
-     */
-    void pushImageDescrUpdate(Util::String id, Texture& tex);
-
-    /**
-     * @brief A special function call for updating the material descriptor sets. The reason for
-     * updating them in this fashion is because they require the descriptor] layout of the model
-     * shader. Rather than passing around the descriptor layout which could be difficult as it
-     * depends on whether the shader has actually been initialised, this methid makes it less error
-     * prone and keeps the program data contatned within its class
-     */
-    // void pushMatDescrUdpdate(Util::String id, DescriptorSet* set);
-
-private:
-    /// For all descriptors that need checking, all shaders that are registered for the id, and
-    /// updates the descr set with the buffer if found.
-    void updateBufferDecsrSets();
-
-    /// Similiar to **updateBufferDescrSets** but this is for images
-    void updateImageDecsrSets();
+    ShaderDescriptor* findCachedVariant(ShaderKey& hash);
 
     friend class CmdBufferManager;
 
 private:
     // =============== shader hasher ======================
 
-    struct ShaderHasher
-    {
-        size_t operator()(ShaderHash const& id) const noexcept
-        {
-            size_t h1 = std::hash<const char*> {}(id.name);
-            size_t h2 = std::hash<uint64_t> {}(id.variantBits);
-            size_t h3 = std::hash<vk::PrimitiveTopology> {}(
-                static_cast<vk::PrimitiveTopology>(id.topology));
-            return h1 ^ (h2 << 1) ^ (h3 << 1);
-        }
-    };
+    using ShaderHasher = Util::Murmur3Hasher<ShaderKey>;
 
     struct ShaderEqual
     {
-        bool operator()(const ShaderHash& lhs, const ShaderHash& rhs) const
+        bool operator()(const ShaderKey& lhs, const ShaderKey& rhs) const
         {
             return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits &&
                 lhs.topology == rhs.topology;
@@ -416,14 +360,10 @@ private:
     VkContext& context;
 
     // fully compiled, complete shader programs
-    std::unordered_map<ShaderHash, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
+    std::unordered_map<ShaderKey, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
 
     // this is where individual shaders are cached until required to assemble into a shader program
-    std::unordered_map<ShaderHash, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
-
-    // Queued decriptor requiring updating which is done on a per frame basis
-    std::vector<std::pair<const char*, Buffer*>> bufferDescrQueue;
-    std::vector<std::pair<const char*, Texture*>> imageDescrQueue;
+    std::unordered_map<ShaderKey, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
 };
 
 } // namespace VulkanAPI

@@ -13,7 +13,7 @@ namespace VulkanAPI
 
 // forward declerations
 class ProgramManager;
-class CmdBufferManager;
+class CBufferManager;
 class Buffer;
 class Texture;
 class VertexBuffer;
@@ -174,7 +174,7 @@ public:
 
     // ====== manager helper functions ===================================
 
-    CmdBufferManager& getCbManager()
+    CBufferManager& getCbManager()
     {
         return *cbManager;
     }
@@ -197,7 +197,7 @@ public:
 private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
-    std::unique_ptr<SemaphoreManager> spManager;
+    std::unique_ptr<CBufferManager> cbManager;
 
     // the current device context
     VkContext context;

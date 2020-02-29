@@ -23,7 +23,6 @@ namespace VulkanAPI
 
 ShaderProgram::ShaderProgram(VkContext& context)
     : context(context)
-    , descrPool(std::make_unique<DescriptorPool>(context))
     , pLineLayout(std::make_unique<PipelineLayout>())
 {
 }
@@ -68,46 +67,6 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgram::getShaderCreateInf
         createInfos.emplace_back(bind.shader->createInfo);
     }
     return createInfos;
-}
-
-bool ShaderProgram::updateDecrSetBuffer(Util::String id, Buffer& buffer)
-{
-    for (auto& stage : stages)
-    {
-        for (auto& binding : stage.bufferBindings)
-        {
-            if (binding.name ==
-                std::string(id.c_str())) // temporary measure until I remove all std::string's
-            {
-                descrSet->updateBufferSet(
-                    binding.set, binding.bind, binding.type, buffer.get(), 0, buffer.getSize());
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
-bool ShaderProgram::updateDecrSetImage(Util::String id, Texture& tex)
-{
-    for (auto& stage : stages)
-    {
-        for (auto& binding : stage.bufferBindings)
-        {
-            if (binding.name == std::string(id.c_str()))
-            {
-                descrSet->updateImageSet(
-                    binding.set,
-                    binding.bind,
-                    binding.type,
-                    tex.getSampler()->get(),
-                    tex.getImageView()->get(),
-                    tex.getImageLayout());
-                return true;
-            }
-        }
-    }
-    return false;
 }
 
 ShaderBinding::SamplerBinding&
@@ -186,7 +145,7 @@ ProgramManager::~ProgramManager()
     }
 }
 
-ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderHash>& hashes)
+ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderKey>& hashes)
 {
     if (hashes.empty())
     {
@@ -199,7 +158,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderHas
     uint32_t topo;
 
     ShaderProgram* instance = new ShaderProgram(context);
-    for (ShaderHash& hash : hashes)
+    for (ShaderKey& hash : hashes)
     {
         ShaderDescriptor* descr = findCachedVariant(hash);
         if (!descr)
@@ -226,7 +185,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderHas
     // use the render state from the mesh/material
     // instance->overrideRenderState();
 
-    ShaderHash newHash {instanceName, mergedVariants, topo};
+    ShaderKey newHash {instanceName, mergedVariants, topo};
     programs.emplace(newHash, instance);
     return instance;
 }
@@ -242,7 +201,7 @@ bool ProgramManager::compile(ShaderParser& parser, ShaderProgram* prog)
     return true;
 }
 
-ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
+ShaderProgram* ProgramManager::createNewInstance(ShaderKey& hash)
 {
     ShaderProgram* instance = new ShaderProgram(context);
 
@@ -250,7 +209,7 @@ ShaderProgram* ProgramManager::createNewInstance(ShaderHash& hash)
     return instance;
 }
 
-ShaderProgram* ProgramManager::findVariant(ShaderHash& hash)
+ShaderProgram* ProgramManager::findVariant(ShaderKey& hash)
 {
     auto iter = programs.find(hash);
     if (iter != programs.end())
@@ -260,7 +219,7 @@ ShaderProgram* ProgramManager::findVariant(ShaderHash& hash)
     return nullptr;
 }
 
-bool ProgramManager::hasShaderVariant(ShaderHash& hash)
+bool ProgramManager::hasShaderVariant(ShaderKey& hash)
 {
     auto iter = programs.find(hash);
     if (iter == programs.end())
@@ -271,13 +230,13 @@ bool ProgramManager::hasShaderVariant(ShaderHash& hash)
 }
 
 ShaderDescriptor* ProgramManager::createCachedInstance(
-    ShaderHash& hash, ShaderDescriptor& descr, const Shader::Type type)
+    ShaderKey& hash, ShaderDescriptor& descr, const Shader::Type type)
 {
     cached.emplace(hash, descr);
     return &cached[hash];
 }
 
-bool ProgramManager::hasShaderVariantCached(ShaderHash& hash)
+bool ProgramManager::hasShaderVariantCached(ShaderKey& hash)
 {
     auto iter = cached.find(hash);
     if (iter == cached.end())
@@ -287,7 +246,7 @@ bool ProgramManager::hasShaderVariantCached(ShaderHash& hash)
     return true;
 }
 
-ShaderDescriptor* ProgramManager::findCachedVariant(ShaderHash& hash)
+ShaderDescriptor* ProgramManager::findCachedVariant(ShaderKey& hash)
 {
     auto iter = cached.find({hash});
     if (iter != cached.end())
@@ -357,7 +316,7 @@ void ProgramManager::updateImageDecsrSets()
     imageDescrQueue.clear();
 }
 
-ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderHash& key)
+ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderKey& key)
 {
     VulkanAPI::ShaderProgram* prog = nullptr;
 

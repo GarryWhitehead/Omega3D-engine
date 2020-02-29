@@ -83,9 +83,6 @@ struct TextureResource : public ResourceBase
     vk::Format format = vk::Format::eUndefined; //< The format will determine the type of attachment
     vk::ImageUsageFlags imageUsage;
 
-    // used by the vulkan backend
-    std::unique_ptr<VulkanAPI::Texture> texture;
-
     VulkanAPI::RenderPass::ClearFlags clearFlags;
 };
 

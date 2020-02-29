@@ -14,6 +14,7 @@ RenderGraphBuilder::RenderGraphBuilder(RenderGraph* rGraph, RenderGraphPass* rPa
 }
 
 ResourceHandle RenderGraphBuilder::createRenderTarget(
+    Util::String name,
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
@@ -21,7 +22,7 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
     uint32_t levels,
     uint32_t layers)
 {
-    TextureResource* tex = new TextureResource(width, height, format, levels, layers, usageBits);
+    TextureResource* tex = new TextureResource(name, width, height, format, levels, layers, usageBits);
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 

@@ -13,7 +13,6 @@ namespace VulkanAPI
 // ===============================================================================================================
 
 
-
 void CmdPool::submitAll(
     Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
 {
@@ -54,27 +53,9 @@ void CmdPool::submitAll(
     VK_CHECK_RESULT(context.getPresentQueue().presentKHR(&presentInfo));
 }
 
-void CmdPool::clearSecondary()
-{
-    secondary.clear();
-}
-
-std::vector<vk::CommandBuffer> CmdPool::getSecondary()
-{
-    std::vector<vk::CommandBuffer> ret;
-    for (auto& sec : secondary)
-    {
-        ret.emplace_back(sec->get());
-    }
-    return ret;
-}
-
-
-
 // ================================================================================================================
 
-CBufferManager::CBufferManager(VkContext& context, SemaphoreManager& spManager)
-    : context(context), spManager(spManager)
+CBufferManager::CBufferManager(VkContext& context) : context(context)
 {
     assert(context.getVkState().device);
 
@@ -93,7 +74,7 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
 {
     Pipeline* pline = nullptr;
 
-    PLineHash key {prog, rPass};
+    PLineKey key {prog, rPass};
     auto iter = pipelines.find(key);
 
     // if the pipeline has already has an instance return this
@@ -113,59 +94,140 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     return pline;
 }
 
-void CBufferManager::beginRenderpass(
-    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
+void CBufferManager::addDescriptorLayout(
+    Util::String shaderId,
+    Util::String layoutId,
+    uint32_t set,
+    uint32_t bindValue,
+    vk::DescriptorType bindType,
+    vk::ShaderStageFlags flags)
 {
-    // setup the clear values for this pass - need one for each attachment
-    vk::ClearValue clearValue[2];
+    DescriptorBinding binding;
+    binding.name = layoutId;
+    binding.set = set;
+    binding.binding = vk::DescriptorSetLayoutBinding {bindValue, bindType, 1, flags, nullptr};
+    descriptorBindings[shaderId].emplace_back(binding);
+}
 
-    if (rpass.hasColourAttach())
+void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
+{
+    for (auto& binding : descriptorBindings)
     {
-        clearValue[0].color.float32[0] = rpass.clearCol.r;
-        clearValue[0].color.float32[1] = rpass.clearCol.g;
-        clearValue[0].color.float32[2] = rpass.clearCol.b;
-        clearValue[0].color.float32[3] = rpass.clearCol.a;
+        uint32_t uboCount = 0;
+        uint32_t ssboCount = 0;
+        uint32_t samplerCount = 0;
+        uint32_t uboDynamicCount = 0;
+        uint32_t ssboDynamicCount = 0;
+        uint32_t storageImageCount = 0;
+
+        // sort each layout into its own set
+        std::unordered_map<uint8_t, std::vector<vk::DescriptorSetLayoutBinding>> setBindings;
+        for (auto& descrBind : binding.second)
+        {
+            setBindings[descrBind.set].emplace_back(descrBind.binding);
+
+            // Note: not sure the best way here - could create just a few pools and set them to a
+            // large
+            // enough size to accomodate any eventuality. Though this may lead to issues with
+            // needing more pools due to more cmd buffers in flight (descriptors cannot be updated
+            // whilst the cmd buffer is queued). Thus, will stick with this method for now calculate
+            // the number of each type we have...
+            switch (descrBind.binding.descriptorType)
+            {
+                case vk::DescriptorType::eUniformBuffer:
+                    ++uboCount;
+                    break;
+                case vk::DescriptorType::eStorageBuffer:
+                    ++ssboCount;
+                    break;
+                case vk::DescriptorType::eUniformBufferDynamic:
+                    ++uboDynamicCount;
+                    break;
+                case vk::DescriptorType::eStorageBufferDynamic:
+                    ++ssboDynamicCount;
+                    break;
+                case vk::DescriptorType::eCombinedImageSampler:
+                    ++samplerCount;
+                    break;
+            }
+        }
+
+        // initialise descriptor pool first based on layouts that have been added
+        std::vector<vk::DescriptorPoolSize> pools;
+
+        if (uboCount)
+        {
+            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, uboCount);
+            pools.push_back(poolSize);
+        }
+        if (samplerCount)
+        {
+            // we can have multiple sets of images - useful in the case of materials for
+            // instance
+            vk::DescriptorPoolSize poolSize(
+                vk::DescriptorType::eCombinedImageSampler, samplerCount);
+            pools.push_back(poolSize);
+        }
+        if (ssboCount)
+        {
+            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eStorageBuffer, ssboCount);
+            pools.push_back(poolSize);
+        }
+        if (uboDynamicCount)
+        {
+            vk::DescriptorPoolSize poolSize(
+                vk::DescriptorType::eUniformBufferDynamic, uboDynamicCount);
+            pools.push_back(poolSize);
+        }
+        if (ssboDynamicCount)
+        {
+            vk::DescriptorPoolSize poolSize(
+                vk::DescriptorType::eStorageBufferDynamic, ssboDynamicCount);
+            pools.push_back(poolSize);
+        }
+        if (storageImageCount)
+        {
+            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eStorageImage, storageImageCount);
+            pools.push_back(poolSize);
+        }
+
+        // creating a pool requires us to the max sets required for this instance.
+        // Occassionally, especially in the case of materials, we may need an extra set which
+        // might not be added before a call to here. So we add an extra set.
+        uint32_t setCount = static_cast<uint32_t>(setBindings.size()) + 1;
+
+        vk::DescriptorPoolCreateInfo createInfo(
+            {}, setCount, static_cast<uint32_t>(pools.size()), pools.data());
+        VK_CHECK_RESULT(
+            context.getVkState().device.createDescriptorPool(&createInfo, nullptr, &pool));
+
+        // create the layouts and sets
+        for (auto& setBind : setBindings)
+        {
+            DescriptorSet set;
+            vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
+            VK_CHECK_RESULT(
+                context.getVkState.device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
+
+            // create descriptor set for each layout 
+            vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &set.layout);
+            vk::DescriptorSet descrSet;
+            VK_CHECK_RESULT(context.getVkState.device.allocateDescriptorSets(&allocInfo, &set.set));
+
+            DescriptorKey key {binding.first, setBind.first};
+            descriptorSets.emplace(key, set);
+        }
     }
-    if (rpass.hasDepthAttach())
-    {
-        clearValue[1].depthStencil = vk::ClearDepthStencilValue {rpass.depthClear, 0};
-    }
-
-    // extents of the frame buffer
-    vk::Rect2D extents {{0, 0}, {fbuffer.getWidth(), fbuffer.getHeight()}};
-
-    vk::RenderPassBeginInfo beginInfo {rpass.get(), fbuffer.get(), extents, 1, clearValue};
-    cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
-
-    // use custom defined viewing area - at the moment set to the framebuffer size
-    vk::Viewport viewport {
-        0.0f,
-        0.0f,
-        static_cast<float>(fbuffer.getWidth()),
-        static_cast<float>(fbuffer.getHeight()),
-        0.0f,
-        1.0f};
-
-    cmdBuffer->setViewport(viewport);
-
-    vk::Rect2D scissor {
-        {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
-        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
-
-    cmdBuffer->setScissor(scissor);
 }
 
-void CBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
+
+bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
 {
-    cmdBuffer->endPass();
 }
 
-void CBufferManager::submitFrame(
-    Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
+bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
 {
-    mainPool->submitAll(swapchain, imageIndex, beginSemaphore);
 }
-
 
 
 } // namespace VulkanAPI
