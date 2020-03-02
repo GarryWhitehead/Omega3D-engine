@@ -137,7 +137,6 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/VulkanAPI/VkTexture.cpp Source/VulkanAPI/VkTexture.h
 	Source/VulkanAPI/CommandBuffer.cpp Source/VulkanAPI/CommandBuffer.h
 	Source/VulkanAPI/Common.h Source/VulkanAPI/Common.cpp
-	Source/VulkanAPI/Descriptors.cpp Source/VulkanAPI/Descriptors.h
 	Source/VulkanAPI/VkDriver.cpp Source/VulkanAPI/VkDriver.h
 	Source/VulkanAPI/Image.cpp Source/VulkanAPI/Image.h
 	Source/VulkanAPI/Pipeline.cpp Source/VulkanAPI/Pipeline.h

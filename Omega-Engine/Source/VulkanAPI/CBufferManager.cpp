@@ -207,12 +207,11 @@ void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
             DescriptorSet set;
             vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
             VK_CHECK_RESULT(
-                context.getVkState.device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
+                context.getVkState().device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
 
             // create descriptor set for each layout 
             vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &set.layout);
-            vk::DescriptorSet descrSet;
-            VK_CHECK_RESULT(context.getVkState.device.allocateDescriptorSets(&allocInfo, &set.set));
+            VK_CHECK_RESULT(context.getVkState().device.allocateDescriptorSets(&allocInfo, &set.set));
 
             DescriptorKey key {binding.first, setBind.first};
             descriptorSets.emplace(key, set);
@@ -223,10 +222,59 @@ void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
 
 bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
 {
+    // find the descriptor blueprint first which will then give us the shader id and set value for this buffer
+    DescriptorKey key;
+    
+    for (auto& binding : descriptorBindings)
+    {
+        for (auto& bind : binding.second)
+        {
+            if (bind.name.compare(id))
+            {
+                // quick sanity check to  make sure this descriptor is a buffer
+                
+                key.setValue = bind.set;
+                key.id = binding.first;
+                
+                DescriptorSet& descrSet = descriptorSets[key];
+                vk::WriteDescriptorSet write {descrSet.set, bind.binding.binding, 0, 1, bind.binding.descriptorType, {buffer.}};
+                context.getVkState().device.updateDescriptorSets(1, &write, 0, nullptr);
+                return true;
+            }
+        }
+    }
+    
+    LOGGER_ERROR("Unable to find a buffer descriptor with the id %s", id.c_str());
+    return false;
 }
 
 bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
 {
+    // find the descriptor blueprint first which will then give us the shader id and set value for this buffer
+        DescriptorKey key;
+        
+        for (auto& binding : descriptorBindings)
+        {
+            for (auto& bind : binding.second)
+            {
+                if (bind.name.compare(id))
+                {
+                    // quick sanity check to  make sure this descriptor is a image sampler
+                    
+                    key.setValue = bind.set;
+                    key.id = binding.first;
+                    
+                    DescriptorSet& descrSet = descriptorSets[key];
+                    vk::WriteDescriptorSet write {descrSet.set, bind.binding.binding, 0, 1, bind.binding.descriptorType, {buffer.}};
+                    context.getVkState().device.updateDescriptorSets(1, &write, 0, nullptr);
+                    return true;
+                }
+            }
+        }
+        
+        LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", id.c_str());
+        return false;
+    }
 }
 
 
