@@ -10,7 +10,6 @@
 #include "Scripting/OEConfig.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Utility.h"
@@ -41,18 +40,18 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
     // shaders are prepared within the renderable manager for this pass
 
     // a list of the formats required for each buffer
-    vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.getGpu());
+    vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.physical);
 
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // create the gbuffer textures
-    gbufferInfo.tex.position = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.colour = builder.createRenderTarget(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.normal = builder.createRenderTarget(2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.pbr = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16Sfloat);
+    gbufferInfo.tex.position = builder.createRenderTarget("pos_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.colour = builder.createRenderTarget("colour_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.normal = builder.createRenderTarget("normal_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.pbr = builder.createRenderTarget("pbr_target", 2048, 2048, vk::Format::eR16G16Sfloat);
     gbufferInfo.tex.emissive =
-        builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.depth = builder.createRenderTarget(2048, 2048, depthFormat);
+        builder.createRenderTarget("emissive_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.depth = builder.createRenderTarget("depth_target", 2048, 2048, depthFormat);
 
     // create the output taragets
     gbufferInfo.attach.position = builder.addWriter("position", gbufferInfo.tex.position);
@@ -83,6 +82,8 @@ void GBufferFillPass::drawCallback(
     Material* mat = render->material;
 
     assert(render && mat && prog);
+
+    auto cbManager = context.driver->getCbManager();
 
     // update the material descriptor set here, if required, as we have all the info we need.
     // This should be done only when completely nescessary as will impact performance

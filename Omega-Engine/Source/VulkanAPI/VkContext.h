@@ -10,46 +10,13 @@ namespace VulkanAPI
  * and physical device. Also handles the state command buffer state
  *
  */
-class VkContext
+struct VkContext
 {
-public:
     struct Extensions
     {
         bool hasPhysicalDeviceProps2 = false;
         bool hasExternalCapabilities = false;
         bool hasDebugUtils = false;
-    };
-
-    struct CurrentVkState
-    {
-        vk::Instance instance;
-        vk::Device device;
-        vk::PhysicalDevice physical;
-        vk::PhysicalDeviceFeatures features;
-
-        struct QueueInfo
-        {
-            uint32_t compute = VK_QUEUE_FAMILY_IGNORED;
-            uint32_t present = VK_QUEUE_FAMILY_IGNORED;
-            uint32_t graphics = VK_QUEUE_FAMILY_IGNORED;
-        } queueFamilyIndex;
-
-        vk::Queue graphicsQueue;
-        vk::Queue presentQueue;
-        vk::Queue computeQueue;
-
-        // supported extensions
-        Extensions deviceExtensions;
-
-        // validation layers
-        std::vector<const char*> requiredLayers;
-
-#ifdef VULKAN_VALIDATION_DEBUG
-
-        vk::DebugReportCallbackEXT debugCallback;
-        vk::DebugUtilsMessengerEXT debugMessenger;
-
-#endif
     };
 
     enum class QueueType
@@ -82,13 +49,38 @@ public:
      */
     bool prepareDevice(const vk::SurfaceKHR windowSurface);
 
-    CurrentVkState& getVkState();
+public:
+    
+    vk::Instance instance;
+    vk::Device device;
+    vk::PhysicalDevice physical;
+    vk::PhysicalDeviceFeatures features;
 
-    friend class VkDriver;
+    struct QueueInfo
+    {
+        uint32_t compute = VK_QUEUE_FAMILY_IGNORED;
+        uint32_t present = VK_QUEUE_FAMILY_IGNORED;
+        uint32_t graphics = VK_QUEUE_FAMILY_IGNORED;
+    } queueFamilyIndex;
+
+    vk::Queue graphicsQueue;
+    vk::Queue presentQueue;
+    vk::Queue computeQueue;
+
+    // supported extensions
+    Extensions deviceExtensions;
 
 private:
-    
-    CurrentVkState vkState;
+
+    // validation layers
+    std::vector<const char*> requiredLayers;
+
+#ifdef VULKAN_VALIDATION_DEBUG
+
+    vk::DebugReportCallbackEXT debugCallback;
+    vk::DebugUtilsMessengerEXT debugMessenger;
+
+#endif
     
 };
 

@@ -225,10 +225,6 @@ public:
 
     std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
 
-    DescriptorLayout* getDescrLayout(uint8_t set);
-
-    DescriptorSet* getDescrSet();
-
     PipelineLayout* getPLineLayout();
 
     /**

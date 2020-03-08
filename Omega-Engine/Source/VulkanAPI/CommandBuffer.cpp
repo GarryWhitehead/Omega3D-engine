@@ -1,7 +1,6 @@
 #include "CommandBuffer.h"
 
 #include "OEMaths/OEMaths.h"
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkContext.h"
@@ -11,27 +10,25 @@
 namespace VulkanAPI
 {
 
-CmdBuffer::CmdBuffer(VkContext& context, const Type type) : context(context), type(type)
+CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool cmdPool, const Type type) : context(context), cmdPool(cmdPool), type(type)
 {
-    alloc();
 }
 
 CmdBuffer::~CmdBuffer()
 {
-    
 }
 
-void CmdBuffer::alloc()
+void CmdBuffer::init()
 {
     // create the fence
     vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-    VK_CHECK_RESULT(context.getVkState().device.createFence(&fence_info, nullptr, &cmdFence));
-    VK_CHECK_RESULT(context.getVkState().device.resetFences(1, &cmdFence));
+    VK_CHECK_RESULT(context.device.createFence(&fence_info, nullptr, &cmdFence));
+    VK_CHECK_RESULT(context.device.resetFences(1, &cmdFence));
 
     vk::CommandBufferLevel level = type == Type::Primary ? vk::CommandBufferLevel::ePrimary
                                                          : vk::CommandBufferLevel::eSecondary;
     vk::CommandBufferAllocateInfo allocInfo(cmdPool, level, 1);
-    VK_CHECK_RESULT(context.getVkState.device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
+    VK_CHECK_RESULT(context.device.allocateCommandBuffers(&allocInfo, &cmdBuffer));
 }
 
 void CmdBuffer::begin()
@@ -169,7 +166,7 @@ void CmdBuffer::flush()
     // end the command buffer before flushing the stream
     cmdBuffer.end();
 
-    vk::Queue queue = context.getGraphQueue();
+    vk::Queue queue = context.graphicsQueue;
     vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
 
     VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
@@ -179,7 +176,7 @@ void CmdBuffer::flush()
 void CmdBuffer::submit(
     vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence)
 {
-    vk::Queue queue = context.getGraphQueue();
+    vk::Queue queue = context.graphicsQueue;
     vk::PipelineStageFlags stageFlag = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 
     vk::SubmitInfo submitInfo(1, &waitSemaphore, &stageFlag, 1, &cmdBuffer, 1, &signalSemaphore);
@@ -190,10 +187,10 @@ void CmdBuffer::submit(
 
 void CmdBuffer::reset()
 {
-    VK_CHECK_RESULT(context.getVkState().device.waitForFences(1, &cmdFence, VK_TRUE, UINT64_MAX));
-    VK_CHECK_RESULT(context.getVkState().device.resetFences(1, &cmdFence));
+    VK_CHECK_RESULT(context.device.waitForFences(1, &cmdFence, VK_TRUE, UINT64_MAX));
+    VK_CHECK_RESULT(context.device.resetFences(1, &cmdFence));
 
-    context.getVkState().device.resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
+    context.device.resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
 }
 
 } // namespace VulkanAPI

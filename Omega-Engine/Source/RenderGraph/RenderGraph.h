@@ -4,7 +4,7 @@
 #include "RenderGraph/RenderGraphPass.h"
 #include "RenderGraph/RenderHandle.h"
 #include "RenderGraph/Resources.h"
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/RenderPass.h"
 #include "utility/BitSetEnum.h"
 #include "utility/CString.h"
@@ -97,7 +97,7 @@ private:
 
     void initRenderPass();
 
-    // optimises the render graph if possible and fills in all the blanks - i.e. referneces, flags,
+    // optimises the render graph if possible and fills in all the blanks - i.e. references, flags,
     // etc.
     bool compile();
 

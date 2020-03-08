@@ -25,9 +25,6 @@ class OERenderer;
  */
 struct RGraphContext
 {
-    // the command buffer handle for this pass - not owned here - should maybe be a handle?
-    VulkanAPI::CmdBuffer* cmdBuffer = nullptr;
-
     // the vulkan render pass and framebuffer for this graph context
     RPassHandle rpass;
     FBufferHandle framebuffer;
@@ -107,11 +104,6 @@ private:
 
     // If this pass is mergeable, then this will point to the root pass index
     uint64_t mergedRootIdx = UINT64_MAX;
-
-    // This is only used if this pass will be used threaded, i.e. using secondary cmd buffers. If
-    // this is the case, all cmd buffers will be allocated from this pool and will be reset per
-    // frame through a call to **update**.
-    VulkanAPI::CmdPool* cmdPool = nullptr;
 
     // flags depicting how the subpasses will behave
     Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;

@@ -70,7 +70,7 @@ void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
     // now copy image to local device - first prepare the image for copying via transitioning to a
     // transfer state. After copying, the image is transistioned ready for reading by the shader
     auto& manager = driver.getCbManager();
-    std::unique_ptr<CmdBuffer> cmdBuffer = manager.getSingleUseCb();
+    auto* cmdBuffer = manager.getWorkCmdBuffer();
 
     Image::transition(
         *image,
@@ -94,7 +94,6 @@ void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
 
     // clean up the staging area
     stagePool.release(stage);
-    manager.releaseSingleUseCb(std::move(cmdBuffer));
 }
 
 void Texture::createCopyBuffer(std::vector<vk::BufferImageCopy>& copyBuffers)

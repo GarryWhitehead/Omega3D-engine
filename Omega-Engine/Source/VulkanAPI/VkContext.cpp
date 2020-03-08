@@ -1,6 +1,6 @@
 #include "VkContext.h"
 
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "utility/Logger.h"
 
 #include <set>
@@ -285,7 +285,7 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
 {
     if (!instance)
     {
-        LOGGER_ERROR("You must first create a vulkan instnace before creating the device!");
+        LOGGER_ERROR("You must first create a vulkan instance before creating the device!");
         return false;
     }
 
@@ -401,51 +401,6 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     device.getQueue(queueFamilyIndex.present, 0, &presentQueue);
 
     return true;
-}
-
-vk::Instance& VkContext::getInstance()
-{
-    return instance;
-}
-
-vk::Device& VkContext::getDevice()
-{
-    return device;
-}
-
-vk::PhysicalDevice& VkContext::getGpu()
-{
-    return physical;
-}
-
-vk::Queue& VkContext::getGraphQueue()
-{
-    return graphicsQueue;
-}
-
-vk::Queue& VkContext::getPresentQueue()
-{
-    return presentQueue;
-}
-
-vk::Queue& VkContext::getCompQueue()
-{
-    return computeQueue;
-}
-
-int VkContext::getComputeQueueIdx() const
-{
-    return queueFamilyIndex.compute;
-}
-
-int VkContext::getPresentQueueIdx() const
-{
-    return queueFamilyIndex.present;
-}
-
-int VkContext::getGraphQueueIdx() const
-{
-    return queueFamilyIndex.graphics;
 }
 
 } // namespace VulkanAPI

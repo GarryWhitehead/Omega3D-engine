@@ -35,10 +35,11 @@ public:
         Multi
     };
 
-    CmdBuffer(VkContext& context, const Type type);
+    CmdBuffer() = delete;
+    CmdBuffer(VkContext& context, vk::CommandPool cmdPool, const Type type);
     ~CmdBuffer();
 
-    void alloc();
+    void init();
     void begin();
 
     /**
@@ -94,9 +95,13 @@ public:
         return cmdBuffer;
     }
 
+    friend class CBufferManager;
+
 private:
     // local vulkan context
     VkContext& context;
+
+    vk::CommandPool& cmdPool;
 
     // current bindings - variants are used for ease
     Pipeline* boundPipeline = nullptr;

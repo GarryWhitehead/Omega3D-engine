@@ -278,9 +278,6 @@ void RenderGraph::initRenderPass()
                 VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
                 VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
                 fbuffer->prepare(*renderpass, views, rpass.maxWidth, rpass.maxHeight, 1);
-
-                VulkanAPI::CmdPool* cmdPool = driver.getCbManager().getMainPool();
-                rpass.context.cmdBuffer = cmdPool->createPrimaryCmdBuffer();
                 break;
             }
 

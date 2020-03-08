@@ -114,16 +114,6 @@ std::vector<VulkanAPI::Shader::VariantInfo> ShaderProgram::sortVariants(Shader::
     return ret;
 }
 
-DescriptorLayout* ShaderProgram::getDescrLayout(uint8_t set)
-{
-    return &descrPool->findSet(set);
-}
-
-DescriptorSet* ShaderProgram::getDescrSet()
-{
-    return descrSet.get();
-}
-
 PipelineLayout* ShaderProgram::getPLineLayout()
 {
     return pLineLayout.get();

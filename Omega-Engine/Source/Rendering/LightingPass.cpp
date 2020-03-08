@@ -3,7 +3,7 @@
 #include "RenderGraph/RenderGraph.h"
 #include "RenderGraph/RenderGraphPass.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
@@ -22,7 +22,7 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "lighting.glsl";
-    VulkanAPI::ProgramManager::ShaderHash key = {filename.c_str(), 0};
+    VulkanAPI::ProgramManager::ShaderKey key = {filename.c_str(), 0};
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
     if (!prog)
     {
@@ -40,7 +40,7 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
     builder.addReader("emissive");
 
     // create the gbuffer textures
-    passInfo.output = builder.createRenderTarget(2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    passInfo.output = builder.createRenderTarget("lighting_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
     // create the output taragets
     passInfo.output = builder.addWriter("lighting", passInfo.output);

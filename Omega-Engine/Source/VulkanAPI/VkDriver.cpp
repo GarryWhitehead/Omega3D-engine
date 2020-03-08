@@ -12,9 +12,7 @@
 namespace VulkanAPI
 {
 
-VkDriver::VkDriver()
-    : progManager(std::make_unique<ProgramManager>(context))
-    , spManager(std::make_unique<SemaphoreManager>(context))
+VkDriver::VkDriver() : progManager(std::make_unique<ProgramManager>(context))
 {
 }
 
@@ -53,7 +51,7 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
 
     // and the command buffer manager - note: the pool is init on construction so must be done after
     // driver init
-    cbManager = std::make_unique<CmdBufferManager>(context, *spManager);
+    cbManager = std::make_unique<CBufferManager>(context);
 
     // create the semaphore for signalling a new frame is ready now
     beginSemaphore = spManager->getSemaphore();
@@ -68,7 +66,8 @@ void VkDriver::shutdown()
 
 // =========== functions for buffer/texture creation ================
 
-void VkDriver::addUbo(const Util::String& id, const size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUbo(
+    const Util::String& id, const size_t size, VkBufferUsageFlags usage, bool updateDescr)
 {
     // check if the buffer already exists with the same id. If so, check the size of the current
     // buffer against the size of the requested buffer. If the space is too small, destroy the
@@ -90,14 +89,11 @@ void VkDriver::addUbo(const Util::String& id, const size_t size, VkBufferUsageFl
     buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
     VkHash::ResourceIdKey key {id.c_str()};
     buffers.emplace(key, buffer);
-}
 
-void VkDriver::addUboAndUpdateDescr(
-    const Util::String& id, const size_t size, VkBufferUsageFlags usage)
-{
-    addUbo(id, size, usage);
-
-    cbManager->updateDescriptor(id, buffers[{id.c_str()}]);
+    if (updateDescr)
+    {
+        cbManager->updateDescriptors(id, buffers[{id.c_str()}]);
+    }
 }
 
 void VkDriver::add2DTexture(
@@ -106,7 +102,8 @@ void VkDriver::add2DTexture(
     const uint32_t width,
     const uint32_t height,
     const uint8_t mipLevels,
-    vk::ImageUsageFlags usageFlags)
+    vk::ImageUsageFlags usageFlags,
+    bool updateDescr)
 {
     // for textures, we expect the ids to be unique.
     auto iter = textures.find({id.c_str()});
@@ -116,21 +113,11 @@ void VkDriver::add2DTexture(
     tex.create2dTex(*this, format, width, height, mipLevels, usageFlags);
     VkHash::ResourceIdKey key {id.c_str()};
     textures.emplace(key, std::move(tex));
-}
 
-void VkDriver::add2DTextureAndPushDecr(
-    const Util::String& id,
-    vk::Format format,
-    const uint32_t width,
-    const uint32_t height,
-    const uint8_t mipLevels,
-    vk::ImageUsageFlags usageFlags)
-{
-    add2DTexture(id, format, width, height, mipLevels, usageFlags);
-
-    Texture& tex = textures[{id.c_str()}];
-    // update the image descriptor set
-    progManager->pushImageDescrUpdate(id, tex);
+    if (updateDescr)
+    {
+        cbManager->updateDescriptors(id, tex);
+    }
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data)
@@ -173,9 +160,7 @@ void VkDriver::updateUbo(const Util::String& id, const size_t size, void* data)
     iter->second.map(data, size);
 }
 
-
 // ============================ delete resources ==============================================
-
 
 void VkDriver::deleteUbo(const Util::String& id)
 {
@@ -235,7 +220,7 @@ void VkDriver::beginFrame(Swapchain& swapchain)
 
     // get the next image index which will be the framebuffer we draw too
     assert(beginSemaphore);
-    context.getDevice().acquireNextImageKHR(
+    context.device.acquireNextImageKHR(
         swapchain.get(), std::numeric_limits<uint64_t>::max(), beginSemaphore, {}, &imageIndex);
 }
 

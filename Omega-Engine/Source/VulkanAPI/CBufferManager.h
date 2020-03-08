@@ -94,6 +94,12 @@ public:
     bool updateDescriptors(const Util::String& id, Buffer& buffer);
     bool updateDescriptors(const Util::String& id, Texture& tex);
 
+    // returns the work commands buffer used for transient work such as buffer copying, etc.
+    CmdBuffer* getWorkCmdBuffer();
+
+    // this is used by the main thread (mainly by the rendergraph). The user must take control of all cmd buffer actions including the beginning and ending of the buffer.
+    CmdBuffer* getCmdBuffer();
+
     void beginNewFame();
 
     void submitFrame(
@@ -117,9 +123,9 @@ private:
     // to stop the over creation of cmd buffers whcih can hinder performace (maybe?) only three cmd
     // buffer are allowed: main thread commands, swapchain and a worker cmd buffer for tasks such as
     // buffer copying, etc.
-    CmdBuffer cmdBuffer;
-    CmdBuffer scCmdBuffer;
-    CmdBuffer workCmdBuffer;
+    std::unique_ptr<CmdBuffer> cmdBuffer;
+    std::unique_ptr<CmdBuffer> scCmdBuffer;
+    std::unique_ptr<CmdBuffer> workCmdBuffer;
 
     // one threaded cmd buffer per thread - the inherited buffer will always be the main cmd buffer
     std::vector<ThreadedCmdBuffer> threadedBuffers;

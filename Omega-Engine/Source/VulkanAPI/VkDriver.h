@@ -106,17 +106,11 @@ public:
      * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-    void addUboAndUpdateDescr(const Util::String& id, const size_t size, VkBufferUsageFlags usage);
-
-    /**
-     * @brief This is for adding persistant uniform buffers to the backend. This should be used when
-     * a descriptor set isn't stored within the vulkan backend, i.e. materials keep track of their
-     * own sets
-     * @param id This is a string id used to hash and retrieve this buffer
-     * @param size The size of the buffer in bytes
-     * @param usage Vulkan usage flags depict what this buffer will be used for
-     */
-    void addUbo(const Util::String& id, const size_t size, VkBufferUsageFlags usage);
+    void addUbo(
+        const Util::String& id,
+        const size_t size,
+        VkBufferUsageFlags usage,
+        bool updateDescr = true);
 
     /**
      * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex
@@ -125,9 +119,9 @@ public:
     VertexBuffer* addVertexBuffer(const size_t size, void* data);
 
     /**
- @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend.
- Note: it is presumed to be of the type uint32_t.
-*/
+    * @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend.
+    * Note: it is presumed to be of the type uint32_t.
+    */
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
     void add2DTexture(
@@ -136,15 +130,8 @@ public:
         const uint32_t width,
         const uint32_t height,
         const uint8_t mipLevels,
-        vk::ImageUsageFlags usageFlags);
-
-    void add2DTextureAndPushDecr(
-        const Util::String& id,
-        vk::Format format,
-        const uint32_t width,
-        const uint32_t height,
-        const uint8_t mipLevels,
-        vk::ImageUsageFlags usageFlags);
+        vk::ImageUsageFlags usageFlags,
+        bool updateDescr = true);
 
     // ============== buffer update functions ===============================
 

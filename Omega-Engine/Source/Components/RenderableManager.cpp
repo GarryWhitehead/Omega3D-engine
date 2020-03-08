@@ -343,7 +343,7 @@ bool OERenderableManager::updateVariants()
     for (const Renderable& rend : renderables)
     {
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
-        VulkanAPI::ProgramManager::ShaderHash hash {
+        VulkanAPI::ProgramManager::ShaderKey hash {
             meshId.c_str(), rend.instance->variantBits.getUint64(), static_cast<uint32_t>(topo)};
         if (!manager.hasShaderVariantCached(hash))
         {
@@ -357,7 +357,7 @@ bool OERenderableManager::updateVariants()
     // ======== create variants required for all materials currently associated with the manager
     for (const Material& mat : materials)
     {
-        VulkanAPI::ProgramManager::ShaderHash hash {matId.c_str(), mat.variantBits.getUint64()};
+        VulkanAPI::ProgramManager::ShaderKey hash {matId.c_str(), mat.variantBits.getUint64()};
         if (!manager.hasShaderVariantCached(hash))
         {
             VulkanAPI::ShaderDescriptor* descr =
@@ -368,9 +368,6 @@ bool OERenderableManager::updateVariants()
     }
 
     // ============ create progrms for each mesh/material variant combo ========================
-    // We do this here for two reasons  1) Creating the shaders during time critical moments
-    // could really impede performance 2) Its easier to update the material descriptor set as we
-    // have all the information available here.
     for (Renderable& rend : renderables)
     {
         Material* mat = rend.material;
@@ -378,14 +375,14 @@ bool OERenderableManager::updateVariants()
 
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(
             rend.instance->topology); // TODO : check that the topology is correct
-        VulkanAPI::ProgramManager::ShaderHash hash {
+        VulkanAPI::ProgramManager::ShaderKey hash {
             meshId.c_str(), rend.mergedVariant, static_cast<uint32_t>(topo)};
         VulkanAPI::ShaderProgram* prog = manager.findVariant(hash);
         if (!prog)
         {
             // create new program
             VulkanAPI::ShaderParser variantParser;
-            std::vector<VulkanAPI::ProgramManager::ShaderHash> hashes {
+            std::vector<VulkanAPI::ProgramManager::ShaderKey> hashes {
                 {meshId.c_str(),
                  rend.instance->variantBits.getUint64(),
                  static_cast<uint32_t>(topo)},

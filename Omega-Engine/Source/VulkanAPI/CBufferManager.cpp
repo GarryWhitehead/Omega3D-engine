@@ -40,34 +40,38 @@ void CmdPool::submitAll(
             fence = cmdInstances[i].fence;
         }
 
-        VK_CHECK_RESULT(context.getVkState().device.resetFences(1, &fence));
+        VK_CHECK_RESULT(context.device.resetFences(1, &fence));
 
         vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eAllCommands;
         vk::SubmitInfo info {1, &waitSync, &flags, 1, &cmdBuffer, 1, &signalSync};
-        VK_CHECK_RESULT(context.getGraphQueue().submit(1, &info, fence));
+        VK_CHECK_RESULT(context.graphQueue.submit(1, &info, fence));
     }
 
     // then the presentation part.....
     vk::Semaphore finalSemaphore = cmdInstances.back().semaphore;
     vk::PresentInfoKHR presentInfo {1, &finalSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
-    VK_CHECK_RESULT(context.getPresentQueue().presentKHR(&presentInfo));
+    VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
 }
 
 // ================================================================================================================
 
-CBufferManager::CBufferManager(VkContext& context) : context(context)
+CBufferManager::CBufferManager(VkContext& context)
+    : context(context)
+    , cmdBuffer(std::make_unique<CmdBuffer>(context, cmdPool, CmdBuffer::Type::Primary))
+    , workCmdBuffer(std::make_unique<CmdBuffer>(context, cmdPool, CmdBuffer::Type::Primary))
+    , scCmdBuffer(std::make_unique<CmdBuffer>(context, cmdPool, CmdBuffer::Type::Primary))
 {
-    assert(context.getVkState().device);
+    assert(context.device);
 
     // create the main cmd pool for this buffer
     vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           queueIndex};
-    context.getVkState().device.createCommandPool(&createInfo, nullptr, &cmdPool);
+    context.device.createCommandPool(&createInfo, nullptr, &cmdPool);
 }
 
 CBufferManager::~CBufferManager()
 {
-    context.getVkState().device.destroy(cmdPool, nullptr);
+    context.device.destroy(cmdPool, nullptr);
 }
 
 Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass)
@@ -198,20 +202,20 @@ void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
 
         vk::DescriptorPoolCreateInfo createInfo(
             {}, setCount, static_cast<uint32_t>(pools.size()), pools.data());
-        VK_CHECK_RESULT(
-            context.getVkState().device.createDescriptorPool(&createInfo, nullptr, &pool));
+        VK_CHECK_RESULT(context.device.createDescriptorPool(&createInfo, nullptr, &pool));
 
         // create the layouts and sets
         for (auto& setBind : setBindings)
         {
             DescriptorSet set;
-            vk::DescriptorSetLayoutCreateInfo layoutInfo({}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
+            vk::DescriptorSetLayoutCreateInfo layoutInfo(
+                {}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
             VK_CHECK_RESULT(
-                context.getVkState().device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
+                context.device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
 
-            // create descriptor set for each layout 
+            // create descriptor set for each layout
             vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &set.layout);
-            VK_CHECK_RESULT(context.getVkState().device.allocateDescriptorSets(&allocInfo, &set.set));
+            VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.set));
 
             DescriptorKey key {binding.first, setBind.first};
             descriptorSets.emplace(key, set);
@@ -219,12 +223,12 @@ void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
     }
 }
 
-
 bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
 {
-    // find the descriptor blueprint first which will then give us the shader id and set value for this buffer
+    // find the descriptor blueprint first which will then give us the shader id and set value for
+    // this buffer
     DescriptorKey key;
-    
+
     for (auto& binding : descriptorBindings)
     {
         for (auto& bind : binding.second)
@@ -232,49 +236,85 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
             if (bind.name.compare(id))
             {
                 // quick sanity check to  make sure this descriptor is a buffer
-                
+
                 key.setValue = bind.set;
                 key.id = binding.first;
-                
+
                 DescriptorSet& descrSet = descriptorSets[key];
-                vk::WriteDescriptorSet write {descrSet.set, bind.binding.binding, 0, 1, bind.binding.descriptorType, {buffer.}};
-                context.getVkState().device.updateDescriptorSets(1, &write, 0, nullptr);
+                vk::DescriptorBufferInfo bufferInfo {
+                    buffer.get(), buffer.getOffset(), buffer.getSize()};
+                vk::WriteDescriptorSet write {descrSet.set,
+                                              bind.binding.binding,
+                                              0,
+                                              1,
+                                              bind.binding.descriptorType,
+                                              nullptr,
+                                              &bufferInfo,
+                                              nullptr};
+                context.device.updateDescriptorSets(1, &write, 0, nullptr);
                 return true;
             }
         }
     }
-    
+
     LOGGER_ERROR("Unable to find a buffer descriptor with the id %s", id.c_str());
     return false;
 }
 
 bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
 {
-    // find the descriptor blueprint first which will then give us the shader id and set value for this buffer
-        DescriptorKey key;
-        
-        for (auto& binding : descriptorBindings)
+    // find the descriptor blueprint first which will then give us the shader id and set value for
+    // this buffer
+    DescriptorKey key;
+
+    for (auto& binding : descriptorBindings)
+    {
+        for (auto& bind : binding.second)
         {
-            for (auto& bind : binding.second)
+            if (bind.name.compare(id))
             {
-                if (bind.name.compare(id))
-                {
-                    // quick sanity check to  make sure this descriptor is a image sampler
-                    
-                    key.setValue = bind.set;
-                    key.id = binding.first;
-                    
-                    DescriptorSet& descrSet = descriptorSets[key];
-                    vk::WriteDescriptorSet write {descrSet.set, bind.binding.binding, 0, 1, bind.binding.descriptorType, {buffer.}};
-                    context.getVkState().device.updateDescriptorSets(1, &write, 0, nullptr);
-                    return true;
-                }
+                // quick sanity check to  make sure this descriptor is a image sampler
+
+                key.setValue = bind.set;
+                key.id = binding.first;
+
+                DescriptorSet& descrSet = descriptorSets[key];
+                vk::DescriptorImageInfo imageInfo {
+                    tex.getSampler()->get(), tex.getImageView()->get(), tex.getImageLayout()};
+                vk::WriteDescriptorSet write {descrSet.set,
+                                              bind.binding.binding,
+                                              0,
+                                              1,
+                                              bind.binding.descriptorType,
+                                              &imageInfo,
+                                              nullptr,
+                                              nullptr};
+                context.device.updateDescriptorSets(1, &write, 0, nullptr);
+                return true;
             }
         }
-        
-        LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", id.c_str());
-        return false;
     }
+
+    LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", id.c_str());
+    return false;
+}
+
+CmdBuffer* CBufferManager::getWorkCmdBuffer()
+{
+    // make sure that the cmd buffer has finished before resetting
+    VK_CHECK_RESULT(context.device.waitForFences(1, &workCmdBuffer->cmdFence, true, UINT64_MAX));
+    VK_CHECK_RESULT(context.device.resetFences(1, &workCmdBuffer->cmdFence));
+
+    // reset and begin the buffer
+    workCmdBuffer.get()->reset();
+    workCmdBuffer->begin();
+
+    return workCmdBuffer.get();
+}
+
+CmdBuffer* CBufferManager::getCmdBuffer()
+{
+    return cmdBuffer.get();
 }
 
 

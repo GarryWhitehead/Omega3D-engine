@@ -25,8 +25,8 @@ Swapchain::createSurface(OmegaEngine::OEWindowInstance* window, vk::Instance& in
 
 bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 {
-    vk::Device device = context.getDevice();
-    vk::PhysicalDevice gpu = context.getGpu();
+    vk::Device device = context.device;
+    vk::PhysicalDevice gpu = context.physical;
 
     // Get the basic surface properties of the physical device
     vk::SurfaceCapabilitiesKHR capabilities = gpu.getSurfaceCapabilitiesKHR(surface.get());
@@ -109,8 +109,8 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
     std::vector<uint32_t> queueFamilyIndicies;
     vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-    uint32_t graphFamilyIdx = context.getGraphQueueIdx();
-    uint32_t presentFamilyIdx = context.getPresentQueueIdx();
+    uint32_t graphFamilyIdx = context.queueFamilyIndex.graphics;
+    uint32_t presentFamilyIdx = context.queueFamilyIndex.present;
 
     if (graphFamilyIdx != presentFamilyIdx)
     {
@@ -147,7 +147,7 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
 
 void Swapchain::prepareImageViews(VkContext& context, const vk::SurfaceFormatKHR& surfaceFormat)
 {
-    vk::Device device = context.getDevice();
+    vk::Device device = context.device;
 
     // Get the image loactions created when creating the swap chain
     std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);

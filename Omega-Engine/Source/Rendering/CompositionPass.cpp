@@ -24,14 +24,14 @@ bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "composition.glsl";
-    VulkanAPI::ProgramManager::ShaderHash key = {filename.c_str(), 0};
+    VulkanAPI::ProgramManager::ShaderKey key = {filename.c_str(), 0};
     VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
 
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // final pass, write to the surface
     backBuffer =
-        builder.importRenderTarget(swapchain.getExtentsWidth(), swapchain.getExtentsHeight());
+        builder.importRenderTarget("surface", swapchain.getExtentsWidth(), swapchain.getExtentsHeight(), swapchain.getImageView(currentIndex));
 
     builder.addReader("skybox");
     builder.addWriter("composition", backBuffer);
