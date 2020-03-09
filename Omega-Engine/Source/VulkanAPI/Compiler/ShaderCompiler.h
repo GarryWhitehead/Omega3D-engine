@@ -26,7 +26,8 @@ enum class CompilerReturnCode
     MissingCodeBlock,
     ErrorCompilingGlsl,
     InvalidPipelineType,
-    MissingNameOrType
+    MissingNameOrType,
+    InvalidMaterialInput
 };
 
 /**

@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 #include "utility/CString.h"
 #include "utility/MurmurHash.h"
 
@@ -82,6 +82,12 @@ struct RenderStateBlock
     DsState dsState;
     RasterState rastState;
     Sampler sampler;
+};
+
+struct MaterialBindingInfo
+{
+    vk::DescriptorSetLayout layout;
+    uint8_t set;
 };
 
 /**
@@ -195,7 +201,7 @@ public:
         Shader::Type stage;
     };
 
-    ShaderProgram(VkContext& context);
+    ShaderProgram(VkDriver& driver);
 
     /**
      * @brief Compiles the parsed json file into data that can be used by the vulkan backend
@@ -207,7 +213,7 @@ public:
     /**
      * @brief Adds a shader variant for a specifed stage to the list
      */
-    void addVariant(Util::String& definition, uint8_t value, Shader::Type stage);
+    void addVariant(const Util::String& definition, uint8_t value, Shader::Type stage);
 
     void addVariants(GlslCompiler::VariantMap& map, const Shader::Type type);
 
@@ -226,7 +232,9 @@ public:
     std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
 
     PipelineLayout* getPLineLayout();
-
+    
+    MaterialBindingInfo* getMaterialBindingInfo();
+    
     /**
      * @brief Updates a spec constant which must have been stated in the shader json with a new
      * value which will set at pipeline generation time. If the spec constant isn't uodated, then
@@ -252,7 +260,7 @@ public:
     friend class Pipeline;
 
 private:
-    VkContext& context;
+    VkDriver& driver;
 
     std::vector<ShaderBinding> stages;
 
@@ -261,7 +269,10 @@ private:
 
     // input bindings for the vertex shader
     std::vector<InputBinding> inputs;
-
+    
+    // the material bindings are stored here as we only expect this to be registered from one shader
+    std::vector<ShaderBinding::SamplerBinding> materialBindings;
+    
     std::unique_ptr<PipelineLayout> pLineLayout;
 
     // shader constants to add during compiler time
@@ -284,7 +295,7 @@ public:
         uint32_t topology = UINT32_MAX;
     };
 
-    ProgramManager(VkContext& context);
+    ProgramManager(VkDriver& driver);
     ~ProgramManager();
 
     /**
@@ -327,7 +338,7 @@ public:
      * @brief Creates a shader fragment that will be cached until ready for use
      */
     ShaderDescriptor*
-    createCachedInstance(ShaderKey& hash, ShaderDescriptor& descr, const Shader::Type type);
+    createCachedInstance(ShaderKey& hash, ShaderDescriptor& descr);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
@@ -336,7 +347,7 @@ public:
 
     ShaderDescriptor* findCachedVariant(ShaderKey& hash);
 
-    friend class CmdBufferManager;
+    friend class CBufferManager;
 
 private:
     // =============== shader hasher ======================
@@ -353,7 +364,7 @@ private:
     };
 
 private:
-    VkContext& context;
+    VkDriver& driver;
 
     // fully compiled, complete shader programs
     std::unordered_map<ShaderKey, ShaderProgram*, ShaderHasher, ShaderEqual> programs;

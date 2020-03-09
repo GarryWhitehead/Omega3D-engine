@@ -16,7 +16,7 @@ class Swapchain;
 class VkDriver;
 class ProgramManager;
 class CmdBuffer;
-class CmdBufferManager;
+class CBufferManager;
 } // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -97,7 +97,7 @@ public:
 
     void drawQueueThreaded(
         VulkanAPI::CmdBuffer& cmdBuffer,
-        VulkanAPI::CmdBufferManager& manager,
+        VulkanAPI::CBufferManager& manager,
         RGraphContext& context);
 
     using RenderStagePtr = std::unique_ptr<RenderStageBase>;

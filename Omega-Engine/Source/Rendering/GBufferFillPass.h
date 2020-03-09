@@ -59,7 +59,7 @@ public:
 	friend class Renderer;
 
 	// draw callback function used in the render queue
-	static void drawCallback(VulkanAPI::CmdBuffer& cmdBuffer, void* instance, RGraphContext& context);
+	static void drawCallback(void* instance, RGraphContext& context);
 
 private:
     

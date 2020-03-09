@@ -25,11 +25,13 @@ class DescriptorSet;
 class ShaderProgram;
 class VertexBuffer;
 class IndexBuffer;
+class MaterialBindingInfo;
+
 } // namespace VulkanAPI
 
 namespace OmegaEngine
 {
-// forard decleartions
+// forard declerations
 class OEWorld;
 class OEObject;
 class OEEngine;
@@ -90,14 +92,14 @@ struct Material
 
     void addVariant(const MaterialInstance::TextureType type);
 
-    /// The material attributes
+    // The material attributes
     MaterialInstance* instance;
 
     // shader variants associated with this material
     Util::BitSetEnum<Variants> variantBits;
 
-    /// each material has its own descriptor set
-    VulkanAPI::DescriptorSet* descrSet = nullptr;
+    // each material has its own descriptor set
+    vk::DescriptorSet descriptorSet;
 };
 
 /**
@@ -121,18 +123,18 @@ struct Renderable
     static VulkanAPI::GlslCompiler::VariantMap
     createVariants(Util::BitSetEnum<MeshInstance::Variant>& bits);
 
-    /// all the model data
+    // all the model data
     MeshInstance* instance;
 
-    /// NOTE: the gltf spec allows primitives to have their own material. This makes life a lot
-    /// harder and in 99% of cases, all primitives share the same material. So we only allow one
-    /// material per mesh - this can be reviewed and changed if the need arises
+    // NOTE: the gltf spec allows primitives to have their own material. This makes life a lot
+    // harder and in 99% of cases, all primitives share the same material. So we only allow one
+    // material per mesh - this can be reviewed and changed if the need arises
 
-    /// set once added to the renderable manager. Used for render queue sorting
+    // set once added to the renderable manager. Used for render queue sorting
     int32_t materialId = -1;
     Material* material = nullptr;
 
-    /// the render state of this material
+    // the render state of this material
     RenderStateBlock* renderState;
 
     // the mesh and material varinats merged - used for looking up the completed shader program
@@ -141,10 +143,10 @@ struct Renderable
     // visibilty of this renderable and their shadow
     Util::BitSetEnum<Visible> visibility;
 
-    /// ============ vulkan backend ========================
+    // ============ vulkan backend ========================
     VulkanAPI::ShaderProgram* program = nullptr;
 
-    /// this is set by the transform manager but held here for convience reasons when drawing
+    // this is set by the transform manager but held here for convience reasons when drawing
     uint32_t dynamicOffset = 0;
 
     // pointers to the vertex and index buffers once uploaded to the gpu
@@ -159,8 +161,8 @@ public:
     OERenderableManager(OEEngine& engine);
     ~OERenderableManager();
 
-    /// called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
-    /// This isn't so expensive as these are persistent resources
+    // called on a per-frame basis . Updates all textures and ubos on the vullkan backend.
+    // This isn't so expensive as these are persistent resources
     bool update();
 
     /**
@@ -226,6 +228,10 @@ private:
     // backend
     bool meshDirty = true;
     bool materialDirty = true;
+    
+    // =============== vulkan material back-end =====================
+    VulkanAPI::MaterialBindingInfo* materialBinding = nullptr;
+    
 };
 
 } // namespace OmegaEngine

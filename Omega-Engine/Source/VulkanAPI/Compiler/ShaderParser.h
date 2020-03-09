@@ -59,7 +59,10 @@ private:
 
     // texture samplers to import; first: name, second: sampler type
     std::vector<TypeDescriptors> samplers;
-
+    
+    // special case for materials - they aren't processed and the the info only used for layout
+    std::vector<TypeDescriptors> materialSamplers;
+    
     // uniform buffers to import; first: name, second: buffer type
     std::vector<BufferDescriptor> ubos;
 
@@ -102,7 +105,7 @@ class ShaderParser
 {
 public:
 
-    constexpr static int64_t EOL = -1;
+    constexpr static size_t EOL = -1;
 
     ShaderParser() = default;
 
@@ -121,7 +124,7 @@ public:
     static Shader::Type strToShaderType(std::string& str);
 
     std::string getErrorString();
-
+    
 private:
     struct ParserErrorCache
     {

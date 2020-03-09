@@ -62,6 +62,11 @@ struct DescriptorSet
 class CBufferManager
 {
 public:
+    
+    // some erbitarty numbers which need monitoring for possible issues due to overflow
+    constexpr static const uint32_t MaxDescriptorPoolSize = 50;
+    constexpr static const uint32_t MaxDescriptorPoolSets = 10;
+    
     struct ThreadedCmdBuffer
     {
         CmdBuffer secondary;
@@ -80,7 +85,7 @@ public:
      * the pipeline if it does, otherwise nullptr
      */
     Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
-
+        
     void addDescriptorLayout(
         Util::String shaderId,
         Util::String layoutId,
@@ -88,11 +93,15 @@ public:
         uint32_t binding,
         vk::DescriptorType bindType,
         vk::ShaderStageFlags flags);
-
-    void buildDescriptors(vk::DescriptorPool& pool);
-
+    
+    DescriptorSet* findDescriptorSet(const Util::String& id, const uint8_t setValue);
+    void buildDescriptorSet();
+    
+    void createMainDescriptorPool();
+    
     bool updateDescriptors(const Util::String& id, Buffer& buffer);
     bool updateDescriptors(const Util::String& id, Texture& tex);
+    void updateDescriptors(const uint32_t bindingValue, const vk::DescriptorType& type, const vk::DescriptorSet& set, Texture& tex);
 
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();
@@ -129,7 +138,9 @@ private:
 
     // one threaded cmd buffer per thread - the inherited buffer will always be the main cmd buffer
     std::vector<ThreadedCmdBuffer> threadedBuffers;
-
+    
+    vk::DescriptorPool descriptorPool;
+    
 private:
     // =============== pipeline hasher ======================
     struct PLineKey

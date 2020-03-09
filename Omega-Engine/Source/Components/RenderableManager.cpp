@@ -350,7 +350,7 @@ bool OERenderableManager::updateVariants()
             VulkanAPI::ShaderDescriptor* descr =
                 parser.getShaderDescriptor(VulkanAPI::Shader::Type::Vertex);
             assert(descr);
-            manager.createCachedInstance(hash, *descr, VulkanAPI::Shader::Type::Vertex);
+            manager.createCachedInstance(hash, *descr);
         }
     }
 
@@ -363,7 +363,7 @@ bool OERenderableManager::updateVariants()
             VulkanAPI::ShaderDescriptor* descr =
                 parser.getShaderDescriptor(VulkanAPI::Shader::Type::Fragment);
             assert(descr);
-            manager.createCachedInstance(hash, *descr, VulkanAPI::Shader::Type::Fragment);
+            manager.createCachedInstance(hash, *descr);
         }
     }
 
@@ -417,10 +417,25 @@ bool OERenderableManager::updateVariants()
 bool OERenderableManager::update()
 {
     VulkanAPI::VkDriver& driver = engine.getVkDriver();
-
-    // upload the textures if something has changed
+    
+    // upload the textures if something has changed - this needs more thhough - should we clear all materials and create again
+    // or should each material have its own local 'dirty' flag and we check this? What about newly added materials?
     if (materialDirty)
     {
+        // create material shader varinats if needed
+        if (!updateVariants())
+        {
+            return false;
+        }
+        
+        // on the first update, create the descriptor set layout used by all materials - it's best to carry this out here to
+        // ensure that the shaders have been loaded and the relevant data extracted
+        if (!materialSetLayout && !renderables.empty())
+        {
+            assert(renderables[0].program);
+            materialBinding = renderables[0].program->getMaterialBindingInfo();
+        }
+        
         // upload textures if required
         for (TextureGroup& group : textures)
         {
@@ -437,18 +452,21 @@ bool OERenderableManager::update()
 
                     vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
                     vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->format);
+                    // note: we don't create a descriptor set alloc blueprint here as mateials deal with their
+                    // own descriptor layouts andc ets
                     driver.add2DTexture(
-                        group.matName, format, tex->width, tex->height, tex->mipLevels, usageFlags);
+                        group.matName, format, tex->width, tex->height, tex->mipLevels, usageFlags, false);
                     driver.update2DTexture(group.matName, tex->buffer);
+                    
+                    // also create a material descriptor set if required and update
+                    if ()
+                    {
+                        
+                    }
                 }
             }
         }
-
-        // create material shader varinats if needed
-        if (!updateVariants())
-        {
-            return false;
-        }
+        
         materialDirty = false;
     }
 

@@ -17,7 +17,7 @@
 namespace VulkanAPI
 {
 class ProgramManager;
-class CmdBufferManager;
+class CBufferManager;
 class CmdBuffer;
 class FrameBuffer;
 class RenderPass;

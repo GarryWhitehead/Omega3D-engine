@@ -98,6 +98,22 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     return pline;
 }
 
+DescriptorSet* CBufferManager::findDescriptorSet(const Util::String& id, const uint8_t setValue)
+{
+    DescriptorSet* descrSet = nullptr;
+
+    DescriptorKey key {id, setValue};
+    auto iter = descriptorSets.find(key);
+
+    // if the pipeline has already has an instance return this
+    if (iter != descriptorSets.end())
+    {
+        descrSet = &iter->second;
+    }
+
+    return descrSet;
+}
+
 void CBufferManager::addDescriptorLayout(
     Util::String shaderId,
     Util::String layoutId,
@@ -113,98 +129,42 @@ void CBufferManager::addDescriptorLayout(
     descriptorBindings[shaderId].emplace_back(binding);
 }
 
-void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
+void CBufferManager::createMainDescriptorPool()
 {
-    for (auto& binding : descriptorBindings)
-    {
-        uint32_t uboCount = 0;
-        uint32_t ssboCount = 0;
-        uint32_t samplerCount = 0;
-        uint32_t uboDynamicCount = 0;
-        uint32_t ssboDynamicCount = 0;
-        uint32_t storageImageCount = 0;
+    // create a pool for each descriptor type
+    std::array<vk::DescriptorPoolSize, 6> pools;
 
+    pools[0] = vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, MaxDescriptorPoolSize};
+    pools[1] = vk::DescriptorPoolSize{
+        vk::DescriptorType::eCombinedImageSampler, MaxDescriptorPoolSize};
+    pools[2] = vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, MaxDescriptorPoolSize};
+    pools[3] = vk::DescriptorPoolSize{
+        vk::DescriptorType::eUniformBufferDynamic, MaxDescriptorPoolSize};
+
+    pools[4] = vk::DescriptorPoolSize{
+        vk::DescriptorType::eStorageBufferDynamic, MaxDescriptorPoolSize};
+    pools[5] = vk::DescriptorPoolSize{vk::DescriptorType::eStorageImage, MaxDescriptorPoolSize};
+
+    vk::DescriptorPoolCreateInfo createInfo(
+        {}, MaxDescriptorPoolSets, static_cast<uint32_t>(pools.size()), pools.data());
+    VK_CHECK_RESULT(context.device.createDescriptorPool(&createInfo, nullptr, &descriptorPool));
+}
+
+void CBufferManager::buildDescriptorSets()
+{
+    
+    for (auto& descrBind : descriptorBindings)
+    {
         // sort each layout into its own set
         std::unordered_map<uint8_t, std::vector<vk::DescriptorSetLayoutBinding>> setBindings;
-        for (auto& descrBind : binding.second)
+        
+        for (auto& setBind : descrBind.second)
         {
-            setBindings[descrBind.set].emplace_back(descrBind.binding);
-
-            // Note: not sure the best way here - could create just a few pools and set them to a
-            // large
-            // enough size to accomodate any eventuality. Though this may lead to issues with
-            // needing more pools due to more cmd buffers in flight (descriptors cannot be updated
-            // whilst the cmd buffer is queued). Thus, will stick with this method for now calculate
-            // the number of each type we have...
-            switch (descrBind.binding.descriptorType)
-            {
-                case vk::DescriptorType::eUniformBuffer:
-                    ++uboCount;
-                    break;
-                case vk::DescriptorType::eStorageBuffer:
-                    ++ssboCount;
-                    break;
-                case vk::DescriptorType::eUniformBufferDynamic:
-                    ++uboDynamicCount;
-                    break;
-                case vk::DescriptorType::eStorageBufferDynamic:
-                    ++ssboDynamicCount;
-                    break;
-                case vk::DescriptorType::eCombinedImageSampler:
-                    ++samplerCount;
-                    break;
-            }
+            setBindings[setBind.set].emplace_back(setBind.binding);
         }
-
+        
         // initialise descriptor pool first based on layouts that have been added
-        std::vector<vk::DescriptorPoolSize> pools;
-
-        if (uboCount)
-        {
-            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eUniformBuffer, uboCount);
-            pools.push_back(poolSize);
-        }
-        if (samplerCount)
-        {
-            // we can have multiple sets of images - useful in the case of materials for
-            // instance
-            vk::DescriptorPoolSize poolSize(
-                vk::DescriptorType::eCombinedImageSampler, samplerCount);
-            pools.push_back(poolSize);
-        }
-        if (ssboCount)
-        {
-            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eStorageBuffer, ssboCount);
-            pools.push_back(poolSize);
-        }
-        if (uboDynamicCount)
-        {
-            vk::DescriptorPoolSize poolSize(
-                vk::DescriptorType::eUniformBufferDynamic, uboDynamicCount);
-            pools.push_back(poolSize);
-        }
-        if (ssboDynamicCount)
-        {
-            vk::DescriptorPoolSize poolSize(
-                vk::DescriptorType::eStorageBufferDynamic, ssboDynamicCount);
-            pools.push_back(poolSize);
-        }
-        if (storageImageCount)
-        {
-            vk::DescriptorPoolSize poolSize(vk::DescriptorType::eStorageImage, storageImageCount);
-            pools.push_back(poolSize);
-        }
-
-        // creating a pool requires us to the max sets required for this instance.
-        // Occassionally, especially in the case of materials, we may need an extra set which
-        // might not be added before a call to here. So we add an extra set.
-        uint32_t setCount = static_cast<uint32_t>(setBindings.size()) + 1;
-
-        vk::DescriptorPoolCreateInfo createInfo(
-            {}, setCount, static_cast<uint32_t>(pools.size()), pools.data());
-        VK_CHECK_RESULT(context.device.createDescriptorPool(&createInfo, nullptr, &pool));
-
-        // create the layouts and sets
+        // create the layout and set
         for (auto& setBind : setBindings)
         {
             DescriptorSet set;
@@ -214,10 +174,10 @@ void CBufferManager::buildDescriptors(vk::DescriptorPool& pool)
                 context.device.createDescriptorSetLayout(&layoutInfo, nullptr, &set.layout));
 
             // create descriptor set for each layout
-            vk::DescriptorSetAllocateInfo allocInfo(pool, 1, &set.layout);
+            vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, 1, &set.layout);
             VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.set));
 
-            DescriptorKey key {binding.first, setBind.first};
+            DescriptorKey key {descrBind.first, setBinding.first};
             descriptorSets.emplace(key, set);
         }
     }
@@ -279,17 +239,7 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
                 key.id = binding.first;
 
                 DescriptorSet& descrSet = descriptorSets[key];
-                vk::DescriptorImageInfo imageInfo {
-                    tex.getSampler()->get(), tex.getImageView()->get(), tex.getImageLayout()};
-                vk::WriteDescriptorSet write {descrSet.set,
-                                              bind.binding.binding,
-                                              0,
-                                              1,
-                                              bind.binding.descriptorType,
-                                              &imageInfo,
-                                              nullptr,
-                                              nullptr};
-                context.device.updateDescriptorSets(1, &write, 0, nullptr);
+                updateDescriptors(bind.binding.binding, bind.binding.descriptorType, descrSet.set, tex);
                 return true;
             }
         }
@@ -298,6 +248,22 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
     LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", id.c_str());
     return false;
 }
+
+void CBufferManager::updateDescriptors(const uint32_t bindingValue, const vk::DescriptorType& type, const vk::DescriptorSet& set, Texture& tex)
+{
+    vk::DescriptorImageInfo imageInfo {
+        tex.getSampler()->get(), tex.getImageView()->get(), tex.getImageLayout()};
+    vk::WriteDescriptorSet write {set,
+                                  bindingValue,
+                                  0,
+                                  1,
+                                  type,
+                                  &imageInfo,
+                                  nullptr,
+                                  nullptr};
+    context.device.updateDescriptorSets(1, &write, 0, nullptr);
+}
+
 
 CmdBuffer* CBufferManager::getWorkCmdBuffer()
 {

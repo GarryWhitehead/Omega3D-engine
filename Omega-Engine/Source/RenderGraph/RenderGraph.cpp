@@ -315,7 +315,7 @@ void RenderGraph::execute()
     for (RenderGraphPass& rpass : rGraphPasses)
     {
         // start the render pass
-        VulkanAPI::CmdBufferManager& manager = driver.getCbManager();
+        VulkanAPI::CBufferManager& manager = driver.getCbManager();
 
         assert(rpass.context.cmdBuffer);
         VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);

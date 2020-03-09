@@ -234,7 +234,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
         shader.appendBlock += '\n';
     }
 
-    // specialisation constants - order is important here as buffers,et.c might be dependebt on
+    // specialisation constants - order is important here as buffers,etc. might be dependent on
     // these constants
     if (!shader.constants.empty())
     {
@@ -288,6 +288,35 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
         }
         shader.appendBlock += '\n';
     }
+    
+    // material texture samplers
+    if (!shader.materialSamplers.empty())
+    {
+        // the assumption is that material bindings will only be derived from the mrt shader.
+        // If the user trys to import materials from other shaders too, this is deemed an error
+        if (!program.materialBindings.empty())
+        {
+            return CompilerReturnCode::InvalidMaterialInput;
+        }
+        
+        for (auto& sampler : shader.materialSamplers)
+        {
+            ImportInfo importInfo;
+            CompilerReturnCode ret =
+                prepareImport(shader, ImportType::Sampler, sampler, importInfo);
+            if (ret != CompilerReturnCode::Success)
+            {
+                return ret;
+            }
+
+            // add to the material binding information
+            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
+            ShaderBinding::SamplerBinding sBind {
+                importInfo.name, importInfo.bind, importInfo.groupId, descrType};
+            program.materialBindings.emplace_back(sBind);
+        }
+        shader.appendBlock += '\n';
+    }
 
     // uniform buffers
     if (!shader.ubos.empty())
@@ -325,7 +354,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
             }
             binding.bufferBindings.emplace_back(bBind);
         }
-        shader.appendBlock += '\n\n';
+        shader.appendBlock += "\n\n";
     }
 
     // push blocks

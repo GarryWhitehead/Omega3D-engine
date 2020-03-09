@@ -489,6 +489,16 @@ ParserReturnCode ShaderParser::parseShaderStage(uint32_t& idx, ShaderDescriptor&
             }
             shader.samplers.emplace_back(descr);
         }
+        else if (line.find("#import_material_sampler:") != EOL)
+        {
+            ShaderDescriptor::TypeDescriptors descr;
+            ParserReturnCode ret = parseLine(line, descr, 2);
+            if (ret != ParserReturnCode::Success)
+            {
+                return ret;
+            }
+            shader.materialSamplers.emplace_back(descr);
+        }
         else if (line.find("#code_block:") != EOL)
         {
             ++idx;

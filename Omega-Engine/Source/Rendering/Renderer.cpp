@@ -100,7 +100,7 @@ void OERenderer::draw()
 }
 
 void OERenderer::drawQueueThreaded(
-    VulkanAPI::CmdBuffer& primary, VulkanAPI::CmdBufferManager& manager, RGraphContext& context)
+    VulkanAPI::CmdBuffer& primary, VulkanAPI::CBufferManager& manager, RGraphContext& context)
 {
     // a cmd pool per thread
     auto cmdPool = manager.createSecondaryPool();

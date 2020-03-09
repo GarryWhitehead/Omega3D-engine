@@ -132,7 +132,7 @@ private:
         size_t index; //< points to the attachment description for this ref.
     };
 
-    friend class CmdBufferManager;
+    friend class CBufferManager;
 
 private:
     /// keep a refernece of the device this pass was created on for destruction purposes

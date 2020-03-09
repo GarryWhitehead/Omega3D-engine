@@ -2,13 +2,13 @@
 
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkTexture.h"
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/VkUtils/StringToVk.h"
 #include "VulkanAPI/VkUtils/VkToString.h"
 #include "utility/FileUtil.h"
@@ -21,13 +21,13 @@ namespace VulkanAPI
 
 // =================== ShaderProgram ======================
 
-ShaderProgram::ShaderProgram(VkContext& context)
-    : context(context)
+ShaderProgram::ShaderProgram(VkDriver& driver)
+    : driver(driver)
     , pLineLayout(std::make_unique<PipelineLayout>())
 {
 }
 
-void ShaderProgram::addVariant(Util::String& definition, uint8_t value, Shader::Type stage)
+void ShaderProgram::addVariant(const Util::String& definition, uint8_t value, Shader::Type stage)
 {
     variants.emplace_back(VulkanAPI::Shader::VariantInfo {definition, value, stage});
 }
@@ -47,7 +47,7 @@ void ShaderProgram::overrideRenderState(RenderStateBlock* renderState)
 
 bool ShaderProgram::prepare(ShaderParser& parser)
 {
-    ShaderCompiler compiler(*this, context);
+    ShaderCompiler compiler(*this, driver);
 
     if (!compiler.compile(parser))
     {
@@ -114,13 +114,38 @@ std::vector<VulkanAPI::Shader::VariantInfo> ShaderProgram::sortVariants(Shader::
     return ret;
 }
 
+MaterialBindingInfo* ShaderProgram::getMaterialBindingInfo()
+{
+    if (materialBindings.empty())
+    {
+        return nullptr;
+    }
+    
+    MaterialBindingInfo* bindingInfo = new MaterialBindingInfo;
+    bindingInfo->set = materialBindings[0].set;
+    
+    // create the descriptor layout binding info
+    std::vector<vk::DescriptorSetLayoutBinding> setBindings;
+    for (auto& matBind : materialBindings)
+    {
+        setBindings.push_back(vk::DescriptorSetLayoutBinding{matBind.bind, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr});
+    }
+    
+    vk::DescriptorSetLayoutCreateInfo layoutInfo(
+        {}, static_cast<uint32_t>(setBindings.size()), setBindings.data());
+    VK_CHECK_RESULT(
+        driver.getContext().device.createDescriptorSetLayout(&layoutInfo, nullptr, &bindingInfo->layout));
+    
+    return bindingInfo;
+}
+
 PipelineLayout* ShaderProgram::getPLineLayout()
 {
     return pLineLayout.get();
 }
 
 // =================== Program Manager ==================
-ProgramManager::ProgramManager(VkContext& context) : context(context)
+ProgramManager::ProgramManager(VkDriver& driver) : driver(driver)
 {
 }
 
@@ -147,7 +172,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderKey
     const char* instanceName; // we use the vertex name as the identifing id
     uint32_t topo;
 
-    ShaderProgram* instance = new ShaderProgram(context);
+    ShaderProgram* instance = new ShaderProgram(driver);
     for (ShaderKey& hash : hashes)
     {
         ShaderDescriptor* descr = findCachedVariant(hash);
@@ -182,7 +207,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderKey
 
 bool ProgramManager::compile(ShaderParser& parser, ShaderProgram* prog)
 {
-    ShaderCompiler compiler(*prog, context);
+    ShaderCompiler compiler(*prog, driver);
     if (!compiler.compile(parser))
     {
         printf("Fatal Error: %s\n", compiler.getErrorString().c_str());
@@ -193,7 +218,7 @@ bool ProgramManager::compile(ShaderParser& parser, ShaderProgram* prog)
 
 ShaderProgram* ProgramManager::createNewInstance(ShaderKey& hash)
 {
-    ShaderProgram* instance = new ShaderProgram(context);
+    ShaderProgram* instance = new ShaderProgram(driver);
 
     programs.emplace(hash, instance);
     return instance;
@@ -220,7 +245,7 @@ bool ProgramManager::hasShaderVariant(ShaderKey& hash)
 }
 
 ShaderDescriptor* ProgramManager::createCachedInstance(
-    ShaderKey& hash, ShaderDescriptor& descr, const Shader::Type type)
+    ShaderKey& hash, ShaderDescriptor& descr)
 {
     cached.emplace(hash, descr);
     return &cached[hash];
@@ -244,66 +269,6 @@ ShaderDescriptor* ProgramManager::findCachedVariant(ShaderKey& hash)
         return &iter->second;
     }
     return nullptr;
-}
-
-void ProgramManager::pushBufferDescrUpdate(Util::String id, Buffer& buffer)
-{
-    assert(!id.empty());
-    bufferDescrQueue.emplace_back(std::make_pair(id.c_str(), &buffer));
-}
-
-void ProgramManager::pushImageDescrUpdate(Util::String id, Texture& tex)
-{
-    assert(!id.empty());
-    imageDescrQueue.emplace_back(std::make_pair(id.c_str(), &tex));
-}
-
-void ProgramManager::updateBufferDecsrSets()
-{
-    if (bufferDescrQueue.empty())
-    {
-        return;
-    }
-
-    for (auto& queuePair : bufferDescrQueue)
-    {
-        bool result = false;
-        for (auto& prog : programs)
-        {
-            result &= prog.second->updateDecrSetBuffer(queuePair.first, *queuePair.second);
-        }
-        if (!result)
-        {
-            throw std::runtime_error("Unable to find buffer");
-        }
-    }
-
-    // all done, so clear the updates ready for the next frame
-    bufferDescrQueue.clear();
-}
-
-void ProgramManager::updateImageDecsrSets()
-{
-    if (imageDescrQueue.empty())
-    {
-        return;
-    }
-
-    for (auto& queuePair : imageDescrQueue)
-    {
-        bool result = false;
-        for (auto& prog : programs)
-        {
-            result &= prog.second->updateDecrSetImage(queuePair.first, *queuePair.second);
-        }
-        if (!result)
-        {
-            throw std::runtime_error("Unable to find buffer");
-        }
-    }
-
-    // all done, so clear the updates ready for the next frame
-    imageDescrQueue.clear();
 }
 
 ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderKey& key)

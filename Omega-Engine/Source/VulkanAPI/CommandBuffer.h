@@ -14,7 +14,7 @@ namespace VulkanAPI
 class PipelineLayout;
 class DescriptorSet;
 class VkContext;
-class CmdBufferManager;
+class CBufferManager;
 class ShaderProgram;
 class RenderPass;
 class CmdPool;

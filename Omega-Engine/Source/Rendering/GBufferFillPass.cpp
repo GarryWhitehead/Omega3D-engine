@@ -9,6 +9,7 @@
 #include "RenderGraph/RenderGraph.h"
 #include "Scripting/OEConfig.h"
 #include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/ProgramManager.h"
@@ -68,14 +69,13 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
     builder.addExecute([=](RGraphContext& context) {
         // draw the contents of the renderable rendder queue
         OERenderer* renderer = context.renderer;
-        renderer->drawQueueThreaded(*context.cmdBuffer, driver.getCbManager(), context);
+        renderer->drawQueueThreaded(driver.getCbManager(), context);
     });
 
     return true;
 }
 
-void GBufferFillPass::drawCallback(
-    VulkanAPI::CmdBuffer& cmdBuffer, void* data, RGraphContext& context)
+void GBufferFillPass::drawCallback(void* data, RGraphContext& context)
 {
     Renderable* render = static_cast<Renderable*>(data);
     VulkanAPI::ShaderProgram* prog = render->program;
@@ -83,38 +83,35 @@ void GBufferFillPass::drawCallback(
 
     assert(render && mat && prog);
 
-    auto cbManager = context.driver->getCbManager();
+    auto& cbManager = context.driver->getCbManager();
+    VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
     // update the material descriptor set here, if required, as we have all the info we need.
     // This should be done only when completely nescessary as will impact performance
-    if (!mat->descrSet)
+    // get the bindings for the material
+    VulkanAPI::ShaderBinding::SamplerBinding matBinding =
+        prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
+
+    // get the layout and create the descriptor set - the layout and set are created by the renderable manager
+    // note: materials differ in there id compared to other sets as we use the material name as an id
+    VulkanAPI::DescriptorSet* descrSet = cbManager.findDescriptorSet(mat->instance->name, matBinding.set);
+    assert(descrSet);
+    
+    // now update the material set with all the textures that have been defined
+    // Note: if null, this isn't a error as not all pbr materials have the full range of types
+    for (uint32_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
     {
-        // get the bindings for the material
-        VulkanAPI::ShaderBinding::SamplerBinding matBinding =
-            prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
-
-        // get the layout and create the descriptor set
-        VulkanAPI::DescriptorLayout* layout = prog->getDescrLayout(matBinding.set);
-        mat->descrSet->addLayout(*layout);
-
-        // now update the material set with all the textures that have been defined
-        // Note: if null, this isn't a error as not all pbr materials have the full range of types
-        for (uint32_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
+        Util::String id = Util::String::append(
+            mat->instance->name,
+            TextureGroup::texTypeToStr(static_cast<MaterialInstance::TextureType>(i)));
+        VulkanAPI::Texture* tex = context.driver->getTexture2D(id);
+        if (tex)
         {
-            Util::String id = Util::String::append(
-                mat->instance->name,
-                TextureGroup::texTypeToStr(static_cast<MaterialInstance::TextureType>(i)));
-            VulkanAPI::Texture* tex = context.driver->getTexture2D(id);
-            if (tex)
-            {
-                mat->descrSet->updateImageSet(
-                    matBinding.set,
-                    i,
-                    matBinding.type,
-                    tex->getSampler()->get(),
-                    tex->getImageView()->get(),
-                    tex->getImageLayout());
-            }
+            cbManager.updateDescriptors(
+                i,
+                matBinding.type,
+                descrSet->set,
+                tex);
         }
     }
 
@@ -126,25 +123,25 @@ void GBufferFillPass::drawCallback(
     // ==================== bindings ==========================
 
     VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-    cmdBuffer.bindPipeline(renderpass, prog);
+    cmdBuffer->bindPipeline(renderpass, prog);
 
-    cmdBuffer.bindDynamicDescriptors(
+    cmdBuffer->bindDynamicDescriptors(
         prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
 
     // the push block contains all the material attributes for this mesh
-    cmdBuffer.bindPushBlock(
+    cmdBuffer->bindPushBlock(
         prog,
         vk::ShaderStageFlagBits::eFragment,
         sizeof(MaterialInstance::MaterialBlock),
         &render->material->instance->block);
 
-    cmdBuffer.bindVertexBuffer(render->vertBuffer->get(), 0);
-    cmdBuffer.bindIndexBuffer(render->indexBuffer->get(), 0);
+    cmdBuffer->bindVertexBuffer(render->vertBuffer->get(), 0);
+    cmdBuffer->bindIndexBuffer(render->indexBuffer->get(), 0);
 
     // draw all the primitives
     for (const MeshInstance::Primitive& prim : render->instance->primitives)
     {
-        cmdBuffer.drawIndexed(prim.indexPrimitiveCount, prim.indexPrimitiveOffset);
+        cmdBuffer->drawIndexed(prim.indexPrimitiveCount, prim.indexPrimitiveOffset);
     }
 }
 
