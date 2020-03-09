@@ -89,6 +89,6 @@ void Sampler::createSampler(VkContext& context, vk::SamplerAddressMode addressMo
 	                                  VK_LOD_CLAMP_NONE,    // maxLod should equal the mip-map count?
 	                                  vk::BorderColor::eFloatTransparentBlack, VK_FALSE);
 
-	VK_CHECK_RESULT(context.getDevice().createSampler(&samplerInfo, nullptr, &sampler));
+	VK_CHECK_RESULT(context.device.createSampler(&samplerInfo, nullptr, &sampler));
 }
 }    // namespace VulkanAPI

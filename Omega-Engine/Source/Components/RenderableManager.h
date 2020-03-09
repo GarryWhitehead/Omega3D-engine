@@ -99,7 +99,7 @@ struct Material
     Util::BitSetEnum<Variants> variantBits;
 
     // each material has its own descriptor set
-    vk::DescriptorSet descriptorSet;
+    std::unique_ptr<vk::DescriptorSet> descriptorSet;
 };
 
 /**
@@ -201,6 +201,8 @@ public:
      * within the managers larger container
      */
     size_t addMaterial(Renderable& input, MaterialInstance* mat);
+
+    Material* findMaterial(const Util::String& name);
 
     friend class GBufferFillPass;
     friend class Renderer;

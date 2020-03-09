@@ -16,7 +16,7 @@ RenderPass::RenderPass(VkContext& context) : context(context)
 
 RenderPass::~RenderPass()
 {
-    context.getDevice().destroy(renderpass, nullptr);
+    context.device.destroy(renderpass, nullptr);
 }
 
 
@@ -354,7 +354,7 @@ void RenderPass::prepare()
         static_cast<uint32_t>(dependencies.size()),
         dependencies.data());
 
-    VK_CHECK_RESULT(context.getDevice().createRenderPass(&createInfo, nullptr, &renderpass));
+    VK_CHECK_RESULT(context.device.createRenderPass(&createInfo, nullptr, &renderpass));
 }
 
 vk::RenderPass& RenderPass::get()
@@ -427,7 +427,7 @@ FrameBuffer::~FrameBuffer()
 {
     if (fbuffer)
     {
-        context.getDevice().destroy(fbuffer);
+        context.device.destroy(fbuffer);
     }
 }
 
@@ -459,7 +459,7 @@ void FrameBuffer::prepare(
         height,
         layerCount};
 
-    VK_CHECK_RESULT(context.getDevice().createFramebuffer(&frameInfo, nullptr, &fbuffer));
+    VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
 
 

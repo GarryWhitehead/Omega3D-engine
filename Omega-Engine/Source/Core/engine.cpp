@@ -57,7 +57,7 @@ bool OEEngine::init(OEWindowInstance* window)
         return false;
     }
 
-    surface = VulkanAPI::Swapchain::createSurface(window, vkDriver->getContext().getInstance());
+    surface = VulkanAPI::Swapchain::createSurface(window, vkDriver->getContext().instance);
 
     if (!vkDriver->init(surface.get()))
     {

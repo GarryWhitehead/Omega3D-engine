@@ -13,7 +13,7 @@ namespace VulkanAPI
 // ===============================================================================================================
 
 
-void CmdPool::submitAll(
+/*void CmdPool::submitAll(
     Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
 {
     vk::Semaphore waitSync;
@@ -51,7 +51,7 @@ void CmdPool::submitAll(
     vk::Semaphore finalSemaphore = cmdInstances.back().semaphore;
     vk::PresentInfoKHR presentInfo {1, &finalSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
     VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
-}
+}*/
 
 // ================================================================================================================
 
@@ -67,6 +67,8 @@ CBufferManager::CBufferManager(VkContext& context)
     vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           queueIndex};
     context.device.createCommandPool(&createInfo, nullptr, &cmdPool);
+
+    createMainDescriptorPool();
 }
 
 CBufferManager::~CBufferManager()
@@ -134,16 +136,16 @@ void CBufferManager::createMainDescriptorPool()
     // create a pool for each descriptor type
     std::array<vk::DescriptorPoolSize, 6> pools;
 
-    pools[0] = vk::DescriptorPoolSize{vk::DescriptorType::eUniformBuffer, MaxDescriptorPoolSize};
-    pools[1] = vk::DescriptorPoolSize{
-        vk::DescriptorType::eCombinedImageSampler, MaxDescriptorPoolSize};
-    pools[2] = vk::DescriptorPoolSize{vk::DescriptorType::eStorageBuffer, MaxDescriptorPoolSize};
-    pools[3] = vk::DescriptorPoolSize{
-        vk::DescriptorType::eUniformBufferDynamic, MaxDescriptorPoolSize};
+    pools[0] = vk::DescriptorPoolSize {vk::DescriptorType::eUniformBuffer, MaxDescriptorPoolSize};
+    pools[1] =
+        vk::DescriptorPoolSize {vk::DescriptorType::eCombinedImageSampler, MaxDescriptorPoolSize};
+    pools[2] = vk::DescriptorPoolSize {vk::DescriptorType::eStorageBuffer, MaxDescriptorPoolSize};
+    pools[3] =
+        vk::DescriptorPoolSize {vk::DescriptorType::eUniformBufferDynamic, MaxDescriptorPoolSize};
 
-    pools[4] = vk::DescriptorPoolSize{
-        vk::DescriptorType::eStorageBufferDynamic, MaxDescriptorPoolSize};
-    pools[5] = vk::DescriptorPoolSize{vk::DescriptorType::eStorageImage, MaxDescriptorPoolSize};
+    pools[4] =
+        vk::DescriptorPoolSize {vk::DescriptorType::eStorageBufferDynamic, MaxDescriptorPoolSize};
+    pools[5] = vk::DescriptorPoolSize {vk::DescriptorType::eStorageImage, MaxDescriptorPoolSize};
 
     vk::DescriptorPoolCreateInfo createInfo(
         {}, MaxDescriptorPoolSets, static_cast<uint32_t>(pools.size()), pools.data());
@@ -152,17 +154,16 @@ void CBufferManager::createMainDescriptorPool()
 
 void CBufferManager::buildDescriptorSets()
 {
-    
     for (auto& descrBind : descriptorBindings)
     {
         // sort each layout into its own set
         std::unordered_map<uint8_t, std::vector<vk::DescriptorSetLayoutBinding>> setBindings;
-        
+
         for (auto& setBind : descrBind.second)
         {
             setBindings[setBind.set].emplace_back(setBind.binding);
         }
-        
+
         // initialise descriptor pool first based on layouts that have been added
         // create the layout and set
         for (auto& setBind : setBindings)
@@ -177,7 +178,7 @@ void CBufferManager::buildDescriptorSets()
             vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, 1, &set.layout);
             VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.set));
 
-            DescriptorKey key {descrBind.first, setBinding.first};
+            DescriptorKey key {descrBind.first, setBind.first};
             descriptorSets.emplace(key, set);
         }
     }
@@ -239,7 +240,8 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
                 key.id = binding.first;
 
                 DescriptorSet& descrSet = descriptorSets[key];
-                updateDescriptors(bind.binding.binding, bind.binding.descriptorType, descrSet.set, tex);
+                updateDescriptors(
+                    bind.binding.binding, bind.binding.descriptorType, descrSet.set, tex);
                 return true;
             }
         }
@@ -249,21 +251,17 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
     return false;
 }
 
-void CBufferManager::updateDescriptors(const uint32_t bindingValue, const vk::DescriptorType& type, const vk::DescriptorSet& set, Texture& tex)
+void CBufferManager::updateDescriptors(
+    const uint32_t bindingValue,
+    const vk::DescriptorType& type,
+    const vk::DescriptorSet& set,
+    Texture& tex)
 {
     vk::DescriptorImageInfo imageInfo {
         tex.getSampler()->get(), tex.getImageView()->get(), tex.getImageLayout()};
-    vk::WriteDescriptorSet write {set,
-                                  bindingValue,
-                                  0,
-                                  1,
-                                  type,
-                                  &imageInfo,
-                                  nullptr,
-                                  nullptr};
+    vk::WriteDescriptorSet write {set, bindingValue, 0, 1, type, &imageInfo, nullptr, nullptr};
     context.device.updateDescriptorSets(1, &write, 0, nullptr);
 }
-
 
 CmdBuffer* CBufferManager::getWorkCmdBuffer()
 {
@@ -280,8 +278,13 @@ CmdBuffer* CBufferManager::getWorkCmdBuffer()
 
 CmdBuffer* CBufferManager::getCmdBuffer()
 {
+    assert(cmdBuffer);
     return cmdBuffer.get();
 }
 
+vk::DescriptorPool& CBufferManager::getDescriptorPool()
+{
+    return descriptorPool;
+}
 
 } // namespace VulkanAPI

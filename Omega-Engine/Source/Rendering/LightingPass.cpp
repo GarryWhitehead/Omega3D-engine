@@ -47,16 +47,18 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 
     builder.addExecute([=](RGraphContext& context) {
 
+        auto& cbManager = context.driver->getCbManager();
+        VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
         // bind the pipeline
         VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-        context.cmdBuffer->bindPipeline(renderpass, prog);
+        cmdBuffer->bindPipeline(renderpass, prog);
 
         // bind the descriptor
-        context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
         // cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 
         // render full screen quad to screen
-        context.cmdBuffer->drawQuad();
+        cmdBuffer->drawQuad();
     });
 
     return true;

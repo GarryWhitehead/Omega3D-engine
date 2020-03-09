@@ -4,8 +4,8 @@
 #include "Core/Engine.h"
 #include "ModelImporter/MeshInstance.h"
 #include "OEMaths/OEMaths_transform.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
@@ -251,7 +251,7 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
         // whether just to continue (it will be obvious that somethings gone
         // wrong when rendered) or return an error
         group.textures[j] = prepareTexture(mat->texturePaths[j]);
-        newMat.addVariant(static_cast <MaterialInstance::TextureType>(j));
+        newMat.addVariant(static_cast<MaterialInstance::TextureType>(j));
     }
 
     textures.emplace_back(std::move(group));
@@ -417,9 +417,11 @@ bool OERenderableManager::updateVariants()
 bool OERenderableManager::update()
 {
     VulkanAPI::VkDriver& driver = engine.getVkDriver();
-    
-    // upload the textures if something has changed - this needs more thhough - should we clear all materials and create again
-    // or should each material have its own local 'dirty' flag and we check this? What about newly added materials?
+    auto& cbManager = driver.getCbManager();
+
+    // upload the textures if something has changed - this needs more thhough - should we clear all
+    // materials and create again or should each material have its own local 'dirty' flag and we
+    // check this? What about newly added materials?
     if (materialDirty)
     {
         // create material shader varinats if needed
@@ -427,18 +429,28 @@ bool OERenderableManager::update()
         {
             return false;
         }
-        
-        // on the first update, create the descriptor set layout used by all materials - it's best to carry this out here to
-        // ensure that the shaders have been loaded and the relevant data extracted
-        if (!materialSetLayout && !renderables.empty())
+
+        // on the first update, create the descriptor set layout used by all materials - it's best
+        // to carry this out here to ensure that the shaders have been loaded and the relevant data
+        // extracted
+        if (!materialBinding && !renderables.empty())
         {
             assert(renderables[0].program);
             materialBinding = renderables[0].program->getMaterialBindingInfo();
         }
-        
+
         // upload textures if required
         for (TextureGroup& group : textures)
         {
+            Material* material = findMaterial(group.matName);
+            if (!material->descriptorSet)
+            {
+                vk::DescriptorSetAllocateInfo allocInfo {
+                    cbManager.getDescriptorPool(), 1, &materialBinding->layout};
+                VK_CHECK_RESULT(driver.getContext().device.allocateDescriptorSets(
+                    &allocInfo, material->descriptorSet.get()));
+            }
+
             for (uint8_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
             {
                 MappedTexture* tex = group.textures[i];
@@ -447,26 +459,34 @@ bool OERenderableManager::update()
                     // each sampler needs its own unique id - so append the tex type to the
                     // material name
                     assert(!group.matName.empty());
-                    group.matName =
+                    Util::String texName =
                         Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
                     vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
                     vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->format);
-                    // note: we don't create a descriptor set alloc blueprint here as mateials deal with their
-                    // own descriptor layouts andc ets
+                    // note: we don't create a descriptor set alloc blueprint here as materials deal
+                    // with their own descriptor layouts
                     driver.add2DTexture(
-                        group.matName, format, tex->width, tex->height, tex->mipLevels, usageFlags, false);
-                    driver.update2DTexture(group.matName, tex->buffer);
-                    
-                    // also create a material descriptor set if required and update
-                    if ()
-                    {
-                        
-                    }
+                        texName,
+                        format,
+                        tex->width,
+                        tex->height,
+                        tex->mipLevels,
+                        usageFlags,
+                        false);
+                    driver.update2DTexture(texName, tex->buffer);
+
+                    // update the descriptor set too as we have the image info
+                    VulkanAPI::Texture* vkTexture = driver.getTexture2D(texName);
+                    cbManager.updateDescriptors(
+                        i,
+                        vk::DescriptorType::eCombinedImageSampler,
+                        *material->descriptorSet,
+                        *vkTexture);
                 }
             }
         }
-        
+
         materialDirty = false;
     }
 
@@ -481,6 +501,18 @@ bool OERenderableManager::update()
     }
 
     return true;
+}
+
+Material* OERenderableManager::findMaterial(const Util::String& name)
+{
+    for (auto& mat : materials)
+    {
+        if (mat.instance->getName().compare(name))
+        {
+            return &mat;
+        }
+    }
+    return nullptr;
 }
 
 } // namespace OmegaEngine

@@ -1,6 +1,5 @@
 #include "Shader.h"
 
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"
@@ -216,7 +215,7 @@ bool Shader::compile(
     // create the shader module
     vk::ShaderModuleCreateInfo shaderInfo({}, compiler.getByteSize(), compiler.getData());
 
-    VK_CHECK_RESULT(context.getDevice().createShaderModule(&shaderInfo, nullptr, &module));
+    VK_CHECK_RESULT(context.device.createShaderModule(&shaderInfo, nullptr, &module));
 
     // create the wrapper - this will be used by the pipeline
     vk::ShaderStageFlagBits stage = getStageFlags(type);

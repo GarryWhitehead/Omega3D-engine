@@ -90,7 +90,7 @@ struct TextureResource : public ResourceBase
 struct ImportedResource : public ResourceBase
 {
     ImportedResource(
-        Util::String name,
+        const Util::String& name,
         const uint32_t width,
         const uint32_t height,
         VulkanAPI::ImageView* imageView);

@@ -11,6 +11,7 @@
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/Shader.h"
+#include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -32,19 +33,21 @@ void IndirectLighting::calculateCubeTransform(
     OEMaths::mat4f& outputProj,
     OEMaths::mat4f& outputView)
 {
-    OEMaths::vec3f target[6] = {OEMaths::vec3f(1.0f, 0.0f, 0.0f),
-                                OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, -1.0f, 0.0f),
-                                OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-                                OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
+    OEMaths::vec3f target[6] = {
+        OEMaths::vec3f(1.0f, 0.0f, 0.0f),
+        OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, -1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+        OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
 
-    OEMaths::vec3f cameraUp[6] = {OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 0.0f, -1.0f),
-                                  OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
+    OEMaths::vec3f cameraUp[6] = {
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 0.0f, -1.0f),
+        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+        OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
 
     outputProj = outputProj.scale(OEMaths::vec3f {-1.0f, 1.0f, 1.0f}) *
         OEMaths::perspective(90.0f, 1.0f, zNear, zFar);
@@ -59,7 +62,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // bdrf
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"bdrf.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {"bdrf.glsl", 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -69,21 +72,24 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         RenderGraphBuilder builder =
             rGraph.createPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
 
-        bdrfInfo.texture =
-            builder.createRenderTarget(lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
+        bdrfInfo.texture = builder.createRenderTarget(
+            "bdrf_target", lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
 
         bdrfInfo.attachment = builder.addWriter("BdrfSampler", bdrfInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
+            auto& cbManager = context.driver->getCbManager();
+            VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
+
             VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
-            context.cmdBuffer->bindPipeline(renderpass, prog);
-            context.cmdBuffer->drawQuad();
+            cmdBuffer->bindPipeline(renderpass, prog);
+            cmdBuffer->drawQuad();
         });
     }
 
     // irradiance
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"irradianceMap.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {"irradianceMap.glsl", 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -94,7 +100,10 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
             rGraph.createPass("IrradiancePass", RenderGraphPass::Type::Graphics);
 
         irrInfo.texture = builder.createRenderTarget(
-            irradianceMapDim, irradianceMapDim, vk::Format::eR32G32B32A32Sfloat);
+            "irradiance_target",
+            irradianceMapDim,
+            irradianceMapDim,
+            vk::Format::eR32G32B32A32Sfloat);
 
         irrInfo.attachment = builder.addWriter("IrradianceSampler", irrInfo.texture);
 
@@ -105,7 +114,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // specular
     {
-        VulkanAPI::ProgramManager::ShaderHash key = {"specularMap.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {"specularMap.glsl", 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -115,8 +124,8 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         RenderGraphBuilder builder =
             rGraph.createPass("SpecularPass", RenderGraphPass::Type::Graphics);
 
-        specInfo.texture =
-            builder.createRenderTarget(specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
+        specInfo.texture = builder.createRenderTarget(
+            "specular_target", specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
 
         specInfo.attachment = builder.addWriter("SpecularSampler", specInfo.texture);
 
@@ -135,6 +144,9 @@ void IndirectLighting::buildMap(
     const MapType type,
     OESkybox& skybox)
 {
+    auto& cbManager = context.driver->getCbManager();
+    VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
+
     vk::ClearColorValue clearValue;
 
     // create an offscreen texture for composing the image
@@ -158,13 +170,13 @@ void IndirectLighting::buildMap(
         *image,
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eTransferDstOptimal,
-        context.cmdBuffer->get());
+        cmdBuffer->get());
 
     VulkanAPI::Image::transition(
         *osImage,
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal,
-        context.cmdBuffer->get());
+        cmdBuffer->get());
 
     // record command buffer for each mip and their layers
     for (uint32_t mip = 0; mip < mipLevels; mip++)
@@ -177,13 +189,13 @@ void IndirectLighting::buildMap(
             vk::Viewport viewPort =
                 vk::Viewport {0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f};
 
-            context.cmdBuffer->setViewport(viewPort);
+            cmdBuffer->setViewport(viewPort);
 
             VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-            context.cmdBuffer->bindPipeline(renderpass, prog);
-            context.cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
-            context.cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
-            context.cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
+            cmdBuffer->bindPipeline(renderpass, prog);
+            cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+            cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
+            cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
 
             // calculate view for each cube side
             OEMaths::mat4f proj, view;
@@ -205,7 +217,7 @@ void IndirectLighting::buildMap(
                 pushBlock.roughness = static_cast<float>(mip) / static_cast<float>(mipLevels - 1);
                 pushBlock.mvp = mvp;
 
-                context.cmdBuffer->bindPushBlock(
+                cmdBuffer->bindPushBlock(
                     prog,
                     vk::ShaderStageFlagBits::eVertex | vk::ShaderStageFlagBits::eFragment,
                     sizeof(SpecularMapPushBlock),
@@ -213,12 +225,12 @@ void IndirectLighting::buildMap(
             }
             else
             {
-                context.cmdBuffer->bindPushBlock(
+                cmdBuffer->bindPushBlock(
                     prog, vk::ShaderStageFlagBits::eVertex, sizeof(OEMaths::mat4f), &mvp);
             }
 
             // draw cube into offscreen framebuffer
-            context.cmdBuffer->drawIndexed(OESkybox::indicesSize);
+            cmdBuffer->drawIndexed(OESkybox::indicesSize);
 
             // copy the offscreen buffer to the current face
             vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
@@ -234,8 +246,8 @@ void IndirectLighting::buildMap(
                 *osImage,
                 vk::ImageLayout::eColorAttachmentOptimal,
                 vk::ImageLayout::eTransferSrcOptimal,
-                context.cmdBuffer->get());
-            context.cmdBuffer->get().copyImage(
+                cmdBuffer->get());
+            cmdBuffer->get().copyImage(
                 osImage->get(),
                 vk::ImageLayout::eTransferSrcOptimal,
                 image->get(),
@@ -248,7 +260,7 @@ void IndirectLighting::buildMap(
                 *osImage,
                 vk::ImageLayout::eTransferSrcOptimal,
                 vk::ImageLayout::eColorAttachmentOptimal,
-                context.cmdBuffer->get());
+                cmdBuffer->get());
         }
     }
 
@@ -256,7 +268,7 @@ void IndirectLighting::buildMap(
         *image,
         vk::ImageLayout::eTransferDstOptimal,
         vk::ImageLayout::eShaderReadOnlyOptimal,
-        context.cmdBuffer->get());
+        cmdBuffer->get());
 }
 
 

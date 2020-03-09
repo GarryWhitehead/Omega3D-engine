@@ -47,7 +47,7 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
 }
 
 ResourceHandle RenderGraph::importResource(
-    Util::String name, VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height)
+    const Util::String& name, const VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height)
 {
     ImportedResource* ires = new ImportedResource(name, width, height, &imageView);
     resources.emplace_back(ires);
@@ -311,20 +311,26 @@ bool RenderGraph::prepare()
 
 void RenderGraph::execute()
 {
+    // start the render pass
+    VulkanAPI::CBufferManager& manager = driver.getCbManager();
+    VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
+
+    cmdBuffer->begin();
+    
     // iterate over all passes and execute the registered callback function
     for (RenderGraphPass& rpass : rGraphPasses)
     {
-        // start the render pass
-        VulkanAPI::CBufferManager& manager = driver.getCbManager();
-
-        assert(rpass.context.cmdBuffer);
         VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
-        rpass.context.cmdBuffer->begin();
-        manager.beginRenderpass(rpass.context.cmdBuffer, *renderpass, *fbuffer);
+        
+        manager.beginRenderpass(cmdBuffer, *renderpass, *fbuffer);
 
         rpass.execFunc(rpass.context);
+
+        cmdBuffer->endPass();
     }
+
+    cmdBuffer->end();
 }
 
 AttachmentHandle RenderGraph::findAttachment(const Util::String& req)

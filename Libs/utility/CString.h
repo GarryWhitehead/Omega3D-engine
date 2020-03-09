@@ -29,13 +29,8 @@ public:
 	* @param str the string to compare with
 	* @return A boolean indicating whether the two strings are identical
 	*/
-	bool compare(String str);
+	bool compare(const String& str) const;
 
-    /**
-     * @brief Appends a string to the end of the string held by the 'this' buffer
-     */
-    static Util::String append(Util::String lhs, Util::String rhs);
-    
     float toFloat() const;
     uint32_t toUInt32() const;
     uint64_t toUInt64() const;
@@ -59,6 +54,11 @@ public:
     // ================== static functions ==========================
     static std::vector<String> split(String str, char identifier);
     
+    /**
+     * @brief Appends a string to the end of the string held by the 'this' buffer
+     */
+    static Util::String append(const Util::String& lhs, const Util::String& rhs);
+
     /**
      * @brief Convert a numbert type to string
      */

@@ -1,6 +1,5 @@
 #include "Pipeline.h"
 
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"

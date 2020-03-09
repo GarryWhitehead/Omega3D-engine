@@ -73,8 +73,8 @@ public:
     FBufferHandle createFrameBuffer();
 
     ResourceHandle importResource(
-        Util::String name,
-        VulkanAPI::ImageView& imageView,
+        const Util::String& name,
+        const VulkanAPI::ImageView& imageView,
         const uint32_t width,
         const uint32_t height);
 

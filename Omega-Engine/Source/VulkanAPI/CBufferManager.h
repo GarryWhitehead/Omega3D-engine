@@ -24,26 +24,6 @@ class Swapchain;
 
 using CmdBufferHandle = uint64_t;
 
-struct DescrUpdateBase
-{
-    enum Type
-    {
-        Image,
-        Buffer
-    };
-
-    uint32_t binding;
-    Type type;
-};
-
-struct ImageDescrUpdate : public DescrUpdateBase
-{
-};
-
-struct BufferDescrUpdate : public DescrUpdateBase
-{
-};
-
 // A blueprint of all descriptors bound to each shader. When creating a set or updating info we can
 // use this information for the update. 
 struct DescriptorBinding
@@ -95,7 +75,7 @@ public:
         vk::ShaderStageFlags flags);
     
     DescriptorSet* findDescriptorSet(const Util::String& id, const uint8_t setValue);
-    void buildDescriptorSet();
+    void buildDescriptorSets();
     
     void createMainDescriptorPool();
     
@@ -108,6 +88,7 @@ public:
 
     // this is used by the main thread (mainly by the rendergraph). The user must take control of all cmd buffer actions including the beginning and ending of the buffer.
     CmdBuffer* getCmdBuffer();
+    vk::DescriptorPool& getDescriptorPool();
 
     void beginNewFame();
 
@@ -183,7 +164,7 @@ private:
     {
         bool operator()(const DescriptorKey& lhs, const DescriptorKey& rhs) const
         {
-            return lhs.id == rhs.id && lhs.setValue == rhs.setValue;
+            return lhs.id.compare(rhs.id) && lhs.setValue == rhs.setValue;
         }
     };
 

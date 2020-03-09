@@ -77,7 +77,7 @@ size_t String::operator()(const String& str) const
 	return result;
 }
 
-bool String::compare(String str)
+bool String::compare(const String& str) const
 {
 	assert(buffer);
 	assert(str.buffer);
@@ -151,7 +151,7 @@ std::vector<String> String::split(String str, char identifier)
 	return result;
 }
 
-Util::String String::append(Util::String lhs, Util::String rhs)
+Util::String String::append(const Util::String& lhs, const Util::String& rhs)
 {
 	if (!lhs.buffer)
 	{

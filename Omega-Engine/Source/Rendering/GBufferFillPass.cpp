@@ -111,7 +111,7 @@ void GBufferFillPass::drawCallback(void* data, RGraphContext& context)
                 i,
                 matBinding.type,
                 descrSet->set,
-                tex);
+                *tex);
         }
     }
 

@@ -10,7 +10,7 @@ namespace VulkanAPI
 
 // ================ ImageView =============================
 
-ImageView::ImageView(VkContext& context) : device(context.getDevice())
+ImageView::ImageView(VkContext& context) : device(context.device)
 {
 }
 
@@ -112,7 +112,7 @@ void ImageView::create(vk::Device dev, Image& image)
 
 // ==================== Image ===================
 
-Image::Image(VkContext& context, Texture& tex) : device(context.getDevice()), tex(tex.getContext())
+Image::Image(VkContext& context, Texture& tex) : device(context.device), tex(tex.getContext())
 {
 }
 

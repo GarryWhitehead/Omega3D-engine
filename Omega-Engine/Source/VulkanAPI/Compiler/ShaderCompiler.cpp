@@ -1,7 +1,6 @@
 #include "ShaderCompiler.h"
 
 #include "VulkanAPI/Compiler/ShaderParser.h"
-#include "VulkanAPI/Descriptors.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/CBufferManager.h"

@@ -26,7 +26,7 @@ vk::Semaphore SemaphoreManager::getSemaphore()
     {
         // create a new semaphore
         vk::SemaphoreCreateInfo createInfo;
-        VK_CHECK_RESULT(context.getDevice().createSemaphore(&createInfo, nullptr, &semaphore));
+        VK_CHECK_RESULT(context.device.createSemaphore(&createInfo, nullptr, &semaphore));
     }
     return semaphore;
 }
