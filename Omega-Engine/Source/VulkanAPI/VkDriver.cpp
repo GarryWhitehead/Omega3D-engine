@@ -226,8 +226,7 @@ void VkDriver::beginFrame(Swapchain& swapchain)
 
 void VkDriver::endFrame(Swapchain& swapchain)
 {
-    // submit all of the cmd buffers - it's supposedly a good idea to keep the number of cmd buffers
-    // to a min, as this can impact on performance(?)
+    // submit the swap cmd buffer and present
     cbManager->submitFrame(swapchain, imageIndex, beginSemaphore);
 }
 

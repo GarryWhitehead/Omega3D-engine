@@ -87,7 +87,7 @@ public:
      * created before calling this function.
      * Note: The layouts must be in the correct order as depicted by the set number
      */
-	void prepare(VkContext& context, DescriptorPool& pool);
+        void prepare(VkContext& context, const std::vector<vk::DescriptorSetLayout>& layouts);
     
     /// returns the vulkan pipeline layout
 	vk::PipelineLayout &get()

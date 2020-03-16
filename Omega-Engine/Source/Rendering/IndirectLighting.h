@@ -31,6 +31,10 @@ class IndirectLighting : public RenderStageBase
 
 public:
     
+    inline static const Util::String bdrfId = "bdrf.glsl";
+    inline static const Util::String irradianceId = "irradianceMap.glsl";
+    inline static const Util::String specularId = "specularMap.glsl";
+
     enum class MapType
     {
         Specular,

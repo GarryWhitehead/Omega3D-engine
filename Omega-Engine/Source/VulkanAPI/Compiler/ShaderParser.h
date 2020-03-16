@@ -154,6 +154,9 @@ private:
     friend class ShaderCompiler;
 
 private:
+
+    Util::String shaderId;
+
     // used to work out the maximum set number across all stages
     uint16_t groupSize = 0;
 

@@ -91,6 +91,10 @@ public:
 
     // this is used by the main thread (mainly by the rendergraph). The user must take control of all cmd buffer actions including the beginning and ending of the buffer.
     CmdBuffer* getCmdBuffer();
+
+    // flush the main primary commands to the device queue
+    void flushCmdBuffer();
+
     vk::DescriptorPool& getDescriptorPool();
 
     void beginNewFame();

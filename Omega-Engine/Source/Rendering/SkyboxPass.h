@@ -21,6 +21,8 @@ class SkyboxPass : public RenderStageBase
 
 public:
     
+	inline static const Util::String skyboxId = "skybox.glsl";
+
 	SkyboxPass(RenderGraph& rGraph, Util::String id, OESkybox& skybox);
 	~SkyboxPass();
 

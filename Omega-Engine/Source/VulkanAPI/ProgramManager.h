@@ -225,7 +225,7 @@ public:
 
     void overrideRenderState(RenderStateBlock* renderState);
 
-    ShaderBinding::SamplerBinding& findSamplerBinding(Util::String name, const Shader::Type type);
+    ShaderBinding::SamplerBinding& findSamplerBinding(const Util::String& name, const Shader::Type type);
 
     ShaderBinding& findShaderBinding(const Shader::Type type);
 
@@ -293,7 +293,7 @@ class ProgramManager
 public:
     struct ShaderKey
     {
-        const char* name = nullptr;
+        Util::String name;
         uint64_t variantBits = 0;
         // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
         // UINT32 MAX
@@ -363,7 +363,7 @@ private:
     {
         bool operator()(const ShaderKey& lhs, const ShaderKey& rhs) const
         {
-            return lhs.name == rhs.name && lhs.variantBits == rhs.variantBits &&
+            return lhs.name.compare(rhs.name) && lhs.variantBits == rhs.variantBits &&
                 lhs.topology == rhs.topology;
         }
     };

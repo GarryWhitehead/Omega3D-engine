@@ -12,7 +12,7 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::prepare(VkContext& context, DescriptorPool& pool)
+void PipelineLayout::prepare(VkContext& context, const std::vector<vk::DescriptorSetLayout>& layouts)
 {
 	// create push constants
 	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
@@ -37,12 +37,9 @@ void PipelineLayout::prepare(VkContext& context, DescriptorPool& pool)
 		pConstants.push_back(push);
 	}
 
-	// create the layout - the descriptor layouts must be sorted in the correct order
-    auto layouts = pool.getLayouts();
-    
 	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(layouts.size()), layouts.data(), static_cast<uint32_t>(pConstants.size()), pConstants.data());
 
-	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&pipelineInfo, nullptr, &layout));
+	VK_CHECK_RESULT(context.device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
 }
 
 // ================== pipeline =======================
@@ -110,7 +107,7 @@ vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<S
 void Pipeline::addEmptyLayout(VkContext& context)
 {
 	vk::PipelineLayoutCreateInfo createInfo;
-	VK_CHECK_RESULT(context.getDevice().createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
+	VK_CHECK_RESULT(context.device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
 }
 
 void Pipeline::create(ShaderProgram& program)
@@ -195,7 +192,7 @@ void Pipeline::create(ShaderProgram& program)
 	                                          &depthStencilState, &colourBlendState, &dynamicCreateState, pipelineLayout.get(),
 	                                          renderpass.get(), 0, nullptr, 0);
 
-	VK_CHECK_RESULT(context.getDevice().createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
+	VK_CHECK_RESULT(context.device.createGraphicsPipelines({}, 1, &createInfo, nullptr, &pipeline));
 }
 
 }    // namespace VulkanAPI

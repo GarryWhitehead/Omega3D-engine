@@ -70,7 +70,7 @@ std::vector<vk::PipelineShaderStageCreateInfo> ShaderProgram::getShaderCreateInf
 }
 
 ShaderBinding::SamplerBinding&
-ShaderProgram::findSamplerBinding(Util::String name, const Shader::Type type)
+ShaderProgram::findSamplerBinding(const Util::String& name, const Shader::Type type)
 {
     auto iter = std::find_if(stages.begin(), stages.end(), [&type](const ShaderBinding& lhs) {
         return lhs.shader->type == type;
@@ -174,7 +174,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderKey
 
     // ids for the new hash
     uint64_t mergedVariants = 0;
-    const char* instanceName; // we use the vertex name as the identifing id
+    Util::String instanceName; // we use the vertex name as the identifing id
     uint32_t topo;
 
     ShaderProgram* instance = new ShaderProgram(driver);

@@ -5,6 +5,8 @@
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
 
+#include "VulkanAPI/Common.h"
+
 #include <cstring>
 
 namespace VulkanAPI

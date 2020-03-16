@@ -62,7 +62,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // bdrf
     {
-        VulkanAPI::ProgramManager::ShaderKey key = {"bdrf.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {IndirectLighting::bdrfId, 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -82,14 +82,14 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
             VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
             VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
-            cmdBuffer->bindPipeline(renderpass, prog);
+            cmdBuffer->bindPipeline(cbManager, renderpass, prog);
             cmdBuffer->drawQuad();
         });
     }
 
     // irradiance
     {
-        VulkanAPI::ProgramManager::ShaderKey key = {"irradianceMap.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {IndirectLighting::irradianceId, 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -114,7 +114,7 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
 
     // specular
     {
-        VulkanAPI::ProgramManager::ShaderKey key = {"specularMap.glsl", 0};
+        VulkanAPI::ProgramManager::ShaderKey key = {IndirectLighting::specularId, 0};
         VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
         if (!prog)
         {
@@ -190,10 +190,11 @@ void IndirectLighting::buildMap(
                 vk::Viewport {0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f};
 
             cmdBuffer->setViewport(viewPort);
-
+            Util::String id = type == MapType::Irradiance ? IndirectLighting::irradianceId
+                                                          : IndirectLighting::specularId;
             VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-            cmdBuffer->bindPipeline(renderpass, prog);
-            cmdBuffer->bindDescriptors(prog, VulkanAPI::Pipeline::Type::Graphics);
+            cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+            cmdBuffer->bindDescriptors(cbManager, prog, id, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
             cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
 

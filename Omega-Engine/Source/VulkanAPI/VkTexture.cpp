@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Buffer.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
@@ -31,7 +31,7 @@ void Texture::create2dTex(
 
     // and a image view of the empty image
     imageView = new ImageView(driver.getContext());
-    imageView->create(driver.getContext().getDevice(), *image);
+    imageView->create(driver.getContext().device, *image);
 }
 
 void Texture::destroy()

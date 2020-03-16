@@ -110,8 +110,8 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
     cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
-    cmdBuffer->bindDynamicDescriptors(
-        prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
+    cmdBuffer->bindDynamicDescriptors(cbManager,
+        prog, OERenderableManager::ShaderId, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
 
     // the push block contains all the material attributes for this mesh
     cmdBuffer->bindPushBlock(

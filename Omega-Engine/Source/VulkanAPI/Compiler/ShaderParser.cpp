@@ -640,6 +640,9 @@ bool ShaderParser::loadAndParse(Util::String filename)
     // some point
     Util::String absPath = Util::String::append(Util::String(OE_SHADER_DIR), filename);
 
+    // used in the descriptor hash key
+    shaderId = filename;
+
     if (!FileUtil::readFileIntoBuffer(absPath.c_str(), buffer))
     {
         return false;

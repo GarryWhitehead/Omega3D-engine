@@ -63,7 +63,8 @@ CBufferManager::CBufferManager(VkContext& context)
 {
     assert(context.device);
 
-    // create the main cmd pool for this buffer - TODO: we should allow for the user to define the queue to use for the pool
+    // create the main cmd pool for this buffer - TODO: we should allow for the user to define the
+    // queue to use for the pool
     vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           context.queueFamilyIndex.graphics};
     context.device.createCommandPool(&createInfo, nullptr, &cmdPool);
@@ -125,7 +126,7 @@ DescriptorSetInfo* CBufferManager::findDescriptorSet(const Util::String& id, con
 std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(const Util::String& id)
 {
     std::vector<DescriptorSetInfo> descrSets;
-    
+
     DescriptorKey key {id};
     auto iter = descriptorSets.find(key);
 
@@ -133,8 +134,12 @@ std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(const Util::St
     if (iter != descriptorSets.end())
     {
         descrSets = iter->second;
-        std::sort(descrSets.begin(), descrSets.end(), [](const DescriptorSetInfo& lhs, const DescriptorSetInfo& rhs)
-                  { return lhs.setValue < rhs.setValue; });
+        std::sort(
+            descrSets.begin(),
+            descrSets.end(),
+            [](const DescriptorSetInfo& lhs, const DescriptorSetInfo& rhs) {
+                return lhs.setValue < rhs.setValue;
+            });
     }
 
     return descrSets;
@@ -222,7 +227,7 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
             {
                 DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
                 assert(setInfo);
-                
+
                 vk::DescriptorBufferInfo bufferInfo {
                     buffer.get(), buffer.getOffset(), buffer.getSize()};
                 vk::WriteDescriptorSet write {setInfo->descrSet,
@@ -257,7 +262,7 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
             {
                 DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
                 assert(setInfo);
-                
+
                 updateDescriptors(
                     bind.binding.binding, bind.binding.descriptorType, setInfo->descrSet, tex);
                 return true;
@@ -294,17 +299,35 @@ CmdBuffer* CBufferManager::getWorkCmdBuffer()
     return workCmdBuffer.get();
 }
 
+void CBufferManager::flushCmdBuffer()
+{
+    cmdBuffer->end();
+
+    vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
+    vk::SubmitInfo info {0, nullptr, &flags, 1, &cmdBuffer, 0, nullptr};
+    VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, cmdBuffer->cmdFence));
+
+    // make sure that the cmd buffer has finished before resetting
+    VK_CHECK_RESULT(context.device.waitForFences(1, &cmdBuffer->cmdFence, true, UINT64_MAX));
+    VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
+
+     // reset and begin the buffer
+    cmdBuffer.get()->reset();
+    cmdBuffer->begin();
+}
+
 CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
 {
     ThreadedCmdBuffer tCmdBuffer;
-    
+
     // each thread needs it's own cmd pool
     vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
                                           context.queueFamilyIndex.graphics};
     context.device.createCommandPool(&createInfo, nullptr, &tCmdBuffer.cmdPool);
-    
-    tCmdBuffer.secondary = std::make_unique<CmdBuffer>(context, tCmdBuffer.cmdPool, CmdBuffer::Type::Secondary);
-    
+
+    tCmdBuffer.secondary =
+        std::make_unique<CmdBuffer>(context, tCmdBuffer.cmdPool, CmdBuffer::Type::Secondary);
+
     // inherit from the main cmd buffer
     tCmdBuffer.secondary->init();
 }
@@ -312,14 +335,15 @@ CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
 void CBufferManager::executeSecondaryCommands()
 {
     assert(!threadedBuffers.empty());
-    
+
     // sort all the cmd buffers into a container
     std::vector<vk::CommandBuffer> cmdBuffers;
     for (auto& buffer : threadedBuffers)
     {
         cmdBuffers.emplace_back(buffer.secondary->get());
     }
-    workCmdBuffer->get().executeCommands(static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data());
+    workCmdBuffer->get().executeCommands(
+        static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data());
 }
 
 CmdBuffer* CBufferManager::getCmdBuffer()
