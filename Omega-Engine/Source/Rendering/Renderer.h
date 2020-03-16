@@ -31,6 +31,7 @@ class EngineConfig;
 class RenderStageBase
 {
 public:
+    
     virtual ~RenderStageBase() = default;
 
     RenderStageBase(Util::String id) : passId(id)
@@ -95,10 +96,7 @@ public:
      */
     void draw();
 
-    void drawQueueThreaded(
-        VulkanAPI::CmdBuffer& cmdBuffer,
-        VulkanAPI::CBufferManager& manager,
-        RGraphContext& context);
+    void drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& context);
 
     using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 

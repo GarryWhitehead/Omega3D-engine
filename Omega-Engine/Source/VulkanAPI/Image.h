@@ -10,7 +10,7 @@ namespace VulkanAPI
 // forward decleartions
 class Image;
 class Texture;
-class VkContext;
+struct VkContext;
 class CmdBuffer;
 
 class ImageView

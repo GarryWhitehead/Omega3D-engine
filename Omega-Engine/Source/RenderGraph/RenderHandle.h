@@ -24,7 +24,7 @@ private:
     uint64_t handle = UINT64_MAX;
 };
 
-using FBufferHandle = typename VkHandle;
-using RPassHandle = typename VkHandle;
+using FBufferHandle = VkHandle;
+using RPassHandle = VkHandle;
 
 } // namespace OmegaEngine

@@ -5,7 +5,7 @@
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkTexture.h"
-#include "VulkanAPI/utility.h"
+#include "VulkanAPI/Utility.h"
 
 
 namespace OmegaEngine
@@ -32,12 +32,12 @@ TextureResource::TextureResource(
 void* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
     driver.add2DTexture(name, format, width, height, level, imageUsage);
-    return reinterpret_cast<void*>(texture->getImageView());
+    return reinterpret_cast<void*>(driver.getTexture2D(name)->getImageView());
 }
 
-VulkanAPI::Texture* TextureResource::get()
+VulkanAPI::Texture* TextureResource::get(VulkanAPI::VkDriver& driver)
 {
-    return texture.get();
+    return driver.getTexture2D(name);
 }
 
 bool TextureResource::isDepthFormat()
@@ -68,7 +68,7 @@ bool TextureResource::isStencilFormat()
 }
 
 ImportedResource::ImportedResource(
-    Util::String name, const uint32_t width, const uint32_t height, VulkanAPI::ImageView* imageView)
+    const Util::String& name, const uint32_t width, const uint32_t height, VulkanAPI::ImageView* imageView)
     : ResourceBase(name, ResourceType::Imported) ,
     width(width), height(height), imageView(imageView)
 {

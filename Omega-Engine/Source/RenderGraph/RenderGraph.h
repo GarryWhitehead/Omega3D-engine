@@ -74,7 +74,7 @@ public:
 
     ResourceHandle importResource(
         const Util::String& name,
-        const VulkanAPI::ImageView& imageView,
+        VulkanAPI::ImageView& imageView,
         const uint32_t width,
         const uint32_t height);
 

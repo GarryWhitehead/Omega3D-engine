@@ -15,7 +15,7 @@
 namespace VulkanAPI
 {
 // forward decleartions
-class VkContext;
+struct VkContext;
 class Sampler;
 
 // This is a callback class to impelement shaderc's include interface

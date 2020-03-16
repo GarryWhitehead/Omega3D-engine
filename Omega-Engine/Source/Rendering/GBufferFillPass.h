@@ -11,7 +11,7 @@ namespace VulkanAPI
 class ProgramManager;
 class CmdBuffer;
 class VkDriver;
-class VkContext;
+struct VkContext;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -59,7 +59,7 @@ public:
 	friend class Renderer;
 
 	// draw callback function used in the render queue
-	static void drawCallback(void* instance, RGraphContext& context);
+	static void drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* instance, RGraphContext& context);
 
 private:
     

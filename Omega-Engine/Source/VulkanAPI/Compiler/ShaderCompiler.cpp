@@ -215,10 +215,10 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, ShaderBinding& binding)
+CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount)
 {
     auto& cbManager = driver.getCbManager();
-
+    
     // add the glsl version number
     shader.appendBlock += "#version 450\n\n";
 
@@ -270,7 +270,10 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
             {
                 return ret;
             }
-
+            
+            // update the max set count
+            maxSetCount = std::max(maxSetCount, importInfo.groupId);
+            
             // store the binding data for vk descriptor creation
             cbManager.addDescriptorLayout(
                 Util::String {importInfo.name.c_str()},
@@ -307,7 +310,10 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
             {
                 return ret;
             }
-
+            
+            // update the max set count
+            maxSetCount = std::max(maxSetCount, importInfo.groupId);
+            
             // add to the material binding information
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
             ShaderBinding::SamplerBinding sBind {
@@ -329,7 +335,10 @@ CompilerReturnCode ShaderCompiler::prepareBindings(ShaderDescriptor& shader, Sha
             {
                 return ret;
             }
-
+            
+            // update the max set count
+            maxSetCount = std::max(maxSetCount, importInfo.groupId);
+            
             // add the layout to the descriptors
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
             cbManager.addDescriptorLayout(
@@ -500,22 +509,28 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     {
         return ret;
     }
-
+    
+    uint16_t maxSetCount = 0;
+    
     // compile the bindings for each stage
     for (auto& descr : compilerInfo.descriptors)
     {
-        ShaderBinding binding(context, descr.type);
-        prepareBindings(descr, binding);
+        uint16_t setCount = 0;
+        ShaderBinding binding(driver.getContext(), descr.type);
+        prepareBindings(descr, binding, setCount);
 
         // prepare the input semantics, this is only required for the vertex shader
         if (descr.type == Shader::Type::Vertex)
         {
             prepareVertexInputs(descr);
         }
-
+        
+        maxSetCount = std::max(maxSetCount, maxSetCount);
         program.stages.emplace_back(std::move(binding));
     }
-
+    
+    program.setCount = maxSetCount;
+    
     ret = prepareOutputs(compilerInfo);
     if (ret != CompilerReturnCode::Success)
     {

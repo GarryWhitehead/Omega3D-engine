@@ -39,7 +39,6 @@ GBufferFillPass::GBufferFillPass(
 bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // shaders are prepared within the renderable manager for this pass
-
     // a list of the formats required for each buffer
     vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.physical);
 
@@ -75,7 +74,7 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
     return true;
 }
 
-void GBufferFillPass::drawCallback(void* data, RGraphContext& context)
+void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, RGraphContext& context)
 {
     Renderable* render = static_cast<Renderable*>(data);
     VulkanAPI::ShaderProgram* prog = render->program;
@@ -84,46 +83,32 @@ void GBufferFillPass::drawCallback(void* data, RGraphContext& context)
     assert(render && mat && prog);
 
     auto& cbManager = context.driver->getCbManager();
-    VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
-    // update the material descriptor set here, if required, as we have all the info we need.
-    // This should be done only when completely nescessary as will impact performance
-    // get the bindings for the material
     VulkanAPI::ShaderBinding::SamplerBinding matBinding =
         prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
 
-    // get the layout and create the descriptor set - the layout and set are created by the renderable manager
-    // note: materials differ in there id compared to other sets as we use the material name as an id
-    VulkanAPI::DescriptorSet* descrSet = cbManager.findDescriptorSet(mat->instance->name, matBinding.set);
-    assert(descrSet);
-    
-    // now update the material set with all the textures that have been defined
-    // Note: if null, this isn't a error as not all pbr materials have the full range of types
-    for (uint32_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
-    {
-        Util::String id = Util::String::append(
-            mat->instance->name,
-            TextureGroup::texTypeToStr(static_cast<MaterialInstance::TextureType>(i)));
-        VulkanAPI::Texture* tex = context.driver->getTexture2D(id);
-        if (tex)
-        {
-            cbManager.updateDescriptors(
-                i,
-                matBinding.type,
-                descrSet->set,
-                *tex);
-        }
-    }
+    VulkanAPI::DescriptorSetInfo* matSetInfo = cbManager.findDescriptorSet(mat->instance->name, matBinding.set);
+    assert(matSetInfo);
 
     // merge the material set with the mesh ubo sets
-    auto descrSets = prog->getDescrSet()->getOrdered();
-    auto matSet = mat->descrSet->getOrdered();
-    std::copy(matSet.begin(), matSet.end(), descrSets.end());
+    uint8_t setCount = prog->getSetCount();
+    assert(setCount > 0);
+    std::vector<vk::DescriptorSet> uboSets(setCount);
+
+    std::vector<VulkanAPI::DescriptorSetInfo> uboSetInfo = cbManager.findDescriptorSets(OERenderableManager::ShaderId);
+    assert(!uboSetInfo.empty());
+    
+    std::vector<vk::DescriptorSet> descrSets(uboSetInfo.size() + 1);
+    for (uint64_t i = 0; i < uboSetInfo.size(); ++i)
+    {
+        descrSets[i] = uboSetInfo[i].descrSet;
+    }
+    descrSets[descrSets.size() - 1] = matSetInfo->descrSet;
 
     // ==================== bindings ==========================
 
     VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-    cmdBuffer->bindPipeline(renderpass, prog);
+    cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
     cmdBuffer->bindDynamicDescriptors(
         prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);

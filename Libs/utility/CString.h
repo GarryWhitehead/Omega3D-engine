@@ -20,6 +20,7 @@ public:
 	String(String&& str) noexcept;
 	String& operator=(String&& str) noexcept;
     
+    bool operator==(const String& other) noexcept;
     size_t operator()(const String& str) const;
 	~String();
 
@@ -87,4 +88,17 @@ private:
 	uint32_t length = 0;
     
 };
+
 }    // namespace Util
+
+namespace std
+{
+    template<>
+    struct std::hash<Util::String>
+    {
+        size_t operator()(Util::String const& str) const
+        {
+            return (std::hash<char*>()(str.c_str()));
+        }
+    };
+}

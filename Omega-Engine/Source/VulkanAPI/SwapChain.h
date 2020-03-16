@@ -63,21 +63,11 @@ public:
 
     void prepareCmdBuffers(VkContext& context);
 
-    vk::SwapchainKHR& get()
-    {
-        return swapchain;
-    }
-
-    uint32_t getExtentsHeight() const
-    {
-        return extent.height;
-    }
-
-    uint32_t getExtentsWidth() const
-    {
-        return extent.width;
-    }
-
+    vk::SwapchainKHR& get();
+    uint32_t getExtentsHeight() const;
+    uint32_t getExtentsWidth() const;
+    ImageView& getImageView(const uint8_t index);
+    
     friend class VkDriver;
 
 private:

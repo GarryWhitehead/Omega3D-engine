@@ -1,6 +1,6 @@
 #include "Application.h"
 
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "Core/Scene.h"
 #include "Rendering/Renderer.h"
 #include "Types/NativeWindowWrapper.h"
@@ -119,6 +119,7 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
             std::this_thread::sleep_for(frameTime - elapsedTime);
         }
     }
+    return true;
 }
 
 void OEApplication::destroy(OEApplication* app)

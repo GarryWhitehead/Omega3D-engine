@@ -15,7 +15,7 @@ namespace VulkanAPI
 {
 // forward declerations
 class RenderPass;
-class VkContext;
+struct VkContext;
 class Pipeline;
 class CmdBuffer;
 class ShaderProgram;
@@ -33,10 +33,11 @@ struct DescriptorBinding
     vk::DescriptorSetLayoutBinding binding;
 };
 
-struct DescriptorSet
+struct DescriptorSetInfo
 {
     vk::DescriptorSetLayout layout;
-    vk::DescriptorSet set;
+    vk::DescriptorSet descrSet;
+    uint16_t setValue;
 };
 
 class CBufferManager
@@ -49,7 +50,7 @@ public:
     
     struct ThreadedCmdBuffer
     {
-        CmdBuffer secondary;
+        std::unique_ptr<CmdBuffer> secondary;
         vk::CommandPool cmdPool;
     };
 
@@ -74,7 +75,9 @@ public:
         vk::DescriptorType bindType,
         vk::ShaderStageFlags flags);
     
-    DescriptorSet* findDescriptorSet(const Util::String& id, const uint8_t setValue);
+    DescriptorSetInfo* findDescriptorSet(const Util::String& id, const uint8_t setValue);
+    std::vector<DescriptorSetInfo> findDescriptorSets(const Util::String& id);
+    
     void buildDescriptorSets();
     
     void createMainDescriptorPool();
@@ -100,7 +103,10 @@ public:
     void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
-
+    
+    CmdBuffer* createSecondaryCmdBuffer();
+    void executeSecondaryCommands();
+    
     friend class CmdBuffer;
 
 private:
@@ -155,7 +161,6 @@ private:
     {
         // the id will be typically the shader filename
         Util::String id;
-        uint32_t setValue;
     };
 
     using DescriptorHasher = Util::Murmur3Hasher<DescriptorKey>;
@@ -164,11 +169,11 @@ private:
     {
         bool operator()(const DescriptorKey& lhs, const DescriptorKey& rhs) const
         {
-            return lhs.id.compare(rhs.id) && lhs.setValue == rhs.setValue;
+            return lhs.id.compare(rhs.id);
         }
     };
 
-    std::unordered_map<DescriptorKey, DescriptorSet, DescriptorHasher, DescriptorEqual>
+    std::unordered_map<DescriptorKey, std::vector<DescriptorSetInfo>, DescriptorHasher, DescriptorEqual>
         descriptorSets;
 };
 

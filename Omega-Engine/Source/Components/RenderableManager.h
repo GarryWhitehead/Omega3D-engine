@@ -25,7 +25,7 @@ class DescriptorSet;
 class ShaderProgram;
 class VertexBuffer;
 class IndexBuffer;
-class MaterialBindingInfo;
+struct MaterialBindingInfo;
 
 } // namespace VulkanAPI
 
@@ -158,6 +158,9 @@ class OERenderableManager : public ComponentManager, public RenderableManager
 {
 
 public:
+    // the shader filename is also used as as a hash key member
+    inline static const Util::String ShaderId = "mrt.glsl";
+    
     OERenderableManager(OEEngine& engine);
     ~OERenderableManager();
 

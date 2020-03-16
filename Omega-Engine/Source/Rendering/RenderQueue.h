@@ -44,7 +44,7 @@ struct SortKey
 struct RenderableQueueInfo
 {
     // render callback function
-    void (*renderFunction)(VulkanAPI::CmdBuffer&, void*, RGraphContext&);
+    void (*renderFunction)(VulkanAPI::CmdBuffer*, void*, RGraphContext&);
     void* renderableHandle;
 
     // data specific to the renderable - mainly drawing information

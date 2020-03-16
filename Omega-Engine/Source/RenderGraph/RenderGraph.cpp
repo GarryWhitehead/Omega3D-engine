@@ -47,9 +47,9 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
 }
 
 ResourceHandle RenderGraph::importResource(
-    const Util::String& name, const VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height)
+    const Util::String& name, VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height)
 {
-    ImportedResource* ires = new ImportedResource(name, width, height, &imageView);
+    ImportedResource* ires = new ImportedResource{name, width, height, &imageView};
     resources.emplace_back(ires);
     return resources.size() - 1;
 }
@@ -324,7 +324,6 @@ void RenderGraph::execute()
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
         
         manager.beginRenderpass(cmdBuffer, *renderpass, *fbuffer);
-
         rpass.execFunc(rpass.context);
 
         cmdBuffer->endPass();

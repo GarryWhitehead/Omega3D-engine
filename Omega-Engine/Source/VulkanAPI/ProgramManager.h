@@ -235,6 +235,8 @@ public:
     
     MaterialBindingInfo* getMaterialBindingInfo();
     
+    uint8_t getSetCount() const;
+    
     /**
      * @brief Updates a spec constant which must have been stated in the shader json with a new
      * value which will set at pipeline generation time. If the spec constant isn't uodated, then
@@ -263,7 +265,10 @@ private:
     VkDriver& driver;
 
     std::vector<ShaderBinding> stages;
-
+    
+    // the total number of sets associated with this shader
+    uint8_t setCount = 0;
+    
     // this block overrides all render state for this shader.
     std::unique_ptr<RenderStateBlock> renderState;
 

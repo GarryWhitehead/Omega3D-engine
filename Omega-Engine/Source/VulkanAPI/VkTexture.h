@@ -12,7 +12,7 @@ namespace VulkanAPI
 class Image;
 class ImageView;
 class StagingPool;
-class VkContext;
+struct VkContext;
 class VkDriver;
 
 /**

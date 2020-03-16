@@ -169,4 +169,25 @@ void Swapchain::prepareCmdBuffers(VkContext& context)
 {
 }
 
+ImageView& Swapchain::getImageView(const uint8_t index)
+{
+    assert(index < contexts.size());
+    return contexts[index].view;
+}
+
+vk::SwapchainKHR& Swapchain::get()
+{
+    return swapchain;
+}
+
+uint32_t Swapchain::getExtentsHeight() const
+{
+    return extent.height;
+}
+
+uint32_t Swapchain::getExtentsWidth() const
+{
+    return extent.width;
+}
+
 } // namespace VulkanAPI

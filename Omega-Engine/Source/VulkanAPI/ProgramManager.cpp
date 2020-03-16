@@ -144,6 +144,11 @@ PipelineLayout* ShaderProgram::getPLineLayout()
     return pLineLayout.get();
 }
 
+uint8_t ShaderProgram::getSetCount() const
+{
+    return setCount;
+}
+
 // =================== Program Manager ==================
 ProgramManager::ProgramManager(VkDriver& driver) : driver(driver)
 {

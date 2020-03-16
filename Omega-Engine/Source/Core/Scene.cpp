@@ -260,6 +260,8 @@ bool OEScene::update(const double time)
     updateTransformBuffer(candRenderableObjs, staticModelCount, skinnedModelCount);
 
     updateLightBuffer(candLightObjs);
+    
+    return true;
 }
 
 void OEScene::updateCameraBuffer()
@@ -499,6 +501,8 @@ bool OEScene::addSkybox(OESkybox* sb)
         return false;
     }
     skybox = sb;
+    
+    return true;
 }
 
 // ============================ front-end =========================================

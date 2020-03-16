@@ -162,7 +162,7 @@ void IndirectLighting::buildMap(
 
     ResourceBase* base = context.rGraph->getResource(specInfo.texture);
     TextureResource* tex = reinterpret_cast<TextureResource*>(base);
-    VulkanAPI::Image* image = tex->get()->getImage();
+    VulkanAPI::Image* image = tex->get(*context.driver)->getImage();
     VulkanAPI::Image* osImage = osTexture.getImage();
 
     // transition cube texture for transfer

@@ -5,7 +5,7 @@
 namespace VulkanAPI
 {
 // forward declerations
-class VkContext;
+struct VkContext;
 
 enum class SamplerType
 {

@@ -40,7 +40,7 @@ public:
         Util::String name,
         const uint32_t width,
         const uint32_t height,
-        const VulkanAPI::ImageView& view);
+        VulkanAPI::ImageView& view);
 
     /**
      * @ creates a buffer resource for using as a render target in a compute pass

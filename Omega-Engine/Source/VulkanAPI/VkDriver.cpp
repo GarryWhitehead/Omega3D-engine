@@ -276,4 +276,30 @@ void CBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
     cmdBuffer->endPass();
 }
 
+CBufferManager& VkDriver::getCbManager()
+{
+    return *cbManager;
+}
+
+ProgramManager& VkDriver::getProgManager()
+{
+    return *progManager;
+}
+
+VkContext& VkDriver::getContext()
+{
+    return context;
+}
+
+VmaAllocator& VkDriver::getVma()
+{
+    return vmaAlloc;
+}
+
+uint32_t VkDriver::getCurrentImageIndex() const
+{
+    assert(imageIndex != UINT32_MAX);
+    return imageIndex;
+}
+
 } // namespace VulkanAPI

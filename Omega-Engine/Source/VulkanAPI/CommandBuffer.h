@@ -12,11 +12,12 @@ namespace VulkanAPI
 
 // forward decleartions
 class PipelineLayout;
-class DescriptorSet;
-class VkContext;
+struct DescriptorSet;
+struct VkContext;
 class CBufferManager;
 class ShaderProgram;
 class RenderPass;
+class FrameBuffer;
 class CmdPool;
 
 class CmdBuffer
@@ -41,6 +42,8 @@ public:
 
     void init();
     void begin();
+    void beginSecondary(RenderPass& renderpass, FrameBuffer& fbuffer);
+    void end();
 
     /**
      * @brief This begins the renderpass with the paramters stipulated by the begin info. Also
@@ -48,18 +51,18 @@ public:
      */
     void beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents);
     void endPass();
-
+    
     // viewport, scissors, etc.
     void setViewport(const vk::Viewport& viewPort);
     void setScissor(const vk::Rect2D& scissor);
 
     // primary binding functions
-    void bindPipeline(RenderPass* renderpass, ShaderProgram* program);
-    void bindDescriptors(ShaderProgram* prog, const Pipeline::Type type);
-    void bindDynamicDescriptors(
-        ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
+    void bindPipeline(CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program);
+    void bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Util::String& id, const Pipeline::Type pipelineType);
+    void bindDynamicDescriptors(CBufferManager& cbManager,
+        ShaderProgram* prog, const Util::String& id, std::vector<uint32_t>& offsets, const Pipeline::Type type);
     void
-    bindDynamicDescriptors(ShaderProgram* prog, const uint32_t offset, const Pipeline::Type type);
+    bindDynamicDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Util::String& id, const uint32_t offset, const Pipeline::Type type);
     void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
     void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
     void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);
@@ -87,11 +90,6 @@ public:
     // helper funcs
     vk::CommandBuffer& get()
     {
-        if (!cmdBuffer)
-        {
-            LOGGER_ERROR("You must call prepare befor using the cmdbuffer!");
-            assert(cmdBuffer);
-        }
         return cmdBuffer;
     }
 
@@ -105,7 +103,6 @@ private:
 
     // current bindings - variants are used for ease
     Pipeline* boundPipeline = nullptr;
-    DescriptorSet* boundDescrSet = nullptr;
 
     /// the queue to use for this pool
     uint32_t queueIndex;

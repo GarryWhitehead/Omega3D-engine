@@ -8,14 +8,12 @@ namespace VulkanAPI
 {
 
 // forward declerations
-class VkContext;
+struct VkContext;
 class VkDriver;
-
 
 /**
  * @brief A simplisitic staging pool for CPU-only stages. Used when copying to GPU only mem
  */
-
 class StagingPool
 {
 public:
@@ -68,20 +66,9 @@ public:
 
     void map(void* data, size_t size);
 
-    vk::Buffer get() const
-    {
-        return vk::Buffer(buffer);
-    }
-
-    uint64_t getSize() const
-    {
-        return size;
-    }
-
-    uint64_t getOffset() const
-    {
-        return mem->GetOffset();
-    }
+    vk::Buffer get() const;
+    uint64_t getSize() const;
+    uint64_t getOffset() const;
 
 private:
     VmaAllocator* vmaAllocator = nullptr;

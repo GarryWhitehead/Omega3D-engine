@@ -2,7 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 #include "VulkanAPI/Common.h"
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 
 #include <cassert>
 #include <cstdint>
@@ -14,7 +14,7 @@ namespace VulkanAPI
 
 // forward declerations
 class ImageView;
-class VkContext;
+struct VkContext;
 
 /**
  * @brief Flags for subpass dependencies, indicating each subpass barrier property

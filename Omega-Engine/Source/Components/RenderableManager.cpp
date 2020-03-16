@@ -1,7 +1,7 @@
 #include "RenderableManager.h"
 
 #include "Components/TransformManager.h"
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "ModelImporter/MeshInstance.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "VulkanAPI/CBufferManager.h"
@@ -324,18 +324,17 @@ void OERenderableManager::updateBuffers()
 bool OERenderableManager::updateVariants()
 {
     // parse the shader file - this will be used by all variants
-    const Util::String filename = "mrt.glsl";
     VulkanAPI::ShaderParser parser;
 
-    if (!parser.loadAndParse(filename))
+    if (!parser.loadAndParse(OERenderableManager::ShaderId))
     {
         printf("Fatal error parsing mrt shader: %s", parser.getErrorString().c_str());
         return false;
     }
 
     VulkanAPI::ProgramManager manager = engine.getVkDriver().getProgManager();
-    Util::String meshId = Util::String::append("mesh_", filename);
-    Util::String matId = Util::String::append("material_", filename);
+    Util::String meshId = Util::String::append("mesh_", OERenderableManager::ShaderId);
+    Util::String matId = Util::String::append("material_", OERenderableManager::ShaderId);
 
     // Note - we try and create as many shader variants as possible for vertex and material
     // shaders as creating them whilst the engine is actually rendering will be costly in terms

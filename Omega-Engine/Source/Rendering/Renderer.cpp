@@ -1,7 +1,7 @@
 #include "Renderer.h"
 
 #include "Components/RenderableManager.h"
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "Core/Scene.h"
 #include "RenderGraph/RenderGraph.h"
 #include "Rendering/GBufferFillPass.h"
@@ -13,7 +13,7 @@
 #include "Scripting/OEConfig.h"
 #include "Threading/ThreadPool.h"
 #include "VulkanAPI/CommandBuffer.h"
-#include "VulkanAPI/CommandBufferManager.h"
+#include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
@@ -71,6 +71,8 @@ bool OERenderer::prepare()
             return false;
         }
     }
+    
+    return true;
 }
 
 void OERenderer::beginFrame()
@@ -99,22 +101,25 @@ void OERenderer::draw()
     vkDriver.endFrame(swapchain);
 }
 
-void OERenderer::drawQueueThreaded(
-    VulkanAPI::CmdBuffer& primary, VulkanAPI::CBufferManager& manager, RGraphContext& context)
+void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& context)
 {
-    // a cmd pool per thread
-    auto cmdPool = manager.createSecondaryPool();
-    VulkanAPI::CmdBuffer* cbSecondary = cmdPool->createSecCmdBuffer();
-
+    VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+    VulkanAPI::FrameBuffer* fbuffer = context.rGraph->getFramebuffer(context.framebuffer);
+    
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
-    auto thread_draw = [&cbSecondary, &queue, &context](size_t start, size_t end) {
+    auto thread_draw = [&queue, &context, &renderpass, &fbuffer, &manager](size_t start, size_t end) {
         assert(end < queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
         {
             RenderableQueueInfo& info = queue[idx];
-            info.renderFunction(*cbSecondary, info.renderableData, context);
+            
+             // a cmd pool per thread with a buffer
+            VulkanAPI::CmdBuffer* cbSecondary = manager.createSecondaryCmdBuffer();
+            cbSecondary->beginSecondary(*renderpass, *fbuffer);
+            
+            info.renderFunction(cbSecondary, info.renderableData, context);
         }
     };
 
@@ -124,10 +129,7 @@ void OERenderer::drawQueueThreaded(
     split.run();
 
     // check all task have finished here before execute?
-    auto secBuffers = cmdPool->getSecondary();
-    primary.get().executeCommands(static_cast<uint32_t>(secBuffers.size()), secBuffers.data());
-
-    manager.releasePool(std::move(cmdPool));
+    manager.executeSecondaryCommands();
 }
 
 // ==================== front-end =============================

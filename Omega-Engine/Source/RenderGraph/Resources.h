@@ -43,7 +43,12 @@ struct ResourceBase
 
     Util::String name;
     ResourceType type;
-
+    
+    virtual void* bake(VulkanAPI::VkDriver& driver)
+    {
+        return nullptr;
+    }
+    
     // ==== set by the compiler =====
     // the number of passes this resource is being used as a input
     size_t readCount = 0;
@@ -66,8 +71,8 @@ struct TextureResource : public ResourceBase
         const uint8_t layers,
         const vk::ImageUsageFlagBits usageBits);
 
-    void* bake(VulkanAPI::VkDriver& driver);
-    VulkanAPI::Texture* get();
+    void* bake(VulkanAPI::VkDriver& driver) override;
+    VulkanAPI::Texture* get(VulkanAPI::VkDriver& driver);
 
     bool isDepthFormat();
     bool isColourFormat();

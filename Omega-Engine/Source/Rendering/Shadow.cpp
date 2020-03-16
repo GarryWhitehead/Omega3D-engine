@@ -2,7 +2,7 @@
 
 #include "Components/LightManager.h"
 #include "Core/Camera.h"
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "Core/Scene.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "utility/AlignedAlloc.h"

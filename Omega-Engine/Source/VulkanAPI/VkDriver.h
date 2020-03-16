@@ -84,6 +84,7 @@ class VkDriver
 {
 
 public:
+    
     VkDriver();
     ~VkDriver();
 
@@ -160,27 +161,17 @@ public:
     void endFrame(Swapchain& swapchain);
 
     // ====== manager helper functions ===================================
+    
+    CBufferManager& getCbManager();
 
-    CBufferManager& getCbManager()
-    {
-        return *cbManager;
-    }
+    ProgramManager& getProgManager();
 
-    ProgramManager& getProgManager()
-    {
-        return *progManager;
-    }
+    VkContext& getContext();
 
-    VkContext& getContext()
-    {
-        return context;
-    }
+    VmaAllocator& getVma();
 
-    VmaAllocator& getVma()
-    {
-        return vmaAlloc;
-    }
-
+    uint32_t getCurrentImageIndex() const;
+    
 private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
@@ -204,7 +195,7 @@ private:
     VkHash::IBufferMap indexBuffers;
 
     // The current present KHR frame image index
-    uint32_t imageIndex;
+    uint32_t imageIndex = UINT32_MAX;
 
     vk::Semaphore beginSemaphore;
 };

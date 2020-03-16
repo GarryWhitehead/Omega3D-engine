@@ -37,7 +37,7 @@ void createGpuBufferAndCopy(
 
     // copy from the staging area to the allocated GPU memory
     auto& manager = driver.getCbManager();
-    std::unique_ptr<CmdBuffer> cmdBuffer = manager.getSingleUseCb();
+    CmdBuffer* cmdBuffer = manager.getWorkCmdBuffer();
 
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset = 0;
@@ -49,7 +49,6 @@ void createGpuBufferAndCopy(
 
     // clean-up
     pool.release(stage);
-    manager.releaseSingleUseCb(std::move(cmdBuffer));
 }
 
 // ================== StagingPool =======================
@@ -142,6 +141,21 @@ void Buffer::map(void* data, size_t dataSize)
 void Buffer::destroy()
 {
     vmaDestroyBuffer(*vmaAllocator, buffer, mem);
+}
+
+vk::Buffer Buffer::get() const
+{
+    return vk::Buffer(buffer);
+}
+
+uint64_t Buffer::getSize() const
+{
+    return size;
+}
+
+uint64_t Buffer::getOffset() const
+{
+    return mem->GetOffset();
 }
 
 // ================ Vertex buffer =======================

@@ -3,7 +3,7 @@
 
 namespace VulkanAPI
 {
-class VkContext;
+struct VkContext;
 
 class SemaphoreManager
 {

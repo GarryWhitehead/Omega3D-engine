@@ -63,9 +63,9 @@ CBufferManager::CBufferManager(VkContext& context)
 {
     assert(context.device);
 
-    // create the main cmd pool for this buffer
+    // create the main cmd pool for this buffer - TODO: we should allow for the user to define the queue to use for the pool
     vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                          queueIndex};
+                                          context.queueFamilyIndex.graphics};
     context.device.createCommandPool(&createInfo, nullptr, &cmdPool);
 
     createMainDescriptorPool();
@@ -100,20 +100,44 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     return pline;
 }
 
-DescriptorSet* CBufferManager::findDescriptorSet(const Util::String& id, const uint8_t setValue)
+DescriptorSetInfo* CBufferManager::findDescriptorSet(const Util::String& id, const uint8_t setValue)
 {
-    DescriptorSet* descrSet = nullptr;
+    DescriptorSetInfo* descrSet = nullptr;
 
-    DescriptorKey key {id, setValue};
+    DescriptorKey key {id};
     auto iter = descriptorSets.find(key);
 
     // if the pipeline has already has an instance return this
     if (iter != descriptorSets.end())
     {
-        descrSet = &iter->second;
+        for (auto& set : iter->second)
+        {
+            if (set.setValue == setValue)
+            {
+                descrSet = &set;
+            }
+        }
     }
 
     return descrSet;
+}
+
+std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(const Util::String& id)
+{
+    std::vector<DescriptorSetInfo> descrSets;
+    
+    DescriptorKey key {id};
+    auto iter = descriptorSets.find(key);
+
+    // if the pipeline has already has an instance return this
+    if (iter != descriptorSets.end())
+    {
+        descrSets = iter->second;
+        std::sort(descrSets.begin(), descrSets.end(), [](const DescriptorSetInfo& lhs, const DescriptorSetInfo& rhs)
+                  { return lhs.setValue < rhs.setValue; });
+    }
+
+    return descrSets;
 }
 
 void CBufferManager::addDescriptorLayout(
@@ -168,7 +192,7 @@ void CBufferManager::buildDescriptorSets()
         // create the layout and set
         for (auto& setBind : setBindings)
         {
-            DescriptorSet set;
+            DescriptorSetInfo set;
             vk::DescriptorSetLayoutCreateInfo layoutInfo(
                 {}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
             VK_CHECK_RESULT(
@@ -176,9 +200,9 @@ void CBufferManager::buildDescriptorSets()
 
             // create descriptor set for each layout
             vk::DescriptorSetAllocateInfo allocInfo(descriptorPool, 1, &set.layout);
-            VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.set));
+            VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.descrSet));
 
-            DescriptorKey key {descrBind.first, setBind.first};
+            DescriptorKey key {descrBind.first};
             descriptorSets.emplace(key, set);
         }
     }
@@ -196,15 +220,12 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
         {
             if (bind.name.compare(id))
             {
-                // quick sanity check to  make sure this descriptor is a buffer
-
-                key.setValue = bind.set;
-                key.id = binding.first;
-
-                DescriptorSet& descrSet = descriptorSets[key];
+                DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
+                assert(setInfo);
+                
                 vk::DescriptorBufferInfo bufferInfo {
                     buffer.get(), buffer.getOffset(), buffer.getSize()};
-                vk::WriteDescriptorSet write {descrSet.set,
+                vk::WriteDescriptorSet write {setInfo->descrSet,
                                               bind.binding.binding,
                                               0,
                                               1,
@@ -234,14 +255,11 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
         {
             if (bind.name.compare(id))
             {
-                // quick sanity check to  make sure this descriptor is a image sampler
-
-                key.setValue = bind.set;
-                key.id = binding.first;
-
-                DescriptorSet& descrSet = descriptorSets[key];
+                DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
+                assert(setInfo);
+                
                 updateDescriptors(
-                    bind.binding.binding, bind.binding.descriptorType, descrSet.set, tex);
+                    bind.binding.binding, bind.binding.descriptorType, setInfo->descrSet, tex);
                 return true;
             }
         }
@@ -274,6 +292,34 @@ CmdBuffer* CBufferManager::getWorkCmdBuffer()
     workCmdBuffer->begin();
 
     return workCmdBuffer.get();
+}
+
+CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
+{
+    ThreadedCmdBuffer tCmdBuffer;
+    
+    // each thread needs it's own cmd pool
+    vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
+                                          context.queueFamilyIndex.graphics};
+    context.device.createCommandPool(&createInfo, nullptr, &tCmdBuffer.cmdPool);
+    
+    tCmdBuffer.secondary = std::make_unique<CmdBuffer>(context, tCmdBuffer.cmdPool, CmdBuffer::Type::Secondary);
+    
+    // inherit from the main cmd buffer
+    tCmdBuffer.secondary->init();
+}
+
+void CBufferManager::executeSecondaryCommands()
+{
+    assert(!threadedBuffers.empty());
+    
+    // sort all the cmd buffers into a container
+    std::vector<vk::CommandBuffer> cmdBuffers;
+    for (auto& buffer : threadedBuffers)
+    {
+        cmdBuffers.emplace_back(buffer.secondary->get());
+    }
+    workCmdBuffer->get().executeCommands(static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data());
 }
 
 CmdBuffer* CBufferManager::getCmdBuffer()

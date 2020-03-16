@@ -9,7 +9,7 @@ namespace VulkanAPI
 // forward declearions
 class Shader;
 class PipelineLayout;
-class VkContext;
+struct VkContext;
 class ShaderProgram;
 class RenderPass;
 class DescriptorPool;
