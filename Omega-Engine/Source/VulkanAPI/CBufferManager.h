@@ -25,7 +25,7 @@ class Swapchain;
 using CmdBufferHandle = uint64_t;
 
 // A blueprint of all descriptors bound to each shader. When creating a set or updating info we can
-// use this information for the update. 
+// use this information for the update.
 struct DescriptorBinding
 {
     Util::String name;
@@ -43,11 +43,10 @@ struct DescriptorSetInfo
 class CBufferManager
 {
 public:
-    
     // some erbitarty numbers which need monitoring for possible issues due to overflow
     constexpr static const uint32_t MaxDescriptorPoolSize = 50;
     constexpr static const uint32_t MaxDescriptorPoolSets = 10;
-    
+
     struct ThreadedCmdBuffer
     {
         std::unique_ptr<CmdBuffer> secondary;
@@ -66,7 +65,7 @@ public:
      * the pipeline if it does, otherwise nullptr
      */
     Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
-        
+
     void addDescriptorLayout(
         Util::String shaderId,
         Util::String layoutId,
@@ -74,43 +73,46 @@ public:
         uint32_t binding,
         vk::DescriptorType bindType,
         vk::ShaderStageFlags flags);
-    
+
     DescriptorSetInfo* findDescriptorSet(const Util::String& id, const uint8_t setValue);
     std::vector<DescriptorSetInfo> findDescriptorSets(const Util::String& id);
-    
+
     void buildDescriptorSets();
-    
+
     void createMainDescriptorPool();
-    
+
     bool updateDescriptors(const Util::String& id, Buffer& buffer);
     bool updateDescriptors(const Util::String& id, Texture& tex);
-    void updateDescriptors(const uint32_t bindingValue, const vk::DescriptorType& type, const vk::DescriptorSet& set, Texture& tex);
+    void updateDescriptors(
+        const uint32_t bindingValue,
+        const vk::DescriptorType& type,
+        const vk::DescriptorSet& set,
+        Texture& tex);
 
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();
 
-    // this is used by the main thread (mainly by the rendergraph). The user must take control of all cmd buffer actions including the beginning and ending of the buffer.
+    // this is used by the main thread (mainly by the rendergraph). The user must take control of
+    // all cmd buffer actions including the beginning and ending of the buffer.
     CmdBuffer* getCmdBuffer();
 
     // flush the main primary commands to the device queue
     void flushCmdBuffer();
 
+    void flushSwapchainCmdBuffer(
+        vk::Semaphore& imageReadySemaphore, Swapchain& swapchain, const uint32_t imageIndex);
+
     vk::DescriptorPool& getDescriptorPool();
-
-    void beginNewFame();
-
-    void submitFrame(
-        Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore);
 
     // =============== renderpass functions ================================
 
     void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
-    
+
     CmdBuffer* createSecondaryCmdBuffer();
     void executeSecondaryCommands();
-    
+
     friend class CmdBuffer;
 
 private:
@@ -129,9 +131,12 @@ private:
 
     // one threaded cmd buffer per thread - the inherited buffer will always be the main cmd buffer
     std::vector<ThreadedCmdBuffer> threadedBuffers;
-    
+
     vk::DescriptorPool descriptorPool;
-    
+
+    // semaphores for the final presentation
+    vk::Semaphore renderingCompleteSemaphore;
+
 private:
     // =============== pipeline hasher ======================
     struct PLineKey
@@ -177,7 +182,11 @@ private:
         }
     };
 
-    std::unordered_map<DescriptorKey, std::vector<DescriptorSetInfo>, DescriptorHasher, DescriptorEqual>
+    std::unordered_map<
+        DescriptorKey,
+        std::vector<DescriptorSetInfo>,
+        DescriptorHasher,
+        DescriptorEqual>
         descriptorSets;
 };
 

@@ -10,51 +10,6 @@
 namespace VulkanAPI
 {
 
-// ===============================================================================================================
-
-
-/*void CmdPool::submitAll(
-    Swapchain& swapchain, const uint32_t imageIndex, const vk::Semaphore& beginSemaphore)
-{
-    vk::Semaphore waitSync;
-    vk::Semaphore signalSync;
-
-    for (uint32_t i = 0; i <= cmdInstances.size(); ++i)
-    {
-        vk::CommandBuffer cmdBuffer;
-        vk::Fence fence;
-
-        // work out the signalling and wait semaphores
-        if (i == 0)
-        {
-            waitSync = beginSemaphore;
-            signalSync = cmdInstances[i].semaphore;
-            cmdBuffer = cmdInstances[i].cmdBuffer->get();
-            fence = cmdInstances[i].fence;
-        }
-        else
-        {
-            waitSync = cmdInstances[i - 1].semaphore;
-            signalSync = cmdInstances[i].semaphore;
-            cmdBuffer = cmdInstances[i].cmdBuffer->get();
-            fence = cmdInstances[i].fence;
-        }
-
-        VK_CHECK_RESULT(context.device.resetFences(1, &fence));
-
-        vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eAllCommands;
-        vk::SubmitInfo info {1, &waitSync, &flags, 1, &cmdBuffer, 1, &signalSync};
-        VK_CHECK_RESULT(context.graphQueue.submit(1, &info, fence));
-    }
-
-    // then the presentation part.....
-    vk::Semaphore finalSemaphore = cmdInstances.back().semaphore;
-    vk::PresentInfoKHR presentInfo {1, &finalSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
-    VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
-}*/
-
-// ================================================================================================================
-
 CBufferManager::CBufferManager(VkContext& context)
     : context(context)
     , cmdBuffer(std::make_unique<CmdBuffer>(context, cmdPool, CmdBuffer::Type::Primary))
@@ -65,11 +20,16 @@ CBufferManager::CBufferManager(VkContext& context)
 
     // create the main cmd pool for this buffer - TODO: we should allow for the user to define the
     // queue to use for the pool
-    vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                          context.queueFamilyIndex.graphics};
+    vk::CommandPoolCreateInfo createInfo {
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, context.queueFamilyIndex.graphics};
     context.device.createCommandPool(&createInfo, nullptr, &cmdPool);
 
     createMainDescriptorPool();
+
+    // create the semaphore for signalling a new frame is ready now
+    vk::SemaphoreCreateInfo semaphoreCreateInfo;
+    VK_CHECK_RESULT(context.device.createSemaphore(
+        &semaphoreCreateInfo, nullptr, &renderingCompleteSemaphore));
 }
 
 CBufferManager::~CBufferManager()
@@ -230,14 +190,15 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
 
                 vk::DescriptorBufferInfo bufferInfo {
                     buffer.get(), buffer.getOffset(), buffer.getSize()};
-                vk::WriteDescriptorSet write {setInfo->descrSet,
-                                              bind.binding.binding,
-                                              0,
-                                              1,
-                                              bind.binding.descriptorType,
-                                              nullptr,
-                                              &bufferInfo,
-                                              nullptr};
+                vk::WriteDescriptorSet write {
+                    setInfo->descrSet,
+                    bind.binding.binding,
+                    0,
+                    1,
+                    bind.binding.descriptorType,
+                    nullptr,
+                    &bufferInfo,
+                    nullptr};
                 context.device.updateDescriptorSets(1, &write, 0, nullptr);
                 return true;
             }
@@ -304,16 +265,32 @@ void CBufferManager::flushCmdBuffer()
     cmdBuffer->end();
 
     vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
-    vk::SubmitInfo info {0, nullptr, &flags, 1, &cmdBuffer, 0, nullptr};
+    vk::SubmitInfo info {0, nullptr, &flags, 1, &cmdBuffer->get(), 0, nullptr};
     VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, cmdBuffer->cmdFence));
 
     // make sure that the cmd buffer has finished before resetting
     VK_CHECK_RESULT(context.device.waitForFences(1, &cmdBuffer->cmdFence, true, UINT64_MAX));
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
 
-     // reset and begin the buffer
+    // reset and begin the buffer
     cmdBuffer.get()->reset();
     cmdBuffer->begin();
+}
+
+void CBufferManager::flushSwapchainCmdBuffer(
+    vk::Semaphore& imageReadySemaphore, Swapchain& swapchain, const uint32_t imageIndex)
+{
+    scCmdBuffer->end();
+
+    vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
+    vk::SubmitInfo info {
+        1, &imageReadySemaphore, &flags, 1, &cmdBuffer->get(), 1, &renderingCompleteSemaphore};
+    VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, scCmdBuffer->cmdFence));
+
+    // and present to the surface backbuffer
+    vk::PresentInfoKHR presentInfo {
+        1, &renderingCompleteSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
+    VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
 }
 
 CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
@@ -321,8 +298,8 @@ CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
     ThreadedCmdBuffer tCmdBuffer;
 
     // each thread needs it's own cmd pool
-    vk::CommandPoolCreateInfo createInfo {vk::CommandPoolCreateFlagBits::eResetCommandBuffer,
-                                          context.queueFamilyIndex.graphics};
+    vk::CommandPoolCreateInfo createInfo {
+        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, context.queueFamilyIndex.graphics};
     context.device.createCommandPool(&createInfo, nullptr, &tCmdBuffer.cmdPool);
 
     tCmdBuffer.secondary =

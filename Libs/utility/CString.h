@@ -21,7 +21,6 @@ public:
 	String& operator=(String&& str) noexcept;
     
     bool operator==(const String& other) noexcept;
-    size_t operator()(const String& str) const;
 	~String();
 
 	/**
@@ -30,7 +29,8 @@ public:
 	* @param str the string to compare with
 	* @return A boolean indicating whether the two strings are identical
 	*/
-	bool compare(const String& str) const;
+    bool compare(const String& str) const;
+    bool compare(String str);
 
     float toFloat() const;
     uint32_t toUInt32() const;
@@ -58,7 +58,7 @@ public:
     /**
      * @brief Appends a string to the end of the string held by the 'this' buffer
      */
-    static Util::String append(const Util::String& lhs, const Util::String& rhs);
+    static Util::String append(Util::String lhs, Util::String rhs);
 
     /**
      * @brief Convert a numbert type to string

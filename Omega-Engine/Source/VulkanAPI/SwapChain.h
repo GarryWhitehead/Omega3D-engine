@@ -61,8 +61,6 @@ public:
     static Platform::SurfaceWrapper
     createSurface(OmegaEngine::OEWindowInstance* window, vk::Instance& instance);
 
-    void prepareCmdBuffers(VkContext& context);
-
     vk::SwapchainKHR& get();
     uint32_t getExtentsHeight() const;
     uint32_t getExtentsWidth() const;
@@ -82,5 +80,7 @@ private:
     vk::SwapchainKHR swapchain;
 
     std::vector<SwapchainContext> contexts;
+
+    std::unique_ptr<CmdBuffer> scCmdBuffer;
 };
 } // namespace VulkanAPI

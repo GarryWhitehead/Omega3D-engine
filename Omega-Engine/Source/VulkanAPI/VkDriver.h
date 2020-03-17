@@ -84,7 +84,6 @@ class VkDriver
 {
 
 public:
-    
     VkDriver();
     ~VkDriver();
 
@@ -120,9 +119,9 @@ public:
     VertexBuffer* addVertexBuffer(const size_t size, void* data);
 
     /**
-    * @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan backend.
-    * Note: it is presumed to be of the type uint32_t.
-    */
+     * @brief Similiar to the **addVertexBuffer** function, adds a index buffer to the vulkan
+     * backend. Note: it is presumed to be of the type uint32_t.
+     */
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
     void add2DTexture(
@@ -161,7 +160,7 @@ public:
     void endFrame(Swapchain& swapchain);
 
     // ====== manager helper functions ===================================
-    
+
     CBufferManager& getCbManager();
 
     ProgramManager& getProgManager();
@@ -171,7 +170,7 @@ public:
     VmaAllocator& getVma();
 
     uint32_t getCurrentImageIndex() const;
-    
+
 private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
@@ -197,7 +196,9 @@ private:
     // The current present KHR frame image index
     uint32_t imageIndex = UINT32_MAX;
 
-    vk::Semaphore beginSemaphore;
+    // used for ensuring that the image has completed
+    vk::Semaphore imageReadySemaphore;
+ 
 };
 
 } // namespace VulkanAPI

@@ -8,7 +8,7 @@
 
 namespace VulkanAPI
 {
-Swapchain::Swapchain()
+Swapchain::Swapchain() 
 {
 }
 
@@ -163,10 +163,6 @@ void Swapchain::prepareImageViews(VkContext& context, const vk::SurfaceFormatKHR
             vk::ImageViewType::e2D);
         contexts[i].view = std::move(imageView);
     }
-}
-
-void Swapchain::prepareCmdBuffers(VkContext& context)
-{
 }
 
 ImageView& Swapchain::getImageView(const uint8_t index)

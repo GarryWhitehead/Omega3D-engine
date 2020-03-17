@@ -52,9 +52,10 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
     // and the command buffer manager - note: the pool is init on construction so must be done after
     // driver init
     cbManager = std::make_unique<CBufferManager>(context);
-
-    // create the semaphore for signalling a new frame is ready now
-    beginSemaphore = spManager->getSemaphore();
+    
+    vk::SemaphoreCreateInfo semaphoreCreateInfo;
+    VK_CHECK_RESULT(
+        context.device.createSemaphore(&semaphoreCreateInfo, nullptr, &imageReadySemaphore));
 
     return true;
 }
@@ -219,15 +220,14 @@ void VkDriver::beginFrame(Swapchain& swapchain)
     // TODO: need to reset some stuff here!
 
     // get the next image index which will be the framebuffer we draw too
-    assert(beginSemaphore);
     context.device.acquireNextImageKHR(
-        swapchain.get(), std::numeric_limits<uint64_t>::max(), beginSemaphore, {}, &imageIndex);
+        swapchain.get(), std::numeric_limits<uint64_t>::max(), imageReadySemaphore, {}, &imageIndex);
 }
 
 void VkDriver::endFrame(Swapchain& swapchain)
 {
     // submit the swap cmd buffer and present
-    cbManager->submitFrame(swapchain, imageIndex, beginSemaphore);
+    cbManager->flushSwapchainCmdBuffer(imageReadySemaphore, swapchain, imageIndex);
 }
 
 void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
