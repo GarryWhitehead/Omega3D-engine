@@ -151,7 +151,6 @@ void Swapchain::prepareImageViews(VkContext& context, const vk::SurfaceFormatKHR
 
     // Get the image loactions created when creating the swap chain
     std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
-    contexts.resize(images.size());
     for (size_t i = 0; i < images.size(); ++i)
     {
         ImageView imageView(context);

@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/CBufferManager.h"
 #include "utility/Logger.h"
-
+#include "utility/Compiler.h"
 #include <set>
 #include <string.h>
 
@@ -16,6 +16,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
     const char* msg,
     void* data)
 {
+    OE_UNUSED(obj_type);
+    OE_UNUSED(obj);
+    OE_UNUSED(loc);
+    OE_UNUSED(data);
+    
     // ignore access mask false positive
     if (std::strcmp(layer_prefix, "DS") == 0 && code == 10)
     {
@@ -46,6 +51,8 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugMessenger(
     const VkDebugUtilsMessengerCallbackDataEXT* data,
     void* user_data)
 {
+    OE_UNUSED(user_data);
+    
     switch (severity)
     {
         case VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:

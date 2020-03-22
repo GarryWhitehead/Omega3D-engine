@@ -1,6 +1,6 @@
 #include "LightManager.h"
 
-#include "Core/Engine.h"
+#include "Core/engine.h"
 
 #include "OEMaths/OEMaths_transform.h"
 

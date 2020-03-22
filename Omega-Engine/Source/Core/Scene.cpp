@@ -4,7 +4,7 @@
 #include "Components/RenderableManager.h"
 #include "Components/TransformManager.h"
 #include "Core/Camera.h"
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "Core/Frustum.h"
 #include "Core/ModelGraph.h"
 #include "Core/World.h"

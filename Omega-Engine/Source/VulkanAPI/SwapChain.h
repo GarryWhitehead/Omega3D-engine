@@ -24,7 +24,7 @@ class VkDriver;
 struct SwapchainContext
 {
     ImageView view;
-    CmdBuffer cmdBuffer;
+    std::unique_ptr<CmdBuffer> cmdBuffer;
     vk::Fence fence;
 };
 
@@ -35,9 +35,7 @@ public:
     Swapchain();
     ~Swapchain();
 
-    // both copyable and moveable
-    Swapchain(const Swapchain&) = default;
-    Swapchain& operator=(const Swapchain&) = default;
+    // moveable
     Swapchain(Swapchain&&) = default;
     Swapchain& operator=(Swapchain&&) = default;
 

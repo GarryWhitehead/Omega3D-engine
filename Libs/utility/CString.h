@@ -20,7 +20,7 @@ public:
 	String(String&& str) noexcept;
 	String& operator=(String&& str) noexcept;
     
-    bool operator==(const String& other) noexcept;
+    bool operator==(const String& rhs) const noexcept;
 	~String();
 
 	/**
@@ -29,8 +29,7 @@ public:
 	* @param str the string to compare with
 	* @return A boolean indicating whether the two strings are identical
 	*/
-    bool compare(const String& str) const;
-    bool compare(String str);
+    bool compare(String str) const;
 
     float toFloat() const;
     uint32_t toUInt32() const;

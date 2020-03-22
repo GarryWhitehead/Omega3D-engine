@@ -1,6 +1,6 @@
 #include "MappedTexture.h"
 
-#include "Utility/Logger.h"
+#include "utility/Logger.h"
 
 #include <algorithm>
 #include <cassert>
@@ -18,7 +18,7 @@ MappedTexture::~MappedTexture()
 }
 
 bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t faces, uint32_t arrays, uint32_t mips,
-                               uint32_t size, const ImageFormat format)
+                               uint32_t size, const ImageFormat imageFormat)
 {
 	width = w;
 	height = h;
@@ -28,7 +28,7 @@ bool MappedTexture::mapTexture(uint8_t* data, uint32_t w, uint32_t h, uint32_t f
 	totalSize = size;
 	assert(totalSize);
 
-	this->format = format;
+	format = imageFormat;
 
 	this->buffer = new uint8_t[totalSize];
 	if (!this->buffer)

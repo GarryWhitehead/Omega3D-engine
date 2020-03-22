@@ -55,19 +55,19 @@ vk::PolygonMode vkPolygonFromString(std::string str)
 	vk::PolygonMode result = vk::PolygonMode::eFill;
 	if (str == "Fill")
 	{
-		vk::PolygonMode result = vk::PolygonMode::eFill;
+		result = vk::PolygonMode::eFill;
 	}
 	else if (str == "Line")
 	{
-		vk::PolygonMode result = vk::PolygonMode::eLine;
+		result = vk::PolygonMode::eLine;
 	}
 	else if (str == "Point")
 	{
-		vk::PolygonMode result = vk::PolygonMode::ePoint;
+		result = vk::PolygonMode::ePoint;
 	}
 	else if (str == "RectangleNV")
 	{
-		vk::PolygonMode result = vk::PolygonMode::eFillRectangleNV;
+		result = vk::PolygonMode::eFillRectangleNV;
 	}
 	else
 	{

@@ -23,7 +23,6 @@ class Sampler;
 class ImageView;
 class DescriptorLayout;
 class DescriptorPool;
-class DescriptorSet;
 class PipelineLayout;
 class Pipeline;
 class Buffer;

@@ -12,7 +12,6 @@ namespace VulkanAPI
 
 // forward decleartions
 class PipelineLayout;
-struct DescriptorSet;
 struct VkContext;
 class CBufferManager;
 class ShaderProgram;
@@ -37,7 +36,7 @@ public:
     };
 
     CmdBuffer() = delete;
-    CmdBuffer(VkContext& context, vk::CommandPool cmdPool, const Type type);
+    CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type type);
     ~CmdBuffer();
 
     void init();

@@ -66,6 +66,7 @@ void* GlfwPlatform::getNativeWinPointer()
 #ifdef _WIN32
 	return (void*)glfwGetWin32Window(window);
 #endif
+    return nullptr;
 }
 
 std::pair<const char**, uint32_t> GlfwPlatform::getInstanceExt()
@@ -187,7 +188,7 @@ void GlfwPlatform::mouseMoveResponse(double xpos, double ypos)
 
 bool GlfwPlatform::buttonState(int button)
 {
-	bool state;
+	bool state = false;
 
 	if (button == GLFW_MOUSE_BUTTON_LEFT)
 	{

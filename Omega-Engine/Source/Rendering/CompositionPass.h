@@ -13,16 +13,17 @@ class VkDriver;
 namespace OmegaEngine
 {
 
-class CompositionPass
+class CompositionPass : public RenderStageBase
 {
 public:
-    CompositionPass(RenderGraph& rGraph, Util::String id, VulkanAPI::Swapchain& swapchain);
+    CompositionPass(VulkanAPI::VkDriver& driver, RenderGraph& rGraph, Util::String id, VulkanAPI::Swapchain& swapchain);
     ~CompositionPass();
 
-    bool prepare(VulkanAPI::VkDriver& driver, VulkanAPI::ProgramManager* manager);
+    bool prepare(VulkanAPI::ProgramManager* manager) override;
 
 private:
     // points to the render graph associated with this pass
+    VulkanAPI::VkDriver& driver;
     RenderGraph& rGraph;
     VulkanAPI::Swapchain& swapchain;
 

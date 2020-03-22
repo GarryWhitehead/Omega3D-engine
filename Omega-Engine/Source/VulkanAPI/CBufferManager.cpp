@@ -168,7 +168,7 @@ void CBufferManager::buildDescriptorSets()
             VK_CHECK_RESULT(context.device.allocateDescriptorSets(&allocInfo, &set.descrSet));
 
             DescriptorKey key {descrBind.first};
-            descriptorSets.emplace(key, set);
+            descriptorSets[key].emplace_back(set);
         }
     }
 }
@@ -307,6 +307,9 @@ CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
 
     // inherit from the main cmd buffer
     tCmdBuffer.secondary->init();
+    
+    threadedBuffers.emplace_back(std::move(tCmdBuffer));
+    return threadedBuffers.back().secondary.get();
 }
 
 void CBufferManager::executeSecondaryCommands()

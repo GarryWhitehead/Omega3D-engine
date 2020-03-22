@@ -114,8 +114,7 @@ StagingPool::StageInfo StagingPool::getStage(VkDeviceSize reqSize)
 void Buffer::prepare(
     VmaAllocator& vmaAlloc,
     const vk::DeviceSize buffSize,
-    const VkBufferUsageFlags usage,
-    uint32_t memIndex)
+    const VkBufferUsageFlags usage)
 {
     vmaAllocator = &vmaAlloc;
 
@@ -127,7 +126,6 @@ void Buffer::prepare(
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
     allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
-    //allocCreateInfo.memoryTypeBits = memIndex;
 
     VMA_CHECK_RESULT(
         vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer, &mem, &allocInfo));
@@ -157,7 +155,7 @@ uint64_t Buffer::getSize() const
 
 uint64_t Buffer::getOffset() const
 {
-    return mem->GetOffset();
+    return allocInfo.offset;
 }
 
 // ================ Vertex buffer =======================

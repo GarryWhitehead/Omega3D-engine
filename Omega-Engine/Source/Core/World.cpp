@@ -5,7 +5,6 @@
 #include "Components/RenderableManager.h"
 #include "Components/TransformManager.h"
 #include "Core/Camera.h"
-#include "Core/Omega_Global.h"
 #include "Core/Scene.h"
 #include "Types/Object.h"
 #include "Types/Skybox.h"

@@ -2,7 +2,6 @@
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
-#include "VulkanAPI/SemaphoreManager.h"
 #include "VulkanAPI/Shader.h"
 #include "utility/MurmurHash.h"
 

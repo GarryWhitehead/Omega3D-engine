@@ -84,7 +84,7 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 
     while (!closeApp)
     {
-        NanoSeconds frameTime = timer.getCurrentTime();
+        NanoSeconds startTime = timer.getCurrentTime();
 
         // check for any input from the window
         glfw.poll();
@@ -111,7 +111,7 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 
         // calculate whether we have any time remaining this frame
         NanoSeconds endTime = timer.getCurrentTime();
-        NanoSeconds elapsedTime = endTime - frameTime;
+        NanoSeconds elapsedTime = endTime - startTime;
 
         // if we haven't used up the frame time, sleep for remainder
         if (elapsedTime < frameTime)

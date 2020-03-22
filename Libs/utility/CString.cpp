@@ -39,9 +39,9 @@ String& String::operator=(const String& rhs)
     return *this;
 }
 
-bool String::operator==(const String& other) noexcept
+bool String::operator==(const String& rhs) const noexcept
 {
-    return other.compare(*this);
+    return rhs.compare(*this);
 }
 
 String::String(String&& rhs) noexcept
@@ -68,13 +68,7 @@ String::~String()
     }
 }
 
-bool String::compare(String str)
-{
-    return compare(static_cast<const String>(str));
-}
-
-
-bool String::compare(const String& str) const
+bool String::compare(String str) const
 {
     assert(buffer);
     assert(str.buffer);

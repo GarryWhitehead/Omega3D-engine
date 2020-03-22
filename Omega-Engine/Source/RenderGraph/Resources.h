@@ -5,6 +5,7 @@
 #include "VulkanAPI/RenderPass.h"
 #include "utility/BitsetEnum.h"
 #include "utility/CString.h"
+#include "utility/Compiler.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -46,6 +47,7 @@ struct ResourceBase
     
     virtual void* bake(VulkanAPI::VkDriver& driver)
     {
+        OE_UNUSED(driver);
         return nullptr;
     }
     

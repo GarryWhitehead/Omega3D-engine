@@ -24,3 +24,7 @@
 #define OE_PUBLIC
 #endif
 #endif
+
+// used mainly for silencing warnings
+#define OE_UNUSED(var) \
+static_cast<void>(var)

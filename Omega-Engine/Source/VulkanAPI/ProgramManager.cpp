@@ -185,7 +185,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, std::vector<ShaderKey
         {
             LOGGER_ERROR(
                 "Unable to find cached shader varinat with id: %s and varinat id: %llu",
-                hash.name,
+                hash.name.c_str(),
                 hash.variantBits);
             return nullptr;
         }
@@ -285,7 +285,7 @@ ShaderProgram* ProgramManager::getVariant(ProgramManager::ShaderKey& key)
         VulkanAPI::ShaderParser parser;
         if (!parser.loadAndParse(key.name))
         {
-            printf("Fatal Error: %s; shader name: %s\n", parser.getErrorString().c_str(), key.name);
+            printf("Fatal Error: %s; shader name: %s\n", parser.getErrorString().c_str(), key.name.c_str());
             return nullptr;
         }
         prog = createNewInstance(key);

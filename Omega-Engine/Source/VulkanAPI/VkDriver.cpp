@@ -12,7 +12,7 @@
 namespace VulkanAPI
 {
 
-VkDriver::VkDriver() : progManager(std::make_unique<ProgramManager>(context))
+VkDriver::VkDriver() : progManager(std::make_unique<ProgramManager>(*this))
 {
 }
 

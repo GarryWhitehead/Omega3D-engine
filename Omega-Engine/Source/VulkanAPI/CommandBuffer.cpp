@@ -11,7 +11,7 @@
 namespace VulkanAPI
 {
 
-CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool cmdPool, const Type type) : context(context), cmdPool(cmdPool), type(type)
+CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type type) : context(context), cmdPool(cmdPool), type(type)
 {
 }
 

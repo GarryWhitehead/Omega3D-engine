@@ -1,6 +1,5 @@
-#include "Core/Engine.h"
+#include "Core/engine.h"
 
-#include "Core/Omega_Global.h"
 #include "Core/Scene.h"
 #include "Core/World.h"
 

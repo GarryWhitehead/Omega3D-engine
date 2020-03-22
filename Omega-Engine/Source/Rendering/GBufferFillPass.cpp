@@ -1,7 +1,7 @@
 #include "GBufferFillPass.h"
 
 #include "Components/RenderableManager.h"
-#include "Core/Engine.h"
+#include "Core/engine.h"
 #include "ModelImporter/MaterialInstance.h"
 #include "ModelImporter/MeshInstance.h"
 #include "Rendering/RenderQueue.h"
@@ -17,6 +17,7 @@
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkTexture.h"
 #include "utility/Logger.h"
+#include "utility/Compiler.h"
 
 namespace OmegaEngine
 {
@@ -38,6 +39,8 @@ GBufferFillPass::GBufferFillPass(
 
 bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
 {
+    OE_UNUSED(manager);
+    
     // shaders are prepared within the renderable manager for this pass
     // a list of the formats required for each buffer
     vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.physical);

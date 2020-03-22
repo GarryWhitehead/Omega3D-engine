@@ -111,7 +111,7 @@ vk::PrimitiveTopology topologyToVk(const OmegaEngine::Topology topology)
 vk::Format getVkFormatFromType(std::string type, uint32_t width)
 {
     // TODO: add other base types and widths
-    vk::Format format;
+    vk::Format format = vk::Format::eUndefined;
 
     // floats
     if (width == 32)
@@ -161,7 +161,7 @@ vk::Format getVkFormatFromType(std::string type, uint32_t width)
 uint32_t getStrideFromType(std::string type)
 {
     // TODO: add other base types and widths
-    uint32_t size;
+    uint32_t size = 0;
 
     // floats
     if (type == "float" || type == "int")

@@ -12,8 +12,8 @@ namespace OmegaEngine
 {
 
 CompositionPass::CompositionPass(
-    RenderGraph& rGraph, Util::String id, VulkanAPI::Swapchain& swapchain)
-    : rGraph(rGraph), swapchain(swapchain)
+    VulkanAPI::VkDriver& driver, RenderGraph& rGraph, Util::String id, VulkanAPI::Swapchain& swapchain)
+    : RenderStageBase(id), driver(driver), rGraph(rGraph), swapchain(swapchain)
 {
 }
 
@@ -21,7 +21,7 @@ CompositionPass::~CompositionPass()
 {
 }
 
-bool CompositionPass::prepare(VulkanAPI::VkDriver& driver, VulkanAPI::ProgramManager* manager)
+bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "composition.glsl";

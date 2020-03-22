@@ -62,7 +62,7 @@ bool OERenderer::prepare()
     }
 
     // the last stage is always the composition pass - writes to the surface
-    rStages.emplace_back(std::make_unique<CompositionPass>(*rGraph, "Stage_Comp", swapchain));
+    rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
 
     for (auto& stage : rStages)
     {

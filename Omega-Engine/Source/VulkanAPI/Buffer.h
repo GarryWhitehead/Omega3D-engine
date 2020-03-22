@@ -59,8 +59,7 @@ public:
     void prepare(
         VmaAllocator& vmaAlloc,
         const vk::DeviceSize size,
-        const VkBufferUsageFlags usage,
-        uint32_t memIndex = 0);
+        const VkBufferUsageFlags usage);
 
     void destroy();
 

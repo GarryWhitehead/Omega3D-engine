@@ -6,7 +6,7 @@
 #include "RenderGraph/Resources.h"
 #include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/RenderPass.h"
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 #include "utility/CString.h"
 
 #include <functional>
