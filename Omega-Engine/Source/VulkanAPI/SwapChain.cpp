@@ -151,23 +151,25 @@ void Swapchain::prepareImageViews(VkContext& context, const vk::SurfaceFormatKHR
 
     // Get the image loactions created when creating the swap chain
     std::vector<vk::Image> images = device.getSwapchainImagesKHR(swapchain);
+    
     for (size_t i = 0; i < images.size(); ++i)
     {
-        ImageView imageView(context);
-        imageView.create(
+        SwapchainContext scContext;
+        scContext.view = std::make_unique<ImageView>(context);
+        scContext.view->create(
             device,
             images[i],
             surfaceFormat.format,
             vk::ImageAspectFlagBits::eColor,
             vk::ImageViewType::e2D);
-        contexts[i].view = std::move(imageView);
+        contexts.emplace_back(std::move(scContext));
     }
 }
 
 ImageView& Swapchain::getImageView(const uint8_t index)
 {
     assert(index < contexts.size());
-    return contexts[index].view;
+    return *contexts[index].view;
 }
 
 vk::SwapchainKHR& Swapchain::get()

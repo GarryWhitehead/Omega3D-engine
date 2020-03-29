@@ -59,7 +59,7 @@ SET(SHADERC_THIRD_PARTY_ROOT_DIR "${EXTERNAL_DIR}" CACHE STRING "Path to externa
 SET(SPIRV-Headers_SOURCE_DIR "${EXTERNAL_DIR}/SPIRV-headers" CACHE STRING "Path to SPIRV-Headers")
 
 # optional path for assets directory
-SET(ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Assets CACHE PATH "Path to assets directory location.")
+SET(ASSETS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Assets)
 SET(SHADER_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Shaders)
 
 # Omega engine library public include headers

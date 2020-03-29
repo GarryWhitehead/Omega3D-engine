@@ -75,10 +75,9 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/Application/Platforms/PlatformGlfw.cpp Source/Application/Platforms/PlatformGlfw.h
 
 	Source/Core/Engine.cpp Source/Core/Engine.h
-	Source/Core/Omega_Global.h Source/Core/Omega_Global.cpp
 	Source/Core/World.cpp Source/Core/World.h
 	Source/Core/Scene.cpp Source/Core/Scene.h
-	Source/Core/Omega_Common.h Source/Core/Omega_Common.cpp
+	Source/Core/Omega_Common.h
     Source/Core/Camera.cpp Source/Core/Camera.h
 	Source/Core/Frustum.cpp Source/Core/Frustum.h
     Source/Core/ModelGraph.cpp Source/Core/ModelGraph.h
@@ -127,7 +126,6 @@ TARGET_SOURCES(OMEGA_ENGINE
     Source/VulkanAPI/Platform/Surface_Cocoa.mm
 
 	Source/VulkanAPI/CBufferManager.cpp Source/VulkanAPI/CBufferManager.h
-	Source/VulkanAPI/SemaphoreManager.cpp Source/VulkanAPI/SemaphoreManager.h
 	Source/VulkanAPI/ProgramManager.cpp Source/VulkanAPI/ProgramManager.h
 
 	Source/VulkanAPI/Compiler/ShaderParser.cpp Source/VulkanAPI/Compiler/ShaderParser.h
@@ -155,6 +153,8 @@ TARGET_SOURCES(OMEGA_ENGINE
 
 IF(APPLE AND NOT IOS)
     TARGET_LINK_LIBRARIES(OMEGA_ENGINE PRIVATE "-framework Cocoa")
+    TARGET_LINK_LIBRARIES(OMEGA_ENGINE PRIVATE "-framework Metal")
+    TARGET_LINK_LIBRARIES(OMEGA_ENGINE PRIVATE "-framework QuartzCore")
 ENDIF()
 
 TARGET_LINK_LIBRARIES(OMEGA_ENGINE 

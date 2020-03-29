@@ -23,7 +23,7 @@ class VkDriver;
 
 struct SwapchainContext
 {
-    ImageView view;
+    std::unique_ptr<ImageView> view;
     std::unique_ptr<CmdBuffer> cmdBuffer;
     vk::Fence fence;
 };

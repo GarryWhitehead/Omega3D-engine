@@ -65,8 +65,11 @@ void* GlfwPlatform::getNativeWinPointer()
 {
 #ifdef _WIN32
 	return (void*)glfwGetWin32Window(window);
-#endif
+#elif __APPLE__
+    return (void*)glfwGetCocoaWindow(window);
+#else
     return nullptr;
+#endif
 }
 
 std::pair<const char**, uint32_t> GlfwPlatform::getInstanceExt()

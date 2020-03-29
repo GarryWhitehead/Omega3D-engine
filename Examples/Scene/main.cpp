@@ -42,6 +42,7 @@ int main(int argc, char* argv[])
 
     // Use a gltf image as one of our scene objects
     GltfModel model;
+    
     // The directory must be set to the location where all the model data is found - including
     // textures if any
     model.setDirectory(Util::String::append(Util::String(OE_ASSETS_DIR), "Models/WaterBottle/"));
@@ -52,7 +53,6 @@ int main(int argc, char* argv[])
     model.prepare();
 
     // we casn piece different meshes together so we have a parent object and their children
-    
     // Or, we can have models that have no chilren, this is done via the createParentObj() as above
     for (auto& node : model.nodes)
     {
