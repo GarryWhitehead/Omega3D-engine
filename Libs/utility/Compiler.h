@@ -28,3 +28,9 @@
 // used mainly for silencing warnings
 #define OE_UNUSED(var) \
 static_cast<void>(var)
+
+#ifdef __GNUC__
+#define OE_FORCE_INLINE __attribute__((always_inline)) inline
+#else
+#define OE_FORCE_INLINE inline
+#endif

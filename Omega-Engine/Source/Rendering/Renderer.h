@@ -50,7 +50,7 @@ class OERenderer : public Renderer
 
 public:
     /**
-     * All of the stages supported by the renderer. All have an input and output which can be linked
+     * @brief All of the stages supported by the renderer. All have an input and output which can be linked
      * to the next stage Stages can be removed except were stated. At the moment, only a deferred
      * staged renderer is supported but could easily add forward renderers, etc.
      */
@@ -79,20 +79,25 @@ public:
     ~OERenderer();
 
     /**
-     * @brief Creates all render stages needed for the rendering pipeline
+     @brief Creates all render stages needed for the rendering pipeline
      */
-    bool prepare();
+    void prepare();
 
     void beginFrame();
+    
+    /**
+     @brief calls the setup function for each render pass registered with the graph
+     */
+    bool preparePasses();
 
     /**
-     * @brief Priimarily iterates over all visible renderable data within the scene and ceates the
-     * render queue.
+     @brief Priimarily iterates over all visible renderable data within the scene and ceates the
+     render queue.
      */
     bool update();
 
     /**
-     * @brief Draws into the cmd buffers all the data that is currently held by the scene
+     @brief Draws into the cmd buffers all the data that is currently held by the scene
      */
     void draw();
 

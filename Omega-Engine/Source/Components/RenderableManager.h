@@ -100,6 +100,9 @@ struct Material
 
     // each material has its own descriptor set
     std::unique_ptr<vk::DescriptorSet> descriptorSet;
+    
+    // a unique id hashed from the material name used for map lookups
+    uint32_t materialHash;
 };
 
 /**
@@ -158,8 +161,6 @@ class OERenderableManager : public ComponentManager, public RenderableManager
 {
 
 public:
-    // the shader filename is also used as as a hash key member
-    inline static const Util::String ShaderId = "mrt.glsl";
     
     OERenderableManager(OEEngine& engine);
     ~OERenderableManager();

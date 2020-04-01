@@ -215,7 +215,7 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareBindings(const Util::String& shaderId, 
+CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
     ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount)
 {
     auto& cbManager = driver.getCbManager();
@@ -520,7 +520,7 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     {
         uint16_t setCount = 0;
         ShaderBinding binding(driver.getContext(), descr.type);
-        prepareBindings(compilerInfo.shaderId, descr, binding, setCount);
+        prepareBindings(program.shaderId, descr, binding, setCount);
 
         // prepare the input semantics, this is only required for the vertex shader
         if (descr.type == Shader::Type::Vertex)

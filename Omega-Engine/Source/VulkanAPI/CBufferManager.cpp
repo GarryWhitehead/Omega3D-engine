@@ -61,11 +61,11 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     return pline;
 }
 
-DescriptorSetInfo* CBufferManager::findDescriptorSet(const Util::String& id, const uint8_t setValue)
+DescriptorSetInfo* CBufferManager::findDescriptorSet(uint32_t shaderHash, const uint8_t setValue)
 {
     DescriptorSetInfo* descrSet = nullptr;
 
-    DescriptorKey key {id};
+    DescriptorKey key {shaderHash};
     auto iter = descriptorSets.find(key);
 
     // if the pipeline has already has an instance return this
@@ -83,11 +83,11 @@ DescriptorSetInfo* CBufferManager::findDescriptorSet(const Util::String& id, con
     return descrSet;
 }
 
-std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(const Util::String& id)
+std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(uint32_t shaderHash)
 {
     std::vector<DescriptorSetInfo> descrSets;
 
-    DescriptorKey key {id};
+    DescriptorKey key {shaderHash};
     auto iter = descriptorSets.find(key);
 
     // if the pipeline has already has an instance return this
@@ -106,15 +106,15 @@ std::vector<DescriptorSetInfo> CBufferManager::findDescriptorSets(const Util::St
 }
 
 void CBufferManager::addDescriptorLayout(
-    Util::String shaderId,
-    Util::String layoutId,
+    uint32_t shaderId,
+    const Util::String& layoutId,
     uint32_t set,
     uint32_t bindValue,
     vk::DescriptorType bindType,
     vk::ShaderStageFlags flags)
 {
     DescriptorBinding binding;
-    binding.name = layoutId;
+    binding.layoutId = layoutId;
     binding.set = set;
     binding.binding = vk::DescriptorSetLayoutBinding {bindValue, bindType, 1, flags, nullptr};
     descriptorBindings[shaderId].emplace_back(binding);
@@ -173,17 +173,15 @@ void CBufferManager::buildDescriptorSets()
     }
 }
 
-bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
+bool CBufferManager::updateDescriptors(const Util::String& layoutName, Buffer& buffer)
 {
     // find the descriptor blueprint first which will then give us the shader id and set value for
     // this buffer
-    DescriptorKey key;
-
     for (auto& binding : descriptorBindings)
     {
         for (auto& bind : binding.second)
         {
-            if (bind.name.compare(id))
+            if (bind.layoutId.compare(layoutName))
             {
                 DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
                 assert(setInfo);
@@ -205,21 +203,19 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Buffer& buffer)
         }
     }
 
-    LOGGER_ERROR("Unable to find a buffer descriptor with the id %s", id.c_str());
+    LOGGER_ERROR("Unable to find a buffer descriptor with the id %s", layoutName.c_str());
     return false;
 }
 
-bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
+bool CBufferManager::updateDescriptors(const Util::String& layoutName, Texture& tex)
 {
     // find the descriptor blueprint first which will then give us the shader id and set value for
     // this buffer
-    DescriptorKey key;
-
     for (auto& binding : descriptorBindings)
     {
         for (auto& bind : binding.second)
         {
-            if (bind.name.compare(id))
+            if (bind.layoutId.compare(layoutName))
             {
                 DescriptorSetInfo* setInfo = findDescriptorSet(binding.first, bind.set);
                 assert(setInfo);
@@ -231,7 +227,7 @@ bool CBufferManager::updateDescriptors(const Util::String& id, Texture& tex)
         }
     }
 
-    LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", id.c_str());
+    LOGGER_ERROR("Unable to find a image sampler descriptor with the id %s", layoutName.c_str());
     return false;
 }
 

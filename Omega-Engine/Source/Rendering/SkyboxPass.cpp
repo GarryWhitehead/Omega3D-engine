@@ -27,8 +27,9 @@ SkyboxPass::~SkyboxPass()
 bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
-    VulkanAPI::ProgramManager::ShaderKey key {skyboxId.c_str(), 0};
-    VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
+    const Util::String filename = "skybox.glsl";
+
+    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
 
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
@@ -45,7 +46,7 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
         VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
         cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
-        cmdBuffer->bindDescriptors(cbManager, prog, skyboxId, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
         cmdBuffer->bindPushBlock(
             prog, vk::ShaderStageFlagBits::eFragment, sizeof(float), &skybox.blurFactor);
 

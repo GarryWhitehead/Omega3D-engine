@@ -95,9 +95,10 @@ namespace std
     template<>
     struct std::hash<Util::String>
     {
-        size_t operator()(Util::String const& str) const
+        size_t operator()(Util::String const& str) const noexcept
         {
-            return (std::hash<char*>()(str.c_str()));
+            return (std::hash<const char*>()(str.c_str()));
         }
     };
 }
+

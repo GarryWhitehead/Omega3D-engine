@@ -25,8 +25,8 @@ bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "composition.glsl";
-    VulkanAPI::ProgramManager::ShaderKey key = {filename.c_str(), 0};
-    VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
+    
+    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
 
     Util::String passId = "compositionPass";
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);

@@ -57,11 +57,11 @@ public:
 
     // primary binding functions
     void bindPipeline(CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program);
-    void bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Util::String& id, const Pipeline::Type pipelineType);
+    void bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType);
     void bindDynamicDescriptors(CBufferManager& cbManager,
-        ShaderProgram* prog, const Util::String& id, std::vector<uint32_t>& offsets, const Pipeline::Type type);
+        ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
     void
-    bindDynamicDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Util::String& id, const uint32_t offset, const Pipeline::Type type);
+    bindDynamicDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const uint32_t offset, const Pipeline::Type type);
     void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
     void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
     void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);

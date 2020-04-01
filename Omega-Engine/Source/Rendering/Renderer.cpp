@@ -35,7 +35,7 @@ OERenderer::~OERenderer()
 {
 }
 
-bool OERenderer::prepare()
+void OERenderer::prepare()
 {
     // TODO: At the moment only a deffered renderer is supported. Maybe add a forward renderer as
     // well?!
@@ -63,7 +63,10 @@ bool OERenderer::prepare()
 
     // the last stage is always the composition pass - writes to the surface
     rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
+}
 
+bool OERenderer::preparePasses()
+{
     for (auto& stage : rStages)
     {
         if (!stage->prepare(&engine.getVkDriver().getProgManager()))
@@ -93,6 +96,8 @@ bool OERenderer::update()
 void OERenderer::draw()
 {
     vkDriver.beginFrame(swapchain);
+    
+    preparePasses();
 
     // executes the user-defined callback for all of the passes in-turn.
     rGraph->execute();
@@ -134,9 +139,9 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
 
 // ==================== front-end =============================
 
-bool Renderer::prepare()
+void Renderer::prepare()
 {
-    return static_cast<OERenderer*>(this)->prepare();
+    static_cast<OERenderer*>(this)->prepare();
 }
 
 void Renderer::beginFrame()

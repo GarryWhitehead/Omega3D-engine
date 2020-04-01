@@ -236,6 +236,8 @@ public:
     
     uint8_t getSetCount() const;
     
+    uint32_t getShaderId() const;
+    
     /**
      * @brief Updates a spec constant which must have been stated in the shader json with a new
      * value which will set at pipeline generation time. If the spec constant isn't uodated, then
@@ -262,6 +264,9 @@ public:
 
 private:
     VkDriver& driver;
+    
+    // id for this shader is created by hashing the shader file path
+    uint32_t shaderId;
 
     std::vector<ShaderBinding> stages;
     
@@ -290,9 +295,21 @@ private:
 class ProgramManager
 {
 public:
+    
     struct ShaderKey
     {
-        Util::String name;
+        uint32_t shaderId = UINT32_MAX;
+        uint64_t variantBits = 0;
+        // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
+        // UINT32 MAX
+        uint32_t topology = UINT32_MAX;
+    };
+    
+    // the cached shader key also is keyed by the shader stage
+    struct CachedKey
+    {
+        uint32_t shaderId = UINT32_MAX;
+        uint32_t shaderStage = 0;
         uint64_t variantBits = 0;
         // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
         // UINT32 MAX
@@ -307,49 +324,47 @@ public:
      * must have been created by calling **createCachedInstance** before this fucntion is called.
      * Also, the shader must be in a valid state - namely, there must be a vertex shader.
      */
-    ShaderProgram* build(ShaderParser& parser, std::vector<ShaderKey>& hashes);
+    ShaderProgram* build(ShaderParser& parser, const std::vector<CachedKey>& hashes);
 
     bool compile(ShaderParser& parser, ShaderProgram* prog);
 
     /**
      * @brief Creates a new shader program instance. This will be inserted into the map.
-     * @param name The name of the shader to find - the filename
-     * @param renderBlock Whether this shader has a render override block
-     * @param variantBits The variant flags used by this shader
+     * @param key The shader key which will be used to locate the new instance
      * @return A pointer to the newly created shader program
      */
-    ShaderProgram* createNewInstance(ShaderKey& hash);
+    ShaderProgram* createNewInstance(const ShaderKey& key);
 
     /**
      * @brief Checks whether a shader has been created based on the hash
-     * @param hash The key of the variant to check
+     * @param key The key of the variant to check
      * @return A boolean set to true if the shader exsists, otherwise false
      */
-    bool hasShaderVariant(ShaderKey& hash);
+    bool hasShaderVariant(const ShaderKey& key);
 
     /**
      * @brief Checks whether a shader has been created based on the hash and returns the program if
      * so.
-     * @param hash The key of the variant to check
+     * @param key The key of the variant to check
      * @return A pointer to a shader program if one exsists with the designated hash. Otherwise
      * returns nullptr
      */
-    ShaderProgram* findVariant(ShaderKey& hash);
+    ShaderProgram* findVariant(const ShaderKey& key);
 
-    ShaderProgram* getVariant(ProgramManager::ShaderKey& key);
+    ShaderProgram* getVariantOrCreate(const Util::String& filename, uint64_t variantBits, uint32_t topology = UINT32_MAX);
 
     /**
      * @brief Creates a shader fragment that will be cached until ready for use
      */
     ShaderDescriptor*
-    createCachedInstance(ShaderKey& hash, ShaderDescriptor& descr);
+    createCachedInstance(const CachedKey& hash, const ShaderDescriptor& descr);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
      */
-    bool hasShaderVariantCached(ShaderKey& hash);
+    bool hasShaderVariantCached(const CachedKey& hash);
 
-    ShaderDescriptor* findCachedVariant(ShaderKey& hash);
+    ShaderDescriptor* findCachedVariant(const CachedKey& hash);
 
     friend class CBufferManager;
 
@@ -362,7 +377,18 @@ private:
     {
         bool operator()(const ShaderKey& lhs, const ShaderKey& rhs) const
         {
-            return lhs.name.compare(rhs.name) && lhs.variantBits == rhs.variantBits &&
+            return lhs.shaderId == rhs.shaderId && lhs.variantBits == rhs.variantBits &&
+                lhs.topology == rhs.topology;
+        }
+    };
+    
+    using CachedHasher = Util::Murmur3Hasher<CachedKey>;
+    
+    struct CachedEqual
+    {
+        bool operator()(const CachedKey& lhs, const CachedKey& rhs) const
+        {
+            return lhs.shaderId == rhs.shaderId && lhs.shaderStage == rhs.shaderStage && lhs.variantBits == rhs.variantBits &&
                 lhs.topology == rhs.topology;
         }
     };
@@ -374,7 +400,8 @@ private:
     std::unordered_map<ShaderKey, ShaderProgram*, ShaderHasher, ShaderEqual> programs;
 
     // this is where individual shaders are cached until required to assemble into a shader program
-    std::unordered_map<ShaderKey, ShaderDescriptor, ShaderHasher, ShaderEqual> cached;
+    std::unordered_map<CachedKey, ShaderDescriptor, CachedHasher, CachedEqual> cached;
 };
 
 } // namespace VulkanAPI
+

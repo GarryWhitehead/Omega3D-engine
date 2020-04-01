@@ -15,7 +15,7 @@ public:
 	/**
      * @brief Creates all render stages needed for the rendering pipeline
      */
-	bool prepare();
+	void prepare();
 
 	void beginFrame();
 

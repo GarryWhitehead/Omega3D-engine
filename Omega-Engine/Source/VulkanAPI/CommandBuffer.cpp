@@ -94,10 +94,10 @@ void CmdBuffer::bindPipeline(CBufferManager& cbManager, RenderPass* renderpass, 
     }
 }
 
-void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Util::String& id, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType)
 {
     vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
-    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(id);
+    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(setInfo.empty());
     
     std::vector<vk::DescriptorSet> descrSets(setInfo.size());
@@ -117,10 +117,10 @@ void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, 
 }
 
 void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
-    ShaderProgram* prog, const Util::String& id, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
+    ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
 {
     vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
-    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(id);
+    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(setInfo.empty());
     
     std::vector<vk::DescriptorSet> descrSets(setInfo.size());
@@ -140,10 +140,10 @@ void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
 }
 
 void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
-    ShaderProgram* prog, const Util::String& id, const uint32_t offset, const Pipeline::Type pipelineType)
+    ShaderProgram* prog, const uint32_t offset, const Pipeline::Type pipelineType)
 {
     std::vector<uint32_t> offsets = {offset};
-    bindDynamicDescriptors(cbManager, prog, id, offsets, pipelineType);
+    bindDynamicDescriptors(cbManager, prog, offsets, pipelineType);
 }
 
 void CmdBuffer::bindPushBlock(

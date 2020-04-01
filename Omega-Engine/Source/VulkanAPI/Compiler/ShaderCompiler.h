@@ -73,7 +73,7 @@ private:
 
     CompilerReturnCode compileAll(ShaderParser& parser);
 
-    CompilerReturnCode prepareBindings(const Util::String& shaderId, ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount);
+    CompilerReturnCode prepareBindings(uint32_t shaderId, ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount);
 
     CompilerReturnCode writeInputs(ShaderDescriptor& shader, ShaderDescriptor& nextShader);
 

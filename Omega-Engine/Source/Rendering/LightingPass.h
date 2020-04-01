@@ -22,8 +22,6 @@ class LightingPass : public RenderStageBase
 {
 public:
 
-	inline static const Util::String lightingId = "lighting.glsl";
-    
 	struct LPassInfo
 	{
 		ResourceHandle output;

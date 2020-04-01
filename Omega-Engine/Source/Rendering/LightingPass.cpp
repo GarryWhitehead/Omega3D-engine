@@ -21,8 +21,9 @@ LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
 bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
-    VulkanAPI::ProgramManager::ShaderKey key = {lightingId, 0};
-    VulkanAPI::ShaderProgram* prog = manager->getVariant(key);
+    const Util::String filename = "lighting.glsl";
+    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
+    
     if (!prog)
     {
         return false;    
@@ -53,7 +54,7 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
         cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
         // bind the descriptor
-        cmdBuffer->bindDescriptors(cbManager, prog, LightingPass::lightingId, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
         // cmdBuffer->bindPushBlock(prog, &renderConfig.ibl);
 
         // render full screen quad to screen

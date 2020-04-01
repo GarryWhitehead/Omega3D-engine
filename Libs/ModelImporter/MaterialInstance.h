@@ -74,7 +74,10 @@ public:
 
 	// used to identify this material.
 	Util::String name;
-
+    
+    // a hash of the material name; used as a unique id
+    uint32_t materialId;
+    
 	MaterialBlock block;
 
 	// the paths for all textures. Empty paths signify that this texture isn't used

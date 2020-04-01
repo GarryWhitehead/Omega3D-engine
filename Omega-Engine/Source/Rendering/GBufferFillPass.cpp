@@ -90,7 +90,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     VulkanAPI::ShaderBinding::SamplerBinding matBinding =
         prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
 
-    VulkanAPI::DescriptorSetInfo* matSetInfo = cbManager.findDescriptorSet(mat->instance->name, matBinding.set);
+    VulkanAPI::DescriptorSetInfo* matSetInfo = cbManager.findDescriptorSet(mat->materialHash, matBinding.set);
     assert(matSetInfo);
 
     // merge the material set with the mesh ubo sets
@@ -98,7 +98,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     assert(setCount > 0);
     std::vector<vk::DescriptorSet> uboSets(setCount);
 
-    std::vector<VulkanAPI::DescriptorSetInfo> uboSetInfo = cbManager.findDescriptorSets(OERenderableManager::ShaderId);
+    std::vector<VulkanAPI::DescriptorSetInfo> uboSetInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(!uboSetInfo.empty());
     
     std::vector<vk::DescriptorSet> descrSets(uboSetInfo.size() + 1);
@@ -114,7 +114,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
     cmdBuffer->bindDynamicDescriptors(cbManager,
-        prog, OERenderableManager::ShaderId, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
+        prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
 
     // the push block contains all the material attributes for this mesh
     cmdBuffer->bindPushBlock(

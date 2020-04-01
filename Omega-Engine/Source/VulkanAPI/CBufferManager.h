@@ -27,7 +27,7 @@ using CmdBufferHandle = uint64_t;
 // use this information for the update.
 struct DescriptorBinding
 {
-    Util::String name;
+    Util::String layoutId;
     uint32_t set;
     vk::DescriptorSetLayoutBinding binding;
 };
@@ -66,22 +66,22 @@ public:
     Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
 
     void addDescriptorLayout(
-        Util::String shaderId,
-        Util::String layoutId,
+        uint32_t shaderId,
+        const Util::String& layoutId,
         uint32_t set,
         uint32_t binding,
         vk::DescriptorType bindType,
         vk::ShaderStageFlags flags);
 
-    DescriptorSetInfo* findDescriptorSet(const Util::String& id, const uint8_t setValue);
-    std::vector<DescriptorSetInfo> findDescriptorSets(const Util::String& id);
+    DescriptorSetInfo* findDescriptorSet(uint32_t shaderHash, const uint8_t setValue);
+    std::vector<DescriptorSetInfo> findDescriptorSets(uint32_t shaderHash);
 
     void buildDescriptorSets();
 
     void createMainDescriptorPool();
 
-    bool updateDescriptors(const Util::String& id, Buffer& buffer);
-    bool updateDescriptors(const Util::String& id, Texture& tex);
+    bool updateDescriptors(const Util::String& layoutName, Buffer& buffer);
+    bool updateDescriptors(const Util::String& layoutName, Texture& tex);
     void updateDescriptors(
         const uint32_t bindingValue,
         const vk::DescriptorType& type,
@@ -162,13 +162,13 @@ private:
     std::unordered_map<PLineKey, Pipeline*, PLineHasher, PLineEqual> pipelines;
 
 private:
-    // descriptor layouts are ordered by the shader id name (usually the filename)
-    std::unordered_map<Util::String, std::vector<DescriptorBinding>> descriptorBindings;
+    // descriptor layouts are ordered by the shader id (usually a hash of the filename)
+    std::unordered_map<uint32_t, std::vector<DescriptorBinding>> descriptorBindings;
 
     struct DescriptorKey
     {
-        // the id will be typically the shader filename
-        Util::String id;
+        // the id will be typically the a 32-bit hash of the shader filename
+        uint32_t id;
     };
 
     using DescriptorHasher = Util::Murmur3Hasher<DescriptorKey>;
@@ -177,7 +177,7 @@ private:
     {
         bool operator()(const DescriptorKey& lhs, const DescriptorKey& rhs) const
         {
-            return lhs.id.compare(rhs.id);
+            return lhs.id == rhs.id;
         }
     };
 
