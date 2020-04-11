@@ -21,14 +21,21 @@ CompositionPass::~CompositionPass()
 {
 }
 
-bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
+bool CompositionPass::init(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "composition.glsl";
-    
-    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
+    prog = manager->getVariantOrCreate(filename, 0);
+    if (!prog)
+    {
+        return false;
+    }
+    return true;
+}
 
-    Util::String passId = "compositionPass";
+void CompositionPass::setupPass()
+{
+    const Util::String passId = "compositionPass";
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
     
     uint32_t currentImageIndex = driver.getCurrentImageIndex();
@@ -40,7 +47,6 @@ bool CompositionPass::prepare(VulkanAPI::ProgramManager* manager)
     builder.addReader("skybox");
     builder.addWriter("composition", backBuffer);
 
-    return true;
 }
 
 } // namespace OmegaEngine

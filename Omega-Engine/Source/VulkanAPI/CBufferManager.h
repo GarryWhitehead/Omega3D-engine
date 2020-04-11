@@ -4,6 +4,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
 #include "utility/MurmurHash.h"
+#include "utility/Compiler.h"
 
 #include <cstdint>
 #include <deque>
@@ -14,7 +15,7 @@ namespace VulkanAPI
 {
 // forward declerations
 class RenderPass;
-struct VkContext;
+class VkDriver;
 class Pipeline;
 class CmdBuffer;
 class ShaderProgram;
@@ -52,7 +53,7 @@ public:
         vk::CommandPool cmdPool;
     };
 
-    CBufferManager(VkContext& context);
+    CBufferManager(VkDriver& driver);
     ~CBufferManager();
 
     // not copyable
@@ -76,18 +77,24 @@ public:
     DescriptorSetInfo* findDescriptorSet(uint32_t shaderHash, const uint8_t setValue);
     std::vector<DescriptorSetInfo> findDescriptorSets(uint32_t shaderHash);
 
-    void buildDescriptorSets();
+    void buildDescriptorSet(uint32_t shaderId);
 
     void createMainDescriptorPool();
-
-    bool updateDescriptors(const Util::String& layoutName, Buffer& buffer);
-    bool updateDescriptors(const Util::String& layoutName, Texture& tex);
+    
     void updateDescriptors(
         const uint32_t bindingValue,
         const vk::DescriptorType& type,
         const vk::DescriptorSet& set,
-        Texture& tex);
-
+        const Util::String& layoutId);
+    
+    void updateTextureDescriptor(
+    const uint32_t bindingValue,
+    const vk::DescriptorType& type,
+    const vk::DescriptorSet& set,
+    Texture* tex);
+    
+    void updateShaderDescriptorSets();
+    
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();
 
@@ -115,8 +122,8 @@ public:
     friend class CmdBuffer;
 
 private:
-    // The current vulkan context
-    VkContext& context;
+ 
+    VkDriver& driver;
 
     // the main command pool - only to be used on the main thread
     vk::CommandPool cmdPool;
@@ -137,14 +144,19 @@ private:
     vk::Semaphore renderingCompleteSemaphore;
 
 private:
+    
+#pragma pack(push, 1)
     // =============== pipeline hasher ======================
-    struct PLineKey
+    struct OE_PACKED PLineKey
     {
         // first three comprise the shader hash
         ShaderProgram* prog;
         RenderPass* pass;
     };
+#pragma pack(pop)
 
+    static_assert(std::is_pod<PLineKey>::value, "PLineKey must be a POD for the hashing to work correctly");
+    
     using PLineHasher = Util::Murmur3Hasher<PLineKey>;
 
     struct PLineEqual
@@ -165,11 +177,15 @@ private:
     // descriptor layouts are ordered by the shader id (usually a hash of the filename)
     std::unordered_map<uint32_t, std::vector<DescriptorBinding>> descriptorBindings;
 
-    struct DescriptorKey
+#pragma pack(push, 1)
+    struct OE_PACKED DescriptorKey
     {
         // the id will be typically the a 32-bit hash of the shader filename
         uint32_t id;
     };
+#pragma pack(pop)
+    
+    static_assert(std::is_pod<DescriptorKey>::value, "DescriptorKey must be a POD for the hashing to work correctly");
 
     using DescriptorHasher = Util::Murmur3Hasher<DescriptorKey>;
 

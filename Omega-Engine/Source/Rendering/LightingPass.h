@@ -10,6 +10,7 @@ namespace VulkanAPI
 class VkDriver;
 class CommandBufferManager;
 class ProgramManager;
+class ShaderProgram;
 };
 
 namespace OmegaEngine
@@ -32,8 +33,9 @@ public:
 	// no copying
 	LightingPass(const LightingPass&) = delete;
 	LightingPass& operator=(const LightingPass&) = delete;
-
-    bool prepare(VulkanAPI::ProgramManager* manager) override;
+    
+    bool init(VulkanAPI::ProgramManager* manager) override;
+    void setupPass() override;
 
 private:
 	
@@ -41,5 +43,7 @@ private:
 	RenderGraph& rGraph;
 
 	LPassInfo passInfo;
+    
+    VulkanAPI::ShaderProgram* prog = nullptr;
 };
 }    // namespace OmegaEngine

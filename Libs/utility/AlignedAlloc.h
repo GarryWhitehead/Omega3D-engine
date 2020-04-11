@@ -22,7 +22,7 @@ public:
 #if defined(_MSC_VER) || defined(__MINGW32__)
         data = _aligned_malloc(size, alignment);
 #else
-        if (!posix_memalign(&data, alignment, size))
+        if (posix_memalign((void**)&data, alignment, size) != 0)
         {
             data = nullptr;
         }

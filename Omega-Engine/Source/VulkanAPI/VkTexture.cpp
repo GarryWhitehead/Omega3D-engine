@@ -15,6 +15,66 @@ Texture::~Texture()
 {
 }
 
+enum Filter
+{
+    Nearest,
+    Linear,
+    Cubic
+};
+
+enum AddressMode
+{
+    Repeat,
+    MirroredRepeat,
+    ClampToEdge,
+    ClampToBorder,
+    MirrorClampToEdge
+};
+
+vk::Filter Texture::toVkFilter(const OEFilter filter)
+{
+    vk::Filter result;
+    
+    switch(filter)
+    {
+        case OEFilter::Nearest:
+            result = vk::Filter::eNearest;
+            break;
+        case OEFilter::Linear:
+            result = vk::Filter::eLinear;
+            break;
+        case OEFilter::Cubic:
+            result = vk::Filter::eCubicIMG;
+            break;
+    }
+    return result;
+}
+
+vk::SamplerAddressMode Texture::toVkAddressMode(const OEAddressMode mode)
+{
+    vk::SamplerAddressMode result;
+    
+    switch(mode)
+    {
+        case OEAddressMode::Repeat:
+            result = vk::SamplerAddressMode::eRepeat;
+            break;
+        case OEAddressMode::MirroredRepeat:
+            result = vk::SamplerAddressMode::eMirroredRepeat;
+            break;
+        case OEAddressMode::ClampToEdge:
+            result = vk::SamplerAddressMode::eClampToEdge;
+            break;
+        case OEAddressMode::ClampToBorder:
+            result = vk::SamplerAddressMode::eClampToBorder;
+            break;
+        case OEAddressMode::MirrorClampToEdge:
+            result = vk::SamplerAddressMode::eMirrorClampToEdge;
+            break;
+    }
+    return result;
+}
+
 void Texture::create2dTex(
     VkDriver& driver,
     vk::Format format,
@@ -32,6 +92,23 @@ void Texture::create2dTex(
     // and a image view of the empty image
     imageView = new ImageView(driver.getContext());
     imageView->create(driver.getContext().device, *image);
+}
+
+void Texture::createSampler(const VkContext& context, vk::Filter magFilter, vk::Filter minFilter, vk::SamplerAddressMode addrModeU, vk::SamplerAddressMode addrModeV, float maxAntriopsy)
+{
+    vk::SamplerCreateInfo samplerInfo({}, magFilter, minFilter, vk::SamplerMipmapMode::eNearest, addrModeU, addrModeV, addrModeV, 0.0f,
+                                      VK_TRUE,
+                                      maxAntriopsy,    // TODO: add user control of max antriospy
+                                      VK_FALSE, vk::CompareOp::eNever, 0.0f,
+                                      texContext.mipLevels,    // maxLod should equal the mip-map count?
+                                      vk::BorderColor::eIntOpaqueWhite, VK_FALSE);
+
+    VK_CHECK_RESULT(context.device.createSampler(&samplerInfo, nullptr, &sampler));
+}
+
+void Texture::createSampler(const VkContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
+{
+    VK_CHECK_RESULT(context.device.createSampler(&samplerCreateInfo, nullptr, &sampler));
 }
 
 void Texture::destroy()
@@ -77,12 +154,14 @@ void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eTransferDstOptimal,
         cmdBuffer->get());
+    
     cmdBuffer->get().copyBufferToImage(
         stage.buffer,
         image->get(),
         vk::ImageLayout::eTransferDstOptimal,
         static_cast<uint32_t>(copyBuffers.size()),
         copyBuffers.data());
+    
     // the final transition here may need improving on....
     Image::transition(
         *image,
@@ -144,16 +223,19 @@ TextureContext& Texture::getContext()
 
 ImageView* Texture::getImageView()
 {
+    assert(imageView);
     return imageView;
 }
 
 Image* Texture::getImage()
 {
+    assert(image);
     return image;
 }
 
-Sampler* Texture::getSampler()
+vk::Sampler& Texture::getSampler()
 {
+    assert(sampler);
     return sampler;
 }
 

@@ -5,6 +5,7 @@
 #include "utility/BitsetEnum.h"
 #include "utility/CString.h"
 #include "utility/MurmurHash.h"
+#include "utility/Compiler.h"
 
 #include <memory>
 #include <string>
@@ -200,7 +201,7 @@ public:
         Shader::Type stage;
     };
 
-    ShaderProgram(VkDriver& driver);
+    ShaderProgram(VkDriver& driver, uint32_t shaderId);
 
     /**
      * @brief Compiles the parsed json file into data that can be used by the vulkan backend
@@ -296,26 +297,27 @@ class ProgramManager
 {
 public:
     
-    struct ShaderKey
+#pragma pack(push, 1)
+    struct OE_PACKED ShaderKey
     {
-        uint32_t shaderId = UINT32_MAX;
-        uint64_t variantBits = 0;
-        // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
-        // UINT32 MAX
-        uint32_t topology = UINT32_MAX;
+        uint32_t shaderId;
+        uint64_t variantBits;
+        uint32_t topology;
     };
     
     // the cached shader key also is keyed by the shader stage
-    struct CachedKey
+    struct OE_PACKED CachedKey
     {
-        uint32_t shaderId = UINT32_MAX;
-        uint32_t shaderStage = 0;
-        uint64_t variantBits = 0;
-        // this equates to vk::PrimitiveTopology but use a int to allow for a "not-used" flag - aka
-        // UINT32 MAX
-        uint32_t topology = UINT32_MAX;
+        uint32_t shaderId;
+        uint32_t shaderStage;
+        uint64_t variantBits;
+        uint32_t topology;
     };
-
+#pragma pack(pop)
+    
+    static_assert(std::is_pod<ShaderKey>::value, "ShaderKey must be a POD for the hashing to work correctly");
+    static_assert(std::is_pod<CachedKey>::value, "CachedKey must be a POD for the hashing to work correctly");
+    
     ProgramManager(VkDriver& driver);
     ~ProgramManager();
 

@@ -8,6 +8,7 @@
 namespace VulkanAPI
 {
 class ProgramManager;
+class ShaderProgram;
 }
 
 namespace OmegaEngine
@@ -27,8 +28,9 @@ public:
 	// not copyable
 	SkyboxPass(const SkyboxPass&) = delete;
 	SkyboxPass& operator=(const SkyboxPass&) = delete;
-
-	bool prepare(VulkanAPI::ProgramManager* manager) override;
+    
+    bool init(VulkanAPI::ProgramManager* manager) override;
+	void setupPass() override;
 
 private:
 
@@ -39,6 +41,7 @@ private:
     OESkybox& skybox;
 
 	ResourceHandle offscreenTex;
+    VulkanAPI::ShaderProgram* prog = nullptr;
 };
 
 }    // namespace OmegaEngine

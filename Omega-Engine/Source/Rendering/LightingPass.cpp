@@ -18,17 +18,20 @@ LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
 {
 }
 
-bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
+bool LightingPass::init(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "lighting.glsl";
-    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
-    
+    prog = manager->getVariantOrCreate(filename, 0);
     if (!prog)
     {
-        return false;    
+        return false;
     }
+    return true;
+}
 
+void LightingPass::setupPass()
+{
     // build the lighting render pass
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
@@ -60,8 +63,6 @@ bool LightingPass::prepare(VulkanAPI::ProgramManager* manager)
         // render full screen quad to screen
         cmdBuffer->drawQuad();
     });
-
-    return true;
 }
 
 } // namespace OmegaEngine

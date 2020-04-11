@@ -79,7 +79,8 @@ public:
      */
     void submit(vk::Semaphore& waitSemaphore, vk::Semaphore& signalSemaphore, vk::Fence& fence);
 
-    void reset();
+    void resetPool();
+    void resetCmdBuffer();
 
     // drawing functions
     void drawIndexed(uint32_t indexCount);
@@ -113,6 +114,7 @@ private:
 
     // a command buffer has its own internal fence for syncing between frames
     vk::Fence cmdFence;
+    bool workSubmitted = false;
 
     // view port / scissor info
     vk::Viewport viewPort;

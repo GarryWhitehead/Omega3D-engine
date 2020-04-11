@@ -52,9 +52,11 @@ public:
 	// no copying
 	GBufferFillPass(const GBufferFillPass&) = delete;
 	GBufferFillPass& operator=(const GBufferFillPass&) = delete;
-
+    
+    bool init(VulkanAPI::ProgramManager* manager) override;
+    
 	/// creates a new renderpass with the required inputs/outputs and prepares the render func
-	bool prepare(VulkanAPI::ProgramManager* manager) override;
+	void setupPass() override;
 
 	friend class Renderer;
 
@@ -72,10 +74,10 @@ private:
 	// the gbuffer uses data from the renderable manager, namely materials.
 	// other vertex data will be from the render queue, considering visibility
 	OERenderableManager& rendManager;
-    
     EngineConfig& config;
     
 	GBufferInfo gbufferInfo;
+    vk::Format depthFormat;
 };
 
 }    // namespace OmegaEngine

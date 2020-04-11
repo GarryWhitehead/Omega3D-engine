@@ -2,7 +2,7 @@
 
 #include "VulkanAPI/Common.h"
 
-#include "VulkanAPI/Sampler.h"
+#include "ModelImporter/MaterialInstance.h"
 
 #include <memory>
 
@@ -32,7 +32,10 @@ class Texture
 {
 
 public:
-
+    
+    using OEFilter = OmegaEngine::MaterialInstance::Sampler::Filter;
+    using OEAddressMode = OmegaEngine::MaterialInstance::Sampler::AddressMode;
+    
 	Texture() = default;
 	~Texture();
 
@@ -40,6 +43,9 @@ public:
     Texture& operator=(const Texture&) = delete;
     Texture(Texture&&) = default;
     Texture& operator=(Texture&&) = default;
+    
+    static vk::Filter toVkFilter(const OEFilter filter);
+    static vk::SamplerAddressMode toVkAddressMode(const OEAddressMode mode);
     
     /**
      * @brief Creates a image and image view for a 2d texture
@@ -50,6 +56,10 @@ public:
      * @param usageFlags The intended usage for this image.
      */
 	void create2dTex(VkDriver& driver, vk::Format format, uint32_t width, uint32_t height, uint8_t mipLevels, vk::ImageUsageFlags usageFlags);
+    
+    void createSampler(const VkContext& context, vk::Filter magFilter, vk::Filter minFilter, vk::SamplerAddressMode addrModeU, vk::SamplerAddressMode addrModeV, float maxAntriopsy);
+    
+    void createSampler(const VkContext& context, const vk::SamplerCreateInfo& samplerCreateInfo);
     
     void destroy();
 
@@ -65,7 +75,7 @@ public:
     
     Image* getImage();
     
-    Sampler* getSampler();
+    vk::Sampler& getSampler();
     
     vk::ImageLayout& getImageLayout();
     
@@ -86,7 +96,7 @@ private:
 	TextureContext texContext;
 
     // The texture sampler
-    Sampler* sampler = nullptr;
+    vk::Sampler sampler;
     
     vk::ImageLayout imageLayout;
     

@@ -4,7 +4,6 @@
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Pipeline.h"
-#include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/VkTexture.h"
@@ -21,8 +20,9 @@ namespace VulkanAPI
 
 // =================== ShaderProgram ======================
 
-ShaderProgram::ShaderProgram(VkDriver& driver)
-    : driver(driver)
+ShaderProgram::ShaderProgram(VkDriver& driver, uint32_t shaderId)
+    : driver(driver),
+      shaderId(shaderId)
     , pLineLayout(std::make_unique<PipelineLayout>())
 {
 }
@@ -182,8 +182,9 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<Cac
     uint64_t mergedVariants = 0;
     uint32_t instanceId;
     uint32_t topo;
-
-    ShaderProgram* instance = new ShaderProgram(driver);
+    
+    assert(hashes[0].shaderId);
+    ShaderProgram* instance = new ShaderProgram(driver, hashes[0].shaderId);
     for (const CachedKey& hash : hashes)
     {
         ShaderDescriptor* descr = findCachedVariant(hash);
@@ -232,8 +233,7 @@ bool ProgramManager::compile(ShaderParser& parser, ShaderProgram* prog)
 
 ShaderProgram* ProgramManager::createNewInstance(const ShaderKey& hash)
 {
-    ShaderProgram* instance = new ShaderProgram(driver);
-
+    ShaderProgram* instance = new ShaderProgram(driver, hash.shaderId);
     programs.emplace(hash, instance);
     return instance;
 }

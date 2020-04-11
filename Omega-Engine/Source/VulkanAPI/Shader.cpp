@@ -1,7 +1,6 @@
 #include "Shader.h"
 
 #include "VulkanAPI/Pipeline.h"
-#include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/VkContext.h"
 #include "file.h"
 #include "libshaderc_util/io.h"

@@ -210,5 +210,23 @@ bool isStencil(const vk::Format format)
         std::end(stencilFormats);
 }
 
+bool isBufferType(const vk::DescriptorType& type)
+{
+    if (type == vk::DescriptorType::eUniformBuffer || type == vk::DescriptorType::eStorageBuffer || type == vk::DescriptorType::eUniformBufferDynamic || type ==vk::DescriptorType::eStorageBufferDynamic)
+    {
+        return true;
+    }
+    return false;
+}
+
+bool isSamplerType(const vk::DescriptorType& type)
+{
+    if (type == vk::DescriptorType::eSampler || type == vk::DescriptorType::eStorageImage || type == vk::DescriptorType::eCombinedImageSampler || type == vk::DescriptorType::eSampledImage)
+    {
+        return true;
+    }
+    return false;
+}
+
 }    // namespace VkUtil
 }    // namespace VulkanAPI

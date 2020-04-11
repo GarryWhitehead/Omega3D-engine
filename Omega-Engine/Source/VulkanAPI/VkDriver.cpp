@@ -51,7 +51,7 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
 
     // and the command buffer manager - note: the pool is init on construction so must be done after
     // driver init
-    cbManager = std::make_unique<CBufferManager>(context);
+    cbManager = std::make_unique<CBufferManager>(*this);
     
     vk::SemaphoreCreateInfo semaphoreCreateInfo;
     VK_CHECK_RESULT(
@@ -68,7 +68,7 @@ void VkDriver::shutdown()
 // =========== functions for buffer/texture creation ================
 
 void VkDriver::addUbo(
-    const Util::String& id, const size_t size, VkBufferUsageFlags usage, bool updateDescr)
+    const Util::String& id, const size_t size, VkBufferUsageFlags usage)
 {
     // check if the buffer already exists with the same id. If so, check the size of the current
     // buffer against the size of the requested buffer. If the space is too small, destroy the
@@ -90,21 +90,15 @@ void VkDriver::addUbo(
     buffer.prepare(vmaAlloc, static_cast<VkDeviceSize>(size), usage);
     VkHash::ResourceIdKey key {id.c_str()};
     buffers.emplace(key, buffer);
-
-    if (updateDescr)
-    {
-        cbManager->updateDescriptors(id, buffers[{id.c_str()}]);
-    }
 }
 
-void VkDriver::add2DTexture(
+Texture* VkDriver::add2DTexture(
     const Util::String& id,
     vk::Format format,
     const uint32_t width,
     const uint32_t height,
     const uint8_t mipLevels,
-    vk::ImageUsageFlags usageFlags,
-    bool updateDescr)
+    vk::ImageUsageFlags usageFlags)
 {
     // for textures, we expect the ids to be unique.
     auto iter = textures.find({id.c_str()});
@@ -114,11 +108,8 @@ void VkDriver::add2DTexture(
     tex.create2dTex(*this, format, width, height, mipLevels, usageFlags);
     VkHash::ResourceIdKey key {id.c_str()};
     textures.emplace(key, std::move(tex));
-
-    if (updateDescr)
-    {
-        cbManager->updateDescriptors(id, tex);
-    }
+    
+    return &textures[key];
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data)
@@ -297,7 +288,6 @@ VmaAllocator& VkDriver::getVma()
 
 uint32_t VkDriver::getCurrentImageIndex() const
 {
-    assert(imageIndex != UINT32_MAX);
     return imageIndex;
 }
 

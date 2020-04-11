@@ -5,6 +5,8 @@
 
 #include "Types/AABox.h"
 
+#include "Components/TransformManager.h"
+
 #include "Rendering/RenderQueue.h"
 
 #include "VulkanAPI/Buffer.h"
@@ -38,6 +40,12 @@ class OEScene : public Scene
 {
 public:
 	
+    static constexpr int MaxStaticModelCount = 100;
+    static constexpr int MaxSkinnedModelCount = 100;
+    static constexpr int MaxSpotlightCount = 100;
+    static constexpr int MaxPointlightCount = 100;
+    static constexpr int MaxDirlightCount = 100;
+    
 	// ubo buffer names used by the scene
     const Util::String cameraUboName = "CameraUbo";
     const Util::String staticTransUboName = "StaticTransform";
@@ -87,6 +95,49 @@ public:
     
 	friend class OERenderer;
 
+private:
+    
+    // Ubo buffers for model/lighting data
+    struct TransformUbo
+    {
+        OEMaths::mat4f modelMatrix;
+    };
+
+    struct SkinnedUbo
+    {
+        OEMaths::mat4f modelMatrix;
+        OEMaths::mat4f jointMatrices[TransformManager::MAX_BONE_COUNT];
+        float jointCount;
+    };
+    
+    // a mirror of the shader structs
+   struct PointLightUbo
+   {
+       OEMaths::mat4f lightMvp;
+       OEMaths::vec4f position;
+       OEMaths::colour4 colour; //< rgb, intensity (lumens)
+       float fallOut;
+   };
+
+   struct SpotLightUbo
+   {
+       OEMaths::mat4f lightMvp;
+       OEMaths::vec4f position;
+       OEMaths::vec4f direction;
+       OEMaths::colour4 colour; //< rgb, intensity (lumens)
+       float scale;
+       float offset;
+       float fallOut;
+   };
+
+   struct DirectionalLightUbo
+   {
+       OEMaths::mat4f lightMvp;
+       OEMaths::vec4f position;
+       OEMaths::vec4f direction;
+       OEMaths::colour4 colour; //< rgb, intensity (lumens)
+   };
+    
 private:
 	VulkanAPI::VkDriver& driver;
 

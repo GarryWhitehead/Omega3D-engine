@@ -21,6 +21,7 @@ class GltfExtension;
 class MaterialInstance
 {
 public:
+    
 	enum TextureType : uint32_t
 	{
 		BaseColour,
@@ -41,7 +42,7 @@ public:
 	bool prepare(aiMaterial* mat);
 
 	static Util::String convertToAlpha(const cgltf_alpha_mode mode);
-
+    
 	// helper functions
 	Util::String getName()
 	{
@@ -66,10 +67,44 @@ public:
 		Util::String mask;
 		float alphaMaskCutOff = 1.0f;
 	};
-
+    
+    /**
+     @brief the sampler details for each texture
+     */
+    struct Sampler
+    {
+        enum Filter
+        {
+            Nearest,
+            Linear,
+            Cubic
+        };
+        
+        enum AddressMode
+        {
+            Repeat,
+            MirroredRepeat,
+            ClampToEdge,
+            ClampToBorder,
+            MirrorClampToEdge
+        };
+        
+        Filter magFilter = Filter::Linear;
+        Filter minFilter = Filter::Linear;
+        AddressMode addressModeU = AddressMode::Repeat;
+        AddressMode addressModeV = AddressMode::Repeat;
+        AddressMode addressModeW = AddressMode::Repeat;
+    };
+    
 	friend class MeshInstance;
 
+private:
+    
+    Sampler::Filter getSamplerFilter(int filter);
+    Sampler::AddressMode getAddressMode(int mode);
+    
 public:
+    
 	// ====================== material data (public) ========================================
 
 	// used to identify this material.
@@ -79,7 +114,8 @@ public:
     uint32_t materialId;
     
 	MaterialBlock block;
-
+    Sampler sampler;
+    
 	// the paths for all textures. Empty paths signify that this texture isn't used
 	Util::String texturePaths[TextureType::Count];
 

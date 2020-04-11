@@ -22,8 +22,8 @@ CmdBuffer::~CmdBuffer()
 void CmdBuffer::init()
 {
     // create the fence
-    vk::FenceCreateInfo fence_info(vk::FenceCreateFlagBits(0));
-    VK_CHECK_RESULT(context.device.createFence(&fence_info, nullptr, &cmdFence));
+    vk::FenceCreateInfo fenceInfo(vk::FenceCreateFlagBits(0));
+    VK_CHECK_RESULT(context.device.createFence(&fenceInfo, nullptr, &cmdFence));
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdFence));
 
     vk::CommandBufferLevel level = type == Type::Primary ? vk::CommandBufferLevel::ePrimary
@@ -192,7 +192,10 @@ void CmdBuffer::flush()
     vk::Queue queue = context.graphicsQueue;
     vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
 
-    VK_CHECK_RESULT(queue.submit(1, &submitInfo, {}));
+    VK_CHECK_RESULT(queue.submit(1, &submitInfo, cmdFence));
+    
+    // let the user know that the cmd buffer has work to do
+    workSubmitted = true;
 }
 
 void CmdBuffer::submit(
@@ -206,12 +209,17 @@ void CmdBuffer::submit(
     VK_CHECK_RESULT(queue.submit(1, &submitInfo, fence));
 }
 
-void CmdBuffer::reset()
+void CmdBuffer::resetPool()
 {
     VK_CHECK_RESULT(context.device.waitForFences(1, &cmdFence, VK_TRUE, UINT64_MAX));
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdFence));
 
     context.device.resetCommandPool(cmdPool, static_cast<vk::CommandPoolResetFlagBits>(0));
+}
+
+void CmdBuffer::resetCmdBuffer()
+{
+    cmdBuffer.reset(vk::CommandBufferResetFlags(0));
 }
 
 } // namespace VulkanAPI

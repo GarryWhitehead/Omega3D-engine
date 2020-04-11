@@ -18,6 +18,7 @@ namespace VulkanAPI
 class Queue;
 class Interface;
 class ShaderProgram;
+class ProgramManager;
 }    // namespace VulkanAPI
 
 namespace OmegaEngine
@@ -47,7 +48,8 @@ public:
 	void calculateCubeTransform(const uint32_t face, const float zNear, const float zFar, OEMaths::mat4f& outputProj,
 	                            OEMaths::mat4f& outputView);
     
-    bool prepare(VulkanAPI::ProgramManager* manager) override;
+    bool init(VulkanAPI::ProgramManager* manager) override;
+    void setupPass() override;
     
 	void buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, OESkybox& skybox);
 
@@ -77,7 +79,9 @@ private:
         AttachmentHandle attachment;
     } specInfo;
     
-    
+    VulkanAPI::ShaderProgram* bdrf_prog = nullptr;
+    VulkanAPI::ShaderProgram* irradiance_prog = nullptr;
+    VulkanAPI::ShaderProgram* specular_prog = nullptr;
 };
 
 }    // namespace OmegaEngine

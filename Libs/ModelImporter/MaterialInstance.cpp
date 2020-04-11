@@ -13,6 +13,52 @@ MaterialInstance::~MaterialInstance()
 {
 }
 
+MaterialInstance::Sampler::Filter MaterialInstance::getSamplerFilter(int filter)
+{
+    Sampler::Filter result;
+    switch (filter)
+    {
+    case 9728:
+        result = Sampler::Filter::Nearest;
+        break;
+    case 9729:
+        result = Sampler::Filter::Linear;
+        break;
+    case 9984:
+        result = Sampler::Filter::Nearest;
+        break;
+    case 9985:
+        result = Sampler::Filter::Nearest;
+        break;
+    case 9986:
+        result = Sampler::Filter::Linear;
+        break;
+    case 9987:
+        result = Sampler::Filter::Linear;
+        break;
+    }
+    return result;
+}
+
+MaterialInstance::Sampler::AddressMode MaterialInstance::getAddressMode(int mode)
+{
+    Sampler::AddressMode result;
+    
+    switch (mode)
+    {
+    case 10497:
+        result = Sampler::AddressMode::Repeat;
+        break;
+    case 33071:
+        result = Sampler::AddressMode::ClampToEdge;
+        break;
+    case 33648:
+        result = Sampler::MirroredRepeat;
+        break;
+    }
+    return result;
+}
+
 Util::String MaterialInstance::convertToAlpha(const cgltf_alpha_mode mode)
 {
     Util::String result;
@@ -36,7 +82,16 @@ Util::String MaterialInstance::getTextureUri(cgltf_texture_view& view)
 	// not guaranteed to have a texture or uri
 	if (view.texture && view.texture->image)
 	{
-		// also set variant bit
+		// check whether this texture has a sampler. Otherwise use defeult values
+        if (view.texture->sampler)
+        {
+            sampler.magFilter = getSamplerFilter(view.texture->sampler->mag_filter);
+            sampler.minFilter = getSamplerFilter(view.texture->sampler->min_filter);
+            sampler.addressModeU = getAddressMode(view.texture->sampler->wrap_s);
+            sampler.addressModeV = getAddressMode(view.texture->sampler->wrap_t);
+        }
+        
+        // also set variant bit
 		return Util::String{ view.texture->image->uri };
 	}
 	return "";

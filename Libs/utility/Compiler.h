@@ -34,3 +34,9 @@ static_cast<void>(var)
 #else
 #define OE_FORCE_INLINE inline
 #endif
+
+#if __has_attribute(packed)
+#define OE_PACKED __attribute__((packed))
+#else
+#define OE_PACKED
+#endif

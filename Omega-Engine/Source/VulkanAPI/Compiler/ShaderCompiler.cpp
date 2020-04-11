@@ -218,6 +218,8 @@ CompilerReturnCode ShaderCompiler::prepareImport(
 CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
     ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount)
 {
+    assert(shaderId > 0);
+    
     auto& cbManager = driver.getCbManager();
 
     // add the glsl version number
@@ -560,7 +562,10 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
             return CompilerReturnCode::ErrorCompilingGlsl;
         }
     };
-
+    
+    // finish by creating the descriptor set(s) for this shader
+    driver.getCbManager().buildDescriptorSet(program.shaderId);
+    
     return CompilerReturnCode::Success;
 }
 

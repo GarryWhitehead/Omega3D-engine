@@ -2,7 +2,6 @@
 
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
-#include "Components/TransformManager.h"
 #include "Core/Camera.h"
 #include "Core/engine.h"
 #include "Core/Frustum.h"
@@ -29,9 +28,24 @@ OEScene::~OEScene()
 
 void OEScene::prepare()
 {
-    // prepare the camera buffer - note: the id matches the naming of the shader ubo
-    // the data will be updated on a per frame basis in the update
+    // camera ubo
     driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
+    
+    // model ubos
+    size_t staticDataSize = MaxStaticModelCount * sizeof(TransformUbo);
+    size_t skinnedDataSize = MaxSkinnedModelCount * sizeof(SkinnedUbo);
+    
+    driver.addUbo(staticTransUboName, staticDataSize, VulkanAPI::Buffer::Usage::Static);
+    driver.addUbo(skinnedTransUboName, skinnedDataSize, VulkanAPI::Buffer::Usage::Static);
+    
+    // light ubos
+    size_t spotlightBufferSize = MaxSpotlightCount * sizeof(SpotLightUbo);
+    size_t pointlightBufferSize = MaxPointlightCount * sizeof(PointLightUbo);
+    size_t dirlightBufferSize = MaxDirlightCount * sizeof(DirectionalLightUbo);
+    
+    driver.addUbo(spotlightUboName, spotlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
+    driver.addUbo(pointlightUboName, pointlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
+    driver.addUbo(dirlightUboName, dirlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
 }
 
 void OEScene::getVisibleRenderables(
@@ -137,7 +151,7 @@ bool OEScene::update(const double time)
     {
         return false;
     }
-
+    
     auto& objects = world.getObjectsList();
     auto& models = world.getModelGraph().getNodeList();
 
@@ -275,7 +289,7 @@ void OEScene::updateCameraBuffer()
     ubo.view = camera->getViewMatrix();
     ubo.zNear = camera->getZNear();
     ubo.zFar = camera->getZFar();
-
+    
     driver.updateUbo(cameraUboName, sizeof(OECamera::Ubo), &ubo);
 }
 
@@ -284,19 +298,6 @@ void OEScene::updateTransformBuffer(
     const size_t staticModelCount,
     const size_t skinnedModelCount)
 {
-    // transforms
-    struct TransformUbo
-    {
-        OEMaths::mat4f modelMatrix;
-    };
-
-    struct SkinnedUbo
-    {
-        OEMaths::mat4f modelMatrix;
-        OEMaths::mat4f jointMatrices[TransformManager::MAX_BONE_COUNT];
-        float jointCount;
-    };
-
     // Dynamic buffers are aligned to >256 bytes as designated by the Vulkan spec
     const size_t staticDynAlign = (sizeof(TransformUbo) + 256 - 1) & ~(256 - 1);
     const size_t skinDynAlign = (sizeof(SkinnedUbo) + 256 - 1) & ~(256 - 1);
@@ -362,7 +363,6 @@ void OEScene::updateTransformBuffer(
     if (staticModelCount > 0)
     {
         size_t staticDataSize = staticModelCount * sizeof(TransformUbo);
-        driver.addUbo(staticTransUboName, staticDataSize, VulkanAPI::Buffer::Usage::Static);
         driver.updateUbo(staticTransUboName, staticDataSize, staticAlignAlloc.getData());
     }
 
@@ -370,42 +370,12 @@ void OEScene::updateTransformBuffer(
     if (skinnedModelCount > 0)
     {
         size_t skinnedDataSize = skinnedModelCount * sizeof(SkinnedUbo);
-        driver.addUbo(skinnedTransUboName, skinnedDataSize, VulkanAPI::Buffer::Usage::Static);
         driver.updateUbo(skinnedTransUboName, skinnedDataSize, skinAlignAlloc.getData());
     }
 }
 
 void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
 {
-    // a mirror of the shader structs
-    struct PointLightUbo
-    {
-        OEMaths::mat4f lightMvp;
-        OEMaths::vec4f position;
-        OEMaths::colour4 colour; //< rgb, intensity (lumens)
-        float fallOut;
-    };
-
-    struct SpotLightUbo
-    {
-        OEMaths::mat4f lightMvp;
-        OEMaths::vec4f position;
-        OEMaths::vec4f direction;
-        OEMaths::colour4 colour; //< rgb, intensity (lumens)
-        float scale;
-        float offset;
-        float fallOut;
-    };
-
-    struct DirectionalLightUbo
-    {
-        OEMaths::mat4f lightMvp;
-        OEMaths::vec4f position;
-        OEMaths::vec4f direction;
-        OEMaths::colour4 colour; //< rgb, intensity (lumens)
-    };
-
-
     uint32_t spotlightCount = 0;
     uint32_t pointlightCount = 0;
     uint32_t dirLightCount = 0;
@@ -463,19 +433,16 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
     if (spotlightCount)
     {
         size_t dataSize = spotlightCount * sizeof(SpotLightUbo);
-        driver.addUbo(spotlightUboName, dataSize, VulkanAPI::Buffer::Usage::Dynamic);
         driver.updateUbo(spotlightUboName, dataSize, spotLights.data());
     }
     if (pointlightCount)
     {
         size_t dataSize = pointlightCount * sizeof(PointLightUbo);
-        driver.addUbo(pointlightUboName, dataSize, VulkanAPI::Buffer::Usage::Dynamic);
         driver.updateUbo(pointlightUboName, dataSize, pointLights.data());
     }
     if (dirLightCount)
     {
         size_t dataSize = dirLightCount * sizeof(DirectionalLightUbo);
-        driver.addUbo(dirlightUboName, dataSize, VulkanAPI::Buffer::Usage::Dynamic);
         driver.updateUbo(dirlightUboName, dataSize, dirLights.data());
     }
 }

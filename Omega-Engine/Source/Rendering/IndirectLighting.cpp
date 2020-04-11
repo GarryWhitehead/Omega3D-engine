@@ -9,7 +9,6 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Image.h"
-#include "VulkanAPI/Sampler.h"
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
@@ -55,21 +54,41 @@ void IndirectLighting::calculateCubeTransform(
     outputView = OEMaths::lookAt(pos, target[face], cameraUp[face]);
 }
 
-bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
+bool IndirectLighting::init(VulkanAPI::ProgramManager* manager)
+{
+    // bdrf shader
+    const Util::String bdrf_filename = "bdrf.glsl";
+    bdrf_prog = manager->getVariantOrCreate(bdrf_filename, 0);
+    if (!bdrf_prog)
+    {
+        return false;
+    }
+    
+    // irradiance shader
+    const Util::String irradiance_filename = "irradianceMap.glsl";
+    irradiance_prog = manager->getVariantOrCreate(irradiance_filename, 0);
+    if (!irradiance_prog)
+    {
+        return false;
+    }
+    
+    // specular shader
+    const Util::String specular_filename = "specularMap.glsl";
+    specular_prog = manager->getVariantOrCreate(specular_filename, 0);
+    if (!specular_prog)
+    {
+        return false;
+    }
+    return true;
+}
+
+void IndirectLighting::setupPass()
 {
     const uint32_t lutDimensions = 512;
     vk::ClearColorValue clearValue;
 
     // bdrf
     {
-        const Util::String filename = "bdrf.glsl";
-        VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
-        
-        if (!prog)
-        {
-            return false;
-        }
-
         RenderGraphBuilder builder =
             rGraph.createPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
 
@@ -83,21 +102,13 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
             VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
             VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
-            cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+            cmdBuffer->bindPipeline(cbManager, renderpass, bdrf_prog);
             cmdBuffer->drawQuad();
         });
     }
 
     // irradiance
     {
-        const Util::String filename = "irradianceMap.glsl";
-        
-        VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
-        if (!prog)
-        {
-            return false;
-        }
-
         RenderGraphBuilder builder =
             rGraph.createPass("IrradiancePass", RenderGraphPass::Type::Graphics);
 
@@ -110,20 +121,12 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         irrInfo.attachment = builder.addWriter("IrradianceSampler", irrInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
-            buildMap(context, prog, irradianceMapDim, MapType::Irradiance, skybox);
+            buildMap(context, irradiance_prog, irradianceMapDim, MapType::Irradiance, skybox);
         });
     }
 
     // specular
     {
-        const Util::String filename = "specularMap.glsl";
-        
-        VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
-        if (!prog)
-        {
-            return false;
-        }
-
         RenderGraphBuilder builder =
             rGraph.createPass("SpecularPass", RenderGraphPass::Type::Graphics);
 
@@ -133,11 +136,9 @@ bool IndirectLighting::prepare(VulkanAPI::ProgramManager* manager)
         specInfo.attachment = builder.addWriter("SpecularSampler", specInfo.texture);
 
         builder.addExecute([=](RGraphContext& context) {
-            buildMap(context, prog, specularMapDim, MapType::Specular, skybox);
+            buildMap(context, specular_prog, specularMapDim, MapType::Specular, skybox);
         });
     }
-
-    return true;
 }
 
 void IndirectLighting::buildMap(

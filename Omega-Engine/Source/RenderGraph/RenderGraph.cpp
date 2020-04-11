@@ -143,7 +143,9 @@ bool RenderGraph::compile()
         while (!resourceStack.empty())
         {
             ResourceHandle curHandle = resourceStack.back();
+            resourceStack.pop_back();
             ResourceBase* res = resources[curHandle];
+            assert(res);
 
             passStack.emplace_back(res->writer);
         }
@@ -152,7 +154,7 @@ bool RenderGraph::compile()
     std::reverse(reorderedPasses.begin(), reorderedPasses.end());
 
     // now tidy up the passes by removing duplicates - the first time the pass is seen will be
-    // its position within# the ordered passes, all subsequent passes will be removed
+    // its position within the ordered passes, all subsequent passes will be removed
     std::unordered_set<uint32_t> seen;
     auto newEnd = std::remove_if(
         reorderedPasses.begin(), reorderedPasses.end(), [&seen](const uint32_t& value) {

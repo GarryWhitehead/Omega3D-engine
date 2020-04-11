@@ -39,7 +39,8 @@ public:
     }
 
     // ====== abstract functions ========
-    virtual bool prepare(VulkanAPI::ProgramManager* manager) = 0;
+    virtual bool init(VulkanAPI::ProgramManager* manager) = 0;
+    virtual void setupPass() = 0;
 
 protected:
     Util::String passId;
@@ -62,17 +63,20 @@ public:
         ForwardPass,
         Skybox,
         PreProcessPass,
+        Composition,
         Count
     };
 
     /**
      * Each stage required for a deferred renderer. Some of these stages can be switched off.
      */
-    const std::array<RenderStage, 4> deferredStages = {
+    const std::array<RenderStage, 5> deferredStages = {
         RenderStage::IndirectLighting,
         RenderStage::GBufferFill,
         RenderStage::LightingPass,
-        RenderStage::Skybox};
+        RenderStage::Skybox,
+        RenderStage::Composition
+    };
 
     OERenderer(
         OEEngine& engine, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config);
@@ -81,14 +85,14 @@ public:
     /**
      @brief Creates all render stages needed for the rendering pipeline
      */
-    void prepare();
+    bool prepare();
 
     void beginFrame();
     
     /**
      @brief calls the setup function for each render pass registered with the graph
      */
-    bool preparePasses();
+    void preparePasses();
 
     /**
      @brief Priimarily iterates over all visible renderable data within the scene and ceates the

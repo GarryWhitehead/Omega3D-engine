@@ -35,7 +35,7 @@ OERenderer::~OERenderer()
 {
 }
 
-void OERenderer::prepare()
+bool OERenderer::prepare()
 {
     // TODO: At the moment only a deffered renderer is supported. Maybe add a forward renderer as
     // well?!
@@ -58,24 +58,30 @@ void OERenderer::prepare()
                 rStages.emplace_back(
                     std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", *scene.skybox));
                 break;
+            case RenderStage::Composition:
+                rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
+                break;
         }
     }
 
-    // the last stage is always the composition pass - writes to the surface
-    rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
-}
-
-bool OERenderer::preparePasses()
-{
-    for (auto& stage : rStages)
+    // initialise all the stages
+    for (const auto& stage : rStages)
     {
-        if (!stage->prepare(&engine.getVkDriver().getProgManager()))
+        if (!stage->init(&engine.getVkDriver().getProgManager()))
         {
             return false;
         }
     }
-    
+
     return true;
+}
+
+void OERenderer::preparePasses()
+{
+    for (auto& stage : rStages)
+    {
+        stage->setupPass();
+    }
 }
 
 void OERenderer::beginFrame()
@@ -84,6 +90,8 @@ void OERenderer::beginFrame()
 
 bool OERenderer::update()
 {
+    preparePasses();
+    
     // optimisation and compilation of the render graph. If nothing has changed since the last frame
     // then this call will just return.
     if (!rGraph->prepare())
@@ -97,12 +105,14 @@ void OERenderer::draw()
 {
     vkDriver.beginFrame(swapchain);
     
-    preparePasses();
+    // at this point we have all the images/buffers prepared so udate the descriptors now. This happens on the first frame and if the
+    // images/buffer handles change
+    vkDriver.getCbManager().updateShaderDescriptorSets();
 
     // executes the user-defined callback for all of the passes in-turn.
     rGraph->execute();
 
-    // finally send to the swap-chain presentation
+    // finally send to the swap-chain for presentation
     vkDriver.endFrame(swapchain);
 }
 

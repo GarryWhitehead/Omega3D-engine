@@ -13,8 +13,9 @@ namespace VkUtil
 {
 
 bool isDepth(const vk::Format format);
-
 bool isStencil(const vk::Format format);
+bool isBufferType(const vk::DescriptorType& type);
+bool isSamplerType(const vk::DescriptorType& type);
 
 vk::Format findSupportedFormat(
     std::vector<vk::Format>& formats,

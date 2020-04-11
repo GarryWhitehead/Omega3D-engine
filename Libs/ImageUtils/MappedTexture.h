@@ -13,6 +13,7 @@ class MappedTexture
 {
 
 public:
+    
 	MappedTexture() = default;
 	~MappedTexture();
 
@@ -49,6 +50,7 @@ public:
 	friend class OERenderableManager;
 
 private:
+    
 	// dimensions of the image
 	uint32_t width = 0;
 	uint32_t height = 0;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Core/Scene.h"
-
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "OEMaths/OEMaths_transform.h"

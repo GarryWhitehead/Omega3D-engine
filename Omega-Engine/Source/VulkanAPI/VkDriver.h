@@ -109,8 +109,7 @@ public:
     void addUbo(
         const Util::String& id,
         const size_t size,
-        VkBufferUsageFlags usage,
-        bool updateDescr = true);
+        VkBufferUsageFlags usage);
 
     /**
      * @brief Adds a vertex buffer to the vulkan back end. This function also generates the vertex
@@ -124,14 +123,13 @@ public:
      */
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
 
-    void add2DTexture(
+    Texture* add2DTexture(
         const Util::String& id,
         vk::Format format,
         const uint32_t width,
         const uint32_t height,
         const uint8_t mipLevels,
-        vk::ImageUsageFlags usageFlags,
-        bool updateDescr = true);
+        vk::ImageUsageFlags usageFlags);
 
     // ============== buffer update functions ===============================
 
@@ -194,7 +192,7 @@ private:
     VkHash::IBufferMap indexBuffers;
 
     // The current present KHR frame image index
-    uint32_t imageIndex = UINT32_MAX;
+    uint32_t imageIndex = 0;
 
     // used for ensuring that the image has completed
     vk::Semaphore imageReadySemaphore;

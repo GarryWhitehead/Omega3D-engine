@@ -42,7 +42,7 @@ OE_FORCE_INLINE uint32_t murmurHash3(const uint32_t* key, size_t len, uint32_t s
         h1 ^= k1;
         h1 = ROTL32(h1, 13);
         h1 = (h1 * 5) + 0xe6546b64;
-    } while(nblocks--);
+    } while(--nblocks);
     
     // tail
     h1 ^= nblocks;

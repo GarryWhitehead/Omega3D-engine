@@ -37,14 +37,17 @@ GBufferFillPass::GBufferFillPass(
 {
 }
 
-bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
+bool GBufferFillPass::init(VulkanAPI::ProgramManager* manager)
 {
     OE_UNUSED(manager);
-    
+    depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.physical);
+    return true;
+}
+
+void GBufferFillPass::setupPass()
+{
     // shaders are prepared within the renderable manager for this pass
     // a list of the formats required for each buffer
-    vk::Format depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(vkContext.physical);
-
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // create the gbuffer textures
@@ -73,8 +76,6 @@ bool GBufferFillPass::prepare(VulkanAPI::ProgramManager* manager)
         OERenderer* renderer = context.renderer;
         renderer->drawQueueThreaded(driver.getCbManager(), context);
     });
-
-    return true;
 }
 
 void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, RGraphContext& context)

@@ -24,13 +24,20 @@ SkyboxPass::~SkyboxPass()
 {
 }
 
-bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
+bool SkyboxPass::init(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "skybox.glsl";
+    prog = manager->getVariantOrCreate(filename, 0);
+    if (!prog)
+    {
+        return false;
+    }
+    return true;
+}
 
-    VulkanAPI::ShaderProgram* prog = manager->getVariantOrCreate(filename, 0);
-
+void SkyboxPass::setupPass()
+{
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     offscreenTex = builder.createRenderTarget("skybox_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
@@ -38,7 +45,7 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
     builder.addWriter("SkyboxPass", offscreenTex);
 
     // everything required to draw the skybox to the cmd buffer
-    builder.addExecute([&](RGraphContext& context) {
+    builder.addExecute([=](RGraphContext& context) {
 
         auto& cbManager = context.driver->getCbManager();
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
@@ -54,8 +61,6 @@ bool SkyboxPass::prepare(VulkanAPI::ProgramManager* manager)
         cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
         cmdBuffer->drawIndexed(OESkybox::indicesSize);
     });
-
-    return true;
 }
 
 } // namespace OmegaEngine

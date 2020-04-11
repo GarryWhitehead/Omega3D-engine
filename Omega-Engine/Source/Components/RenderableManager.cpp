@@ -7,6 +7,7 @@
 #include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
+#include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/GeneralUtil.h"
@@ -339,7 +340,7 @@ bool OERenderableManager::updateVariants()
         return false;
     }
     
-    VulkanAPI::ProgramManager manager = engine.getVkDriver().getProgManager();
+    VulkanAPI::ProgramManager& manager = engine.getVkDriver().getProgManager();
     
     // use a hash of the filename as part of the shader key
     uint32_t shaderHash = Util::murmurHash3((const uint32_t*)filename.c_str(), filename.size() , 0);
@@ -429,15 +430,15 @@ bool OERenderableManager::updateVariants()
 
 bool OERenderableManager::update()
 {
-    VulkanAPI::VkDriver& driver = engine.getVkDriver();
+    auto& driver = engine.getVkDriver();
     auto& cbManager = driver.getCbManager();
 
-    // upload the textures if something has changed - this needs more thhough - should we clear all
+    // upload the textures if something has changed - this needs more thought - should we clear all
     // materials and create again or should each material have its own local 'dirty' flag and we
     // check this? What about newly added materials?
     if (materialDirty)
     {
-        // create material shader varinats if needed
+        // create material shader variants if needed
         if (!updateVariants())
         {
             return false;
@@ -450,6 +451,11 @@ bool OERenderableManager::update()
         {
             assert(renderables[0].program);
             materialBinding = renderables[0].program->getMaterialBindingInfo();
+            if (!materialBinding)
+            {
+                LOGGER_ERROR("Fatal error! No material binding info available.");
+                return false;
+            }
         }
 
         // upload textures if required
@@ -458,6 +464,7 @@ bool OERenderableManager::update()
             Material* material = findMaterial(group.matName);
             if (!material->descriptorSet)
             {
+                material->descriptorSet = std::make_unique<vk::DescriptorSet>();
                 vk::DescriptorSetAllocateInfo allocInfo {
                     cbManager.getDescriptorPool(), 1, &materialBinding->layout};
                 VK_CHECK_RESULT(driver.getContext().device.allocateDescriptorSets(
@@ -480,23 +487,31 @@ bool OERenderableManager::update()
                     
                     // note: we don't create a descriptor set alloc blueprint here as materials deal
                     // with their own descriptor layouts
-                    driver.add2DTexture(
+                    MaterialInstance::Sampler& sampler = material->instance->sampler;
+                    VulkanAPI::Texture* vkTex = driver.add2DTexture(
                         texName,
                         format,
                         tex->width,
                         tex->height,
                         tex->mipLevels,
-                        usageFlags,
-                        false);
+                        usageFlags);
+                    
+                    // add the material sampler
+                    vkTex->createSampler(driver.getContext(),
+                        VulkanAPI::Texture::toVkFilter(sampler.magFilter),
+                        VulkanAPI::Texture::toVkFilter(sampler.minFilter),
+                        VulkanAPI::Texture::toVkAddressMode(sampler.addressModeU),
+                        VulkanAPI::Texture::toVkAddressMode(sampler.addressModeV),
+                        8.0f);   // TODO: user-defined max antriospy
+                    
                     driver.update2DTexture(texName, tex->buffer);
 
                     // update the descriptor set too as we have the image info
-                    VulkanAPI::Texture* vkTexture = driver.getTexture2D(texName);
-                    cbManager.updateDescriptors(
+                    cbManager.updateTextureDescriptor(
                         i,
                         vk::DescriptorType::eCombinedImageSampler,
                         *material->descriptorSet,
-                        *vkTexture);
+                        vkTex);
                 }
             }
         }
