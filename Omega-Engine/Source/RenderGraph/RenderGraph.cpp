@@ -215,7 +215,6 @@ void RenderGraph::initRenderPass()
                 
                 // create the renderpass
                 rpass.prepare(driver);
-                rpass.bake();
                 break;
             }
 

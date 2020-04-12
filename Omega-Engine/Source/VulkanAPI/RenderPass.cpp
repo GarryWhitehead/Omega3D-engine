@@ -269,6 +269,11 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
             depend[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
             depend[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
+        else
+        {
+            LOGGER_INFO(
+                "Unsupported dependency read type. This may lead to invalid dst stage masks");
+        }
     }
     else if (flags.testBit(SubpassFlags::BottomOfPipeline))
     {
@@ -276,11 +281,6 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
         depend[0].dstSubpass = VK_SUBPASS_EXTERNAL;
         depend[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
         depend[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
-
-        if (flags.testBit(SubpassFlags::Merged))
-        {
-            depend[0].srcSubpass = 0;
-        }
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
@@ -297,15 +297,21 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
             depend[0].srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
             depend[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
+        else
+        {
+            LOGGER_INFO(
+                "Unsupported dependency read type. This may lead to invalid src stage masks");
+        }
     }
     else
     {
-        if (!flags.testBit(SubpassFlags::Merged))
-        {
-            depend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-            depend[0].dstSubpass = 0;
-        }
+        LOGGER_WARN("Dependency doesn't defeine either top or bottom pipeline bit. This could "
+                    "result in invalid dependencies");
     }
+
+    // src and dst stage masks cannot be zero
+    assert(depend[0].srcStageMask != vk::PipelineStageFlags(0));
+    assert(depend[0].dstStageMask != vk::PipelineStageFlags(0));
 
     dependencies.emplace_back(depend[0]);
 
@@ -316,7 +322,7 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
     depend[1].dstStageMask = depend[0].srcStageMask;
     depend[1].srcAccessMask = depend[0].dstAccessMask;
     depend[1].dstAccessMask = depend[0].srcAccessMask;
-    
+
     dependencies.emplace_back(depend[1]);
 }
 
@@ -450,14 +456,13 @@ void FrameBuffer::prepare(
     width = w;
     height = h;
 
-    vk::FramebufferCreateInfo frameInfo {
-        {},
-        rpass.get(),
-        static_cast<uint32_t>(views.size()),
-        views.data(),
-        width,
-        height,
-        layerCount};
+    vk::FramebufferCreateInfo frameInfo {{},
+                                         rpass.get(),
+                                         static_cast<uint32_t>(views.size()),
+                                         views.data(),
+                                         width,
+                                         height,
+                                         layerCount};
 
     VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }

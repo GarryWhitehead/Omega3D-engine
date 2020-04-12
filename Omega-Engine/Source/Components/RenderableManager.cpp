@@ -479,8 +479,7 @@ bool OERenderableManager::update()
                     // each sampler needs its own unique id - so append the tex type to the
                     // material name
                     assert(!group.matName.empty());
-                    Util::String texName =
-                        Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
+                    tex->name = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
                     vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
                     vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->format);
@@ -489,7 +488,7 @@ bool OERenderableManager::update()
                     // with their own descriptor layouts
                     MaterialInstance::Sampler& sampler = material->instance->sampler;
                     VulkanAPI::Texture* vkTex = driver.add2DTexture(
-                        texName,
+                        tex->name,
                         format,
                         tex->width,
                         tex->height,
@@ -504,7 +503,7 @@ bool OERenderableManager::update()
                         VulkanAPI::Texture::toVkAddressMode(sampler.addressModeV),
                         8.0f);   // TODO: user-defined max antriospy
                     
-                    driver.update2DTexture(texName, tex->buffer);
+                    driver.update2DTexture(tex->name, tex->buffer);
 
                     // update the descriptor set too as we have the image info
                     cbManager.updateTextureDescriptor(

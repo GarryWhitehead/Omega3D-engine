@@ -9,7 +9,7 @@ namespace OmegaEngine
 
 
 RenderGraphPass::RenderGraphPass(
-                                 Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
+    Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
     : rGraph(rGraph), name(name), type(type), index(index)
 {
 }
@@ -53,9 +53,10 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             // used for signyfing to the subpass the reference ids associated with it
             std::vector<uint32_t> inputRefs, outputRefs;
             uint32_t depthRef = UINT32_MAX;
-            
+
             context.rpass = rGraph.createRenderPass();
             VulkanAPI::RenderPass* rpass = rGraph.getRenderpass(context.rpass);
+            assert(rpass);
             auto& resources = rGraph.getResources();
 
             // add the output attachments
@@ -64,7 +65,22 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             {
                 ResourceHandle& handle = writes[i];
                 ResourceBase* base = resources[handle];
-                if (base->type == ResourceBase::ResourceType::Texture)
+                if (base->type == ResourceBase::ResourceType::Imported)
+                {
+                    ImportedResource* tex = static_cast<ImportedResource*>(resources[handle]);
+                    
+                    // imported targets alreasy have the image view object defined
+                    views[i] = tex->imageView;
+
+                    // set the dependency flags
+                    flags |= VulkanAPI::SubpassFlags::ColourRead;
+                    //tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
+
+                    outputRefs.emplace_back(tex->referenceId);
+                    rpass->addOutputAttachment(
+                        tex->format, tex->referenceId, tex->clearFlags, tex->samples);
+                }
+                else if (base->type == ResourceBase::ResourceType::Texture)
                 {
                     TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
 
@@ -97,32 +113,26 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     rpass->addOutputAttachment(
                         tex->format, tex->referenceId, tex->clearFlags, tex->samples);
                 }
-                else if (base->type == ResourceBase::ResourceType::Imported)
-                {
-                }
             }
 
             // Add a subpass. If this is a merged pass, then this will be added to the parent
-            rpass->addSubPass(inputRefs, outputRefs);
+            rpass->addSubPass(inputRefs, outputRefs, depthRef);
             rpass->addSubpassDependency(flags);
-            
+
+            // create the actual vulkan renderpass object
+            rpass->prepare();
+
             // create the framebuffer - this is linked to the renderpass
             context.framebuffer = rGraph.createFrameBuffer();
             VulkanAPI::FrameBuffer* fbuffer = rGraph.getFramebuffer(context.framebuffer);
             fbuffer->prepare(*rpass, views, maxWidth, maxHeight, 1);
-            
+
             break;
         }
         case Type::Compute: {
             break;
         }
     }
-}
-
-void RenderGraphPass::bake()
-{
-    // create the renderpass
-    rGraph.getRenderpass(context.rpass)->prepare();
 }
 
 void RenderGraphPass::addExecute(ExecuteFunc&& func)

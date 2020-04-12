@@ -35,7 +35,7 @@ struct RGraphContext
 
     // useful vulkan managers - not owned by this struct
     VulkanAPI::VkDriver* driver = nullptr;
-    //OERenderer* renderer = nullptr;
+    OERenderer* renderer = nullptr;
     RenderGraph* rGraph = nullptr;
 };
 
@@ -81,9 +81,6 @@ public:
 
     // init the vulkan renderpass - attachments, ref, dependencies
     void prepare(VulkanAPI::VkDriver& driver);
-
-    // creates the vulkan renderpass. You must call **prepare()** first
-    void bake();
 
     // Sets the clear colour for all attachments for this pass
     void setClearColour(const OEMaths::colour4& clearCol);

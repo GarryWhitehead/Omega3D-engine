@@ -57,11 +57,9 @@ void OEScene::getVisibleRenderables(
         assert(curr_idx + chunkSize <= renderables.size());
         for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
         {
-            Renderable* rend = renderables[idx].renderable;
-            AABBox box {rend->instance->dimensions.min, rend->instance->dimensions.max};
-            if (frustum.checkBoxPlaneIntersect(box))
+            if (frustum.checkBoxPlaneIntersect(renderables[idx].worldAABB))
             {
-                rend->visibility |= Renderable::Visible::Render;
+                renderables[idx].renderable->visibility |= Renderable::Visible::Render;
             }
         }
     };
@@ -214,7 +212,7 @@ bool OEScene::update(const double time)
     // update the camera matrices before constructing the fustrum
     Frustum frustum;
     camera->updateViewMatrix();
-    frustum.projection(camera->getViewMatrix() * camera->getProjMatrix());
+    frustum.projection(camera->getProjMatrix() * camera->getViewMatrix());
 
     // ============ visibility checks and culling ===================
     // first renderables - split work tasks and run async - Sets the visibility bit if passes

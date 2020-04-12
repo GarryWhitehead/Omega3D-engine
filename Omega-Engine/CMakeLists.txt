@@ -139,7 +139,6 @@ TARGET_SOURCES(OMEGA_ENGINE
 	Source/VulkanAPI/Image.cpp Source/VulkanAPI/Image.h
 	Source/VulkanAPI/Pipeline.cpp Source/VulkanAPI/Pipeline.h
 	Source/VulkanAPI/RenderPass.cpp Source/VulkanAPI/RenderPass.h
-	Source/VulkanAPI/Sampler.cpp Source/VulkanAPI/Sampler.h
 	Source/VulkanAPI/Shader.cpp Source/VulkanAPI/Shader.h
 	Source/VulkanAPI/SwapChain.cpp Source/VulkanAPI/SwapChain.h
 	Source/VulkanAPI/Buffer.cpp Source/VulkanAPI/Buffer.h

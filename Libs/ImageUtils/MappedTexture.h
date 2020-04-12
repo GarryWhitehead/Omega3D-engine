@@ -59,7 +59,7 @@ private:
 	uint32_t faceCount = 1;
 	uint32_t totalSize = 0;
 
-	std::string name;
+	Util::String name;
 
 	// the mapped texture binary
 	uint8_t* buffer = nullptr;
