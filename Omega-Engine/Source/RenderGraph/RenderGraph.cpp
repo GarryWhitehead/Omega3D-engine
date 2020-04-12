@@ -54,32 +54,6 @@ ResourceHandle RenderGraph::importResource(
     return resources.size() - 1;
 }
 
-void RenderGraph::CullResourcesAndPasses(ResourceBase* resource)
-{
-    // the render pass that outputs to this resource
-    // RenderGraphPass* rpass = resource->outputPass;
-
-    /* if (rpass)
-     {
-         --rpass->refCount;
-
-         // this pass has no more write attahment dependencies so can be culled
-         if (rpass->refCount == 0)
-         {
-             for (ResourceHandle& handle : rpass->inputs)
-             {
-                 ResourceBase* rsrc = resources[handle];
-                 --resource->inputCount;
-                 if (rsrc->inputCount == 0)
-                 {
-                     // no input dependencies, so see if we can cull this pass
-                     CullResourcesAndPasses(rsrc);
-                 }
-             }
-         }
-     }*/
-}
-
 AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
     attachments.emplace_back(info);
@@ -107,7 +81,7 @@ bool RenderGraph::compile()
         }
     }
 
-    std::vector<uint32_t> reorderedPasses;
+    reorderedPasses.clear();
     std::vector<RenderGraphPass*> passStack;
 
     // start by re-ordering the passes - starting from the "root" node (i.e. the backbuffer), work
@@ -135,7 +109,7 @@ bool RenderGraph::compile()
         reorderedPasses.emplace_back(curPass->index);
 
         std::vector<ResourceHandle> resourceStack;
-        for (ResourceHandle handle : curPass->writes)
+        for (ResourceHandle handle : curPass->reads)
         {
             resourceStack.emplace_back(handle);
         }
@@ -231,55 +205,17 @@ bool RenderGraph::compile()
 
 void RenderGraph::initRenderPass()
 {
-    for (RenderGraphPass& rpass : rGraphPasses)
+    for (const uint32_t& rpassIdx : reorderedPasses)
     {
+        RenderGraphPass& rpass = rGraphPasses[rpassIdx];
+        
         switch (rpass.type)
         {
             case RenderGraphPass::Type::Graphics: {
-                std::vector<VulkanAPI::ImageView*> views(rpass.writes.size());
-                for (size_t i = 0; i < rpass.writes.size(); ++i)
-                {
-                    AttachmentHandle handle = rpass.writes[i];
-                    assert(handle < attachments.size());
-                    AttachmentInfo& attach = attachments[handle];
-
-                    // bake the resources
-                    VulkanAPI::ImageView* view =
-                        reinterpret_cast<VulkanAPI::ImageView*>(attach.bake(driver, *this));
-                    views[i] = view;
-                }
-
-                // check if this is merged - will have child passes associated with it
-                if (rpass.flags.testBit(VulkanAPI::SubpassFlags::Merged))
-                {
-                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedBegin))
-                    {
-                        // prepare this pass first
-                        rpass.prepare(driver);
-                    }
-                    else
-                    {
-                        RenderGraphPass* rootPass = &rGraphPasses[rpass.mergedRootIdx];
-                        rpass.prepare(driver, rootPass);
-                    }
-
-                    // if the ifnal pass is the merged list, we can create it
-                    if (rpass.flags.testBit(VulkanAPI::SubpassFlags::MergedEnd))
-                    {
-                        rpass.bake();
-                    }
-                }
-                else
-                {
-                    // create the renderpass
-                    rpass.prepare(driver);
-                    rpass.bake();
-                }
-
-                // create the framebuffer - this is linked to the renderpass
-                VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
-                VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
-                fbuffer->prepare(*renderpass, views, rpass.maxWidth, rpass.maxHeight, 1);
+                
+                // create the renderpass
+                rpass.prepare(driver);
+                rpass.bake();
                 break;
             }
 
@@ -320,13 +256,25 @@ void RenderGraph::execute()
     cmdBuffer->begin();
     
     // iterate over all passes and execute the registered callback function
-    for (RenderGraphPass& rpass : rGraphPasses)
+    for (const uint32_t& rpassIdx : reorderedPasses)
     {
+        RenderGraphPass& rpass = rGraphPasses[rpassIdx];
+        
         VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
         
         manager.beginRenderpass(cmdBuffer, *renderpass, *fbuffer);
-        rpass.execFunc(rpass.context);
+        
+        if (!rpass.skipPassExec)
+        {
+            rpass.execFunc(rpass.context);
+        }
+        
+        // if this pass has been set to be executed intermintely and requires executing this frame, set the flag to skip on subsequent frames (unless the flag is reset)
+        if (rpass.renderPassFlags.testBit(RenderPassFlags::IntermitentPass) && !rpass.skipPassExec)
+        {
+            rpass.skipPassExec = true;
+        }
 
         cmdBuffer->endPass();
     }

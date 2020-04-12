@@ -9,9 +9,14 @@ namespace OmegaEngine
 
 
 RenderGraphPass::RenderGraphPass(
-    Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
+                                 Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
     : rGraph(rGraph), name(name), type(type), index(index)
 {
+}
+
+void RenderGraphPass::setFlag(const RenderPassFlags& flag)
+{
+    renderPassFlags |= flag;
 }
 
 ResourceHandle RenderGraphPass::addRead(const ResourceHandle input)
@@ -40,7 +45,7 @@ ResourceHandle RenderGraphPass::addWrite(const ResourceHandle output)
     return output;
 }
 
-void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* parent)
+void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
 {
     switch (type)
     {
@@ -48,35 +53,16 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
             // used for signyfing to the subpass the reference ids associated with it
             std::vector<uint32_t> inputRefs, outputRefs;
             uint32_t depthRef = UINT32_MAX;
-
-            // Note: This is integrated yet - merged passes needs some work - will be user defined
-            // rather than automagic as I want to reduce the potential for tons of boilerplate and
-            // bugs if this isn't a merged pass, create a new renderpass. Otherwise, use the parent
-            // pass
-            if (!flags.testBit(VulkanAPI::SubpassFlags::Merged) ||
-                flags.testBit(VulkanAPI::SubpassFlags::MergedBegin))
-            {
-                context.rpass = rGraph.createRenderPass();
-                // the pass will also need a framebuffer - the framebuffer could be handled by the
-                // pass?
-                context.framebuffer = rGraph.createFrameBuffer();
-            }
-
-            VulkanAPI::RenderPass* rpass;
-            if (parent)
-            {
-                rpass = rGraph.getRenderpass(parent->context.rpass);
-            }
-            else
-            {
-                rpass = rGraph.getRenderpass(context.rpass);
-            }
-
+            
+            context.rpass = rGraph.createRenderPass();
+            VulkanAPI::RenderPass* rpass = rGraph.getRenderpass(context.rpass);
             auto& resources = rGraph.getResources();
 
             // add the output attachments
-            for (ResourceHandle handle : writes)
+            std::vector<VulkanAPI::ImageView*> views(writes.size());
+            for (size_t i = 0; i < writes.size(); ++i)
             {
+                ResourceHandle& handle = writes[i];
                 ResourceBase* base = resources[handle];
                 if (base->type == ResourceBase::ResourceType::Texture)
                 {
@@ -93,7 +79,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
                             "There appears to be some discrepancy between this passes resource "
                             "dimensions\n");
                     }
-                    tex->bake(driver);
+                    views[i] = reinterpret_cast<VulkanAPI::ImageView*>(tex->bake(driver));
 
                     if (!VulkanAPI::VkUtil::isDepth(tex->format) ||
                         !VulkanAPI::VkUtil::isStencil(tex->format))
@@ -118,14 +104,13 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* pare
 
             // Add a subpass. If this is a merged pass, then this will be added to the parent
             rpass->addSubPass(inputRefs, outputRefs);
-            if (parent)
-            {
-                rpass->addSubpassDependency(parent->flags);
-            }
-            else
-            {
-                rpass->addSubpassDependency(flags);
-            }
+            rpass->addSubpassDependency(flags);
+            
+            // create the framebuffer - this is linked to the renderpass
+            context.framebuffer = rGraph.createFrameBuffer();
+            VulkanAPI::FrameBuffer* fbuffer = rGraph.getFramebuffer(context.framebuffer);
+            fbuffer->prepare(*rpass, views, maxWidth, maxHeight, 1);
+            
             break;
         }
         case Type::Compute: {
@@ -153,6 +138,11 @@ void RenderGraphPass::setClearColour(const OEMaths::colour4& colour)
 void RenderGraphPass::setDepthClear(const float depth)
 {
     context.depthClear = depth;
+}
+
+void RenderGraphPass::resetSkipExecFlag()
+{
+    skipPassExec = false;
 }
 
 } // namespace OmegaEngine

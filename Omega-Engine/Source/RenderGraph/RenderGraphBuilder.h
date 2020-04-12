@@ -41,9 +41,14 @@ public:
         const uint32_t width,
         const uint32_t height,
         VulkanAPI::ImageView& view);
-
+    
     /**
-     * @ creates a buffer resource for using as a render target in a compute pass
+     @brief Sets the specified renderpass flag
+     */
+    void setRenderPassFlag(const RenderPassFlags& flag);
+    
+    /**
+     @brief Creates a buffer resource for using as a render target in a compute pass
      */
     ResourceHandle createBuffer(BufferResource* buffer);
 

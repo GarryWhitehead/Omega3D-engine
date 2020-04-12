@@ -35,16 +35,25 @@ struct RGraphContext
 
     // useful vulkan managers - not owned by this struct
     VulkanAPI::VkDriver* driver = nullptr;
-    OERenderer* renderer = nullptr;
-
+    //OERenderer* renderer = nullptr;
     RenderGraph* rGraph = nullptr;
 };
 
 using ExecuteFunc = std::function<void(RGraphContext&)>;
 
+// flags for creating render passes
+enum class RenderPassFlags : uint64_t
+{
+    // If set, this pass will only be executed once until the flag is reset
+    IntermitentPass,
+    None,
+    __SENTINEL__
+};
+
 class RenderGraphPass
 {
 public:
+    
     // At the moment, vulkan doesn't support compute subpasses. Thus,
     // if a compute stage is required. Then the renderpass will end, and the
     // compute pass will be deployed, and any remaining graphic passes will be
@@ -58,7 +67,9 @@ public:
     };
 
     RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph, const uint32_t index);
-
+    
+    void setFlag(const RenderPassFlags& flag);
+    
     // adds a input attachment reader handle to the pass
     ResourceHandle addRead(const ResourceHandle input);
 
@@ -69,8 +80,7 @@ public:
     void addExecute(ExecuteFunc&& func);
 
     // init the vulkan renderpass - attachments, ref, dependencies
-    // these can be added to a parent merged pass if defined
-    void prepare(VulkanAPI::VkDriver& driver, RenderGraphPass* parent = nullptr);
+    void prepare(VulkanAPI::VkDriver& driver);
 
     // creates the vulkan renderpass. You must call **prepare()** first
     void bake();
@@ -80,6 +90,9 @@ public:
 
     // sets the depth clear for this pass
     void setDepthClear(const float depthClear);
+    
+    // resets the skip execute flag, so the pass will be executed on the next frame
+    void resetSkipExecFlag();
 
     friend class RenderGraph;
 
@@ -89,7 +102,13 @@ private:
     Type type;
 
     const uint32_t index = 0;
-
+    
+    // flags which alter the behaviour of the pass
+    Util::BitSetEnum<RenderPassFlags> renderPassFlags;
+    
+    // used by the interminent render flag, this states whether the pass should be executed
+    bool skipPassExec = false;
+    
     // a list of handles of input and output attachments
     std::vector<ResourceHandle> reads; // input attachments
     std::vector<ResourceHandle> writes; // colour/depth/stencil attachments
@@ -107,7 +126,7 @@ private:
 
     // flags depicting how the subpasses will behave
     Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
-
+    
     // ======= vulkan specific ================
     // Kept in a struct as this will be passed around when rendering passes
     RGraphContext context;

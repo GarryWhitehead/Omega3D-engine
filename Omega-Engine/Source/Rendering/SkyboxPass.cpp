@@ -41,8 +41,8 @@ void SkyboxPass::setupPass()
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     offscreenTex = builder.createRenderTarget("skybox_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    builder.addReader("LightingPass");
-    builder.addWriter("SkyboxPass", offscreenTex);
+    builder.addReader("lighting");
+    builder.addWriter("skybox", offscreenTex);
 
     // everything required to draw the skybox to the cmd buffer
     builder.addExecute([=](RGraphContext& context) {

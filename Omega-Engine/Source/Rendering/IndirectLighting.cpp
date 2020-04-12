@@ -91,7 +91,8 @@ void IndirectLighting::setupPass()
     {
         RenderGraphBuilder builder =
             rGraph.createPass("BdrfGenerationPass", RenderGraphPass::Type::Graphics);
-
+        builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
+        
         bdrfInfo.texture = builder.createRenderTarget(
             "bdrf_target", lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
 
@@ -111,7 +112,8 @@ void IndirectLighting::setupPass()
     {
         RenderGraphBuilder builder =
             rGraph.createPass("IrradiancePass", RenderGraphPass::Type::Graphics);
-
+        builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
+        
         irrInfo.texture = builder.createRenderTarget(
             "irradiance_target",
             irradianceMapDim,
@@ -129,7 +131,8 @@ void IndirectLighting::setupPass()
     {
         RenderGraphBuilder builder =
             rGraph.createPass("SpecularPass", RenderGraphPass::Type::Graphics);
-
+        builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
+        
         specInfo.texture = builder.createRenderTarget(
             "specular_target", specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
 

@@ -35,6 +35,11 @@ ResourceHandle RenderGraphBuilder::importRenderTarget(
     return rGraph->importResource(name, view, width, height);
 }
 
+void RenderGraphBuilder::setRenderPassFlag(const RenderPassFlags& flag)
+{
+    rPass->setFlag(flag);
+}
+
 ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
 {
     buffer->type = ResourceBase::ResourceType::Buffer;
@@ -48,7 +53,7 @@ AttachmentHandle RenderGraphBuilder::addReader(Util::String name)
     if (handle == UINT64_MAX)
     {
         LOGGER_ERROR("Unable to find corresponding output attachment whilst trying to add input "
-                     "attachment.");
+                     "attachment. Reader: %s", name.c_str());
         return UINT64_MAX;
     }
 

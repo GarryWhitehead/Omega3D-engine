@@ -152,6 +152,15 @@ public:
         return bitset.test(static_cast<int>(idx));
     }
     
+    /**
+     * @brief Sets the specified bit
+     */
+    bool setBit(const T idx)
+    {
+        assert(static_cast<int>(idx) < static_cast<int>(T::__SENTINEL__));
+        return bitset.set(static_cast<int>(idx));
+    }
+    
 private:
 
 	using utype = std::underlying_type_t<T>;

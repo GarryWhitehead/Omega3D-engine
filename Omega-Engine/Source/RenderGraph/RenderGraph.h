@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <vector>
+#include <cstdint>
 
 // forward decleartion
 namespace VulkanAPI
@@ -37,6 +38,7 @@ class RenderGraphBuilder;
 class RenderGraph
 {
 public:
+    
     RenderGraph(VulkanAPI::VkDriver& driver);
     ~RenderGraph();
 
@@ -106,7 +108,10 @@ private:
 
     // a list of all the render passes
     std::vector<RenderGraphPass> rGraphPasses;
-
+    
+    // contains the passes after they have been re-ordered in their optimum sequence
+    std::vector<uint32_t> reorderedPasses;
+    
     // a virtual list of all the resources associated with this graph
     std::vector<ResourceBase*> resources;
 

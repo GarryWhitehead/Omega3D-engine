@@ -41,7 +41,12 @@ void LightingPass::setupPass()
     builder.addReader("normal");
     builder.addReader("pbr");
     builder.addReader("emissive");
-
+    
+     // tthe indirect lighting passes are read from though only executed once
+    builder.addReader("BdrfSampler");
+    builder.addReader("IrradianceSampler");
+    builder.addReader("SpecularSampler");
+    
     // create the gbuffer textures
     passInfo.output = builder.createRenderTarget("lighting_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
