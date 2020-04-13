@@ -100,6 +100,8 @@ struct ImportedResource : public ResourceBase
         const Util::String& name,
         const uint32_t width,
         const uint32_t height,
+        const vk::Format format,
+        const uint8_t samples,
         VulkanAPI::ImageView* imageView);
 
     // This is owned elsewhere - for instance the swapchain
@@ -107,6 +109,8 @@ struct ImportedResource : public ResourceBase
 
     uint32_t width = 0;
     uint32_t height = 0;
+    vk::Format format = vk::Format::eUndefined;
+    uint8_t samples = 0;
 };
 
 // A buffer resource

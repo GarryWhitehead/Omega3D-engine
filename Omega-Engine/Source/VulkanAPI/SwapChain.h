@@ -63,6 +63,7 @@ public:
     uint32_t getExtentsHeight() const;
     uint32_t getExtentsWidth() const;
     ImageView& getImageView(const uint8_t index);
+    vk::Format& getFormat();
     
     friend class VkDriver;
 
@@ -76,9 +77,9 @@ private:
 
     // a swapchain based on the present surface type
     vk::SwapchainKHR swapchain;
-
+    
+    vk::SurfaceFormatKHR surfaceFormat;
     std::vector<SwapchainContext> contexts;
-
     std::unique_ptr<CmdBuffer> scCmdBuffer;
 };
 } // namespace VulkanAPI

@@ -4,6 +4,7 @@
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkContext.h"
 #include "utility/CString.h"
+#include "utility/MurmurHash.h"
 
 #include <unordered_map>
 #include <vector>
@@ -20,63 +21,6 @@ class VertexBuffer;
 class IndexBuffer;
 class Swapchain;
 class SemaphoreManager;
-
-/**
- * @brief Resources are hashed using the data pointer as this will be unique for each resource
- */
-namespace VkHash
-{
-
-struct ResourceIdKey
-{
-    const char* key;
-};
-
-struct ResourceIdHasher
-{
-    size_t operator()(const ResourceIdKey& id) const noexcept
-    {
-        return std::hash<const char*> {}(id.key);
-    }
-};
-
-struct ResourceIdEqualTo
-{
-    bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
-    {
-        return lhs.key == rhs.key;
-    }
-};
-
-struct ResourcePtrKey
-{
-    void* key;
-};
-
-struct ResourcePtrHasher
-{
-    size_t operator()(const ResourcePtrKey& id) const noexcept
-    {
-        return std::hash<void*> {}(id.key);
-    }
-};
-
-struct ResourcePtrEqualTo
-{
-    bool operator()(const ResourcePtrKey& lhs, const ResourcePtrKey& rhs) const
-    {
-        return lhs.key == rhs.key;
-    }
-};
-
-using TextureMap = std::unordered_map<ResourceIdKey, Texture, ResourceIdHasher, ResourceIdEqualTo>;
-using BufferMap = std::unordered_map<ResourceIdKey, Buffer, ResourceIdHasher, ResourceIdEqualTo>;
-using VBufferMap =
-    std::unordered_map<ResourcePtrKey, VertexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
-using IBufferMap =
-    std::unordered_map<ResourcePtrKey, IndexBuffer*, ResourcePtrHasher, ResourcePtrEqualTo>;
-
-}; // namespace VkHash
 
 using DynBufferHandle = uint64_t;
 
@@ -183,20 +127,43 @@ private:
     // staging pool used for managing CPU stages
     std::unique_ptr<StagingPool> stagingPool;
 
-    // resources associated with this device - hashed by the string id
-    VkHash::TextureMap textures;
-    VkHash::BufferMap buffers;
-
-    // mesh data - indexed via the address of the buffer
-    VkHash::VBufferMap vertBuffers;
-    VkHash::IBufferMap indexBuffers;
-
     // The current present KHR frame image index
     uint32_t imageIndex = 0;
 
     // used for ensuring that the image has completed
     vk::Semaphore imageReadySemaphore;
  
+    // ================ Texture / Buffer maps ======================
+    
+    using ResourceIdKey = Util::String;
+    using ResourcePtrKey = void*;
+
+    using resourceIdHasher = Util::Murmur3Hasher<ResourceIdKey>;
+    using resourcePtrHasher = Util::Murmur3Hasher<ResourcePtrKey>;
+    
+    struct ResourceIdEqualTo
+    {
+        bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
+        {
+            return lhs == rhs;
+        }
+    };
+
+    struct ResourcePtrEqualTo
+    {
+        bool operator()(const ResourcePtrKey& lhs, const ResourcePtrKey& rhs) const
+        {
+            return lhs == rhs;
+        }
+    };
+    
+    // texture/buffer resources
+    std::unordered_map<ResourceIdKey, Texture, resourceIdHasher, ResourceIdEqualTo> textures;
+    std::unordered_map<ResourceIdKey, Buffer, resourceIdHasher, ResourceIdEqualTo> buffers;
+    
+    // vertex/index buffers
+    std::unordered_map<ResourcePtrKey, VertexBuffer*, resourcePtrHasher, ResourcePtrEqualTo> vertBuffers;
+    std::unordered_map<ResourcePtrKey, IndexBuffer*, resourcePtrHasher, ResourcePtrEqualTo> indexBuffers;
 };
 
 } // namespace VulkanAPI

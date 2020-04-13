@@ -68,9 +68,10 @@ bool TextureResource::isStencilFormat()
 }
 
 ImportedResource::ImportedResource(
-    const Util::String& name, const uint32_t width, const uint32_t height, VulkanAPI::ImageView* imageView)
+    const Util::String& name, const uint32_t width, const uint32_t height, const vk::Format format,
+           const uint8_t samples, VulkanAPI::ImageView* imageView)
     : ResourceBase(name, ResourceType::Imported) ,
-    width(width), height(height), imageView(imageView)
+    imageView(imageView), width(width), height(height), format(format), samples(samples)
 {
 }
 

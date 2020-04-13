@@ -40,6 +40,8 @@ public:
         Util::String name,
         const uint32_t width,
         const uint32_t height,
+        const vk::Format format,
+        const uint8_t samples,
         VulkanAPI::ImageView& view);
     
     /**

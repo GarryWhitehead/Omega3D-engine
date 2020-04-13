@@ -30,9 +30,11 @@ ResourceHandle RenderGraphBuilder::importRenderTarget(
     Util::String name,
     const uint32_t width,
     const uint32_t height,
+    const vk::Format format,
+    const uint8_t samples,
     VulkanAPI::ImageView& view)
 {
-    return rGraph->importResource(name, view, width, height);
+    return rGraph->importResource(name, view, width, height, format, samples);
 }
 
 void RenderGraphBuilder::setRenderPassFlag(const RenderPassFlags& flag)

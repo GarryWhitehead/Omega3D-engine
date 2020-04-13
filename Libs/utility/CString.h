@@ -21,6 +21,7 @@ public:
 	String& operator=(String&& str) noexcept;
     
     bool operator==(const String& rhs) const noexcept;
+    
 	~String();
 
 	/**

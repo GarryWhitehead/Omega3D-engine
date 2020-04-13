@@ -62,7 +62,7 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
             }
         }
     }
-    vk::SurfaceFormatKHR surfaceFormat = requiredSurfaceFormats;
+    surfaceFormat = requiredSurfaceFormats;
 
     // And then the presentation format - the preferred format is triple buffering
     vk::PresentModeKHR requiredPresentMode;
@@ -185,6 +185,11 @@ uint32_t Swapchain::getExtentsHeight() const
 uint32_t Swapchain::getExtentsWidth() const
 {
     return extent.width;
+}
+
+vk::Format& Swapchain::getFormat()
+{
+    return surfaceFormat.format;
 }
 
 } // namespace VulkanAPI

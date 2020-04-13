@@ -41,8 +41,9 @@ void CompositionPass::setupPass()
     uint32_t currentImageIndex = driver.getCurrentImageIndex();
     
     // final pass, write to the surface
+    // TODO: need to implement user defined sample size - set to one for now
     backBuffer =
-        builder.importRenderTarget("surface", swapchain.getExtentsWidth(), swapchain.getExtentsHeight(), swapchain.getImageView(currentImageIndex));
+        builder.importRenderTarget("surface", swapchain.getExtentsWidth(), swapchain.getExtentsHeight(), swapchain.getFormat(), 1, swapchain.getImageView(currentImageIndex));
 
     builder.addReader("skybox");
     builder.addWriter("composition", backBuffer);

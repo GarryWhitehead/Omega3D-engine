@@ -78,7 +78,9 @@ public:
         const Util::String& name,
         VulkanAPI::ImageView& imageView,
         const uint32_t width,
-        const uint32_t height);
+        const uint32_t height,
+        const vk::Format format,
+        const uint8_t samples);
 
     ResourceHandle moveResource(const ResourceHandle from, const ResourceHandle to);
 

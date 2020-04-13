@@ -2,6 +2,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 #include "VulkanAPI/Utility.h"
+#include "VulkanAPI/Renderpass.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -77,8 +78,9 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     //tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
 
                     outputRefs.emplace_back(tex->referenceId);
+                    VulkanAPI::RenderPass::ClearFlags defaultflags;
                     rpass->addOutputAttachment(
-                        tex->format, tex->referenceId, tex->clearFlags, tex->samples);
+                        tex->format, tex->referenceId, defaultflags, tex->samples);
                 }
                 else if (base->type == ResourceBase::ResourceType::Texture)
                 {

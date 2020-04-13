@@ -82,7 +82,15 @@ DescriptorSetInfo* CBufferManager::findDescriptorSet(uint32_t shaderHash, const 
             {
                 descrSet = &set;
             }
+            else
+            {
+                LOGGER_ERROR("Descriptor with id: %i has no set %i registered", shaderHash, setValue);
+            }
         }
+    }
+    else
+    {
+        LOGGER_ERROR("Unable to find descriptor set with id: %i", shaderHash);
     }
 
     return descrSet;
@@ -171,6 +179,8 @@ void CBufferManager::buildDescriptorSet(uint32_t shaderId)
     for (auto& setBind : setBindings)
     {
         DescriptorSetInfo set;
+        set.setValue = setBind.first;
+        
         vk::DescriptorSetLayoutCreateInfo layoutInfo(
             {}, static_cast<uint32_t>(setBind.second.size()), setBind.second.data());
         VK_CHECK_RESULT(
