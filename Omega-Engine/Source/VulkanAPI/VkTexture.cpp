@@ -1,9 +1,10 @@
 #include "VulkanAPI/VkTexture.h"
 
 #include "VulkanAPI/Buffer.h"
-#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CBufferManager.h"
+#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
+#include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
@@ -34,8 +35,8 @@ enum AddressMode
 vk::Filter Texture::toVkFilter(const OEFilter filter)
 {
     vk::Filter result;
-    
-    switch(filter)
+
+    switch (filter)
     {
         case OEFilter::Nearest:
             result = vk::Filter::eNearest;
@@ -53,8 +54,8 @@ vk::Filter Texture::toVkFilter(const OEFilter filter)
 vk::SamplerAddressMode Texture::toVkAddressMode(const OEAddressMode mode)
 {
     vk::SamplerAddressMode result;
-    
-    switch(mode)
+
+    switch (mode)
     {
         case OEAddressMode::Repeat:
             result = vk::SamplerAddressMode::eRepeat;
@@ -92,21 +93,63 @@ void Texture::create2dTex(
     // and a image view of the empty image
     imageView = new ImageView(driver.getContext());
     imageView->create(driver.getContext().device, *image);
+
+    // create a defaut sampler
+    createSampler(
+        driver.getContext(),
+        vk::Filter::eLinear,
+        vk::Filter::eLinear,
+        vk::SamplerAddressMode::eClampToEdge,
+        vk::SamplerAddressMode::eClampToEdge,
+        8.0f);
+
+    if (VkUtil::isDepth(format) || VkUtil::isStencil(format))
+    {
+        imageLayout = vk::ImageLayout::eDepthStencilReadOnlyOptimal;
+    }
+    else
+    {
+        imageLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+    }
 }
 
-void Texture::createSampler(const VkContext& context, vk::Filter magFilter, vk::Filter minFilter, vk::SamplerAddressMode addrModeU, vk::SamplerAddressMode addrModeV, float maxAntriopsy)
+void Texture::createSampler(
+    const VkContext& context,
+    vk::Filter magFilter,
+    vk::Filter minFilter,
+    vk::SamplerAddressMode addrModeU,
+    vk::SamplerAddressMode addrModeV,
+    float maxAntriopsy)
 {
-    vk::SamplerCreateInfo samplerInfo({}, magFilter, minFilter, vk::SamplerMipmapMode::eNearest, addrModeU, addrModeV, addrModeV, 0.0f,
-                                      VK_TRUE,
-                                      maxAntriopsy,    // TODO: add user control of max antriospy
-                                      VK_FALSE, vk::CompareOp::eNever, 0.0f,
-                                      texContext.mipLevels,    // maxLod should equal the mip-map count?
-                                      vk::BorderColor::eIntOpaqueWhite, VK_FALSE);
+    // override the default sampler
+    if (sampler)
+    {
+        context.device.destroySampler(sampler);
+    }
+
+    vk::SamplerCreateInfo samplerInfo(
+        {},
+        magFilter,
+        minFilter,
+        vk::SamplerMipmapMode::eNearest,
+        addrModeU,
+        addrModeV,
+        addrModeV,
+        0.0f,
+        VK_TRUE,
+        maxAntriopsy, // TODO: add user control of max antriospy
+        VK_FALSE,
+        vk::CompareOp::eNever,
+        0.0f,
+        texContext.mipLevels, // maxLod should equal the mip-map count?
+        vk::BorderColor::eIntOpaqueWhite,
+        VK_FALSE);
 
     VK_CHECK_RESULT(context.device.createSampler(&samplerInfo, nullptr, &sampler));
 }
 
-void Texture::createSampler(const VkContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
+void Texture::createSampler(
+    const VkContext& context, const vk::SamplerCreateInfo& samplerCreateInfo)
 {
     VK_CHECK_RESULT(context.device.createSampler(&samplerCreateInfo, nullptr, &sampler));
 }
@@ -154,14 +197,14 @@ void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eTransferDstOptimal,
         cmdBuffer->get());
-    
+
     cmdBuffer->get().copyBufferToImage(
         stage.buffer,
         image->get(),
         vk::ImageLayout::eTransferDstOptimal,
         static_cast<uint32_t>(copyBuffers.size()),
         copyBuffers.data());
-    
+
     // the final transition here may need improving on....
     Image::transition(
         *image,

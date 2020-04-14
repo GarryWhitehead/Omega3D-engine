@@ -445,6 +445,8 @@ void FrameBuffer::prepare(
     uint32_t layerCount)
 {
     assert(imageViews.size() > 0);
+    assert(w > 0);
+    assert(h > 0);
 
     std::vector<vk::ImageView> views;
     for (auto& view : imageViews)

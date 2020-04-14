@@ -72,6 +72,8 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     
                     // imported targets alreasy have the image view object defined
                     views[i] = tex->imageView;
+                    maxWidth = tex->width;
+                    maxHeight = tex->height;
 
                     // set the dependency flags
                     flags |= VulkanAPI::SubpassFlags::ColourRead;

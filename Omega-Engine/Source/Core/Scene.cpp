@@ -29,23 +29,23 @@ OEScene::~OEScene()
 void OEScene::prepare()
 {
     // camera ubo
-    driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VulkanAPI::Buffer::Usage::Dynamic);
+    driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
     
     // model ubos
     size_t staticDataSize = MaxStaticModelCount * sizeof(TransformUbo);
     size_t skinnedDataSize = MaxSkinnedModelCount * sizeof(SkinnedUbo);
     
-    driver.addUbo(staticTransUboName, staticDataSize, VulkanAPI::Buffer::Usage::Static);
-    driver.addUbo(skinnedTransUboName, skinnedDataSize, VulkanAPI::Buffer::Usage::Static);
+    driver.addUbo(staticTransUboName, staticDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    driver.addUbo(skinnedTransUboName, skinnedDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
     
     // light ubos
     size_t spotlightBufferSize = MaxSpotlightCount * sizeof(SpotLightUbo);
     size_t pointlightBufferSize = MaxPointlightCount * sizeof(PointLightUbo);
     size_t dirlightBufferSize = MaxDirlightCount * sizeof(DirectionalLightUbo);
     
-    driver.addUbo(spotlightUboName, spotlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
-    driver.addUbo(pointlightUboName, pointlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
-    driver.addUbo(dirlightUboName, dirlightBufferSize, VulkanAPI::Buffer::Usage::Dynamic);
+    driver.addUbo(spotlightUboName, spotlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    driver.addUbo(pointlightUboName, pointlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    driver.addUbo(dirlightUboName, dirlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
 void OEScene::getVisibleRenderables(

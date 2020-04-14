@@ -52,7 +52,7 @@ bool VkDriver::init(const vk::SurfaceKHR surface)
     // and the command buffer manager - note: the pool is init on construction so must be done after
     // driver init
     cbManager = std::make_unique<CBufferManager>(*this);
-    
+
     vk::SemaphoreCreateInfo semaphoreCreateInfo;
     VK_CHECK_RESULT(
         context.device.createSemaphore(&semaphoreCreateInfo, nullptr, &imageReadySemaphore));
@@ -67,8 +67,7 @@ void VkDriver::shutdown()
 
 // =========== functions for buffer/texture creation ================
 
-void VkDriver::addUbo(
-    const Util::String& id, const size_t size, VkBufferUsageFlags usage)
+void VkDriver::addUbo(const Util::String& id, const size_t size, VkBufferUsageFlags usage)
 {
     // check if the buffer already exists with the same id. If so, check the size of the current
     // buffer against the size of the requested buffer. If the space is too small, destroy the
@@ -133,20 +132,18 @@ IndexBuffer* VkDriver::addIndexBuffer(const size_t size, uint32_t* data)
 
 void VkDriver::update2DTexture(const Util::String& id, void* data)
 {
-    auto iter = textures.find(id);
-    assert(iter != textures.end());
+    Texture* tex = getTexture2D(id);
+    assert(tex);
     assert(data);
-
-    iter->second.map(*this, *stagingPool, data);
+    tex->map(*this, *stagingPool, data);
 }
 
 void VkDriver::updateUbo(const Util::String& id, const size_t size, void* data)
 {
-    auto iter = buffers.find(id);
-    assert(iter != buffers.end());
+    Buffer* buffer = getBuffer(id);
+    assert(buffer);
     assert(data);
-
-    iter->second.map(data, size);
+    buffer->map(data, size);
 }
 
 // ============================ delete resources ==============================================
@@ -183,7 +180,7 @@ void VkDriver::deleteIndexBuffer(IndexBuffer* buffer)
 
 Texture* VkDriver::getTexture2D(const Util::String& name)
 {
-   for (auto& texture : textures)
+    for (auto& texture : textures)
     {
         if (texture.first == name)
         {
@@ -213,7 +210,11 @@ void VkDriver::beginFrame(Swapchain& swapchain)
 
     // get the next image index which will be the framebuffer we draw too
     context.device.acquireNextImageKHR(
-        swapchain.get(), std::numeric_limits<uint64_t>::max(), imageReadySemaphore, {}, &imageIndex);
+        swapchain.get(),
+        std::numeric_limits<uint64_t>::max(),
+        imageReadySemaphore,
+        {},
+        &imageIndex);
 }
 
 void VkDriver::endFrame(Swapchain& swapchain)

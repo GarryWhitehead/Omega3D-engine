@@ -95,11 +95,11 @@ void main()
 #output: Name=Pbr, 		Type=vec2;
 #output: Name=Emissive, Type=vec4;
 
-#import_material_sampler: Name=baseColourMap, 	Type=2D_Sampler, 	Variant=HAS_BASECOLOUR;
-#import_material_sampler: Name=normalMap, 		Type=2D_Sampler,	Variant=HAS_NORMAL;
-#import_material_sampler: Name=mrMap, 			Type=2D_Sampler,	Variant=HAS_METALLICROUGHNESS;
-#import_material_sampler: Name=emissiveMap, 	Type=2D_Sampler,	Variant=HAS_EMISSIVE;
-#import_material_sampler: Name=aoMap, 			Type=2D_Sampler,	Variant=HAS_OCCLUSION;
+#import_material_sampler: Name=baseColourMap, 	Type=2D_Sampler, 	Variant=HAS_BASECOLOUR,			GroupId=1;
+#import_material_sampler: Name=normalMap, 		Type=2D_Sampler,	Variant=HAS_NORMAL,				GroupId=1;
+#import_material_sampler: Name=mrMap, 			Type=2D_Sampler,	Variant=HAS_METALLICROUGHNESS,	GroupId=1;
+#import_material_sampler: Name=emissiveMap, 	Type=2D_Sampler,	Variant=HAS_EMISSIVE,			GroupId=1;
+#import_material_sampler: Name=aoMap, 			Type=2D_Sampler,	Variant=HAS_OCCLUSION,			GroupId=1;
 
 #push_constant: Name=MaterialPush, id=material;
 [[

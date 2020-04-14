@@ -194,14 +194,21 @@ bool ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptor
     std::string value = iter->second;
     if constexpr (std::is_same_v<T, float>)
     {
-        if (!isNumber(value))
+        if (isNumber(value))
         {
             out = std::stof(value);
         }
     }
     else if constexpr (std::is_same_v<T, int>)
     {
-        if (!isNumber(value))
+        if (isNumber(value))
+        {
+            out = std::stoi(value);
+        }
+    }
+    else if constexpr (std::is_same_v<T, uint16_t>)
+    {
+        if (isNumber(value))
         {
             out = std::stoi(value);
         }
@@ -227,6 +234,7 @@ bool ShaderDescriptor::getTypeValue(const std::string type, const TypeDescriptor
     }
     else
     {
+        LOGGER_WARN("Unrecognised type found whilst compiling shader; type name: %s", type.c_str());
         return false;
     }
     return true;

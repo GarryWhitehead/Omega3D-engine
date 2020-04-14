@@ -35,7 +35,7 @@ vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
         case vk::Format::eD16Unorm:
             aspect = vk::ImageAspectFlagBits::eDepth;
             break;
-            // otherwist must be a colour format
+            // otherwise, must be a colour format
         default:
             aspect = vk::ImageAspectFlagBits::eColor;
     }
