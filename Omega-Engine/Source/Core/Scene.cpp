@@ -3,10 +3,10 @@
 #include "Components/LightManager.h"
 #include "Components/RenderableManager.h"
 #include "Core/Camera.h"
-#include "Core/engine.h"
 #include "Core/Frustum.h"
 #include "Core/ModelGraph.h"
 #include "Core/World.h"
+#include "Core/engine.h"
 #include "ModelImporter/MeshInstance.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Threading/ThreadPool.h"
@@ -30,22 +30,16 @@ void OEScene::prepare()
 {
     // camera ubo
     driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    
+
     // model ubos
     size_t staticDataSize = MaxStaticModelCount * sizeof(TransformUbo);
     size_t skinnedDataSize = MaxSkinnedModelCount * sizeof(SkinnedUbo);
-    
+
     driver.addUbo(staticTransUboName, staticDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
     driver.addUbo(skinnedTransUboName, skinnedDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    
-    // light ubos
-    size_t spotlightBufferSize = MaxSpotlightCount * sizeof(SpotLightUbo);
-    size_t pointlightBufferSize = MaxPointlightCount * sizeof(PointLightUbo);
-    size_t dirlightBufferSize = MaxDirlightCount * sizeof(DirectionalLightUbo);
-    
-    driver.addUbo(spotlightUboName, spotlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    driver.addUbo(pointlightUboName, pointlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    driver.addUbo(dirlightUboName, dirlightBufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+
+    // light ubo
+    driver.addUbo(lightUboName, sizeof(LightUbo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
 void OEScene::getVisibleRenderables(
@@ -134,8 +128,9 @@ OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::ma
     OEMaths::mat4f localMat = candidate.transform->modelTransform;
     candidate.worldTransform = worldMat * localMat;
 
-    AABBox box {candidate.renderable->instance->dimensions.min,
-                candidate.renderable->instance->dimensions.max};
+    AABBox box {
+        candidate.renderable->instance->dimensions.min,
+        candidate.renderable->instance->dimensions.max};
     candidate.worldAABB = AABBox::calculateRigidTransform(box, candidate.worldTransform);
     return candidate;
 }
@@ -149,7 +144,7 @@ bool OEScene::update(const double time)
     {
         return false;
     }
-    
+
     auto& objects = world.getObjectsList();
     auto& models = world.getModelGraph().getNodeList();
 
@@ -272,7 +267,7 @@ bool OEScene::update(const double time)
     updateTransformBuffer(candRenderableObjs, staticModelCount, skinnedModelCount);
 
     updateLightBuffer(candLightObjs);
-    
+
     return true;
 }
 
@@ -287,7 +282,7 @@ void OEScene::updateCameraBuffer()
     ubo.view = camera->getViewMatrix();
     ubo.zNear = camera->getZNear();
     ubo.zFar = camera->getZFar();
-    
+
     driver.updateUbo(cameraUboName, sizeof(OECamera::Ubo), &ubo);
 }
 
@@ -302,17 +297,17 @@ void OEScene::updateTransformBuffer(
     Util::AlignedAlloc skinAlignAlloc;
     Util::AlignedAlloc staticAlignAlloc;
 
-    if (skinnedModelCount > 0)
-    {
-        skinAlignAlloc.alloc(skinDynAlign * skinnedModelCount, skinDynAlign);
-        assert(!skinAlignAlloc.empty());
-    }
     if (staticModelCount > 0)
     {
         staticAlignAlloc.alloc(staticDynAlign * staticModelCount, staticDynAlign);
         assert(!staticAlignAlloc.empty());
     }
-
+    if (skinnedModelCount > 0)
+    {
+        skinAlignAlloc.alloc(skinDynAlign * skinnedModelCount, skinDynAlign);
+        assert(!skinAlignAlloc.empty());
+    }
+    
     size_t staticCount = 0;
     size_t skinnedCount = 0;
 
@@ -325,23 +320,21 @@ void OEScene::updateTransformBuffer(
         }
 
         TransformInfo* transInfo = cand.transform;
-        if (transInfo->jointMatrices.empty())
-        {
-            size_t offset = staticDynAlign * staticCount++;
-            TransformUbo* currStaticPtr =
-                (TransformUbo*) ((uint64_t) staticAlignAlloc.getData() + (offset));
-            currStaticPtr->modelMatrix = transInfo->modelTransform;
 
-            // the dynamic buffer offsets are stored in the renderable for ease of access when
-            // drawing
-            rend->dynamicOffset = offset;
-        }
-        else
+        size_t offset = staticDynAlign * staticCount++;
+        TransformUbo* currStaticPtr =
+            (TransformUbo*) ((uint64_t) staticAlignAlloc.getData() + (offset));
+        currStaticPtr->modelMatrix = transInfo->modelTransform;
+
+        // the dynamic buffer offsets are stored in the renderable for ease of access when
+        // drawing
+        rend->dynamicOffset = offset;
+
+        if (!transInfo->jointMatrices.empty())
         {
             size_t offset = skinDynAlign * skinnedCount++;
             SkinnedUbo* currSkinnedPtr =
                 (SkinnedUbo*) ((uint64_t) skinAlignAlloc.getData() + (skinDynAlign * skinnedCount++));
-            currSkinnedPtr->modelMatrix = cand.worldTransform;
 
             // rather than throw an error, clamp the joint if it exceeds the max
             uint32_t jointCount = std::min(
@@ -378,9 +371,7 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
     uint32_t pointlightCount = 0;
     uint32_t dirLightCount = 0;
 
-    std::array<SpotLightUbo, OELightManager::MAX_SPOT_LIGHTS> spotLights;
-    std::array<PointLightUbo, OELightManager::MAX_POINT_LIGHTS> pointLights;
-    std::array<DirectionalLightUbo, OELightManager::MAX_DIR_LIGHTS> dirLights;
+    LightUbo lightUbo;
 
     // copy the light attributes we need for use in the light shaders.
     for (LightBase* light : candLights)
@@ -395,54 +386,43 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
             const auto& spotLight = static_cast<SpotLight*>(light);
 
             // fill in the data to be sent to the gpu
-            SpotLightUbo ubo {light->lightMvp,
-                              OEMaths::vec4f {spotLight->position, 1.0f},
-                              OEMaths::vec4f {spotLight->target, 1.0f},
-                              {spotLight->colour, spotLight->intensity},
-                              spotLight->scale,
-                              spotLight->offset,
-                              spotLight->fallout};
-            spotLights[spotlightCount++] = ubo;
+            SpotLightUbo ubo {
+                light->lightMvp,
+                OEMaths::vec4f {spotLight->position, 1.0f},
+                OEMaths::vec4f {spotLight->target, 1.0f},
+                {spotLight->colour, spotLight->intensity},
+                spotLight->scale,
+                spotLight->offset,
+                spotLight->fallout};
+            lightUbo.spotLights[spotlightCount++] = ubo;
         }
         else if (light->type == LightType::Point)
         {
             const auto& pointLight = static_cast<PointLight*>(light);
 
             // fill in the data to be sent to the gpu
-            PointLightUbo ubo {light->lightMvp,
-                               OEMaths::vec4f {pointLight->position, 1.0f},
-                               {pointLight->colour, pointLight->intensity},
-                               pointLight->fallOut};
-            pointLights[pointlightCount++] = ubo;
+            PointLightUbo ubo {
+                light->lightMvp,
+                OEMaths::vec4f {pointLight->position, 1.0f},
+                {pointLight->colour, pointLight->intensity},
+                pointLight->fallOut};
+            lightUbo.pointLight[pointlightCount++] = ubo;
         }
         else if (light->type == LightType::Directional)
         {
             const auto& dirLight = static_cast<DirectionalLight*>(light);
 
             // fill in the data to be sent to the gpu
-            DirectionalLightUbo ubo {dirLight->lightMvp,
-                                     OEMaths::vec4f {dirLight->position, 1.0f},
-                                     OEMaths::vec4f {dirLight->target, 1.0f},
-                                     {dirLight->colour, dirLight->intensity}};
-            dirLights[dirLightCount++] = ubo;
+            DirectionalLightUbo ubo {
+                dirLight->lightMvp,
+                OEMaths::vec4f {dirLight->position, 1.0f},
+                OEMaths::vec4f {dirLight->target, 1.0f},
+                {dirLight->colour, dirLight->intensity}};
+            lightUbo.dirLight[dirLightCount++] = ubo;
         }
     }
 
-    if (spotlightCount)
-    {
-        size_t dataSize = spotlightCount * sizeof(SpotLightUbo);
-        driver.updateUbo(spotlightUboName, dataSize, spotLights.data());
-    }
-    if (pointlightCount)
-    {
-        size_t dataSize = pointlightCount * sizeof(PointLightUbo);
-        driver.updateUbo(pointlightUboName, dataSize, pointLights.data());
-    }
-    if (dirLightCount)
-    {
-        size_t dataSize = dirLightCount * sizeof(DirectionalLightUbo);
-        driver.updateUbo(dirlightUboName, dataSize, dirLights.data());
-    }
+    driver.updateUbo(lightUboName, sizeof(LightUbo), &lightUbo);
 }
 
 void OEScene::setCurrentCamera(OECamera* cam)
@@ -466,7 +446,7 @@ bool OEScene::addSkybox(OESkybox* sb)
         return false;
     }
     skybox = sb;
-    
+
     return true;
 }
 

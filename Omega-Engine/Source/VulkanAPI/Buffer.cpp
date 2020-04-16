@@ -126,7 +126,7 @@ void Buffer::prepare(
 
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    //allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
     VMA_CHECK_RESULT(
         vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer, &mem, &allocInfo));
@@ -135,8 +135,10 @@ void Buffer::prepare(
 void Buffer::map(void* data, size_t dataSize)
 {
     assert(data);
-    assert(allocInfo.pMappedData);
+   
+    vmaMapMemory(*vmaAllocator, mem, &allocInfo.pMappedData);
     memcpy(allocInfo.pMappedData, data, dataSize);
+    vmaUnmapMemory(*vmaAllocator, mem);
 }
 
 void Buffer::destroy()

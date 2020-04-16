@@ -136,10 +136,6 @@ class OELightManager : public ComponentManager, public LightManager
 {
 
 public:
-	
-    static constexpr uint32_t MAX_SPOT_LIGHTS = 50;
-    static constexpr uint32_t MAX_POINT_LIGHTS = 50;
-    static constexpr uint32_t MAX_DIR_LIGHTS = 5;
     
 	OELightManager();
 	~OELightManager();

@@ -236,7 +236,7 @@ void CBufferManager::updateDescriptors(
         assert(buffer);
         
         vk::DescriptorBufferInfo bufferInfo {
-            buffer->get(), buffer->getOffset(), buffer->getSize()};
+            buffer->get(),0 /* buffer->getOffset() */, buffer->getSize()};
         vk::WriteDescriptorSet write {set, bindingValue, 0, 1, type, nullptr, &bufferInfo, nullptr};
         driver.getContext().device.updateDescriptorSets(1, &write, 0, nullptr);
     }
