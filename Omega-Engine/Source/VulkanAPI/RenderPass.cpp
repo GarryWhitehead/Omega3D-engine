@@ -255,7 +255,8 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
         if (flags.testBit(SubpassFlags::ColourRead))
         {
             dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            dependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            dependencies[0].dstAccessMask =
+                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (
             (flags.testBit(SubpassFlags::DepthRead)) && flags.testBit(SubpassFlags::StencilRead))
@@ -279,7 +280,7 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
         dependencies[0].srcSubpass = 0;
         dependencies[0].dstSubpass = VK_SUBPASS_EXTERNAL;
         dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        dependencies[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        dependencies[0].dstAccessMask = vk::AccessFlagBits::eMemoryRead;
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
@@ -304,8 +305,9 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
     }
     else
     {
-        LOGGER_WARN("dependenciesency doesn't defeine either top or bottom pipeline bit. This could "
-                    "result in invalid dependenciesencies");
+        LOGGER_WARN(
+            "dependenciesency doesn't defeine either top or bottom pipeline bit. This could "
+            "result in invalid dependenciesencies");
     }
 
     // src and dst stage masks cannot be zero
@@ -319,21 +321,20 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
     dependencies[1].dstStageMask = dependencies[0].srcStageMask;
     dependencies[1].srcAccessMask = dependencies[0].dstAccessMask;
     dependencies[1].dstAccessMask = dependencies[0].srcAccessMask;
+    dependencies[1].dependencyFlags = vk::DependencyFlagBits::eByRegion;
 }
 
-void RenderPass::prepare(std::vector<ImageView*>& imageViews,
-uint32_t width,
-uint32_t height,
-uint32_t layerCount)
+void RenderPass::prepare(
+    std::vector<ImageView*>& imageViews, uint32_t width, uint32_t height, uint32_t layerCount)
 {
     assert(imageViews.size() > 0);
     assert(width > 0);
     assert(height > 0);
-    
+
     // store locally the screen extents for use later
     this->width = width;
     this->height = height;
-    
+
     // copy all the subpass declerations into one container
     assert(!subpasses.empty());
 
@@ -367,7 +368,7 @@ uint32_t layerCount)
         dependencies.data());
 
     VK_CHECK_RESULT(context.device.createRenderPass(&createInfo, nullptr, &renderpass));
-    
+
     // and create the framebuffer.....
     std::vector<vk::ImageView> views;
     for (auto& view : imageViews)
@@ -375,13 +376,14 @@ uint32_t layerCount)
         views.emplace_back(view->get());
     }
 
-    vk::FramebufferCreateInfo frameInfo {{},
-                                         renderpass,
-                                         static_cast<uint32_t>(views.size()),
-                                         views.data(),
-                                         width,
-                                         height,
-                                         layerCount};
+    vk::FramebufferCreateInfo frameInfo {
+        {},
+        renderpass,
+        static_cast<uint32_t>(views.size()),
+        views.data(),
+        width,
+        height,
+        layerCount};
 
     VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
@@ -447,7 +449,7 @@ std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs(
         colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
             vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
         colour.blendEnable = VK_FALSE; //< TODO: need to add blending
-        colAttachs.push_back(colour);
+        colAttachs[i] = colour;
     }
     return colAttachs;
 }

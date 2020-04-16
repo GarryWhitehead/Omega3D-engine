@@ -112,7 +112,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     // ==================== bindings ==========================
 
     VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-    cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+    cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
 
     cmdBuffer->bindDynamicDescriptors(cbManager,
         prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);

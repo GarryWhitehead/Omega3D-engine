@@ -6,6 +6,7 @@
 #include "RenderGraph/RenderGraphPass.h"
 #include "Rendering/SkyboxPass.h"
 #include "Types/Skybox.h"
+#include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Image.h"
@@ -103,7 +104,7 @@ void IndirectLighting::setupPass()
             VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
             VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(rpassContext.rpass);
-            cmdBuffer->bindPipeline(cbManager, renderpass, bdrf_prog);
+            cmdBuffer->bindPipeline(cbManager, renderpass, bdrf_prog, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->drawQuad();
         });
     }
@@ -174,16 +175,18 @@ void IndirectLighting::buildMap(
     VulkanAPI::Image* osImage = osTexture.getImage();
 
     // transition cube texture for transfer
-    VulkanAPI::Image::transition(
-        *image,
-        vk::ImageLayout::eUndefined,
-        vk::ImageLayout::eTransferDstOptimal,
-        cmdBuffer->get());
-
+    VulkanAPI::CmdBuffer* workCmdBuffer = cbManager.getWorkCmdBuffer();
     VulkanAPI::Image::transition(
         *osImage,
         vk::ImageLayout::eUndefined,
         vk::ImageLayout::eColorAttachmentOptimal,
+        workCmdBuffer->get());
+    workCmdBuffer->flush();
+
+    VulkanAPI::Image::transition(
+        *image,
+        vk::ImageLayout::eUndefined,
+        vk::ImageLayout::eTransferDstOptimal,
         cmdBuffer->get());
 
     // record command buffer for each mip and their layers
@@ -197,10 +200,10 @@ void IndirectLighting::buildMap(
             vk::Viewport viewPort =
                 vk::Viewport {0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f};
 
-            cmdBuffer->setViewport(viewPort);
-
             VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-            cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+            rgraphContext.driver->beginRenderpass(cmdBuffer, *renderpass);
+
+            cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
             cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);

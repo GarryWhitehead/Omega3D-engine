@@ -223,7 +223,7 @@ void VkDriver::endFrame(Swapchain& swapchain)
     cbManager->flushSwapchainCmdBuffer(imageReadySemaphore, swapchain, imageIndex);
 }
 
-void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass)
+void VkDriver::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass)
 {
     // setup the clear values for this pass - need one for each attachment
     vk::ClearValue clearValue[2];
@@ -263,7 +263,7 @@ void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass)
     cmdBuffer->setScissor(scissor);
 }
 
-void CBufferManager::endRenderpass(CmdBuffer* cmdBuffer)
+void VkDriver::endRenderpass(CmdBuffer* cmdBuffer)
 {
     cmdBuffer->endPass();
 }

@@ -17,6 +17,8 @@ class ProgramManager;
 class CBufferManager;
 class Buffer;
 class Texture;
+class CmdBuffer;
+class RenderPass;
 class VertexBuffer;
 class IndexBuffer;
 class Swapchain;
@@ -100,6 +102,10 @@ public:
     void beginFrame(Swapchain& swapchain);
 
     void endFrame(Swapchain& swapchain);
+
+    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass);
+
+    void endRenderpass(CmdBuffer* cmdBuffer);
 
     // ====== manager helper functions ===================================
 

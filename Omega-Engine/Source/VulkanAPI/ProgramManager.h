@@ -4,8 +4,8 @@
 #include "VulkanAPI/Shader.h"
 #include "utility/BitsetEnum.h"
 #include "utility/CString.h"
-#include "utility/MurmurHash.h"
 #include "utility/Compiler.h"
+#include "utility/MurmurHash.h"
 
 #include <memory>
 #include <string>
@@ -63,10 +63,10 @@ struct RenderStateBlock
 
     struct RasterState
     {
-        vk::CullModeFlagBits cullMode;
-        vk::PolygonMode polygonMode;
-        vk::FrontFace frontFace;
-        vk::PrimitiveTopology topology;
+        vk::CullModeFlagBits cullMode = vk::CullModeFlagBits::eNone;
+        vk::PolygonMode polygonMode = vk::PolygonMode::eFill;
+        vk::FrontFace frontFace = vk::FrontFace::eCounterClockwise;
+        vk::PrimitiveTopology topology = vk::PrimitiveTopology::eTriangleList;
         bool primRestart = false;
     };
 
@@ -225,20 +225,21 @@ public:
 
     void overrideRenderState(RenderStateBlock* renderState);
 
-    ShaderBinding::SamplerBinding& findSamplerBinding(const Util::String& name, const Shader::Type type);
+    ShaderBinding::SamplerBinding&
+    findSamplerBinding(const Util::String& name, const Shader::Type type);
 
     ShaderBinding& findShaderBinding(const Shader::Type type);
 
     std::vector<vk::PipelineShaderStageCreateInfo> getShaderCreateInfo();
 
     PipelineLayout* getPLineLayout();
-    
+
     MaterialBindingInfo* getMaterialBindingInfo();
-    
+
     uint8_t getSetCount() const;
-    
+
     uint32_t getShaderId() const;
-    
+
     /**
      * @brief Updates a spec constant which must have been stated in the shader json with a new
      * value which will set at pipeline generation time. If the spec constant isn't uodated, then
@@ -265,24 +266,24 @@ public:
 
 private:
     VkDriver& driver;
-    
+
     // id for this shader is created by hashing the shader file path
     uint32_t shaderId;
 
     std::vector<ShaderBinding> stages;
-    
+
     // the total number of sets associated with this shader
     uint8_t setCount = 0;
-    
+
     // this block overrides all render state for this shader.
     std::unique_ptr<RenderStateBlock> renderState;
 
     // input bindings for the vertex shader
     std::vector<InputBinding> inputs;
-    
+
     // the material bindings are stored here as we only expect this to be registered from one shader
     std::vector<ShaderBinding::SamplerBinding> materialBindings;
-    
+
     std::unique_ptr<PipelineLayout> pLineLayout;
 
     // shader constants to add during compiler time
@@ -296,7 +297,6 @@ private:
 class ProgramManager
 {
 public:
-    
 #pragma pack(push, 1)
     struct OE_PACKED ShaderKey
     {
@@ -304,7 +304,7 @@ public:
         uint64_t variantBits;
         uint32_t topology;
     };
-    
+
     // the cached shader key also is keyed by the shader stage
     struct OE_PACKED CachedKey
     {
@@ -314,10 +314,12 @@ public:
         uint32_t topology;
     };
 #pragma pack(pop)
-    
-    static_assert(std::is_pod<ShaderKey>::value, "ShaderKey must be a POD for the hashing to work correctly");
-    static_assert(std::is_pod<CachedKey>::value, "CachedKey must be a POD for the hashing to work correctly");
-    
+
+    static_assert(
+        std::is_pod<ShaderKey>::value, "ShaderKey must be a POD for the hashing to work correctly");
+    static_assert(
+        std::is_pod<CachedKey>::value, "CachedKey must be a POD for the hashing to work correctly");
+
     ProgramManager(VkDriver& driver);
     ~ProgramManager();
 
@@ -353,13 +355,13 @@ public:
      */
     ShaderProgram* findVariant(const ShaderKey& key);
 
-    ShaderProgram* getVariantOrCreate(const Util::String& filename, uint64_t variantBits, uint32_t topology = UINT32_MAX);
+    ShaderProgram* getVariantOrCreate(
+        const Util::String& filename, uint64_t variantBits, uint32_t topology = UINT32_MAX);
 
     /**
      * @brief Creates a shader fragment that will be cached until ready for use
      */
-    ShaderDescriptor*
-    createCachedInstance(const CachedKey& hash, const ShaderDescriptor& descr);
+    ShaderDescriptor* createCachedInstance(const CachedKey& hash, const ShaderDescriptor& descr);
 
     /**
      * @brief Checks whether a shader fragment has been cached as specified by the hash
@@ -383,15 +385,15 @@ private:
                 lhs.topology == rhs.topology;
         }
     };
-    
+
     using CachedHasher = Util::Murmur3Hasher<CachedKey>;
-    
+
     struct CachedEqual
     {
         bool operator()(const CachedKey& lhs, const CachedKey& rhs) const
         {
-            return lhs.shaderId == rhs.shaderId && lhs.shaderStage == rhs.shaderStage && lhs.variantBits == rhs.variantBits &&
-                lhs.topology == rhs.topology;
+            return lhs.shaderId == rhs.shaderId && lhs.shaderStage == rhs.shaderStage &&
+                lhs.variantBits == rhs.variantBits && lhs.topology == rhs.topology;
         }
     };
 
@@ -406,4 +408,3 @@ private:
 };
 
 } // namespace VulkanAPI
-

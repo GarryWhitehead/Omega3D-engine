@@ -59,7 +59,7 @@ void LightingPass::setupPass()
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
         // bind the pipeline
         VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-        cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+        cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
 
         // bind the descriptor
         cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);

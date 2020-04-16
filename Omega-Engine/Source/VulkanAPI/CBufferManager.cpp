@@ -42,7 +42,7 @@ CBufferManager::~CBufferManager()
     driver.getContext().device.destroy(cmdPool, nullptr);
 }
 
-Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass)
+Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type)
 {
     Pipeline* pline = nullptr;
 
@@ -58,7 +58,7 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     {
         // else create a new pipeline - If we are in a threaded environemt then we can't add to the
         // list until we are out of the thread
-        pline = new Pipeline(driver.getContext(), *rPass, *prog->getPLineLayout());
+        pline = new Pipeline(driver.getContext(), *rPass, *prog->getPLineLayout(), type);
         pline->create(*prog);
         pipelines.emplace(key, pline);
     }

@@ -51,7 +51,7 @@ void SkyboxPass::setupPass()
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
         VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-        cmdBuffer->bindPipeline(cbManager, renderpass, prog);
+        cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
 
         cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
         cmdBuffer->bindPushBlock(

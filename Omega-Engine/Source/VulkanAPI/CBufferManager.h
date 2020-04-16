@@ -7,7 +7,6 @@
 #include "utility/Compiler.h"
 
 #include <cstdint>
-#include <deque>
 #include <unordered_map>
 #include <vector>
 
@@ -63,7 +62,7 @@ public:
      * @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to
      * the pipeline if it does, otherwise nullptr
      */
-    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass);
+    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type);
 
     void addDescriptorLayout(
         uint32_t shaderId,
@@ -110,10 +109,6 @@ public:
     vk::DescriptorPool& getDescriptorPool();
 
     // =============== renderpass functions ================================
-
-    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass);
-
-    void endRenderpass(CmdBuffer* cmdBuffer);
 
     CmdBuffer* createSecondaryCmdBuffer();
     void executeSecondaryCommands();

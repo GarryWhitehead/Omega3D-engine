@@ -117,7 +117,7 @@ public:
     MaterialInstance* material = nullptr;
 
     /// defines the topology to use in the program state
-    Topology topology;
+    Topology topology = Topology::TrinagleList;
 
     /// the overall dimensions of this model. Sub-meshses contain their own dimensions
     Dimensions dimensions;

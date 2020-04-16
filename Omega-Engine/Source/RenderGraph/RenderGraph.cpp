@@ -258,8 +258,6 @@ void RenderGraph::execute()
     for (const uint32_t& rpassIdx : reorderedPasses)
     {
         RenderGraphPass& rpass = rGraphPasses[rpassIdx];
-        VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
-        manager.beginRenderpass(cmdBuffer, *renderpass);
         
         if (!rpass.skipPassExec)
         {

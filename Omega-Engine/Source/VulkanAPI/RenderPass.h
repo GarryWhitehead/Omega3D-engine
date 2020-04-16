@@ -27,9 +27,6 @@ enum class SubpassFlags : uint64_t
     ColourRead,
     TopOfPipeline,
     BottomOfPipeline,
-    Merged,
-    MergedBegin,
-    MergedEnd,
     Threaded,
     __SENTINEL__
 };
@@ -121,6 +118,8 @@ public:
     bool hasDepthAttach();
 
     std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
+
+    friend class VkDriver;
 
 private:
     struct SubpassInfo

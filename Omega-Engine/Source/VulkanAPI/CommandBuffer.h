@@ -49,18 +49,33 @@ public:
      */
     void beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents);
     void endPass();
-    
+
     // viewport, scissors, etc.
     void setViewport(const vk::Viewport& viewPort);
     void setScissor(const vk::Rect2D& scissor);
 
     // primary binding functions
-    void bindPipeline(CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program);
-    void bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType);
-    void bindDynamicDescriptors(CBufferManager& cbManager,
-        ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type type);
-    void
-    bindDynamicDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const uint32_t offset, const Pipeline::Type type);
+    void bindPipeline(
+        CBufferManager& cbManager,
+        RenderPass* renderpass,
+        ShaderProgram* program,
+        Pipeline::Type type);
+
+    void bindDescriptors(
+        CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType);
+
+    void bindDynamicDescriptors(
+        CBufferManager& cbManager,
+        ShaderProgram* prog,
+        std::vector<uint32_t>& offsets,
+        const Pipeline::Type type);
+
+    void bindDynamicDescriptors(
+        CBufferManager& cbManager,
+        ShaderProgram* prog,
+        const uint32_t offset,
+        const Pipeline::Type type);
+
     void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
     void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
     void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);

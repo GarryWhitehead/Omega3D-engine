@@ -24,7 +24,7 @@ public:
         Compute
     };
     
-	Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout);
+	Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout, Pipeline::Type type);
 	~Pipeline();
 
     // not copyable

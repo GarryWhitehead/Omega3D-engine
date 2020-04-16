@@ -81,9 +81,10 @@ void CmdBuffer::setViewport(const vk::Viewport& newViewPort)
     cmdBuffer.setViewport(0, 1, &viewPort);
 }
 
-void CmdBuffer::bindPipeline(CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program)
+void CmdBuffer::bindPipeline(
+    CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program, Pipeline::Type type)
 {
-    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass);
+    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, type);
     assert(pline);
     // check whether this pipeline is already bound - we don't have to do anything if so
     if (!boundPipeline || pline != boundPipeline)
