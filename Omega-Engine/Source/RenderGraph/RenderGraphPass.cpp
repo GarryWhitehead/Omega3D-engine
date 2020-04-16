@@ -124,13 +124,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             rpass->addSubpassDependency(flags);
 
             // create the actual vulkan renderpass object
-            rpass->prepare();
-
-            // create the framebuffer - this is linked to the renderpass
-            context.framebuffer = rGraph.createFrameBuffer();
-            VulkanAPI::FrameBuffer* fbuffer = rGraph.getFramebuffer(context.framebuffer);
-            fbuffer->prepare(*rpass, views, maxWidth, maxHeight, 1);
-
+            rpass->prepare(views, maxWidth, maxHeight, 1);
             break;
         }
         case Type::Compute: {

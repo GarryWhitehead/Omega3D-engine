@@ -20,7 +20,6 @@ namespace VulkanAPI
 class ProgramManager;
 class CBufferManager;
 class CmdBuffer;
-class FrameBuffer;
 class RenderPass;
 class VkDriver;
 class ImageView;
@@ -35,11 +34,23 @@ class OERenderer;
 class RenderGraphPass;
 class RenderGraphBuilder;
 
+struct RGraphContext
+{
+    RGraphContext() = default;
+    RGraphContext(VulkanAPI::VkDriver* driver, OERenderer* renderer, RenderGraph* rGraph) :
+        driver(driver), renderer(renderer), rGraph(rGraph)
+    {}
+    
+    VulkanAPI::VkDriver* driver = nullptr;
+    OERenderer* renderer = nullptr;
+    RenderGraph* rGraph = nullptr;
+};
+
 class RenderGraph
 {
 public:
     
-    RenderGraph(VulkanAPI::VkDriver& driver);
+    RenderGraph(VulkanAPI::VkDriver* driver, OERenderer* renderer);
     ~RenderGraph();
 
     // not copyable or moveable
@@ -72,7 +83,6 @@ public:
     void execute();
 
     RPassHandle createRenderPass();
-    FBufferHandle createFrameBuffer();
 
     ResourceHandle importResource(
         const Util::String& name,
@@ -88,7 +98,6 @@ public:
     ResourceBase* getResource(const ResourceHandle handle);
 
     VulkanAPI::RenderPass* getRenderpass(const RPassHandle& handle);
-    VulkanAPI::FrameBuffer* getFramebuffer(const FBufferHandle& handle);
 
     friend class RenderGraphPass;
     friend class RenderGraphBuilder;
@@ -106,7 +115,8 @@ private:
     bool compile();
 
 private:
-    VulkanAPI::VkDriver& driver;
+    
+    RGraphContext context;
 
     // a list of all the render passes
     std::vector<RenderGraphPass> rGraphPasses;
@@ -125,7 +135,6 @@ private:
 
     // all allocated renderpasses and framebuffers are registered here.
     std::vector<std::unique_ptr<VulkanAPI::RenderPass>> renderpasses;
-    std::vector<std::unique_ptr<VulkanAPI::FrameBuffer>> framebuffers;
 
     bool rebuild = true;
 };

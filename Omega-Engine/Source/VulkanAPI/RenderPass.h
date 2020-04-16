@@ -8,6 +8,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 namespace VulkanAPI
 {
@@ -96,11 +97,15 @@ public:
 
     void addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassFlags>& flags);
 
-    /// Actually creates the renderpass based on the above definitions
-    void prepare();
+    /// Actually creates the renderpass based on the above definitions and creates the framebuffer
+    void prepare(std::vector<ImageView*>& imageViews,
+    uint32_t width,
+    uint32_t height,
+    uint32_t layerCount = 1);
 
     // ====================== the getter and setters =================================
     vk::RenderPass& get();
+    vk::Framebuffer& getFrameBuffer();
 
     // kind of replicated from the frame buffer
     uint32_t getWidth() const;
@@ -139,6 +144,7 @@ private:
     VkContext& context;
 
     vk::RenderPass renderpass;
+    vk::Framebuffer fbuffer;
 
     /// the colour/input attachments
     std::vector<vk::AttachmentDescription> attachments;
@@ -149,7 +155,7 @@ private:
     std::vector<SubpassInfo> subpasses;
 
     /// the dependencies between renderpasses and external sources
-    std::vector<vk::SubpassDependency> dependencies;
+    std::array<vk::SubpassDependency, 2> dependencies;
 
     /// the clear colour for this pass - for each attachment
     OEMaths::colour4 clearCol;
@@ -158,46 +164,6 @@ private:
     /// max extents of this pass
     uint32_t width = 0;
     uint32_t height = 0;
-};
-
-class FrameBuffer
-{
-public:
-   
-    FrameBuffer(VkContext& context);
-    ~FrameBuffer();
-
-    void prepare(
-        RenderPass& rpass,
-        std::vector<ImageView*>& imageViews,
-        uint32_t width,
-        uint32_t height,
-        uint32_t layerCount);
-
-    vk::Framebuffer& get()
-    {
-        return fbuffer;
-    }
-
-    uint32_t getWidth() const
-    {
-        return width;
-    }
-
-    uint32_t getHeight() const
-    {
-        return height;
-    }
-
-private:
-    // references
-    VkContext& context;
-
-    // extents of this buffer
-    uint32_t width = 0;
-    uint32_t height = 0;
-
-    vk::Framebuffer fbuffer;
 };
 
 } // namespace VulkanAPI

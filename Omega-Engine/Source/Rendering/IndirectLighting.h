@@ -51,7 +51,7 @@ public:
     bool init(VulkanAPI::ProgramManager* manager) override;
     void setupPass() override;
     
-	void buildMap(RGraphContext& context, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, OESkybox& skybox);
+	void buildMap(RGraphContext& rgraphContext, RGraphPassContext rpassContext, VulkanAPI::ShaderProgram* prog, uint32_t dim, const MapType type, OESkybox& skybox);
 
 private:
     

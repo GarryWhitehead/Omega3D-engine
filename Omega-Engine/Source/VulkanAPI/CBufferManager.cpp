@@ -155,7 +155,7 @@ void CBufferManager::createMainDescriptorPool()
     VK_CHECK_RESULT(driver.getContext().device.createDescriptorPool(&createInfo, nullptr, &descriptorPool));
 }
 
-void CBufferManager::buildDescriptorSet(uint32_t shaderId)
+void CBufferManager::buildDescriptorSet(uint32_t shaderId, PipelineLayout* plineLayout)
 {
     assert(shaderId > 0);
     auto& bindings = descriptorBindings[shaderId];
@@ -192,6 +192,9 @@ void CBufferManager::buildDescriptorSet(uint32_t shaderId)
         
         DescriptorKey key {shaderId};
         descriptorSets[key].emplace_back(set);
+        
+        // also update the appropiate pipeline layout with this descriptor layout
+        plineLayout->addDescriptorLayout(set.layout);
     }
 }
 

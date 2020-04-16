@@ -12,11 +12,9 @@ PipelineLayout::PipelineLayout()
 {
 }
 
-void PipelineLayout::prepare(VkContext& context, const std::vector<vk::DescriptorSetLayout>& layouts)
+void PipelineLayout::prepare(VkContext& context)
 {
-	// create push constants
-	// TODO: this needs a bit of a refactor - only one pushcontant across stages allowed
-	// - maybe this is OK, but if so, no need for a vector anymore
+    // create push constants - just the size for now. The data contents are set at draw time
 	std::vector<vk::PushConstantRange> pConstants;
 	vk::ShaderStageFlags flags;
 	uint32_t totalSize = 0;
@@ -37,9 +35,24 @@ void PipelineLayout::prepare(VkContext& context, const std::vector<vk::Descripto
 		pConstants.push_back(push);
 	}
 
-	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(layouts.size()), layouts.data(), static_cast<uint32_t>(pConstants.size()), pConstants.data());
+	vk::PipelineLayoutCreateInfo pipelineInfo({}, static_cast<uint32_t>(descriptorLayouts.size()), descriptorLayouts.data(), static_cast<uint32_t>(pConstants.size()), pConstants.data());
 
 	VK_CHECK_RESULT(context.device.createPipelineLayout(&pipelineInfo, nullptr, &layout));
+}
+
+void PipelineLayout::addPushConstant(Shader::Type stage, uint32_t size)
+{
+    pConstantSizes.emplace_back(std::make_pair(stage, size));
+}
+
+void PipelineLayout::addDescriptorLayout(const vk::DescriptorSetLayout& layout)
+{
+    descriptorLayouts.emplace_back(layout);
+}
+
+vk::PipelineLayout& PipelineLayout::get()
+{
+    return layout;
 }
 
 // ================== pipeline =======================
@@ -85,9 +98,11 @@ vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<S
 		return vertexInputState;
 	}
     
+    uint32_t offset = 0;
     for (const ShaderProgram::InputBinding& input : inputs)
     {
-        vertexAttrDescr.push_back({ input.loc, 0, input.format, input.stride });
+        vertexAttrDescr.push_back({ input.loc, 0, input.format, offset });
+        offset += input.stride;
     }
     
 	// first sort the attributes so they are in order of location
@@ -104,7 +119,7 @@ vk::PipelineVertexInputStateCreateInfo Pipeline::updateVertexInput(std::vector<S
 	return vertexInputState;
 }
 
-void Pipeline::addEmptyLayout(VkContext& context)
+void Pipeline::addEmptyLayout()
 {
 	vk::PipelineLayoutCreateInfo createInfo;
 	VK_CHECK_RESULT(context.device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
@@ -113,7 +128,10 @@ void Pipeline::addEmptyLayout(VkContext& context)
 void Pipeline::create(ShaderProgram& program)
 { 
     auto& renderState = program.renderState;
-
+    
+    // prepare the pipeline layout
+    pipelineLayout.prepare(context);
+    
 	// calculate the offset and stride size
 	vk::PipelineVertexInputStateCreateInfo vertInputState = updateVertexInput(program.inputs);
     
@@ -187,6 +205,8 @@ void Pipeline::create(ShaderProgram& program)
     }
 
     // ================= create the pipeline =======================
+    assert(pipelineLayout.get());
+    
 	vk::GraphicsPipelineCreateInfo createInfo({}, static_cast<uint32_t>(shaderData.size()), shaderData.data(), &vertInputState,
 	                                          &assemblyState, nullptr, &viewportState, &rasterState, &sampleState,
 	                                          &depthStencilState, &colourBlendState, &dynamicCreateState, pipelineLayout.get(),

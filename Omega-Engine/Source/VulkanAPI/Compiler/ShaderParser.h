@@ -1,6 +1,7 @@
 #pragma once
 
 #include "VulkanAPI/Shader.h"
+#include "utility/Logger.h"
 
 #include <cstdint>
 #include <regex>

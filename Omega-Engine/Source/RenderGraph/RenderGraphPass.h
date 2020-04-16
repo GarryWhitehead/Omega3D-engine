@@ -2,7 +2,7 @@
 
 #include "RenderGraph/RenderHandle.h"
 #include "RenderGraph/Resources.h"
-#include "utility/BitsetEnum.h"
+#include "utility/BitSetEnum.h"
 #include "utility/CString.h"
 
 #include <functional>
@@ -19,27 +19,22 @@ namespace OmegaEngine
 
 class RenderGraph;
 class OERenderer;
+struct RGraphContext;
 
 /**
- * @brief A useful container for grouping together render graph variables for use externally
+ * @brief A useful container for grouping together data which is specific for this pass - and passed between draw functions
  */
-struct RGraphContext
+struct RGraphPassContext
 {
     // the vulkan render pass and framebuffer for this graph context
     RPassHandle rpass;
-    FBufferHandle framebuffer;
 
     // clear colours for this pass
     OEMaths::colour4 clearCol = {0.0f};
     float depthClear = 1.0f;
-
-    // useful vulkan managers - not owned by this struct
-    VulkanAPI::VkDriver* driver = nullptr;
-    OERenderer* renderer = nullptr;
-    RenderGraph* rGraph = nullptr;
 };
 
-using ExecuteFunc = std::function<void(RGraphContext&)>;
+using ExecuteFunc = std::function<void(RGraphPassContext&, RGraphContext&)>;
 
 // flags for creating render passes
 enum class RenderPassFlags : uint64_t
@@ -126,7 +121,7 @@ private:
     
     // ======= vulkan specific ================
     // Kept in a struct as this will be passed around when rendering passes
-    RGraphContext context;
+    RGraphPassContext context;
 };
 
 } // namespace OmegaEngine

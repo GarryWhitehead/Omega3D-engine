@@ -16,6 +16,7 @@ namespace OmegaEngine
 
 // forward declerations
 struct RGraphContext;
+struct RGraphPassContext;
 
 struct SortKey
 {
@@ -44,7 +45,7 @@ struct SortKey
 struct RenderableQueueInfo
 {
     // render callback function
-    void (*renderFunction)(VulkanAPI::CmdBuffer*, void*, RGraphContext&);
+    void (*renderFunction)(VulkanAPI::CmdBuffer*, void*, RGraphContext&, RGraphPassContext&);
     void* renderableHandle;
 
     // data specific to the renderable - mainly drawing information

@@ -43,22 +43,22 @@ void LightingPass::setupPass()
     builder.addReader("emissive");
     
      // tthe indirect lighting passes are read from though only executed once
-    builder.addReader("BdrfSampler");
-    builder.addReader("IrradianceSampler");
-    builder.addReader("SpecularSampler");
+    builder.addReader("bdrf_target");
+    builder.addReader("irradiance_target");
+    builder.addReader("specular_target");
     
     // create the gbuffer textures
-    passInfo.output = builder.createRenderTarget("lighting_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    passInfo.output = builder.createRenderTarget("lightingRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
     // create the output taragets
     passInfo.output = builder.addWriter("lighting", passInfo.output);
 
-    builder.addExecute([=](RGraphContext& context) {
+    builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
 
-        auto& cbManager = context.driver->getCbManager();
+        auto& cbManager = rgraphContext.driver->getCbManager();
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
         // bind the pipeline
-        VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+        VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
         cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
         // bind the descriptor

@@ -35,8 +35,8 @@ class SkyboxInstance;
 class OEScene : public Scene
 {
 public:
-    static constexpr int MaxStaticModelCount = 100;
-    static constexpr int MaxSkinnedModelCount = 100;
+    static constexpr int MaxStaticModelCount = 25;
+    static constexpr int MaxSkinnedModelCount = 25;
     static constexpr int MaxSpotlightCount = 20;
     static constexpr int MaxPointlightCount = 20;
     static constexpr int MaxDirlightCount = 2;

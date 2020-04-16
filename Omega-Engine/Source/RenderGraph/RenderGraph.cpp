@@ -16,7 +16,7 @@
 namespace OmegaEngine
 {
 
-RenderGraph::RenderGraph(VulkanAPI::VkDriver& driver) : driver(driver)
+RenderGraph::RenderGraph(VulkanAPI::VkDriver* driver, OERenderer* renderer) : context(driver, renderer, this)
 {
 }
 
@@ -214,7 +214,7 @@ void RenderGraph::initRenderPass()
             case RenderGraphPass::Type::Graphics: {
                 
                 // create the renderpass
-                rpass.prepare(driver);
+                rpass.prepare(*context.driver);
                 break;
             }
 
@@ -249,7 +249,7 @@ bool RenderGraph::prepare()
 void RenderGraph::execute()
 {
     // start the render pass
-    VulkanAPI::CBufferManager& manager = driver.getCbManager();
+    VulkanAPI::CBufferManager& manager = context.driver->getCbManager();
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
 
     cmdBuffer->begin();
@@ -258,15 +258,12 @@ void RenderGraph::execute()
     for (const uint32_t& rpassIdx : reorderedPasses)
     {
         RenderGraphPass& rpass = rGraphPasses[rpassIdx];
-        
-        VulkanAPI::FrameBuffer* fbuffer = getFramebuffer(rpass.context.framebuffer);
         VulkanAPI::RenderPass* renderpass = getRenderpass(rpass.context.rpass);
-        
-        manager.beginRenderpass(cmdBuffer, *renderpass, *fbuffer);
+        manager.beginRenderpass(cmdBuffer, *renderpass);
         
         if (!rpass.skipPassExec)
         {
-            rpass.execFunc(rpass.context);
+            rpass.execFunc(rpass.context, context);
         }
         
         // if this pass has been set to be executed intermintely and requires executing this frame, set the flag to skip on subsequent frames (unless the flag is reset)
@@ -297,26 +294,14 @@ AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
 
 RPassHandle RenderGraph::createRenderPass()
 {
-    renderpasses.emplace_back(std::make_unique<VulkanAPI::RenderPass>(driver.getContext()));
+    renderpasses.emplace_back(std::make_unique<VulkanAPI::RenderPass>(context.driver->getContext()));
     return RPassHandle {renderpasses.size() - 1};
-}
-
-FBufferHandle RenderGraph::createFrameBuffer()
-{
-    framebuffers.emplace_back(std::make_unique<VulkanAPI::FrameBuffer>(driver.getContext()));
-    return FBufferHandle {framebuffers.size() - 1};
 }
 
 VulkanAPI::RenderPass* RenderGraph::getRenderpass(const RPassHandle& handle)
 {
     assert(handle.get() < renderpasses.size());
     return renderpasses[handle.get()].get();
-}
-
-VulkanAPI::FrameBuffer* RenderGraph::getFramebuffer(const FBufferHandle& handle)
-{
-    assert(handle.get() < framebuffers.size());
-    return framebuffers[handle.get()].get();
 }
 
 std::vector<ResourceBase*>& RenderGraph::getResources()

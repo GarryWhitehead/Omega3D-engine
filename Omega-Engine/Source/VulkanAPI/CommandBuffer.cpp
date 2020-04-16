@@ -39,12 +39,12 @@ void CmdBuffer::begin()
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
 
-void CmdBuffer::beginSecondary(RenderPass& renderpass, FrameBuffer& fbuffer)
+void CmdBuffer::beginSecondary(RenderPass& renderpass)
 {
     assert(type == CmdBuffer::Type::Secondary);
     
     // the secondary commands inherits from the primary buffer
-    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, fbuffer.get(), 0, {}, {}};
+    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, renderpass.getFrameBuffer(), 0, {}, {}};
     
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, &inheritance);

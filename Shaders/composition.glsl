@@ -39,11 +39,11 @@ void main()
 ////////////////////////////////////
 ##stage: Fragment
 
-#import_sampler: Name=imageSampler, Type=2D_Sampler;
+#import_sampler: Name=compositionRT, Type=2D_Sampler;
 
 #output: Name=Frag, Type=vec4;
 
-#import_buffer: Name=TonemapUbo, Type=UniformBuffer, id=ubo;
+#push_constant: Name=ToneMapPush, id=push;
 [[
 	Name=expBias, Type=float;
 	Name=gamma,   Type=float;
@@ -64,14 +64,14 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 void main()
 {
-	vec3 finalColour = texture(imageSampler, inUv).rgb;
+	vec3 finalColour = texture(compositionRT, inUv).rgb;
 	
 	// tone mapping - from http://filmicworlds.com/blog/filmic-tonemapping-operators/
-	finalColour = Uncharted2Tonemap(ubo.expBias * finalColour);
+	finalColour = Uncharted2Tonemap(push.expBias * finalColour);
 	
 	vec3 whiteScale = vec3(1.0 / Uncharted2Tonemap(vec3(11.2)));
 	finalColour *= whiteScale;
-	finalColour = pow(finalColour, vec3(1.0 / ubo.gamma));		// to the power of 1/gamma
+	finalColour = pow(finalColour, vec3(1.0 / push.gamma));		// to the power of 1/gamma
 	
 	outFrag = vec4(finalColour, 1.0);
 }

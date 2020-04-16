@@ -35,7 +35,7 @@ public:
     
 	vk::PipelineVertexInputStateCreateInfo updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs);
 
-	void addEmptyLayout(VkContext& context);
+	void addEmptyLayout();
     
     /**
      * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
@@ -60,8 +60,12 @@ private:
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
 	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
     
-    // dynamic states to be used with this pipeline
-    std::vector<vk::DynamicState> dynamicStates;
+    // dynamic states to be used with this pipeline - by default the viewport and scissor dynamic states are set
+    std::vector<vk::DynamicState> dynamicStates
+    {
+        vk::DynamicState::eViewport,
+        vk::DynamicState::eScissor
+    };
     
     Type type;
     
@@ -87,28 +91,27 @@ public:
      * created before calling this function.
      * Note: The layouts must be in the correct order as depicted by the set number
      */
-        void prepare(VkContext& context, const std::vector<vk::DescriptorSetLayout>& layouts);
+    void prepare(VkContext& context);
     
     /// returns the vulkan pipeline layout
-	vk::PipelineLayout &get()
-	{
-		return layout;
-	}
+    vk::PipelineLayout &get();
     
     /**
      * Adds a push constant reference to this layout. Only the size must be known at this stage; The data will be
      * associated with this push constant at draw time.
      */
-	void addPushConstant(Shader::Type stage, uint32_t size)
-	{
-        pConstantSizes.emplace_back(std::make_pair(stage, size));
-	}
+    void addPushConstant(Shader::Type stage, uint32_t size);
+    
+    void addDescriptorLayout(const vk::DescriptorSetLayout& layout);
 
 private:
     
-	/// the shader stage the push constant refers to and its size
+    // we store the layouts here for the descriptor as they may be added from multiple sources
+    // i.e materials update from elsewhere
+    std::vector<vk::DescriptorSetLayout> descriptorLayouts;
+    
+	// the shader stage the push constant refers to and its size
 	std::vector<std::pair<Shader::Type, uint32_t>> pConstantSizes;
-
 	vk::PipelineLayout layout;
 };
 

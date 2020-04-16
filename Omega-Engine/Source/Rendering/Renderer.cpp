@@ -23,7 +23,7 @@ namespace OmegaEngine
 OERenderer::OERenderer(
     OEEngine& eng, OEScene& scene, VulkanAPI::Swapchain& swapchain, EngineConfig& config)
     : vkDriver(eng.getVkDriver())
-    , rGraph(std::make_unique<RenderGraph>(vkDriver))
+    , rGraph(std::make_unique<RenderGraph>(&vkDriver, this))
     , swapchain(swapchain)
     , engine(eng)
     , scene(scene)
@@ -116,14 +116,14 @@ void OERenderer::draw()
     vkDriver.endFrame(swapchain);
 }
 
-void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& context)
+void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
 {
-    VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
-    VulkanAPI::FrameBuffer* fbuffer = context.rGraph->getFramebuffer(context.framebuffer);
+    RenderGraph* rGraph = rgraphContext.rGraph;
+    VulkanAPI::RenderPass* renderpass = rGraph->getRenderpass(rpassContext.rpass);
     
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
-    auto thread_draw = [&queue, &context, &renderpass, &fbuffer, &manager](size_t start, size_t end) {
+    auto thread_draw = [&queue, &rgraphContext, &rpassContext, &renderpass, &manager](size_t start, size_t end) {
         assert(end < queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
@@ -132,9 +132,9 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
             
              // a cmd pool per thread with a buffer
             VulkanAPI::CmdBuffer* cbSecondary = manager.createSecondaryCmdBuffer();
-            cbSecondary->beginSecondary(*renderpass, *fbuffer);
+            cbSecondary->beginSecondary(*renderpass);
             
-            info.renderFunction(cbSecondary, info.renderableData, context);
+            info.renderFunction(cbSecondary, info.renderableData, rgraphContext, rpassContext);
         }
     };
 
@@ -149,9 +149,9 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
 
 // ==================== front-end =============================
 
-void Renderer::prepare()
+bool Renderer::prepare()
 {
-    static_cast<OERenderer*>(this)->prepare();
+    return static_cast<OERenderer*>(this)->prepare();
 }
 
 void Renderer::beginFrame()

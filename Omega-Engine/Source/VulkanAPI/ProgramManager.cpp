@@ -136,6 +136,9 @@ MaterialBindingInfo* ShaderProgram::getMaterialBindingInfo()
     VK_CHECK_RESULT(
         driver.getContext().device.createDescriptorSetLayout(&layoutInfo, nullptr, &bindingInfo->layout));
     
+    // also update the pipeline layout with the descriptor layout
+    pLineLayout->addDescriptorLayout(bindingInfo->layout);
+    
     return bindingInfo;
 }
 

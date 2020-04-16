@@ -63,15 +63,15 @@ void main()
   Name=IBLAmbient,  Type=float;
 ]]
 
-#import_sampler: Name=positionSampler, 		Type=2D_Sampler;
-#import_sampler: Name=baseColourSampler,	Type=2D_Sampler;
-#import_sampler: Name=normalSampler,		Type=2D_Sampler;
-#import_sampler: Name=pbrSampler,			Type=2D_Sampler;
-#import_sampler: Name=emissiveSampler,		Type=2D_Sampler;
-#import_sampler: Name=shadowSampler,		Type=2D_Sampler;
-#import_sampler: Name=bdrfLutSampler,		Type=2D_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=positionRT, 			Type=2D_Sampler;
+#import_sampler: Name=baseColourRT,			Type=2D_Sampler;
+#import_sampler: Name=normalRT,				Type=2D_Sampler;
+#import_sampler: Name=pbrRT,				Type=2D_Sampler;
+#import_sampler: Name=emissiveRT,			Type=2D_Sampler;
+//#import_sampler: Name=shadowSampler,		Type=2D_Sampler, 	Variant=SHADOWS_ENABLED;
+#import_sampler: Name=bdrfSampler,			Type=2D_Sampler,	Variant=IBL_ENABLED;
 #import_sampler: Name=irradianceSampler,	Type=Cube_Sampler,	Variant=IBL_ENABLED;
-#import_sampler: Name=prefilterSampler,		Type=Cube_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=specularSampler,		Type=Cube_Sampler,	Variant=IBL_ENABLED;
 
 #import_buffer: Name=LightUbo, Type=UniformBuffer,	id=light_ubo;
 [[
@@ -87,18 +87,18 @@ void main()
 #ifdef IBL_ENABLED
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {	
-	vec3 bdrf = (texture(bdrfLutSampler, vec2(NdotV, 1.0 - roughness))).rgb;
+	vec3 bdrf = (texture(bdrfSampler, vec2(NdotV, 1.0 - roughness))).rgb;
 	
 	// specular contribution
-		// this should be a pbr input!
+	// this should be a pbr input!
 	const float maxLod = 5.0;
 	
 	float lod = maxLod * roughness;
 	float lodf = floor(lod);
 	float lodc = ceil(lod);
 	
-	vec3 a = textureLod(prefilterSampler, reflection, lodf).rgb;
-	vec3 b = textureLod(prefilterSampler, reflection, lodc).rgb;
+	vec3 a = textureLod(specularSampler, reflection, lodf).rgb;
+	vec3 b = textureLod(specularSampler, reflection, lodc).rgb;
 	vec3 specularLight = mix(a, b, lod - lodf);
 	
 	vec3 specular = specularLight * (specularColour * bdrf.x + bdrf.y);
@@ -116,17 +116,17 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 
 void main()
 {	
-	vec3 inPos = texture(positionSampler, inUv).rgb;
+	vec3 inPos = texture(positionRT, inUv).rgb;
 	vec3 V = normalize(inCameraPos.xyz - inPos);
-	vec3 N = texture(normalSampler, inUv).rgb;
+	vec3 N = texture(normalRT, inUv).rgb;
 	vec3 R = normalize(-reflect(V, N));
 	
 	// get colour information from G-buffer
-	vec3 baseColour = texture(baseColourSampler, inUv).rgb;
-	float metallic = texture(pbrSampler, inUv).x;
-	float roughness = texture(pbrSampler, inUv).y;
-	float occlusion = texture(baseColourSampler, inUv).a;
-	vec3 emissive = texture(emissiveSampler, inUv).rgb;
+	vec3 baseColour = texture(baseColourRT, inUv).rgb;
+	float metallic = texture(pbrRT, inUv).x;
+	float roughness = texture(pbrRT, inUv).y;
+	float occlusion = texture(baseColourRT, inUv).a;
+	vec3 emissive = texture(emissiveRT, inUv).rgb;
 	
 	vec3 F0 = vec3(0.04);
 	vec3 specularColour = mix(F0, baseColour, metallic);
@@ -141,7 +141,7 @@ void main()
 	// apply additional lighting contribution to specular 
 	vec3 colour = vec3(0.0);
 		
-	// spot lights
+	// spot lights - count baked in at the moment - REMEMBER to change!
 	for(int i = 0; i < 2; ++i) 
 	{  
 		SpotLight light = light_ubo.spotLights[i];
@@ -195,6 +195,7 @@ void main()
 		
 	outFrag = vec4(colour, 1.0);
 	
+#ifdef SHADOWS_ENABLED
 	// finally adjust the colour if in shadow for each light source
 	for(int i = 0; i < 2; i++) 
 	{
@@ -215,6 +216,7 @@ void main()
 			
 		outFrag *= shadowFactor;
 	}
+#endif
 } 
 #end_code_block
 

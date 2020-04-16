@@ -51,13 +51,13 @@ void GBufferFillPass::setupPass()
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     // create the gbuffer textures
-    gbufferInfo.tex.position = builder.createRenderTarget("pos_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.colour = builder.createRenderTarget("colour_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.normal = builder.createRenderTarget("normal_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
-    gbufferInfo.tex.pbr = builder.createRenderTarget("pbr_target", 2048, 2048, vk::Format::eR16G16Sfloat);
+    gbufferInfo.tex.position = builder.createRenderTarget("positionRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.colour = builder.createRenderTarget("baseColourRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.normal = builder.createRenderTarget("normalRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    gbufferInfo.tex.pbr = builder.createRenderTarget("pbrRT", 2048, 2048, vk::Format::eR16G16Sfloat);
     gbufferInfo.tex.emissive =
-        builder.createRenderTarget("emissive_target", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.depth = builder.createRenderTarget("depth_target", 2048, 2048, depthFormat);
+        builder.createRenderTarget("emissiveRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    gbufferInfo.tex.depth = builder.createRenderTarget("depthRT", 2048, 2048, depthFormat);
 
     // create the output taragets
     gbufferInfo.attach.position = builder.addWriter("position", gbufferInfo.tex.position);
@@ -71,14 +71,14 @@ void GBufferFillPass::setupPass()
     builder.setClearColour(clear);
     builder.setDepthClear(1.0f);
 
-    builder.addExecute([=](RGraphContext& context) {
+    builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
         // draw the contents of the renderable rendder queue
-        OERenderer* renderer = context.renderer;
-        renderer->drawQueueThreaded(driver.getCbManager(), context);
+        OERenderer* renderer = rgraphContext.renderer;
+        renderer->drawQueueThreaded(driver.getCbManager(), rgraphContext, rpassContext);
     });
 }
 
-void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, RGraphContext& context)
+void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
 {
     Renderable* render = static_cast<Renderable*>(data);
     VulkanAPI::ShaderProgram* prog = render->program;
@@ -86,7 +86,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
 
     assert(render && mat && prog);
 
-    auto& cbManager = context.driver->getCbManager();
+    auto& cbManager = rgraphContext.driver->getCbManager();
 
     VulkanAPI::ShaderBinding::SamplerBinding matBinding =
         prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
@@ -111,7 +111,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
 
     // ==================== bindings ==========================
 
-    VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+    VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
     cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
     cmdBuffer->bindDynamicDescriptors(cbManager,

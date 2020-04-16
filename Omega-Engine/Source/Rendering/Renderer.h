@@ -27,6 +27,8 @@ class PostProcessInterface;
 class OEEngine;
 class RenderGraph;
 class EngineConfig;
+struct RGraphContext;;
+struct RGraphPassContext;
 
 class RenderStageBase
 {
@@ -105,7 +107,7 @@ public:
      */
     void draw();
 
-    void drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& context);
+    void drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext);
 
     using RenderStagePtr = std::unique_ptr<RenderStageBase>;
 

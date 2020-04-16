@@ -19,7 +19,6 @@ class VkDriver;
 class Pipeline;
 class CmdBuffer;
 class ShaderProgram;
-class FrameBuffer;
 class Swapchain;
 
 using CmdBufferHandle = uint64_t;
@@ -77,7 +76,7 @@ public:
     DescriptorSetInfo* findDescriptorSet(uint32_t shaderHash, const uint8_t setValue);
     std::vector<DescriptorSetInfo> findDescriptorSets(uint32_t shaderHash);
 
-    void buildDescriptorSet(uint32_t shaderId);
+    void buildDescriptorSet(uint32_t shaderId, PipelineLayout* plineLayout);
 
     void createMainDescriptorPool();
     
@@ -112,7 +111,7 @@ public:
 
     // =============== renderpass functions ================================
 
-    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer);
+    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
 

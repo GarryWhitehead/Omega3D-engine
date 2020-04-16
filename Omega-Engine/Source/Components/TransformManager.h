@@ -40,7 +40,7 @@ class TransformManager : public ComponentManager
 
 public:
 	
-    static constexpr uint32_t MAX_BONE_COUNT = 256;
+    static constexpr uint32_t MAX_BONE_COUNT = 25;
     
 	TransformManager();
 	~TransformManager();

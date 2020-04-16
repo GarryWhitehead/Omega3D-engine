@@ -243,91 +243,97 @@ bool RenderPass::addSubPass(
 
 void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassFlags>& flags)
 {
-    vk::SubpassDependency depend[2];
-    depend[0].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+    dependencies[0].dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
     if (flags.testBit(SubpassFlags::TopOfPipeline))
     {
-        depend[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-        depend[0].dstSubpass = 0;
-        depend[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        depend[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[0].dstSubpass = 0;
+        dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        dependencies[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
-            depend[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            depend[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (
             (flags.testBit(SubpassFlags::DepthRead)) && flags.testBit(SubpassFlags::StencilRead))
         {
-            depend[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            depend[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::StencilRead))
         {
-            depend[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            depend[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+            dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else
         {
             LOGGER_INFO(
-                "Unsupported dependency read type. This may lead to invalid dst stage masks");
+                "Unsupported dependenciesency read type. This may lead to invalid dst stage masks");
         }
     }
     else if (flags.testBit(SubpassFlags::BottomOfPipeline))
     {
-        depend[0].srcSubpass = 0;
-        depend[0].dstSubpass = VK_SUBPASS_EXTERNAL;
-        depend[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        depend[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
+        dependencies[0].srcSubpass = 0;
+        dependencies[0].dstSubpass = VK_SUBPASS_EXTERNAL;
+        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+        dependencies[0].dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
         if (flags.testBit(SubpassFlags::ColourRead))
         {
-            depend[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            depend[0].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+            dependencies[0].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
         {
-            depend[0].srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            depend[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+            dependencies[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else if (flags.testBit(SubpassFlags::StencilRead))
         {
-            depend[0].srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            depend[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+            dependencies[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
         }
         else
         {
             LOGGER_INFO(
-                "Unsupported dependency read type. This may lead to invalid src stage masks");
+                "Unsupported dependenciesency read type. This may lead to invalid src stage masks");
         }
     }
     else
     {
-        LOGGER_WARN("Dependency doesn't defeine either top or bottom pipeline bit. This could "
-                    "result in invalid dependencies");
+        LOGGER_WARN("dependenciesency doesn't defeine either top or bottom pipeline bit. This could "
+                    "result in invalid dependenciesencies");
     }
 
     // src and dst stage masks cannot be zero
-    assert(depend[0].srcStageMask != vk::PipelineStageFlags(0));
-    assert(depend[0].dstStageMask != vk::PipelineStageFlags(0));
+    assert(dependencies[0].srcStageMask != vk::PipelineStageFlags(0));
+    assert(dependencies[0].dstStageMask != vk::PipelineStageFlags(0));
 
-    dependencies.emplace_back(depend[0]);
-
-    // and the next dependency stage
-    depend[1].srcSubpass = depend[0].dstSubpass;
-    depend[1].dstSubpass = depend[0].srcSubpass;
-    depend[1].srcStageMask = depend[0].dstStageMask;
-    depend[1].dstStageMask = depend[0].srcStageMask;
-    depend[1].srcAccessMask = depend[0].dstAccessMask;
-    depend[1].dstAccessMask = depend[0].srcAccessMask;
-
-    dependencies.emplace_back(depend[1]);
+    // and the next dependenciesency stage
+    dependencies[1].srcSubpass = dependencies[0].dstSubpass;
+    dependencies[1].dstSubpass = dependencies[0].srcSubpass;
+    dependencies[1].srcStageMask = dependencies[0].dstStageMask;
+    dependencies[1].dstStageMask = dependencies[0].srcStageMask;
+    dependencies[1].srcAccessMask = dependencies[0].dstAccessMask;
+    dependencies[1].dstAccessMask = dependencies[0].srcAccessMask;
 }
 
-void RenderPass::prepare()
+void RenderPass::prepare(std::vector<ImageView*>& imageViews,
+uint32_t width,
+uint32_t height,
+uint32_t layerCount)
 {
+    assert(imageViews.size() > 0);
+    assert(width > 0);
+    assert(height > 0);
+    
+    // store locally the screen extents for use later
+    this->width = width;
+    this->height = height;
+    
     // copy all the subpass declerations into one container
     assert(!subpasses.empty());
 
@@ -361,12 +367,34 @@ void RenderPass::prepare()
         dependencies.data());
 
     VK_CHECK_RESULT(context.device.createRenderPass(&createInfo, nullptr, &renderpass));
+    
+    // and create the framebuffer.....
+    std::vector<vk::ImageView> views;
+    for (auto& view : imageViews)
+    {
+        views.emplace_back(view->get());
+    }
+
+    vk::FramebufferCreateInfo frameInfo {{},
+                                         renderpass,
+                                         static_cast<uint32_t>(views.size()),
+                                         views.data(),
+                                         width,
+                                         height,
+                                         layerCount};
+
+    VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
 
 vk::RenderPass& RenderPass::get()
 {
     assert(renderpass);
     return renderpass;
+}
+
+vk::Framebuffer& RenderPass::getFrameBuffer()
+{
+    return fbuffer;
 }
 
 uint32_t RenderPass::getWidth() const
@@ -422,51 +450,6 @@ std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs(
         colAttachs.push_back(colour);
     }
     return colAttachs;
-}
-
-// ========================= frame buffer =================================
-FrameBuffer::FrameBuffer(VkContext& context) : context(context)
-{
-}
-
-FrameBuffer::~FrameBuffer()
-{
-    if (fbuffer)
-    {
-        context.device.destroy(fbuffer);
-    }
-}
-
-void FrameBuffer::prepare(
-    RenderPass& rpass,
-    std::vector<ImageView*>& imageViews,
-    uint32_t w,
-    uint32_t h,
-    uint32_t layerCount)
-{
-    assert(imageViews.size() > 0);
-    assert(w > 0);
-    assert(h > 0);
-
-    std::vector<vk::ImageView> views;
-    for (auto& view : imageViews)
-    {
-        views.emplace_back(view->get());
-    }
-
-    // store locally the screen extents for use later
-    width = w;
-    height = h;
-
-    vk::FramebufferCreateInfo frameInfo {{},
-                                         rpass.get(),
-                                         static_cast<uint32_t>(views.size()),
-                                         views.data(),
-                                         width,
-                                         height,
-                                         layerCount};
-
-    VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
 
 

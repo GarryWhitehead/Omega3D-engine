@@ -52,7 +52,7 @@ void main()
 ////////////////////////////////////
 ##stage: Fragment
 
-#import_sampler: Name=skyboxSampler, Type=Cube_Sampler;
+#import_sampler: Name=envSampler, Type=Cube_Sampler;
 #output: Name=Col, Type=vec4;
 
 #push_constant: Name=PushBuffer, id=push;
@@ -64,7 +64,7 @@ void main()
 
 void main() 
 {	
-	outCol = textureLod(skyboxSampler, inUv, push.blurFactor);
+	outCol = textureLod(envSampler, inUv, push.blurFactor);
 }
 #end_code_block
 

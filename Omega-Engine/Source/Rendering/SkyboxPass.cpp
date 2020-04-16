@@ -40,17 +40,17 @@ void SkyboxPass::setupPass()
 {
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
-    offscreenTex = builder.createRenderTarget("skybox_target", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
+    offscreenTex = builder.createRenderTarget("compositionRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm);
     builder.addReader("lighting");
     builder.addWriter("skybox", offscreenTex);
 
     // everything required to draw the skybox to the cmd buffer
-    builder.addExecute([=](RGraphContext& context) {
+    builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
 
-        auto& cbManager = context.driver->getCbManager();
+        auto& cbManager = rgraphContext.driver->getCbManager();
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
-        VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+        VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
         cmdBuffer->bindPipeline(cbManager, renderpass, prog);
 
         cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);

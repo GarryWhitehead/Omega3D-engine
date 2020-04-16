@@ -16,7 +16,6 @@ struct VkContext;
 class CBufferManager;
 class ShaderProgram;
 class RenderPass;
-class FrameBuffer;
 class CmdPool;
 
 class CmdBuffer
@@ -41,7 +40,7 @@ public:
 
     void init();
     void begin();
-    void beginSecondary(RenderPass& renderpass, FrameBuffer& fbuffer);
+    void beginSecondary(RenderPass& renderpass);
     void end();
 
     /**

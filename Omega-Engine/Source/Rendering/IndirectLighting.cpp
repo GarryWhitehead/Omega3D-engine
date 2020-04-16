@@ -94,15 +94,15 @@ void IndirectLighting::setupPass()
         builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
         
         bdrfInfo.texture = builder.createRenderTarget(
-            "bdrf_target", lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
+            "bdrfSampler", lutDimensions, lutDimensions, vk::Format::eR16G16Sfloat);
 
-        bdrfInfo.attachment = builder.addWriter("BdrfSampler", bdrfInfo.texture);
+        bdrfInfo.attachment = builder.addWriter("bdrf_target", bdrfInfo.texture);
 
-        builder.addExecute([=](RGraphContext& context) {
-            auto& cbManager = context.driver->getCbManager();
+        builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
+            auto& cbManager = rgraphContext.driver->getCbManager();
             VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
-            VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(context.rpass);
+            VulkanAPI::RenderPass* renderpass = rGraph.getRenderpass(rpassContext.rpass);
             cmdBuffer->bindPipeline(cbManager, renderpass, bdrf_prog);
             cmdBuffer->drawQuad();
         });
@@ -115,15 +115,15 @@ void IndirectLighting::setupPass()
         builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
         
         irrInfo.texture = builder.createRenderTarget(
-            "irradiance_target",
+            "irradianceSampler",
             irradianceMapDim,
             irradianceMapDim,
             vk::Format::eR32G32B32A32Sfloat);
 
-        irrInfo.attachment = builder.addWriter("IrradianceSampler", irrInfo.texture);
+        irrInfo.attachment = builder.addWriter("irradiance_target", irrInfo.texture);
 
-        builder.addExecute([=](RGraphContext& context) {
-            buildMap(context, irradiance_prog, irradianceMapDim, MapType::Irradiance, skybox);
+        builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
+            buildMap(rgraphContext, rpassContext, irradiance_prog, irradianceMapDim, MapType::Irradiance, skybox);
         });
     }
 
@@ -134,24 +134,25 @@ void IndirectLighting::setupPass()
         builder.setRenderPassFlag(RenderPassFlags::IntermitentPass);
         
         specInfo.texture = builder.createRenderTarget(
-            "specular_target", specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
+            "specularSampler", specularMapDim, specularMapDim, vk::Format::eR32G32B32A32Sfloat);
 
-        specInfo.attachment = builder.addWriter("SpecularSampler", specInfo.texture);
+        specInfo.attachment = builder.addWriter("specular_target", specInfo.texture);
 
-        builder.addExecute([=](RGraphContext& context) {
-            buildMap(context, specular_prog, specularMapDim, MapType::Specular, skybox);
+        builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
+            buildMap(rgraphContext, rpassContext, specular_prog, specularMapDim, MapType::Specular, skybox);
         });
     }
 }
 
 void IndirectLighting::buildMap(
-    RGraphContext& context,
+    RGraphContext& rgraphContext,
+    RGraphPassContext rpassContext,
     VulkanAPI::ShaderProgram* prog,
     uint32_t dim,
     const MapType type,
     OESkybox& skybox)
 {
-    auto& cbManager = context.driver->getCbManager();
+    auto& cbManager = rgraphContext.driver->getCbManager();
     VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
     vk::ClearColorValue clearValue;
@@ -159,7 +160,7 @@ void IndirectLighting::buildMap(
     // create an offscreen texture for composing the image
     VulkanAPI::Texture osTexture {};
     osTexture.create2dTex(
-        *context.driver,
+        *rgraphContext.driver,
         vk::Format::eR32G32B32A32Sfloat,
         specularMapDim,
         specularMapDim,
@@ -167,9 +168,9 @@ void IndirectLighting::buildMap(
         vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
             vk::ImageUsageFlagBits::eSampled);
 
-    ResourceBase* base = context.rGraph->getResource(specInfo.texture);
+    ResourceBase* base = rgraphContext.rGraph->getResource(specInfo.texture);
     TextureResource* tex = reinterpret_cast<TextureResource*>(base);
-    VulkanAPI::Image* image = tex->get(*context.driver)->getImage();
+    VulkanAPI::Image* image = tex->get(*rgraphContext.driver)->getImage();
     VulkanAPI::Image* osImage = osTexture.getImage();
 
     // transition cube texture for transfer
@@ -198,7 +199,7 @@ void IndirectLighting::buildMap(
 
             cmdBuffer->setViewport(viewPort);
 
-            VulkanAPI::RenderPass* renderpass = context.rGraph->getRenderpass(context.rpass);
+            VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
             cmdBuffer->bindPipeline(cbManager, renderpass, prog);
             cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);

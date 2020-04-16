@@ -223,7 +223,7 @@ void VkDriver::endFrame(Swapchain& swapchain)
     cbManager->flushSwapchainCmdBuffer(imageReadySemaphore, swapchain, imageIndex);
 }
 
-void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbuffer)
+void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass)
 {
     // setup the clear values for this pass - need one for each attachment
     vk::ClearValue clearValue[2];
@@ -241,16 +241,16 @@ void CBufferManager::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, Fr
     }
 
     // extents of the frame buffer
-    vk::Rect2D extents {{0, 0}, {fbuffer.getWidth(), fbuffer.getHeight()}};
+    vk::Rect2D extents {{0, 0}, {rpass.getWidth(), rpass.getHeight()}};
 
-    vk::RenderPassBeginInfo beginInfo {rpass.get(), fbuffer.get(), extents, 1, clearValue};
+    vk::RenderPassBeginInfo beginInfo {rpass.get(), rpass.getFrameBuffer(), extents, 1, clearValue};
     cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
 
     // use custom defined viewing area - at the moment set to the framebuffer size
     vk::Viewport viewport {0.0f,
                            0.0f,
-                           static_cast<float>(fbuffer.getWidth()),
-                           static_cast<float>(fbuffer.getHeight()),
+                           static_cast<float>(rpass.getWidth()),
+                           static_cast<float>(rpass.getHeight()),
                            0.0f,
                            1.0f};
 

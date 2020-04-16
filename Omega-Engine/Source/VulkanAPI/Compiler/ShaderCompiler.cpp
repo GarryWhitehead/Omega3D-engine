@@ -285,7 +285,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
                 importInfo.bind,
                 vk::DescriptorType::eCombinedImageSampler,
                 Shader::getStageFlags(shader.type));
-
+            
             // add to the binding information
             vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
             ShaderBinding::SamplerBinding sBind {
@@ -352,7 +352,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
                 importInfo.bind,
                 descrType,
                 Shader::getStageFlags(shader.type));
-
+            
             // add to the binding information
             ShaderBinding::BufferBinding bBind {importInfo.name,
                                                 importInfo.bind,
@@ -564,7 +564,7 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
     };
     
     // finish by creating the descriptor set(s) for this shader
-    driver.getCbManager().buildDescriptorSet(program.shaderId);
+    driver.getCbManager().buildDescriptorSet(program.shaderId, program.pLineLayout.get());
     
     return CompilerReturnCode::Success;
 }
