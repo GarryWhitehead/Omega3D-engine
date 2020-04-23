@@ -59,19 +59,19 @@ MaterialInstance::Sampler::AddressMode MaterialInstance::getAddressMode(int mode
     return result;
 }
 
-Util::String MaterialInstance::convertToAlpha(const cgltf_alpha_mode mode)
+float MaterialInstance::convertToAlpha(const cgltf_alpha_mode mode)
 {
-    Util::String result;
+    float result;
     switch(mode)
     {
         case cgltf_alpha_mode_opaque:
-            result = "Opaque";
+            result = 0.0f;
             break;
         case cgltf_alpha_mode_mask:
-            result = "Mask";
+            result = 1.0f;
             break;
         case cgltf_alpha_mode_blend:
-            result = "Blend";
+            result = 2.0f;
             break;
     }
     return result;
@@ -108,19 +108,22 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 		usingSpecularGlossiness = true;
 
         texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
-		block.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
+        
+        // instead of having a seperate entry for mr or specular gloss, the two share the same slot. Should maybe be renamed to be more transparent?
+        texturePaths[TextureType::MetallicRoughness] = getTextureUri(mat.pbr_specular_glossiness.specular_glossiness_texture);
+        
+		//block.specularGlossiness = mat.pbr_specular_glossiness.glossiness_factor;
         
         auto* df = mat.pbr_specular_glossiness.diffuse_factor;
         block.baseColour = OEMaths::vec4f{df[0], df[1], df[2], df[3]};
 	}
-	
-
 	else if (mat.has_pbr_metallic_roughness)
 	{
 		usingSpecularGlossiness = false;
 
         texturePaths[TextureType::BaseColour] = getTextureUri(mat.pbr_metallic_roughness.base_color_texture);
         texturePaths[TextureType::MetallicRoughness] = getTextureUri(mat.pbr_metallic_roughness.metallic_roughness_texture);
+        
 		block.roughness = mat.pbr_metallic_roughness.roughness_factor;
 		block.metallic = mat.pbr_metallic_roughness.metallic_factor;
         
@@ -139,18 +142,18 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
 	
 	// emissive factor
     auto* ef = mat.emissive_factor;
-    block.emissive = OEMaths::vec3f{ef[0], ef[1], ef[2]};
+    block.emissive = OEMaths::vec4f{ef[0], ef[1], ef[2], 1.0f};
 
 	// specular - extension
     Util::String data = extensions.find("specular");
     if (!data.empty())
 	{
-        block.specular = GltfExtension::tokenToVec3(data);
+        block.specular = OEMaths::vec4f {GltfExtension::tokenToVec3(data), 1.0f};
 	}
 	
 	// alpha blending
 	block.alphaMaskCutOff = mat.alpha_cutoff;
-	block.mask = convertToAlpha(mat.alpha_mode);
+    block.alphaMask = convertToAlpha(mat.alpha_mode);
 
 	// determines the type of culling required
 	doubleSided = mat.double_sided;

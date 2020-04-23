@@ -84,12 +84,6 @@ struct RenderStateBlock
     Sampler sampler;
 };
 
-struct MaterialBindingInfo
-{
-    vk::DescriptorSetLayout layout;
-    uint8_t set;
-};
-
 /**
  * @brief The compiled shader, in a format ready for binding to the pipeline
  */
@@ -234,12 +228,12 @@ public:
 
     PipelineLayout* getPLineLayout();
 
-    MaterialBindingInfo* getMaterialBindingInfo();
-
     uint8_t getSetCount() const;
 
     uint32_t getShaderId() const;
-
+    
+    std::vector<ShaderBinding::SamplerBinding>& getMaterialBindings();
+    
     /**
      * @brief Updates a spec constant which must have been stated in the shader json with a new
      * value which will set at pipeline generation time. If the spec constant isn't uodated, then

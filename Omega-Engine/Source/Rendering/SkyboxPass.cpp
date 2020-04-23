@@ -1,5 +1,6 @@
 #include "SkyboxPass.h"
 
+#include "Core/Scene.h"
 #include "RenderGraph/RenderGraph.h"
 #include "RenderGraph/RenderGraphPass.h"
 #include "Types/Skybox.h"
@@ -14,8 +15,8 @@
 namespace OmegaEngine
 {
 
-SkyboxPass::SkyboxPass(RenderGraph& rGraph, Util::String id, OESkybox& skybox)
-    : RenderStageBase(id), rGraph(rGraph), skybox(skybox)
+SkyboxPass::SkyboxPass(RenderGraph& rGraph, Util::String id, OEScene& scene)
+    : RenderStageBase(id), rGraph(rGraph), scene(scene)
 
 {
 }
@@ -51,15 +52,19 @@ void SkyboxPass::setupPass()
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
         VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
+        rgraphContext.driver->beginRenderpass(cmdBuffer, *renderpass);
+        
         cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
 
         cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
         cmdBuffer->bindPushBlock(
-            prog, vk::ShaderStageFlagBits::eFragment, sizeof(float), &skybox.blurFactor);
+                                 prog, vk::ShaderStageFlagBits::eFragment, sizeof(float), &scene.getSkybox()->blurFactor);
 
-        cmdBuffer->bindVertexBuffer(skybox.vertexBuffer->get(), 0);
-        cmdBuffer->bindIndexBuffer(skybox.indexBuffer->get(), 0);
+        cmdBuffer->bindVertexBuffer(scene.getSkybox()->vertexBuffer->get(), 0);
+        cmdBuffer->bindIndexBuffer(scene.getSkybox()->indexBuffer->get(), 0);
         cmdBuffer->drawIndexed(OESkybox::indicesSize);
+        
+        rgraphContext.driver->endRenderpass(cmdBuffer);
     });
 }
 

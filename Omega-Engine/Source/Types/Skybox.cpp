@@ -16,6 +16,7 @@ namespace OmegaEngine
 
 OESkybox::OESkybox(VulkanAPI::VkDriver& driver) : driver(driver)
 {
+    prepareGeometry();
 }
 
 OESkybox::~OESkybox()
@@ -82,9 +83,11 @@ void OESkybox::prepareGeometry()
 
     // create vertex buffer
     vertexBuffer = driver.addVertexBuffer(verticesSize * sizeof(OEMaths::vec3f), vertices.data());
-
+    assert(vertexBuffer);
+    
     // and the index buffer
     indexBuffer = driver.addIndexBuffer(indicesSize * sizeof(uint32_t), indices.data());
+    assert(indexBuffer);
 
     // only draw the skybox where there is no geometry
     /*state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep,
@@ -104,6 +107,8 @@ OESkybox& OESkybox::setCubeMap(MappedTexture* cm)
         cubeMap->getWidth(),
         cubeMap->getHeight(),
         cubeMap->getMipLevelCount(),
+        cubeMap->getFaceCount(),
+        1,
         vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment);
 
     driver.update2DTexture("envSampler", cubeMap->getBuffer());

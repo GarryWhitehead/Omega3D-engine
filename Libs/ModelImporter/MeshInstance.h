@@ -100,7 +100,6 @@ public:
         // ============ vulakn backend ==========================
         // set by calling **update**
         size_t indexPrimitiveOffset = 0; // this equates to buffer_offset + sub-offset
-        size_t indexPrimitiveCount = 0;
     };
 
     MeshInstance() = default;

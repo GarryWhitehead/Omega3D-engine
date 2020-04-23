@@ -36,10 +36,18 @@ void PipelineLayout::prepare(VkContext& context)
         pConstants.push_back(push);
     }
 
+    std::sort(descriptorLayouts.begin(), descriptorLayouts.end(), [](std::pair<uint8_t, vk::DescriptorSetLayout>& lhs, std::pair<uint8_t, vk::DescriptorSetLayout>& rhs) { return lhs < rhs; });
+    
+    std::vector<vk::DescriptorSetLayout> layouts(descriptorLayouts.size());
+    for (size_t i = 0; i < descriptorLayouts.size(); ++i)
+    {
+        layouts[i] = descriptorLayouts[i].second;
+    }
+    
     vk::PipelineLayoutCreateInfo pipelineInfo(
         {},
-        static_cast<uint32_t>(descriptorLayouts.size()),
-        descriptorLayouts.data(),
+        static_cast<uint32_t>(layouts.size()),
+        layouts.data(),
         static_cast<uint32_t>(pConstants.size()),
         pConstants.data());
 
@@ -51,9 +59,9 @@ void PipelineLayout::addPushConstant(Shader::Type stage, uint32_t size)
     pConstantSizes.emplace_back(std::make_pair(stage, size));
 }
 
-void PipelineLayout::addDescriptorLayout(const vk::DescriptorSetLayout& layout)
+void PipelineLayout::addDescriptorLayout(uint8_t set, const vk::DescriptorSetLayout& layout)
 {
-    descriptorLayouts.emplace_back(layout);
+    descriptorLayouts.push_back({set, layout});
 }
 
 vk::PipelineLayout& PipelineLayout::get()
@@ -107,13 +115,16 @@ Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
     }
 
     uint32_t offset = 0;
+    uint32_t stride = 0;
     for (const ShaderProgram::InputBinding& input : inputs)
     {
         vertexAttrDescr.push_back({input.loc, 0, input.format, offset});
-        offset += input.stride;
-
-        vertexBindDescr.push_back({input.loc, input.stride, vk::VertexInputRate::eVertex});
+        offset = input.stride;
+        stride += input.stride;
     }
+    
+    // only one binding supported (at binding point 0)
+    vertexBindDescr = vk::VertexInputBindingDescription {0, stride, vk::VertexInputRate::eVertex};
 
     // first sort the attributes so they are in order of location
     std::sort(
@@ -125,8 +136,8 @@ Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
     vertexInputState.vertexAttributeDescriptionCount =
         static_cast<uint32_t>(vertexAttrDescr.size());
     vertexInputState.pVertexAttributeDescriptions = vertexAttrDescr.data();
-    vertexInputState.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindDescr.size());
-    vertexInputState.pVertexBindingDescriptions = vertexBindDescr.data();
+    vertexInputState.vertexBindingDescriptionCount = 1;
+    vertexInputState.pVertexBindingDescriptions = &vertexBindDescr;
 
     return vertexInputState;
 }

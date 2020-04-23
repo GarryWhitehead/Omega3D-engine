@@ -47,7 +47,33 @@ void CompositionPass::setupPass()
 
     builder.addReader("skybox");
     builder.addWriter("composition", backBuffer);
+    
+    builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
 
+        auto& cbManager = rgraphContext.driver->getCbManager();
+        VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getScCommandBuffer(currentImageIndex);
+        
+        // bind the pipeline
+        VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
+        rgraphContext.driver->beginRenderpass(cmdBuffer, *renderpass);
+        
+        cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
+        cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
+        
+        // TODO: this needs to be user defined
+        struct PushBlock
+        {
+            float expBias = 1.0f;
+            float gamma = 0.2f;
+        }pushBlock;
+        
+        cmdBuffer->bindPushBlock(prog, vk::ShaderStageFlagBits::eFragment, sizeof(PushBlock), &pushBlock);
+
+        // render full screen quad to screen
+        cmdBuffer->drawQuad();
+        
+        rgraphContext.driver->endRenderpass(cmdBuffer);
+    });
 }
 
 } // namespace OmegaEngine

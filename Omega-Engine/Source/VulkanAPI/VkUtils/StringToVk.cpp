@@ -159,13 +159,21 @@ vk::SamplerAddressMode vkAddressModeToString(std::string str)
 vk::DescriptorType getVkDescrTypeFromStr(std::string str)
 {
     vk::DescriptorType result;
-    if (str == "UniformBuffer" || str == "DynamicUniform")
+    if (str == "UniformBuffer")
     {
         result = vk::DescriptorType::eUniformBuffer;
+    }
+    else if(str == "DynamicUniform")
+    {
+        result = vk::DescriptorType::eUniformBufferDynamic;
     }
     else if (str == "StorageBuffer")
     {
         result = vk::DescriptorType::eStorageBuffer;
+    }
+    else if (str == "DynamicStorageBuffer")
+    {
+        result = vk::DescriptorType::eStorageBufferDynamic;
     }
     else if (str == "2D_Sampler" || str == "3D_Sampler" || str == "Cube_Sampler")
     {

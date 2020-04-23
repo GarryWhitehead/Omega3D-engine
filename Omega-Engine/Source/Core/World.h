@@ -25,6 +25,7 @@ class OEScene;
 class OEEngine;
 class OECamera;
 class OESkybox;
+class OEIndirectLighting;
 
 class OEWorld : public World
 {
@@ -49,7 +50,9 @@ public:
     OECamera* createCamera();
 
     OESkybox* createSkybox();
-
+    
+    OEIndirectLighting* createIndirectLighting();
+    
     // ========= object management ============
     // object creation functions
     OEObject* createObject();
@@ -84,6 +87,7 @@ private:
 
     std::vector<std::unique_ptr<OECamera>> cameras;
     std::vector<std::unique_ptr<OESkybox>> skyboxes;
+    std::vector<std::unique_ptr<OEIndirectLighting>> ibls;
 
     // scenes associated with this world
     std::vector<std::unique_ptr<OEScene>> scenes;

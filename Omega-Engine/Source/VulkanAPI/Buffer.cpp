@@ -19,7 +19,8 @@ void createGpuBufferAndCopy(
     VkBuffer& buffer,
     VmaAllocation& mem,
     void* data,
-    VkDeviceSize dataSize)
+    VkDeviceSize dataSize,
+    VkBufferUsageFlags usage)
 {
     // get a staging pool for hosting on the CPU side
     StagingPool::StageInfo stage = pool.getStage(dataSize);
@@ -29,7 +30,7 @@ void createGpuBufferAndCopy(
 
     // create GPU memory
     VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_DST_BIT | usage;
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = dataSize;
 
@@ -176,7 +177,7 @@ void VertexBuffer::create(
     assert(data);
 
     // create the buffer and copy the data
-    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize);
+    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
 // ======================= IndexBuffer ================================
@@ -191,7 +192,7 @@ void IndexBuffer::create(
     assert(data);
 
     // create the buffer and copy the data
-    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize);
+    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 } // namespace VulkanAPI

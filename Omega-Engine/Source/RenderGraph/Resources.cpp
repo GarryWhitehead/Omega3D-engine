@@ -16,14 +16,14 @@ TextureResource::TextureResource(
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
-    const uint8_t level,
-    const uint8_t layers,
-    const vk::ImageUsageFlagBits usageBits)
+    const uint8_t mipLevels,
+    const uint8_t faceCount,
+    const vk::ImageUsageFlags usageBits)
     : ResourceBase(name, ResourceType::Texture)
     , width(width)
     , height(height)
-    , layers(layers)
-    , level(level)
+    , mipLevels(mipLevels)
+    , faceCount(faceCount)
     , format(format)
     , imageUsage(usageBits)
 {
@@ -31,7 +31,8 @@ TextureResource::TextureResource(
 
 void* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
-    driver.add2DTexture(name, format, width, height, level, imageUsage);
+    // TODO: need to add support for arrays too
+    driver.add2DTexture(name, format, width, height, mipLevels, faceCount, 1, imageUsage);
     return reinterpret_cast<void*>(driver.getTexture2D(name)->getImageView());
 }
 
@@ -69,7 +70,7 @@ bool TextureResource::isStencilFormat()
 
 ImportedResource::ImportedResource(
     const Util::String& name, const uint32_t width, const uint32_t height, const vk::Format format,
-           const uint8_t samples, VulkanAPI::ImageView* imageView)
+           const uint8_t samples, VulkanAPI::ImageView& imageView)
     : ResourceBase(name, ResourceType::Imported) ,
     imageView(imageView), width(width), height(height), format(format), samples(samples)
 {

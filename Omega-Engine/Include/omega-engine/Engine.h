@@ -1,5 +1,5 @@
-#ifndef ENGINE_HPP
-#define ENGINE_HPP
+#ifndef ENGINE_H
+#define ENGINE_H
 
 #include "utility/Compiler.h"
 
@@ -83,9 +83,6 @@ public:
     * @return Returns a pointer to the newly created world
     */
     World* createWorld(Util::String name);
-
-    //LightManager* getLightManager();
-    //RenderableManager* getRendManager();
 
 protected:
     

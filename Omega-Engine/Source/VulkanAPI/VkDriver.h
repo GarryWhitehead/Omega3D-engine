@@ -68,7 +68,17 @@ public:
      * backend. Note: it is presumed to be of the type uint32_t.
      */
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
-
+    
+    Texture* add2DTexture(
+    const Util::String& id,
+    vk::Format format,
+    const uint32_t width,
+    const uint32_t height,
+    const uint8_t mipLevels,
+    const uint8_t faceCount,
+    const uint8_t arrayCount,
+    vk::ImageUsageFlags usageFlags);
+    
     Texture* add2DTexture(
         const Util::String& id,
         vk::Format format,
@@ -103,7 +113,7 @@ public:
 
     void endFrame(Swapchain& swapchain);
 
-    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass);
+    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, bool usingSecondaryCommands = false);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
 

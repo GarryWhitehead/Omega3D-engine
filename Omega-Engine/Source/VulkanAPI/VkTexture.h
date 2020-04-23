@@ -24,7 +24,7 @@ struct TextureContext
     uint32_t height = 0;
     uint32_t mipLevels = 1;
     uint32_t faceCount = 1;
-    uint32_t arrays = 1;
+    uint32_t arrayCount = 1;
 };
 
 class Texture
@@ -59,6 +59,8 @@ public:
         uint32_t width,
         uint32_t height,
         uint8_t mipLevels,
+        uint8_t faceCount, 
+        uint8_t arrayCount,
         vk::ImageUsageFlags usageFlags);
 
     void createSampler(

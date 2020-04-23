@@ -63,35 +63,15 @@ vk::ImageViewType ImageView::getTextureType(uint32_t faceCount, uint32_t arrayCo
     return vk::ImageViewType::e2D;
 }
 
-void ImageView::create(
-    vk::Device dev,
-    vk::Image& image,
-    vk::Format format,
-    vk::ImageAspectFlags aspect,
-    vk::ImageViewType type)
-{
-    device = dev;
-
-    vk::ImageViewCreateInfo createInfo(
-        {},
-        image,
-        type,
-        format,
-        {vk::ComponentSwizzle::eIdentity,
-         vk::ComponentSwizzle::eIdentity,
-         vk::ComponentSwizzle::eIdentity,
-         vk::ComponentSwizzle::eIdentity},
-        {aspect, 0, 1, 0, 1});
-
-    VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &imageView));
-}
-
 void ImageView::create(vk::Device dev, Image& image)
 {
     device = dev;
 
+    uint8_t faceCount = image.getContext().faceCount;
+    uint8_t mipCount = image.getContext().mipLevels;
+    
     vk::ImageViewType type =
-        getTextureType(image.getContext().faceCount, image.getContext().arrays);
+        getTextureType(faceCount, image.getContext().arrayCount);
 
     // making assumptions here based on the image format used
     vk::ImageAspectFlags aspect = getImageAspect(image.getContext().format);
@@ -105,7 +85,7 @@ void ImageView::create(vk::Device dev, Image& image)
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity,
          vk::ComponentSwizzle::eIdentity},
-        vk::ImageSubresourceRange(aspect, 0, 1, 0, 1));
+        vk::ImageSubresourceRange(aspect, 0, mipCount, 0, faceCount));
 
     VK_CHECK_RESULT(device.createImageView(&createInfo, nullptr, &imageView));
 }
@@ -116,9 +96,16 @@ Image::Image(VkContext& context, Texture& tex) : device(context.device), tex(tex
 {
 }
 
+Image::Image(const VkContext& context, const vk::Image& image, const vk::Format& format, uint32_t width, uint32_t height) :
+ device(context.device), image(image)
+{
+    tex.format = format;
+    tex.width = width;
+    tex.height = height;
+}
+
 Image::~Image()
 {
-    //device.destroy(image, nullptr);
 }
 
 vk::Filter Image::getFilterType(vk::Format format)
@@ -141,14 +128,13 @@ void Image::create(VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
 {
     assert(tex.format != vk::Format::eUndefined);
     
-   
     vk::ImageCreateInfo imageInfo = {
         {},
         vk::ImageType::e2D,
         tex.format,
         {tex.width, tex.height, 1},
         tex.mipLevels,
-        1,
+        tex.faceCount,
         vk::SampleCountFlagBits::e1,
         vk::ImageTiling::eOptimal,
         vk::ImageUsageFlagBits::eTransferDst | usageFlags,
@@ -229,7 +215,7 @@ void Image::transition(
     }
 
     vk::ImageSubresourceRange subresourceRange(
-        mask, 0, tex.mipLevels, 0, tex.arrays * tex.faceCount);
+        mask, 0, tex.mipLevels, 0, tex.arrayCount * tex.faceCount);
 
     if (baseMipMapLevel != UINT32_MAX)
     {

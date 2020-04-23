@@ -23,7 +23,7 @@ public:
     {
     }
 
-    VecN(VecN<T, 3>& vec, const T& value) : x(vec.x), y(vec.y), z(vec.z), w(value)
+    VecN(const VecN<T, 3>& vec, const T& value) : x(vec.x), y(vec.y), z(vec.z), w(value)
     {
     }
 

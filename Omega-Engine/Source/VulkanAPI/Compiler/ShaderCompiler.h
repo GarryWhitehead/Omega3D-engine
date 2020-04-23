@@ -57,7 +57,7 @@ private:
         Sampler,
         PushConstant
     };
-
+    
     struct ImportInfo
     {
         // mandatory
@@ -95,12 +95,11 @@ private:
         ShaderDescriptor::TypeDescriptors& descr,
         ImportInfo& output,
         std::vector<ShaderDescriptor::ItemDescriptors> items = {});
+    
+    bool checkVariantStatus(const std::string& variant);
 
 private:
     VkDriver& driver;
-
-    // variants to use when compiling the shader
-    std::unordered_map<const char*, uint8_t> variants;
 
     // the current binding for each set currently active <set, bind>
     std::unordered_map<uint8_t, uint8_t> currentBinding;

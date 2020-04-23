@@ -2,7 +2,7 @@
 
 #include "RenderGraph/RenderGraph.h"
 #include "VulkanAPI/Utility.h"
-#include "VulkanAPI/Renderpass.h"
+#include "VulkanAPI/RenderPass.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -13,11 +13,6 @@ RenderGraphPass::RenderGraphPass(
     Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
     : rGraph(rGraph), name(name), type(type), index(index)
 {
-}
-
-void RenderGraphPass::setFlag(const RenderPassFlags& flag)
-{
-    renderPassFlags |= flag;
 }
 
 ResourceHandle RenderGraphPass::addRead(const ResourceHandle input)
@@ -54,14 +49,14 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             // used for signyfing to the subpass the reference ids associated with it
             std::vector<uint32_t> inputRefs, outputRefs;
             uint32_t depthRef = UINT32_MAX;
-
+            
             context.rpass = rGraph.createRenderPass();
             VulkanAPI::RenderPass* rpass = rGraph.getRenderpass(context.rpass);
             assert(rpass);
             auto& resources = rGraph.getResources();
 
             // add the output attachments
-            std::vector<VulkanAPI::ImageView*> views(writes.size());
+            std::vector<VulkanAPI::ImageView*> views;
             for (size_t i = 0; i < writes.size(); ++i)
             {
                 ResourceHandle& handle = writes[i];
@@ -70,24 +65,21 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                 {
                     ImportedResource* tex = static_cast<ImportedResource*>(resources[handle]);
                     
-                    // imported targets alreasy have the image view object defined
-                    views[i] = tex->imageView;
+                    // imported targets already have the image view objects defined
+                    views.emplace_back(&tex->imageView);
                     maxWidth = tex->width;
                     maxHeight = tex->height;
 
-                    // set the dependency flags
-                    flags |= VulkanAPI::SubpassFlags::ColourRead;
-                    //tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
-
                     outputRefs.emplace_back(tex->referenceId);
-                    VulkanAPI::RenderPass::ClearFlags defaultflags;
+   
                     rpass->addOutputAttachment(
-                        tex->format, tex->referenceId, defaultflags, tex->samples);
+                        tex->format, tex->referenceId, {}, tex->samples, vk::ImageLayout::ePresentSrcKHR);
                 }
                 else if (base->type == ResourceBase::ResourceType::Texture)
                 {
+                    views.resize(writes.size());
                     TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
+                    
                     // bake the texture
                     if (tex->width != maxWidth || tex->height != maxHeight)
                     {
@@ -119,9 +111,8 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                 }
             }
 
-            // Add a subpass. If this is a merged pass, then this will be added to the parent
+            // Add a subpass and dependencies for this pass
             rpass->addSubPass(inputRefs, outputRefs, depthRef);
-            rpass->addSubpassDependency(flags);
 
             // create the actual vulkan renderpass object
             rpass->prepare(views, maxWidth, maxHeight, 1);
@@ -148,9 +139,5 @@ void RenderGraphPass::setDepthClear(const float depth)
     context.depthClear = depth;
 }
 
-void RenderGraphPass::resetSkipExecFlag()
-{
-    skipPassExec = false;
-}
 
 } // namespace OmegaEngine

@@ -2,7 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 #include "VulkanAPI/Common.h"
-#include "utility/BitsetEnum.h"
+#include "utility/BitSetEnum.h"
 
 #include <cassert>
 #include <cstdint>
@@ -22,12 +22,15 @@ struct VkContext;
  */
 enum class SubpassFlags : uint64_t
 {
+    Threaded,
+    __SENTINEL__
+};
+
+enum class DependencyFlags
+{
     DepthRead,
     StencilRead,
     ColourRead,
-    TopOfPipeline,
-    BottomOfPipeline,
-    Threaded,
     __SENTINEL__
 };
 
@@ -75,11 +78,12 @@ public:
     static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
 
     /// Adds a attahment for this pass. This can be a colour or depth attachment
-    void addOutputAttachment(
+    uint32_t addOutputAttachment(
         const vk::Format format,
         const uint32_t reference,
-        ClearFlags& clearFlags,
-        const uint32_t sampleCount);
+        const ClearFlags& clearFlags,
+        const uint32_t sampleCount,
+        const vk::ImageLayout finalLayout = vk::ImageLayout::eUndefined);
 
     /// adds an input attachment reference. Must have an attachment description added by calling
     /// **addAttachment**
@@ -91,8 +95,11 @@ public:
         std::vector<uint32_t>& inputRefs,
         std::vector<uint32_t>& outputRefs,
         const uint32_t depthRef = UINT32_MAX);
-
-    void addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassFlags>& flags);
+    
+    /// if creating simple passes with just one output attachment, then use this function
+    void addSubPass(uint32_t attachmentHandle, uint32_t depth = UINT32_MAX);
+    
+    void addSubpassDependency(const Util::BitSetEnum<DependencyFlags>& flags);
 
     /// Actually creates the renderpass based on the above definitions and creates the framebuffer
     void prepare(std::vector<ImageView*>& imageViews,
@@ -116,6 +123,7 @@ public:
     /// functions that return the state of various aspects of this pass
     bool hasColourAttach();
     bool hasDepthAttach();
+    std::vector<vk::AttachmentDescription>& getAttachments();
 
     std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
 

@@ -58,7 +58,7 @@ private:
 
 	// everything needeed to build the pipeline
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
-	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
+	vk::VertexInputBindingDescription vertexBindDescr;
     
     // dynamic states to be used with this pipeline - by default the viewport and scissor dynamic states are set
     std::vector<vk::DynamicState> dynamicStates
@@ -102,13 +102,13 @@ public:
      */
     void addPushConstant(Shader::Type stage, uint32_t size);
     
-    void addDescriptorLayout(const vk::DescriptorSetLayout& layout);
+    void addDescriptorLayout(uint8_t set, const vk::DescriptorSetLayout& layout);
 
 private:
     
     // we store the layouts here for the descriptor as they may be added from multiple sources
-    // i.e materials update from elsewhere
-    std::vector<vk::DescriptorSetLayout> descriptorLayouts;
+    // i.e materials update from elsewhere. The set value is use to sort into the correct order
+    std::vector<std::pair<uint8_t, vk::DescriptorSetLayout>> descriptorLayouts;
     
 	// the shader stage the push constant refers to and its size
 	std::vector<std::pair<Shader::Type, uint32_t>> pConstantSizes;

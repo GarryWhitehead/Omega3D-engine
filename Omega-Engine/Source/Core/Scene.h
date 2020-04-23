@@ -7,6 +7,7 @@
 #include "VulkanAPI/Buffer.h"
 #include "omega-engine/Scene.h"
 #include "omega-engine/Skybox.h"
+#include "omega-engine/IndirectLighting.h"
 #include "utility/CString.h"
 
 #include <vector>
@@ -31,6 +32,7 @@ struct Renderable;
 class LightBase;
 class OESkybox;
 class SkyboxInstance;
+class OEIndirectLighting;
 
 class OEScene : public Scene
 {
@@ -63,7 +65,6 @@ public:
     ~OEScene();
 
     bool update(const double time);
-
     void prepare();
 
     void updateCameraBuffer();
@@ -78,17 +79,18 @@ public:
     OECamera* getCurrentCamera();
 
     void getVisibleRenderables(Frustum& frustum, std::vector<VisibleCandidate>& renderables);
-
     void getVisibleLights(Frustum& frustum, std::vector<LightBase*>& renderables);
 
     VisibleCandidate buildRendCandidate(OEObject* obj, OEMaths::mat4f& worldMat);
+    
+    OESkybox* getSkybox();
 
     // ====== public functions for adding items to the scene ==============
 
     bool addSkybox(OESkybox* sb);
-
     void setCurrentCamera(OECamera* camera);
-
+    void addIndirectLighting(OEIndirectLighting* ibl);
+    
     friend class OERenderer;
 
 private:
@@ -139,6 +141,8 @@ private:
         DirectionalLightUbo dirLight[MaxDirlightCount];
     };
 
+    friend class OEIndirectLighting;
+    
 private:
 
     VulkanAPI::VkDriver& driver;
@@ -146,11 +150,13 @@ private:
     /// per frame: all the renderables after visibility checks
     RenderQueue renderQueue;
 
-    /// Current camera used by this scene. The 'world' holds the ownership of the cma
-    OECamera* camera;
+    /// Current camera used by this scene. The 'world' holds the ownership of the camera
+    OECamera* camera = nullptr;
 
     /// the skybox to be used with this scene. Also used for global illumination
-    OESkybox* skybox;
+    OESkybox* skybox = nullptr;
+    
+    OEIndirectLighting* ibl = nullptr;
 
     /// The world this scene is assocaited with
     OEWorld& world;

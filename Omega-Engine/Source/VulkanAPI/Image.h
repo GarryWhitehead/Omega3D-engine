@@ -37,11 +37,6 @@ public:
 	void create(vk::Device dev, Image &image);
     
     /**
-    @brief Create a new image view based on the specified **Image**.  Use this function if you need to expilictly specify aspects of the image.
-    */
-	void create(vk::Device dev, vk::Image &image, vk::Format format, vk::ImageAspectFlags aspect, vk::ImageViewType type);
-    
-    /**
      * @brief Return the vulkan image view handle
      */
 	vk::ImageView &get()
@@ -59,6 +54,7 @@ class Image
 
 public:
     
+    Image(const VkContext& context, const vk::Image& image, const vk::Format& format, uint32_t width, uint32_t height);
 	Image(VkContext& context, Texture& tex);
 	~Image();
     
@@ -79,7 +75,6 @@ public:
 	                vk::CommandBuffer &cmdBuff, uint32_t baseMipMapLevel = UINT32_MAX);
     
     // =========== static functions ===================
-    // If these should be here or in utils, i'm still undecided!!
     /**
      * @brief Generates mip maps for the required levels for this image
      */

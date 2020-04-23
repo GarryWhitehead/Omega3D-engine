@@ -114,27 +114,36 @@ vk::ImageLayout RenderPass::getAttachmentLayout(vk::Format format)
     return result;
 }
 
-void RenderPass::addOutputAttachment(
+uint32_t RenderPass::addOutputAttachment(
     const vk::Format format,
     const uint32_t reference,
-    ClearFlags& clearFlags,
-    const uint32_t sampleCount)
+    const ClearFlags& clearFlags,
+    const uint32_t sampleCount,
+    const vk::ImageLayout finalLayout)
 {
     auto iter = std::find_if(
         outputRefs.begin(), outputRefs.end(), [&reference](const OutputReferenceInfo& lhs) {
             return lhs.ref == reference;
         });
 
-    // if an output reference with the same id has already been added, just return
+    // if an output reference with the same id has already been added, juset return
     if (iter != outputRefs.end())
     {
-        return;
+        return std::distance(outputRefs.begin(), iter);
     }
 
     vk::AttachmentDescription attachDescr;
     attachDescr.format = format;
     attachDescr.initialLayout = vk::ImageLayout::eUndefined;
-    attachDescr.finalLayout = getFinalTransitionLayout(format);
+    
+    if (finalLayout == vk::ImageLayout::eUndefined)
+    {
+        attachDescr.finalLayout = getFinalTransitionLayout(format);
+    }
+    else
+    {
+        attachDescr.finalLayout = finalLayout;
+    }
 
     // samples
     attachDescr.samples = samplesToVk(sampleCount);
@@ -154,6 +163,21 @@ void RenderPass::addOutputAttachment(
     info.index = attachments.size() - 1;
 
     outputRefs.emplace_back(info);
+    
+    // also add a dependency for this attachment
+    Util::BitSetEnum<DependencyFlags> flags;
+    if (VkUtil::isDepth(format) && VkUtil::isStencil(format))
+    {
+        flags |= DependencyFlags::DepthRead;
+        flags |= DependencyFlags::StencilRead;
+    }
+    else
+    {
+        flags |= DependencyFlags::ColourRead;
+    }
+    addSubpassDependency(flags);
+    
+    return outputRefs.size() - 1;
 }
 
 void RenderPass::addInputRef(const uint32_t reference)
@@ -241,75 +265,52 @@ bool RenderPass::addSubPass(
     return true;
 }
 
-void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassFlags>& flags)
+void RenderPass::addSubPass(uint32_t attachmentHandle, uint32_t depthHandle)
+{
+    SubpassInfo subpass;
+    subpass.descr.pipelineBindPoint =
+        vk::PipelineBindPoint::eGraphics;
+    subpass.colourRefs.emplace_back(outputRefs[attachmentHandle].ref);
+    
+    if (depthHandle != UINT32_MAX)
+    {
+        subpass.depth = &outputRefs[depthHandle].ref;
+    }
+    subpasses.emplace_back(subpass);
+}
+
+void RenderPass::addSubpassDependency(const Util::BitSetEnum<DependencyFlags>& flags)
 {
     dependencies[0].dependencyFlags = vk::DependencyFlagBits::eByRegion;
 
-    if (flags.testBit(SubpassFlags::TopOfPipeline))
-    {
-        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependencies[0].dstSubpass = 0;
-        dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        dependencies[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
+    dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+    dependencies[0].dstSubpass = 0;
+    dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+    dependencies[0].srcAccessMask = vk::AccessFlagBits::eMemoryRead;
 
-        if (flags.testBit(SubpassFlags::ColourRead))
-        {
-            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            dependencies[0].dstAccessMask =
-                vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
-        }
-        else if (
-            (flags.testBit(SubpassFlags::DepthRead)) && flags.testBit(SubpassFlags::StencilRead))
-        {
-            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        }
-        else if (flags.testBit(SubpassFlags::StencilRead))
-        {
-            dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        }
-        else
-        {
-            LOGGER_INFO(
-                "Unsupported dependenciesency read type. This may lead to invalid dst stage masks");
-        }
+    if (flags.testBit(DependencyFlags::ColourRead))
+    {
+        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies[0].dstAccessMask =
+            vk::AccessFlagBits::eColorAttachmentRead | vk::AccessFlagBits::eColorAttachmentWrite;
     }
-    else if (flags.testBit(SubpassFlags::BottomOfPipeline))
+    else if (
+        (flags.testBit(DependencyFlags::DepthRead)) && flags.testBit(DependencyFlags::StencilRead))
     {
-        dependencies[0].srcSubpass = 0;
-        dependencies[0].dstSubpass = VK_SUBPASS_EXTERNAL;
-        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
-        dependencies[0].dstAccessMask = vk::AccessFlagBits::eMemoryRead;
-
-        if (flags.testBit(SubpassFlags::ColourRead))
-        {
-            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-            dependencies[0].srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
-        }
-        else if (flags.testBit(SubpassFlags::DepthRead) && flags.testBit(SubpassFlags::StencilRead))
-        {
-            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
-            dependencies[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        }
-        else if (flags.testBit(SubpassFlags::StencilRead))
-        {
-            dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
-            dependencies[0].srcAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
-        }
-        else
-        {
-            LOGGER_INFO(
-                "Unsupported dependenciesency read type. This may lead to invalid src stage masks");
-        }
+        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eEarlyFragmentTests;
+        dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
+    }
+    else if (flags.testBit(DependencyFlags::StencilRead))
+    {
+        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
+        dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
     }
     else
     {
-        LOGGER_WARN(
-            "dependenciesency doesn't defeine either top or bottom pipeline bit. This could "
-            "result in invalid dependenciesencies");
+        LOGGER_INFO(
+            "Unsupported dependenciesency read type. This may lead to invalid dst stage masks");
     }
-
+    
     // src and dst stage masks cannot be zero
     assert(dependencies[0].srcStageMask != vk::PipelineStageFlags(0));
     assert(dependencies[0].dstStageMask != vk::PipelineStageFlags(0));
@@ -325,7 +326,7 @@ void RenderPass::addSubpassDependency(const Util::BitSetEnum<VulkanAPI::SubpassF
 }
 
 void RenderPass::prepare(
-    std::vector<ImageView*>& imageViews, uint32_t width, uint32_t height, uint32_t layerCount)
+    std::vector<ImageView*>& imageViews, uint32_t width, uint32_t height, uint32_t levelCount)
 {
     assert(imageViews.size() > 0);
     assert(width > 0);
@@ -383,7 +384,7 @@ void RenderPass::prepare(
         views.data(),
         width,
         height,
-        layerCount};
+        levelCount};
 
     VK_CHECK_RESULT(context.device.createFramebuffer(&frameInfo, nullptr, &fbuffer));
 }
@@ -436,20 +437,31 @@ bool RenderPass::hasDepthAttach()
     return false;
 }
 
+std::vector<vk::AttachmentDescription>& RenderPass::getAttachments()
+{
+    return attachments;
+}
+
 std::vector<vk::PipelineColorBlendAttachmentState> RenderPass::getColourAttachs()
 {
     size_t attachCount = attachments.size();
     assert(attachCount > 0);
-    std::vector<vk::PipelineColorBlendAttachmentState> colAttachs(attachCount);
+    std::vector<vk::PipelineColorBlendAttachmentState> colAttachs;
+    colAttachs.reserve(attachCount);
 
     // for each clear output colour attachment in the renderpass, we need a blend attachment
     for (uint32_t i = 0; i < attachments.size(); ++i)
     {
+        // only colour attachments....
+        if (VkUtil::isDepth(attachments[i].format) || VkUtil::isStencil(attachments[i].format))
+        {
+            continue;
+        }
         vk::PipelineColorBlendAttachmentState colour;
         colour.colorWriteMask = vk::ColorComponentFlagBits::eR | vk::ColorComponentFlagBits::eG |
             vk::ColorComponentFlagBits::eB | vk::ColorComponentFlagBits::eA;
         colour.blendEnable = VK_FALSE; //< TODO: need to add blending
-        colAttachs[i] = colour;
+        colAttachs.emplace_back(colour);
     }
     return colAttachs;
 }

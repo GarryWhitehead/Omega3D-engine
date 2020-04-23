@@ -43,10 +43,6 @@ bool OERenderer::prepare()
     {
         switch (stage)
         {
-            case RenderStage::IndirectLighting:
-                rStages.emplace_back(
-                    std::make_unique<IndirectLighting>(*rGraph, "Stage_IL", *scene.skybox));
-                break;
             case RenderStage::GBufferFill:
                 rStages.emplace_back(std::make_unique<GBufferFillPass>(
                     vkDriver, *rGraph, "Stage_GB", *engine.getRendManager(), config));
@@ -56,7 +52,7 @@ bool OERenderer::prepare()
                 break;
             case RenderStage::Skybox:
                 rStages.emplace_back(
-                    std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", *scene.skybox));
+                    std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
                 break;
             case RenderStage::Composition:
                 rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
@@ -101,19 +97,33 @@ bool OERenderer::update()
     return true;
 }
 
-void OERenderer::draw()
+bool OERenderer::draw()
 {
     vkDriver.beginFrame(swapchain);
     
+    // check if indirect lighting component needs init/updating
+    if (scene.ibl && scene.ibl->needsUpdating())
+    {
+        if (!scene.ibl->prepare())
+        {
+            return false;
+        }
+    }
+    
     // at this point we have all the images/buffers prepared so udate the descriptors now. This happens on the first frame and if the
     // images/buffer handles change
-    vkDriver.getCbManager().updateShaderDescriptorSets();
+    if (!vkDriver.getCbManager().updateAllShaderDecsriptorSets())
+    {
+        return false;
+    }
 
     // executes the user-defined callback for all of the passes in-turn.
     rGraph->execute();
 
     // finally send to the swap-chain for presentation
     vkDriver.endFrame(swapchain);
+    
+    return true;
 }
 
 void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
@@ -123,18 +133,36 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
     
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
+    VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
+    rgraphContext.driver->beginRenderpass(cmdBuffer, *renderpass, true);
+        
     auto thread_draw = [&queue, &rgraphContext, &rpassContext, &renderpass, &manager](size_t start, size_t end) {
-        assert(end < queue.size());
+        assert(end <= queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
         {
             RenderableQueueInfo& info = queue[idx];
             
              // a cmd pool per thread with a buffer
-            VulkanAPI::CmdBuffer* cbSecondary = manager.createSecondaryCmdBuffer();
+            VulkanAPI::CmdBuffer* cbSecondary = manager.getSecondaryCmdBuffer();
             cbSecondary->beginSecondary(*renderpass);
             
+            // use custom defined viewing area - at the moment set to the framebuffer size
+            vk::Viewport viewport {0.0f,
+                                   0.0f,
+                                   static_cast<float>(renderpass->getWidth()),
+                                   static_cast<float>(renderpass->getHeight()),
+                                   0.0f,
+                                   1.0f};
+            cbSecondary->setViewport(viewport);
+
+            vk::Rect2D scissor {
+                {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
+                {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
+            cbSecondary->setScissor(scissor);
+            
             info.renderFunction(cbSecondary, info.renderableData, rgraphContext, rpassContext);
+            cbSecondary->end();
         }
     };
 
@@ -142,9 +170,11 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
     size_t workSize = queue.size();
     ThreadTaskSplitter split {0, workSize, thread_draw};
     split.run();
-
+    
     // check all task have finished here before execute?
     manager.executeSecondaryCommands();
+    
+    rgraphContext.driver->endRenderpass(cmdBuffer);
 }
 
 // ==================== front-end =============================

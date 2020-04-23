@@ -399,7 +399,6 @@ bool OERenderableManager::updateVariants()
                  rend.instance->variantBits.getUint64(),
                  static_cast<uint32_t>(topo)},
                 {shaderHash, VulkanAPI::Shader::Type::Fragment, mat->variantBits.getUint64()}
-                
             };
 
             // create the variant shader program
@@ -420,12 +419,65 @@ bool OERenderableManager::updateVariants()
                 return false;
             }
         }
-        // keep reference to the shader program within the renderable for easier lookup when
+        // keep reference to the shader program within the renderable and material for easier lookup when
         // drawing
         rend.program = prog;
+        mat->program = prog;
     }
 
     return true;
+}
+
+void OERenderableManager::createMaterialDescriptors(Material* mat, const TextureGroup& group)
+{
+    assert(mat);
+    assert(renderables[0].program);
+    
+    // get the general material layout and use the variant info to detrmine whether that material should be added to the material descriptor set
+    auto& materialBindings = renderables[0].program->getMaterialBindings();
+    if (materialBindings.empty())
+    {
+        return;
+    }
+    
+    auto& driver = engine.getVkDriver();
+    auto& cbManager = driver.getCbManager();
+    
+    mat->materialSet = materialBindings[0].set;
+
+    // create the descriptor layout binding info
+    std::vector<vk::DescriptorSetLayoutBinding> setBindings;
+    for (size_t i = 0; i < materialBindings.size(); ++i)
+    {
+        // we expect the texture group and bindings to sync together
+        assert(materialBindings.size() == group.textures.size());
+        
+        auto& matBind = materialBindings[i];
+        
+        // only add the descriptor if the sampler is used
+        if (group.textures[i])
+        {
+            setBindings.push_back(vk::DescriptorSetLayoutBinding{matBind.bind, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr});
+        }
+    }
+    
+    mat->descrLayout = std::make_unique<vk::DescriptorSetLayout>();
+    vk::DescriptorSetLayoutCreateInfo layoutInfo(
+        {}, static_cast<uint32_t>(setBindings.size()), setBindings.data());
+    VK_CHECK_RESULT(
+        driver.getContext().device.createDescriptorSetLayout(&layoutInfo, nullptr, mat->descrLayout.get()));
+    
+    // create the descriptor set
+    // TODO: this low-level vulkan stuff shouldn't be here.
+    mat->descriptorSet = std::make_unique<vk::DescriptorSet>();
+    
+    vk::DescriptorSetAllocateInfo allocInfo {
+        cbManager.getDescriptorPool(), 1, mat->descrLayout.get()};
+    VK_CHECK_RESULT(driver.getContext().device.allocateDescriptorSets(
+        &allocInfo, mat->descriptorSet.get()));
+    
+    // also update the pipeline layout with the descriptor layout
+    mat->program->getPLineLayout()->addDescriptorLayout(mat->materialSet, *mat->descrLayout);
 }
 
 bool OERenderableManager::update()
@@ -444,77 +496,62 @@ bool OERenderableManager::update()
             return false;
         }
 
-        // on the first update, create the descriptor set layout used by all materials - it's best
-        // to carry this out here to ensure that the shaders have been loaded and the relevant data
-        // extracted
-        if (!materialBinding && !renderables.empty())
-        {
-            assert(renderables[0].program);
-            materialBinding = renderables[0].program->getMaterialBindingInfo();
-            if (!materialBinding)
-            {
-                LOGGER_ERROR("Fatal error! No material binding info available.");
-                return false;
-            }
-        }
-
         // upload textures if required
         for (TextureGroup& group : textures)
         {
             Material* material = findMaterial(group.matName);
+            assert(material);
+            
             if (!material->descriptorSet)
             {
-                material->descriptorSet = std::make_unique<vk::DescriptorSet>();
-                vk::DescriptorSetAllocateInfo allocInfo {
-                    cbManager.getDescriptorPool(), 1, &materialBinding->layout};
-                VK_CHECK_RESULT(driver.getContext().device.allocateDescriptorSets(
-                    &allocInfo, material->descriptorSet.get()));
+                createMaterialDescriptors(material, group);
             }
 
             for (uint8_t i = 0; i < MaterialInstance::TextureType::Count; ++i)
             {
                 MappedTexture* tex = group.textures[i];
-                if (tex)
+                if (!tex)
                 {
-                    // each sampler needs its own unique id - so append the tex type to the
-                    // material name
-                    assert(!group.matName.empty());
-                    Util::String texShaderId = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
-
-                    vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
-                    vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->getFormat());
-                    
-                    // note: we don't create a descriptor set alloc blueprint here as materials deal
-                    // with their own descriptor layouts
-                    MaterialInstance::Sampler& sampler = material->instance->sampler;
-                    VulkanAPI::Texture* vkTex = driver.add2DTexture(
-                        texShaderId,
-                        format,
-                        tex->getWidth(),
-                        tex->getHeight(),
-                        tex->getMipLevelCount(),
-                        usageFlags);
-                    
-                    // add the material sampler
-                    vkTex->createSampler(driver.getContext(),
-                        VulkanAPI::Texture::toVkFilter(sampler.magFilter),
-                        VulkanAPI::Texture::toVkFilter(sampler.minFilter),
-                        VulkanAPI::Texture::toVkAddressMode(sampler.addressModeU),
-                        VulkanAPI::Texture::toVkAddressMode(sampler.addressModeV),
-                        8.0f);   // TODO: user-defined max antriospy
-                    
-                    driver.update2DTexture(texShaderId, tex->getBuffer());
-
-                    // update the descriptor set too as we have the image info
-                    cbManager.updateTextureDescriptor(
-                        i,
-                        vk::DescriptorType::eCombinedImageSampler,
-                        *material->descriptorSet,
-                        vkTex);
+                    continue;
                 }
+                
+                // each sampler needs its own unique id - so append the tex type to the
+                // material name
+                assert(!group.matName.empty());
+                Util::String texShaderId = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
+
+                vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
+                vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->getFormat());
+                
+                // note: we don't create a descriptor set alloc blueprint here as materials deal
+                // with their own descriptor layouts
+                MaterialInstance::Sampler& sampler = material->instance->sampler;
+                VulkanAPI::Texture* vkTex = driver.add2DTexture(
+                    texShaderId,
+                    format,
+                    tex->getWidth(),
+                    tex->getHeight(),
+                    tex->getMipLevelCount(),
+                    usageFlags);
+                
+                // add the material sampler
+                vkTex->createSampler(driver.getContext(),
+                    VulkanAPI::Texture::toVkFilter(sampler.magFilter),
+                    VulkanAPI::Texture::toVkFilter(sampler.minFilter),
+                    VulkanAPI::Texture::toVkAddressMode(sampler.addressModeU),
+                    VulkanAPI::Texture::toVkAddressMode(sampler.addressModeV),
+                    8.0f);   // TODO: user-defined max antriospy
+                
+                driver.update2DTexture(texShaderId, tex->getBuffer());
+
+                // update the descriptor set too as we have the image info
+                cbManager.updateTextureDescriptor(
+                    i,
+                    vk::DescriptorType::eCombinedImageSampler,
+                    *material->descriptorSet,
+                    vkTex);
             }
         }
-
         materialDirty = false;
     }
 

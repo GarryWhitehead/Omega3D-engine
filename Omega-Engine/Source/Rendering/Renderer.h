@@ -59,7 +59,6 @@ public:
      */
     enum class RenderStage
     {
-        IndirectLighting, //< Part of the global illumination pipeline
         GBufferFill,
         LightingPass,
         ForwardPass,
@@ -72,8 +71,7 @@ public:
     /**
      * Each stage required for a deferred renderer. Some of these stages can be switched off.
      */
-    const std::array<RenderStage, 5> deferredStages = {
-        RenderStage::IndirectLighting,
+    const std::array<RenderStage, 4> deferredStages = {
         RenderStage::GBufferFill,
         RenderStage::LightingPass,
         RenderStage::Skybox,
@@ -105,7 +103,7 @@ public:
     /**
      @brief Draws into the cmd buffers all the data that is currently held by the scene
      */
-    void draw();
+    bool draw();
 
     void drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext);
 

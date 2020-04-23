@@ -69,9 +69,9 @@ struct TextureResource : public ResourceBase
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,
-        const uint8_t level,
-        const uint8_t layers,
-        const vk::ImageUsageFlagBits usageBits);
+        const uint8_t mipLevels,
+        const uint8_t faceCount,
+        const vk::ImageUsageFlags usageBits);
 
     void* bake(VulkanAPI::VkDriver& driver) override;
     VulkanAPI::Texture* get(VulkanAPI::VkDriver& driver);
@@ -84,8 +84,8 @@ struct TextureResource : public ResourceBase
     uint8_t samples = 1;
     uint32_t width = 0;
     uint32_t height = 0;
-    uint8_t layers = 1; //< 3d textures not supported at present
-    uint8_t level = 0; //< For mult-sampling. Not used at present
+    uint8_t faceCount = 1;
+    uint8_t mipLevels = 1;
 
     vk::Format format = vk::Format::eUndefined; //< The format will determine the type of attachment
     vk::ImageUsageFlags imageUsage;
@@ -102,10 +102,10 @@ struct ImportedResource : public ResourceBase
         const uint32_t height,
         const vk::Format format,
         const uint8_t samples,
-        VulkanAPI::ImageView* imageView);
+        VulkanAPI::ImageView& imageView);
 
     // This is owned elsewhere - for instance the swapchain
-    VulkanAPI::ImageView* imageView = nullptr;
+    VulkanAPI::ImageView& imageView;
 
     uint32_t width = 0;
     uint32_t height = 0;

@@ -82,9 +82,11 @@ void Texture::create2dTex(
     uint32_t width,
     uint32_t height,
     uint8_t mipLevels,
+    uint8_t faceCount,
+    uint8_t arrayCount,
     vk::ImageUsageFlags usageFlags)
 {
-    texContext = TextureContext {format, width, height, mipLevels, 1, 1};
+    texContext = TextureContext {format, width, height, mipLevels, faceCount, arrayCount};
 
     // create an empty image
     image = new Image(driver.getContext(), *this);
@@ -171,14 +173,14 @@ void Texture::destroy()
 void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
 {
     // all images must be rgba
-    size_t size = texContext.width * texContext.height * 4 * texContext.mipLevels;
+    size_t size = texContext.width * texContext.height * 4 * texContext.mipLevels * texContext.faceCount;
 
     StagingPool::StageInfo stage = stagePool.create(size);
     memcpy(stage.allocInfo.pMappedData, data, size);
 
     // create the info required for the copy
     std::vector<vk::BufferImageCopy> copyBuffers;
-    if (texContext.faceCount == 1 && texContext.arrays == 1)
+    if (texContext.faceCount == 1 && texContext.arrayCount == 1)
     {
         createCopyBuffer(copyBuffers);
     }
@@ -209,7 +211,7 @@ void Texture::map(VkDriver& driver, StagingPool& stagePool, void* data)
     Image::transition(
         *image,
         vk::ImageLayout::eTransferDstOptimal,
-        vk::ImageLayout::eShaderReadOnlyOptimal,
+        this->imageLayout,
         cmdBuffer->get());
 
     cmdBuffer->flush();

@@ -105,7 +105,10 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 
         // TODP: multi view option- with each view drawn.
         // begin the rendering for this frame
-        renderer->draw();
+        if (!renderer->draw())
+        {
+            return false;
+        }
 
         // user defined post-render callback to be added here
 

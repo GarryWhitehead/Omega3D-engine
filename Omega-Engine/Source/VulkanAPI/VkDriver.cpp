@@ -5,6 +5,7 @@
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkTexture.h"
+#include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
 #include <cassert>
@@ -97,6 +98,8 @@ Texture* VkDriver::add2DTexture(
     const uint32_t width,
     const uint32_t height,
     const uint8_t mipLevels,
+    const uint8_t faceCount,
+    const uint8_t arrayCount,
     vk::ImageUsageFlags usageFlags)
 {
     // for textures, we expect the ids to be unique.
@@ -104,10 +107,21 @@ Texture* VkDriver::add2DTexture(
     assert(iter == textures.end());
 
     Texture tex;
-    tex.create2dTex(*this, format, width, height, mipLevels, usageFlags);
+    tex.create2dTex(*this, format, width, height, mipLevels, faceCount, arrayCount, usageFlags);
     textures.emplace(id, std::move(tex));
     LOGGER_INFO("Adding 2D texture with id: %s\n", id.c_str());
     return &textures[id];
+}
+
+Texture* VkDriver::add2DTexture(
+    const Util::String& id,
+    vk::Format format,
+    const uint32_t width,
+    const uint32_t height,
+    const uint8_t mipLevels,
+    vk::ImageUsageFlags usageFlags)
+{
+    return add2DTexture(id, format, width, height, mipLevels, 1, 1, usageFlags);
 }
 
 VertexBuffer* VkDriver::addVertexBuffer(const size_t size, void* data)
@@ -223,44 +237,54 @@ void VkDriver::endFrame(Swapchain& swapchain)
     cbManager->flushSwapchainCmdBuffer(imageReadySemaphore, swapchain, imageIndex);
 }
 
-void VkDriver::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass)
+void VkDriver::beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, bool usingSecondaryCommands)
 {
     // setup the clear values for this pass - need one for each attachment
-    vk::ClearValue clearValue[2];
+    auto& attachments = rpass.getAttachments();
+    std::vector<vk::ClearValue> clearValues(attachments.size());
 
-    if (rpass.hasColourAttach())
+    for (size_t i = 0; i < attachments.size(); ++i)
     {
-        clearValue[0].color.float32[0] = rpass.clearCol.r;
-        clearValue[0].color.float32[1] = rpass.clearCol.g;
-        clearValue[0].color.float32[2] = rpass.clearCol.b;
-        clearValue[0].color.float32[3] = rpass.clearCol.a;
-    }
-    if (rpass.hasDepthAttach())
-    {
-        clearValue[1].depthStencil = vk::ClearDepthStencilValue {rpass.depthClear, 0};
+        if (VkUtil::isDepth(attachments[i].format) || VkUtil::isStencil(attachments[i].format))
+        {
+            clearValues[attachments.size() - 1].depthStencil = vk::ClearDepthStencilValue {rpass.depthClear, 0};
+        }
+        else
+        {
+            clearValues[i].color.float32[0] = rpass.clearCol.r;
+            clearValues[i].color.float32[1] = rpass.clearCol.g;
+            clearValues[i].color.float32[2] = rpass.clearCol.b;
+            clearValues[i].color.float32[3] = rpass.clearCol.a;
+        }
     }
 
     // extents of the frame buffer
     vk::Rect2D extents {{0, 0}, {rpass.getWidth(), rpass.getHeight()}};
 
-    vk::RenderPassBeginInfo beginInfo {rpass.get(), rpass.getFrameBuffer(), extents, 1, clearValue};
-    cmdBuffer->beginPass(beginInfo, vk::SubpassContents::eInline);
+    vk::RenderPassBeginInfo beginInfo {rpass.get(), rpass.getFrameBuffer(), extents, static_cast<uint32_t>(clearValues.size()), clearValues.data()};
+    
+    vk::SubpassContents contents = usingSecondaryCommands ? vk::SubpassContents::eSecondaryCommandBuffers : vk::SubpassContents::eInline;
+    cmdBuffer->beginPass(beginInfo, contents);
 
-    // use custom defined viewing area - at the moment set to the framebuffer size
-    vk::Viewport viewport {0.0f,
-                           0.0f,
-                           static_cast<float>(rpass.getWidth()),
-                           static_cast<float>(rpass.getHeight()),
-                           0.0f,
-                           1.0f};
+    // the viewport and scissor aren't set in the primary command buffer if using secondarys
+    if (!usingSecondaryCommands)
+    {
+       // use custom defined viewing area - at the moment set to the framebuffer size
+        vk::Viewport viewport {0.0f,
+                               0.0f,
+                               static_cast<float>(rpass.getWidth()),
+                               static_cast<float>(rpass.getHeight()),
+                               0.0f,
+                               1.0f};
 
-    cmdBuffer->setViewport(viewport);
+        cmdBuffer->setViewport(viewport);
 
-    vk::Rect2D scissor {
-        {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
-        {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
+        vk::Rect2D scissor {
+            {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
+            {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
 
-    cmdBuffer->setScissor(scissor);
+        cmdBuffer->setScissor(scissor);
+    }
 }
 
 void VkDriver::endRenderpass(CmdBuffer* cmdBuffer)
