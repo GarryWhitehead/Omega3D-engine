@@ -66,7 +66,7 @@ bool OEIndirectLighting::init()
     mipLevels = static_cast<uint32_t>(std::floor(std::log2(irradianceMapDim))) + 1;
     
     // bdrf
-    bdrfInfo.texture = driver.add2DTexture("BdrfSampler", vk::Format::eR16G16Sfloat, bdrfDimensions, bdrfDimensions, 1, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment);
+    bdrfInfo.texture = driver.findOrCreateTexture2d("BdrfSampler", vk::Format::eR16G16Sfloat, bdrfDimensions, bdrfDimensions, 1, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment);
     
     // bdrf shader
     const Util::String bdrf_filename = "bdrf.glsl";
@@ -79,7 +79,7 @@ bool OEIndirectLighting::init()
     if (!irradianceInfo.texture)
     {
         // irradiance
-        irradianceInfo.texture = driver.add2DTexture("IrradianceSampler", irradianceFormat, irradianceMapDim, irradianceMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
+        irradianceInfo.texture = driver.findOrCreateTexture2d("IrradianceSampler", irradianceFormat, irradianceMapDim, irradianceMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
         
         // irradiance shader
         const Util::String irradiance_filename = "irradianceMap.glsl";
@@ -93,7 +93,7 @@ bool OEIndirectLighting::init()
     if (!specularInfo.texture)
     {
         // specular
-        specularInfo.texture = driver.add2DTexture("SpecularSampler", specularFormat, specularMapDim, specularMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
+        specularInfo.texture = driver.findOrCreateTexture2d("SpecularSampler", specularFormat, specularMapDim, specularMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
         
         // specular shader
         const Util::String specular_filename = "specularMap.glsl";
@@ -143,25 +143,33 @@ void OEIndirectLighting::buildBdrfMap()
     if (!bdrfInfo.rpass)
     {
         // create the renderpass
-        std::vector<VulkanAPI::ImageView*> imageView { bdrfInfo.texture->getImageView() };
+        VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
         
-        bdrfInfo.rpass = std::make_unique<VulkanAPI::RenderPass>(driver.getContext());
-        uint32_t handle = bdrfInfo.rpass->addOutputAttachment(bdrfFormat, 0, {}, 1);
-        bdrfInfo.rpass->addSubPass(handle);
-        bdrfInfo.rpass->prepare(imageView, bdrfDimensions, bdrfDimensions);
+        rpassKey.colourFormats[0] = bdrfFormat;
+        rpassKey.finalLayout[0] = vk::ImageLayout::eShaderReadOnlyOptimal;
+        bdrfInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
+
+        // create the frame buffer
+        VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();;
+        
+        fboKey.views[0] = bdrfInfo.texture->getImageView()->get();
+        fboKey.renderpass = bdrfInfo.rpass->get();
+        fboKey.width = bdrfDimensions;
+        fboKey.height = bdrfDimensions;
+        bdrfInfo.fbo = driver.findOrCreateFrameBuffer(fboKey);
         
         // setup descriptors
         cbManager.updateShaderDescriptorSets(bdrfInfo.prog->getShaderId());
         
         // create a default pipeline
         assert(!bdrfInfo.pipeline);
-        bdrfInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *bdrfInfo.rpass, *bdrfInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
-        bdrfInfo.pipeline->create(*bdrfInfo.prog);
+        bdrfInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *bdrfInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
+        bdrfInfo.pipeline->create(*bdrfInfo.prog, bdrfInfo.rpass, bdrfInfo.fbo);
     }
     
     VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getWorkCmdBuffer();
     
-    driver.beginRenderpass(cmdBuffer, *bdrfInfo.rpass);
+    driver.beginRenderpass(cmdBuffer, *bdrfInfo.rpass, *bdrfInfo.fbo);
     cmdBuffer->bindPipeline(*bdrfInfo.pipeline);
     cmdBuffer->drawQuad();
     driver.endRenderpass(cmdBuffer);
@@ -195,17 +203,27 @@ void OEIndirectLighting::buildMap(
         std::vector<VulkanAPI::ImageView*> imageView { mapInfo.osTexture->getImageView() };
         
         // create the renderpass
-        mapInfo.rpass = std::make_unique<VulkanAPI::RenderPass>(driver.getContext());
-        uint32_t handle = mapInfo.rpass->addOutputAttachment(format, 0, {}, 1, vk::ImageLayout::eColorAttachmentOptimal);
-        mapInfo.rpass->addSubPass(handle);
-        mapInfo.rpass->prepare(imageView, dim, dim);
+        VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();;
+        
+        rpassKey.colourFormats[0] = format;
+        rpassKey.finalLayout[0] = vk::ImageLayout::eColorAttachmentOptimal;
+        mapInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
+        
+        // create the frame buffer
+        VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
+        
+        fboKey.views[0] = mapInfo.osTexture->getImageView()->get();
+        fboKey.renderpass = mapInfo.rpass->get();
+        fboKey.width = dim;
+        fboKey.height = dim;
+        mapInfo.fbo = driver.findOrCreateFrameBuffer(fboKey);
         
         // setup descriptors
         cbManager.updateShaderDescriptorSets(mapInfo.prog->getShaderId());
         
         // create a default pipeline
-        mapInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *mapInfo.rpass, *mapInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
-        mapInfo.pipeline->create(*mapInfo.prog);
+        mapInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *mapInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
+        mapInfo.pipeline->create(*mapInfo.prog, mapInfo.rpass, mapInfo.fbo);
     }
     
     VulkanAPI::Image* image = mapInfo.texture->getImage();
@@ -235,7 +253,7 @@ void OEIndirectLighting::buildMap(
             vk::Viewport viewPort =
                 vk::Viewport {0.0f, 0.0f, mipDimensions, mipDimensions, 0.0f, 1.0f};
 
-            driver.beginRenderpass(cmdBuffer, *mapInfo.rpass);
+            driver.beginRenderpass(cmdBuffer, *mapInfo.rpass, *mapInfo.fbo);
 
             cmdBuffer->bindPipeline(*mapInfo.pipeline);
             cmdBuffer->bindDescriptors(cbManager, mapInfo.prog, VulkanAPI::Pipeline::Type::Graphics);
@@ -329,14 +347,14 @@ void OEIndirectLighting::setEnvMap(OESkybox* skybox)
 void OEIndirectLighting::specularEnvMap(MappedTexture* texture)
 {
     assert(texture);
-    specularInfo.texture = driver.add2DTexture("SpecularSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
+    specularInfo.texture = driver.findOrCreateTexture2d("SpecularSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
     driver.update2DTexture("SpecularSampler", texture->getBuffer());
 }
 
 void OEIndirectLighting::irradianceEnvMap(MappedTexture* texture)
 {
     assert(texture);
-    irradianceInfo.texture = driver.add2DTexture("IrradianceSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
+    irradianceInfo.texture = driver.findOrCreateTexture2d("IrradianceSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
     driver.update2DTexture("IrradianceSampler", texture->getBuffer());
 }
 

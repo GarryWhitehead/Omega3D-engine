@@ -29,11 +29,10 @@ TextureResource::TextureResource(
 {
 }
 
-void* TextureResource::bake(VulkanAPI::VkDriver& driver)
+VulkanAPI::Texture* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
     // TODO: need to add support for arrays too
-    driver.add2DTexture(name, format, width, height, mipLevels, faceCount, 1, imageUsage);
-    return reinterpret_cast<void*>(driver.getTexture2D(name)->getImageView());
+    return driver.findOrCreateTexture2d(name, format, width, height, mipLevels, faceCount, 1, imageUsage);
 }
 
 VulkanAPI::Texture* TextureResource::get(VulkanAPI::VkDriver& driver)
@@ -78,11 +77,14 @@ ImportedResource::ImportedResource(
 
 // =============================================================================
 
-void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
+/*void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
 {
     ResourceBase* base = rGraph.getResource(resource);
-    void* data = base->bake(driver);
-    return data;
-}
+    if (base->type == ResourceBase::ResourceType::Texture)
+    {
+        void* data = base->bake(driver);
+        return data;
+    }
+}*/
 
 } // namespace OmegaEngine

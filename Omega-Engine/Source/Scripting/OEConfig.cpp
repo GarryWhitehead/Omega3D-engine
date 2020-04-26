@@ -38,12 +38,7 @@ bool EngineConfig::empty() const
 }
 
 std::vector<float> EngineConfig::buildVec(TypeDescriptor& descr, uint8_t vecSize)
-{
-    if (descr.type != TypeDescriptor::Float)
-    {
-        return {};
-    }
-    
+{    
     std::string vecStr = descr.value;
     std::vector<float> values;
     
@@ -51,9 +46,10 @@ std::vector<float> EngineConfig::buildVec(TypeDescriptor& descr, uint8_t vecSize
     while (pos != std::string::npos)
     {
         values.emplace_back(std::stof(vecStr.substr(pos - 1, vecStr.size())));
-        vecStr = vecStr.substr(0, pos + 1);
+        vecStr = vecStr.substr(pos + 1, vecStr.size());
         pos = vecStr.find_first_of(',');
     }
+    values.emplace_back(std::stof(vecStr));
     
     if (values.empty() || values.size() < 2)
     {

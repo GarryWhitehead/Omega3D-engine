@@ -75,6 +75,9 @@ OEWindowInstance* OEApplication::init(const char* title, uint32_t width, uint32_
 
 bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 {
+    // use the current camera with the glfw input
+    glfw.setCamera(*scene);
+    
     // convert delta time to ms
     const NanoSeconds frameTime(33ms);
 
@@ -91,12 +94,6 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 
         // update the scene
         if (!scene->update(frameTime.count()))
-        {
-            return false;
-        }
-
-        // and the renderer
-        if (!renderer->update())
         {
             return false;
         }

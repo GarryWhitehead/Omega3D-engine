@@ -39,6 +39,7 @@ struct RenderStateBlock
     {
         struct StencilState
         {
+            bool useStencil = false;
             vk::StencilOp failOp;
             vk::StencilOp passOp;
             vk::StencilOp depthFailOp;
@@ -46,6 +47,7 @@ struct RenderStateBlock
             uint32_t compareMask = 0;
             uint32_t writeMask = 0;
             uint32_t reference = 0;
+            bool frontEqualBack = true;
         };
 
         /// depth state
@@ -57,8 +59,8 @@ struct RenderStateBlock
         bool stencilTestEnable = VK_FALSE;
 
         /// only processed if the above is true
-        StencilState front;
-        StencilState back;
+        StencilState frontStencil;
+        StencilState backStencil;
     };
 
     struct RasterState

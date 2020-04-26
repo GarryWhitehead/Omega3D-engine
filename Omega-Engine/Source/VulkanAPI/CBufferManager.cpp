@@ -49,13 +49,17 @@ CBufferManager::CBufferManager(VkDriver& driver)
 CBufferManager::~CBufferManager()
 {
     driver.getContext().device.destroy(cmdPool, nullptr);
+    driver.getContext().device.destroy(descriptorPool, nullptr);
 }
 
-Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type)
+Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rpass, FrameBuffer* fbo, Pipeline::Type type)
 {
+    assert(rpass);
+    assert(fbo);
+    
     Pipeline* pline = nullptr;
 
-    PLineKey key {prog, rPass};
+    PLineKey key {prog, rpass};
     auto iter = pipelines.find(key);
 
     // if the pipeline has already has an instance return this
@@ -67,8 +71,8 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     {
         // else create a new pipeline - If we are in a threaded environemt then we can't add to the
         // list until we are out of the thread
-        pline = new Pipeline(driver.getContext(), *rPass, *prog->getPLineLayout(), type);
-        pline->create(*prog);
+        pline = new Pipeline(driver.getContext(),*prog->getPLineLayout(), type);
+        pline->create(*prog, rpass, fbo);
         pipelines.emplace(key, pline);
     }
 
@@ -371,6 +375,8 @@ void CBufferManager::flushCmdBuffer()
 {
     VkContext& context = driver.getContext();
 
+    cmdBuffer->end();
+    
     vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
     vk::SubmitInfo info {0, nullptr, &flags, 1, &cmdBuffer->get(), 0, nullptr};
     VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, cmdBuffer->cmdFence));
@@ -379,9 +385,8 @@ void CBufferManager::flushCmdBuffer()
     VK_CHECK_RESULT(context.device.waitForFences(1, &cmdBuffer->cmdFence, false, UINT64_MAX));
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
 
-    // reset and begin the buffer
+    // reset the buffer
     cmdBuffer.get()->resetCmdBuffer();
-    cmdBuffer->begin();
 }
 
 void CBufferManager::flushSwapchainCmdBuffer(
@@ -446,9 +451,27 @@ void CBufferManager::executeSecondaryCommands()
     for (uint32_t i = 0; i < nextSecondaryCmdBufferIdx; ++i)
     {
         cmdBuffers.emplace_back(threadedBuffers[i].secondary->get());
+        threadedBuffers[i].isExecuted = true;
     }
     cmdBuffer->get().executeCommands(
         static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data());
+}
+
+void CBufferManager::resetSecondaryCommands()
+{
+    VkContext& context = driver.getContext();
+    
+    nextSecondaryCmdBufferIdx = 0;
+    
+    for (auto& secondary : threadedBuffers)
+    {
+        if (secondary.isExecuted)
+        {
+            secondary.secondary = std::make_unique<CmdBuffer>(context, secondary.cmdPool, CmdBuffer::Type::Secondary);
+            secondary.secondary->init();
+            secondary.isExecuted = false;
+        }
+    }
 }
 
 CmdBuffer* CBufferManager::getCmdBuffer()

@@ -95,12 +95,6 @@ public:
     void preparePasses();
 
     /**
-     @brief Priimarily iterates over all visible renderable data within the scene and ceates the
-     render queue.
-     */
-    bool update();
-
-    /**
      @brief Draws into the cmd buffers all the data that is currently held by the scene
      */
     bool draw();

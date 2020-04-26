@@ -101,7 +101,7 @@ OESkybox& OESkybox::setCubeMap(MappedTexture* cm)
 {
     assert(cm);
     cubeMap = cm;
-    VulkanAPI::Texture* tex = driver.add2DTexture(
+    VulkanAPI::Texture* tex = driver.findOrCreateTexture2d(
         "envSampler",
         VulkanAPI::VkUtil::imageFormatToVk(cubeMap->getFormat()),
         cubeMap->getWidth(),

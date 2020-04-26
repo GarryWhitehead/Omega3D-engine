@@ -51,6 +51,7 @@ public:
     {
         std::unique_ptr<CmdBuffer> secondary;
         vk::CommandPool cmdPool;
+        bool isExecuted = false;
     };
 
     CBufferManager(VkDriver& driver);
@@ -64,7 +65,7 @@ public:
      * @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to
      * the pipeline if it does, otherwise nullptr
      */
-    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type);
+    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, FrameBuffer* fbo, Pipeline::Type type);
 
     void addDescriptorLayout(
         uint32_t shaderId,
@@ -99,6 +100,8 @@ public:
     
     // returns the swap chain command buffer - used for drawing to the backbuffer
     CmdBuffer* getScCommandBuffer(uint8_t idx);
+    
+    void resetSecondaryCommands();
     
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();

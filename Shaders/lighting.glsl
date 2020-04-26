@@ -3,13 +3,13 @@
 
 // depth-stencil
 DepthTestEnable=True;
-DepthWriteEnable=True; 
+DepthWriteEnable=False;
 CompareOp=LessOrEqual;
 
 // raster
 PolygonMode=Fill;
 CullMode=Back;
-FrontFace=CounterClockwise;
+FrontFace=Clockwise;
 
 // sampler
 MagFilter=Nearest;
@@ -31,6 +31,7 @@ AddressModeW=ClampToEdge;
 	Name=mvp, 			Type=mat4;
 	Name=projection,	Type=mat4;
 	Name=view, 			Type=mat4;
+    Name=model,         Type=mat4;
 	Name=cameraPos,		Type=vec3;
 	Name=pad0, 			Type=float;
 ]]

@@ -108,8 +108,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
         offsets.emplace_back(render->skinDynamicOffset);
     }
     
-    VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-    cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
+    cmdBuffer->bindPipeline(cbManager, rpassContext.rpass, rpassContext.fbo, prog, VulkanAPI::Pipeline::Type::Graphics);
     
     cmdBuffer->bindDescriptors(prog->getPLineLayout()->get(), descrSets, offsets, VulkanAPI::Pipeline::Type::Graphics);
 

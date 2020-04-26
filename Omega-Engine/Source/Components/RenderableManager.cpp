@@ -526,7 +526,7 @@ bool OERenderableManager::update()
                 // note: we don't create a descriptor set alloc blueprint here as materials deal
                 // with their own descriptor layouts
                 MaterialInstance::Sampler& sampler = material->instance->sampler;
-                VulkanAPI::Texture* vkTex = driver.add2DTexture(
+                VulkanAPI::Texture* vkTex = driver.findOrCreateTexture2d(
                     texShaderId,
                     format,
                     tex->getWidth(),

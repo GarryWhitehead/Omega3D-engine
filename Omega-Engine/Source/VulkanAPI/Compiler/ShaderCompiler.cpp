@@ -71,6 +71,11 @@ bool ShaderCompiler::getBool(std::string type)
     return false;
 }
 
+uint32_t ShaderCompiler::getInt(std::string value)
+{
+    return std::stoi(value);
+}
+
 uint8_t ShaderCompiler::getCurrentBinding(const uint8_t groupId)
 {
     uint8_t bind = 0;
@@ -111,6 +116,46 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         {
             dsState.compareOp = VkUtils::vkCompareOpFromString(state.second);
         }
+        // stencil state
+        else if (state.first == "StencilTestEnable")
+        {
+            dsState.frontStencil.useStencil = getBool(state.second);
+        }
+        else if (state.first == "StencilFailOp")
+        {
+            dsState.frontStencil.failOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilDepthFailOp")
+        {
+            dsState.frontStencil.depthFailOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilPassOp")
+        {
+            dsState.frontStencil.passOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilCompareOp")
+        {
+            dsState.frontStencil.compareOp = VkUtils::vkCompareOpFromString(state.second);
+        }
+        else if (state.first == "StencilCompareMask")
+        {
+            dsState.frontStencil.compareMask = getInt(state.second);
+        }
+        else if (state.first == "StencilWriteMask")
+        {
+           dsState.frontStencil.writeMask = getInt(state.second);
+        }
+        else if (state.first == "StencilReference")
+        {
+           dsState.frontStencil.reference = getInt(state.second);
+        }
+        else if (state.first == "StencilBack")
+        {
+           if (getBool(state.second))
+           {
+               dsState.backStencil = dsState.frontStencil;
+           }
+        }
         // raster state
         else if (state.first == "PolygonMode")
         {
@@ -147,6 +192,7 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         }
         else
         {
+            LOGGER_ERROR("Render State type of %s not recognised", state.first.c_str());
             return CompilerReturnCode::InvalidPipelineType;
         }
     }
@@ -483,10 +529,14 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor& vertSha
             vertShader.appendBlock += "#endif\n";
         }
 
-        vk::Format format = VkUtil::getVkFormatFromType(type, 32);
-        uint32_t stride = VkUtil::getStrideFromType(type);
-        ShaderProgram::InputBinding iBind {loc++, stride, format};
-        program.inputs.emplace_back(iBind);
+        // if there is a variant for this vertex input, then check if it has been set. If not, it won't be included in the attributes. If there is no variant this function returns true.
+        if (checkVariantStatus(variant))
+        {
+            vk::Format format = VkUtil::getVkFormatFromType(type, 32);
+            uint32_t stride = VkUtil::getStrideFromType(type);
+            ShaderProgram::InputBinding iBind {loc++, stride, format};
+            program.inputs.emplace_back(iBind);
+        }
     }
 
     vertShader.appendBlock += '\n';

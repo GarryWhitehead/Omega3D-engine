@@ -60,6 +60,15 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
     return attachments.size() - 1;
 }
 
+void RenderGraph::reset()
+{
+    rGraphPasses.clear();
+    reorderedPasses.clear();
+    resources.clear();
+    aliases.clear();
+    attachments.clear();
+}
+
 bool RenderGraph::compile()
 {
     // TODO: deal with aliases here (moved resources)
@@ -149,7 +158,6 @@ bool RenderGraph::compile()
         RenderGraphPass& rpass = rGraphPasses[reorderedPasses[i]];
 
         // passes with no refences are treated as culled
-        uint32_t refId = 0;
         uint32_t maxWidth = std::numeric_limits<uint32_t>::min();
         uint32_t maxHeight = std::numeric_limits<uint32_t>::min();
 
@@ -159,9 +167,6 @@ bool RenderGraph::compile()
             if (base->type == ResourceBase::ResourceType::Texture)
             {
                 TextureResource* tex = reinterpret_cast<TextureResource*>(base);
-
-                // used by the attachment descriptor
-                tex->referenceId = refId++;
 
                 // use the resource with max dimensions
                 maxWidth = std::max(maxWidth, tex->width);
@@ -193,7 +198,10 @@ bool RenderGraph::compile()
 
         // TODO: need to deal with merging passes too!
     }
-
+    
+    // sort out the vulkan renderpasses and render targets ready for execution
+    initRenderPass();
+    
     return true;
 }
 
@@ -220,29 +228,8 @@ void RenderGraph::initRenderPass()
     }
 }
 
-bool RenderGraph::prepare()
-{
-    if (!rebuild)
-    {
-        return true;
-    }
-
-    // start by optimising the graph and filling out the structure
-    if (!compile())
-    {
-        return false;
-    }
-
-    // init the renderpass resources - command buffer, frame buffers, etc.
-    initRenderPass();
-
-    rebuild = false;
-    return true;
-}
-
 void RenderGraph::execute()
 {
-    // start the render pass
     VulkanAPI::CBufferManager& manager = context.driver->getCbManager();
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
 
@@ -257,7 +244,6 @@ void RenderGraph::execute()
         rpass.execFunc(rpass.context, context);
     }
 
-    cmdBuffer->end();
     manager.flushCmdBuffer();
     
     // now execute the backbuffer draw pass
@@ -278,18 +264,6 @@ AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
         ++index;
     }
     return UINT64_MAX;
-}
-
-RPassHandle RenderGraph::createRenderPass()
-{
-    renderpasses.emplace_back(std::make_unique<VulkanAPI::RenderPass>(context.driver->getContext()));
-    return RPassHandle {renderpasses.size() - 1};
-}
-
-VulkanAPI::RenderPass* RenderGraph::getRenderpass(const RPassHandle& handle)
-{
-    assert(handle.get() < renderpasses.size());
-    return renderpasses[handle.get()].get();
 }
 
 std::vector<ResourceBase*>& RenderGraph::getResources()

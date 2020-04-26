@@ -2,7 +2,7 @@
 
 #include "OEMaths/OEMaths.h"
 #include "VulkanAPI/Common.h"
-#include "utility/BitSetEnum.h"
+#include "utility/BitsetEnum.h"
 
 #include <cassert>
 #include <cstdint>
@@ -17,103 +17,67 @@ namespace VulkanAPI
 class ImageView;
 struct VkContext;
 
-/**
- * @brief Flags for subpass dependencies, indicating each subpass barrier property
- */
-enum class SubpassFlags : uint64_t
-{
-    Threaded,
-    __SENTINEL__
-};
-
-enum class DependencyFlags
-{
-    DepthRead,
-    StencilRead,
-    ColourRead,
-    __SENTINEL__
-};
-
 class RenderPass
 {
 
 public:
-    enum class LoadType
+    
+    /**
+    * Describes what should be done with the images pre- and post- pass - i.e. keep or throw away
+    * the data. Using a normal enum instaed of the bitsetenum because this will be used in the renderpass key
+    */
+    enum class LoadClearFlags : uint32_t
     {
         Store,
         Clear,
         DontCare
     };
-
-    enum class StoreType
+    
+    enum class StoreClearFlags : uint32_t
     {
         Store,
         DontCare
     };
-
-    /**
-     * Describes what should be done with the images pre- and post- pass - i.e. keep or throw away
-     * the data
-     */
-    struct ClearFlags
+    
+    enum class DependencyType
     {
-        LoadType attachLoad = LoadType::Clear;
-        StoreType attachStore = StoreType::Store;
-        LoadType stencilLoad = LoadType::DontCare;
-        StoreType stencilStore = StoreType::DontCare;
+        ColourPass,
+        DepthPass,
+        StencilPass,
+        DepthStencilPass
     };
 
     RenderPass(VkContext& context);
     ~RenderPass();
 
-    // no copying
-    RenderPass(const RenderPass&) = delete;
-    RenderPass& operator=(const RenderPass&) = delete;
-
     // static functions
-    static vk::ImageLayout getFinalTransitionLayout(const vk::Format format);
     static vk::ImageLayout getAttachmentLayout(vk::Format format);
-    static vk::AttachmentLoadOp loadFlagsToVk(const LoadType flags);
-    static vk::AttachmentStoreOp storeFlagsToVk(const StoreType flags);
+    static vk::AttachmentLoadOp loadFlagsToVk(const LoadClearFlags flags);
+    static vk::AttachmentStoreOp storeFlagsToVk(const StoreClearFlags flags);
     static vk::SampleCountFlagBits samplesToVk(const uint32_t count);
 
     /// Adds a attahment for this pass. This can be a colour or depth attachment
-    uint32_t addOutputAttachment(
+    uint32_t addAttachment(
         const vk::Format format,
-        const uint32_t reference,
-        const ClearFlags& clearFlags,
         const uint32_t sampleCount,
-        const vk::ImageLayout finalLayout = vk::ImageLayout::eUndefined);
-
-    /// adds an input attachment reference. Must have an attachment description added by calling
-    /// **addAttachment**
-    void addInputRef(const uint32_t reference);
-
-    /// Adds a subpass, the colour outputs and inputs will be linked via the reference ids. These
-    /// must have already been added as attachments, otherwise this will throw an error
-    bool addSubPass(
-        std::vector<uint32_t>& inputRefs,
-        std::vector<uint32_t>& outputRefs,
-        const uint32_t depthRef = UINT32_MAX);
+        const vk::ImageLayout finalLayout,
+        LoadClearFlags loadOp,
+        StoreClearFlags storeOp,
+        LoadClearFlags stencilLoadOp,
+        StoreClearFlags stencilStoreOp);
     
-    /// if creating simple passes with just one output attachment, then use this function
-    void addSubPass(uint32_t attachmentHandle, uint32_t depth = UINT32_MAX);
+    uint32_t addAttachment(
+    const vk::Format format,
+    const uint32_t sampleCount,
+    const vk::ImageLayout finalLayout);
     
-    void addSubpassDependency(const Util::BitSetEnum<DependencyFlags>& flags);
+    void addSubpassDependency(DependencyType dependType);
 
     /// Actually creates the renderpass based on the above definitions and creates the framebuffer
-    void prepare(std::vector<ImageView*>& imageViews,
-    uint32_t width,
-    uint32_t height,
-    uint32_t layerCount = 1);
+    void prepare();
 
     // ====================== the getter and setters =================================
     vk::RenderPass& get();
-    vk::Framebuffer& getFrameBuffer();
-
-    // kind of replicated from the frame buffer
-    uint32_t getWidth() const;
-    uint32_t getHeight() const;
 
     /// sets the clear and depth clear colour - these will only be used if the pass has a colour
     /// and/or depth attachment
@@ -128,38 +92,23 @@ public:
     std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
 
     friend class VkDriver;
-
-private:
-    struct SubpassInfo
-    {
-        vk::SubpassDescription descr;
-        std::vector<vk::AttachmentReference> colourRefs;
-        std::vector<vk::AttachmentReference> inputRefs;
-        vk::AttachmentReference* depth = nullptr;
-    };
-
-    struct OutputReferenceInfo
-    {
-        vk::AttachmentReference ref;
-        size_t index; //< points to the attachment description for this ref.
-    };
-
     friend class CBufferManager;
 
 private:
+    
     /// keep a refernece of the device this pass was created on for destruction purposes
     VkContext& context;
 
     vk::RenderPass renderpass;
-    vk::Framebuffer fbuffer;
 
     /// the colour/input attachments
-    std::vector<vk::AttachmentDescription> attachments;
-    std::vector<OutputReferenceInfo> outputRefs;
-    std::vector<vk::AttachmentReference> inputRefs;
-
-    /// subpasses - could be a single or multipass
-    std::vector<SubpassInfo> subpasses;
+    std::vector<vk::AttachmentDescription> attachmentDescrs;
+    std::vector<vk::AttachmentReference> colourAttachRefs;
+    vk::AttachmentReference depthAttachDescr;
+    bool hasDepth = false;
+    
+    /// subpasses - only one subpass supported at present
+    vk::SubpassContents subpass;
 
     /// the dependencies between renderpasses and external sources
     std::array<vk::SubpassDependency, 2> dependencies;
@@ -169,6 +118,30 @@ private:
     float depthClear = 0.0f;
 
     /// max extents of this pass
+    uint32_t width = 0;
+    uint32_t height = 0;
+};
+
+class FrameBuffer
+{
+public:
+    
+    FrameBuffer(VkContext& context);
+    ~FrameBuffer();
+    
+    void create(vk::RenderPass renderpass, std::vector<vk::ImageView>& imageViews, uint32_t width, uint32_t height);
+    
+    vk::Framebuffer& get();
+    
+    uint32_t getWidth() const;
+    uint32_t getHeight() const;
+    
+private:
+    
+    VkContext& context;
+    
+    vk::Framebuffer fbo;
+    
     uint32_t width = 0;
     uint32_t height = 0;
 };

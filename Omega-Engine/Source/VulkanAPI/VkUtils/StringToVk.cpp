@@ -187,5 +187,39 @@ vk::DescriptorType getVkDescrTypeFromStr(std::string str)
     return result;
 }
 
+vk::StencilOp vkStencilOpFromString(std::string str)
+{
+    vk::StencilOp result = vk::StencilOp::eKeep;
+    if (str == "Keep")
+    {
+        result = vk::StencilOp::eKeep;
+    }
+    else if (str == "Replace")
+    {
+        result = vk::StencilOp::eReplace;
+    }
+    else if (str == "Zero")
+    {
+        result = vk::StencilOp::eZero;
+    }
+    else if (str == "Invert")
+    {
+        result = vk::StencilOp::eInvert;
+    }
+    else if (str == "DecrementAndWrap")
+    {
+        result = vk::StencilOp::eDecrementAndWrap;
+    }
+    else if (str == "IncrementAndWrap")
+    {
+        result = vk::StencilOp::eIncrementAndWrap;
+    }
+    else
+    {
+        LOGGER_WARN("Unrecognsied stencilOp parameter. Setting to Keep.");
+    }
+    return result;
+}
+
 }    // namespace VkUtils
 }    // namespace VulkanAPI

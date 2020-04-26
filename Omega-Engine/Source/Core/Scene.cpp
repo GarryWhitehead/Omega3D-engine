@@ -148,7 +148,10 @@ bool OEScene::update(const double time)
 
     auto& objects = world.getObjectsList();
     auto& models = world.getModelGraph().getNodeList();
-
+    
+    // clear the render queue
+    renderQueue.resetAll();
+    
     // we create a temp container as we will be doing the visibility checks async
     // reserve more space than we need
     std::vector<VisibleCandidate> candRenderableObjs;

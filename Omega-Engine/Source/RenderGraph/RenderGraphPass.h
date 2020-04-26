@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RenderGraph/RenderHandle.h"
 #include "RenderGraph/Resources.h"
 #include "utility/BitSetEnum.h"
 #include "utility/CString.h"
@@ -26,8 +25,9 @@ struct RGraphContext;
  */
 struct RGraphPassContext
 {
-    // the vulkan render pass and framebuffer for this graph context
-    RPassHandle rpass;
+    // the vulkan render pass
+    VulkanAPI::RenderPass* rpass = nullptr;
+    VulkanAPI::FrameBuffer* fbo = nullptr;
 
     // clear colours for this pass
     OEMaths::colour4 clearCol = {0.0f};
@@ -95,9 +95,6 @@ private:
     // the max dimesnions of the resources within this pass.
     uint32_t maxWidth = 0;
     uint32_t maxHeight = 0;
-
-    // flags depicting how the subpasses will behave
-    Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
     
     // ======= vulkan specific ================
     // Kept in a struct as this will be passed around when rendering passes

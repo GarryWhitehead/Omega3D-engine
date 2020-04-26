@@ -49,6 +49,8 @@ public:
      */
     bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
 
+    void destroy(VkContext& context);
+    
     // static functions
     /**
      * @brief Creates a KHR surface object using a native window pointer.

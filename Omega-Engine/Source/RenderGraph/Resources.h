@@ -42,23 +42,15 @@ struct ResourceBase
     {
     }
 
-    Util::String name;
+    Util::String name;      // for degugging
     ResourceType type;
     
-    virtual void* bake(VulkanAPI::VkDriver& driver)
-    {
-        OE_UNUSED(driver);
-        return nullptr;
-    }
     
     // ==== set by the compiler =====
     // the number of passes this resource is being used as a input
     size_t readCount = 0;
 
     RenderGraphPass* writer = nullptr;
-
-    // used by the attachment descriptor
-    uint32_t referenceId = 0;
 };
 
 // All the information needed to build a vulkan texture
@@ -73,7 +65,7 @@ struct TextureResource : public ResourceBase
         const uint8_t faceCount,
         const vk::ImageUsageFlags usageBits);
 
-    void* bake(VulkanAPI::VkDriver& driver) override;
+    VulkanAPI::Texture* bake(VulkanAPI::VkDriver& driver);
     VulkanAPI::Texture* get(VulkanAPI::VkDriver& driver);
 
     bool isDepthFormat();
@@ -89,8 +81,6 @@ struct TextureResource : public ResourceBase
 
     vk::Format format = vk::Format::eUndefined; //< The format will determine the type of attachment
     vk::ImageUsageFlags imageUsage;
-
-    VulkanAPI::RenderPass::ClearFlags clearFlags;
 };
 
 // used for imported texture targets 
@@ -125,7 +115,7 @@ struct AttachmentInfo
     AttachmentInfo() = default;
 
     // creates the 'actual' vulkan resource associated with this attachment
-    void* bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph);
+    //void* bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph);
 
     Util::String name;
     uint8_t samples = 0;

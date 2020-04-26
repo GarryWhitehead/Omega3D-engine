@@ -14,6 +14,12 @@ Swapchain::Swapchain()
 
 Swapchain::~Swapchain()
 {
+    
+}
+
+void Swapchain::destroy(VkContext& context)
+{
+    context.device.destroy(swapchain);
 }
 
 Platform::SurfaceWrapper

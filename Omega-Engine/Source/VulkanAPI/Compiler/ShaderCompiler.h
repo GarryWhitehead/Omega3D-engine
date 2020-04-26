@@ -84,6 +84,7 @@ private:
     CompilerReturnCode preparePipelineBlock(ShaderParser& compilerInfo);
 
     bool getBool(std::string type);
+    uint32_t getInt(std::string value);
 
     static void printShaderCode(const std::string& block);
 

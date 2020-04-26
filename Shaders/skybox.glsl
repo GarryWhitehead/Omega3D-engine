@@ -2,13 +2,24 @@
 ##pipeline:
 
 // depth-stencil
-DepthTestEnable=True;
-DepthWriteEnable=True; 
+DepthTestEnable=False;
+DepthWriteEnable=False;
 CompareOp=LessOrEqual;
+
+// stencil
+StencilTestEnable=True;
+StencilFailOp=Keep;
+StencilDepthFailOp=Keep;
+StencilPassOp=Replace;
+StencilCompareOp=NotEqual;
+StencilCompareMask=255;
+StencilWriteMask=0;
+StencilReference=1;
+StencilBack=Front;
 
 // raster
 PolygonMode=Fill;
-CullMode=Back;
+CullMode=None;
 FrontFace=CounterClockwise;
 
 // sampler

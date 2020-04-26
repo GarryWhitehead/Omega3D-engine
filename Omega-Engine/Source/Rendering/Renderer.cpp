@@ -82,24 +82,26 @@ void OERenderer::preparePasses()
 
 void OERenderer::beginFrame()
 {
-}
-
-bool OERenderer::update()
-{
-    preparePasses();
+    // begin the frame on the driver side
+    vkDriver.beginFrame(swapchain);
     
-    // optimisation and compilation of the render graph. If nothing has changed since the last frame
-    // then this call will just return.
-    if (!rGraph->prepare())
-    {
-        return false;
-    }
-    return true;
+    // clear the render graph
+    rGraph->reset();
+    
+    // set up the render graph for this frame
+    preparePasses();
 }
 
 bool OERenderer::draw()
 {
-    vkDriver.beginFrame(swapchain);
+    beginFrame();
+    
+    // optimisation and compilation of the render graph. If nothing has changed since the last frame
+    // then this call will just return.
+    if (!rGraph->compile())
+    {
+       return false;
+    }
     
     // check if indirect lighting component needs init/updating
     if (scene.ibl && scene.ibl->needsUpdating())
@@ -128,15 +130,12 @@ bool OERenderer::draw()
 
 void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
 {
-    RenderGraph* rGraph = rgraphContext.rGraph;
-    VulkanAPI::RenderPass* renderpass = rGraph->getRenderpass(rpassContext.rpass);
-    
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
-    rgraphContext.driver->beginRenderpass(cmdBuffer, *renderpass, true);
+    rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, true);
         
-    auto thread_draw = [&queue, &rgraphContext, &rpassContext, &renderpass, &manager](size_t start, size_t end) {
+    auto thread_draw = [&queue, &rgraphContext, &rpassContext, &manager](size_t start, size_t end) {
         assert(end <= queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
@@ -145,13 +144,13 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
             
              // a cmd pool per thread with a buffer
             VulkanAPI::CmdBuffer* cbSecondary = manager.getSecondaryCmdBuffer();
-            cbSecondary->beginSecondary(*renderpass);
+            cbSecondary->beginSecondary(*rpassContext.rpass, *rpassContext.fbo);
             
             // use custom defined viewing area - at the moment set to the framebuffer size
             vk::Viewport viewport {0.0f,
                                    0.0f,
-                                   static_cast<float>(renderpass->getWidth()),
-                                   static_cast<float>(renderpass->getHeight()),
+                                   static_cast<float>(rpassContext.fbo->getWidth()),
+                                   static_cast<float>(rpassContext.fbo->getHeight()),
                                    0.0f,
                                    1.0f};
             cbSecondary->setViewport(viewport);

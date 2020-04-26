@@ -68,7 +68,8 @@ private:
     {
         VulkanAPI::Texture* texture = nullptr;
         VulkanAPI::ShaderProgram* prog = nullptr;
-        std::unique_ptr<VulkanAPI::RenderPass> rpass;
+        VulkanAPI::RenderPass* rpass = nullptr;
+        VulkanAPI::FrameBuffer* fbo = nullptr;
         std::unique_ptr<VulkanAPI::Pipeline> pipeline;
         
         // used by the specular and irradiance maps for building

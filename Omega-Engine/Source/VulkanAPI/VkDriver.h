@@ -5,6 +5,7 @@
 #include "VulkanAPI/VkContext.h"
 #include "utility/CString.h"
 #include "utility/MurmurHash.h"
+#include "VulkanAPI/RenderPass.h"
 
 #include <unordered_map>
 #include <vector>
@@ -19,6 +20,7 @@ class Buffer;
 class Texture;
 class CmdBuffer;
 class RenderPass;
+class FrameBuffer;
 class VertexBuffer;
 class IndexBuffer;
 class Swapchain;
@@ -69,7 +71,7 @@ public:
      */
     IndexBuffer* addIndexBuffer(const size_t size, uint32_t* data);
     
-    Texture* add2DTexture(
+    Texture* findOrCreateTexture2d(
     const Util::String& id,
     vk::Format format,
     const uint32_t width,
@@ -79,7 +81,7 @@ public:
     const uint8_t arrayCount,
     vk::ImageUsageFlags usageFlags);
     
-    Texture* add2DTexture(
+    Texture* findOrCreateTexture2d(
         const Util::String& id,
         vk::Format format,
         const uint32_t width,
@@ -113,7 +115,7 @@ public:
 
     void endFrame(Swapchain& swapchain);
 
-    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, bool usingSecondaryCommands = false);
+    void beginRenderpass(CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbo, bool usingSecondaryCommands = false);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
 
@@ -128,7 +130,7 @@ public:
     VmaAllocator& getVma();
 
     uint32_t getCurrentImageIndex() const;
-
+    
 private:
     // managers
     std::unique_ptr<ProgramManager> progManager;
@@ -149,8 +151,64 @@ private:
     // used for ensuring that the image has completed
     vk::Semaphore imageReadySemaphore;
  
-    // ================ Texture / Buffer maps ======================
+public:
     
+    // ================ Frame buffer cache =========================
+    #pragma pack(push, 1)
+
+    struct OE_PACKED RPassKey
+    {
+        vk::ImageLayout finalLayout[6];
+        vk::Format colourFormats[6];
+        // at the moment, usng the same clear flags acroos all the attachments to keep the key size down
+        RenderPass::LoadClearFlags loadOp;
+        RenderPass::StoreClearFlags storeOp;
+        RenderPass::LoadClearFlags stencilLoadOp;
+        RenderPass::StoreClearFlags stencilStoreOp;
+        vk::Format depth;
+    };
+    
+    struct OE_PACKED FboKey
+    {
+        VkRenderPass renderpass;
+        VkImageView views[6];
+        uint32_t width;
+        uint32_t height;
+    };
+    #pragma pack(pop)
+    
+    static_assert(std::is_pod<RPassKey>::value, "RPassKey must be a POD for the hashing to work correctly");
+    static_assert(std::is_pod<FboKey>::value, "FboKey must be a POD for the hashing to work correctly");
+    
+    using RPassHasher = Util::Murmur3Hasher<RPassKey>;
+    using FboHasher = Util::Murmur3Hasher<FboKey>;
+
+    struct RPassEqualTo
+    {
+        bool operator()(const RPassKey& lhs, const RPassKey& rhs) const;
+    };
+    
+    struct FboEqualTo
+    {
+        bool operator()(const FboKey& lhs, const FboKey& rhs) const;
+    };
+    
+private:
+    
+    std::unordered_map<RPassKey, std::unique_ptr<RenderPass>, RPassHasher, RPassEqualTo> renderPasses;
+    std::unordered_map<FboKey, std::unique_ptr<FrameBuffer>, FboHasher, FboEqualTo> frameBuffers;
+    
+public:
+    
+    RPassKey prepareRPassKey();
+    FboKey prepareFboKey();
+    RenderPass* findOrCreateRenderPass(const RPassKey& key);
+    FrameBuffer* findOrCreateFrameBuffer(const FboKey& key);
+    
+private:
+    
+    // ================ Texture / Buffer maps ======================
+
     using ResourceIdKey = Util::String;
     using ResourcePtrKey = void*;
 

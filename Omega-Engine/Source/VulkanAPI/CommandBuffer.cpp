@@ -17,6 +17,7 @@ CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type ty
 
 CmdBuffer::~CmdBuffer()
 {
+    context.device.destroy(cmdFence, nullptr);
 }
 
 void CmdBuffer::init()
@@ -39,12 +40,12 @@ void CmdBuffer::begin()
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
 
-void CmdBuffer::beginSecondary(RenderPass& renderpass)
+void CmdBuffer::beginSecondary(RenderPass& renderpass, FrameBuffer& fbo)
 {
     assert(type == CmdBuffer::Type::Secondary);
     
     // the secondary commands inherits from the primary buffer
-    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, renderpass.getFrameBuffer(), 0, {}, {}};
+    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, fbo.get(), 0, {}, {}};
     
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, &inheritance);
@@ -82,17 +83,17 @@ void CmdBuffer::setViewport(const vk::Viewport& newViewPort)
 }
 
 void CmdBuffer::bindPipeline(
-    CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program, Pipeline::Type type)
+    CBufferManager& cbManager, RenderPass* renderpass, FrameBuffer* fbo, ShaderProgram* program, Pipeline::Type type)
 {
-    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, type);
+    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, fbo, type);
     assert(pline);
     // check whether this pipeline is already bound - we don't have to do anything if so
-    if (!boundPipeline || pline != boundPipeline)
-    {
+    //if (!boundPipeline || pline != boundPipeline)
+   // {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
         cmdBuffer.bindPipeline(bindPoint, pline->get());
         boundPipeline = pline;
-    }
+  //  }
 }
 
 void CmdBuffer::bindPipeline(Pipeline& pipeline)
@@ -236,6 +237,7 @@ void CmdBuffer::resetPool()
 void CmdBuffer::resetCmdBuffer()
 {
     cmdBuffer.reset(vk::CommandBufferResetFlags(0));
+    boundPipeline = nullptr;
 }
 
 } // namespace VulkanAPI

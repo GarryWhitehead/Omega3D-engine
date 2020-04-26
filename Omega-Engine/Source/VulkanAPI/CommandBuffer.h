@@ -16,6 +16,7 @@ struct VkContext;
 class CBufferManager;
 class ShaderProgram;
 class RenderPass;
+class FrameBuffer;
 class CmdPool;
 
 class CmdBuffer
@@ -40,7 +41,7 @@ public:
 
     void init();
     void begin();
-    void beginSecondary(RenderPass& renderpass);
+    void beginSecondary(RenderPass& renderpass, FrameBuffer& fbo);
     void end();
 
     // viewport, scissors, etc.
@@ -51,6 +52,7 @@ public:
     void bindPipeline(
         CBufferManager& cbManager,
         RenderPass* renderpass,
+        FrameBuffer* fbo,
         ShaderProgram* program,
         Pipeline::Type type);
 

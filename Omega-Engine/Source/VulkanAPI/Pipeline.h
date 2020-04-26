@@ -12,6 +12,7 @@ class PipelineLayout;
 struct VkContext;
 class ShaderProgram;
 class RenderPass;
+class FrameBuffer;
 class DescriptorPool;
 
 class Pipeline
@@ -24,7 +25,7 @@ public:
         Compute
     };
     
-	Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout, Pipeline::Type type);
+	Pipeline(VkContext& context, PipelineLayout& layout, Pipeline::Type type);
 	~Pipeline();
 
     // not copyable
@@ -40,7 +41,7 @@ public:
     /**
      * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
      */
-	void create(ShaderProgram& shader);
+	void create(ShaderProgram& shader, RenderPass* renderpass, FrameBuffer* fbo);
 	
 	Pipeline::Type getType() const
 	{
@@ -68,9 +69,6 @@ private:
     };
     
     Type type;
-    
-    // a reference to the renderpass associated with this pipeline
-	RenderPass& renderpass;
     
     // a reference to the layout associated with this pipeline
 	PipelineLayout& pipelineLayout;

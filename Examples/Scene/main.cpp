@@ -126,4 +126,6 @@ int main(int argc, char* argv[])
     // we could load multiple worlds here, but for this example we will stick with one
     // now set the loop running
     app->run(scene, renderer);
+    
+    engine->destroy();
 }

@@ -15,6 +15,7 @@ vk::CullModeFlagBits vkCullModeFromString(std::string str);
 vk::Filter vkFilterToString(std::string str);
 vk::SamplerAddressMode vkAddressModeToString(std::string str);
 vk::DescriptorType getVkDescrTypeFromStr(std::string str);
+vk::StencilOp vkStencilOpFromString(std::string str);
 
 }    // namespace VkUtils
 }    // namespace VulkanAPI
