@@ -17,6 +17,7 @@ CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type ty
 
 CmdBuffer::~CmdBuffer()
 {
+    context.device.destroy(cmdFence, nullptr);
 }
 
 void CmdBuffer::init()
@@ -39,12 +40,12 @@ void CmdBuffer::begin()
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
 
-void CmdBuffer::beginSecondary(RenderPass& renderpass)
+void CmdBuffer::beginSecondary(RenderPass& renderpass, FrameBuffer& fbo)
 {
     assert(type == CmdBuffer::Type::Secondary);
     
     // the secondary commands inherits from the primary buffer
-    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, renderpass.getFrameBuffer(), 0, {}, {}};
+    vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, fbo.get(), 0, {}, {}};
     
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, &inheritance);
@@ -82,47 +83,46 @@ void CmdBuffer::setViewport(const vk::Viewport& newViewPort)
 }
 
 void CmdBuffer::bindPipeline(
-    CBufferManager& cbManager, RenderPass* renderpass, ShaderProgram* program, Pipeline::Type type)
+    CBufferManager& cbManager, RenderPass* renderpass, FrameBuffer* fbo, ShaderProgram* program, Pipeline::Type type)
 {
-    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, type);
+    Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, fbo, type);
     assert(pline);
     // check whether this pipeline is already bound - we don't have to do anything if so
-    if (!boundPipeline || pline != boundPipeline)
-    {
+    //if (!boundPipeline || pline != boundPipeline)
+   // {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
         cmdBuffer.bindPipeline(bindPoint, pline->get());
         boundPipeline = pline;
+  //  }
+}
+
+void CmdBuffer::bindPipeline(Pipeline& pipeline)
+{
+    if (!boundPipeline || &pipeline != boundPipeline)
+    {
+        vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipeline.getType());
+        cmdBuffer.bindPipeline(bindPoint, pipeline.get());
+        boundPipeline = &pipeline;
     }
 }
 
-void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, const Pipeline::Type pipelineType)
 {
     vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
-    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
-    assert(setInfo.empty());
-    
-    std::vector<vk::DescriptorSet> descrSets(setInfo.size());
-    for (uint64_t i = 0; i < descrSets.size(); ++i)
-    {
-        descrSets[i] = setInfo[i].descrSet;
-    }
-    
-    cmdBuffer.bindDescriptorSets(
+        cmdBuffer.bindDescriptorSets(
         bindPoint,
-        prog->pLineLayout->get(),
+        layout,
         0,
-        static_cast<uint32_t>(descrSets.size()),
-        descrSets.data(),
+        static_cast<uint32_t>(sets.size()),
+        sets.data(),
         0,
         nullptr);
 }
 
-void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
-    ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType)
 {
-    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
     std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
-    assert(setInfo.empty());
+    assert(!setInfo.empty());
     
     std::vector<vk::DescriptorSet> descrSets(setInfo.size());
     for (uint64_t i = 0; i < descrSets.size(); ++i)
@@ -130,21 +130,35 @@ void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
         descrSets[i] = setInfo[i].descrSet;
     }
     
+    bindDescriptors(prog->pLineLayout->get(), descrSets, pipelineType);
+}
+
+void CmdBuffer::bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
+{
+    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
     cmdBuffer.bindDescriptorSets(
         bindPoint,
-        prog->pLineLayout->get(),
+        layout,
         0,
-        static_cast<uint32_t>(descrSets.size()),
-        descrSets.data(),
+        static_cast<uint32_t>(sets.size()),
+        sets.data(),
         static_cast<uint32_t>(offsets.size()),
         offsets.data());
 }
 
-void CmdBuffer::bindDynamicDescriptors(CBufferManager& cbManager,
-    ShaderProgram* prog, const uint32_t offset, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(CBufferManager& cbManager,
+    ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
 {
-    std::vector<uint32_t> offsets = {offset};
-    bindDynamicDescriptors(cbManager, prog, offsets, pipelineType);
+    std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
+    assert(!setInfo.empty());
+    
+    std::vector<vk::DescriptorSet> descrSets(setInfo.size());
+    for (uint64_t i = 0; i < descrSets.size(); ++i)
+    {
+        descrSets[i] = setInfo[i].descrSet;
+    }
+    
+    bindDescriptors(prog->getPLineLayout()->get(), descrSets, offsets, pipelineType);
 }
 
 void CmdBuffer::bindPushBlock(
@@ -171,11 +185,13 @@ void CmdBuffer::bindIndexBuffer(vk::Buffer buffer, uint32_t offset)
 // ================= drawing functions =========================
 void CmdBuffer::drawIndexed(uint32_t indexCount)
 {
+    assert(indexCount > 0 && "The index count must be a value greater than zero");
     cmdBuffer.drawIndexed(indexCount, 1, 0, 0, 0);
 }
 
 void CmdBuffer::drawIndexed(uint32_t indexCount, int32_t offset)
 {
+    assert(indexCount > 0 && "The index count must be a value greater than zero");
     cmdBuffer.drawIndexed(indexCount, 1, 0, offset, 0);
 }
 
@@ -221,6 +237,7 @@ void CmdBuffer::resetPool()
 void CmdBuffer::resetCmdBuffer()
 {
     cmdBuffer.reset(vk::CommandBufferResetFlags(0));
+    boundPipeline = nullptr;
 }
 
 } // namespace VulkanAPI

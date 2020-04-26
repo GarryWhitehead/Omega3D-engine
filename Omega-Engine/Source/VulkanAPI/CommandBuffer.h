@@ -16,6 +16,7 @@ struct VkContext;
 class CBufferManager;
 class ShaderProgram;
 class RenderPass;
+class FrameBuffer;
 class CmdPool;
 
 class CmdBuffer
@@ -40,15 +41,8 @@ public:
 
     void init();
     void begin();
-    void beginSecondary(RenderPass& renderpass);
+    void beginSecondary(RenderPass& renderpass, FrameBuffer& fbo);
     void end();
-
-    /**
-     * @brief This begins the renderpass with the paramters stipulated by the begin info. Also
-     * states whether this pass will use secodnary buffers
-     */
-    void beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents);
-    void endPass();
 
     // viewport, scissors, etc.
     void setViewport(const vk::Viewport& viewPort);
@@ -58,24 +52,25 @@ public:
     void bindPipeline(
         CBufferManager& cbManager,
         RenderPass* renderpass,
+        FrameBuffer* fbo,
         ShaderProgram* program,
         Pipeline::Type type);
 
+    void bindPipeline(Pipeline& pipeline);
+    
     void bindDescriptors(
         CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType);
-
-    void bindDynamicDescriptors(
+    
+    void bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, const Pipeline::Type pipelineType);
+    
+    void bindDescriptors(
         CBufferManager& cbManager,
         ShaderProgram* prog,
         std::vector<uint32_t>& offsets,
         const Pipeline::Type type);
-
-    void bindDynamicDescriptors(
-        CBufferManager& cbManager,
-        ShaderProgram* prog,
-        const uint32_t offset,
-        const Pipeline::Type type);
-
+    
+    void bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType);
+    
     void bindPushBlock(ShaderProgram* prog, vk::ShaderStageFlags stage, uint32_t size, void* data);
     void bindVertexBuffer(vk::Buffer buffer, vk::DeviceSize offset);
     void bindIndexBuffer(vk::Buffer buffer, uint32_t offset);
@@ -108,8 +103,16 @@ public:
     }
 
     friend class CBufferManager;
+    friend class VkDriver;
 
 private:
+    
+    // these are private as the user should use the begin and end renderpass functions found in the driver
+    void beginPass(const vk::RenderPassBeginInfo& beginInfo, const vk::SubpassContents contents);
+    void endPass();
+    
+private:
+    
     // local vulkan context
     VkContext& context;
 
