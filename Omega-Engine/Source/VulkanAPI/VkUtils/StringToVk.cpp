@@ -159,13 +159,21 @@ vk::SamplerAddressMode vkAddressModeToString(std::string str)
 vk::DescriptorType getVkDescrTypeFromStr(std::string str)
 {
     vk::DescriptorType result;
-    if (str == "UniformBuffer" || str == "DynamicUniform")
+    if (str == "UniformBuffer")
     {
         result = vk::DescriptorType::eUniformBuffer;
+    }
+    else if(str == "DynamicUniform")
+    {
+        result = vk::DescriptorType::eUniformBufferDynamic;
     }
     else if (str == "StorageBuffer")
     {
         result = vk::DescriptorType::eStorageBuffer;
+    }
+    else if (str == "DynamicStorageBuffer")
+    {
+        result = vk::DescriptorType::eStorageBufferDynamic;
     }
     else if (str == "2D_Sampler" || str == "3D_Sampler" || str == "Cube_Sampler")
     {
@@ -175,6 +183,40 @@ vk::DescriptorType getVkDescrTypeFromStr(std::string str)
     {
         LOGGER_ERROR("Unsupported buffer type - %s", str.c_str());
         assert(0);
+    }
+    return result;
+}
+
+vk::StencilOp vkStencilOpFromString(std::string str)
+{
+    vk::StencilOp result = vk::StencilOp::eKeep;
+    if (str == "Keep")
+    {
+        result = vk::StencilOp::eKeep;
+    }
+    else if (str == "Replace")
+    {
+        result = vk::StencilOp::eReplace;
+    }
+    else if (str == "Zero")
+    {
+        result = vk::StencilOp::eZero;
+    }
+    else if (str == "Invert")
+    {
+        result = vk::StencilOp::eInvert;
+    }
+    else if (str == "DecrementAndWrap")
+    {
+        result = vk::StencilOp::eDecrementAndWrap;
+    }
+    else if (str == "IncrementAndWrap")
+    {
+        result = vk::StencilOp::eIncrementAndWrap;
+    }
+    else
+    {
+        LOGGER_WARN("Unrecognsied stencilOp parameter. Setting to Keep.");
     }
     return result;
 }

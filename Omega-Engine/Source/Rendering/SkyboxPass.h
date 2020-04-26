@@ -15,14 +15,14 @@ namespace OmegaEngine
 {
 // forward declerations
 class RenderGraph;
-class OESkybox;
+class OEScene;
 
 class SkyboxPass : public RenderStageBase
 {
 
 public:
     
-	SkyboxPass(RenderGraph& rGraph, Util::String id, OESkybox& skybox);
+	SkyboxPass(RenderGraph& rGraph, Util::String id, OEScene& scene);
 	~SkyboxPass();
 
 	// not copyable
@@ -38,7 +38,7 @@ private:
 	RenderGraph& rGraph;
     
     // keep refernce to the current skybox
-    OESkybox& skybox;
+    OEScene& scene;
 
 	ResourceHandle offscreenTex;
     VulkanAPI::ShaderProgram* prog = nullptr;

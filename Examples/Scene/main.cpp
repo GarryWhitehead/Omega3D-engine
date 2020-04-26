@@ -7,6 +7,7 @@
 #include "omega-engine/Object.h"
 #include "omega-engine/RenderableManager.h"
 #include "omega-engine/Skybox.h"
+#include "omega-engine/IndirectLighting.h"
 #include "utility/Logger.h"
 
 #include <memory>
@@ -96,7 +97,12 @@ int main(int argc, char* argv[])
     Skybox* skybox = world->createSkybox();
     skybox->setCubeMap(envMap.get()).setBlurFactor(0.5f);
     scene->addSkybox(skybox);
-
+    
+    // add indirect lighting to the scene
+    IndirectLighting* ibl = world->createIndirectLighting();
+    ibl->setEnvMap(skybox);
+    scene->addIndirectLighting(ibl);
+    
     // and a default camera
     Camera* camera = world->createCamera();
     // using dedfault parameters, need to still call "prepare()"
@@ -120,4 +126,6 @@ int main(int argc, char* argv[])
     // we could load multiple worlds here, but for this example we will stick with one
     // now set the loop running
     app->run(scene, renderer);
+    
+    engine->destroy();
 }

@@ -3,13 +3,13 @@
 
 // depth-stencil
 DepthTestEnable=True;
-DepthWriteEnable=True; 
+DepthWriteEnable=False;
 CompareOp=LessOrEqual;
 
 // raster
 PolygonMode=Fill;
 CullMode=Back;
-FrontFace=CounterClockwise;
+FrontFace=Clockwise;
 
 // sampler
 MagFilter=Nearest;

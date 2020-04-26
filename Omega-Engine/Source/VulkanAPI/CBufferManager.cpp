@@ -8,7 +8,6 @@
 #include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
-
 namespace VulkanAPI
 {
 
@@ -16,7 +15,6 @@ CBufferManager::CBufferManager(VkDriver& driver)
     : driver(driver)
     , cmdBuffer(std::make_unique<CmdBuffer>(driver.getContext(), cmdPool, CmdBuffer::Type::Primary))
     , workCmdBuffer(std::make_unique<CmdBuffer>(driver.getContext(), cmdPool, CmdBuffer::Type::Primary))
-    , scCmdBuffer(std::make_unique<CmdBuffer>(driver.getContext(), cmdPool, CmdBuffer::Type::Primary))
 {
     // create the main cmd pool for this buffer - TODO: we should allow for the user to define the
     // queue to use for the pool
@@ -35,18 +33,33 @@ CBufferManager::CBufferManager(VkDriver& driver)
     // initialise the cmd buffers
     workCmdBuffer->init();
     cmdBuffer->init();
+    
+    // create the cmd buffers for the swap chain backbuffers - we go for the max possible amount which should be if triple buffering, three image views so three cmd buffers
+    for (uint32_t i = 0; i < MaxSwapChainCmdBufferSize; ++i)
+    {
+        scCmdBuffer[i] = std::make_unique<CmdBuffer>(driver.getContext(), cmdPool, CmdBuffer::Type::Primary);
+        scCmdBuffer[i]->init();
+    }
+    
+    // create the secondary cmd buffers
+    // TODO: make this optional and the number of threaded buffers user defined
+    createSecondaryCmdBuffers();
 }
 
 CBufferManager::~CBufferManager()
 {
     driver.getContext().device.destroy(cmdPool, nullptr);
+    driver.getContext().device.destroy(descriptorPool, nullptr);
 }
 
-Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type)
+Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* rpass, FrameBuffer* fbo, Pipeline::Type type)
 {
+    assert(rpass);
+    assert(fbo);
+    
     Pipeline* pline = nullptr;
 
-    PLineKey key {prog, rPass};
+    PLineKey key {prog, rpass};
     auto iter = pipelines.find(key);
 
     // if the pipeline has already has an instance return this
@@ -58,16 +71,33 @@ Pipeline* CBufferManager::findOrCreatePipeline(ShaderProgram* prog, RenderPass* 
     {
         // else create a new pipeline - If we are in a threaded environemt then we can't add to the
         // list until we are out of the thread
-        pline = new Pipeline(driver.getContext(), *rPass, *prog->getPLineLayout(), type);
-        pline->create(*prog);
+        pline = new Pipeline(driver.getContext(),*prog->getPLineLayout(), type);
+        pline->create(*prog, rpass, fbo);
         pipelines.emplace(key, pline);
     }
 
     return pline;
 }
 
+bool CBufferManager::hasDescriptorSet(uint32_t shaderHash)
+{
+    DescriptorKey key {shaderHash};
+    auto iter = descriptorSets.find(key);
+    if (iter == descriptorSets.end())
+    {
+        return false;
+    }
+    return true;
+}
+
 DescriptorSetInfo* CBufferManager::findDescriptorSet(uint32_t shaderHash, const uint8_t setValue)
 {
+    if (descriptorSets.empty())
+    {
+        LOGGER_ERROR("You are trying to find a descriptor set when none have yet been registered.");
+        return nullptr;
+    }
+    
     DescriptorSetInfo* descrSet = nullptr;
 
     DescriptorKey key {shaderHash};
@@ -131,7 +161,7 @@ void CBufferManager::addDescriptorLayout(
     binding.set = set;
     binding.binding = vk::DescriptorSetLayoutBinding {bindValue, bindType, 1, flags, nullptr};
     descriptorBindings[shaderId].emplace_back(binding);
-    printf("Registered descriptor layouur for shader id: %ul; layout name: %s; set: %i; binding: %i\n", shaderId, binding.layoutId.c_str(), set, bindValue);
+    printf("Registered descriptor layouut for shader id: %ul; layout name: %s; set: %i; binding: %i\n", shaderId, binding.layoutId.c_str(), set, bindValue);
 }
 
 void CBufferManager::createMainDescriptorPool()
@@ -171,6 +201,10 @@ void CBufferManager::buildDescriptorSet(uint32_t shaderId, PipelineLayout* pline
 
     for (auto& setBind : bindings)
     {
+        if (hasDescriptorSet(shaderId))
+        {
+            continue;
+        }
         setBindings[setBind.set].emplace_back(setBind.binding);
     }
 
@@ -194,35 +228,60 @@ void CBufferManager::buildDescriptorSet(uint32_t shaderId, PipelineLayout* pline
         descriptorSets[key].emplace_back(set);
         
         // also update the appropiate pipeline layout with this descriptor layout
-        plineLayout->addDescriptorLayout(set.layout);
+        plineLayout->addDescriptorLayout(set.setValue, set.layout);
     }
 }
 
-void CBufferManager::updateShaderDescriptorSets()
+bool CBufferManager::updateAllShaderDecsriptorSets()
 {
     for (auto& descrBinding : descriptorBindings)
     {
-        // sort each layout into its own set - we store the layout binding with the name of the Ubo
-        std::unordered_map<uint8_t, std::vector<std::pair<Util::String, vk::DescriptorSetLayoutBinding>>> setBindings;
-
-        for (auto& setBind : descrBinding.second)
+        if (!updateShaderDescriptorSets(descrBinding.first))
         {
-            setBindings[setBind.set].emplace_back(std::make_pair(setBind.layoutId, setBind.binding));
-        }
-        
-        // now update the descriptor set with the image/buffer data - important that the shaders and ubos have been created at this point
-        // otherwise this will fail
-        for (auto& setBind : setBindings)
-        {
-            for (auto& layoutBinds : setBind.second)
-            {
-                DescriptorSetInfo* setInfo = findDescriptorSet(descrBinding.first, setBind.first);
-                assert(setInfo);
-                vk::DescriptorSetLayoutBinding& bind = layoutBinds.second;
-                updateDescriptors(bind.binding, bind.descriptorType, setInfo->descrSet, layoutBinds.first);
-            }
+            return false;
         }
     }
+    return true;
+}
+
+bool CBufferManager::updateShaderDescriptorSets(uint32_t shaderId)
+{
+    auto iter = descriptorBindings.find(shaderId);
+    if (iter == descriptorBindings.end())
+    {
+        LOGGER_ERROR("Unable to find descriptor binding for shader Id %i.", shaderId);
+        return false;
+    }
+    
+    // sort each layout into its own set - we store the layout binding with the name of the Ubo
+    std::unordered_map<uint8_t, std::vector<std::pair<Util::String, vk::DescriptorSetLayoutBinding>>> setBindings;
+
+    for (auto setBind : iter->second)
+    {
+        setBindings[setBind.set].emplace_back(std::make_pair(setBind.layoutId, setBind.binding));
+    }
+    
+    // now update the descriptor set with the image/buffer data - important that the shaders and ubos have been created at this point
+    // otherwise this will fail
+    for (auto& setBind : setBindings)
+    {
+        DescriptorSetInfo* setInfo = findDescriptorSet(shaderId, setBind.first);
+        assert(setInfo);
+        
+        for (auto& layoutBinds : setBind.second)
+        {
+            if (!setInfo->needsUpdate)
+            {
+                continue;
+            }
+            
+            vk::DescriptorSetLayoutBinding& bind = layoutBinds.second;
+            updateDescriptors(bind.binding, bind.descriptorType, setInfo->descrSet, layoutBinds.first);
+        }
+        setInfo->needsUpdate = false;
+    }
+    
+    return true;
 }
 
 void CBufferManager::updateDescriptors(
@@ -257,7 +316,6 @@ void CBufferManager::updateDescriptors(
     {
         printf("Unsupported descriptor type found whilst trying to update descriptor set");
     }
-
 }
 
 void CBufferManager::updateTextureDescriptor(
@@ -271,6 +329,27 @@ void CBufferManager::updateTextureDescriptor(
         tex->getSampler(), tex->getImageView()->get(), tex->getImageLayout()};
     vk::WriteDescriptorSet write {set, bindingValue, 0, 1, type, &imageInfo, nullptr, nullptr};
     driver.getContext().device.updateDescriptorSets(1, &write, 0, nullptr);
+}
+
+CmdBuffer* CBufferManager::getScCommandBuffer(uint8_t idx)
+{
+    assert(idx < scCmdBuffer.size());
+    vk::Device& device = driver.getContext().device;
+
+    CmdBuffer* cmdBuffer = scCmdBuffer[idx].get();
+    
+    if (cmdBuffer->workSubmitted)
+    {
+        VK_CHECK_RESULT(device.waitForFences(1, &cmdBuffer->cmdFence, false, UINT64_MAX));
+        VK_CHECK_RESULT(device.resetFences(1, &cmdBuffer->cmdFence));
+        cmdBuffer->workSubmitted = false;
+        
+        // reset and begin the buffer
+        cmdBuffer->resetCmdBuffer();
+    }
+    
+    cmdBuffer->begin();
+    return cmdBuffer;
 }
 
 CmdBuffer* CBufferManager::getWorkCmdBuffer()
@@ -295,9 +374,9 @@ CmdBuffer* CBufferManager::getWorkCmdBuffer()
 void CBufferManager::flushCmdBuffer()
 {
     VkContext& context = driver.getContext();
-    
-    cmdBuffer->end();
 
+    cmdBuffer->end();
+    
     vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
     vk::SubmitInfo info {0, nullptr, &flags, 1, &cmdBuffer->get(), 0, nullptr};
     VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, cmdBuffer->cmdFence));
@@ -306,9 +385,8 @@ void CBufferManager::flushCmdBuffer()
     VK_CHECK_RESULT(context.device.waitForFences(1, &cmdBuffer->cmdFence, false, UINT64_MAX));
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
 
-    // reset and begin the buffer
+    // reset the buffer
     cmdBuffer.get()->resetCmdBuffer();
-    cmdBuffer->begin();
 }
 
 void CBufferManager::flushSwapchainCmdBuffer(
@@ -316,12 +394,13 @@ void CBufferManager::flushSwapchainCmdBuffer(
 {
     VkContext& context = driver.getContext();
     
-    scCmdBuffer->end();
+    CmdBuffer* cmdBuffer = scCmdBuffer[imageIndex].get();
+    cmdBuffer->end();
 
     vk::PipelineStageFlags flags = vk::PipelineStageFlagBits::eTransfer;
     vk::SubmitInfo info {
         1, &imageReadySemaphore, &flags, 1, &cmdBuffer->get(), 1, &renderingCompleteSemaphore};
-    VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, scCmdBuffer->cmdFence));
+    VK_CHECK_RESULT(context.graphicsQueue.submit(1, &info, cmdBuffer->cmdFence));
 
     // and present to the surface backbuffer
     vk::PresentInfoKHR presentInfo {
@@ -329,25 +408,38 @@ void CBufferManager::flushSwapchainCmdBuffer(
     VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
 }
 
-CmdBuffer* CBufferManager::createSecondaryCmdBuffer()
+void CBufferManager::createSecondaryCmdBuffers()
 {
     VkContext& context = driver.getContext();
     
-    ThreadedCmdBuffer tCmdBuffer;
+    for (uint32_t i = 0; i < MaxSecondaryCmdBufferSize; ++i)
+    {
+        ThreadedCmdBuffer tCmdBuffer;
 
-    // each thread needs it's own cmd pool
-    vk::CommandPoolCreateInfo createInfo {
-        vk::CommandPoolCreateFlagBits::eResetCommandBuffer, context.queueFamilyIndex.graphics};
-    context.device.createCommandPool(&createInfo, nullptr, &tCmdBuffer.cmdPool);
+        // each thread needs it's own cmd pool
+        vk::CommandPoolCreateInfo createInfo {
+            vk::CommandPoolCreateFlagBits::eResetCommandBuffer, context.queueFamilyIndex.graphics};
+        context.device.createCommandPool(&createInfo, nullptr, &tCmdBuffer.cmdPool);
 
-    tCmdBuffer.secondary =
-        std::make_unique<CmdBuffer>(context, tCmdBuffer.cmdPool, CmdBuffer::Type::Secondary);
+        tCmdBuffer.secondary =
+            std::make_unique<CmdBuffer>(context, tCmdBuffer.cmdPool, CmdBuffer::Type::Secondary);
 
-    // inherit from the main cmd buffer
-    tCmdBuffer.secondary->init();
+        // inherit from the main cmd buffer
+        tCmdBuffer.secondary->init();
+        
+        threadedBuffers[i] = std::move(tCmdBuffer);
+    }
+}
+
+CmdBuffer* CBufferManager::getSecondaryCmdBuffer()
+{
+    if (nextSecondaryCmdBufferIdx >= MaxSecondaryCmdBufferSize)
+    {
+        LOGGER_WARN("Unable to retrive secondary cmd buffer - max count reached");
+        return nullptr;
+    }
     
-    threadedBuffers.emplace_back(std::move(tCmdBuffer));
-    return threadedBuffers.back().secondary.get();
+    return threadedBuffers[nextSecondaryCmdBufferIdx++].secondary.get();
 }
 
 void CBufferManager::executeSecondaryCommands()
@@ -356,12 +448,30 @@ void CBufferManager::executeSecondaryCommands()
 
     // sort all the cmd buffers into a container
     std::vector<vk::CommandBuffer> cmdBuffers;
-    for (auto& buffer : threadedBuffers)
+    for (uint32_t i = 0; i < nextSecondaryCmdBufferIdx; ++i)
     {
-        cmdBuffers.emplace_back(buffer.secondary->get());
+        cmdBuffers.emplace_back(threadedBuffers[i].secondary->get());
+        threadedBuffers[i].isExecuted = true;
     }
-    workCmdBuffer->get().executeCommands(
+    cmdBuffer->get().executeCommands(
         static_cast<uint32_t>(cmdBuffers.size()), cmdBuffers.data());
+}
+
+void CBufferManager::resetSecondaryCommands()
+{
+    VkContext& context = driver.getContext();
+    
+    nextSecondaryCmdBufferIdx = 0;
+    
+    for (auto& secondary : threadedBuffers)
+    {
+        if (secondary.isExecuted)
+        {
+            secondary.secondary = std::make_unique<CmdBuffer>(context, secondary.cmdPool, CmdBuffer::Type::Secondary);
+            secondary.secondary->init();
+            secondary.isExecuted = false;
+        }
+    }
 }
 
 CmdBuffer* CBufferManager::getCmdBuffer()

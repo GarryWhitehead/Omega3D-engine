@@ -49,7 +49,7 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
 ResourceHandle RenderGraph::importResource(
     const Util::String& name, VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t samples)
 {
-    ImportedResource* ires = new ImportedResource{name, width, height, format, samples, &imageView};
+    ImportedResource* ires = new ImportedResource{name, width, height, format, samples, imageView};
     resources.emplace_back(ires);
     return resources.size() - 1;
 }
@@ -58,6 +58,15 @@ AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
     attachments.emplace_back(info);
     return attachments.size() - 1;
+}
+
+void RenderGraph::reset()
+{
+    rGraphPasses.clear();
+    reorderedPasses.clear();
+    resources.clear();
+    aliases.clear();
+    attachments.clear();
 }
 
 bool RenderGraph::compile()
@@ -148,11 +157,7 @@ bool RenderGraph::compile()
     {
         RenderGraphPass& rpass = rGraphPasses[reorderedPasses[i]];
 
-        // TODO: this needs some work
-        rpass.flags |= VulkanAPI::SubpassFlags::TopOfPipeline;
-
         // passes with no refences are treated as culled
-        uint32_t refId = 0;
         uint32_t maxWidth = std::numeric_limits<uint32_t>::min();
         uint32_t maxHeight = std::numeric_limits<uint32_t>::min();
 
@@ -162,9 +167,6 @@ bool RenderGraph::compile()
             if (base->type == ResourceBase::ResourceType::Texture)
             {
                 TextureResource* tex = reinterpret_cast<TextureResource*>(base);
-
-                // used by the attachment descriptor
-                tex->referenceId = refId++;
 
                 // use the resource with max dimensions
                 maxWidth = std::max(maxWidth, tex->width);
@@ -176,19 +178,16 @@ bool RenderGraph::compile()
                 {
                     if (tex->isDepthFormat())
                     {
-                        rpass.flags |= VulkanAPI::SubpassFlags::DepthRead;
                         tex->imageUsage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
                     }
                     if (tex->isStencilFormat())
                     {
-                        rpass.flags |= VulkanAPI::SubpassFlags::StencilRead;
                         tex->imageUsage |= vk::ImageUsageFlagBits::eDepthStencilAttachment;
                     }
                 }
                 else
                 {
                     // assume must be a colour format
-                    rpass.flags |= VulkanAPI::SubpassFlags::ColourRead;
                     tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
                 }
             }
@@ -199,7 +198,10 @@ bool RenderGraph::compile()
 
         // TODO: need to deal with merging passes too!
     }
-
+    
+    // sort out the vulkan renderpasses and render targets ready for execution
+    initRenderPass();
+    
     return true;
 }
 
@@ -226,54 +228,28 @@ void RenderGraph::initRenderPass()
     }
 }
 
-bool RenderGraph::prepare()
-{
-    if (!rebuild)
-    {
-        return true;
-    }
-
-    // start by optimising the graph and filling out the structure
-    if (!compile())
-    {
-        return false;
-    }
-
-    // init the renderpass resources - command buffer, frame buffers, etc.
-    initRenderPass();
-
-    rebuild = false;
-    return true;
-}
-
 void RenderGraph::execute()
 {
-    // start the render pass
     VulkanAPI::CBufferManager& manager = context.driver->getCbManager();
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
 
     cmdBuffer->begin();
     
-    // iterate over all passes and execute the registered callback function
-    for (const uint32_t& rpassIdx : reorderedPasses)
+    // iterate over all passes and execute the registered callback function. The backbuffer draw pass is ensured to be the last pass after reordering, this will be executed outside the loop as uses a seperate cmd buffer
+    for(size_t i = 0; i  < reorderedPasses.size() - 1; ++i)
     {
+        const uint32_t rpassIdx = reorderedPasses[i];
         RenderGraphPass& rpass = rGraphPasses[rpassIdx];
         
-        if (!rpass.skipPassExec)
-        {
-            rpass.execFunc(rpass.context, context);
-        }
-        
-        // if this pass has been set to be executed intermintely and requires executing this frame, set the flag to skip on subsequent frames (unless the flag is reset)
-        if (rpass.renderPassFlags.testBit(RenderPassFlags::IntermitentPass) && !rpass.skipPassExec)
-        {
-            rpass.skipPassExec = true;
-        }
-
-        cmdBuffer->endPass();
+        rpass.execFunc(rpass.context, context);
     }
 
-    cmdBuffer->end();
+    manager.flushCmdBuffer();
+    
+    // now execute the backbuffer draw pass
+    const uint32_t rpassIdx = reorderedPasses.back();
+    RenderGraphPass& rpass = rGraphPasses[rpassIdx];
+    rpass.execFunc(rpass.context, context);
 }
 
 AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
@@ -288,18 +264,6 @@ AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
         ++index;
     }
     return UINT64_MAX;
-}
-
-RPassHandle RenderGraph::createRenderPass()
-{
-    renderpasses.emplace_back(std::make_unique<VulkanAPI::RenderPass>(context.driver->getContext()));
-    return RPassHandle {renderpasses.size() - 1};
-}
-
-VulkanAPI::RenderPass* RenderGraph::getRenderpass(const RPassHandle& handle)
-{
-    assert(handle.get() < renderpasses.size());
-    return renderpasses[handle.get()].get();
 }
 
 std::vector<ResourceBase*>& RenderGraph::getResources()

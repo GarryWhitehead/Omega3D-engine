@@ -42,11 +42,6 @@ void LightingPass::setupPass()
     builder.addReader("pbr");
     builder.addReader("emissive");
     
-     // tthe indirect lighting passes are read from though only executed once
-    builder.addReader("bdrf_target");
-    builder.addReader("irradiance_target");
-    builder.addReader("specular_target");
-    
     // create the gbuffer textures
     passInfo.output = builder.createRenderTarget("lightingRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
 
@@ -57,9 +52,11 @@ void LightingPass::setupPass()
 
         auto& cbManager = rgraphContext.driver->getCbManager();
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
+        
         // bind the pipeline
-        VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-        cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
+        rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo);
+        
+        cmdBuffer->bindPipeline(cbManager, rpassContext.rpass, rpassContext.fbo, prog, VulkanAPI::Pipeline::Type::Graphics);
 
         // bind the descriptor
         cmdBuffer->bindDescriptors(cbManager, prog, VulkanAPI::Pipeline::Type::Graphics);
@@ -67,6 +64,8 @@ void LightingPass::setupPass()
 
         // render full screen quad to screen
         cmdBuffer->drawQuad();
+        
+        rgraphContext.driver->endRenderpass(cmdBuffer);
     });
 }
 

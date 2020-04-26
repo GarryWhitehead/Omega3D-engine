@@ -2,7 +2,6 @@
 
 #include "OEMaths/OEMaths.h"
 #include "RenderGraph/RenderGraphPass.h"
-#include "RenderGraph/RenderHandle.h"
 #include "RenderGraph/Resources.h"
 #include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/RenderPass.h"
@@ -67,22 +66,17 @@ public:
      */
     RenderGraphBuilder createPass(Util::String name, const RenderGraphPass::Type type);
 
-    /**
-     * @brief Takes the user-defined graph and builds the render pass.
-     * The following procedures are carried out:
-     * 1. optimisation of the graph and compilation
-     * 2. init render passes, framebuffers and command buffers for each pass
-     * 3.
-     */
-    bool prepare();
-
+    // optimises the render graph if possible and fills in all the blanks - i.e. references, flags,
+       // etc.
+       bool compile();
+    
     /**
      * The execution of the render pass. You must build the pass and call **prepare** before this
      * function
      */
     void execute();
-
-    RPassHandle createRenderPass();
+    
+    void reset();
 
     ResourceHandle importResource(
         const Util::String& name,
@@ -96,23 +90,17 @@ public:
 
     std::vector<ResourceBase*>& getResources();
     ResourceBase* getResource(const ResourceHandle handle);
-
-    VulkanAPI::RenderPass* getRenderpass(const RPassHandle& handle);
-
+    
     friend class RenderGraphPass;
     friend class RenderGraphBuilder;
 
 private:
-    void CullResourcesAndPasses(ResourceBase* resource);
+    
     ResourceHandle addResource(ResourceBase* resource);
     AttachmentHandle addAttachment(AttachmentInfo& info);
     AttachmentHandle findAttachment(const Util::String& attach);
-
+    
     void initRenderPass();
-
-    // optimises the render graph if possible and fills in all the blanks - i.e. references, flags,
-    // etc.
-    bool compile();
 
 private:
     
@@ -132,11 +120,7 @@ private:
 
     // The entirety of the attachments for this graph
     std::vector<AttachmentInfo> attachments;
-
-    // all allocated renderpasses and framebuffers are registered here.
-    std::vector<std::unique_ptr<VulkanAPI::RenderPass>> renderpasses;
-
-    bool rebuild = true;
+    
 };
 
 } // namespace OmegaEngine

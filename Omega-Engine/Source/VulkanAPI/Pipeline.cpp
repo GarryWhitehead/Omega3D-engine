@@ -36,10 +36,18 @@ void PipelineLayout::prepare(VkContext& context)
         pConstants.push_back(push);
     }
 
+    std::sort(descriptorLayouts.begin(), descriptorLayouts.end(), [](std::pair<uint8_t, vk::DescriptorSetLayout>& lhs, std::pair<uint8_t, vk::DescriptorSetLayout>& rhs) { return lhs < rhs; });
+    
+    std::vector<vk::DescriptorSetLayout> layouts(descriptorLayouts.size());
+    for (size_t i = 0; i < descriptorLayouts.size(); ++i)
+    {
+        layouts[i] = descriptorLayouts[i].second;
+    }
+    
     vk::PipelineLayoutCreateInfo pipelineInfo(
         {},
-        static_cast<uint32_t>(descriptorLayouts.size()),
-        descriptorLayouts.data(),
+        static_cast<uint32_t>(layouts.size()),
+        layouts.data(),
         static_cast<uint32_t>(pConstants.size()),
         pConstants.data());
 
@@ -51,9 +59,9 @@ void PipelineLayout::addPushConstant(Shader::Type stage, uint32_t size)
     pConstantSizes.emplace_back(std::make_pair(stage, size));
 }
 
-void PipelineLayout::addDescriptorLayout(const vk::DescriptorSetLayout& layout)
+void PipelineLayout::addDescriptorLayout(uint8_t set, const vk::DescriptorSetLayout& layout)
 {
-    descriptorLayouts.emplace_back(layout);
+    descriptorLayouts.push_back({set, layout});
 }
 
 vk::PipelineLayout& PipelineLayout::get()
@@ -63,13 +71,14 @@ vk::PipelineLayout& PipelineLayout::get()
 
 // ================== pipeline =======================
 Pipeline::Pipeline(
-    VkContext& context, RenderPass& rpass, PipelineLayout& layout, Pipeline::Type type)
-    : context(context), renderpass(rpass), pipelineLayout(layout), type(type)
+    VkContext& context, PipelineLayout& layout, Pipeline::Type type)
+    : context(context), pipelineLayout(layout), type(type)
 {
 }
 
 Pipeline::~Pipeline()
 {
+    context.device.destroy(pipeline, nullptr);
 }
 
 vk::PipelineBindPoint Pipeline::createBindPoint(Pipeline::Type type)
@@ -107,13 +116,16 @@ Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
     }
 
     uint32_t offset = 0;
+    uint32_t stride = 0;
     for (const ShaderProgram::InputBinding& input : inputs)
     {
         vertexAttrDescr.push_back({input.loc, 0, input.format, offset});
-        offset += input.stride;
-
-        vertexBindDescr.push_back({input.loc, input.stride, vk::VertexInputRate::eVertex});
+        offset = input.stride;
+        stride += input.stride;
     }
+    
+    // only one binding supported (at binding point 0)
+    vertexBindDescr = vk::VertexInputBindingDescription {0, stride, vk::VertexInputRate::eVertex};
 
     // first sort the attributes so they are in order of location
     std::sort(
@@ -125,8 +137,8 @@ Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
     vertexInputState.vertexAttributeDescriptionCount =
         static_cast<uint32_t>(vertexAttrDescr.size());
     vertexInputState.pVertexAttributeDescriptions = vertexAttrDescr.data();
-    vertexInputState.vertexBindingDescriptionCount = static_cast<uint32_t>(vertexBindDescr.size());
-    vertexInputState.pVertexBindingDescriptions = vertexBindDescr.data();
+    vertexInputState.vertexBindingDescriptionCount = 1;
+    vertexInputState.pVertexBindingDescriptions = &vertexBindDescr;
 
     return vertexInputState;
 }
@@ -138,7 +150,7 @@ void Pipeline::addEmptyLayout()
         context.device.createPipelineLayout(&createInfo, nullptr, &pipelineLayout.get()));
 }
 
-void Pipeline::create(ShaderProgram& program)
+void Pipeline::create(ShaderProgram& program, RenderPass* renderpass, FrameBuffer* fbo)
 {
     auto& renderState = program.renderState;
 
@@ -166,14 +178,18 @@ void Pipeline::create(ShaderProgram& program)
     depthStencilState.stencilTestEnable = renderState->dsState.stencilTestEnable;
     if (renderState->dsState.stencilTestEnable)
     {
-        depthStencilState.front.failOp = renderState->dsState.front.failOp;
-        depthStencilState.front.depthFailOp = renderState->dsState.front.depthFailOp;
-        depthStencilState.front.passOp = renderState->dsState.front.passOp;
-        depthStencilState.front.compareMask = renderState->dsState.front.compareMask;
-        depthStencilState.front.writeMask = renderState->dsState.front.writeMask;
-        depthStencilState.front.reference = renderState->dsState.front.reference;
-        depthStencilState.front.compareOp = renderState->dsState.front.compareOp;
-        depthStencilState.back = depthStencilState.front;
+        depthStencilState.front.failOp = renderState->dsState.frontStencil.failOp;
+        depthStencilState.front.depthFailOp = renderState->dsState.frontStencil.depthFailOp;
+        depthStencilState.front.passOp = renderState->dsState.frontStencil.passOp;
+        depthStencilState.front.compareMask = renderState->dsState.frontStencil.compareMask;
+        depthStencilState.front.writeMask = renderState->dsState.frontStencil.writeMask;
+        depthStencilState.front.reference = renderState->dsState.frontStencil.reference;
+        depthStencilState.front.compareOp = renderState->dsState.frontStencil.compareOp;
+        // TODO: allow the back stencil to differ from the front as this is the only option at present
+        if (renderState->dsState.frontStencil.frontEqualBack)
+        {
+            depthStencilState.back = depthStencilState.front;
+        }
     }
 
 
@@ -194,8 +210,8 @@ void Pipeline::create(ShaderProgram& program)
     vk::Viewport viewPort(
         0.0f,
         0.0f,
-        static_cast<float>(renderpass.getWidth()),
-        static_cast<float>(renderpass.getHeight()),
+        static_cast<float>(fbo->getWidth()),
+        static_cast<float>(fbo->getHeight()),
         0.0f,
         1.0f);
     vk::Rect2D scissor(
@@ -206,7 +222,7 @@ void Pipeline::create(ShaderProgram& program)
     viewportState.scissorCount = 1;
 
     // ============= colour attachment =================
-    auto colAttachments = renderpass.getColourAttachs();
+    auto colAttachments = renderpass->getColourAttachs();
     vk::PipelineColorBlendStateCreateInfo colourBlendState;
     colourBlendState.attachmentCount = static_cast<uint32_t>(colAttachments.size());
     colourBlendState.pAttachments = colAttachments.data();
@@ -240,7 +256,7 @@ void Pipeline::create(ShaderProgram& program)
         &colourBlendState,
         &dynamicCreateState,
         pipelineLayout.get(),
-        renderpass.get(),
+        renderpass->get(),
         0,
         nullptr,
         0);

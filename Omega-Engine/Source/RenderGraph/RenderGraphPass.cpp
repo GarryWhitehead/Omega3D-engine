@@ -2,7 +2,9 @@
 
 #include "RenderGraph/RenderGraph.h"
 #include "VulkanAPI/Utility.h"
-#include "VulkanAPI/Renderpass.h"
+#include "VulkanAPI/RenderPass.h"
+#include "VulkanAPI/Image.h"
+#include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -13,11 +15,6 @@ RenderGraphPass::RenderGraphPass(
     Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
     : rGraph(rGraph), name(name), type(type), index(index)
 {
-}
-
-void RenderGraphPass::setFlag(const RenderPassFlags& flag)
-{
-    renderPassFlags |= flag;
 }
 
 ResourceHandle RenderGraphPass::addRead(const ResourceHandle input)
@@ -51,17 +48,16 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
     switch (type)
     {
         case Type::Graphics: {
-            // used for signyfing to the subpass the reference ids associated with it
-            std::vector<uint32_t> inputRefs, outputRefs;
-            uint32_t depthRef = UINT32_MAX;
-
-            context.rpass = rGraph.createRenderPass();
-            VulkanAPI::RenderPass* rpass = rGraph.getRenderpass(context.rpass);
-            assert(rpass);
+            
+            // a max of six colour attachments allowed per pass
+            assert(writes.size() <= 6);
+            
             auto& resources = rGraph.getResources();
 
             // add the output attachments
-            std::vector<VulkanAPI::ImageView*> views(writes.size());
+            VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
+            VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
+            
             for (size_t i = 0; i < writes.size(); ++i)
             {
                 ResourceHandle& handle = writes[i];
@@ -70,24 +66,18 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                 {
                     ImportedResource* tex = static_cast<ImportedResource*>(resources[handle]);
                     
-                    // imported targets alreasy have the image view object defined
-                    views[i] = tex->imageView;
+                    // imported targets already have the image view objects defined
+                    fboKey.views[i] = tex->imageView.get();
+                    rpassKey.colourFormats[i] = tex->format;
+                    rpassKey.finalLayout[i] = vk::ImageLayout::ePresentSrcKHR;
+                    rpassKey.storeOp = VulkanAPI::RenderPass::StoreClearFlags::Store;
                     maxWidth = tex->width;
                     maxHeight = tex->height;
-
-                    // set the dependency flags
-                    flags |= VulkanAPI::SubpassFlags::ColourRead;
-                    //tex->imageUsage |= vk::ImageUsageFlagBits::eColorAttachment;
-
-                    outputRefs.emplace_back(tex->referenceId);
-                    VulkanAPI::RenderPass::ClearFlags defaultflags;
-                    rpass->addOutputAttachment(
-                        tex->format, tex->referenceId, defaultflags, tex->samples);
                 }
                 else if (base->type == ResourceBase::ResourceType::Texture)
                 {
                     TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-
+                    
                     // bake the texture
                     if (tex->width != maxWidth || tex->height != maxHeight)
                     {
@@ -99,32 +89,30 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                             "There appears to be some discrepancy between this passes resource "
                             "dimensions\n");
                     }
-                    views[i] = reinterpret_cast<VulkanAPI::ImageView*>(tex->bake(driver));
-
-                    if (!VulkanAPI::VkUtil::isDepth(tex->format) ||
-                        !VulkanAPI::VkUtil::isStencil(tex->format))
+                    VulkanAPI::Texture* vkTexture = tex->bake(driver);
+                    fboKey.views[i] = vkTexture->getImageView()->get();
+                    
+                    if (VulkanAPI::VkUtil::isDepth(tex->format) ||
+                        VulkanAPI::VkUtil::isStencil(tex->format))
                     {
-                        outputRefs.emplace_back(tex->referenceId);
+                        assert(rpassKey.depth == vk::Format(0) && "Only one depth reference per renderpass");
+                        rpassKey.depth = tex->format;
                     }
                     else
                     {
-                        // only one depth/stencil ref per pass
-                        assert(depthRef == UINT32_MAX);
-                        depthRef = tex->referenceId;
+                        rpassKey.colourFormats[i] = tex->format;
+                        rpassKey.finalLayout[i] = vk::ImageLayout::eShaderReadOnlyOptimal;
                     }
-
-                    // add a attachment
-                    rpass->addOutputAttachment(
-                        tex->format, tex->referenceId, tex->clearFlags, tex->samples);
                 }
             }
 
-            // Add a subpass. If this is a merged pass, then this will be added to the parent
-            rpass->addSubPass(inputRefs, outputRefs, depthRef);
-            rpass->addSubpassDependency(flags);
-
-            // create the actual vulkan renderpass object
-            rpass->prepare(views, maxWidth, maxHeight, 1);
+            context.rpass = driver.findOrCreateRenderPass(rpassKey);
+            
+            // crete the framebuffer for this pass
+            fboKey.renderpass = context.rpass->get();
+            fboKey.width = maxWidth;
+            fboKey.height = maxHeight;
+            context.fbo = driver.findOrCreateFrameBuffer(fboKey);
             break;
         }
         case Type::Compute: {
@@ -148,9 +136,5 @@ void RenderGraphPass::setDepthClear(const float depth)
     context.depthClear = depth;
 }
 
-void RenderGraphPass::resetSkipExecFlag()
-{
-    skipPassExec = false;
-}
 
 } // namespace OmegaEngine

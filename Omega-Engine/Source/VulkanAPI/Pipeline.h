@@ -12,6 +12,7 @@ class PipelineLayout;
 struct VkContext;
 class ShaderProgram;
 class RenderPass;
+class FrameBuffer;
 class DescriptorPool;
 
 class Pipeline
@@ -24,7 +25,7 @@ public:
         Compute
     };
     
-	Pipeline(VkContext& context, RenderPass& rpass, PipelineLayout& layout, Pipeline::Type type);
+	Pipeline(VkContext& context, PipelineLayout& layout, Pipeline::Type type);
 	~Pipeline();
 
     // not copyable
@@ -40,7 +41,7 @@ public:
     /**
      * Creates a pipeline using render data from the shader program and associates it with the declared renderpass
      */
-	void create(ShaderProgram& shader);
+	void create(ShaderProgram& shader, RenderPass* renderpass, FrameBuffer* fbo);
 	
 	Pipeline::Type getType() const
 	{
@@ -58,7 +59,7 @@ private:
 
 	// everything needeed to build the pipeline
 	std::vector<vk::VertexInputAttributeDescription> vertexAttrDescr;
-	std::vector<vk::VertexInputBindingDescription> vertexBindDescr;
+	vk::VertexInputBindingDescription vertexBindDescr;
     
     // dynamic states to be used with this pipeline - by default the viewport and scissor dynamic states are set
     std::vector<vk::DynamicState> dynamicStates
@@ -68,9 +69,6 @@ private:
     };
     
     Type type;
-    
-    // a reference to the renderpass associated with this pipeline
-	RenderPass& renderpass;
     
     // a reference to the layout associated with this pipeline
 	PipelineLayout& pipelineLayout;
@@ -102,13 +100,13 @@ public:
      */
     void addPushConstant(Shader::Type stage, uint32_t size);
     
-    void addDescriptorLayout(const vk::DescriptorSetLayout& layout);
+    void addDescriptorLayout(uint8_t set, const vk::DescriptorSetLayout& layout);
 
 private:
     
     // we store the layouts here for the descriptor as they may be added from multiple sources
-    // i.e materials update from elsewhere
-    std::vector<vk::DescriptorSetLayout> descriptorLayouts;
+    // i.e materials update from elsewhere. The set value is use to sort into the correct order
+    std::vector<std::pair<uint8_t, vk::DescriptorSetLayout>> descriptorLayouts;
     
 	// the shader stage the push constant refers to and its size
 	std::vector<std::pair<Shader::Type, uint32_t>> pConstantSizes;

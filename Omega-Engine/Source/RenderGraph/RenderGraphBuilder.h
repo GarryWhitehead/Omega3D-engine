@@ -32,9 +32,9 @@ public:
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,
-        const vk::ImageUsageFlagBits usageBits = vk::ImageUsageFlagBits::eSampled,
-        uint32_t levels = 1,
-        uint32_t layers = 1);
+        const vk::ImageUsageFlags usageBits = vk::ImageUsageFlagBits::eSampled,
+        uint32_t mipLevels = 1,
+        uint32_t faceCount = 1);
 
     ResourceHandle importRenderTarget(
         Util::String name,
@@ -43,11 +43,6 @@ public:
         const vk::Format format,
         const uint8_t samples,
         VulkanAPI::ImageView& view);
-    
-    /**
-     @brief Sets the specified renderpass flag
-     */
-    void setRenderPassFlag(const RenderPassFlags& flag);
     
     /**
      @brief Creates a buffer resource for using as a render target in a compute pass

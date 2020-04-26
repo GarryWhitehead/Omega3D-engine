@@ -18,11 +18,11 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
-    const vk::ImageUsageFlagBits usageBits,
-    uint32_t levels,
-    uint32_t layers)
+    const vk::ImageUsageFlags usageBits,
+    uint32_t mipLevels,
+    uint32_t faceCount)
 {
-    TextureResource* tex = new TextureResource(name, width, height, format, levels, layers, usageBits);
+    TextureResource* tex = new TextureResource(name, width, height, format, mipLevels, faceCount, usageBits);
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 
@@ -35,11 +35,6 @@ ResourceHandle RenderGraphBuilder::importRenderTarget(
     VulkanAPI::ImageView& view)
 {
     return rGraph->importResource(name, view, width, height, format, samples);
-}
-
-void RenderGraphBuilder::setRenderPassFlag(const RenderPassFlags& flag)
-{
-    rPass->setFlag(flag);
 }
 
 ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)

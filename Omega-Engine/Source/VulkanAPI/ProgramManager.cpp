@@ -114,32 +114,9 @@ std::vector<VulkanAPI::Shader::VariantInfo> ShaderProgram::sortVariants(Shader::
     return ret;
 }
 
-MaterialBindingInfo* ShaderProgram::getMaterialBindingInfo()
+std::vector<ShaderBinding::SamplerBinding>& ShaderProgram::getMaterialBindings()
 {
-    if (materialBindings.empty())
-    {
-        return nullptr;
-    }
-    
-    MaterialBindingInfo* bindingInfo = new MaterialBindingInfo;
-    bindingInfo->set = materialBindings[0].set;
-    
-    // create the descriptor layout binding info
-    std::vector<vk::DescriptorSetLayoutBinding> setBindings;
-    for (auto& matBind : materialBindings)
-    {
-        setBindings.push_back(vk::DescriptorSetLayoutBinding{matBind.bind, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr});
-    }
-    
-    vk::DescriptorSetLayoutCreateInfo layoutInfo(
-        {}, static_cast<uint32_t>(setBindings.size()), setBindings.data());
-    VK_CHECK_RESULT(
-        driver.getContext().device.createDescriptorSetLayout(&layoutInfo, nullptr, &bindingInfo->layout));
-    
-    // also update the pipeline layout with the descriptor layout
-    pLineLayout->addDescriptorLayout(bindingInfo->layout);
-    
-    return bindingInfo;
+    return materialBindings;
 }
 
 PipelineLayout* ShaderProgram::getPLineLayout()

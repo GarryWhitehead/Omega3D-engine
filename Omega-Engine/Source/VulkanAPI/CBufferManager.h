@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
+#include <array>
 
 namespace VulkanAPI
 {
@@ -19,8 +20,6 @@ class Pipeline;
 class CmdBuffer;
 class ShaderProgram;
 class Swapchain;
-
-using CmdBufferHandle = uint64_t;
 
 // A blueprint of all descriptors bound to each shader. When creating a set or updating info we can
 // use this information for the update.
@@ -36,19 +35,23 @@ struct DescriptorSetInfo
     vk::DescriptorSetLayout layout;
     vk::DescriptorSet descrSet;
     uint16_t setValue;
+    bool needsUpdate = true;
 };
 
 class CBufferManager
 {
 public:
     // some erbitarty numbers which need monitoring for possible issues due to overflow
-    constexpr static const uint32_t MaxDescriptorPoolSize = 50;
-    constexpr static const uint32_t MaxDescriptorPoolSets = 10;
-
+    constexpr static uint32_t MaxDescriptorPoolSize = 50;
+    constexpr static uint32_t MaxDescriptorPoolSets = 10;
+    constexpr static uint32_t MaxSecondaryCmdBufferSize = 8;
+    constexpr static uint32_t MaxSwapChainCmdBufferSize = 3;
+    
     struct ThreadedCmdBuffer
     {
         std::unique_ptr<CmdBuffer> secondary;
         vk::CommandPool cmdPool;
+        bool isExecuted = false;
     };
 
     CBufferManager(VkDriver& driver);
@@ -62,7 +65,7 @@ public:
      * @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to
      * the pipeline if it does, otherwise nullptr
      */
-    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, Pipeline::Type type);
+    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, FrameBuffer* fbo, Pipeline::Type type);
 
     void addDescriptorLayout(
         uint32_t shaderId,
@@ -72,6 +75,7 @@ public:
         vk::DescriptorType bindType,
         vk::ShaderStageFlags flags);
 
+    bool hasDescriptorSet(uint32_t shaderHash);
     DescriptorSetInfo* findDescriptorSet(uint32_t shaderHash, const uint8_t setValue);
     std::vector<DescriptorSetInfo> findDescriptorSets(uint32_t shaderHash);
 
@@ -91,7 +95,13 @@ public:
     const vk::DescriptorSet& set,
     Texture* tex);
     
-    void updateShaderDescriptorSets();
+    bool updateShaderDescriptorSets(uint32_t shaderId);
+    bool updateAllShaderDecsriptorSets();
+    
+    // returns the swap chain command buffer - used for drawing to the backbuffer
+    CmdBuffer* getScCommandBuffer(uint8_t idx);
+    
+    void resetSecondaryCommands();
     
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();
@@ -110,7 +120,8 @@ public:
 
     // =============== renderpass functions ================================
 
-    CmdBuffer* createSecondaryCmdBuffer();
+    CmdBuffer* getSecondaryCmdBuffer();
+    void createSecondaryCmdBuffers();
     void executeSecondaryCommands();
 
     friend class CmdBuffer;
@@ -126,11 +137,12 @@ private:
     // buffer are allowed: main thread commands, swapchain and a worker cmd buffer for tasks such as
     // buffer copying, etc.
     std::unique_ptr<CmdBuffer> cmdBuffer;
-    std::unique_ptr<CmdBuffer> scCmdBuffer;
+    std::array<std::unique_ptr<CmdBuffer>, MaxSwapChainCmdBufferSize> scCmdBuffer;
     std::unique_ptr<CmdBuffer> workCmdBuffer;
 
     // one threaded cmd buffer per thread - the inherited buffer will always be the main cmd buffer
-    std::vector<ThreadedCmdBuffer> threadedBuffers;
+    std::array<ThreadedCmdBuffer, MaxSecondaryCmdBufferSize> threadedBuffers;
+    uint32_t nextSecondaryCmdBufferIdx = 0;
 
     vk::DescriptorPool descriptorPool;
 

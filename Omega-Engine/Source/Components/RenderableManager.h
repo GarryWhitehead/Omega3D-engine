@@ -8,7 +8,7 @@
 #include "OEMaths/OEMaths_Quat.h"
 #include "VulkanAPI/Shader.h"
 #include "omega-engine/RenderableManager.h"
-#include "utility/BitsetEnum.h"
+#include "utility/BitSetEnum.h"
 #include "utility/CString.h"
 #include "utility/Logger.h"
 
@@ -21,11 +21,11 @@
 // vulkan forward declerations
 namespace VulkanAPI
 {
-class DescriptorSet;
 class ShaderProgram;
 class VertexBuffer;
 class IndexBuffer;
 struct MaterialBindingInfo;
+class PipelineLayout;
 
 } // namespace VulkanAPI
 
@@ -98,11 +98,16 @@ struct Material
     // shader variants associated with this material
     Util::BitSetEnum<Variants> variantBits;
 
-    // each material has its own descriptor set
-    std::unique_ptr<vk::DescriptorSet> descriptorSet;
-    
     // a unique id hashed from the material name used for map lookups
     uint32_t materialHash;
+    
+    // ============== vulkan backend stuff =======================
+    // each material has its own descriptor set
+    std::unique_ptr<vk::DescriptorSetLayout> descrLayout;
+    std::unique_ptr<vk::DescriptorSet> descriptorSet;
+    uint8_t materialSet;
+    
+    VulkanAPI::ShaderProgram* program = nullptr;
 };
 
 /**
@@ -150,7 +155,8 @@ struct Renderable
     VulkanAPI::ShaderProgram* program = nullptr;
 
     // this is set by the transform manager but held here for convience reasons when drawing
-    uint32_t dynamicOffset = 0;
+    uint32_t meshDynamicOffset = UINT32_MAX;
+    uint32_t skinDynamicOffset = UINT32_MAX;
 
     // pointers to the vertex and index buffers once uploaded to the gpu
     VulkanAPI::VertexBuffer* vertBuffer = nullptr;
@@ -208,6 +214,8 @@ public:
 
     Material* findMaterial(const Util::String& name);
 
+    void createMaterialDescriptors(Material* mat, const TextureGroup& group);
+    
     friend class GBufferFillPass;
     friend class Renderer;
 
@@ -234,9 +242,6 @@ private:
     // backend
     bool meshDirty = true;
     bool materialDirty = true;
-    
-    // =============== vulkan material back-end =====================
-    VulkanAPI::MaterialBindingInfo* materialBinding = nullptr;
     
 };
 

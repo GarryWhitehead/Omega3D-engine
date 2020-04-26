@@ -88,17 +88,7 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
 
     auto& cbManager = rgraphContext.driver->getCbManager();
 
-    VulkanAPI::ShaderBinding::SamplerBinding matBinding =
-        prog->findSamplerBinding(mat->instance->name, VulkanAPI::Shader::Type::Fragment);
-
-    VulkanAPI::DescriptorSetInfo* matSetInfo = cbManager.findDescriptorSet(mat->materialHash, matBinding.set);
-    assert(matSetInfo);
-
     // merge the material set with the mesh ubo sets
-    uint8_t setCount = prog->getSetCount();
-    assert(setCount > 0);
-    std::vector<vk::DescriptorSet> uboSets(setCount);
-
     std::vector<VulkanAPI::DescriptorSetInfo> uboSetInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(!uboSetInfo.empty());
     
@@ -107,15 +97,20 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
     {
         descrSets[i] = uboSetInfo[i].descrSet;
     }
-    descrSets[descrSets.size() - 1] = matSetInfo->descrSet;
+    descrSets[descrSets.size() - 1] = *mat->descriptorSet;
 
     // ==================== bindings ==========================
 
-    VulkanAPI::RenderPass* renderpass = rgraphContext.rGraph->getRenderpass(rpassContext.rpass);
-    cmdBuffer->bindPipeline(cbManager, renderpass, prog, VulkanAPI::Pipeline::Type::Graphics);
-
-    cmdBuffer->bindDynamicDescriptors(cbManager,
-        prog, render->dynamicOffset, VulkanAPI::Pipeline::Type::Graphics);
+    assert(render->meshDynamicOffset != UINT32_MAX);
+    std::vector<uint32_t> offsets { render->meshDynamicOffset };
+    if (render->skinDynamicOffset != UINT32_MAX)
+    {
+        offsets.emplace_back(render->skinDynamicOffset);
+    }
+    
+    cmdBuffer->bindPipeline(cbManager, rpassContext.rpass, rpassContext.fbo, prog, VulkanAPI::Pipeline::Type::Graphics);
+    
+    cmdBuffer->bindDescriptors(prog->getPLineLayout()->get(), descrSets, offsets, VulkanAPI::Pipeline::Type::Graphics);
 
     // the push block contains all the material attributes for this mesh
     cmdBuffer->bindPushBlock(
@@ -124,13 +119,14 @@ void GBufferFillPass::drawCallback(VulkanAPI::CmdBuffer* cmdBuffer, void* data, 
         sizeof(MaterialInstance::MaterialBlock),
         &render->material->instance->block);
 
+    // TODO: check the offsets here - we aren't setting them at present
     cmdBuffer->bindVertexBuffer(render->vertBuffer->get(), 0);
     cmdBuffer->bindIndexBuffer(render->indexBuffer->get(), 0);
 
     // draw all the primitives
     for (const MeshInstance::Primitive& prim : render->instance->primitives)
     {
-        cmdBuffer->drawIndexed(prim.indexPrimitiveCount, prim.indexPrimitiveOffset);
+        cmdBuffer->drawIndexed(prim.indexCount, prim.indexPrimitiveOffset);
     }
 }
 

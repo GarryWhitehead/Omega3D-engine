@@ -11,6 +11,7 @@ class Engine;
 class World;
 class Camera;
 class Skybox;
+class IndirectLighting;
 
 class OE_PUBLIC Scene
 {
@@ -30,6 +31,8 @@ public:
     
     void addCamera(Camera* camera);
 
+    void addIndirectLighting(IndirectLighting* ibl);
+    
 private:
     
 };

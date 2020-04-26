@@ -16,23 +16,23 @@ TextureResource::TextureResource(
     const uint32_t width,
     const uint32_t height,
     const vk::Format format,
-    const uint8_t level,
-    const uint8_t layers,
-    const vk::ImageUsageFlagBits usageBits)
+    const uint8_t mipLevels,
+    const uint8_t faceCount,
+    const vk::ImageUsageFlags usageBits)
     : ResourceBase(name, ResourceType::Texture)
     , width(width)
     , height(height)
-    , layers(layers)
-    , level(level)
+    , mipLevels(mipLevels)
+    , faceCount(faceCount)
     , format(format)
     , imageUsage(usageBits)
 {
 }
 
-void* TextureResource::bake(VulkanAPI::VkDriver& driver)
+VulkanAPI::Texture* TextureResource::bake(VulkanAPI::VkDriver& driver)
 {
-    driver.add2DTexture(name, format, width, height, level, imageUsage);
-    return reinterpret_cast<void*>(driver.getTexture2D(name)->getImageView());
+    // TODO: need to add support for arrays too
+    return driver.findOrCreateTexture2d(name, format, width, height, mipLevels, faceCount, 1, imageUsage);
 }
 
 VulkanAPI::Texture* TextureResource::get(VulkanAPI::VkDriver& driver)
@@ -69,7 +69,7 @@ bool TextureResource::isStencilFormat()
 
 ImportedResource::ImportedResource(
     const Util::String& name, const uint32_t width, const uint32_t height, const vk::Format format,
-           const uint8_t samples, VulkanAPI::ImageView* imageView)
+           const uint8_t samples, VulkanAPI::ImageView& imageView)
     : ResourceBase(name, ResourceType::Imported) ,
     imageView(imageView), width(width), height(height), format(format), samples(samples)
 {
@@ -77,11 +77,14 @@ ImportedResource::ImportedResource(
 
 // =============================================================================
 
-void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
+/*void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
 {
     ResourceBase* base = rGraph.getResource(resource);
-    void* data = base->bake(driver);
-    return data;
-}
+    if (base->type == ResourceBase::ResourceType::Texture)
+    {
+        void* data = base->bake(driver);
+        return data;
+    }
+}*/
 
 } // namespace OmegaEngine

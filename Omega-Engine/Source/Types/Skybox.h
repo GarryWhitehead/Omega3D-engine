@@ -15,7 +15,7 @@ class VkDriver;
 namespace OmegaEngine
 {
 // forward declerations
-class IndirectLighting;
+class OEIndirectLighting;
 class SkyboxPass;
 class MappedTexture;
 
@@ -37,7 +37,7 @@ public:
     OESkybox& setCubeMap(MappedTexture* cm);
 	OESkybox& setBlurFactor(const float bf);
 
-    friend class IndirectLighting;
+    friend class OEIndirectLighting;
     friend class SkyboxPass;
 	friend class OEScene;
     

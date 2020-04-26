@@ -1,6 +1,5 @@
 #pragma once
 
-#include "RenderGraph/RenderHandle.h"
 #include "RenderGraph/Resources.h"
 #include "utility/BitSetEnum.h"
 #include "utility/CString.h"
@@ -26,8 +25,9 @@ struct RGraphContext;
  */
 struct RGraphPassContext
 {
-    // the vulkan render pass and framebuffer for this graph context
-    RPassHandle rpass;
+    // the vulkan render pass
+    VulkanAPI::RenderPass* rpass = nullptr;
+    VulkanAPI::FrameBuffer* fbo = nullptr;
 
     // clear colours for this pass
     OEMaths::colour4 clearCol = {0.0f};
@@ -35,15 +35,6 @@ struct RGraphPassContext
 };
 
 using ExecuteFunc = std::function<void(RGraphPassContext&, RGraphContext&)>;
-
-// flags for creating render passes
-enum class RenderPassFlags : uint64_t
-{
-    // If set, this pass will only be executed once until the flag is reset
-    IntermitentPass,
-    None,
-    __SENTINEL__
-};
 
 class RenderGraphPass
 {
@@ -62,9 +53,7 @@ public:
     };
 
     RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph, const uint32_t index);
-    
-    void setFlag(const RenderPassFlags& flag);
-    
+        
     // adds a input attachment reader handle to the pass
     ResourceHandle addRead(const ResourceHandle input);
 
@@ -95,12 +84,6 @@ private:
 
     const uint32_t index = 0;
     
-    // flags which alter the behaviour of the pass
-    Util::BitSetEnum<RenderPassFlags> renderPassFlags;
-    
-    // used by the interminent render flag, this states whether the pass should be executed
-    bool skipPassExec = false;
-    
     // a list of handles of input and output attachments
     std::vector<ResourceHandle> reads; // input attachments
     std::vector<ResourceHandle> writes; // colour/depth/stencil attachments
@@ -112,12 +95,6 @@ private:
     // the max dimesnions of the resources within this pass.
     uint32_t maxWidth = 0;
     uint32_t maxHeight = 0;
-
-    // If this pass is mergeable, then this will point to the root pass index
-    uint64_t mergedRootIdx = UINT64_MAX;
-
-    // flags depicting how the subpasses will behave
-    Util::BitSetEnum<VulkanAPI::SubpassFlags> flags;
     
     // ======= vulkan specific ================
     // Kept in a struct as this will be passed around when rendering passes

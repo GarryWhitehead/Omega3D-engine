@@ -43,10 +43,6 @@ bool OERenderer::prepare()
     {
         switch (stage)
         {
-            case RenderStage::IndirectLighting:
-                rStages.emplace_back(
-                    std::make_unique<IndirectLighting>(*rGraph, "Stage_IL", *scene.skybox));
-                break;
             case RenderStage::GBufferFill:
                 rStages.emplace_back(std::make_unique<GBufferFillPass>(
                     vkDriver, *rGraph, "Stage_GB", *engine.getRendManager(), config));
@@ -56,7 +52,7 @@ bool OERenderer::prepare()
                 break;
             case RenderStage::Skybox:
                 rStages.emplace_back(
-                    std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", *scene.skybox));
+                    std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
                 break;
             case RenderStage::Composition:
                 rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
@@ -86,55 +82,86 @@ void OERenderer::preparePasses()
 
 void OERenderer::beginFrame()
 {
+    // begin the frame on the driver side
+    vkDriver.beginFrame(swapchain);
+    
+    // clear the render graph
+    rGraph->reset();
+    
+    // set up the render graph for this frame
+    preparePasses();
 }
 
-bool OERenderer::update()
+bool OERenderer::draw()
 {
-    preparePasses();
+    beginFrame();
     
     // optimisation and compilation of the render graph. If nothing has changed since the last frame
     // then this call will just return.
-    if (!rGraph->prepare())
+    if (!rGraph->compile())
     {
-        return false;
+       return false;
     }
-    return true;
-}
-
-void OERenderer::draw()
-{
-    vkDriver.beginFrame(swapchain);
+    
+    // check if indirect lighting component needs init/updating
+    if (scene.ibl && scene.ibl->needsUpdating())
+    {
+        if (!scene.ibl->prepare())
+        {
+            return false;
+        }
+    }
     
     // at this point we have all the images/buffers prepared so udate the descriptors now. This happens on the first frame and if the
     // images/buffer handles change
-    vkDriver.getCbManager().updateShaderDescriptorSets();
+    if (!vkDriver.getCbManager().updateAllShaderDecsriptorSets())
+    {
+        return false;
+    }
 
     // executes the user-defined callback for all of the passes in-turn.
     rGraph->execute();
 
     // finally send to the swap-chain for presentation
     vkDriver.endFrame(swapchain);
+    
+    return true;
 }
 
 void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
 {
-    RenderGraph* rGraph = rgraphContext.rGraph;
-    VulkanAPI::RenderPass* renderpass = rGraph->getRenderpass(rpassContext.rpass);
-    
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
-    auto thread_draw = [&queue, &rgraphContext, &rpassContext, &renderpass, &manager](size_t start, size_t end) {
-        assert(end < queue.size());
+    VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
+    rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, true);
+        
+    auto thread_draw = [&queue, &rgraphContext, &rpassContext, &manager](size_t start, size_t end) {
+        assert(end <= queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
         {
             RenderableQueueInfo& info = queue[idx];
             
              // a cmd pool per thread with a buffer
-            VulkanAPI::CmdBuffer* cbSecondary = manager.createSecondaryCmdBuffer();
-            cbSecondary->beginSecondary(*renderpass);
+            VulkanAPI::CmdBuffer* cbSecondary = manager.getSecondaryCmdBuffer();
+            cbSecondary->beginSecondary(*rpassContext.rpass, *rpassContext.fbo);
+            
+            // use custom defined viewing area - at the moment set to the framebuffer size
+            vk::Viewport viewport {0.0f,
+                                   0.0f,
+                                   static_cast<float>(rpassContext.fbo->getWidth()),
+                                   static_cast<float>(rpassContext.fbo->getHeight()),
+                                   0.0f,
+                                   1.0f};
+            cbSecondary->setViewport(viewport);
+
+            vk::Rect2D scissor {
+                {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
+                {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
+            cbSecondary->setScissor(scissor);
             
             info.renderFunction(cbSecondary, info.renderableData, rgraphContext, rpassContext);
+            cbSecondary->end();
         }
     };
 
@@ -142,9 +169,11 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
     size_t workSize = queue.size();
     ThreadTaskSplitter split {0, workSize, thread_draw};
     split.run();
-
+    
     // check all task have finished here before execute?
     manager.executeSecondaryCommands();
+    
+    rgraphContext.driver->endRenderpass(cmdBuffer);
 }
 
 // ==================== front-end =============================

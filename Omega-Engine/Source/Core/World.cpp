@@ -8,6 +8,7 @@
 #include "Core/Scene.h"
 #include "Types/Object.h"
 #include "Types/Skybox.h"
+#include "Rendering/IndirectLighting.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -49,6 +50,13 @@ OESkybox* OEWorld::createSkybox()
     auto sb = std::make_unique<OESkybox>(driver);
     skyboxes.emplace_back(std::move(sb));
     return skyboxes.back().get();
+}
+
+OEIndirectLighting* OEWorld::createIndirectLighting()
+{
+    auto ibl = std::make_unique<OEIndirectLighting>(driver);
+    ibls.emplace_back(std::move(ibl));
+    return ibls.back().get();
 }
 
 void OEWorld::update(double time, double dt)
@@ -166,6 +174,11 @@ Camera* World::createCamera()
 Skybox* World::createSkybox()
 {
     return static_cast<OEWorld*>(this)->createSkybox();
+}
+
+IndirectLighting* World::createIndirectLighting()
+{
+    return static_cast<OEWorld*>(this)->createIndirectLighting();
 }
 
 } // namespace OmegaEngine

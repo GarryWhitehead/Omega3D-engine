@@ -66,6 +66,14 @@ bool OEEngine::init(OEWindowInstance* window)
     return true;
 }
 
+void OEEngine::destroy()
+{
+    for (auto& swapchain : swapchains)
+    {
+        swapchain->destroy(vkDriver->getContext());
+    }
+}
+
 SwapchainHandle OEEngine::createSwapchain(OEWindowInstance* window)
 {
     // create a swapchain for surface rendering based on the platform specific window surface
@@ -146,15 +154,9 @@ World* Engine::createWorld(Util::String name)
     return static_cast<OEEngine*>(this)->createWorld(name);
 }
 
-/*ightManager* Engine::getLightManager()
+void Engine::destroy()
 {
-        OELightManager* man = static_cast<OEEngine*>(this)->getLightManager();
-        return static_cast<LightManager*>(man);
+    static_cast<OEEngine*>(this)->destroy();
 }
-
-RenderableManager* Engine::getRendManager()
-{
-        return static_cast<OEEngine*>(this)->getRendManager();
-}*/
 
 } // namespace OmegaEngine

@@ -44,6 +44,8 @@ public:
 	*/
 	bool init(OEWindowInstance* window);
 
+    void destroy();
+    
 	/**
 	* @brief This creates a new swapchain instance based upon the platform-specific
 	* ntaive window pointer created by the application

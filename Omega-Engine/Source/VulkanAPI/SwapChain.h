@@ -23,6 +23,7 @@ class VkDriver;
 
 struct SwapchainContext
 {
+    std::unique_ptr<Image> image;
     std::unique_ptr<ImageView> view;
     std::unique_ptr<CmdBuffer> cmdBuffer;
     vk::Fence fence;
@@ -48,6 +49,8 @@ public:
      */
     bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
 
+    void destroy(VkContext& context);
+    
     // static functions
     /**
      * @brief Creates a KHR surface object using a native window pointer.

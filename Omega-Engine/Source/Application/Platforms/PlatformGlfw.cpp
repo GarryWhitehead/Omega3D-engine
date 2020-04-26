@@ -14,6 +14,8 @@ GlfwPlatform::GlfwPlatform()
 
 GlfwPlatform::~GlfwPlatform()
 {
+    glfwDestroyWindow(window);
+    glfwTerminate();
 }
 
 bool GlfwPlatform::init()
@@ -90,7 +92,9 @@ void GlfwPlatform::poll()
 
 void GlfwPlatform::keyResponse(GLFWwindow* window, int key, int scan_code, int action, int mode)
 {
-	switch (action)
+    assert(camera);
+    
+    switch (action)
 	{
 	case GLFW_PRESS:
 	{

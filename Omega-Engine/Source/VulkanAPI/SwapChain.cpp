@@ -14,6 +14,12 @@ Swapchain::Swapchain()
 
 Swapchain::~Swapchain()
 {
+    
+}
+
+void Swapchain::destroy(VkContext& context)
+{
+    context.device.destroy(swapchain);
 }
 
 Platform::SurfaceWrapper
@@ -156,12 +162,8 @@ void Swapchain::prepareImageViews(VkContext& context, const vk::SurfaceFormatKHR
     {
         SwapchainContext scContext;
         scContext.view = std::make_unique<ImageView>(context);
-        scContext.view->create(
-            device,
-            images[i],
-            surfaceFormat.format,
-            vk::ImageAspectFlagBits::eColor,
-            vk::ImageViewType::e2D);
+        scContext.image = std::make_unique<Image>(context, images[i], surfaceFormat.format, extent.width, extent.height);
+        scContext.view->create(device, *scContext.image);
         contexts.emplace_back(std::move(scContext));
     }
 }

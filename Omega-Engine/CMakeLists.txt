@@ -68,6 +68,7 @@ TARGET_SOURCES(OMEGA_ENGINE
     ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Application.h
     ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Object.h
 	${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/Renderer.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/Include/omega-engine/IndirectLighting.h
 
 	PRIVATE
 	Source/Application/Application.cpp Source/Application/Application.h

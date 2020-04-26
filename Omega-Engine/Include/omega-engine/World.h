@@ -12,6 +12,7 @@ class Scene;
 class Skybox;
 class Camera;
 class Object;
+class IndirectLighting;
 
 class OE_PUBLIC World
 {
@@ -28,6 +29,8 @@ public:
     Scene* createScene();
 
     Skybox* createSkybox();
+    
+    IndirectLighting* createIndirectLighting();
 
     Camera* createCamera();
 

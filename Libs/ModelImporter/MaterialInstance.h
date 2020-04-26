@@ -41,7 +41,7 @@ public:
 
 	bool prepare(aiMaterial* mat);
 
-	static Util::String convertToAlpha(const cgltf_alpha_mode mode);
+	static float convertToAlpha(const cgltf_alpha_mode mode);
     
 	// helper functions
 	Util::String getName()
@@ -55,16 +55,13 @@ public:
      */
 	struct MaterialBlock
 	{
-		OEMaths::vec3f emissive = OEMaths::vec3f{ 1.0f };
 		OEMaths::vec4f baseColour = OEMaths::vec4f{ 1.0f };
+        OEMaths::vec4f emissive = OEMaths::vec4f{ 1.0f };
 		OEMaths::vec4f diffuse = OEMaths::vec4f{ 1.0f };
-		OEMaths::vec3f specular = OEMaths::vec3f{ 0.0f };
-
-		float specularGlossiness = 1.0f;
+		OEMaths::vec4f specular = OEMaths::vec4f{ 0.0f };
+        float metallic = 1.0f;
 		float roughness = 1.0f;
-		float metallic = 1.0f;
-
-		Util::String mask;
+		float alphaMask = 0.0f;
 		float alphaMaskCutOff = 1.0f;
 	};
     

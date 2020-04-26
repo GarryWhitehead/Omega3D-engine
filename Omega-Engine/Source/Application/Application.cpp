@@ -75,6 +75,9 @@ OEWindowInstance* OEApplication::init(const char* title, uint32_t width, uint32_
 
 bool OEApplication::run(OEScene* scene, OERenderer* renderer)
 {
+    // use the current camera with the glfw input
+    glfw.setCamera(*scene);
+    
     // convert delta time to ms
     const NanoSeconds frameTime(33ms);
 
@@ -95,17 +98,14 @@ bool OEApplication::run(OEScene* scene, OERenderer* renderer)
             return false;
         }
 
-        // and the renderer
-        if (!renderer->update())
-        {
-            return false;
-        }
-
         // user define pre-render callback to be added here (or virtual)
 
         // TODP: multi view option- with each view drawn.
         // begin the rendering for this frame
-        renderer->draw();
+        if (!renderer->draw())
+        {
+            return false;
+        }
 
         // user defined post-render callback to be added here
 

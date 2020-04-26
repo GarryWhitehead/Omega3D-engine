@@ -9,6 +9,7 @@
 #include "Core/engine.h"
 #include "ModelImporter/MeshInstance.h"
 #include "Rendering/GBufferFillPass.h"
+#include "Rendering/IndirectLighting.h"
 #include "Threading/ThreadPool.h"
 #include "Types/Skybox.h"
 #include "VulkanAPI/VkDriver.h"
@@ -147,7 +148,10 @@ bool OEScene::update(const double time)
 
     auto& objects = world.getObjectsList();
     auto& models = world.getModelGraph().getNodeList();
-
+    
+    // clear the render queue
+    renderQueue.resetAll();
+    
     // we create a temp container as we will be doing the visibility checks async
     // reserve more space than we need
     std::vector<VisibleCandidate> candRenderableObjs;
@@ -250,7 +254,7 @@ bool OEScene::update(const double time)
         // another struct. This method does mean that it is imperative that the data isnt destroyed
         // until the beginning of the next frame ad that the data isn't written too - we aren't
         // using guards though this might be required.
-        queueInfo.renderableData = (void*) &rend;
+        queueInfo.renderableData = (void*) rend;
         queueInfo.renderableHandle = this;
         queueInfo.renderFunction = GBufferFillPass::drawCallback;
         queueInfo.sortingKey = RenderQueue::createSortKey(
@@ -321,18 +325,20 @@ void OEScene::updateTransformBuffer(
 
         TransformInfo* transInfo = cand.transform;
 
-        size_t offset = staticDynAlign * staticCount++;
+        size_t meshOffset = staticDynAlign * staticCount++;
         TransformUbo* currStaticPtr =
-            (TransformUbo*) ((uint64_t) staticAlignAlloc.getData() + (offset));
+            (TransformUbo*) ((uint64_t) staticAlignAlloc.getData() + (meshOffset));
         currStaticPtr->modelMatrix = transInfo->modelTransform;
 
         // the dynamic buffer offsets are stored in the renderable for ease of access when
         // drawing
-        rend->dynamicOffset = offset;
+        rend->meshDynamicOffset = meshOffset;
 
         if (!transInfo->jointMatrices.empty())
         {
-            size_t offset = skinDynAlign * skinnedCount++;
+            size_t skinOffset = skinDynAlign * skinnedCount++;
+            rend->skinDynamicOffset = skinOffset;
+            
             SkinnedUbo* currSkinnedPtr =
                 (SkinnedUbo*) ((uint64_t) skinAlignAlloc.getData() + (skinDynAlign * skinnedCount++));
 
@@ -344,7 +350,7 @@ void OEScene::updateTransformBuffer(
                 currSkinnedPtr->jointMatrices,
                 transInfo->jointMatrices.data(),
                 jointCount * sizeof(OEMaths::mat4f));
-            rend->dynamicOffset = offset;
+            rend->skinDynamicOffset = skinOffset;
         }
     }
 
@@ -450,6 +456,17 @@ bool OEScene::addSkybox(OESkybox* sb)
     return true;
 }
 
+void OEScene::addIndirectLighting(OEIndirectLighting* il)
+{
+    assert(il);
+    ibl = il;
+}
+
+OESkybox* OEScene::getSkybox()
+{
+    return skybox;
+}
+
 // ============================ front-end =========================================
 
 void Scene::addCamera(Camera* camera)
@@ -470,6 +487,11 @@ Camera* Scene::getCurrentCamera()
 bool Scene::addSkybox(Skybox* instance)
 {
     return static_cast<OEScene*>(this)->addSkybox(static_cast<OESkybox*>(instance));
+}
+
+void Scene::addIndirectLighting(IndirectLighting* ibl)
+{
+    static_cast<OEScene*>(this)->addIndirectLighting(static_cast<OEIndirectLighting*>(ibl));
 }
 
 } // namespace OmegaEngine

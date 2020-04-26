@@ -71,6 +71,11 @@ bool ShaderCompiler::getBool(std::string type)
     return false;
 }
 
+uint32_t ShaderCompiler::getInt(std::string value)
+{
+    return std::stoi(value);
+}
+
 uint8_t ShaderCompiler::getCurrentBinding(const uint8_t groupId)
 {
     uint8_t bind = 0;
@@ -111,6 +116,46 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         {
             dsState.compareOp = VkUtils::vkCompareOpFromString(state.second);
         }
+        // stencil state
+        else if (state.first == "StencilTestEnable")
+        {
+            dsState.frontStencil.useStencil = getBool(state.second);
+        }
+        else if (state.first == "StencilFailOp")
+        {
+            dsState.frontStencil.failOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilDepthFailOp")
+        {
+            dsState.frontStencil.depthFailOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilPassOp")
+        {
+            dsState.frontStencil.passOp = VkUtils::vkStencilOpFromString(state.second);
+        }
+        else if (state.first == "StencilCompareOp")
+        {
+            dsState.frontStencil.compareOp = VkUtils::vkCompareOpFromString(state.second);
+        }
+        else if (state.first == "StencilCompareMask")
+        {
+            dsState.frontStencil.compareMask = getInt(state.second);
+        }
+        else if (state.first == "StencilWriteMask")
+        {
+           dsState.frontStencil.writeMask = getInt(state.second);
+        }
+        else if (state.first == "StencilReference")
+        {
+           dsState.frontStencil.reference = getInt(state.second);
+        }
+        else if (state.first == "StencilBack")
+        {
+           if (getBool(state.second))
+           {
+               dsState.backStencil = dsState.frontStencil;
+           }
+        }
         // raster state
         else if (state.first == "PolygonMode")
         {
@@ -147,11 +192,30 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         }
         else
         {
+            LOGGER_ERROR("Render State type of %s not recognised", state.first.c_str());
             return CompilerReturnCode::InvalidPipelineType;
         }
     }
 
     return CompilerReturnCode::Success;
+}
+
+bool ShaderCompiler::checkVariantStatus(const std::string& cand)
+{
+    // we should return true here as if there is no variant it shouldn't affect the update of descriptors, etc.
+    if (cand.empty())
+    {
+        return true;
+    }
+    
+    for (auto variant : program.variants)
+    {
+        if (variant.definition == Util::String(cand.c_str()) && variant.value == 1)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 CompilerReturnCode ShaderCompiler::prepareImport(
@@ -273,24 +337,27 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
-
-            // update the max set count
-            maxSetCount = std::max(maxSetCount, importInfo.groupId);
-
-            // store the binding data for vk descriptor creation
-            cbManager.addDescriptorLayout(
-                shaderId,
-                Util::String {importInfo.name.c_str()},
-                importInfo.groupId,
-                importInfo.bind,
-                vk::DescriptorType::eCombinedImageSampler,
-                Shader::getStageFlags(shader.type));
             
-            // add to the binding information
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
-            ShaderBinding::SamplerBinding sBind {
-                importInfo.name, importInfo.bind, importInfo.groupId, descrType};
-            binding.samplerBindings.emplace_back(sBind);
+            if (checkVariantStatus(importInfo.variant))
+            {
+                // update the max set count
+                maxSetCount = std::max(maxSetCount, importInfo.groupId);
+
+                // store the binding data for vk descriptor creation
+                cbManager.addDescriptorLayout(
+                    shaderId,
+                    Util::String {importInfo.name.c_str()},
+                    importInfo.groupId,
+                    importInfo.bind,
+                    vk::DescriptorType::eCombinedImageSampler,
+                    Shader::getStageFlags(shader.type));
+                
+                // add to the binding information
+                vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
+                ShaderBinding::SamplerBinding sBind {
+                    importInfo.name, importInfo.bind, importInfo.groupId, descrType};
+                binding.samplerBindings.emplace_back(sBind);
+            }
         }
         shader.appendBlock += '\n';
     }
@@ -314,15 +381,18 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
+            
+            if (checkVariantStatus(importInfo.variant))
+            {
+                // update the max set count
+                maxSetCount = std::max(maxSetCount, importInfo.groupId);
 
-            // update the max set count
-            maxSetCount = std::max(maxSetCount, importInfo.groupId);
-
-            // add to the material binding information
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
-            ShaderBinding::SamplerBinding sBind {
-                importInfo.name, importInfo.bind, importInfo.groupId, descrType};
-            program.materialBindings.emplace_back(sBind);
+                // add to the material binding information
+                vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
+                ShaderBinding::SamplerBinding sBind {
+                    importInfo.name, importInfo.bind, importInfo.groupId, descrType};
+                program.materialBindings.emplace_back(sBind);
+            }
         }
         shader.appendBlock += '\n';
     }
@@ -339,33 +409,36 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
-
-            // update the max set count
-            maxSetCount = std::max(maxSetCount, importInfo.groupId);
-
-            // add the layout to the descriptors
-            vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
-            cbManager.addDescriptorLayout(
-                shaderId,
-                Util::String {importInfo.name.c_str()},
-                importInfo.groupId,
-                importInfo.bind,
-                descrType,
-                Shader::getStageFlags(shader.type));
             
-            // add to the binding information
-            ShaderBinding::BufferBinding bBind {importInfo.name,
-                                                importInfo.bind,
-                                                importInfo.groupId,
-                                                importInfo.bufferSize,
-                                                descrType};
-
-            // check for special buffer attributes e.g. dynamic
-            if (importInfo.type == "DynamicUniform")
+            if (checkVariantStatus(importInfo.variant))
             {
-                bBind.flags |= ShaderBinding::BufferFlags::Dynamic;
+                // update the max set count
+                maxSetCount = std::max(maxSetCount, importInfo.groupId);
+
+                // add the layout to the descriptors
+                vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
+                cbManager.addDescriptorLayout(
+                    shaderId,
+                    Util::String {importInfo.name.c_str()},
+                    importInfo.groupId,
+                    importInfo.bind,
+                    descrType,
+                    Shader::getStageFlags(shader.type));
+                
+                // add to the binding information
+                ShaderBinding::BufferBinding bBind {importInfo.name,
+                                                    importInfo.bind,
+                                                    importInfo.groupId,
+                                                    importInfo.bufferSize,
+                                                    descrType};
+
+                // check for special buffer attributes e.g. dynamic
+                if (importInfo.type == "DynamicUniform")
+                {
+                    bBind.flags |= ShaderBinding::BufferFlags::Dynamic;
+                }
+                binding.bufferBindings.emplace_back(bBind);
             }
-            binding.bufferBindings.emplace_back(bBind);
         }
         shader.appendBlock += "\n\n";
     }
@@ -456,10 +529,14 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor& vertSha
             vertShader.appendBlock += "#endif\n";
         }
 
-        vk::Format format = VkUtil::getVkFormatFromType(type, 32);
-        uint32_t stride = VkUtil::getStrideFromType(type);
-        ShaderProgram::InputBinding iBind {loc++, stride, format};
-        program.inputs.emplace_back(iBind);
+        // if there is a variant for this vertex input, then check if it has been set. If not, it won't be included in the attributes. If there is no variant this function returns true.
+        if (checkVariantStatus(variant))
+        {
+            vk::Format format = VkUtil::getVkFormatFromType(type, 32);
+            uint32_t stride = VkUtil::getStrideFromType(type);
+            ShaderProgram::InputBinding iBind {loc++, stride, format};
+            program.inputs.emplace_back(iBind);
+        }
     }
 
     vertShader.appendBlock += '\n';
