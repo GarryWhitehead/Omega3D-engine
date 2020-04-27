@@ -1,34 +1,34 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #pragma once
 
 #include "Types/NativeWindowWrapper.h"
+#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Platform/Surface.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkTexture.h"
-#include "VulkanAPI/CommandBuffer.h"
 
 #include <vector>
 
@@ -72,7 +72,7 @@ public:
     bool prepare(VkContext& context, Platform::SurfaceWrapper& surface);
 
     void destroy(VkContext& context);
-    
+
     // static functions
     /**
      * @brief Creates a KHR surface object using a native window pointer.
@@ -89,7 +89,7 @@ public:
     uint32_t getExtentsWidth() const;
     ImageView& getImageView(const uint8_t index);
     vk::Format& getFormat();
-    
+
     friend class VkDriver;
 
 private:
@@ -102,7 +102,7 @@ private:
 
     // a swapchain based on the present surface type
     vk::SwapchainKHR swapchain;
-    
+
     vk::SurfaceFormatKHR surfaceFormat;
     std::vector<SwapchainContext> contexts;
     std::unique_ptr<CmdBuffer> scCmdBuffer;

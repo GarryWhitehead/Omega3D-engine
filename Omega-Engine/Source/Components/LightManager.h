@@ -1,36 +1,34 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #pragma once
 
-#include "OEMaths/OEMaths.h"
-
 #include "Components/ComponentManager.h"
-
+#include "OEMaths/OEMaths.h"
 #include "omega-engine/LightManager.h"
 
 #include <cstdint>
-#include <vector>
 #include <memory>
+#include <vector>
 
 namespace OmegaEngine
 {
@@ -44,110 +42,101 @@ class LightBase
 {
 
 public:
-        
-	LightBase(LightType type)
-	    : type(type)
-	{
-	}
+    LightBase(LightType type) : type(type)
+    {
+    }
 
-	virtual ~LightBase() = default;
-    
+    virtual ~LightBase() = default;
+
     // the public setters
     LightBase& setPosition(const OEMaths::vec3f pos)
     {
         position = pos;
         return *this;
     }
-    
+
     LightBase& setColour(const OEMaths::vec3f col)
     {
         colour = col;
         return *this;
     }
-    
+
     friend class Shadow;
-	friend class OEScene;
-	friend class OELightManager;
+    friend class OEScene;
+    friend class OELightManager;
     friend class LightManager;
 
 protected:
+    /// the projection matrix of the light taken from the lights point-of-view
+    /// this is for shadow drawing
+    OEMaths::mat4f lightMvp;
 
-	/// the projection matrix of the light taken from the lights point-of-view
-	/// this is for shadow drawing
-	OEMaths::mat4f lightMvp;
-	
-	// position of the light in world space 
-	OEMaths::vec3f position;
-	OEMaths::vec3f target;
+    // position of the light in world space
+    OEMaths::vec3f position;
+    OEMaths::vec3f target;
 
-	/// the colour of the light
-	OEMaths::vec3f colour = OEMaths::vec3f{ 1.0f };
+    /// the colour of the light
+    OEMaths::vec3f colour = OEMaths::vec3f {1.0f};
 
-	/// the field of view of this light
-	float fov = 90.0f;
+    /// the field of view of this light
+    float fov = 90.0f;
 
     /// the light intensity in lumens
     float intensity;
-    
-	/// Whether this is directional, spot or point light
-	LightType type;
 
-	/// states whether this light is visible. Set by the visibility check during scene update
-	bool isVisible = false;
+    /// Whether this is directional, spot or point light
+    LightType type;
+
+    /// states whether this light is visible. Set by the visibility check during scene update
+    bool isVisible = false;
 };
 
 struct DirectionalLight : public LightBase
 {
 public:
-    
-    DirectionalLight() :
-        LightBase(LightType::Directional)
-    {}
-    
-	friend class OEScene;
-	friend class OELightManager;
+    DirectionalLight() : LightBase(LightType::Directional)
+    {
+    }
+
+    friend class OEScene;
+    friend class OELightManager;
     friend class LightManager;
 
 private:
-
 };
 
 struct PointLight : public LightBase
 {
 public:
-    
-    PointLight() :
-        LightBase(LightType::Point)
-    {}
-    
-	friend class OEScene;
-	friend class OELightManager;
+    PointLight() : LightBase(LightType::Point)
+    {
+    }
+
+    friend class OEScene;
+    friend class OELightManager;
     friend class LightManager;
 
 private:
-
-	float fallOut;
-	float radius;
+    float fallOut;
+    float radius;
 };
 
 struct SpotLight : public LightBase
 {
 public:
-    
-    SpotLight() :
-        LightBase(LightType::Spot)
-    {}
-    
-	friend class OEScene;
-	friend class OELightManager;
-    friend class LightManager;
-    
-private:
+    SpotLight() : LightBase(LightType::Spot)
+    {
+    }
 
-	float fallout;
-	float radius;
-	float scale;
-	float offset;
+    friend class OEScene;
+    friend class OELightManager;
+    friend class LightManager;
+
+private:
+    float fallout;
+    float radius;
+    float scale;
+    float offset;
 
     // this needs looking at - not set at present
     float innerCone = 0.0f;
@@ -158,24 +147,22 @@ class OELightManager : public ComponentManager, public LightManager
 {
 
 public:
-    
-	OELightManager();
-	~OELightManager();
+    OELightManager();
+    ~OELightManager();
 
-	void calculatePointIntensity(float intensity, PointLight& light);
-	void calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
+    void calculatePointIntensity(float intensity, PointLight& light);
+    void
+    calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
 
     void addLight(std::unique_ptr<LightBase>& light, OEObject* obj);
 
-	size_t getLightCount() const;
+    size_t getLightCount() const;
     LightBase* getLight(const ObjectHandle& handle);
-    
+
     friend class Shadow;
-    
+
 private:
-
-	std::vector<std::unique_ptr<LightBase>> lights;
-
+    std::vector<std::unique_ptr<LightBase>> lights;
 };
 
-}    // namespace OmegaEngine
+} // namespace OmegaEngine

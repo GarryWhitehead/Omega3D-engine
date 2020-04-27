@@ -9,11 +9,7 @@ namespace OmegaEngine
 class SwapChain
 {
 public:
-    
-    
 private:
-    
-    
 };
 
-}
+} // namespace OmegaEngine

@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #pragma once
 
@@ -82,10 +82,10 @@ private:
 
     // texture samplers to import; first: name, second: sampler type
     std::vector<TypeDescriptors> samplers;
-    
+
     // special case for materials - they aren't processed and the the info only used for layout
     std::vector<TypeDescriptors> materialSamplers;
-    
+
     // uniform buffers to import; first: name, second: buffer type
     std::vector<BufferDescriptor> ubos;
 
@@ -127,7 +127,6 @@ enum class ParserReturnCode
 class ShaderParser
 {
 public:
-
     constexpr static size_t EOL = -1;
 
     ShaderParser() = default;
@@ -147,7 +146,7 @@ public:
     static Shader::Type strToShaderType(std::string& str);
 
     std::string getErrorString();
-    
+
 private:
     struct ParserErrorCache
     {
@@ -158,7 +157,7 @@ private:
     ParserReturnCode parsePipelineBlock(uint32_t& idx);
 
     // grabs all the data from the string buffer ready for compiling
-    // if a specific shader descriptor is specified, then only that stage will be parsed 
+    // if a specific shader descriptor is specified, then only that stage will be parsed
     bool parseShader();
 
     // parses an individual shader stage as stated by a ##stage: block
@@ -177,7 +176,6 @@ private:
     friend class ShaderCompiler;
 
 private:
-
     Util::String shaderId;
 
     // used to work out the maximum set number across all stages

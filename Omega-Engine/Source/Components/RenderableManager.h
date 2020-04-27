@@ -1,31 +1,31 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #pragma once
 
 #include "Components/ComponentManager.h"
 #include "ImageUtils/MappedTexture.h"
-#include "ModelImporter/MeshInstance.h"
 #include "ModelImporter/MaterialInstance.h"
+#include "ModelImporter/MeshInstance.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_Quat.h"
 #include "VulkanAPI/Shader.h"
@@ -122,13 +122,13 @@ struct Material
 
     // a unique id hashed from the material name used for map lookups
     uint32_t materialHash;
-    
+
     // ============== vulkan backend stuff =======================
     // each material has its own descriptor set
     std::unique_ptr<vk::DescriptorSetLayout> descrLayout;
     std::unique_ptr<vk::DescriptorSet> descriptorSet;
     uint8_t materialSet;
-    
+
     VulkanAPI::ShaderProgram* program = nullptr;
 };
 
@@ -189,7 +189,6 @@ class OERenderableManager : public ComponentManager, public RenderableManager
 {
 
 public:
-    
     OERenderableManager(OEEngine& engine);
     ~OERenderableManager();
 
@@ -237,7 +236,7 @@ public:
     Material* findMaterial(const Util::String& name);
 
     void createMaterialDescriptors(Material* mat, const TextureGroup& group);
-    
+
     friend class GBufferFillPass;
     friend class Renderer;
 
@@ -264,7 +263,6 @@ private:
     // backend
     bool meshDirty = true;
     bool materialDirty = true;
-    
 };
 
 } // namespace OmegaEngine

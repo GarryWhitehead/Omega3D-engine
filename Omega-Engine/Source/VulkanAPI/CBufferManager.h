@@ -1,37 +1,37 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #pragma once
 
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
-#include "utility/MurmurHash.h"
 #include "utility/Compiler.h"
+#include "utility/MurmurHash.h"
 
+#include <array>
 #include <cstdint>
 #include <unordered_map>
 #include <vector>
-#include <array>
 
 namespace VulkanAPI
 {
@@ -68,7 +68,7 @@ public:
     constexpr static uint32_t MaxDescriptorPoolSets = 10;
     constexpr static uint32_t MaxSecondaryCmdBufferSize = 8;
     constexpr static uint32_t MaxSwapChainCmdBufferSize = 3;
-    
+
     struct ThreadedCmdBuffer
     {
         std::unique_ptr<CmdBuffer> secondary;
@@ -87,7 +87,8 @@ public:
      * @brief Checks whether a piepline exsists baseed on the specified hash. Returns a pointer to
      * the pipeline if it does, otherwise nullptr
      */
-    Pipeline* findOrCreatePipeline(ShaderProgram* prog, RenderPass* rPass, FrameBuffer* fbo, Pipeline::Type type);
+    Pipeline* findOrCreatePipeline(
+        ShaderProgram* prog, RenderPass* rPass, FrameBuffer* fbo, Pipeline::Type type);
 
     void addDescriptorLayout(
         uint32_t shaderId,
@@ -104,27 +105,27 @@ public:
     void buildDescriptorSet(uint32_t shaderId, PipelineLayout* plineLayout);
 
     void createMainDescriptorPool();
-    
+
     void updateDescriptors(
         const uint32_t bindingValue,
         const vk::DescriptorType& type,
         const vk::DescriptorSet& set,
         const Util::String& layoutId);
-    
+
     void updateTextureDescriptor(
-    const uint32_t bindingValue,
-    const vk::DescriptorType& type,
-    const vk::DescriptorSet& set,
-    Texture* tex);
-    
+        const uint32_t bindingValue,
+        const vk::DescriptorType& type,
+        const vk::DescriptorSet& set,
+        Texture* tex);
+
     bool updateShaderDescriptorSets(uint32_t shaderId);
     bool updateAllShaderDecsriptorSets();
-    
+
     // returns the swap chain command buffer - used for drawing to the backbuffer
     CmdBuffer* getScCommandBuffer(uint8_t idx);
-    
+
     void resetSecondaryCommands();
-    
+
     // returns the work commands buffer used for transient work such as buffer copying, etc.
     CmdBuffer* getWorkCmdBuffer();
 
@@ -149,7 +150,6 @@ public:
     friend class CmdBuffer;
 
 private:
- 
     VkDriver& driver;
 
     // the main command pool - only to be used on the main thread
@@ -172,7 +172,6 @@ private:
     vk::Semaphore renderingCompleteSemaphore;
 
 private:
-    
 #pragma pack(push, 1)
     // =============== pipeline hasher ======================
     struct OE_PACKED PLineKey
@@ -183,8 +182,9 @@ private:
     };
 #pragma pack(pop)
 
-    static_assert(std::is_pod<PLineKey>::value, "PLineKey must be a POD for the hashing to work correctly");
-    
+    static_assert(
+        std::is_pod<PLineKey>::value, "PLineKey must be a POD for the hashing to work correctly");
+
     using PLineHasher = Util::Murmur3Hasher<PLineKey>;
 
     struct PLineEqual
@@ -212,8 +212,10 @@ private:
         uint32_t id;
     };
 #pragma pack(pop)
-    
-    static_assert(std::is_pod<DescriptorKey>::value, "DescriptorKey must be a POD for the hashing to work correctly");
+
+    static_assert(
+        std::is_pod<DescriptorKey>::value,
+        "DescriptorKey must be a POD for the hashing to work correctly");
 
     using DescriptorHasher = Util::Murmur3Hasher<DescriptorKey>;
 

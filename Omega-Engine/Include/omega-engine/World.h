@@ -1,31 +1,30 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #ifndef WORLD_HPP
 #define WORLD_HPP
 
-#include "utility/Compiler.h"
-
 #include "OEMaths/OEMaths.h"
+#include "utility/Compiler.h"
 
 namespace OmegaEngine
 {
@@ -39,38 +38,36 @@ class IndirectLighting;
 class OE_PUBLIC World
 {
 public:
-    
     World() = default;
-    
-    //void update(double time, double dt);
+
+    // void update(double time, double dt);
 
     /**
-    * @brief creates a new empty scene. This will be passed to the renderer for presentation.
-    * @return A pointer to the newly created scene
-    */
+     * @brief creates a new empty scene. This will be passed to the renderer for presentation.
+     * @return A pointer to the newly created scene
+     */
     Scene* createScene();
 
     Skybox* createSkybox();
-    
+
     IndirectLighting* createIndirectLighting();
 
     Camera* createCamera();
 
     Object* createObj();
-    
+
     Object* createParentObj(const OEMaths::mat4f& world);
-    
-    Object* createParentObj(const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot);
+
+    Object* createParentObj(
+        const OEMaths::vec3f& trans, const OEMaths::vec3f& scale, const OEMaths::quatf& rot);
 
     Object* createChildObj(Object* parent);
 
     void destroyObject(Object* obj);
 
 private:
-    
-    
 };
 
-}
+} // namespace OmegaEngine
 
 #endif /* World_hpp */
