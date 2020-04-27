@@ -374,16 +374,6 @@ CmdBuffer* CBufferManager::getScCommandBuffer(uint8_t idx)
 
     CmdBuffer* cmdBuffer = scCmdBuffer[idx].get();
 
-    if (cmdBuffer->workSubmitted)
-    {
-        VK_CHECK_RESULT(device.waitForFences(1, &cmdBuffer->cmdFence, false, UINT64_MAX));
-        VK_CHECK_RESULT(device.resetFences(1, &cmdBuffer->cmdFence));
-        cmdBuffer->workSubmitted = false;
-
-        // reset and begin the buffer
-        cmdBuffer->resetCmdBuffer();
-    }
-
     cmdBuffer->begin();
     return cmdBuffer;
 }
@@ -442,6 +432,12 @@ void CBufferManager::flushSwapchainCmdBuffer(
     vk::PresentInfoKHR presentInfo {
         1, &renderingCompleteSemaphore, 1, &swapchain.get(), &imageIndex, nullptr};
     VK_CHECK_RESULT(context.presentQueue.presentKHR(&presentInfo));
+
+    VK_CHECK_RESULT(context.device.waitForFences(1, &cmdBuffer->cmdFence, false, UINT64_MAX));
+    VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
+
+    // reset and begin the buffer
+    cmdBuffer->resetCmdBuffer();
 }
 
 void CBufferManager::createSecondaryCmdBuffers()

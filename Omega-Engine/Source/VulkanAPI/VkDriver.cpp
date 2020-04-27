@@ -136,7 +136,7 @@ VkDriver::RPassKey VkDriver::prepareRPassKey()
     memset(rpassKey.finalLayout, 0, sizeof(vk::ImageLayout) * 6);
     rpassKey.depth = vk::Format(0);
     rpassKey.loadOp = VulkanAPI::RenderPass::LoadClearFlags::Clear;
-    rpassKey.storeOp = VulkanAPI::RenderPass::StoreClearFlags::DontCare;
+    rpassKey.storeOp = VulkanAPI::RenderPass::StoreClearFlags::Store;
     rpassKey.stencilLoadOp = VulkanAPI::RenderPass::LoadClearFlags::DontCare;
     rpassKey.stencilStoreOp = VulkanAPI::RenderPass::StoreClearFlags::DontCare;
 

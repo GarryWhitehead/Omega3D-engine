@@ -46,7 +46,7 @@ void OEObject::setId(const uint64_t objId)
     id = objId;
 }
 
-inline bool OEObject::isActive() const
+bool OEObject::isActive() const
 {
     return active;
 }

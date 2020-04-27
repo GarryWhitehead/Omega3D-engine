@@ -55,9 +55,9 @@ void main()
 #include_file: "include/lights.h"
 #include_file: "include/shadow.h"
 
-#constant: Name=MAX_SPOT_LIGHTS, 	Type=int, 	Value=50;
-#constant: Name=MAX_POINT_LIGHTS,	Type=int, 	Value=50;
-#constant: Name=MAX_DIR_LIGHTS, 	Type=int, 	Value=5;
+#constant: Name=MAX_SPOT_LIGHTS, 	Type=int, 	Value=20;
+#constant: Name=MAX_POINT_LIGHTS,	Type=int, 	Value=20;
+#constant: Name=MAX_DIR_LIGHTS, 	Type=int, 	Value=2;
 
 #push_constant: Name=PushBuffer,	id=push;
 [[

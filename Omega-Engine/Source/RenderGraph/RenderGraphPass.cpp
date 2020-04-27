@@ -71,7 +71,6 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
     {
         case Type::Graphics:
         {
-
             // a max of six colour attachments allowed per pass
             assert(writes.size() <= 6);
 
