@@ -76,7 +76,7 @@ public:
      * @param size The size of the buffer in bytes
      * @param usage Vulkan usage flags depict what this buffer will be used for
      */
-    void addUbo(
+    Buffer* addUbo(
         const Util::String& id,
         const size_t size,
         VkBufferUsageFlags usage);
@@ -111,21 +111,7 @@ public:
         const uint8_t mipLevels,
         vk::ImageUsageFlags usageFlags);
 
-    // ============== buffer update functions ===============================
-
-    void update2DTexture(const Util::String& id, void* data);
-
-    void updateUbo(const Util::String& id, const size_t size, void* data);
-
-    // ============= retrieve resources ====================================
-
-    Texture* getTexture2D(const Util::String& name);
-
-    Buffer* getBuffer(const Util::String& name);
-
     // =============== delete buffer =======================================
-
-    void deleteUbo(const Util::String& id);
 
     void deleteVertexBuffer(VertexBuffer* buffer);
 
@@ -152,6 +138,8 @@ public:
     VmaAllocator& getVma();
 
     uint32_t getCurrentImageIndex() const;
+    
+    StagingPool& getStagingPool();
     
 private:
     // managers
@@ -227,21 +215,47 @@ public:
     RenderPass* findOrCreateRenderPass(const RPassKey& key);
     FrameBuffer* findOrCreateFrameBuffer(const FboKey& key);
     
-private:
+public:
     
     // ================ Texture / Buffer maps ======================
 
-    using ResourceIdKey = Util::String;
+#pragma pack(push, 1)
+    
+    // the resource buffers are key'ed by just their id (hashed) as the descriptor update only has access to the id and no other information. 
+    struct OE_PACKED TextureKey
+    {
+        uint32_t nameHash;
+    };
+    
+    struct OE_PACKED BufferKey
+    {
+        uint32_t nameHash;
+    };
+    
+#pragma pack(pop)
+    
+    static_assert(std::is_pod<TextureKey>::value, "TextureKey must be a POD for the hashing to work correctly");
+    static_assert(std::is_pod<BufferKey>::value, "BufferKey must be a POD for the hashing to work correctly");
+    
     using ResourcePtrKey = void*;
 
-    using resourceIdHasher = Util::Murmur3Hasher<ResourceIdKey>;
+    using textureHasher = Util::Murmur3Hasher<TextureKey>;
+    using bufferHasher = Util::Murmur3Hasher<BufferKey>;
     using resourcePtrHasher = Util::Murmur3Hasher<ResourcePtrKey>;
     
-    struct ResourceIdEqualTo
+    struct TextureEqualTo
     {
-        bool operator()(const ResourceIdKey& lhs, const ResourceIdKey& rhs) const
+        bool operator()(const TextureKey& lhs, const TextureKey& rhs) const
         {
-            return lhs == rhs;
+            return lhs.nameHash == rhs.nameHash;
+        }
+    };
+    
+    struct BufferEqualTo
+    {
+        bool operator()(const BufferKey& lhs, const BufferKey& rhs) const
+        {
+            return lhs.nameHash == rhs.nameHash;
         }
     };
 
@@ -253,9 +267,18 @@ private:
         }
     };
     
+    // ============= retrieve and delete  resources ============================
+    Texture* getTexture2D(const Util::String& key);
+    Buffer* getBuffer(const Util::String& key);
+
+    void deleteUbo(const BufferKey& id);
+    void deleteTexture(const TextureKey& id);
+    
+private:
+    
     // texture/buffer resources
-    std::unordered_map<ResourceIdKey, Texture, resourceIdHasher, ResourceIdEqualTo> textures;
-    std::unordered_map<ResourceIdKey, Buffer, resourceIdHasher, ResourceIdEqualTo> buffers;
+    std::unordered_map<TextureKey, Texture, textureHasher, TextureEqualTo> textures;
+    std::unordered_map<BufferKey, Buffer, bufferHasher, BufferEqualTo> buffers;
     
     // vertex/index buffers
     std::unordered_map<ResourcePtrKey, VertexBuffer*, resourcePtrHasher, ResourcePtrEqualTo> vertBuffers;

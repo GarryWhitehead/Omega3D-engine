@@ -1,27 +1,29 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "IndirectLighting.h"
+
 #include "Core/Scene.h"
+#include "ImageUtils/MappedTexture.h"
 #include "OEMaths/OEMaths.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "Rendering/SkyboxPass.h"
@@ -31,18 +33,16 @@
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Shader.h"
-#include "VulkanAPI/VkDriver.h"
 #include "VulkanAPI/Utility.h"
+#include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
-#include "ImageUtils/MappedTexture.h"
 
 #include <vector>
 
 namespace OmegaEngine
 {
 
-OEIndirectLighting::OEIndirectLighting(VulkanAPI::VkDriver& driver)
-    : driver(driver)
+OEIndirectLighting::OEIndirectLighting(VulkanAPI::VkDriver& driver) : driver(driver)
 {
     init();
 }
@@ -58,21 +58,19 @@ void OEIndirectLighting::calculateCubeTransform(
     OEMaths::mat4f& outputProj,
     OEMaths::mat4f& outputView)
 {
-    OEMaths::vec3f target[6] = {
-        OEMaths::vec3f(1.0f, 0.0f, 0.0f),
-        OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, -1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-        OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
+    OEMaths::vec3f target[6] = {OEMaths::vec3f(1.0f, 0.0f, 0.0f),
+                                OEMaths::vec3f(-1.0f, 0.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, -1.0f, 0.0f),
+                                OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+                                OEMaths::vec3f(0.0f, 0.0f, -1.0f)};
 
-    OEMaths::vec3f cameraUp[6] = {
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 0.0f, -1.0f),
-        OEMaths::vec3f(0.0f, 0.0f, 1.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f),
-        OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
+    OEMaths::vec3f cameraUp[6] = {OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 0.0f, -1.0f),
+                                  OEMaths::vec3f(0.0f, 0.0f, 1.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f),
+                                  OEMaths::vec3f(0.0f, 1.0f, 0.0f)};
 
     outputProj = outputProj.scale(OEMaths::vec3f {-1.0f, 1.0f, 1.0f}) *
         OEMaths::perspective(90.0f, 1.0f, zNear, zFar);
@@ -83,13 +81,19 @@ void OEIndirectLighting::calculateCubeTransform(
 bool OEIndirectLighting::init()
 {
     auto& manager = driver.getProgManager();
-    
+
     // create the textures which will be sampled to.....
     mipLevels = static_cast<uint32_t>(std::floor(std::log2(irradianceMapDim))) + 1;
-    
+
     // bdrf
-    bdrfInfo.texture = driver.findOrCreateTexture2d("BdrfSampler", vk::Format::eR16G16Sfloat, bdrfDimensions, bdrfDimensions, 1, vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment);
-    
+    bdrfInfo.texture = driver.findOrCreateTexture2d(
+        "BdrfSampler",
+        vk::Format::eR16G16Sfloat,
+        bdrfDimensions,
+        bdrfDimensions,
+        1,
+        vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eColorAttachment);
+
     // bdrf shader
     const Util::String bdrf_filename = "bdrf.glsl";
     bdrfInfo.prog = manager.getVariantOrCreate(bdrf_filename, 0);
@@ -97,12 +101,21 @@ bool OEIndirectLighting::init()
     {
         return false;
     }
-    
+
     if (!irradianceInfo.texture)
     {
         // irradiance
-        irradianceInfo.texture = driver.findOrCreateTexture2d("IrradianceSampler", irradianceFormat, irradianceMapDim, irradianceMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
-        
+        irradianceInfo.texture = driver.findOrCreateTexture2d(
+            "IrradianceSampler",
+            irradianceFormat,
+            irradianceMapDim,
+            irradianceMapDim,
+            mipLevels,
+            6,
+            1,
+            vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
+                vk::ImageUsageFlagBits::eColorAttachment);
+
         // irradiance shader
         const Util::String irradiance_filename = "irradianceMap.glsl";
         irradianceInfo.prog = manager.getVariantOrCreate(irradiance_filename, 0);
@@ -111,18 +124,27 @@ bool OEIndirectLighting::init()
             return false;
         }
     }
-    
+
     if (!specularInfo.texture)
     {
         // specular
-        specularInfo.texture = driver.findOrCreateTexture2d("SpecularSampler", specularFormat, specularMapDim, specularMapDim, mipLevels, 6, 1,  vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eColorAttachment);
-        
+        specularInfo.texture = driver.findOrCreateTexture2d(
+            "SpecularSampler",
+            specularFormat,
+            specularMapDim,
+            specularMapDim,
+            mipLevels,
+            6,
+            1,
+            vk::ImageUsageFlagBits::eSampled | vk::ImageUsageFlagBits::eTransferDst |
+                vk::ImageUsageFlagBits::eColorAttachment);
+
         // specular shader
         const Util::String specular_filename = "specularMap.glsl";
         specularInfo.prog = manager.getVariantOrCreate(specular_filename, 0);
         if (!specularInfo.prog)
         {
-           return false;
+            return false;
         }
     }
 
@@ -135,19 +157,20 @@ bool OEIndirectLighting::prepare()
     // TODO: need to check in the configs whether ibl is enabled or not
     if (!envMap || (!irradianceInfo.texture && !specularInfo.texture))
     {
-        LOGGER_ERROR("You must set either the environment cube map or set directly the irradiance and specular maps if indirect lighting is enabled");
+        LOGGER_ERROR("You must set either the environment cube map or set directly the irradiance "
+                     "and specular maps if indirect lighting is enabled");
         return false;
     }
-        
+
     // brdf
     buildBdrfMap();
-    
+
     // irradiance
     if (needsUpdate && irradianceInfo.prog)
     {
         buildMap(irradianceInfo, irradianceFormat, irradianceMapDim, MapType::Irradiance);
     }
-    
+
     // specular
     if (needsUpdate && specularInfo.prog)
     {
@@ -160,50 +183,51 @@ bool OEIndirectLighting::prepare()
 void OEIndirectLighting::buildBdrfMap()
 {
     auto& cbManager = driver.getCbManager();
-    
+
     // if this is the first execution of this builder, then create the vulkan backend stuff
     if (!bdrfInfo.rpass)
     {
         // create the renderpass
         VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
-        
+
         rpassKey.colourFormats[0] = bdrfFormat;
         rpassKey.finalLayout[0] = vk::ImageLayout::eShaderReadOnlyOptimal;
         bdrfInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
 
         // create the frame buffer
-        VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();;
-        
+        VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
+        ;
+
         fboKey.views[0] = bdrfInfo.texture->getImageView()->get();
         fboKey.renderpass = bdrfInfo.rpass->get();
         fboKey.width = bdrfDimensions;
         fboKey.height = bdrfDimensions;
         bdrfInfo.fbo = driver.findOrCreateFrameBuffer(fboKey);
-        
+
         // setup descriptors
         cbManager.updateShaderDescriptorSets(bdrfInfo.prog->getShaderId());
-        
+
         // create a default pipeline
         assert(!bdrfInfo.pipeline);
-        bdrfInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *bdrfInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
+        bdrfInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(
+            driver.getContext(),
+            *bdrfInfo.prog->getPLineLayout(),
+            VulkanAPI::Pipeline::Type::Graphics);
         bdrfInfo.pipeline->create(*bdrfInfo.prog, bdrfInfo.rpass, bdrfInfo.fbo);
     }
-    
+
     VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getWorkCmdBuffer();
-    
+
     driver.beginRenderpass(cmdBuffer, *bdrfInfo.rpass, *bdrfInfo.fbo);
     cmdBuffer->bindPipeline(*bdrfInfo.pipeline);
     cmdBuffer->drawQuad();
     driver.endRenderpass(cmdBuffer);
-    
+
     cmdBuffer->flush();
 }
 
 void OEIndirectLighting::buildMap(
-    MapInfo& mapInfo,
-    const vk::Format& format,
-    uint32_t dim,
-    const MapType type)
+    MapInfo& mapInfo, const vk::Format& format, uint32_t dim, const MapType type)
 {
     auto& cbManager = driver.getCbManager();
     VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getWorkCmdBuffer();
@@ -217,40 +241,47 @@ void OEIndirectLighting::buildMap(
         mapInfo.osTexture->create2dTex(
             driver,
             format,
-            dim, dim,
-            1, 1, 1,
+            dim,
+            dim,
+            1,
+            1,
+            1,
             vk::ImageUsageFlagBits::eColorAttachment | vk::ImageUsageFlagBits::eTransferSrc |
-            vk::ImageUsageFlagBits::eSampled);
+                vk::ImageUsageFlagBits::eSampled);
 
-        std::vector<VulkanAPI::ImageView*> imageView { mapInfo.osTexture->getImageView() };
-        
+        std::vector<VulkanAPI::ImageView*> imageView {mapInfo.osTexture->getImageView()};
+
         // create the renderpass
-        VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();;
-        
+        VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
+        ;
+
         rpassKey.colourFormats[0] = format;
         rpassKey.finalLayout[0] = vk::ImageLayout::eColorAttachmentOptimal;
         mapInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
-        
+
         // create the frame buffer
         VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
-        
+
         fboKey.views[0] = mapInfo.osTexture->getImageView()->get();
         fboKey.renderpass = mapInfo.rpass->get();
         fboKey.width = dim;
         fboKey.height = dim;
         mapInfo.fbo = driver.findOrCreateFrameBuffer(fboKey);
-        
+
         // setup descriptors
         cbManager.updateShaderDescriptorSets(mapInfo.prog->getShaderId());
-        
+
         // create a default pipeline
-        mapInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(driver.getContext(), *mapInfo.prog->getPLineLayout(), VulkanAPI::Pipeline::Type::Graphics);
+        mapInfo.pipeline = std::make_unique<VulkanAPI::Pipeline>(
+            driver.getContext(),
+            *mapInfo.prog->getPLineLayout(),
+            VulkanAPI::Pipeline::Type::Graphics);
         mapInfo.pipeline->create(*mapInfo.prog, mapInfo.rpass, mapInfo.fbo);
     }
-    
+
     VulkanAPI::Image* image = mapInfo.texture->getImage();
     VulkanAPI::Image* osImage = mapInfo.osTexture->getImage();
-    
+
     // transition cube texture for transfer
     VulkanAPI::Image::transition(
         *osImage,
@@ -278,7 +309,8 @@ void OEIndirectLighting::buildMap(
             driver.beginRenderpass(cmdBuffer, *mapInfo.rpass, *mapInfo.fbo);
 
             cmdBuffer->bindPipeline(*mapInfo.pipeline);
-            cmdBuffer->bindDescriptors(cbManager, mapInfo.prog, VulkanAPI::Pipeline::Type::Graphics);
+            cmdBuffer->bindDescriptors(
+                cbManager, mapInfo.prog, VulkanAPI::Pipeline::Type::Graphics);
             cmdBuffer->bindVertexBuffer(envMap->vertexBuffer->get(), 0);
             cmdBuffer->bindIndexBuffer(envMap->indexBuffer->get(), 0);
 
@@ -299,7 +331,8 @@ void OEIndirectLighting::buildMap(
 
                 SpecularMapPushBlock pushBlock;
                 pushBlock.sampleCount = 32;
-                pushBlock.roughness = static_cast<float>(mip) / static_cast<float>(mipLevels) - 1.0f;
+                pushBlock.roughness =
+                    static_cast<float>(mip) / static_cast<float>(mipLevels) - 1.0f;
                 pushBlock.mvp = mvp;
 
                 cmdBuffer->bindPushBlock(
@@ -317,7 +350,7 @@ void OEIndirectLighting::buildMap(
             // draw cube into offscreen framebuffer
             cmdBuffer->drawIndexed(OESkybox::indicesSize);
             driver.endRenderpass(cmdBuffer);
-            
+
             // copy the offscreen buffer to the current face
             vk::ImageSubresourceLayers src_resource(vk::ImageAspectFlagBits::eColor, 0, 0, 1);
             vk::ImageSubresourceLayers dst_resource(vk::ImageAspectFlagBits::eColor, mip, face, 1);
@@ -333,7 +366,7 @@ void OEIndirectLighting::buildMap(
                 vk::ImageLayout::eColorAttachmentOptimal,
                 vk::ImageLayout::eTransferSrcOptimal,
                 cmdBuffer->get());
-            
+
             cmdBuffer->get().copyImage(
                 osImage->get(),
                 vk::ImageLayout::eTransferSrcOptimal,
@@ -356,7 +389,7 @@ void OEIndirectLighting::buildMap(
         vk::ImageLayout::eTransferDstOptimal,
         vk::ImageLayout::eShaderReadOnlyOptimal,
         cmdBuffer->get());
-    
+
     cmdBuffer->flush();
 }
 
@@ -369,15 +402,31 @@ void OEIndirectLighting::setEnvMap(OESkybox* skybox)
 void OEIndirectLighting::specularEnvMap(MappedTexture* texture)
 {
     assert(texture);
-    specularInfo.texture = driver.findOrCreateTexture2d("SpecularSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
-    driver.update2DTexture("SpecularSampler", texture->getBuffer());
+    specularInfo.texture = driver.findOrCreateTexture2d(
+        "SpecularSampler",
+        VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()),
+        texture->getWidth(),
+        texture->getHeight(),
+        texture->getMipLevelCount(),
+        texture->getFaceCount(),
+        1,
+        vk::ImageUsageFlagBits::eSampled);
+    specularInfo.texture->map(driver, texture->getBuffer());
 }
 
 void OEIndirectLighting::irradianceEnvMap(MappedTexture* texture)
 {
     assert(texture);
-    irradianceInfo.texture = driver.findOrCreateTexture2d("IrradianceSampler", VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()), texture->getWidth(), texture->getHeight(), texture->getMipLevelCount(), texture->getFaceCount(), 1, vk::ImageUsageFlagBits::eSampled);
-    driver.update2DTexture("IrradianceSampler", texture->getBuffer());
+    irradianceInfo.texture = driver.findOrCreateTexture2d(
+        "IrradianceSampler",
+        VulkanAPI::VkUtil::imageFormatToVk(texture->getFormat()),
+        texture->getWidth(),
+        texture->getHeight(),
+        texture->getMipLevelCount(),
+        texture->getFaceCount(),
+        1,
+        vk::ImageUsageFlagBits::eSampled);
+    irradianceInfo.texture->map(driver, texture->getBuffer());
 }
 
 bool OEIndirectLighting::needsUpdating() const

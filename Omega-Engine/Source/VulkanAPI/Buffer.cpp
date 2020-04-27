@@ -1,33 +1,32 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Buffer.h"
 
-#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CBufferManager.h"
+#include "VulkanAPI/CommandBuffer.h"
+#include "VulkanAPI/Common.h"
 #include "VulkanAPI/VkContext.h"
 #include "VulkanAPI/VkDriver.h"
-
-#include "VulkanAPI/Common.h"
 
 #include <cstring>
 
@@ -135,9 +134,7 @@ StagingPool::StageInfo StagingPool::getStage(VkDeviceSize reqSize)
 
 
 void Buffer::prepare(
-    VmaAllocator& vmaAlloc,
-    const vk::DeviceSize buffSize,
-    const VkBufferUsageFlags usage)
+    VmaAllocator& vmaAlloc, const vk::DeviceSize buffSize, const VkBufferUsageFlags usage)
 {
     vmaAllocator = &vmaAlloc;
     size = buffSize;
@@ -149,7 +146,7 @@ void Buffer::prepare(
 
     VmaAllocationCreateInfo allocCreateInfo = {};
     allocCreateInfo.usage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-    //allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    // allocCreateInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
     VMA_CHECK_RESULT(
         vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocCreateInfo, &buffer, &mem, &allocInfo));
@@ -158,7 +155,7 @@ void Buffer::prepare(
 void Buffer::map(void* data, size_t dataSize)
 {
     assert(data);
-   
+
     vmaMapMemory(*vmaAllocator, mem, &allocInfo.pMappedData);
     memcpy(allocInfo.pMappedData, data, dataSize);
     vmaUnmapMemory(*vmaAllocator, mem);
@@ -199,7 +196,8 @@ void VertexBuffer::create(
     assert(data);
 
     // create the buffer and copy the data
-    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+    createGpuBufferAndCopy(
+        driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 }
 
 // ======================= IndexBuffer ================================
@@ -214,7 +212,8 @@ void IndexBuffer::create(
     assert(data);
 
     // create the buffer and copy the data
-    createGpuBufferAndCopy(driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+    createGpuBufferAndCopy(
+        driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
 }
 
 } // namespace VulkanAPI

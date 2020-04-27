@@ -1,41 +1,41 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Renderer.h"
 
 #include "Components/RenderableManager.h"
-#include "Core/engine.h"
 #include "Core/Scene.h"
+#include "Core/engine.h"
 #include "RenderGraph/RenderGraph.h"
+#include "Rendering/CompositionPass.h"
 #include "Rendering/GBufferFillPass.h"
 #include "Rendering/IndirectLighting.h"
 #include "Rendering/LightingPass.h"
 #include "Rendering/RenderQueue.h"
 #include "Rendering/SkyboxPass.h"
-#include "Rendering/CompositionPass.h"
 #include "Scripting/OEConfig.h"
 #include "Threading/ThreadPool.h"
-#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/CBufferManager.h"
+#include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
@@ -73,11 +73,11 @@ bool OERenderer::prepare()
                 rStages.emplace_back(std::make_unique<LightingPass>(*rGraph, "Stage_Light"));
                 break;
             case RenderStage::Skybox:
-                rStages.emplace_back(
-                    std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
+                rStages.emplace_back(std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
                 break;
             case RenderStage::Composition:
-                rStages.emplace_back(std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
+                rStages.emplace_back(
+                    std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
                 break;
         }
     }
@@ -106,10 +106,10 @@ void OERenderer::beginFrame()
 {
     // begin the frame on the driver side
     vkDriver.beginFrame(swapchain);
-    
+
     // clear the render graph
     rGraph->reset();
-    
+
     // set up the render graph for this frame
     preparePasses();
 }
@@ -117,14 +117,14 @@ void OERenderer::beginFrame()
 bool OERenderer::draw()
 {
     beginFrame();
-    
+
     // optimisation and compilation of the render graph. If nothing has changed since the last frame
     // then this call will just return.
     if (!rGraph->compile())
     {
-       return false;
+        return false;
     }
-    
+
     // check if indirect lighting component needs init/updating
     if (scene.ibl && scene.ibl->needsUpdating())
     {
@@ -133,9 +133,9 @@ bool OERenderer::draw()
             return false;
         }
     }
-    
-    // at this point we have all the images/buffers prepared so udate the descriptors now. This happens on the first frame and if the
-    // images/buffer handles change
+
+    // at this point we have all the images/buffers prepared so udate the descriptors now. This
+    // happens on the first frame and if the images/buffer handles change
     if (!vkDriver.getCbManager().updateAllShaderDecsriptorSets())
     {
         return false;
@@ -146,28 +146,31 @@ bool OERenderer::draw()
 
     // finally send to the swap-chain for presentation
     vkDriver.endFrame(swapchain);
-    
+
     return true;
 }
 
-void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphContext& rgraphContext, RGraphPassContext& rpassContext)
+void OERenderer::drawQueueThreaded(
+    VulkanAPI::CBufferManager& manager,
+    RGraphContext& rgraphContext,
+    RGraphPassContext& rpassContext)
 {
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
     rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, true);
-        
+
     auto thread_draw = [&queue, &rgraphContext, &rpassContext, &manager](size_t start, size_t end) {
         assert(end <= queue.size());
         assert(start < end);
         for (size_t idx = start; idx < end; ++idx)
         {
             RenderableQueueInfo& info = queue[idx];
-            
-             // a cmd pool per thread with a buffer
+
+            // a cmd pool per thread with a buffer
             VulkanAPI::CmdBuffer* cbSecondary = manager.getSecondaryCmdBuffer();
             cbSecondary->beginSecondary(*rpassContext.rpass, *rpassContext.fbo);
-            
+
             // use custom defined viewing area - at the moment set to the framebuffer size
             vk::Viewport viewport {0.0f,
                                    0.0f,
@@ -181,7 +184,7 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
                 {static_cast<int32_t>(viewport.x), static_cast<int32_t>(viewport.y)},
                 {static_cast<uint32_t>(viewport.width), static_cast<uint32_t>(viewport.height)}};
             cbSecondary->setScissor(scissor);
-            
+
             info.renderFunction(cbSecondary, info.renderableData, rgraphContext, rpassContext);
             cbSecondary->end();
         }
@@ -191,10 +194,10 @@ void OERenderer::drawQueueThreaded(VulkanAPI::CBufferManager& manager, RGraphCon
     size_t workSize = queue.size();
     ThreadTaskSplitter split {0, workSize, thread_draw};
     split.run();
-    
+
     // check all task have finished here before execute?
     manager.executeSecondaryCommands();
-    
+
     rgraphContext.driver->endRenderpass(cmdBuffer);
 }
 

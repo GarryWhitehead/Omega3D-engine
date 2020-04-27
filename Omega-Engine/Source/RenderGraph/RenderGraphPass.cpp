@@ -1,31 +1,31 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "RenderGraphPass.h"
 
 #include "RenderGraph/RenderGraph.h"
-#include "VulkanAPI/Utility.h"
-#include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Image.h"
+#include "VulkanAPI/RenderPass.h"
+#include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
@@ -69,17 +69,18 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
 {
     switch (type)
     {
-        case Type::Graphics: {
-            
+        case Type::Graphics:
+        {
+
             // a max of six colour attachments allowed per pass
             assert(writes.size() <= 6);
-            
+
             auto& resources = rGraph.getResources();
 
             // add the output attachments
             VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
             VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
-            
+
             for (size_t i = 0; i < writes.size(); ++i)
             {
                 ResourceHandle& handle = writes[i];
@@ -87,7 +88,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                 if (base->type == ResourceBase::ResourceType::Imported)
                 {
                     ImportedResource* tex = static_cast<ImportedResource*>(resources[handle]);
-                    
+
                     // imported targets already have the image view objects defined
                     fboKey.views[i] = tex->imageView.get();
                     rpassKey.colourFormats[i] = tex->format;
@@ -99,7 +100,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                 else if (base->type == ResourceBase::ResourceType::Texture)
                 {
                     TextureResource* tex = static_cast<TextureResource*>(resources[handle]);
-                    
+
                     // bake the texture
                     if (tex->width != maxWidth || tex->height != maxHeight)
                     {
@@ -113,11 +114,13 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     }
                     VulkanAPI::Texture* vkTexture = tex->bake(driver);
                     fboKey.views[i] = vkTexture->getImageView()->get();
-                    
+
                     if (VulkanAPI::VkUtil::isDepth(tex->format) ||
                         VulkanAPI::VkUtil::isStencil(tex->format))
                     {
-                        assert(rpassKey.depth == vk::Format(0) && "Only one depth reference per renderpass");
+                        assert(
+                            rpassKey.depth == vk::Format(0) &&
+                            "Only one depth reference per renderpass");
                         rpassKey.depth = tex->format;
                     }
                     else
@@ -129,7 +132,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             }
 
             context.rpass = driver.findOrCreateRenderPass(rpassKey);
-            
+
             // crete the framebuffer for this pass
             fboKey.renderpass = context.rpass->get();
             fboKey.width = maxWidth;
@@ -137,7 +140,8 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
             context.fbo = driver.findOrCreateFrameBuffer(fboKey);
             break;
         }
-        case Type::Compute: {
+        case Type::Compute:
+        {
             break;
         }
     }

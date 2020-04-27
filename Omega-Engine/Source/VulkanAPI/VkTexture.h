@@ -100,7 +100,7 @@ public:
     /**
      * @brief Maps a image in the format specified when the texture as created, to the GPU.
      */
-    void map(VkDriver& driver, StagingPool& stagePool, void* data);
+    void map(VkDriver& driver, void* data);
 
     /**
      * @brief Retuens the image view for this texture

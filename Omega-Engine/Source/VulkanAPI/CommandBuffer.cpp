@@ -1,30 +1,30 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "CommandBuffer.h"
 
 #include "OEMaths/OEMaths.h"
-#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/CBufferManager.h"
+#include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkContext.h"
 
@@ -33,7 +33,8 @@
 namespace VulkanAPI
 {
 
-CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type type) : context(context), cmdPool(cmdPool), type(type)
+CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type type)
+    : context(context), cmdPool(cmdPool), type(type)
 {
 }
 
@@ -65,10 +66,10 @@ void CmdBuffer::begin()
 void CmdBuffer::beginSecondary(RenderPass& renderpass, FrameBuffer& fbo)
 {
     assert(type == CmdBuffer::Type::Secondary);
-    
+
     // the secondary commands inherits from the primary buffer
     vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, fbo.get(), 0, {}, {}};
-    
+
     vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, &inheritance);
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
@@ -105,17 +106,21 @@ void CmdBuffer::setViewport(const vk::Viewport& newViewPort)
 }
 
 void CmdBuffer::bindPipeline(
-    CBufferManager& cbManager, RenderPass* renderpass, FrameBuffer* fbo, ShaderProgram* program, Pipeline::Type type)
+    CBufferManager& cbManager,
+    RenderPass* renderpass,
+    FrameBuffer* fbo,
+    ShaderProgram* program,
+    Pipeline::Type type)
 {
     Pipeline* pline = cbManager.findOrCreatePipeline(program, renderpass, fbo, type);
     assert(pline);
     // check whether this pipeline is already bound - we don't have to do anything if so
-    //if (!boundPipeline || pline != boundPipeline)
-   // {
-        vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
-        cmdBuffer.bindPipeline(bindPoint, pline->get());
-        boundPipeline = pline;
-  //  }
+    // if (!boundPipeline || pline != boundPipeline)
+    // {
+    vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pline->getType());
+    cmdBuffer.bindPipeline(bindPoint, pline->get());
+    boundPipeline = pline;
+    //  }
 }
 
 void CmdBuffer::bindPipeline(Pipeline& pipeline)
@@ -128,34 +133,36 @@ void CmdBuffer::bindPipeline(Pipeline& pipeline)
     }
 }
 
-void CmdBuffer::bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(
+    const vk::PipelineLayout layout,
+    std::vector<vk::DescriptorSet>& sets,
+    const Pipeline::Type pipelineType)
 {
     vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
-        cmdBuffer.bindDescriptorSets(
-        bindPoint,
-        layout,
-        0,
-        static_cast<uint32_t>(sets.size()),
-        sets.data(),
-        0,
-        nullptr);
+    cmdBuffer.bindDescriptorSets(
+        bindPoint, layout, 0, static_cast<uint32_t>(sets.size()), sets.data(), 0, nullptr);
 }
 
-void CmdBuffer::bindDescriptors(CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(
+    CBufferManager& cbManager, ShaderProgram* prog, const Pipeline::Type pipelineType)
 {
     std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(!setInfo.empty());
-    
+
     std::vector<vk::DescriptorSet> descrSets(setInfo.size());
     for (uint64_t i = 0; i < descrSets.size(); ++i)
     {
         descrSets[i] = setInfo[i].descrSet;
     }
-    
+
     bindDescriptors(prog->pLineLayout->get(), descrSets, pipelineType);
 }
 
-void CmdBuffer::bindDescriptors(const vk::PipelineLayout layout, std::vector<vk::DescriptorSet>& sets, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(
+    const vk::PipelineLayout layout,
+    std::vector<vk::DescriptorSet>& sets,
+    std::vector<uint32_t>& offsets,
+    const Pipeline::Type pipelineType)
 {
     vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipelineType);
     cmdBuffer.bindDescriptorSets(
@@ -168,18 +175,21 @@ void CmdBuffer::bindDescriptors(const vk::PipelineLayout layout, std::vector<vk:
         offsets.data());
 }
 
-void CmdBuffer::bindDescriptors(CBufferManager& cbManager,
-    ShaderProgram* prog, std::vector<uint32_t>& offsets, const Pipeline::Type pipelineType)
+void CmdBuffer::bindDescriptors(
+    CBufferManager& cbManager,
+    ShaderProgram* prog,
+    std::vector<uint32_t>& offsets,
+    const Pipeline::Type pipelineType)
 {
     std::vector<DescriptorSetInfo> setInfo = cbManager.findDescriptorSets(prog->getShaderId());
     assert(!setInfo.empty());
-    
+
     std::vector<vk::DescriptorSet> descrSets(setInfo.size());
     for (uint64_t i = 0; i < descrSets.size(); ++i)
     {
         descrSets[i] = setInfo[i].descrSet;
     }
-    
+
     bindDescriptors(prog->getPLineLayout()->get(), descrSets, offsets, pipelineType);
 }
 
@@ -232,7 +242,7 @@ void CmdBuffer::flush()
     vk::SubmitInfo submitInfo(0, nullptr, nullptr, 1, &cmdBuffer, 0, nullptr);
 
     VK_CHECK_RESULT(queue.submit(1, &submitInfo, cmdFence));
-    
+
     // let the user know that the cmd buffer has work to do
     workSubmitted = true;
 }

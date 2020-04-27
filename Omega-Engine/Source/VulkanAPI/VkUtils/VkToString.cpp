@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "VkToString.h"
 
@@ -121,7 +121,7 @@ bool createVkShaderSampler(
             name.c_str());
         return false;
     }
-    
+
     // check whether this is a sampler array...
     if (arraySize > 0)
     {
@@ -131,8 +131,8 @@ bool createVkShaderSampler(
     {
         output += name + ";";
     }
-    
-    
+
+
     return true;
 }
 
@@ -183,21 +183,21 @@ bool createVkShaderBuffer(
         {
             return false;
         }
-        
+
         // check for flags......
         std::string flags;
         bool usingExternal = false;
-        
+
         if (ShaderDescriptor::getTypeValue("Flag", item, flags))
         {
-            // external flags indicate that this item is using an external type. The only fallout from this is that we
-            // cannot determine the buffer size.
+            // external flags indicate that this item is using an external type. The only fallout
+            // from this is that we cannot determine the buffer size.
             if (ShaderDescriptor::checkForFlag("External", flags))
             {
                 usingExternal = true;
             }
         }
-        
+
         // offsets are not mandatory
         if (ShaderDescriptor::getTypeValue("Offset", item, offset))
         {
@@ -207,10 +207,10 @@ bool createVkShaderBuffer(
         {
             bufferTemplate += "\t";
         }
-        
+
         // add the item type and name.....
         bufferTemplate += itemType + " " + itemName;
-        
+
         // check whether this is an array
         std::string array;
         if (ShaderDescriptor::getTypeValue("Array_size", item, array))
@@ -221,7 +221,7 @@ bool createVkShaderBuffer(
         {
             bufferTemplate += ";\n";
         }
-        
+
         if (!usingExternal)
         {
             bufferSize += vkTypeSize(itemType);
@@ -230,7 +230,7 @@ bool createVkShaderBuffer(
 
     outputStr = bufferTemplate + "}";
     outputSize = bufferSize;
-    
+
     return true;
 }
 

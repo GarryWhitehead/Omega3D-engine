@@ -1,32 +1,30 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "TransformManager.h"
 
 #include "Components/RenderableManager.h"
-
 #include "ModelImporter/NodeInstance.h"
 #include "ModelImporter/SkinInstance.h"
-
 #include "utility/Logger.h"
 
 #include <algorithm>
@@ -45,124 +43,125 @@ TransformManager::~TransformManager()
 
 bool TransformManager::addNodeHierachy(NodeInstance& node, OEObject& obj, SkinInstance* skin)
 {
-	if (!node.getRootNode())
-	{
-		LOGGER_ERROR("Trying to add a root node that is null.\n");
-		return false;
-	}
+    if (!node.getRootNode())
+    {
+        LOGGER_ERROR("Trying to add a root node that is null.\n");
+        return false;
+    }
 
-	TransformInfo info;
-	info.root = new NodeInfo(*node.getRootNode());
+    TransformInfo info;
+    info.root = new NodeInfo(*node.getRootNode());
 
-	// add skins to the manager - these don't require a slot to be requested as there
-	// may be numerous skins per mesh. Instead, the starting index of this group
-	// will be used to offset the skin indices to point at the correct skin
-	if (skin)
-	{
-		skins.emplace_back(*skin);
-		info.skinOffset = skins.size() - 1;
-	}
+    // add skins to the manager - these don't require a slot to be requested as there
+    // may be numerous skins per mesh. Instead, the starting index of this group
+    // will be used to offset the skin indices to point at the correct skin
+    if (skin)
+    {
+        skins.emplace_back(*skin);
+        info.skinOffset = skins.size() - 1;
+    }
 
-	// request a slot for this object
-	ObjectHandle handle = addObject(obj);
+    // request a slot for this object
+    ObjectHandle handle = addObject(obj);
 
-	if (handle.get() >= nodes.size())
-	{
-		// We must take ownership here to stop dangling pointers.
-		// We have no idea when the model data will go out of scope
-		nodes.emplace_back(std::move(info));
-	}
+    if (handle.get() >= nodes.size())
+    {
+        // We must take ownership here to stop dangling pointers.
+        // We have no idea when the model data will go out of scope
+        nodes.emplace_back(std::move(info));
+    }
 
-	// update the model transform, and if skinned, joint matrices
-	updateModelTransform(info.root, info);
+    // update the model transform, and if skinned, joint matrices
+    updateModelTransform(info.root, info);
 
-	return true;
+    return true;
 }
 
-void TransformManager::addTransform(OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale,
-                                    OEMaths::quatf& rot)
+void TransformManager::addTransform(
+    OEMaths::mat4f& local, OEMaths::vec3f& translation, OEMaths::vec3f& scale, OEMaths::quatf& rot)
 {
-	TransformInfo info;
-	info.root = new NodeInfo();
-	info.root->translation = translation;
-	info.root->scale = scale;
-	info.root->rotation = rot;
-	info.root->nodeTransform = local;
-	info.root->localTransform = local;
+    TransformInfo info;
+    info.root = new NodeInfo();
+    info.root->translation = translation;
+    info.root->scale = scale;
+    info.root->rotation = rot;
+    info.root->nodeTransform = local;
+    info.root->localTransform = local;
 
-	nodes.emplace_back(info);
+    nodes.emplace_back(info);
 }
 
 OEMaths::mat4f TransformManager::updateMatrix(NodeInfo* node)
 {
-	OEMaths::mat4f mat = node->nodeTransform;
-	NodeInfo* parent = node->parent;
-	while (parent)
-	{
-		mat = parent->nodeTransform * mat;
-		parent = parent->parent;
-	}
-	return mat;
+    OEMaths::mat4f mat = node->nodeTransform;
+    NodeInfo* parent = node->parent;
+    while (parent)
+    {
+        mat = parent->nodeTransform * mat;
+        parent = parent->parent;
+    }
+    return mat;
 }
 
 void TransformManager::updateModelTransform(NodeInfo* parent, TransformInfo& transInfo)
 {
-	// we need to find the mesh node first - we will then update matrices working back
-	// towards the root node
-	if (parent->hasMesh)
-	{
-		OEMaths::mat4f mat;
+    // we need to find the mesh node first - we will then update matrices working back
+    // towards the root node
+    if (parent->hasMesh)
+    {
+        OEMaths::mat4f mat;
 
-		// update the matrices - child node transform * parent transform
-		mat = updateMatrix(parent);
+        // update the matrices - child node transform * parent transform
+        mat = updateMatrix(parent);
 
-		// add updated local transfrom to the ubo buffer
-		transInfo.modelTransform = mat;
+        // add updated local transfrom to the ubo buffer
+        transInfo.modelTransform = mat;
 
-		// will be null if this model doesn't contain a skin
-		if (transInfo.skinOffset != UINT32_MAX)
-		{
-			// the transform data index for this object is stored on the component
-			uint32_t skinIndex = parent->skinIndex;
-			assert(skinIndex >= 0);
-			SkinInstance& skin = skins[skinIndex];
+        // will be null if this model doesn't contain a skin
+        if (transInfo.skinOffset != UINT32_MAX)
+        {
+            // the transform data index for this object is stored on the component
+            uint32_t skinIndex = parent->skinIndex;
+            assert(skinIndex >= 0);
+            SkinInstance& skin = skins[skinIndex];
 
-			// get the number of joints in the skeleton
-			uint32_t jointCount = std::min(static_cast<uint32_t>(skin.jointNodes.size()), MAX_BONE_COUNT);
+            // get the number of joints in the skeleton
+            uint32_t jointCount =
+                std::min(static_cast<uint32_t>(skin.jointNodes.size()), MAX_BONE_COUNT);
 
-			// transform to local space
-			OEMaths::mat4f inverseMat = OEMaths::mat4f::inverse(mat);
+            // transform to local space
+            OEMaths::mat4f inverseMat = OEMaths::mat4f::inverse(mat);
 
-			for (uint32_t i = 0; i < jointCount; ++i)
-			{
-				// get a pointer to the joint a.k.a transform node
-				NodeInfo* jointNode = skin.jointNodes[i];
+            for (uint32_t i = 0; i < jointCount; ++i)
+            {
+                // get a pointer to the joint a.k.a transform node
+                NodeInfo* jointNode = skin.jointNodes[i];
 
-				// the joint matrix is the local matrix * inverse bin matrix
-				OEMaths::mat4f jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
+                // the joint matrix is the local matrix * inverse bin matrix
+                OEMaths::mat4f jointMatrix = updateMatrix(jointNode) * skin.invBindMatrices[i];
 
-				// transform joint to local (joint) space
-				OEMaths::mat4f localMatrix = inverseMat * jointMatrix;
-				transInfo.jointMatrices[i] = localMatrix;
-			}
-		}
+                // transform joint to local (joint) space
+                OEMaths::mat4f localMatrix = inverseMat * jointMatrix;
+                transInfo.jointMatrices[i] = localMatrix;
+            }
+        }
 
-		// one mesh per node is required. So don't bother with the child nodes
-		return;
-	}
+        // one mesh per node is required. So don't bother with the child nodes
+        return;
+    }
 
-	// now work up the child nodes - until we find a mesh
-	for (NodeInfo* child : parent->children)
-	{
-		updateModelTransform(child, transInfo);
-	}
+    // now work up the child nodes - until we find a mesh
+    for (NodeInfo* child : parent->children)
+    {
+        updateModelTransform(child, transInfo);
+    }
 }
 
 void TransformManager::updateModel(OEObject& obj)
 {
-	ObjectHandle handle = getObjIndex(obj);
-	TransformInfo& info = nodes[handle.get()];
-	updateModelTransform(info.root->parent, info);
+    ObjectHandle handle = getObjIndex(obj);
+    TransformInfo& info = nodes[handle.get()];
+    updateModelTransform(info.root->parent, info);
 }
 
 void TransformManager::updateObjectTranslation(OEObject& obj, const OEMaths::vec3f& trans)
@@ -185,8 +184,8 @@ void TransformManager::updateObjectRotation(OEObject& obj, const OEMaths::quatf&
 
 TransformInfo& TransformManager::getTransform(const ObjectHandle& handle)
 {
-	assert(handle.get() <= nodes.size());
-	return nodes[handle.get()];
+    assert(handle.get() <= nodes.size());
+    return nodes[handle.get()];
 }
 
-}    // namespace OmegaEngine
+} // namespace OmegaEngine

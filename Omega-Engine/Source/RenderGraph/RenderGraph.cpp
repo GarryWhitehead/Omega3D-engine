@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "RenderGraph.h"
 
@@ -38,7 +38,8 @@
 namespace OmegaEngine
 {
 
-RenderGraph::RenderGraph(VulkanAPI::VkDriver* driver, OERenderer* renderer) : context(driver, renderer, this)
+RenderGraph::RenderGraph(VulkanAPI::VkDriver* driver, OERenderer* renderer)
+    : context(driver, renderer, this)
 {
 }
 
@@ -69,9 +70,14 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
 }
 
 ResourceHandle RenderGraph::importResource(
-    const Util::String& name, VulkanAPI::ImageView& imageView, const uint32_t width, const uint32_t height, const vk::Format format, const uint8_t samples)
+    const Util::String& name,
+    VulkanAPI::ImageView& imageView,
+    const uint32_t width,
+    const uint32_t height,
+    const vk::Format format,
+    const uint8_t samples)
 {
-    ImportedResource* ires = new ImportedResource{name, width, height, format, samples, imageView};
+    ImportedResource* ires = new ImportedResource {name, width, height, format, samples, imageView};
     resources.emplace_back(ires);
     return resources.size() - 1;
 }
@@ -220,10 +226,10 @@ bool RenderGraph::compile()
 
         // TODO: need to deal with merging passes too!
     }
-    
+
     // sort out the vulkan renderpasses and render targets ready for execution
     initRenderPass();
-    
+
     return true;
 }
 
@@ -232,17 +238,19 @@ void RenderGraph::initRenderPass()
     for (const uint32_t& rpassIdx : reorderedPasses)
     {
         RenderGraphPass& rpass = rGraphPasses[rpassIdx];
-        
+
         switch (rpass.type)
         {
-            case RenderGraphPass::Type::Graphics: {
-                
+            case RenderGraphPass::Type::Graphics:
+            {
+
                 // create the renderpass
                 rpass.prepare(*context.driver);
                 break;
             }
 
-            case RenderGraphPass::Type::Compute: {
+            case RenderGraphPass::Type::Compute:
+            {
                 // TODO
                 break;
             }
@@ -256,18 +264,20 @@ void RenderGraph::execute()
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
 
     cmdBuffer->begin();
-    
-    // iterate over all passes and execute the registered callback function. The backbuffer draw pass is ensured to be the last pass after reordering, this will be executed outside the loop as uses a seperate cmd buffer
-    for(size_t i = 0; i  < reorderedPasses.size() - 1; ++i)
+
+    // iterate over all passes and execute the registered callback function. The backbuffer draw
+    // pass is ensured to be the last pass after reordering, this will be executed outside the loop
+    // as uses a seperate cmd buffer
+    for (size_t i = 0; i < reorderedPasses.size() - 1; ++i)
     {
         const uint32_t rpassIdx = reorderedPasses[i];
         RenderGraphPass& rpass = rGraphPasses[rpassIdx];
-        
+
         rpass.execFunc(rpass.context, context);
     }
 
     manager.flushCmdBuffer();
-    
+
     // now execute the backbuffer draw pass
     const uint32_t rpassIdx = reorderedPasses.back();
     RenderGraphPass& rpass = rGraphPasses[rpassIdx];

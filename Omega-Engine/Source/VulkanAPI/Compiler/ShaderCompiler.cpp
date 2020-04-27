@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "ShaderCompiler.h"
 
@@ -165,18 +165,18 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         }
         else if (state.first == "StencilWriteMask")
         {
-           dsState.frontStencil.writeMask = getInt(state.second);
+            dsState.frontStencil.writeMask = getInt(state.second);
         }
         else if (state.first == "StencilReference")
         {
-           dsState.frontStencil.reference = getInt(state.second);
+            dsState.frontStencil.reference = getInt(state.second);
         }
         else if (state.first == "StencilBack")
         {
-           if (getBool(state.second))
-           {
-               dsState.backStencil = dsState.frontStencil;
-           }
+            if (getBool(state.second))
+            {
+                dsState.backStencil = dsState.frontStencil;
+            }
         }
         // raster state
         else if (state.first == "PolygonMode")
@@ -224,12 +224,13 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
 
 bool ShaderCompiler::checkVariantStatus(const std::string& cand)
 {
-    // we should return true here as if there is no variant it shouldn't affect the update of descriptors, etc.
+    // we should return true here as if there is no variant it shouldn't affect the update of
+    // descriptors, etc.
     if (cand.empty())
     {
         return true;
     }
-    
+
     for (auto variant : program.variants)
     {
         if (variant.definition == Util::String(cand.c_str()) && variant.value == 1)
@@ -301,11 +302,11 @@ CompilerReturnCode ShaderCompiler::prepareImport(
     return CompilerReturnCode::Success;
 }
 
-CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
-    ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount)
+CompilerReturnCode ShaderCompiler::prepareBindings(
+    uint32_t shaderId, ShaderDescriptor& shader, ShaderBinding& binding, uint16_t& maxSetCount)
 {
     assert(shaderId > 0);
-    
+
     auto& cbManager = driver.getCbManager();
 
     // add the glsl version number
@@ -359,7 +360,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
-            
+
             if (checkVariantStatus(importInfo.variant))
             {
                 // update the max set count
@@ -373,7 +374,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
                     importInfo.bind,
                     vk::DescriptorType::eCombinedImageSampler,
                     Shader::getStageFlags(shader.type));
-                
+
                 // add to the binding information
                 vk::DescriptorType descrType = VkUtils::getVkDescrTypeFromStr(importInfo.type);
                 ShaderBinding::SamplerBinding sBind {
@@ -403,7 +404,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
-            
+
             if (checkVariantStatus(importInfo.variant))
             {
                 // update the max set count
@@ -431,7 +432,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
             {
                 return ret;
             }
-            
+
             if (checkVariantStatus(importInfo.variant))
             {
                 // update the max set count
@@ -446,7 +447,7 @@ CompilerReturnCode ShaderCompiler::prepareBindings(uint32_t shaderId,
                     importInfo.bind,
                     descrType,
                     Shader::getStageFlags(shader.type));
-                
+
                 // add to the binding information
                 ShaderBinding::BufferBinding bBind {importInfo.name,
                                                     importInfo.bind,
@@ -551,7 +552,8 @@ CompilerReturnCode ShaderCompiler::prepareVertexInputs(ShaderDescriptor& vertSha
             vertShader.appendBlock += "#endif\n";
         }
 
-        // if there is a variant for this vertex input, then check if it has been set. If not, it won't be included in the attributes. If there is no variant this function returns true.
+        // if there is a variant for this vertex input, then check if it has been set. If not, it
+        // won't be included in the attributes. If there is no variant this function returns true.
         if (checkVariantStatus(variant))
         {
             vk::Format format = VkUtil::getVkFormatFromType(type, 32);
@@ -661,10 +663,10 @@ CompilerReturnCode ShaderCompiler::compileAll(ShaderParser& compilerInfo)
             return CompilerReturnCode::ErrorCompilingGlsl;
         }
     };
-    
+
     // finish by creating the descriptor set(s) for this shader
     driver.getCbManager().buildDescriptorSet(program.shaderId, program.pLineLayout.get());
-    
+
     return CompilerReturnCode::Success;
 }
 

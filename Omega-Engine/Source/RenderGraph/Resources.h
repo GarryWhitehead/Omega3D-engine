@@ -25,7 +25,7 @@
 #include "VulkanAPI/Buffer.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/RenderPass.h"
-#include "utility/BitsetEnum.h"
+#include "utility/BitSetEnum.h"
 #include "utility/CString.h"
 #include "utility/Compiler.h"
 
@@ -88,7 +88,6 @@ struct TextureResource : public ResourceBase
         const vk::ImageUsageFlags usageBits);
 
     VulkanAPI::Texture* bake(VulkanAPI::VkDriver& driver);
-    VulkanAPI::Texture* get(VulkanAPI::VkDriver& driver);
 
     bool isDepthFormat();
     bool isColourFormat();

@@ -183,5 +183,11 @@ private:
     /// The world this scene is assocaited with
     OEWorld& world;
     OEEngine& engine;
+    
+    // ======== vulkan backend =========
+    VulkanAPI::Buffer* cameraUbo = nullptr;
+    VulkanAPI::Buffer* meshUbo = nullptr;
+    VulkanAPI::Buffer* skinUbo = nullptr;
+    VulkanAPI::Buffer* lightUbo = nullptr;
 };
 } // namespace OmegaEngine

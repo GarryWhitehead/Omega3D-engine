@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "RenderableManager.h"
 
@@ -29,12 +29,12 @@
 #include "VulkanAPI/CBufferManager.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
-#include "VulkanAPI/VkTexture.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/VkTexture.h"
 #include "utility/GeneralUtil.h"
-#include "utility/MurmurHash.h"
 #include "utility/Logger.h"
+#include "utility/MurmurHash.h"
 
 
 namespace OmegaEngine
@@ -265,10 +265,10 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
 {
     Material newMat;
     size_t startOffset = materials.size();
-    
+
     // create a hash of the material name for hash map lookup
-    newMat.materialHash = Util::murmurHash3((const uint32_t*)&mat->name, mat->name.size(), 0);
-    
+    newMat.materialHash = Util::murmurHash3((const uint32_t*) &mat->name, mat->name.size(), 0);
+
     // sort out the textures
     TextureGroup group;
     group.matName = mat->name;
@@ -287,7 +287,7 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
     // we copy here, as we cant be sure that the user will keep the model in scope
     newMat.instance = new MaterialInstance();
     memcpy(newMat.instance, mat, sizeof(MaterialInstance));
-    
+
     materials.emplace_back(std::move(newMat));
     input.material = &materials.back();
 
@@ -353,29 +353,31 @@ bool OERenderableManager::updateVariants()
 {
     // parse the shader file - this will be used by all variants
     VulkanAPI::ShaderParser parser;
-    
+
     const Util::String filename = "mrt.glsl";
-    
+
     if (!parser.loadAndParse(filename))
     {
         printf("Fatal error parsing mrt shader: %s", parser.getErrorString().c_str());
         return false;
     }
-    
+
     VulkanAPI::ProgramManager& manager = engine.getVkDriver().getProgManager();
-    
+
     // use a hash of the filename as part of the shader key
-    uint32_t shaderHash = Util::murmurHash3((const uint32_t*)filename.c_str(), filename.size() , 0);
-    
+    uint32_t shaderHash = Util::murmurHash3((const uint32_t*) filename.c_str(), filename.size(), 0);
+
     // Note - we try and create as many shader variants as possible for vertex and material
     // shaders as creating them whilst the engine is actually rendering will be costly in terms
     // of performance
     for (const Renderable& rend : renderables)
     {
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(rend.instance->topology);
-        VulkanAPI::ProgramManager::CachedKey key {
-            shaderHash, VulkanAPI::Shader::Type::Vertex, rend.instance->variantBits.getUint64(), static_cast<uint32_t>(topo)};
-        
+        VulkanAPI::ProgramManager::CachedKey key {shaderHash,
+                                                  VulkanAPI::Shader::Type::Vertex,
+                                                  rend.instance->variantBits.getUint64(),
+                                                  static_cast<uint32_t>(topo)};
+
         if (!manager.hasShaderVariantCached(key))
         {
             VulkanAPI::ShaderDescriptor* descr =
@@ -388,7 +390,8 @@ bool OERenderableManager::updateVariants()
     // ======== create variants required for all materials currently associated with the manager
     for (const Material& mat : materials)
     {
-        VulkanAPI::ProgramManager::CachedKey key {shaderHash, VulkanAPI::Shader::Type::Fragment, mat.variantBits.getUint64()};
+        VulkanAPI::ProgramManager::CachedKey key {
+            shaderHash, VulkanAPI::Shader::Type::Fragment, mat.variantBits.getUint64()};
         if (!manager.hasShaderVariantCached(key))
         {
             VulkanAPI::ShaderDescriptor* descr =
@@ -407,21 +410,19 @@ bool OERenderableManager::updateVariants()
         vk::PrimitiveTopology topo = VulkanAPI::VkUtil::topologyToVk(
             rend.instance->topology); // TODO : check that the topology is correct
 
-        VulkanAPI::ShaderProgram* prog = manager.findVariant({
-        shaderHash, rend.mergedVariant, static_cast<uint32_t>(topo)});
-       
+        VulkanAPI::ShaderProgram* prog =
+            manager.findVariant({shaderHash, rend.mergedVariant, static_cast<uint32_t>(topo)});
+
         if (!prog)
         {
             // create new program
             VulkanAPI::ShaderParser variantParser;
-            std::vector<VulkanAPI::ProgramManager::CachedKey> hashes
-            {
+            std::vector<VulkanAPI::ProgramManager::CachedKey> hashes {
                 {shaderHash,
-                VulkanAPI::Shader::Type::Vertex,
+                 VulkanAPI::Shader::Type::Vertex,
                  rend.instance->variantBits.getUint64(),
                  static_cast<uint32_t>(topo)},
-                {shaderHash, VulkanAPI::Shader::Type::Fragment, mat->variantBits.getUint64()}
-            };
+                {shaderHash, VulkanAPI::Shader::Type::Fragment, mat->variantBits.getUint64()}};
 
             // create the variant shader program
             prog = manager.build(variantParser, hashes);
@@ -441,8 +442,8 @@ bool OERenderableManager::updateVariants()
                 return false;
             }
         }
-        // keep reference to the shader program within the renderable and material for easier lookup when
-        // drawing
+        // keep reference to the shader program within the renderable and material for easier lookup
+        // when drawing
         rend.program = prog;
         mat->program = prog;
     }
@@ -454,17 +455,18 @@ void OERenderableManager::createMaterialDescriptors(Material* mat, const Texture
 {
     assert(mat);
     assert(renderables[0].program);
-    
-    // get the general material layout and use the variant info to detrmine whether that material should be added to the material descriptor set
+
+    // get the general material layout and use the variant info to detrmine whether that material
+    // should be added to the material descriptor set
     auto& materialBindings = renderables[0].program->getMaterialBindings();
     if (materialBindings.empty())
     {
         return;
     }
-    
+
     auto& driver = engine.getVkDriver();
     auto& cbManager = driver.getCbManager();
-    
+
     mat->materialSet = materialBindings[0].set;
 
     // create the descriptor layout binding info
@@ -473,31 +475,36 @@ void OERenderableManager::createMaterialDescriptors(Material* mat, const Texture
     {
         // we expect the texture group and bindings to sync together
         assert(materialBindings.size() == group.textures.size());
-        
+
         auto& matBind = materialBindings[i];
-        
+
         // only add the descriptor if the sampler is used
         if (group.textures[i])
         {
-            setBindings.push_back(vk::DescriptorSetLayoutBinding{matBind.bind, vk::DescriptorType::eCombinedImageSampler, 1, vk::ShaderStageFlagBits::eFragment, nullptr});
+            setBindings.push_back(
+                vk::DescriptorSetLayoutBinding {matBind.bind,
+                                                vk::DescriptorType::eCombinedImageSampler,
+                                                1,
+                                                vk::ShaderStageFlagBits::eFragment,
+                                                nullptr});
         }
     }
-    
+
     mat->descrLayout = std::make_unique<vk::DescriptorSetLayout>();
     vk::DescriptorSetLayoutCreateInfo layoutInfo(
         {}, static_cast<uint32_t>(setBindings.size()), setBindings.data());
-    VK_CHECK_RESULT(
-        driver.getContext().device.createDescriptorSetLayout(&layoutInfo, nullptr, mat->descrLayout.get()));
-    
+    VK_CHECK_RESULT(driver.getContext().device.createDescriptorSetLayout(
+        &layoutInfo, nullptr, mat->descrLayout.get()));
+
     // create the descriptor set
     // TODO: this low-level vulkan stuff shouldn't be here.
     mat->descriptorSet = std::make_unique<vk::DescriptorSet>();
-    
+
     vk::DescriptorSetAllocateInfo allocInfo {
         cbManager.getDescriptorPool(), 1, mat->descrLayout.get()};
-    VK_CHECK_RESULT(driver.getContext().device.allocateDescriptorSets(
-        &allocInfo, mat->descriptorSet.get()));
-    
+    VK_CHECK_RESULT(
+        driver.getContext().device.allocateDescriptorSets(&allocInfo, mat->descriptorSet.get()));
+
     // also update the pipeline layout with the descriptor layout
     mat->program->getPLineLayout()->addDescriptorLayout(mat->materialSet, *mat->descrLayout);
 }
@@ -523,7 +530,7 @@ bool OERenderableManager::update()
         {
             Material* material = findMaterial(group.matName);
             assert(material);
-            
+
             if (!material->descriptorSet)
             {
                 createMaterialDescriptors(material, group);
@@ -536,15 +543,16 @@ bool OERenderableManager::update()
                 {
                     continue;
                 }
-                
+
                 // each sampler needs its own unique id - so append the tex type to the
                 // material name
                 assert(!group.matName.empty());
-                Util::String texShaderId = Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
+                Util::String texShaderId =
+                    Util::String::append(group.matName, TextureGroup::texTypeToStr(i));
 
                 vk::ImageUsageFlagBits usageFlags = vk::ImageUsageFlagBits::eSampled;
                 vk::Format format = VulkanAPI::VkUtil::imageFormatToVk(tex->getFormat());
-                
+
                 // note: we don't create a descriptor set alloc blueprint here as materials deal
                 // with their own descriptor layouts
                 MaterialInstance::Sampler& sampler = material->instance->sampler;
@@ -555,23 +563,21 @@ bool OERenderableManager::update()
                     tex->getHeight(),
                     tex->getMipLevelCount(),
                     usageFlags);
-                
+
                 // add the material sampler
-                vkTex->createSampler(driver.getContext(),
+                vkTex->createSampler(
+                    driver.getContext(),
                     VulkanAPI::Texture::toVkFilter(sampler.magFilter),
                     VulkanAPI::Texture::toVkFilter(sampler.minFilter),
                     VulkanAPI::Texture::toVkAddressMode(sampler.addressModeU),
                     VulkanAPI::Texture::toVkAddressMode(sampler.addressModeV),
-                    8.0f);   // TODO: user-defined max antriospy
-                
-                driver.update2DTexture(texShaderId, tex->getBuffer());
+                    8.0f); // TODO: user-defined max antriospy
+
+                vkTex->map(driver, tex->getBuffer());
 
                 // update the descriptor set too as we have the image info
                 cbManager.updateTextureDescriptor(
-                    i,
-                    vk::DescriptorType::eCombinedImageSampler,
-                    *material->descriptorSet,
-                    vkTex);
+                    i, vk::DescriptorType::eCombinedImageSampler, *material->descriptorSet, vkTex);
             }
         }
         materialDirty = false;

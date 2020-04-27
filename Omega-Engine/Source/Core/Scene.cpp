@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Scene.h"
 
@@ -52,17 +52,19 @@ OEScene::~OEScene()
 void OEScene::prepare()
 {
     // camera ubo
-    driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    cameraUbo =
+        driver.addUbo(cameraUboName, sizeof(OECamera::Ubo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     // model ubos
     size_t staticDataSize = MaxStaticModelCount * sizeof(TransformUbo);
     size_t skinnedDataSize = MaxSkinnedModelCount * sizeof(SkinnedUbo);
 
-    driver.addUbo(staticTransUboName, staticDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-    driver.addUbo(skinnedTransUboName, skinnedDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    meshUbo = driver.addUbo(staticTransUboName, staticDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    skinUbo =
+        driver.addUbo(skinnedTransUboName, skinnedDataSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
     // light ubo
-    driver.addUbo(lightUboName, sizeof(LightUbo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+    lightUbo = driver.addUbo(lightUboName, sizeof(LightUbo), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 }
 
 void OEScene::getVisibleRenderables(
@@ -151,9 +153,8 @@ OEScene::VisibleCandidate OEScene::buildRendCandidate(OEObject* obj, OEMaths::ma
     OEMaths::mat4f localMat = candidate.transform->modelTransform;
     candidate.worldTransform = worldMat * localMat;
 
-    AABBox box {
-        candidate.renderable->instance->dimensions.min,
-        candidate.renderable->instance->dimensions.max};
+    AABBox box {candidate.renderable->instance->dimensions.min,
+                candidate.renderable->instance->dimensions.max};
     candidate.worldAABB = AABBox::calculateRigidTransform(box, candidate.worldTransform);
     return candidate;
 }
@@ -170,10 +171,10 @@ bool OEScene::update(const double time)
 
     auto& objects = world.getObjectsList();
     auto& models = world.getModelGraph().getNodeList();
-    
+
     // clear the render queue
     renderQueue.resetAll();
-    
+
     // we create a temp container as we will be doing the visibility checks async
     // reserve more space than we need
     std::vector<VisibleCandidate> candRenderableObjs;
@@ -309,7 +310,7 @@ void OEScene::updateCameraBuffer()
     ubo.zNear = camera->getZNear();
     ubo.zFar = camera->getZFar();
 
-    driver.updateUbo(cameraUboName, sizeof(OECamera::Ubo), &ubo);
+    cameraUbo->map(&ubo, sizeof(OECamera::Ubo));
 }
 
 void OEScene::updateTransformBuffer(
@@ -333,7 +334,7 @@ void OEScene::updateTransformBuffer(
         skinAlignAlloc.alloc(skinDynAlign * skinnedModelCount, skinDynAlign);
         assert(!skinAlignAlloc.empty());
     }
-    
+
     size_t staticCount = 0;
     size_t skinnedCount = 0;
 
@@ -360,7 +361,7 @@ void OEScene::updateTransformBuffer(
         {
             size_t skinOffset = skinDynAlign * skinnedCount++;
             rend->skinDynamicOffset = skinOffset;
-            
+
             SkinnedUbo* currSkinnedPtr =
                 (SkinnedUbo*) ((uint64_t) skinAlignAlloc.getData() + (skinDynAlign * skinnedCount++));
 
@@ -382,14 +383,14 @@ void OEScene::updateTransformBuffer(
     if (staticModelCount > 0)
     {
         size_t staticDataSize = staticModelCount * sizeof(TransformUbo);
-        driver.updateUbo(staticTransUboName, staticDataSize, staticAlignAlloc.getData());
+        meshUbo->map(staticAlignAlloc.getData(), staticDataSize);
     }
 
     // skinned buffer
     if (skinnedModelCount > 0)
     {
         size_t skinnedDataSize = skinnedModelCount * sizeof(SkinnedUbo);
-        driver.updateUbo(skinnedTransUboName, skinnedDataSize, skinAlignAlloc.getData());
+        skinUbo->map(skinAlignAlloc.getData(), skinnedDataSize);
     }
 }
 
@@ -399,7 +400,7 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
     uint32_t pointlightCount = 0;
     uint32_t dirLightCount = 0;
 
-    LightUbo lightUbo;
+    LightUbo ubo;
 
     // copy the light attributes we need for use in the light shaders.
     for (LightBase* light : candLights)
@@ -414,43 +415,40 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
             const auto& spotLight = static_cast<SpotLight*>(light);
 
             // fill in the data to be sent to the gpu
-            SpotLightUbo ubo {
-                light->lightMvp,
-                OEMaths::vec4f {spotLight->position, 1.0f},
-                OEMaths::vec4f {spotLight->target, 1.0f},
-                {spotLight->colour, spotLight->intensity},
-                spotLight->scale,
-                spotLight->offset,
-                spotLight->fallout};
-            lightUbo.spotLights[spotlightCount++] = ubo;
+            SpotLightUbo spotlightUbo {light->lightMvp,
+                                       OEMaths::vec4f {spotLight->position, 1.0f},
+                                       OEMaths::vec4f {spotLight->target, 1.0f},
+                                       {spotLight->colour, spotLight->intensity},
+                                       spotLight->scale,
+                                       spotLight->offset,
+                                       spotLight->fallout};
+            ubo.spotLights[spotlightCount++] = spotlightUbo;
         }
         else if (light->type == LightType::Point)
         {
             const auto& pointLight = static_cast<PointLight*>(light);
 
             // fill in the data to be sent to the gpu
-            PointLightUbo ubo {
-                light->lightMvp,
-                OEMaths::vec4f {pointLight->position, 1.0f},
-                {pointLight->colour, pointLight->intensity},
-                pointLight->fallOut};
-            lightUbo.pointLight[pointlightCount++] = ubo;
+            PointLightUbo pointlightUbo {light->lightMvp,
+                                         OEMaths::vec4f {pointLight->position, 1.0f},
+                                         {pointLight->colour, pointLight->intensity},
+                                         pointLight->fallOut};
+            ubo.pointLight[pointlightCount++] = pointlightUbo;
         }
         else if (light->type == LightType::Directional)
         {
             const auto& dirLight = static_cast<DirectionalLight*>(light);
 
             // fill in the data to be sent to the gpu
-            DirectionalLightUbo ubo {
-                dirLight->lightMvp,
-                OEMaths::vec4f {dirLight->position, 1.0f},
-                OEMaths::vec4f {dirLight->target, 1.0f},
-                {dirLight->colour, dirLight->intensity}};
-            lightUbo.dirLight[dirLightCount++] = ubo;
+            DirectionalLightUbo dirlightUbo {dirLight->lightMvp,
+                                             OEMaths::vec4f {dirLight->position, 1.0f},
+                                             OEMaths::vec4f {dirLight->target, 1.0f},
+                                             {dirLight->colour, dirLight->intensity}};
+            ubo.dirLight[dirLightCount++] = dirlightUbo;
         }
     }
 
-    driver.updateUbo(lightUboName, sizeof(LightUbo), &lightUbo);
+    lightUbo->map(&lightUbo, sizeof(LightUbo));
 }
 
 void OEScene::setCurrentCamera(OECamera* cam)

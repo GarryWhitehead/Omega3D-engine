@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Pipeline.h"
 
@@ -58,14 +58,18 @@ void PipelineLayout::prepare(VkContext& context)
         pConstants.push_back(push);
     }
 
-    std::sort(descriptorLayouts.begin(), descriptorLayouts.end(), [](std::pair<uint8_t, vk::DescriptorSetLayout>& lhs, std::pair<uint8_t, vk::DescriptorSetLayout>& rhs) { return lhs < rhs; });
-    
+    std::sort(
+        descriptorLayouts.begin(),
+        descriptorLayouts.end(),
+        [](std::pair<uint8_t, vk::DescriptorSetLayout>& lhs,
+           std::pair<uint8_t, vk::DescriptorSetLayout>& rhs) { return lhs < rhs; });
+
     std::vector<vk::DescriptorSetLayout> layouts(descriptorLayouts.size());
     for (size_t i = 0; i < descriptorLayouts.size(); ++i)
     {
         layouts[i] = descriptorLayouts[i].second;
     }
-    
+
     vk::PipelineLayoutCreateInfo pipelineInfo(
         {},
         static_cast<uint32_t>(layouts.size()),
@@ -92,8 +96,7 @@ vk::PipelineLayout& PipelineLayout::get()
 }
 
 // ================== pipeline =======================
-Pipeline::Pipeline(
-    VkContext& context, PipelineLayout& layout, Pipeline::Type type)
+Pipeline::Pipeline(VkContext& context, PipelineLayout& layout, Pipeline::Type type)
     : context(context), pipelineLayout(layout), type(type)
 {
 }
@@ -145,7 +148,7 @@ Pipeline::updateVertexInput(std::vector<ShaderProgram::InputBinding>& inputs)
         offset = input.stride;
         stride += input.stride;
     }
-    
+
     // only one binding supported (at binding point 0)
     vertexBindDescr = vk::VertexInputBindingDescription {0, stride, vk::VertexInputRate::eVertex};
 
@@ -207,7 +210,8 @@ void Pipeline::create(ShaderProgram& program, RenderPass* renderpass, FrameBuffe
         depthStencilState.front.writeMask = renderState->dsState.frontStencil.writeMask;
         depthStencilState.front.reference = renderState->dsState.frontStencil.reference;
         depthStencilState.front.compareOp = renderState->dsState.frontStencil.compareOp;
-        // TODO: allow the back stencil to differ from the front as this is the only option at present
+        // TODO: allow the back stencil to differ from the front as this is the only option at
+        // present
         if (renderState->dsState.frontStencil.frontEqualBack)
         {
             depthStencilState.back = depthStencilState.front;

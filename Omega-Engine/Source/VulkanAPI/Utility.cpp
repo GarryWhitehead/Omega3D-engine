@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Utility.h"
 
@@ -30,104 +30,112 @@ namespace VulkanAPI
 namespace VkUtil
 {
 
-vk::Format findSupportedFormat(std::vector<vk::Format>& formats, vk::ImageTiling tiling,
-                               vk::FormatFeatureFlags formatFeature, vk::PhysicalDevice& gpu)
+vk::Format findSupportedFormat(
+    std::vector<vk::Format>& formats,
+    vk::ImageTiling tiling,
+    vk::FormatFeatureFlags formatFeature,
+    vk::PhysicalDevice& gpu)
 {
-	vk::Format outputFormat;
+    vk::Format outputFormat;
 
-	for (auto format : formats)
-	{
-		vk::FormatProperties properties = gpu.getFormatProperties(format);
+    for (auto format : formats)
+    {
+        vk::FormatProperties properties = gpu.getFormatProperties(format);
 
-		if (tiling == vk::ImageTiling::eLinear && formatFeature == (properties.linearTilingFeatures & formatFeature))
-		{
-			outputFormat = format;
-			break;
-		}
-		else if (tiling == vk::ImageTiling::eOptimal &&
-		         formatFeature == (properties.optimalTilingFeatures & formatFeature))
-		{
-			outputFormat = format;
-			break;
-		}
-		else
-		{
-			// terminal error so throw
-			throw std::runtime_error("Error! Unable to find supported vulkan format");
-		}
-	}
-	return outputFormat;
+        if (tiling == vk::ImageTiling::eLinear &&
+            formatFeature == (properties.linearTilingFeatures & formatFeature))
+        {
+            outputFormat = format;
+            break;
+        }
+        else if (
+            tiling == vk::ImageTiling::eOptimal &&
+            formatFeature == (properties.optimalTilingFeatures & formatFeature))
+        {
+            outputFormat = format;
+            break;
+        }
+        else
+        {
+            // terminal error so throw
+            throw std::runtime_error("Error! Unable to find supported vulkan format");
+        }
+    }
+    return outputFormat;
 }
 
 vk::Format getSupportedDepthFormat(vk::PhysicalDevice& gpu)
 {
-	// in order of preference - TODO: allow user to define whether stencil format is required or not
-	std::vector<vk::Format> formats = { vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint,
-		                                vk::Format::eD32Sfloat };
+    // in order of preference - TODO: allow user to define whether stencil format is required or not
+    std::vector<vk::Format> formats = {
+        vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint, vk::Format::eD32Sfloat};
 
-	return findSupportedFormat(formats, vk::ImageTiling::eOptimal, vk::FormatFeatureFlagBits::eDepthStencilAttachment,
-	                           gpu);
+    return findSupportedFormat(
+        formats,
+        vk::ImageTiling::eOptimal,
+        vk::FormatFeatureFlagBits::eDepthStencilAttachment,
+        gpu);
 }
 
 vk::Format imageFormatToVk(const OmegaEngine::ImageFormat imageFormat)
 {
-	vk::Format ret = vk::Format::eUndefined;
-	switch (imageFormat)
-	{
-	case OmegaEngine::ImageFormat::Etc_RGBA_UnormBlock:
-		ret = vk::Format::eEtc2R8G8B8A8UnormBlock;
-		break;
-	case OmegaEngine::ImageFormat::Etc_RGBA_SrgbBlock:
-		ret = vk::Format::eEtc2R8G8B8A8SrgbBlock;
-		break;
-	case OmegaEngine::ImageFormat::Etc_RGB_UnormBlock:
-		ret = vk::Format::eEtc2R8G8B8UnormBlock;
-		break;
-	case OmegaEngine::ImageFormat::Etc_RGB_SrgbBlock:
-		ret = vk::Format::eEtc2R8G8B8SrgbBlock;
-		break;
-	case OmegaEngine::ImageFormat::RGBA_Unorm:
-		ret = vk::Format::eR8G8B8A8Unorm;
-		break;
-	case OmegaEngine::ImageFormat::RGB_Unorm:
-		ret = vk::Format::eR8G8B8Unorm;
-	default:
-		LOGGER_ERROR("Unsupported image format requested.");
-		break;
-	}
-	return ret;
+    vk::Format ret = vk::Format::eUndefined;
+    switch (imageFormat)
+    {
+        case OmegaEngine::ImageFormat::Etc_RGBA_UnormBlock:
+            ret = vk::Format::eEtc2R8G8B8A8UnormBlock;
+            break;
+        case OmegaEngine::ImageFormat::Etc_RGBA_SrgbBlock:
+            ret = vk::Format::eEtc2R8G8B8A8SrgbBlock;
+            break;
+        case OmegaEngine::ImageFormat::Etc_RGB_UnormBlock:
+            ret = vk::Format::eEtc2R8G8B8UnormBlock;
+            break;
+        case OmegaEngine::ImageFormat::Etc_RGB_SrgbBlock:
+            ret = vk::Format::eEtc2R8G8B8SrgbBlock;
+            break;
+        case OmegaEngine::ImageFormat::RGBA_Unorm:
+            ret = vk::Format::eR8G8B8A8Unorm;
+            break;
+        case OmegaEngine::ImageFormat::RGB_Unorm:
+            ret = vk::Format::eR8G8B8Unorm;
+        default:
+            LOGGER_ERROR("Unsupported image format requested.");
+            break;
+    }
+    return ret;
 }
 
 vk::PrimitiveTopology topologyToVk(const OmegaEngine::Topology topology)
 {
-	vk::PrimitiveTopology ret;
-	switch (topology)
-	{
-	case OmegaEngine::Topology::LineList:
-		ret = vk::PrimitiveTopology::eLineList;
-		break;
-	case OmegaEngine::Topology::LineStrip:
-		ret = vk::PrimitiveTopology::eLineStrip;
-		break;
-	case OmegaEngine::Topology::PointList:
-		ret = vk::PrimitiveTopology::ePointList;
-		break;
-	case OmegaEngine::Topology::TriangleStrip:
-		ret = vk::PrimitiveTopology::eTriangleStrip;
-		break;
-	case OmegaEngine::Topology::TrinagleList:
-		ret = vk::PrimitiveTopology::eTriangleList;
-		break;
-	case OmegaEngine::Topology::TriangleFan:
-		ret = vk::PrimitiveTopology::eTriangleFan;
-		break;
-	case OmegaEngine::Topology::Undefined:
-		LOGGER_ERROR("You haven 't set the topolgy for this material!!");
-		break;
-	default:
-		LOGGER_ERROR("Unsupported topology type requested");
-	}
-	return ret;
+    vk::PrimitiveTopology ret;
+    switch (topology)
+    {
+        case OmegaEngine::Topology::LineList:
+            ret = vk::PrimitiveTopology::eLineList;
+            break;
+        case OmegaEngine::Topology::LineStrip:
+            ret = vk::PrimitiveTopology::eLineStrip;
+            break;
+        case OmegaEngine::Topology::PointList:
+            ret = vk::PrimitiveTopology::ePointList;
+            break;
+        case OmegaEngine::Topology::TriangleStrip:
+            ret = vk::PrimitiveTopology::eTriangleStrip;
+            break;
+        case OmegaEngine::Topology::TrinagleList:
+            ret = vk::PrimitiveTopology::eTriangleList;
+            break;
+        case OmegaEngine::Topology::TriangleFan:
+            ret = vk::PrimitiveTopology::eTriangleFan;
+            break;
+        case OmegaEngine::Topology::Undefined:
+            LOGGER_ERROR("You haven 't set the topolgy for this material!!");
+            break;
+        default:
+            LOGGER_ERROR("Unsupported topology type requested");
+    }
+    return ret;
 }
 
 vk::Format getVkFormatFromType(std::string type, uint32_t width)
@@ -234,7 +242,9 @@ bool isStencil(const vk::Format format)
 
 bool isBufferType(const vk::DescriptorType& type)
 {
-    if (type == vk::DescriptorType::eUniformBuffer || type == vk::DescriptorType::eStorageBuffer || type == vk::DescriptorType::eUniformBufferDynamic || type ==vk::DescriptorType::eStorageBufferDynamic)
+    if (type == vk::DescriptorType::eUniformBuffer || type == vk::DescriptorType::eStorageBuffer ||
+        type == vk::DescriptorType::eUniformBufferDynamic ||
+        type == vk::DescriptorType::eStorageBufferDynamic)
     {
         return true;
     }
@@ -243,12 +253,14 @@ bool isBufferType(const vk::DescriptorType& type)
 
 bool isSamplerType(const vk::DescriptorType& type)
 {
-    if (type == vk::DescriptorType::eSampler || type == vk::DescriptorType::eStorageImage || type == vk::DescriptorType::eCombinedImageSampler || type == vk::DescriptorType::eSampledImage)
+    if (type == vk::DescriptorType::eSampler || type == vk::DescriptorType::eStorageImage ||
+        type == vk::DescriptorType::eCombinedImageSampler ||
+        type == vk::DescriptorType::eSampledImage)
     {
         return true;
     }
     return false;
 }
 
-}    // namespace VkUtil
-}    // namespace VulkanAPI
+} // namespace VkUtil
+} // namespace VulkanAPI

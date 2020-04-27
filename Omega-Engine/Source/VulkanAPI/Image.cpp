@@ -1,24 +1,24 @@
 /* Copyright (c) 2018-2020 Garry Whitehead
-*
-* Permission is hereby granted, free of charge, to any person obtaining
-* a copy of this software and associated documentation files (the
-* "Software"), to deal in the Software without restriction, including
-* without limitation the rights to use, copy, modify, merge, publish,
-* distribute, sublicense, and/or sell copies of the Software, and to
-* permit persons to whom the Software is furnished to do so, subject to
-* the following conditions:
-*
-* The above copyright notice and this permission notice shall be
-* included in all copies or substantial portions of the Software.
-*
-* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining
+ * a copy of this software and associated documentation files (the
+ * "Software"), to deal in the Software without restriction, including
+ * without limitation the rights to use, copy, modify, merge, publish,
+ * distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to
+ * the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be
+ * included in all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+ * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+ * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+ * IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ * CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ * TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+ * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 #include "Image.h"
 
@@ -38,7 +38,7 @@ ImageView::ImageView(VkContext& context) : device(context.device)
 
 ImageView::~ImageView()
 {
-    //device.destroy(imageView, nullptr);
+    // device.destroy(imageView, nullptr);
 }
 
 vk::ImageAspectFlags ImageView::getImageAspect(vk::Format format)
@@ -91,9 +91,8 @@ void ImageView::create(vk::Device dev, Image& image)
 
     uint8_t faceCount = image.getContext().faceCount;
     uint8_t mipCount = image.getContext().mipLevels;
-    
-    vk::ImageViewType type =
-        getTextureType(faceCount, image.getContext().arrayCount);
+
+    vk::ImageViewType type = getTextureType(faceCount, image.getContext().arrayCount);
 
     // making assumptions here based on the image format used
     vk::ImageAspectFlags aspect = getImageAspect(image.getContext().format);
@@ -118,8 +117,13 @@ Image::Image(VkContext& context, Texture& tex) : device(context.device), tex(tex
 {
 }
 
-Image::Image(const VkContext& context, const vk::Image& image, const vk::Format& format, uint32_t width, uint32_t height) :
- device(context.device), image(image)
+Image::Image(
+    const VkContext& context,
+    const vk::Image& image,
+    const vk::Format& format,
+    uint32_t width,
+    uint32_t height)
+    : device(context.device), image(image)
 {
     tex.format = format;
     tex.width = width;
@@ -149,21 +153,20 @@ vk::Filter Image::getFilterType(vk::Format format)
 void Image::create(VmaAllocator& vmaAlloc, vk::ImageUsageFlags usageFlags)
 {
     assert(tex.format != vk::Format::eUndefined);
-    
-    vk::ImageCreateInfo imageInfo = {
-        {},
-        vk::ImageType::e2D,
-        tex.format,
-        {tex.width, tex.height, 1},
-        tex.mipLevels,
-        tex.faceCount,
-        vk::SampleCountFlagBits::e1,
-        vk::ImageTiling::eOptimal,
-        vk::ImageUsageFlagBits::eTransferDst | usageFlags,
-        vk::SharingMode::eExclusive,
-        0,
-        nullptr,
-        vk::ImageLayout::eUndefined};
+
+    vk::ImageCreateInfo imageInfo = {{},
+                                     vk::ImageType::e2D,
+                                     tex.format,
+                                     {tex.width, tex.height, 1},
+                                     tex.mipLevels,
+                                     tex.faceCount,
+                                     vk::SampleCountFlagBits::e1,
+                                     vk::ImageTiling::eOptimal,
+                                     vk::ImageUsageFlagBits::eTransferDst | usageFlags,
+                                     vk::SharingMode::eExclusive,
+                                     0,
+                                     nullptr,
+                                     vk::ImageLayout::eUndefined};
 
     if (tex.faceCount == 6)
     {
