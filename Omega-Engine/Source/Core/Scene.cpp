@@ -70,12 +70,22 @@ void OEScene::prepare()
 void OEScene::getVisibleRenderables(
     Frustum& frustum, std::vector<OEScene::VisibleCandidate>& renderables)
 {
+    if(!cullingEnabled)
+    {
+        for (auto& renderable : renderables)
+        {
+            renderable.renderable->visibility |= Renderable::Visible::Render;
+        }
+        return;
+    }
+    
     size_t workSize = renderables.size();
 
     auto visibilityCheck = [&frustum, &renderables](const size_t curr_idx, const size_t chunkSize) {
         assert(curr_idx + chunkSize <= renderables.size());
         for (size_t idx = curr_idx; idx < curr_idx + chunkSize; ++idx)
         {
+           // TODO: this is here as a temporary measure - needs checking before this if culling is disabled so we don't bother wasting time checking
             if (frustum.checkBoxPlaneIntersect(renderables[idx].worldAABB))
             {
                 renderables[idx].renderable->visibility |= Renderable::Visible::Render;
@@ -240,7 +250,7 @@ bool OEScene::update(const double time)
     // first renderables - split work tasks and run async - Sets the visibility bit if passes
     // intersection test This will then be used to generate the render queue
     getVisibleRenderables(frustum, candRenderableObjs);
-
+    
     // shadow culling tests
     // ** TODO **
 
@@ -267,10 +277,7 @@ bool OEScene::update(const double time)
         {
             ++skinnedModelCount;
         }
-        else
-        {
-            ++staticModelCount;
-        }
+        ++staticModelCount;
 
         RenderableQueueInfo queueInfo;
         // we use the renderable data as it is, rather than waste time copying everything into

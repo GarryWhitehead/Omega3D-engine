@@ -100,7 +100,6 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
                 posBase = GltfModel::getAttributeData(attrib, posStride);
                 assert(posStride == 12);
                 attribStride += posStride;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
             }
 
             else if (attrib->type == cgltf_attribute_type_normal)
@@ -109,7 +108,6 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
                 assert(normStride == 12);
                 attribStride += normStride;
                 variantBits |= MeshInstance::Variant::HasNormal;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
             }
 
             else if (attrib->type == cgltf_attribute_type_texcoord)
@@ -118,7 +116,6 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
                 assert(uvStride == 8);
                 attribStride += uvStride;
                 variantBits |= MeshInstance::Variant::HasUv;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
             }
 
             else if (attrib->type == cgltf_attribute_type_joints)
@@ -126,7 +123,6 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
                 jointsBase = GltfModel::getAttributeData(attrib, jointsStride);
                 attribStride += jointsStride;
                 variantBits |= MeshInstance::Variant::HasJoint;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_float);
             }
 
             else if (attrib->type == cgltf_attribute_type_weights)
@@ -134,7 +130,6 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
                 weightsBase = GltfModel::getAttributeData(attrib, weightsStride);
                 attribStride += weightsStride;
                 variantBits |= MeshInstance::Variant::HasWeight;
-                vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
             }
             else
             {
@@ -148,50 +143,69 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
             LOGGER_ERROR("Gltf file contains no vertex position data. Unable to continue.\n");
             return false;
         }
-
+        
+        // this has to been done here and not above as the we expect these to be in a specific order
+        vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
+        if (normBase)
+        {
+            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
+        }
+        if (uvBase)
+        {
+            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
+        }
+        if (weightsBase)
+        {
+            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_float);
+        }
+        if (jointsBase)
+        {
+            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
+        }
+        
         // store vertex as a blob of data
-        vertices.vertCount = vertCount;
+            vertices.vertCount = vertCount;
         vertices.strideSize = attribStride;
         vertices.size = attribStride * vertCount;
         vertices.data = new uint8_t[vertices.size];
-
-        // now contruct the vertex data
+        
+        uint8_t* dataPtr = vertices.data;
+        
+        // now contruct the interleaved vertex data
         for (size_t i = 0; i < vertCount; ++i)
         {
-            uint8_t* dataPtr = vertices.data + (i * attribStride);
-
             // we know the positional data exsists - it's mandatory
             // sort out min/max boundaries of the sub-mesh
             float* posPtr = reinterpret_cast<float*>(posBase);
-            OEMaths::vec3f pos {*posPtr, *posPtr + 1, *posPtr + 2};
+            OEMaths::vec3f pos {*posPtr, *(posPtr + 1), *(posPtr + 2)};
             newPrimitive.dimensions.min = OEMaths::min(newPrimitive.dimensions.min, pos);
             newPrimitive.dimensions.max = OEMaths::max(newPrimitive.dimensions.max, pos);
 
-            *dataPtr = *posBase;
+            memcpy(dataPtr, posBase, posStride);
             posBase += posStride;
             dataPtr += posStride;
 
             if (normBase)
             {
-                *dataPtr = *normBase;
+                memcpy(dataPtr, normBase, normStride);
                 normBase += normStride;
                 dataPtr += normStride;
             }
             if (uvBase)
             {
-                *dataPtr = *uvBase;
+                memcpy(dataPtr, uvBase, uvStride);
                 uvBase += uvStride;
                 dataPtr += uvStride;
             }
             if (weightsBase)
             {
-                *dataPtr = *weightsBase;
+                memcpy(dataPtr, weightsBase, weightsStride);
                 weightsBase += weightsStride;
                 dataPtr += weightsStride;
             }
             if (jointsBase)
             {
-                *dataPtr = *jointsBase;
+                memcpy(dataPtr, jointsBase, jointsStride);
                 jointsBase += jointsStride;
                 dataPtr += jointsStride;
             }

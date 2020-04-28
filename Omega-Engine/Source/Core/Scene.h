@@ -183,6 +183,9 @@ private:
     OEWorld& world;
     OEEngine& engine;
 
+    // TODO: this needs moving to the config file
+    bool cullingEnabled = false;
+    
     // ======== vulkan backend =========
     VulkanAPI::Buffer* cameraUbo = nullptr;
     VulkanAPI::Buffer* meshUbo = nullptr;
