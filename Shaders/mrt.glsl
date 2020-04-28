@@ -25,7 +25,7 @@ AddressModeW=ClampToEdge;
 
 #constant: Name=MAX_BONES, Type=int, Value=250;
 
-#input: Name=Pos, 		Type=vec4;
+#input: Name=Pos, 		Type=vec3;
 #input: Name=Uv, 		Type=vec2;
 #input: Name=Normal, 	Type=vec3;
 #input: Name=Tangent,	Type=vec4,	Variant=HAS_TANGENT;
@@ -68,7 +68,7 @@ void main()
 #else	
 	mat4 normalTransform = mesh_ubo.modelMatrix;
 #endif
-	pos = normalTransform * inPos;
+	pos = normalTransform * vec4(inPos, 1.0);
 
     // inverse-transpose for non-uniform scaling - expensive computations here - maybe remove this?
 	outNormal = normalize(transpose(inverse(mat3(normalTransform))) * inNormal);    

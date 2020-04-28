@@ -40,9 +40,9 @@ namespace VulkanAPI
 
 bool VkDriver::RPassEqualTo::operator()(const RPassKey& lhs, const RPassKey& rhs) const
 {
-    int match = memcmp(lhs.colourFormats, rhs.colourFormats, sizeof(vk::Format) * 6);
-    match += memcmp(lhs.finalLayout, rhs.finalLayout, sizeof(vk::ImageLayout) * 6);
-    bool isEqual = match == 0;
+    int matchFormat = memcmp(lhs.colourFormats, rhs.colourFormats, sizeof(vk::Format) * 6);
+    int matchLayout = memcmp(lhs.finalLayout, rhs.finalLayout, sizeof(vk::ImageLayout) * 6);
+    bool isEqual = matchFormat == 0 && matchLayout == 0;
 
     return isEqual && lhs.depth == rhs.depth && lhs.storeOp == rhs.storeOp &&
         lhs.loadOp == rhs.loadOp && lhs.stencilStoreOp == rhs.stencilStoreOp &&

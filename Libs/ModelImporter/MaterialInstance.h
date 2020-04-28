@@ -40,12 +40,14 @@ class GltfExtension;
 class MaterialInstance
 {
 public:
+
+    // should reflect the layout in the mrt shader
     enum TextureType : uint32_t
     {
         BaseColour,
-        Emissive,
-        MetallicRoughness,
         Normal,
+        MetallicRoughness,
+        Emissive,
         Occlusion,
         Count
     };

@@ -164,7 +164,7 @@ private:
     OEMaths::mat4f currentModel;
 
     // camera positions
-    OEMaths::vec3f position {0.0f};
+    OEMaths::vec3f position {0.0f, 0.0f, 2.0f};
     OEMaths::vec3f rotation {0.0f};
 
     OEMaths::vec3f frontVec {0.0f, 0.0f, -1.0f};

@@ -146,13 +146,13 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
         
         // this has to been done here and not above as the we expect these to be in a specific order
         vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
-        if (normBase)
-        {
-            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
-        }
         if (uvBase)
         {
             vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec2);
+        }
+        if (normBase)
+        {
+            vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
         }
         if (weightsBase)
         {
@@ -164,7 +164,7 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
         }
         
         // store vertex as a blob of data
-            vertices.vertCount = vertCount;
+        vertices.vertCount = vertCount;
         vertices.strideSize = attribStride;
         vertices.size = attribStride * vertCount;
         vertices.data = new uint8_t[vertices.size];
