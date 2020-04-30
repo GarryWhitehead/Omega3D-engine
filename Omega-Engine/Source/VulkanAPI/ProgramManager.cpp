@@ -170,7 +170,10 @@ ProgramManager::~ProgramManager()
     }
 }
 
-ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<CachedKey>& hashes, const ShaderDescriptor::TypeDescriptors& plineDescrs)
+ShaderProgram* ProgramManager::build(
+    ShaderParser& parser,
+    const std::vector<CachedKey>& hashes,
+    const ShaderDescriptor::TypeDescriptors& plineDescrs)
 {
     if (hashes.empty())
     {
@@ -208,7 +211,7 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<Cac
                          "the same stage twice.");
             return nullptr;
         }
-        
+
         // also add the pipeline descriptors to the parser
         parser.addPipelineDescriptors(plineDescrs);
     }
@@ -288,7 +291,10 @@ ShaderDescriptor* ProgramManager::findCachedVariant(const CachedKey& key)
 }
 
 ShaderProgram* ProgramManager::getVariantOrCreate(
-    const Util::String& filename, uint64_t variantBits, uint32_t topology)
+    const Util::String& filename,
+    uint64_t variantBits,
+    uint32_t topology,
+    GlslCompiler::VariantMap& variants)
 {
     VulkanAPI::ShaderProgram* prog = nullptr;
 
@@ -307,10 +313,12 @@ ShaderProgram* ProgramManager::getVariantOrCreate(
             return nullptr;
         }
         prog = createNewInstance(key);
+        assert(prog);
 
         // add variants and constant values
+        // TODO: This should be a user define shader stage
+        prog->addVariants(variants, Shader::Type::Fragment);
 
-        assert(prog);
         if (!prog->prepare(parser))
         {
             return nullptr;
@@ -321,6 +329,25 @@ ShaderProgram* ProgramManager::getVariantOrCreate(
         prog = findVariant(key);
     }
     return prog;
+}
+
+ShaderProgram* ProgramManager::getVariantOrCreate(
+    const Util::String& filename, uint64_t variantBits, GlslCompiler::VariantMap& variants)
+{
+    return getVariantOrCreate(filename, variantBits, UINT32_MAX, variants);
+}
+
+ShaderProgram* ProgramManager::getVariantOrCreate(
+    const Util::String& filename, uint64_t variantBits, uint32_t topology)
+{
+    GlslCompiler::VariantMap map;
+    return getVariantOrCreate(filename, variantBits, topology, map);
+}
+
+ShaderProgram* ProgramManager::getVariantOrCreate(const Util::String& filename)
+{
+    GlslCompiler::VariantMap map;
+    return getVariantOrCreate(filename, 0, UINT32_MAX, map);
 }
 
 } // namespace VulkanAPI

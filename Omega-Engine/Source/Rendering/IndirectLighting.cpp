@@ -96,7 +96,7 @@ bool OEIndirectLighting::init()
 
     // bdrf shader
     const Util::String bdrf_filename = "bdrf.glsl";
-    bdrfInfo.prog = manager.getVariantOrCreate(bdrf_filename, 0);
+    bdrfInfo.prog = manager.getVariantOrCreate(bdrf_filename);
     if (!bdrfInfo.prog)
     {
         return false;
@@ -118,7 +118,7 @@ bool OEIndirectLighting::init()
 
         // irradiance shader
         const Util::String irradiance_filename = "irradianceMap.glsl";
-        irradianceInfo.prog = manager.getVariantOrCreate(irradiance_filename, 0);
+        irradianceInfo.prog = manager.getVariantOrCreate(irradiance_filename);
         if (!irradianceInfo.prog)
         {
             return false;
@@ -141,7 +141,7 @@ bool OEIndirectLighting::init()
 
         // specular shader
         const Util::String specular_filename = "specularMap.glsl";
-        specularInfo.prog = manager.getVariantOrCreate(specular_filename, 0);
+        specularInfo.prog = manager.getVariantOrCreate(specular_filename);
         if (!specularInfo.prog)
         {
             return false;

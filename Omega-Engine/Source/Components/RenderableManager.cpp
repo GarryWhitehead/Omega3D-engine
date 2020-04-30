@@ -201,7 +201,7 @@ Renderable::createVariants(Util::BitSetEnum<MeshInstance::Variant>& bits)
     }
     if (bits.testBit(MeshInstance::Variant::HasNormal))
     {
-        map.emplace("HAS_NORMAL", 1);
+        map.emplace("HAS_NORMAL_VERTEX", 1);
     }
     if (bits.testBit(MeshInstance::Variant::HasWeight))
     {

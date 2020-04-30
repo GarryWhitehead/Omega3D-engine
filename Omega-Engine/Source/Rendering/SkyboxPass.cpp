@@ -51,7 +51,7 @@ bool SkyboxPass::init(VulkanAPI::ProgramManager* manager)
 {
     // load the shaders
     const Util::String filename = "skybox.glsl";
-    prog = manager->getVariantOrCreate(filename, 0);
+    prog = manager->getVariantOrCreate(filename);
     if (!prog)
     {
         return false;

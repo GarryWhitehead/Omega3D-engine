@@ -375,7 +375,16 @@ public:
     ShaderProgram* findVariant(const ShaderKey& key);
 
     ShaderProgram* getVariantOrCreate(
-        const Util::String& filename, uint64_t variantBits, uint32_t topology = UINT32_MAX);
+        const Util::String& filename,
+        uint64_t variantBits,
+        uint32_t topology,
+        GlslCompiler::VariantMap& variants);
+
+    ShaderProgram* getVariantOrCreate(
+        const Util::String& filename, uint64_t variantBits, GlslCompiler::VariantMap& variants);
+
+    ShaderProgram* getVariantOrCreate(const Util::String& filename, uint64_t variantBits, uint32_t topology);
+    ShaderProgram* getVariantOrCreate(const Util::String& filename);
 
     /**
      * @brief Creates a shader fragment that will be cached until ready for use
