@@ -30,19 +30,21 @@
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/VkDriver.h"
-#include "VulkanAPI/Shader.h"
+#include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
 {
 
-LightingPass::LightingPass(RenderGraph& rGraph, Util::String id)
-    : RenderStageBase(id.c_str()), rGraph(rGraph)
+LightingPass::LightingPass(VulkanAPI::VkContext& context, RenderGraph& rGraph, Util::String id)
+    : context(context), RenderStageBase(id.c_str()), rGraph(rGraph)
 {
 }
 
 bool LightingPass::init(VulkanAPI::ProgramManager* manager)
 {
+    depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(context.physical);
+    
     // load the shaders
     const Util::String filename = "lighting.glsl";
     prog = manager->getVariantOrCreate(filename, 0);
@@ -67,9 +69,11 @@ void LightingPass::setupPass()
     builder.addReader("pbr");
     builder.addReader("emissive");
 
-    // create the gbuffer textures
+    // create the lighting render target
     passInfo.output =
         builder.createRenderTarget("lightingRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
+    passInfo.depth =
+        builder.createRenderTarget("lightingDepthRT", 2048, 2048, depthFormat);
 
     // create the output taragets
     passInfo.output = builder.addWriter("lighting", passInfo.output);

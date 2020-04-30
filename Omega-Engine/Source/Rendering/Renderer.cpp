@@ -70,7 +70,7 @@ bool OERenderer::prepare()
                     vkDriver, *rGraph, "Stage_GB", *engine.getRendManager(), config));
                 break;
             case RenderStage::LightingPass:
-                rStages.emplace_back(std::make_unique<LightingPass>(*rGraph, "Stage_Light"));
+                rStages.emplace_back(std::make_unique<LightingPass>(vkDriver.getContext(), *rGraph, "Stage_Light"));
                 break;
             case RenderStage::Skybox:
                 rStages.emplace_back(std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
@@ -211,11 +211,6 @@ bool Renderer::prepare()
 void Renderer::beginFrame()
 {
     static_cast<OERenderer*>(this)->beginFrame();
-}
-
-void Renderer::update()
-{
-    static_cast<OERenderer*>(this)->update();
 }
 
 void Renderer::draw()

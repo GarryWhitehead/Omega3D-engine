@@ -143,7 +143,7 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
             LOGGER_ERROR("Gltf file contains no vertex position data. Unable to continue.\n");
             return false;
         }
-        
+
         // this has to been done here and not above as the we expect these to be in a specific order
         vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec3);
         if (uvBase)
@@ -162,15 +162,15 @@ bool MeshInstance::prepare(const cgltf_mesh& mesh, GltfModel& model)
         {
             vertices.attributes.emplace_back(VertexBuffer::Attribute::attr_vec4);
         }
-        
+
         // store vertex as a blob of data
         vertices.vertCount = vertCount;
         vertices.strideSize = attribStride;
         vertices.size = attribStride * vertCount;
         vertices.data = new uint8_t[vertices.size];
-        
+
         uint8_t* dataPtr = vertices.data;
-        
+
         // now contruct the interleaved vertex data
         for (size_t i = 0; i < vertCount; ++i)
         {

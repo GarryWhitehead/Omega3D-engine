@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Common.h"
 #include "VulkanAPI/Shader.h"
 #include "utility/BitsetEnum.h"
@@ -346,7 +347,7 @@ public:
      * must have been created by calling **createCachedInstance** before this fucntion is called.
      * Also, the shader must be in a valid state - namely, there must be a vertex shader.
      */
-    ShaderProgram* build(ShaderParser& parser, const std::vector<CachedKey>& hashes);
+    ShaderProgram* build(ShaderParser& parser, const std::vector<CachedKey>& hashes, const ShaderDescriptor::TypeDescriptors& plineDescrs);
 
     bool compile(ShaderParser& parser, ShaderProgram* prog);
 

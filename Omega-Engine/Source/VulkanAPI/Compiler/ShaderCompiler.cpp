@@ -122,8 +122,8 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
     for (auto& state : compilerInfo.pipelineDescrs)
     {
         RenderStateBlock::DsState& dsState = program.renderState->dsState;
-        RenderStateBlock::RasterState rState = program.renderState->rastState;
-        RenderStateBlock::Sampler sampler = program.renderState->sampler;
+        RenderStateBlock::RasterState& rState = program.renderState->rastState;
+        RenderStateBlock::Sampler& sampler = program.renderState->sampler;
 
         // depth-stencil state
         if (state.first == "DepthTestEnable")
@@ -141,6 +141,7 @@ CompilerReturnCode ShaderCompiler::preparePipelineBlock(ShaderParser& compilerIn
         // stencil state
         else if (state.first == "StencilTestEnable")
         {
+            dsState.stencilTestEnable = VK_TRUE;
             dsState.frontStencil.useStencil = getBool(state.second);
         }
         else if (state.first == "StencilFailOp")

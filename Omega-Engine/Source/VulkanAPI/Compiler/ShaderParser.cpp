@@ -693,4 +693,14 @@ bool ShaderParser::addStage(ShaderDescriptor& shader)
     return true;
 }
 
+void ShaderParser::addPipelineDescriptors(const ShaderDescriptor::TypeDescriptors& descrs)
+{
+    pipelineDescrs = descrs;
+}
+
+ShaderDescriptor::TypeDescriptors ShaderParser::getPipelineDescriptors()
+{
+    return pipelineDescrs;
+}
+
 } // namespace VulkanAPI

@@ -140,8 +140,10 @@ public:
     bool loadAndParse(Util::String filename);
 
     bool addStage(ShaderDescriptor& shader);
-
+    void addPipelineDescriptors(const ShaderDescriptor::TypeDescriptors& descrs);
+ 
     ShaderDescriptor* getShaderDescriptor(const Shader::Type type);
+    ShaderDescriptor::TypeDescriptors getPipelineDescriptors();
 
     static Shader::Type strToShaderType(std::string& str);
 
@@ -172,7 +174,7 @@ private:
 
     ParserReturnCode
     debugBuffer(ShaderDescriptor::BufferDescriptor& buffer, ShaderDescriptor& shader);
-
+    
     friend class ShaderCompiler;
 
 private:
