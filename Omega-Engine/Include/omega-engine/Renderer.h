@@ -41,12 +41,6 @@ public:
     void beginFrame();
 
     /**
-     * @brief Priimarily iterates over all visible renderable data within the scene and ceates the
-     * render queue.
-     */
-    void update();
-
-    /**
      * @brief Draws into the cmd buffers all the data that is currently held by the scene
      */
     void draw();

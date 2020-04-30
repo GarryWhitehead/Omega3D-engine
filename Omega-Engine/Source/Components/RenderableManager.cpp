@@ -366,7 +366,10 @@ bool OERenderableManager::updateVariants()
 
     // use a hash of the filename as part of the shader key
     uint32_t shaderHash = Util::murmurHash3((const uint32_t*) filename.c_str(), filename.size(), 0);
-
+    
+    // get the renderstate block which will be used later for creating the final shader build
+    auto pipelineDescrs = parser.getPipelineDescriptors();
+    
     // Note - we try and create as many shader variants as possible for vertex and material
     // shaders as creating them whilst the engine is actually rendering will be costly in terms
     // of performance
@@ -425,7 +428,7 @@ bool OERenderableManager::updateVariants()
                 {shaderHash, VulkanAPI::Shader::Type::Fragment, mat->variantBits.getUint64()}};
 
             // create the variant shader program
-            prog = manager.build(variantParser, hashes);
+            prog = manager.build(variantParser, hashes, pipelineDescrs);
             assert(prog);
 
             // add variant definitions before compiling

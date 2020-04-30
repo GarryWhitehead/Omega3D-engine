@@ -23,7 +23,6 @@
 #include "ProgramManager.h"
 
 #include "VulkanAPI/Compiler/ShaderCompiler.h"
-#include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/Image.h"
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
@@ -171,7 +170,7 @@ ProgramManager::~ProgramManager()
     }
 }
 
-ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<CachedKey>& hashes)
+ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<CachedKey>& hashes, const ShaderDescriptor::TypeDescriptors& plineDescrs)
 {
     if (hashes.empty())
     {
@@ -209,6 +208,9 @@ ShaderProgram* ProgramManager::build(ShaderParser& parser, const std::vector<Cac
                          "the same stage twice.");
             return nullptr;
         }
+        
+        // also add the pipeline descriptors to the parser
+        parser.addPipelineDescriptors(plineDescrs);
     }
 
     // use the render state from the mesh/material

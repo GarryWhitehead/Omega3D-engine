@@ -141,7 +141,8 @@ uint8_t* GltfModel::getAttributeData(const cgltf_attribute* attrib, size_t& stri
         stride = accessor->stride;
     }
     assert(stride);
-    return static_cast<uint8_t*>(accessor->buffer_view->buffer->data) + accessor->offset + accessor->buffer_view->offset;
+    return static_cast<uint8_t*>(accessor->buffer_view->buffer->data) + accessor->offset +
+        accessor->buffer_view->offset;
 }
 
 void GltfModel::lineariseRecursive(cgltf_node& node, size_t index)

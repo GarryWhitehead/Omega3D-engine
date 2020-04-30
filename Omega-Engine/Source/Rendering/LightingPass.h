@@ -46,9 +46,10 @@ public:
     struct LPassInfo
     {
         ResourceHandle output;
+        ResourceHandle depth;
     };
 
-    LightingPass(RenderGraph& rGraph, Util::String id);
+    LightingPass(VulkanAPI::VkContext& context, RenderGraph& rGraph, Util::String id);
 
     // no copying
     LightingPass(const LightingPass&) = delete;
@@ -58,11 +59,16 @@ public:
     void setupPass() override;
 
 private:
+    
+    VulkanAPI::VkContext& context;
+    
     // points to the render graph associated with this pass
     RenderGraph& rGraph;
 
     LPassInfo passInfo;
 
     VulkanAPI::ShaderProgram* prog = nullptr;
+    
+    vk::Format depthFormat;
 };
 } // namespace OmegaEngine

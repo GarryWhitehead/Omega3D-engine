@@ -6,6 +6,17 @@ DepthTestEnable=True;
 DepthWriteEnable=True; 
 CompareOp=LessOrEqual;
 
+// stencil
+StencilTestEnable=True;
+StencilFailOp=Replace;
+StencilDepthFailOp=Replace;
+StencilPassOp=Replace;
+StencilCompareOp=Always;
+StencilCompareMask=255;
+StencilWriteMask=255;
+StencilReference=1;
+StencilBack=Front;
+
 // raster
 PolygonMode=Fill;
 CullMode=Back;
