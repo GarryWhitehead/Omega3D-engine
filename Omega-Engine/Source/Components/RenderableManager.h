@@ -92,6 +92,10 @@ struct Material
 {
     enum Variants : uint64_t
     {
+        // material pipleines (metallic-rougness or specular-glossiness)
+        MrPipeline,
+        SpecularPipeline,
+        // material types
         HasBaseColour,
         HasNormal,
         HasUv,

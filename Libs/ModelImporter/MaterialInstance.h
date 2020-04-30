@@ -37,10 +37,16 @@ namespace OmegaEngine
 class MeshInstance;
 class GltfExtension;
 
+enum class MaterialPipeline
+{
+    MetallicRoughness,
+    SpecularGlosiness,
+    None
+};
+
 class MaterialInstance
 {
 public:
-
     // should reflect the layout in the mrt shader
     enum TextureType : uint32_t
     {
@@ -51,6 +57,7 @@ public:
         Occlusion,
         Count
     };
+
 
     MaterialInstance();
     ~MaterialInstance();
@@ -134,9 +141,8 @@ public:
     // the paths for all textures. Empty paths signify that this texture isn't used
     Util::String texturePaths[TextureType::Count];
 
-    // if using specular glossiness then color and metallic/roughness texture indicies will be
-    // automatically changed for this workflow
-    bool usingSpecularGlossiness = false;
+    // the material pipeline to use
+    MaterialPipeline pipeline = MaterialPipeline::None;
 
     bool doubleSided = false;
 

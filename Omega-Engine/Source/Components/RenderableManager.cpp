@@ -151,6 +151,14 @@ VulkanAPI::GlslCompiler::VariantMap
 Material::createVariants(Util::BitSetEnum<Material::Variants>& bits)
 {
     VulkanAPI::GlslCompiler::VariantMap map;
+    if (bits.testBit(MrPipeline))
+    {
+        map.emplace("METALLIC_ROUGHNESS_PIPELINE", 1);
+    }
+    if (bits.testBit(SpecularPipeline))
+    {
+        map.emplace("SPECULAR_GLOSSINESS_PIPELINE", 1);
+    }
     if (bits.testBit(HasBaseColour))
     {
         map.emplace("HAS_BASECOLOUR", 1);
@@ -158,10 +166,6 @@ Material::createVariants(Util::BitSetEnum<Material::Variants>& bits)
     if (bits.testBit(HasNormal))
     {
         map.emplace("HAS_NORMAL", 1);
-    }
-    if (bits.testBit(HasUv))
-    {
-        map.emplace("HAS_UV", 1);
     }
     if (bits.testBit(HasMetallicRoughness))
     {
@@ -272,6 +276,16 @@ size_t OERenderableManager::addMaterial(Renderable& input, MaterialInstance* mat
     // sort out the textures
     TextureGroup group;
     group.matName = mat->name;
+
+    // sort the variants for the material pipeline
+    if (mat->pipeline == MaterialPipeline::MetallicRoughness)
+    {
+        newMat.variantBits |= Material::Variants::MrPipeline;
+    }
+    else if (mat->pipeline == MaterialPipeline::SpecularGlosiness)
+    {
+        newMat.variantBits |= Material::Variants::SpecularPipeline;
+    }
 
     for (size_t j = 0; j < MaterialInstance::TextureType::Count; ++j)
     {

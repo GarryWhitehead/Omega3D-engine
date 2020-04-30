@@ -127,7 +127,7 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
     // according to the spec, metallic roughness shoule be preferred
     if (mat.has_pbr_specular_glossiness)
     {
-        usingSpecularGlossiness = true;
+        pipeline = MaterialPipeline::SpecularGlosiness;
 
         texturePaths[TextureType::BaseColour] =
             getTextureUri(mat.pbr_specular_glossiness.diffuse_texture);
@@ -144,7 +144,7 @@ bool MaterialInstance::prepare(cgltf_material& mat, GltfExtension& extensions)
     }
     else if (mat.has_pbr_metallic_roughness)
     {
-        usingSpecularGlossiness = false;
+        pipeline = MaterialPipeline::MetallicRoughness;
 
         texturePaths[TextureType::BaseColour] =
             getTextureUri(mat.pbr_metallic_roughness.base_color_texture);

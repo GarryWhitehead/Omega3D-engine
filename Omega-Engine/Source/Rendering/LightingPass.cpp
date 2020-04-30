@@ -30,6 +30,7 @@
 #include "VulkanAPI/Pipeline.h"
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Shader.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -49,6 +50,8 @@ bool LightingPass::init(VulkanAPI::ProgramManager* manager)
     {
         return false;
     }
+    // temp measure for now - needs adding to configs
+    prog->addVariant("IBL_ENABLED", 1, VulkanAPI::Shader::Type::Fragment);
     return true;
 }
 
