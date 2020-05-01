@@ -124,6 +124,7 @@ public:
         CmdBuffer* cmdBuffer,
         RenderPass& rpass,
         FrameBuffer& fbo,
+        bool clearAttachments = true,
         bool usingSecondaryCommands = false);
 
     void endRenderpass(CmdBuffer* cmdBuffer);

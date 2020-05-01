@@ -375,25 +375,30 @@ void VkDriver::endFrame(Swapchain& swapchain)
 }
 
 void VkDriver::beginRenderpass(
-    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbo, bool usingSecondaryCommands)
+    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbo, bool clearAttachments, bool usingSecondaryCommands)
 {
-    // setup the clear values for this pass - need one for each attachment
-    auto& attachments = rpass.getAttachments();
-    std::vector<vk::ClearValue> clearValues(attachments.size());
-
-    for (size_t i = 0; i < attachments.size(); ++i)
+    std::vector<vk::ClearValue> clearValues;
+    
+    if (clearAttachments)
     {
-        if (VkUtil::isDepth(attachments[i].format) || VkUtil::isStencil(attachments[i].format))
+        // setup the clear values for this pass - need one for each attachment
+        auto& attachments = rpass.getAttachments();
+        clearValues.resize(attachments.size());
+
+        for (size_t i = 0; i < attachments.size(); ++i)
         {
-            clearValues[attachments.size() - 1].depthStencil =
-                vk::ClearDepthStencilValue {rpass.depthClear, 0};
-        }
-        else
-        {
-            clearValues[i].color.float32[0] = rpass.clearCol.r;
-            clearValues[i].color.float32[1] = rpass.clearCol.g;
-            clearValues[i].color.float32[2] = rpass.clearCol.b;
-            clearValues[i].color.float32[3] = rpass.clearCol.a;
+            if (VkUtil::isDepth(attachments[i].format) || VkUtil::isStencil(attachments[i].format))
+            {
+                clearValues[attachments.size() - 1].depthStencil =
+                    vk::ClearDepthStencilValue {rpass.depthClear, 0};
+            }
+            else
+            {
+                clearValues[i].color.float32[0] = rpass.clearCol.r;
+                clearValues[i].color.float32[1] = rpass.clearCol.g;
+                clearValues[i].color.float32[2] = rpass.clearCol.b;
+                clearValues[i].color.float32[3] = rpass.clearCol.a;
+            }
         }
     }
 
@@ -403,8 +408,8 @@ void VkDriver::beginRenderpass(
     vk::RenderPassBeginInfo beginInfo {rpass.get(),
                                        fbo.get(),
                                        extents,
-                                       static_cast<uint32_t>(clearValues.size()),
-                                       clearValues.data()};
+                                       clearAttachments ? static_cast<uint32_t>(clearValues.size()) : 0,
+                                       clearAttachments ? clearValues.data() : nullptr};
 
     vk::SubpassContents contents = usingSecondaryCommands
         ? vk::SubpassContents::eSecondaryCommandBuffers
