@@ -22,6 +22,7 @@
 
 #pragma once
 
+#include "VulkanAPI/RenderPass.h"
 #include "RenderGraph/RenderGraphPass.h"
 #include "RenderGraph/Resources.h"
 #include "utility/CString.h"
@@ -54,10 +55,27 @@ public:
         const uint32_t width,
         const uint32_t height,
         const vk::Format format,
-        const vk::ImageUsageFlags usageBits = vk::ImageUsageFlagBits::eSampled,
-        uint32_t mipLevels = 1,
-        uint32_t faceCount = 1);
-
+        const vk::ImageUsageFlags usageBits,
+        uint32_t mipLevels,
+        uint32_t faceCount,
+        const VulkanAPI::LoadClearFlags loadOp,
+        const VulkanAPI::LoadClearFlags stencilLoadOp);
+    
+    ResourceHandle createRenderTarget(
+        Util::String name,
+        const uint32_t width,
+        const uint32_t height,
+        const vk::Format format);
+    
+    ResourceHandle createRenderTarget(
+        Util::String name,
+        const uint32_t width,
+        const uint32_t height,
+        const vk::Format format,
+        const vk::ImageUsageFlags usageBits,
+        const VulkanAPI::LoadClearFlags loadOp,
+        const VulkanAPI::LoadClearFlags stencilLoadOp);
+    
     ResourceHandle importRenderTarget(
         Util::String name,
         const uint32_t width,

@@ -611,8 +611,9 @@ bool ShaderParser::parseShader()
         {
             // Get the shader stage type from the string e.g. ##stage: Vertex
             size_t pos = buffer[idx].find_last_of(":");
-            std::string stageStr = buffer[idx].substr(pos + 1, buffer[idx++].size());
-
+            std::string stageStr = buffer[idx].substr(pos + 1, buffer[idx].size());
+            ++idx;
+            
             Shader::Type stage = strToShaderType(stageStr);
             if (stage == Shader::Type::Unknown)
             {

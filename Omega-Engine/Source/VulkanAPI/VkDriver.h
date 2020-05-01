@@ -172,10 +172,10 @@ public:
         vk::Format colourFormats[6];
         // at the moment, usng the same clear flags acroos all the attachments to keep the key size
         // down
-        RenderPass::LoadClearFlags loadOp;
-        RenderPass::StoreClearFlags storeOp;
-        RenderPass::LoadClearFlags stencilLoadOp;
-        RenderPass::StoreClearFlags stencilStoreOp;
+        LoadClearFlags loadOp;
+        StoreClearFlags storeOp;
+        LoadClearFlags stencilLoadOp;
+        StoreClearFlags stencilStoreOp;
         vk::Format depth;
     };
 

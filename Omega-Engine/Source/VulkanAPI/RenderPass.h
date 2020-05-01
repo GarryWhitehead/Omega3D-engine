@@ -39,27 +39,28 @@ namespace VulkanAPI
 class ImageView;
 struct VkContext;
 
+/**
+ * Describes what should be done with the images pre- and post- pass - i.e. keep or throw away
+ * the data. Using a normal enum instaed of the bitsetenum because this will be used in the
+ * renderpass key
+ */
+enum class LoadClearFlags : uint32_t
+{
+    Store,
+    Clear,
+    DontCare
+};
+
+enum class StoreClearFlags : uint32_t
+{
+    Store,
+    DontCare
+};
+
 class RenderPass
 {
 
 public:
-    /**
-     * Describes what should be done with the images pre- and post- pass - i.e. keep or throw away
-     * the data. Using a normal enum instaed of the bitsetenum because this will be used in the
-     * renderpass key
-     */
-    enum class LoadClearFlags : uint32_t
-    {
-        Store,
-        Clear,
-        DontCare
-    };
-
-    enum class StoreClearFlags : uint32_t
-    {
-        Store,
-        DontCare
-    };
 
     enum class DependencyType
     {

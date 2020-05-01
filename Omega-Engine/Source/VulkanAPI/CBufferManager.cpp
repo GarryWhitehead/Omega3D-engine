@@ -370,11 +370,10 @@ void CBufferManager::updateTextureDescriptor(
 CmdBuffer* CBufferManager::getScCommandBuffer(uint8_t idx)
 {
     assert(idx < scCmdBuffer.size());
-    vk::Device& device = driver.getContext().device;
 
     CmdBuffer* cmdBuffer = scCmdBuffer[idx].get();
-
     cmdBuffer->begin();
+    
     return cmdBuffer;
 }
 

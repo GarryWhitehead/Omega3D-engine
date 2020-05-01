@@ -70,9 +70,9 @@ void main()
 #import_sampler: Name=pbrRT,				Type=2D_Sampler;
 #import_sampler: Name=emissiveRT,			Type=2D_Sampler;
 //#import_sampler: Name=shadowSampler,		Type=2D_Sampler, 	Variant=SHADOWS_ENABLED;
-#import_sampler: Name=bdrfSampler,			Type=2D_Sampler,	Variant=IBL_ENABLED;
-#import_sampler: Name=irradianceSampler,	Type=Cube_Sampler,	Variant=IBL_ENABLED;
-#import_sampler: Name=specularSampler,		Type=Cube_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=BdrfSampler,			Type=2D_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=IrradianceSampler,	Type=Cube_Sampler,	Variant=IBL_ENABLED;
+#import_sampler: Name=SpecularSampler,		Type=Cube_Sampler,	Variant=IBL_ENABLED;
 
 #import_buffer: Name=LightUbo, Type=UniformBuffer,	id=light_ubo;
 [[
@@ -88,7 +88,7 @@ void main()
 #ifdef IBL_ENABLED
 vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 diffuseColour, vec3 specularColour)
 {	
-	vec3 bdrf = (texture(bdrfSampler, vec2(NdotV, 1.0 - roughness))).rgb;
+	vec3 bdrf = (texture(BdrfSampler, vec2(NdotV, 1.0 - roughness))).rgb;
 	
 	// specular contribution
 	// this should be a pbr input!
@@ -98,14 +98,14 @@ vec3 calculateIBL(vec3 N, float NdotV, float roughness, vec3 reflection, vec3 di
 	float lodf = floor(lod);
 	float lodc = ceil(lod);
 	
-	vec3 a = textureLod(specularSampler, reflection, lodf).rgb;
-	vec3 b = textureLod(specularSampler, reflection, lodc).rgb;
+	vec3 a = textureLod(SpecularSampler, reflection, lodf).rgb;
+	vec3 b = textureLod(SpecularSampler, reflection, lodc).rgb;
 	vec3 specularLight = mix(a, b, lod - lodf);
 	
 	vec3 specular = specularLight * (specularColour * bdrf.x + bdrf.y);
 	
 	// diffuse contribution
-	vec3 diffuseLight = texture(irradianceSampler, N).rgb;
+	vec3 diffuseLight = texture(IrradianceSampler, N).rgb;
 	vec3 diffuse = diffuseLight * diffuseColour;
 	
 	diffuse *= push.IBLAmbient;

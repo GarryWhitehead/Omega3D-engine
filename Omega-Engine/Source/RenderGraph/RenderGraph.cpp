@@ -26,7 +26,6 @@
 #include "RenderGraph/RenderGraphPass.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
-#include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 

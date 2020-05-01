@@ -85,7 +85,9 @@ struct TextureResource : public ResourceBase
         const vk::Format format,
         const uint8_t mipLevels,
         const uint8_t faceCount,
-        const vk::ImageUsageFlags usageBits);
+        const vk::ImageUsageFlags usageBits,
+        const VulkanAPI::LoadClearFlags loadOp = VulkanAPI::LoadClearFlags::Clear,
+        const VulkanAPI::LoadClearFlags stencilLoadOp = VulkanAPI::LoadClearFlags::Clear);
 
     VulkanAPI::Texture* bake(VulkanAPI::VkDriver& driver);
 
@@ -102,6 +104,10 @@ struct TextureResource : public ResourceBase
 
     vk::Format format = vk::Format::eUndefined; //< The format will determine the type of attachment
     vk::ImageUsageFlags imageUsage;
+    
+    // these are the only clear flags which are exposed to the user at present
+    VulkanAPI::LoadClearFlags loadOp;
+    VulkanAPI::LoadClearFlags stencilLoadOp;
 };
 
 // used for imported texture targets

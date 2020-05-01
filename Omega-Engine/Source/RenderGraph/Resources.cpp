@@ -40,7 +40,9 @@ TextureResource::TextureResource(
     const vk::Format format,
     const uint8_t mipLevels,
     const uint8_t faceCount,
-    const vk::ImageUsageFlags usageBits)
+    const vk::ImageUsageFlags usageBits,
+    const VulkanAPI::LoadClearFlags loadOp,
+    const VulkanAPI::LoadClearFlags stencilLoadOp)
     : ResourceBase(name, ResourceType::Texture)
     , width(width)
     , height(height)
@@ -48,6 +50,8 @@ TextureResource::TextureResource(
     , faceCount(faceCount)
     , format(format)
     , imageUsage(usageBits)
+    , loadOp(loadOp)
+    , stencilLoadOp(stencilLoadOp)
 {
 }
 
@@ -104,14 +108,5 @@ ImportedResource::ImportedResource(
 
 // =============================================================================
 
-/*void* AttachmentInfo::bake(VulkanAPI::VkDriver& driver, RenderGraph& rGraph)
-{
-    ResourceBase* base = rGraph.getResource(resource);
-    if (base->type == ResourceBase::ResourceType::Texture)
-    {
-        void* data = base->bake(driver);
-        return data;
-    }
-}*/
 
 } // namespace OmegaEngine
