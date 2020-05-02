@@ -198,7 +198,7 @@ void main()
 	roughness = material.roughnessFactor;
 	metallic = material.metallicFactor;
 
-#ifdef METALLIC_ROUGHNESS_PIPELINE
+#ifdef HAS_METALLICROUGHNESS
 	vec4 mrSample = texture(mrMap, inUv);
 	roughness = clamp(mrSample.g * roughness, 0.0, 1.0);
 	metallic = mrSample.b * metallic;
@@ -212,7 +212,7 @@ void main()
 	vec4 diffuse;
 	vec3 specular;
 
-#ifdef METALLIC_ROUGHNESS_PIPELINE
+#ifdef HAS_METALLICROUGHNESS
 	roughness = 1.0 - texture(mrMap, inUv).a;
 	specular = texture(mrMap, inUv).rgb;
 #else
