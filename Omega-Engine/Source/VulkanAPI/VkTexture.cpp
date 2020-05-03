@@ -200,8 +200,13 @@ void Texture::map(VkDriver& driver, void* data)
 
     StagingPool stagePool = driver.getStagingPool();
     StagingPool::StageInfo stage = stagePool.create(size);
+    
+    vmaMapMemory(driver.getVma(), stage.mem, &stage.allocInfo.pMappedData);
     memcpy(stage.allocInfo.pMappedData, data, size);
-
+    vmaUnmapMemory(driver.getVma(), stage.mem);
+    // TODO: assuming an offset of 0 here
+    vmaFlushAllocation(driver.getVma(), stage.mem, stage.allocInfo.offset, size);
+    
     // create the info required for the copy
     std::vector<vk::BufferImageCopy> copyBuffers;
     if (texContext.faceCount == 1 && texContext.arrayCount == 1)
