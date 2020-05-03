@@ -82,14 +82,15 @@ RenderPass* VkDriver::findOrCreateRenderPass(const RPassKey& key)
         }
         if (key.depth != vk::Format(0))
         {
+            // TODO: the clear flags should be made user definable
             rpass->addAttachment(
                 key.depth,
                 1,
                 vk::ImageLayout::eDepthStencilReadOnlyOptimal,
-                key.loadOp,
-                key.storeOp,
-                key.stencilLoadOp,
-                key.stencilStoreOp);
+                LoadClearFlags::Clear,
+                StoreClearFlags::DontCare,
+                LoadClearFlags::DontCare,
+                StoreClearFlags::DontCare);
         }
         rpass->prepare();
 
@@ -135,7 +136,7 @@ VkDriver::RPassKey VkDriver::prepareRPassKey()
     memset(rpassKey.colourFormats, 0, sizeof(vk::Format) * 6);
     memset(rpassKey.finalLayout, 0, sizeof(vk::ImageLayout) * 6);
     rpassKey.depth = vk::Format(0);
-    rpassKey.loadOp = VulkanAPI::LoadClearFlags::DontCare;
+    rpassKey.loadOp = VulkanAPI::LoadClearFlags::Clear;
     rpassKey.storeOp = VulkanAPI::StoreClearFlags::Store;
     rpassKey.stencilLoadOp = VulkanAPI::LoadClearFlags::DontCare;
     rpassKey.stencilStoreOp = VulkanAPI::StoreClearFlags::DontCare;
@@ -390,7 +391,7 @@ void VkDriver::beginRenderpass(
             if (VkUtil::isDepth(attachments[i].format) || VkUtil::isStencil(attachments[i].format))
             {
                 clearValues[attachments.size() - 1].depthStencil =
-                    vk::ClearDepthStencilValue {rpass.depthClear, 0};
+                    vk::ClearDepthStencilValue {1.0f, 0};
             }
             else
             {

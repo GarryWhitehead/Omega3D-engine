@@ -56,7 +56,7 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
     const uint32_t height,
     const vk::Format format)
 {
-    return createRenderTarget(name, width, height, format, vk::ImageUsageFlagBits::eSampled, 1, 1, VulkanAPI::LoadClearFlags::Clear, VulkanAPI::LoadClearFlags::Clear);
+    return createRenderTarget(name, width, height, format, vk::ImageUsageFlagBits::eSampled, 1, 1, VulkanAPI::LoadClearFlags::Clear, VulkanAPI::LoadClearFlags::DontCare);
 }
 
 ResourceHandle RenderGraphBuilder::createRenderTarget(

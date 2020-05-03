@@ -64,7 +64,7 @@ void SkyboxPass::setupPass()
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
     offscreenTex =
-        builder.createRenderTarget("compositionRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm, vk::ImageUsageFlagBits::eSampled, VulkanAPI::LoadClearFlags::Clear, VulkanAPI::LoadClearFlags::Clear);
+        builder.createRenderTarget("compositionRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm, vk::ImageUsageFlagBits::eSampled, VulkanAPI::LoadClearFlags::DontCare, VulkanAPI::LoadClearFlags::DontCare);
     builder.addReader("lighting");
     builder.addWriter("skybox", offscreenTex);
 

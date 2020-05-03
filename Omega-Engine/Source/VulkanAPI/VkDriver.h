@@ -171,7 +171,7 @@ public:
     {
         vk::ImageLayout finalLayout[6];
         vk::Format colourFormats[6];
-        // at the moment, usng the same clear flags acroos all the attachments to keep the key size
+        // at the moment, usng the same clear flags across all the attachments to keep the key size
         // down
         LoadClearFlags loadOp;
         StoreClearFlags storeOp;

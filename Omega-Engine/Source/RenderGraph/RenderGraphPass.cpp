@@ -126,6 +126,8 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     {
                         rpassKey.colourFormats[i] = tex->format;
                         rpassKey.finalLayout[i] = vk::ImageLayout::eShaderReadOnlyOptimal;
+                        rpassKey.loadOp = tex->loadOp;
+                        rpassKey.stencilLoadOp = tex->stencilLoadOp;
                     }
                 }
             }
