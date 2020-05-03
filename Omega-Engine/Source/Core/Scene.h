@@ -44,7 +44,6 @@ namespace OmegaEngine
 
 // forward decleartions
 class OEWorld;
-class GltfModel;
 class OEObject;
 class OEEngine;
 class OECamera;

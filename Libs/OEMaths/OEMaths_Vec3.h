@@ -50,7 +50,7 @@ public:
     /**
      * Only makes sense to cross a vector3, hence why this function is here
      */
-    static constexpr VecN<T, 3> cross(VecN<T, 3>& vec1, VecN<T, 3>& vec2)
+    static constexpr VecN<T, 3> cross(const VecN<T, 3>& vec1, const VecN<T, 3>& vec2)
     {
         VecN<T, 3> result;
         result.x = vec1.y * vec2.z - vec1.z * vec2.y;

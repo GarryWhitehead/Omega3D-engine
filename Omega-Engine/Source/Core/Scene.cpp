@@ -173,7 +173,8 @@ bool OEScene::update(const double time)
 {
     // update the managers first
     engine.getAnimManager().update(time, engine);
-
+    engine.getLightManager()->update(*camera);
+    
     if (!engine.getRendManager()->update())
     {
         return false;

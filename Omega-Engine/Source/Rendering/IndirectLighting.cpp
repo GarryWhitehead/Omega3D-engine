@@ -196,7 +196,6 @@ void OEIndirectLighting::buildBdrfMap()
 
         // create the frame buffer
         VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
-        ;
 
         fboKey.views[0] = bdrfInfo.texture->getImageView()->get();
         fboKey.renderpass = bdrfInfo.rpass->get();

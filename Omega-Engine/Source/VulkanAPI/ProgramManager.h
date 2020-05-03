@@ -177,7 +177,6 @@ public:
     friend class ShaderCompiler;
 
 private:
-    std::vector<BufferBinding> bufferBindings;
     std::vector<SamplerBinding> samplerBindings;
     std::vector<RenderTarget> renderTargets;
 

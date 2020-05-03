@@ -23,6 +23,7 @@
 #include "LightManager.h"
 
 #include "Core/engine.h"
+#include "Core/Camera.h"
 #include "OEMaths/OEMaths_transform.h"
 #include "utility/Logger.h"
 
@@ -102,16 +103,14 @@ void LightManager::LightInstance::create(Engine& engine, Object* obj)
         light->colour = col;
         light->fov = fov;
         light->intensity = intensity;
-        light->fallOut = fallout;
-        light->radius = radius;
+        light->radius = fallout * fallout;
         lManager->addLight(base, static_cast<OEObject*>(obj));
     }
     else
     {
         std::unique_ptr<LightBase> base = std::make_unique<SpotLight>();
         SpotLight* light = reinterpret_cast<SpotLight*>(base.get());
-        light->fallout = fallout;
-        light->radius = radius;
+        light->radius = fallout * fallout;
         light->scale = scale;
         light->offset = offset;
         lManager->addLight(base, static_cast<OEObject*>(obj));
@@ -146,7 +145,7 @@ void OELightManager::calculateSpotIntensity(
     spotLight.scale = 1.0f / std::max(1.0f / 1024.0f, cosInner - cosOuter);
     spotLight.offset = -cosOuter * spotLight.scale;
 
-    // this is a more focused spot - a unfocused spot would be:#
+    // this is a more focused spot - a unfocused spot would be:
     // intensity * static_cast<float>(M_1_PI)
     cosOuter = -spotLight.offset / spotLight.scale;
     float cosHalfOuter = std::sqrt((1.0f + cosOuter) * 0.5f);
@@ -179,6 +178,8 @@ void OELightManager::addLight(std::unique_ptr<LightBase>& light, OEObject* obj)
             break;
     }
 
+    isDirty = true;
+    
     // check whether we just add to the back or use a freed slot
     if (handle.get() >= lights.size())
     {
@@ -187,6 +188,21 @@ void OELightManager::addLight(std::unique_ptr<LightBase>& light, OEObject* obj)
     else
     {
         lights[handle.get()] = std::move(light);
+    }
+}
+
+void OELightManager::update(const OECamera& camera)
+{
+    if (isDirty)
+    {
+        for (auto& light : lights)
+        {
+            OEMaths::mat4f projection =
+                OEMaths::perspective(light->fov, 1.0f, camera.getZNear(), camera.getZFar());
+            OEMaths::mat4f view = OEMaths::lookAt(light->position, light->target, {0.0f, 1.0f, 0.0f});
+            light->lightMvp = projection * view;
+        }
+        isDirty = false;
     }
 }
 
