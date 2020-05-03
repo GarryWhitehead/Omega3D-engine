@@ -35,6 +35,7 @@
 #include "VulkanAPI/Shader.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/RenderPass.h"
 #include "utility/Logger.h"
 
 #include <vector>
@@ -192,11 +193,11 @@ void OEIndirectLighting::buildBdrfMap()
 
         rpassKey.colourFormats[0] = bdrfFormat;
         rpassKey.finalLayout[0] = vk::ImageLayout::eShaderReadOnlyOptimal;
+        rpassKey.loadOp = VulkanAPI::LoadClearFlags::Clear;
         bdrfInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
 
         // create the frame buffer
         VulkanAPI::VkDriver::FboKey fboKey = driver.prepareFboKey();
-        ;
 
         fboKey.views[0] = bdrfInfo.texture->getImageView()->get();
         fboKey.renderpass = bdrfInfo.rpass->get();
@@ -257,6 +258,7 @@ void OEIndirectLighting::buildMap(
 
         rpassKey.colourFormats[0] = format;
         rpassKey.finalLayout[0] = vk::ImageLayout::eColorAttachmentOptimal;
+        rpassKey.loadOp = VulkanAPI::LoadClearFlags::Clear;
         mapInfo.rpass = driver.findOrCreateRenderPass(rpassKey);
 
         // create the frame buffer

@@ -134,8 +134,8 @@ private:
     std::array<vk::SubpassDependency, 2> dependencies;
 
     /// the clear colour for this pass - for each attachment
-    OEMaths::colour4 clearCol;
-    float depthClear = 0.0f;
+    OEMaths::colour4 clearCol {0.0f, 0.0f, 0.0f, 1.0f};
+    float depthClear = 1.0f;
 
     /// max extents of this pass
     uint32_t width = 0;

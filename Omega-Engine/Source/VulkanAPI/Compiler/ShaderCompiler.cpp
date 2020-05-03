@@ -448,20 +448,6 @@ CompilerReturnCode ShaderCompiler::prepareBindings(
                     importInfo.bind,
                     descrType,
                     Shader::getStageFlags(shader.type));
-
-                // add to the binding information
-                ShaderBinding::BufferBinding bBind {importInfo.name,
-                                                    importInfo.bind,
-                                                    importInfo.groupId,
-                                                    importInfo.bufferSize,
-                                                    descrType};
-
-                // check for special buffer attributes e.g. dynamic
-                if (importInfo.type == "DynamicUniform")
-                {
-                    bBind.flags |= ShaderBinding::BufferFlags::Dynamic;
-                }
-                binding.bufferBindings.emplace_back(bBind);
             }
         }
         shader.appendBlock += "\n\n";

@@ -37,6 +37,7 @@ namespace OmegaEngine
 class OEWorld;
 class Shadow;
 class OELightManager;
+class OECamera;
 
 class LightBase
 {
@@ -82,7 +83,7 @@ protected:
     float fov = 90.0f;
 
     /// the light intensity in lumens
-    float intensity;
+    float intensity = 0.0f;
 
     /// Whether this is directional, spot or point light
     LightType type;
@@ -117,8 +118,9 @@ public:
     friend class LightManager;
 
 private:
-    float fallOut;
-    float radius;
+    
+    float fallOut = 0.0f;
+    float radius = 0.0f;
 };
 
 struct SpotLight : public LightBase
@@ -133,10 +135,11 @@ public:
     friend class LightManager;
 
 private:
-    float fallout;
-    float radius;
-    float scale;
-    float offset;
+    
+    float fallout = 0.0f;
+    float radius = 0.0f;
+    float scale = 0.0f;
+    float offset = 0.0f;
 
     // this needs looking at - not set at present
     float innerCone = 0.0f;
@@ -149,7 +152,9 @@ class OELightManager : public ComponentManager, public LightManager
 public:
     OELightManager();
     ~OELightManager();
-
+    
+    void update(const OECamera& camera);
+    
     void calculatePointIntensity(float intensity, PointLight& light);
     void
     calculateSpotIntensity(float intensity, float outerCone, float innerCone, SpotLight& spotLight);
@@ -162,7 +167,10 @@ public:
     friend class Shadow;
 
 private:
+    
     std::vector<std::unique_ptr<LightBase>> lights;
+    
+    bool isDirty = false;
 };
 
 } // namespace OmegaEngine

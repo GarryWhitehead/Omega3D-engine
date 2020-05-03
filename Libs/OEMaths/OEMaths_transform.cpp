@@ -27,7 +27,7 @@
 
 namespace OEMaths
 {
-mat4f lookAt(vec3f& position, vec3f& target, vec3f& upVec)
+mat4f lookAt(const vec3f& position, const vec3f& target, const vec3f& upVec)
 {
     vec3f dir = OEMaths::normalise(target - position);
     vec3f right = OEMaths::normalise(OEMaths::vec3f::cross(upVec, dir));

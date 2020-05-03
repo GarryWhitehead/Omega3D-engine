@@ -47,7 +47,11 @@ void createGpuBufferAndCopy(
     StagingPool::StageInfo stage = pool.getStage(dataSize);
 
     // copy data to staging area
+    vmaMapMemory(vmaAlloc, stage.mem, &stage.allocInfo.pMappedData);
     memcpy(stage.allocInfo.pMappedData, data, dataSize);
+    vmaUnmapMemory(vmaAlloc, stage.mem);
+    // TODO: assuming an offset of 0 here
+    vmaFlushAllocation(vmaAlloc, stage.mem, stage.allocInfo.offset, dataSize);
 
     // create GPU memory
     VkBufferCreateInfo bufferInfo = {};
@@ -69,6 +73,11 @@ void createGpuBufferAndCopy(
     copyRegion.size = dataSize;
     vkCmdCopyBuffer(cmdBuffer->get(), stage.buffer, buffer, 1, &copyRegion);
 
+    // ensure that the copy finishes before the next frames draw call
+    vk::BufferMemoryBarrier memBarrier {vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, stage.buffer, 0, VK_WHOLE_SIZE};
+    cmdBuffer->get().pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
+            vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(0), 0, nullptr, 1, &memBarrier, 0, nullptr);
+    
     cmdBuffer->flush();
 
     // clean-up
@@ -97,15 +106,13 @@ StagingPool::StageInfo StagingPool::create(const VkDeviceSize size)
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
     bufferInfo.size = size;
 
     // cpu staging pool
-    VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-    allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
+    VmaAllocationCreateInfo createInfo = {};
+    createInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
     VMA_CHECK_RESULT(vmaCreateBuffer(
-        vmaAlloc, &bufferInfo, &allocInfo, &stage.buffer, &stage.mem, &stage.allocInfo));
+        vmaAlloc, &bufferInfo, &createInfo, &stage.buffer, &stage.mem, &stage.allocInfo));
 
     return stage;
 }
