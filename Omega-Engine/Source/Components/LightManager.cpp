@@ -110,6 +110,9 @@ void LightManager::LightInstance::create(Engine& engine, Object* obj)
     {
         std::unique_ptr<LightBase> base = std::make_unique<SpotLight>();
         SpotLight* light = reinterpret_cast<SpotLight*>(base.get());
+        light->position = pos;
+        light->colour = col;
+        light->fov = fov;
         light->radius = fallout * fallout;
         light->scale = scale;
         light->offset = offset;

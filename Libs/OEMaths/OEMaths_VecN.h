@@ -229,6 +229,7 @@ inline constexpr VecN<T, size> normalise(const VecN<T, size>& vec)
     VecN<T, size> result;
 
     T len = length(vec);
+    len = len == 0 ? T(0.01) : len;
 
     for (size_t i = 0; i < size; ++i)
     {

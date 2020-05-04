@@ -63,17 +63,27 @@ void SkyboxPass::setupPass()
 {
     RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
 
-    offscreenTex =
-        builder.createRenderTarget("compositionRT", 2048, 2048, vk::Format::eR8G8B8A8Unorm, vk::ImageUsageFlagBits::eSampled, VulkanAPI::LoadClearFlags::DontCare, VulkanAPI::LoadClearFlags::DontCare);
+    // the skybox doesn't create its own render targets - instead it draws into the target created
+    // in the lighting pass and uses the depth buffer from the gbuffer pass as a stencil to only
+    // draw to pixels which are zero
+    ResourceHandle targetHandle = builder.findRenderTarget("lightingRT");
+    ResourceHandle depthHandle = builder.findRenderTarget("gbuffer_depthRT");
+
+    // we don't want to clear the attachment 
+    //builder.updateClearFlags(
+    //    targetHandle, VulkanAPI::LoadClearFlags::DontCare, VulkanAPI::LoadClearFlags::DontCare);
+     
     builder.addReader("lighting");
-    builder.addWriter("skybox", offscreenTex);
+    builder.addWriter("skybox", targetHandle);
+    builder.addWriter("depth_skybox", depthHandle);
 
     // everything required to draw the skybox to the cmd buffer
     builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
         auto& cbManager = rgraphContext.driver->getCbManager();
         VulkanAPI::CmdBuffer* cmdBuffer = cbManager.getCmdBuffer();
 
-        rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, false);
+        rgraphContext.driver->beginRenderpass(
+            cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, false);
 
         cmdBuffer->bindPipeline(
             cbManager,

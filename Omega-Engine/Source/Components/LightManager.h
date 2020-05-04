@@ -83,7 +83,7 @@ protected:
     float fov = 90.0f;
 
     /// the light intensity in lumens
-    float intensity = 0.0f;
+    float intensity = 100.0f;
 
     /// Whether this is directional, spot or point light
     LightType type;
@@ -141,9 +141,9 @@ private:
     float scale = 0.0f;
     float offset = 0.0f;
 
-    // this needs looking at - not set at present
-    float innerCone = 0.0f;
-    float outerCone = 0.0f;
+    // used for deriving the spotlight intensity
+    float innerCone = 5.0f;
+    float outerCone = 10.0f;
 };
 
 class OELightManager : public ComponentManager, public LightManager

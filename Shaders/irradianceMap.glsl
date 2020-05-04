@@ -2,13 +2,13 @@
 ##pipeline:
 
 // depth-stencil
-DepthTestEnable=True;
-DepthWriteEnable=True; 
+DepthTestEnable=False;
+DepthWriteEnable=False; 
 CompareOp=LessOrEqual;
 
 // raster
 PolygonMode=Fill;
-CullMode=Back;
+CullMode=None;
 FrontFace=CounterClockwise;
 
 // sampler
@@ -85,7 +85,7 @@ void main()
 			sampleCount++;
 		}
 	}
-	
+
 	outCol = vec4(PI * irrColour / float(sampleCount), 1.0);
 }
 #end_code_block

@@ -2,13 +2,13 @@
 ##pipeline:
 
 // depth-stencil
-DepthTestEnable=True;
-DepthWriteEnable=True; 
+DepthTestEnable=False;
+DepthWriteEnable=False; 
 CompareOp=LessOrEqual;
 
 // raster
 PolygonMode=Fill;
-CullMode=Back;
+CullMode=None;
 FrontFace=CounterClockwise;
 
 // sampler

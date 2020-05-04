@@ -50,7 +50,6 @@ void createGpuBufferAndCopy(
     vmaMapMemory(vmaAlloc, stage.mem, &stage.allocInfo.pMappedData);
     memcpy(stage.allocInfo.pMappedData, data, dataSize);
     vmaUnmapMemory(vmaAlloc, stage.mem);
-    // TODO: assuming an offset of 0 here
     vmaFlushAllocation(vmaAlloc, stage.mem, stage.allocInfo.offset, dataSize);
 
     // create GPU memory

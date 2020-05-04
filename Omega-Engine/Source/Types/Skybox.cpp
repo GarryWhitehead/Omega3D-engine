@@ -103,19 +103,12 @@ void OESkybox::prepareGeometry()
                                                       3};
 
     // create vertex buffer
-    vertexBuffer = driver.addVertexBuffer(verticesSize * sizeof(OEMaths::vec3f), vertices.data());
+    vertexBuffer = driver.addVertexBuffer(verticesSize * sizeof(float), vertices.data());
     assert(vertexBuffer);
 
     // and the index buffer
     indexBuffer = driver.addIndexBuffer(indicesSize * sizeof(uint32_t), indices.data());
     assert(indexBuffer);
-
-    // only draw the skybox where there is no geometry
-    /*state->pipeline.setStencilStateFrontAndBack(vk::CompareOp::eNotEqual, vk::StencilOp::eKeep,
-vk::StencilOp::eKeep, vk::StencilOp::eReplace, 0xff, 0x00, 1);
-
-state->pipeline.setDepthState(VK_FALSE, VK_FALSE, vk::CompareOp::eLessOrEqual);
-state->pipeline.setRasterCullMode(vk::CullModeFlagBits::eNone);*/
 }
 
 OESkybox& OESkybox::setCubeMap(MappedTexture* cm)

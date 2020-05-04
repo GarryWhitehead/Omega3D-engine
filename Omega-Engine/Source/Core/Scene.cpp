@@ -456,7 +456,7 @@ void OEScene::updateLightBuffer(std::vector<LightBase*> candLights)
         }
     }
 
-    lightUbo->map(&lightUbo, sizeof(LightUbo));
+    lightUbo->map(&ubo, sizeof(LightUbo));
 }
 
 void OEScene::setCurrentCamera(OECamera* cam)

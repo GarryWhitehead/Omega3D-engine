@@ -207,7 +207,7 @@ ShaderProgram* ProgramManager::build(
         // add the new shader stage to the program
         if (!parser.addStage(*descr))
         {
-            LOGGER_ERROR("Error wilst building shader program. This is likely due to trying to add "
+            LOGGER_ERROR("Error wilst building shader program. This is likely due to trying to adding "
                          "the same stage twice.");
             return nullptr;
         }

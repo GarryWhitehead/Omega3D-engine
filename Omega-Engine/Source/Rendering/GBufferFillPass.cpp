@@ -83,7 +83,7 @@ void GBufferFillPass::setupPass()
         builder.createRenderTarget("pbrRT", 2048, 2048, vk::Format::eR16G16Sfloat);
     gbufferInfo.tex.emissive =
         builder.createRenderTarget("emissiveRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    gbufferInfo.tex.depth = builder.createRenderTarget("depthRT", 2048, 2048, depthFormat);
+    gbufferInfo.tex.depth = builder.createRenderTarget("gbuffer_depthRT", 2048, 2048, depthFormat);
 
     // create the output taragets
     gbufferInfo.attach.position = builder.addWriter("position", gbufferInfo.tex.position);
@@ -91,7 +91,7 @@ void GBufferFillPass::setupPass()
     gbufferInfo.attach.normal = builder.addWriter("normal", gbufferInfo.tex.normal);
     gbufferInfo.attach.pbr = builder.addWriter("pbr", gbufferInfo.tex.pbr);
     gbufferInfo.attach.emissive = builder.addWriter("emissive", gbufferInfo.tex.emissive);
-    gbufferInfo.attach.depth = builder.addWriter("depth", gbufferInfo.tex.depth);
+    gbufferInfo.attach.depth = builder.addWriter("gbuffer_depth", gbufferInfo.tex.depth);
 
     OEMaths::colour4 clear = config.findOrInsertVec4("clearValue", OEEngine::Default_ClearVal);
     builder.setClearColour(clear);

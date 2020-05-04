@@ -254,7 +254,6 @@ void OEIndirectLighting::buildMap(
 
         // create the renderpass
         VulkanAPI::VkDriver::RPassKey rpassKey = driver.prepareRPassKey();
-        ;
 
         rpassKey.colourFormats[0] = format;
         rpassKey.finalLayout[0] = vk::ImageLayout::eColorAttachmentOptimal;

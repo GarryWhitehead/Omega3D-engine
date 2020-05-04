@@ -126,11 +126,11 @@ void CmdBuffer::bindPipeline(
 void CmdBuffer::bindPipeline(Pipeline& pipeline)
 {
     if (!boundPipeline || &pipeline != boundPipeline)
-    {
+   {
         vk::PipelineBindPoint bindPoint = Pipeline::createBindPoint(pipeline.getType());
         cmdBuffer.bindPipeline(bindPoint, pipeline.get());
         boundPipeline = &pipeline;
-    }
+   }
 }
 
 void CmdBuffer::bindDescriptors(
