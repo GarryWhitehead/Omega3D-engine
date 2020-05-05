@@ -41,34 +41,16 @@ ResourceHandle RenderGraphBuilder::createRenderTarget(
     const vk::Format format,
     const vk::ImageUsageFlags usageBits,
     uint32_t mipLevels,
-    uint32_t faceCount,
-    const VulkanAPI::LoadClearFlags loadOp,
-    const VulkanAPI::LoadClearFlags stencilLoadOp)
+    uint32_t faceCount)
 {
-    TextureResource* tex =
-        new TextureResource(name, width, height, format, mipLevels, faceCount, usageBits, loadOp, stencilLoadOp);
+    TextureResource* tex = new TextureResource(
+        name, width, height, format, mipLevels, faceCount, usageBits);
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(tex));
 }
 
-ResourceHandle RenderGraphBuilder::createRenderTarget(
-    Util::String name,
-    const uint32_t width,
-    const uint32_t height,
-    const vk::Format format)
+ResourceHandle RenderGraphBuilder::findRenderTarget(Util::String name)
 {
-    return createRenderTarget(name, width, height, format, vk::ImageUsageFlagBits::eSampled, 1, 1, VulkanAPI::LoadClearFlags::Clear, VulkanAPI::LoadClearFlags::DontCare);
-}
-
-ResourceHandle RenderGraphBuilder::createRenderTarget(
-       Util::String name,
-       const uint32_t width,
-       const uint32_t height,
-       const vk::Format format,
-       const vk::ImageUsageFlags usageBits,
-       const VulkanAPI::LoadClearFlags loadOp,
-       const VulkanAPI::LoadClearFlags stencilLoadOp)
-{
-    return createRenderTarget(name, width, height, format, usageBits, 1, 1, loadOp, stencilLoadOp);
+    return rGraph->findResource(name);
 }
 
 ResourceHandle RenderGraphBuilder::importRenderTarget(
@@ -112,8 +94,7 @@ AttachmentHandle RenderGraphBuilder::addWriter(Util::String name, const Resource
     info.resource = resource;
 
     AttachmentHandle handle = rGraph->addAttachment(info);
-    rPass->addWrite(handle);
-    return handle;
+    return rPass->addWrite(resource);
 }
 
 void RenderGraphBuilder::addExecute(ExecuteFunc&& func)

@@ -87,7 +87,8 @@ uint32_t FrameBuffer::getHeight() const
 
 // ================== Renderpass ================================
 
-RenderPass::RenderPass(VkContext& context) : context(context)
+RenderPass::RenderPass(VkContext& context, VulkanAPI::RenderPass::Flags flags)
+    : context(context), flags(flags)
 {
 }
 
@@ -269,6 +270,13 @@ void RenderPass::prepare()
     {
         auto& descr = attachmentDescrs[count];
 
+        // override the loadOp flags if the dont clear attachments flag is set
+        if (flags & Flags::DontClearAttachments)
+        {
+            descr.loadOp = vk::AttachmentLoadOp::eDontCare;
+            descr.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+        }
+
         vk::AttachmentReference ref;
         ref.attachment = count;
         ref.layout = getAttachmentLayout(descr.format);
@@ -330,6 +338,11 @@ vk::RenderPass& RenderPass::get()
 {
     assert(renderpass);
     return renderpass;
+}
+
+RenderPass::Flags RenderPass::getFlags() const
+{
+    return flags;
 }
 
 void RenderPass::setClearColour(OEMaths::colour4& col)

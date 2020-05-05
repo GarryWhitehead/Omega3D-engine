@@ -74,7 +74,12 @@ public:
         Compute
     };
 
-    RenderGraphPass(Util::String name, const Type type, RenderGraph& rGaph, const uint32_t index);
+    RenderGraphPass(
+        Util::String name,
+        const Type type,
+        RenderGraph& rGaph,
+        const uint32_t index,
+        VulkanAPI::RenderPass::Flags flags);
 
     // adds a input attachment reader handle to the pass
     ResourceHandle addRead(const ResourceHandle input);
@@ -93,9 +98,6 @@ public:
 
     // sets the depth clear for this pass
     void setDepthClear(const float depthClear);
-
-    // resets the skip execute flag, so the pass will be executed on the next frame
-    void resetSkipExecFlag();
 
     friend class RenderGraph;
 
@@ -121,6 +123,9 @@ private:
     // ======= vulkan specific ================
     // Kept in a struct as this will be passed around when rendering passes
     RGraphPassContext context;
+
+    // special flags used for altering the behaviour of the renderpass
+    VulkanAPI::RenderPass::Flags flags;
 };
 
 } // namespace OmegaEngine

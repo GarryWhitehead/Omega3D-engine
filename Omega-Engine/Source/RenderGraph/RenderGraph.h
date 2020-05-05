@@ -86,7 +86,10 @@ public:
      * @ return A convience render graph builder which is used by the user to create the defined
      * pass
      */
-    RenderGraphBuilder createPass(Util::String name, const RenderGraphPass::Type type);
+    RenderGraphBuilder createPass(
+        Util::String name,
+        const RenderGraphPass::Type type,
+        VulkanAPI::RenderPass::Flags flags = VulkanAPI::RenderPass::Flags::None);
 
     // optimises the render graph if possible and fills in all the blanks - i.e. references, flags,
     // etc.
@@ -107,6 +110,8 @@ public:
         const uint32_t height,
         const vk::Format format,
         const uint8_t samples);
+
+    ResourceHandle findResource(Util::String name);
 
     ResourceHandle moveResource(const ResourceHandle from, const ResourceHandle to);
 

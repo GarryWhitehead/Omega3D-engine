@@ -158,7 +158,7 @@ void OERenderer::drawQueueThreaded(
     auto queue = scene.renderQueue.getQueue(RenderQueue::Type::Colour);
 
     VulkanAPI::CmdBuffer* cmdBuffer = manager.getCmdBuffer();
-    rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, true, true);
+    rgraphContext.driver->beginRenderpass(cmdBuffer, *rpassContext.rpass, *rpassContext.fbo, true);
 
     auto thread_draw = [&queue, &rgraphContext, &rpassContext, &manager](size_t start, size_t end) {
         assert(end <= queue.size());

@@ -30,6 +30,7 @@
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Compiler/ShaderParser.h"
 #include "VulkanAPI/ProgramManager.h"
+#include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/Utility.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
@@ -61,17 +62,13 @@ bool SkyboxPass::init(VulkanAPI::ProgramManager* manager)
 
 void SkyboxPass::setupPass()
 {
-    RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics);
+    RenderGraphBuilder builder = rGraph.createPass(passId, RenderGraphPass::Type::Graphics, VulkanAPI::RenderPass::Flags::DontClearAttachments);
 
     // the skybox doesn't create its own render targets - instead it draws into the target created
     // in the lighting pass and uses the depth buffer from the gbuffer pass as a stencil to only
     // draw to pixels which are zero
     ResourceHandle targetHandle = builder.findRenderTarget("lightingRT");
     ResourceHandle depthHandle = builder.findRenderTarget("gbuffer_depthRT");
-
-    // we don't want to clear the attachment 
-    //builder.updateClearFlags(
-    //    targetHandle, VulkanAPI::LoadClearFlags::DontCare, VulkanAPI::LoadClearFlags::DontCare);
      
     builder.addReader("lighting");
     builder.addWriter("skybox", targetHandle);

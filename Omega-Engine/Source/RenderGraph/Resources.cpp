@@ -40,9 +40,7 @@ TextureResource::TextureResource(
     const vk::Format format,
     const uint8_t mipLevels,
     const uint8_t faceCount,
-    const vk::ImageUsageFlags usageBits,
-    const VulkanAPI::LoadClearFlags loadOp,
-    const VulkanAPI::LoadClearFlags stencilLoadOp)
+    const vk::ImageUsageFlags usageBits)
     : ResourceBase(name, ResourceType::Texture)
     , width(width)
     , height(height)
@@ -50,8 +48,6 @@ TextureResource::TextureResource(
     , faceCount(faceCount)
     , format(format)
     , imageUsage(usageBits)
-    , loadOp(loadOp)
-    , stencilLoadOp(stencilLoadOp)
 {
 }
 

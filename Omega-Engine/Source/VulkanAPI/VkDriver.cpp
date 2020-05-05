@@ -58,13 +58,14 @@ bool VkDriver::FboEqualTo::operator()(const FboKey& lhs, const FboKey& rhs) cons
         lhs.renderpass == rhs.renderpass;
 }
 
-RenderPass* VkDriver::findOrCreateRenderPass(const RPassKey& key)
-{
+RenderPass*
+VkDriver::findOrCreateRenderPass(const RPassKey& key, VulkanAPI::RenderPass::Flags flags)
+    {
     auto iter = renderPasses.find(key);
     if (iter == renderPasses.end())
     {
         // create a new renderpass
-        auto rpass = std::make_unique<RenderPass>(context);
+        auto rpass = std::make_unique<RenderPass>(context, flags);
 
         // add the colour attachments
         uint32_t idx = 0;
@@ -376,11 +377,13 @@ void VkDriver::endFrame(Swapchain& swapchain)
 }
 
 void VkDriver::beginRenderpass(
-    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbo, bool clearAttachments, bool usingSecondaryCommands)
+    CmdBuffer* cmdBuffer, RenderPass& rpass, FrameBuffer& fbo, bool usingSecondaryCommands)
 {
     std::vector<vk::ClearValue> clearValues;
     
-    if (clearAttachments)
+    const auto& renderPassFlags = rpass.getFlags();
+
+    if (!renderPassFlags & RenderPass::Flags::DontClearAttachments)
     {
         // setup the clear values for this pass - need one for each attachment
         auto& attachments = rpass.getAttachments();
@@ -409,8 +412,8 @@ void VkDriver::beginRenderpass(
     vk::RenderPassBeginInfo beginInfo {rpass.get(),
                                        fbo.get(),
                                        extents,
-                                       clearAttachments ? static_cast<uint32_t>(clearValues.size()) : 0,
-                                       clearAttachments ? clearValues.data() : nullptr};
+                                       static_cast<uint32_t>(clearValues.size()),
+                                       clearValues.data()};
 
     vk::SubpassContents contents = usingSecondaryCommands
         ? vk::SubpassContents::eSecondaryCommandBuffers

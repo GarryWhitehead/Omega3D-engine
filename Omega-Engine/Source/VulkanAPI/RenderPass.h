@@ -62,6 +62,12 @@ class RenderPass
 
 public:
 
+    enum Flags
+    {
+        DontClearAttachments = 1 << 0,
+        None = 1 << 1
+    };
+
     enum class DependencyType
     {
         ColourPass,
@@ -70,7 +76,7 @@ public:
         DepthStencilPass
     };
 
-    RenderPass(VkContext& context);
+    RenderPass(VkContext& context, VulkanAPI::RenderPass::Flags flags);
     ~RenderPass();
 
     // static functions
@@ -100,14 +106,14 @@ public:
     // ====================== the getter and setters =================================
     vk::RenderPass& get();
 
+    Flags getFlags() const;
+
     /// sets the clear and depth clear colour - these will only be used if the pass has a colour
     /// and/or depth attachment
     void setClearColour(OEMaths::colour4& col);
     void setDepthClear(float col);
 
     /// functions that return the state of various aspects of this pass
-    bool hasColourAttach();
-    bool hasDepthAttach();
     std::vector<vk::AttachmentDescription>& getAttachments();
 
     std::vector<vk::PipelineColorBlendAttachmentState> getColourAttachs();
@@ -140,6 +146,8 @@ private:
     /// max extents of this pass
     uint32_t width = 0;
     uint32_t height = 0;
+
+    VulkanAPI::RenderPass::Flags flags;
 };
 
 class FrameBuffer

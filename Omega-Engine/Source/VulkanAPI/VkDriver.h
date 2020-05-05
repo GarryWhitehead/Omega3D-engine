@@ -124,7 +124,6 @@ public:
         CmdBuffer* cmdBuffer,
         RenderPass& rpass,
         FrameBuffer& fbo,
-        bool clearAttachments = true,
         bool usingSecondaryCommands = false);
 
     void endRenderpass(CmdBuffer* cmdBuffer);
@@ -215,7 +214,8 @@ private:
 public:
     RPassKey prepareRPassKey();
     FboKey prepareFboKey();
-    RenderPass* findOrCreateRenderPass(const RPassKey& key);
+    RenderPass* findOrCreateRenderPass(
+        const RPassKey& key, VulkanAPI::RenderPass::Flags flags = VulkanAPI::RenderPass::Flags::None);
     FrameBuffer* findOrCreateFrameBuffer(const FboKey& key);
 
 public:

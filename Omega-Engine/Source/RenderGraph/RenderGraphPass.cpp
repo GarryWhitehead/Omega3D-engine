@@ -34,8 +34,12 @@ namespace OmegaEngine
 
 
 RenderGraphPass::RenderGraphPass(
-    Util::String name, const Type type, RenderGraph& rGraph, const uint32_t index)
-    : rGraph(rGraph), name(name), type(type), index(index)
+    Util::String name,
+    const Type type,
+    RenderGraph& rGraph,
+    const uint32_t index,
+    VulkanAPI::RenderPass::Flags flags)
+    : rGraph(rGraph), name(name), type(type), index(index), flags(flags)
 {
 }
 
@@ -127,13 +131,11 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     {
                         rpassKey.colourFormats[i] = tex->format;
                         rpassKey.finalLayout[i] = vk::ImageLayout::eShaderReadOnlyOptimal;
-                        rpassKey.loadOp = tex->loadOp;
-                        rpassKey.stencilLoadOp = tex->stencilLoadOp;
                     }
                 }
             }
 
-            context.rpass = driver.findOrCreateRenderPass(rpassKey);
+            context.rpass = driver.findOrCreateRenderPass(rpassKey, flags);
 
             // crete the framebuffer for this pass
             fboKey.renderpass = context.rpass->get();

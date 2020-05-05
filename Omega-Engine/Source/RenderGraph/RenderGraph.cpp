@@ -26,6 +26,7 @@
 #include "RenderGraph/RenderGraphPass.h"
 #include "VulkanAPI/CommandBuffer.h"
 #include "VulkanAPI/Image.h"
+#include "VulkanAPI/RenderPass.h"
 #include "VulkanAPI/VkDriver.h"
 #include "utility/Logger.h"
 
@@ -46,10 +47,11 @@ RenderGraph::~RenderGraph()
 {
 }
 
-RenderGraphBuilder RenderGraph::createPass(Util::String name, const RenderGraphPass::Type type)
+RenderGraphBuilder RenderGraph::createPass(
+    Util::String name, const RenderGraphPass::Type type, VulkanAPI::RenderPass::Flags flags)
 {
     // add the pass to the list
-    RenderGraphPass rPass {name, type, *this, static_cast<uint32_t>(rGraphPasses.size())};
+    RenderGraphPass rPass {name, type, *this, static_cast<uint32_t>(rGraphPasses.size()), flags};
     rGraphPasses.emplace_back(rPass);
     RenderGraphBuilder builder {this, &rGraphPasses.back()};
     return builder;
@@ -68,6 +70,21 @@ ResourceHandle RenderGraph::moveResource(const ResourceHandle from, const Resour
     return addResource(res);
 }
 
+ResourceHandle RenderGraph::findResource(Util::String name)
+{
+    auto iter = std::find_if(resources.begin(), resources.end(), [&name](const ResourceBase* lhs) {
+        return lhs->name == name;
+    });
+    if (iter == resources.end())
+    {
+        LOGGER_ERROR("Unable to find requested resource with id: %s", name.c_str());
+        return UINT64_MAX;
+    }
+
+    ResourceHandle handle = std::distance(resources.begin(), iter);
+    return handle;
+}
+
 ResourceHandle RenderGraph::importResource(
     const Util::String& name,
     VulkanAPI::ImageView& imageView,
@@ -83,6 +100,16 @@ ResourceHandle RenderGraph::importResource(
 
 AttachmentHandle RenderGraph::addAttachment(AttachmentInfo& info)
 {
+    // check that the attachment doesn't already exsist
+    auto iter =
+        std::find_if(attachments.begin(), attachments.end(), [&info](const AttachmentInfo& lhs) {
+            return lhs.name == info.name;
+        });
+    if (iter != attachments.end())
+    {
+        return std::distance(attachments.begin(), iter);
+    }
+
     attachments.emplace_back(info);
     return attachments.size() - 1;
 }
@@ -105,6 +132,7 @@ bool RenderGraph::compile()
         // set the number of reads for each resource
         for (const ResourceHandle& handle : rgPass.reads)
         {
+            assert(handle < resources.size());
             ResourceBase* res = resources[handle];
             res->readCount++;
         }
@@ -112,6 +140,7 @@ bool RenderGraph::compile()
         // set which pass is writing to the resource
         for (const ResourceHandle& handle : rgPass.writes)
         {
+            assert(handle < resources.size());
             ResourceBase* res = resources[handle];
             res->writer = &rgPass;
         }
@@ -240,16 +269,14 @@ void RenderGraph::initRenderPass()
 
         switch (rpass.type)
         {
-            case RenderGraphPass::Type::Graphics:
-            {
+            case RenderGraphPass::Type::Graphics: {
 
                 // create the renderpass
                 rpass.prepare(*context.driver);
                 break;
             }
 
-            case RenderGraphPass::Type::Compute:
-            {
+            case RenderGraphPass::Type::Compute: {
                 // TODO
                 break;
             }
