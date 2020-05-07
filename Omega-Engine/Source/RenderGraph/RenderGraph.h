@@ -124,7 +124,7 @@ public:
 private:
     ResourceHandle addResource(ResourceBase* resource);
     AttachmentHandle addAttachment(AttachmentInfo& info);
-    AttachmentHandle findAttachment(const Util::String& attach);
+    AttachmentInfo* findAttachment(const Util::String& attach);
 
     void initRenderPass();
 

@@ -70,10 +70,11 @@ void SkyboxPass::setupPass()
     ResourceHandle targetHandle = builder.findRenderTarget("lightingRT");
     ResourceHandle depthHandle = builder.findRenderTarget("gbuffer_depthRT");
      
-    builder.addReader("lighting");
     builder.addWriter("skybox", targetHandle);
     builder.addWriter("depth_skybox", depthHandle);
-
+    builder.addReader("lighting");
+    builder.addReader("gbuffer_depth");
+    
     // everything required to draw the skybox to the cmd buffer
     builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
         auto& cbManager = rgraphContext.driver->getCbManager();

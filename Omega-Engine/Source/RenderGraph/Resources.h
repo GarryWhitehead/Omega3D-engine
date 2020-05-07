@@ -72,7 +72,7 @@ struct ResourceBase
     // the number of passes this resource is being used as a input
     size_t readCount = 0;
 
-    RenderGraphPass* writer = nullptr;
+    std::vector<RenderGraphPass*> writers;
 };
 
 // All the information needed to build a vulkan texture

@@ -383,7 +383,7 @@ void VkDriver::beginRenderpass(
     
     const auto& renderPassFlags = rpass.getFlags();
 
-    if (!renderPassFlags & RenderPass::Flags::DontClearAttachments)
+    if (!(renderPassFlags & RenderPass::Flags::DontClearAttachments))
     {
         // setup the clear values for this pass - need one for each attachment
         auto& attachments = rpass.getAttachments();

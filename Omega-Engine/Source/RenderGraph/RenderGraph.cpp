@@ -137,12 +137,12 @@ bool RenderGraph::compile()
             res->readCount++;
         }
 
-        // set which pass is writing to the resource
+        // set which passes are writing to the resource
         for (const ResourceHandle& handle : rgPass.writes)
         {
             assert(handle < resources.size());
             ResourceBase* res = resources[handle];
-            res->writer = &rgPass;
+            res->writers.emplace_back(&rgPass);
         }
     }
 
@@ -163,14 +163,14 @@ bool RenderGraph::compile()
     ResourceHandle curHandle = lastPass.writes[0];
     ResourceBase* bbRes = resources[curHandle];
 
-    passStack.emplace_back(bbRes->writer);
+    passStack.emplace_back(bbRes->writers[0]);
 
     while (!passStack.empty())
     {
-        RenderGraphPass* curPass = passStack.back();
+        const RenderGraphPass* curPass = passStack.back();
         assert(curPass);
         passStack.pop_back();
-
+ 
         reorderedPasses.emplace_back(curPass->index);
 
         std::vector<ResourceHandle> resourceStack;
@@ -185,9 +185,16 @@ bool RenderGraph::compile()
             resourceStack.pop_back();
             ResourceBase* res = resources[curHandle];
             assert(res);
-
-            passStack.emplace_back(res->writer);
+            
+            // we only add writers whose ids that don't match the present render graph to stop cyclic dependecies
+            std::copy_if(res->writers.begin(), res->writers.end(), std::back_inserter(passStack), [&curPass](const RenderGraphPass* lhs) {return curPass->name != lhs->name; });
         }
+        
+        // this section could be a performance drain if things are scaled up. Would be better to find a way around this
+        std::sort(passStack.begin(), passStack.end());
+        
+        // one pass might write to multiple resources though we only want to add the pass once otherwise its a waste of performance
+        passStack.erase(std::unique(passStack.begin(), passStack.end()), passStack.end());
     }
 
     std::reverse(reorderedPasses.begin(), reorderedPasses.end());
@@ -310,18 +317,16 @@ void RenderGraph::execute()
     rpass.execFunc(rpass.context, context);
 }
 
-AttachmentHandle RenderGraph::findAttachment(const Util::String& req)
+AttachmentInfo* RenderGraph::findAttachment(const Util::String& requiredAttach)
 {
-    uint64_t index = 0;
     for (AttachmentInfo& attach : attachments)
     {
-        if (attach.name.compare(req))
+        if (attach.name == requiredAttach)
         {
-            return index;
+            return &attach;
         }
-        ++index;
     }
-    return UINT64_MAX;
+    return nullptr;
 }
 
 std::vector<ResourceBase*>& RenderGraph::getResources()

@@ -78,7 +78,7 @@ public:
      * @brief Adds a input attachment to the render pass. There must be a corresponding output
      * attachment otherwise returns UINT64_MAX as error.
      */
-    AttachmentHandle addReader(Util::String name);
+    bool addReader(Util::String name);
 
     /**
      * @brief Adds a output attachment such as a colour/depth/stencil attachment to the pass

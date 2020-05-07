@@ -39,7 +39,7 @@ void main()
 ////////////////////////////////////
 ##stage: Fragment
 
-#import_sampler: Name=compositionRT, Type=2D_Sampler;
+#import_sampler: Name=lightingRT, Type=2D_Sampler;
 
 #output: Name=Frag, Type=vec4;
 
@@ -64,7 +64,7 @@ vec3 Uncharted2Tonemap(vec3 x)
 
 void main()
 {
-	vec3 finalColour = texture(compositionRT, inUv).rgb;
+	vec3 finalColour = texture(lightingRT, inUv).rgb;
 	
 	// tone mapping - from http://filmicworlds.com/blog/filmic-tonemapping-operators/
 	finalColour = Uncharted2Tonemap(push.expBias * finalColour);

@@ -67,17 +67,17 @@ bool OERenderer::prepare()
         {
             case RenderStage::GBufferFill:
                 rStages.emplace_back(std::make_unique<GBufferFillPass>(
-                    vkDriver, *rGraph, "Stage_GB", *engine.getRendManager(), config));
+                    vkDriver, *rGraph, "GBufferPass", *engine.getRendManager(), config));
                 break;
             case RenderStage::LightingPass:
-                rStages.emplace_back(std::make_unique<LightingPass>(vkDriver.getContext(), *rGraph, "Stage_Light"));
+                rStages.emplace_back(std::make_unique<LightingPass>(vkDriver.getContext(), *rGraph, "LightingPass"));
                 break;
             case RenderStage::Skybox:
-                rStages.emplace_back(std::make_unique<SkyboxPass>(*rGraph, "Stage_PostGB", scene));
+                rStages.emplace_back(std::make_unique<SkyboxPass>(*rGraph, "SkyboxPass", scene));
                 break;
             case RenderStage::Composition:
                 rStages.emplace_back(
-                    std::make_unique<CompositionPass>(vkDriver, *rGraph, "Stage_Comp", swapchain));
+                    std::make_unique<CompositionPass>(vkDriver, *rGraph, "CompositionPass", swapchain));
                 break;
         }
     }

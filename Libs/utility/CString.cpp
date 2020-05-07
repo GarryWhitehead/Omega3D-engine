@@ -66,6 +66,11 @@ bool String::operator==(const String& rhs) const noexcept
     return rhs.compare(*this);
 }
 
+bool String::operator!=(const String& rhs) const noexcept
+{
+    return !rhs.compare(*this);
+}
+
 String::String(String&& rhs) noexcept
     : buffer(std::exchange(rhs.buffer, nullptr)), length(std::exchange(rhs.length, 0))
 {

@@ -70,21 +70,21 @@ ResourceHandle RenderGraphBuilder::createBuffer(BufferResource* buffer)
     return rGraph->addResource(reinterpret_cast<ResourceBase*>(buffer));
 }
 
-AttachmentHandle RenderGraphBuilder::addReader(Util::String name)
+bool RenderGraphBuilder::addReader(Util::String name)
 {
     // link the input with the outputted resource
-    AttachmentHandle handle = rGraph->findAttachment(name);
-    if (handle == UINT64_MAX)
+    AttachmentInfo* attach = rGraph->findAttachment(name);
+    if (!attach)
     {
         LOGGER_ERROR(
             "Unable to find corresponding output attachment whilst trying to add input "
             "attachment. Reader: %s",
             name.c_str());
-        return UINT64_MAX;
+        return false;
     }
 
-    rPass->addRead(handle);
-    return handle;
+    rPass->addRead(attach->resource);
+    return true;
 }
 
 AttachmentHandle RenderGraphBuilder::addWriter(Util::String name, const ResourceHandle resource)
