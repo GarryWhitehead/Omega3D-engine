@@ -28,6 +28,7 @@
 #include "VulkanAPI/ProgramManager.h"
 #include "VulkanAPI/SwapChain.h"
 #include "VulkanAPI/VkDriver.h"
+#include "VulkanAPI/Utility.h"
 #include "utility/Logger.h"
 
 namespace OmegaEngine
@@ -48,6 +49,8 @@ CompositionPass::~CompositionPass()
 
 bool CompositionPass::init(VulkanAPI::ProgramManager* manager)
 {
+    depthFormat = VulkanAPI::VkUtil::getSupportedDepthFormat(driver.getContext().physical);
+
     // load the shaders
     const Util::String filename = "composition.glsl";
     prog = manager->getVariantOrCreate(filename);
@@ -75,8 +78,15 @@ void CompositionPass::setupPass()
         1,
         swapchain.getImageView(currentImageIndex));
 
+    depth = builder.createRenderTarget(
+        "composition_depthRT",
+        swapchain.getExtentsWidth(),
+        swapchain.getExtentsHeight(),
+        depthFormat);
+
     builder.addReader("skybox");
     builder.addWriter("composition", backBuffer);
+    builder.addWriter("composition_depth", depth);
 
     builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
         auto& cbManager = rgraphContext.driver->getCbManager();
@@ -97,7 +107,7 @@ void CompositionPass::setupPass()
         struct PushBlock
         {
             float expBias = 1.0f;
-            float gamma = 0.2f;
+            float gamma = 2.2f;
         } pushBlock;
 
         cmdBuffer->bindPushBlock(

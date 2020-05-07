@@ -56,8 +56,9 @@ private:
     VulkanAPI::Swapchain& swapchain;
 
     VulkanAPI::ShaderProgram* prog = nullptr;
-
+    vk::Format depthFormat;
     ResourceHandle backBuffer;
+    ResourceHandle depth;
 };
 
 } // namespace OmegaEngine
