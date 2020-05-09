@@ -118,8 +118,7 @@ bool OERenderer::draw()
 {
     beginFrame();
 
-    // optimisation and compilation of the render graph. If nothing has changed since the last frame
-    // then this call will just return.
+    // optimisation and compilation of the render graph.
     if (!rGraph->compile())
     {
         return false;

@@ -43,12 +43,15 @@ void createGpuBufferAndCopy(
     VkDeviceSize dataSize,
     VkBufferUsageFlags usage)
 {
+    assert(data);
+    
     // get a staging pool for hosting on the CPU side
     StagingPool::StageInfo stage = pool.getStage(dataSize);
 
     // copy data to staging area
-    vmaMapMemory(vmaAlloc, stage.mem, &stage.allocInfo.pMappedData);
-    memcpy(stage.allocInfo.pMappedData, data, dataSize);
+    void* mapped;
+    vmaMapMemory(vmaAlloc, stage.mem, &mapped);
+    memcpy(mapped, data, dataSize);
     vmaUnmapMemory(vmaAlloc, stage.mem);
     vmaFlushAllocation(vmaAlloc, stage.mem, stage.allocInfo.offset, dataSize);
 
@@ -138,7 +141,6 @@ StagingPool::StageInfo StagingPool::getStage(VkDeviceSize reqSize)
 
 // ==================== Buffer ==========================
 
-
 void Buffer::prepare(
     VmaAllocator& vmaAlloc, const vk::DeviceSize buffSize, const VkBufferUsageFlags usage)
 {
@@ -161,9 +163,10 @@ void Buffer::prepare(
 void Buffer::map(void* data, size_t dataSize)
 {
     assert(data);
-
-    vmaMapMemory(*vmaAllocator, mem, &allocInfo.pMappedData);
-    memcpy(allocInfo.pMappedData, data, dataSize);
+    
+    void* mapped;
+    vmaMapMemory(*vmaAllocator, mem, &mapped);
+    memcpy(mapped, data, dataSize);
     vmaUnmapMemory(*vmaAllocator, mem);
 }
 

@@ -283,7 +283,7 @@ bool OEScene::update(const double time)
         RenderableQueueInfo queueInfo;
         // we use the renderable data as it is, rather than waste time copying everything into
         // another struct. This method does mean that it is imperative that the data isnt destroyed
-        // until the beginning of the next frame ad that the data isn't written too - we aren't
+        // until the beginning of the next frame and that the data isn't written too - we aren't
         // using guards though this might be required.
         queueInfo.renderableData = (void*) rend;
         queueInfo.renderableHandle = this;

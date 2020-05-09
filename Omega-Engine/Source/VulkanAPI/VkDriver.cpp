@@ -261,7 +261,6 @@ Texture* VkDriver::findOrCreateTexture2d(
     Texture tex;
     tex.create2dTex(*this, format, width, height, mipLevels, faceCount, arrayCount, usageFlags);
     textures.emplace(key, std::move(tex));
-    LOGGER_INFO("Adding 2D texture with id: %s\n", id.c_str());
     return &textures[key];
 }
 

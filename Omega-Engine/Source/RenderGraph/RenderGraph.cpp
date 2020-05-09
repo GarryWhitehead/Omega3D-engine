@@ -159,7 +159,7 @@ bool RenderGraph::compile()
     reorderedPasses.emplace_back(lastIdx);
 
     // we make a assertion here that the last pass can only write to the backbuffer
-    assert(lastPass.writes.size() == 1);
+   // assert(lastPass.writes.size() == 1);
     ResourceHandle curHandle = lastPass.writes[0];
     ResourceBase* bbRes = resources[curHandle];
 
