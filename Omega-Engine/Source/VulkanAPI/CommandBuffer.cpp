@@ -41,6 +41,7 @@ CmdBuffer::CmdBuffer(VkContext& context, vk::CommandPool& cmdPool, const Type ty
 CmdBuffer::~CmdBuffer()
 {
     context.device.destroy(cmdFence, nullptr);
+    context.device.freeCommandBuffers(cmdPool, 1,&cmdBuffer);
 }
 
 void CmdBuffer::init()

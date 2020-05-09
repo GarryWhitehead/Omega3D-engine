@@ -157,7 +157,7 @@ private:
     std::unique_ptr<StagingPool> stagingPool;
 
     // The current present KHR frame image index
-    uint32_t imageIndex = 0;
+    uint32_t imageIndex = UINT32_MAX;
 
     // used for ensuring that the image has completed
     vk::Semaphore imageReadySemaphore;

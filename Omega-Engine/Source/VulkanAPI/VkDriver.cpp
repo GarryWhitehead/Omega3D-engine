@@ -358,8 +358,6 @@ Buffer* VkDriver::getBuffer(const Util::String& id)
 
 void VkDriver::beginFrame(Swapchain& swapchain)
 {
-    cbManager->resetSecondaryCommands();
-
     // get the next image index which will be the framebuffer we draw too
     context.device.acquireNextImageKHR(
         swapchain.get(),
@@ -467,6 +465,7 @@ VmaAllocator& VkDriver::getVma()
 
 uint32_t VkDriver::getCurrentImageIndex() const
 {
+    assert(imageIndex != UINT32_MAX);
     return imageIndex;
 }
 
