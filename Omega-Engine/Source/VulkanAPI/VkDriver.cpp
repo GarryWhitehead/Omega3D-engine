@@ -109,7 +109,6 @@ FrameBuffer* VkDriver::findOrCreateFrameBuffer(const FboKey& key)
     {
         // create a new framebuffer
         auto fbo = std::make_unique<FrameBuffer>(context);
-
         std::vector<vk::ImageView> imageViews;
         imageViews.reserve(6);
 
@@ -356,17 +355,25 @@ Buffer* VkDriver::getBuffer(const Util::String& id)
 
 // ============ begin/end frame functions ======================
 
-void VkDriver::beginFrame(Swapchain& swapchain)
+bool VkDriver::beginFrame(Swapchain& swapchain)
 {
     cbManager->resetSecondaryCommands();
 
     // get the next image index which will be the framebuffer we draw too
-    context.device.acquireNextImageKHR(
+    vk::Result result = context.device.acquireNextImageKHR(
         swapchain.get(),
         std::numeric_limits<uint64_t>::max(),
         imageReadySemaphore,
         {},
         &imageIndex);
+    
+    if (result == vk::Result::eErrorOutOfDateKHR || result == vk::Result::eSuboptimalKHR)
+    {
+        return false;
+    }
+    
+    assert(result == vk::Result::eSuccess);
+    return true;
 }
 
 void VkDriver::endFrame(Swapchain& swapchain)

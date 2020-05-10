@@ -343,10 +343,37 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
     // find queues for this gpu
     std::vector<vk::QueueFamilyProperties> queues = physical.getQueueFamilyProperties();
 
-    // presentation queue
+    // graphics queue
     for (uint32_t c = 0; c < queues.size(); ++c)
     {
-        VkBool32 hasPresentionQueue = false;
+        if (queues[c].queueCount == 0)
+        {
+            continue;
+        }
+        if (queues[c].queueFlags & vk::QueueFlagBits::eGraphics)
+        {
+            queueFamilyIndex.graphics = c;
+            break;
+        }
+    }
+    
+    if (queueFamilyIndex.graphics == VK_QUEUE_FAMILY_IGNORED)
+    {
+        LOGGER_ERROR("Unable to find a suitable graphics queue on the device.");
+        return false;
+    }
+           
+    // the ideal situtaion is if the graphics and presentation queues are the same.
+    VkBool32 hasPresentionQueue = false;
+    physical.getSurfaceSupportKHR(queueFamilyIndex.graphics, windowSurface, &hasPresentionQueue);
+    if (hasPresentionQueue)
+    {
+        queueFamilyIndex.present = queueFamilyIndex.graphics;
+    }
+    
+    // else use a seperate presentation queue
+    for (uint32_t c = 0; c < queues.size(); ++c)
+    {
         physical.getSurfaceSupportKHR(c, windowSurface, &hasPresentionQueue);
         if (queues[c].queueCount > 0 && hasPresentionQueue)
         {
@@ -355,14 +382,11 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
         }
     }
 
-    // graphics queue - if possible, use seperate queues for compute and graphic transfer
-    for (uint32_t c = 0; c < queues.size(); ++c)
+    // presentation queue is compulsory
+    if (queueFamilyIndex.present == VK_QUEUE_FAMILY_IGNORED)
     {
-        if (queues[c].queueCount > 0 && queues[c].queueFlags & vk::QueueFlagBits::eGraphics)
-        {
-            queueFamilyIndex.graphics = c;
-            break;
-        }
+        LOGGER_ERROR("Physical device does not support a presentation queue.");
+        return false;
     }
 
     // compute queue
@@ -374,13 +398,6 @@ bool VkContext::prepareDevice(const vk::SurfaceKHR windowSurface)
             queueFamilyIndex.compute = c;
             break;
         }
-    }
-
-    // graphics and presentation queues are compulsory
-    if (queueFamilyIndex.present == VK_QUEUE_FAMILY_IGNORED)
-    {
-        LOGGER_ERROR("Critcal error! Required queues not found.");
-        return false;
     }
 
     // The preference is a sepearte compute queue as this will be faster, though if not found, use

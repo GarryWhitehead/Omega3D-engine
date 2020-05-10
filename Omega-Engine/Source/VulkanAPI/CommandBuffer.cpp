@@ -58,7 +58,7 @@ void CmdBuffer::init()
 
 void CmdBuffer::begin()
 {
-    vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+    vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eSimultaneousUse;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, nullptr);
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }
@@ -70,7 +70,7 @@ void CmdBuffer::beginSecondary(RenderPass& renderpass, FrameBuffer& fbo)
     // the secondary commands inherits from the primary buffer
     vk::CommandBufferInheritanceInfo inheritance {renderpass.get(), 0, fbo.get(), 0, {}, {}};
 
-    vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue;
+    vk::CommandBufferUsageFlags usageFlags = vk::CommandBufferUsageFlagBits::eRenderPassContinue | vk::CommandBufferUsageFlagBits::eSimultaneousUse;
     vk::CommandBufferBeginInfo beginInfo(usageFlags, &inheritance);
     VK_CHECK_RESULT(cmdBuffer.begin(&beginInfo));
 }

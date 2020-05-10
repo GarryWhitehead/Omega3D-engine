@@ -105,7 +105,11 @@ void OERenderer::preparePasses()
 void OERenderer::beginFrame()
 {
     // begin the frame on the driver side
-    vkDriver.beginFrame(swapchain);
+    if (!vkDriver.beginFrame(swapchain))
+    {
+        // we don't handle out of date swapchains at the moment
+        assert(true);
+    }
 
     // clear the render graph
     rGraph->reset();
