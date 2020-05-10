@@ -73,6 +73,12 @@ CBufferManager::CBufferManager(VkDriver& driver)
 
 CBufferManager::~CBufferManager()
 {
+    // delete the secondary cmd pools
+    for (uint32_t i = 0; i < MaxSecondaryCmdBufferSize; ++i)
+    {
+        driver.getContext().device.destroy(threadedBuffers[i].cmdPool, nullptr);
+    }
+
     driver.getContext().device.destroy(cmdPool, nullptr);
     driver.getContext().device.destroy(descriptorPool, nullptr);
 }
@@ -412,6 +418,9 @@ void CBufferManager::flushCmdBuffer()
 
     // reset the buffer
     cmdBuffer.get()->resetCmdBuffer();
+
+     // also reset the secondary command buffers
+    resetSecondaryCommands();
 }
 
 void CBufferManager::flushSwapchainCmdBuffer(
@@ -436,7 +445,7 @@ void CBufferManager::flushSwapchainCmdBuffer(
     VK_CHECK_RESULT(context.device.resetFences(1, &cmdBuffer->cmdFence));
 
     // reset and begin the buffer
-    cmdBuffer->resetCmdBuffer();
+    cmdBuffer->resetCmdBuffer(); 
 }
 
 void CBufferManager::createSecondaryCmdBuffers()
@@ -497,9 +506,7 @@ void CBufferManager::resetSecondaryCommands()
     {
         if (secondary.isExecuted)
         {
-            secondary.secondary =
-                std::make_unique<CmdBuffer>(context, secondary.cmdPool, CmdBuffer::Type::Secondary);
-            secondary.secondary->init();
+            secondary.secondary->resetCmdBuffer();
             secondary.isExecuted = false;
         }
     }
