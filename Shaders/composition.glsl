@@ -3,7 +3,7 @@
 
 // depth-stencil
 DepthTestEnable=True;
-DepthWriteEnable=False;
+DepthWriteEnable=True;
 CompareOp=LessOrEqual;
 
 // raster

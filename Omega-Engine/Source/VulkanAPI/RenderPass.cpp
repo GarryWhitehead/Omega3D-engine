@@ -243,6 +243,13 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
         dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eLateFragmentTests;
         dependencies[0].dstAccessMask = vk::AccessFlagBits::eDepthStencilAttachmentWrite;
     }
+    else if (dependType == DependencyType::SurfaceKHR)
+    {
+        dependencies[0].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies[0].dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies[0].srcAccessMask = vk::AccessFlagBits(0);
+        dependencies[0].dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+    }
     else
     {
         LOGGER_INFO(
@@ -256,19 +263,34 @@ void RenderPass::addSubpassDependency(DependencyType dependType)
     // and the next dependenciesency stage
     dependencies[1].srcSubpass = dependencies[0].dstSubpass;
     dependencies[1].dstSubpass = dependencies[0].srcSubpass;
-    dependencies[1].srcStageMask = dependencies[0].dstStageMask;
-    dependencies[1].dstStageMask = dependencies[0].srcStageMask;
-    dependencies[1].srcAccessMask = dependencies[0].dstAccessMask;
-    dependencies[1].dstAccessMask = dependencies[0].srcAccessMask;
     dependencies[1].dependencyFlags = vk::DependencyFlagBits::eByRegion;
+
+    if (dependType == DependencyType::SurfaceKHR)
+    {
+        dependencies[1].srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+        dependencies[1].dstStageMask = vk::PipelineStageFlagBits::eBottomOfPipe;
+    }
+    else
+    {
+        dependencies[1].srcStageMask = dependencies[0].dstStageMask;
+        dependencies[1].dstStageMask = dependencies[0].srcStageMask;
+        dependencies[1].srcAccessMask = dependencies[0].dstAccessMask;
+        dependencies[1].dstAccessMask = dependencies[0].srcAccessMask;
+    }
 }
 
 void RenderPass::prepare()
 {
     // create the attachment references
+    bool surfacePass = false;
     for (size_t count = 0; count < attachmentDescrs.size(); ++count)
     {
         auto& descr = attachmentDescrs[count];
+
+        if (descr.finalLayout == vk::ImageLayout::ePresentSrcKHR)
+        {
+            surfacePass = true;
+        }
 
         // override the loadOp flags if the dont clear attachments flag is set
         if (flags & Flags::DontClearAttachments)
@@ -299,6 +321,10 @@ void RenderPass::prepare()
     {
         // need to check for depth/stencil only here too
         addSubpassDependency(DependencyType::DepthStencilPass);
+    }
+    else if (surfacePass)
+    {
+        addSubpassDependency(DependencyType::SurfaceKHR);
     }
     else
     {

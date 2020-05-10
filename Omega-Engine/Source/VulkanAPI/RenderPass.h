@@ -73,7 +73,8 @@ public:
         ColourPass,
         DepthPass,
         StencilPass,
-        DepthStencilPass
+        DepthStencilPass,
+        SurfaceKHR
     };
 
     RenderPass(VkContext& context, VulkanAPI::RenderPass::Flags flags);
