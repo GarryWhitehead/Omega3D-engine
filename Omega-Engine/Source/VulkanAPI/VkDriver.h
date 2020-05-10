@@ -116,7 +116,7 @@ public:
 
     // ======== begin/end frame functions =================================
 
-    void beginFrame(Swapchain& swapchain);
+    bool beginFrame(Swapchain& swapchain);
 
     void endFrame(Swapchain& swapchain);
 
