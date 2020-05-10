@@ -155,18 +155,18 @@ void Texture::createSampler(
         {},
         magFilter,
         minFilter,
-        vk::SamplerMipmapMode::eNearest,
+        vk::SamplerMipmapMode::eLinear,
         addrModeU,
         addrModeV,
         addrModeV,
         0.0f,
         VK_TRUE,
-        maxAntriopsy, // TODO: add user control of max antriospy
+        maxAntriopsy,
         VK_FALSE,
         vk::CompareOp::eNever,
         0.0f,
         texContext.mipLevels, // maxLod should equal the mip-map count?
-        vk::BorderColor::eIntOpaqueWhite,
+        vk::BorderColor::eFloatOpaqueWhite,
         VK_FALSE);
 
     VK_CHECK_RESULT(context.device.createSampler(&samplerInfo, nullptr, &sampler));

@@ -95,7 +95,7 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
     vk::PresentModeKHR requiredPresentMode;
     for (auto& mode : presentModes)
     {
-        if (mode == vk::PresentModeKHR::eMailbox) // our preferred triple buffering mode
+        if (mode == vk::PresentModeKHR::eFifo)    // our preferred triple buffering mode
         {
             requiredPresentMode = mode;
             break;
@@ -131,19 +131,22 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
     {
         imageCount = capabilities.maxImageCount;
     }
-
+    
+    auto compositeFlag = vk::CompositeAlphaFlagBitsKHR::eOpaque;
+    if (capabilities.supportedCompositeAlpha & vk::CompositeAlphaFlagBitsKHR::eInherit)
+    {
+        compositeFlag = vk::CompositeAlphaFlagBitsKHR::eInherit;
+    }
+    
     // if the graphics and presentation aren't the same then use concurrent sharing mode
-    std::vector<uint32_t> queueFamilyIndicies;
     vk::SharingMode sharingMode = vk::SharingMode::eExclusive;
 
-    uint32_t graphFamilyIdx = context.queueFamilyIndex.graphics;
-    uint32_t presentFamilyIdx = context.queueFamilyIndex.present;
+    const uint32_t graphFamilyIdx = context.queueFamilyIndex.graphics;
+    const uint32_t presentFamilyIdx = context.queueFamilyIndex.present;
 
     if (graphFamilyIdx != presentFamilyIdx)
     {
         sharingMode = vk::SharingMode::eConcurrent;
-        queueFamilyIndicies.push_back(graphFamilyIdx);
-        queueFamilyIndicies.push_back(presentFamilyIdx);
     }
 
     vk::SwapchainCreateInfoKHR createInfo(
@@ -159,7 +162,7 @@ bool Swapchain::prepare(VkContext& context, Platform::SurfaceWrapper& surface)
         0,
         nullptr,
         capabilities.currentTransform,
-        vk::CompositeAlphaFlagBitsKHR::eOpaque,
+        compositeFlag,
         requiredPresentMode,
         VK_TRUE,
         {});
