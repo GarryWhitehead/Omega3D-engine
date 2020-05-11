@@ -97,7 +97,7 @@ void RenderGraphPass::prepare(VulkanAPI::VkDriver& driver)
                     rpassKey.colourFormats[i] = tex->format;
                     rpassKey.finalLayout[i] = vk::ImageLayout::ePresentSrcKHR;
                     rpassKey.loadOp = VulkanAPI::LoadClearFlags::Clear;
-                    rpassKey.storeOp = VulkanAPI::StoreClearFlags::Store;
+                    rpassKey.storeOp = VulkanAPI::StoreClearFlags::DontCare;
                     maxWidth = tex->width;
                     maxHeight = tex->height;
                 }
