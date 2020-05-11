@@ -75,11 +75,11 @@ void LightingPass::setupPass()
     // create the lighting render target
     passInfo.output =
         builder.createRenderTarget("lightingRT", 2048, 2048, vk::Format::eR16G16B16A16Sfloat);
-    passInfo.depth = builder.createRenderTarget("lightingDepthRT", 2048, 2048, depthFormat);
+    //passInfo.depth = builder.createRenderTarget("lightingDepthRT", 2048, 2048, depthFormat);
 
     // create the output taragets
     passInfo.output = builder.addWriter("lighting", passInfo.output);
-    passInfo.depth = builder.addWriter("lightingDepthRT", passInfo.depth);
+    //passInfo.depth = builder.addWriter("lightingDepthRT", passInfo.depth);
 
     builder.addExecute([=](RGraphPassContext& rpassContext, RGraphContext& rgraphContext) {
         auto& cbManager = rgraphContext.driver->getCbManager();

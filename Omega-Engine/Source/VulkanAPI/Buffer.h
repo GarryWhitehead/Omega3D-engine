@@ -118,7 +118,11 @@ public:
         return vk::Buffer(buffer);
     }
 
+    uint32_t getOffset() const;
+
 private:
+
+    VmaAllocationInfo allocInfo;
     VmaAllocation mem;
     VkDeviceSize size;
     VkBuffer buffer;
@@ -145,7 +149,11 @@ public:
         return vk::Buffer(buffer);
     }
 
+     uint32_t getOffset() const;
+
 private:
+
+    VmaAllocationInfo allocInfo;
     VmaAllocation mem;
     VkDeviceSize size;
     VkBuffer buffer;
@@ -161,6 +169,7 @@ inline void createGpuBufferAndCopy(
     StagingPool& pool,
     VkBuffer& buffer,
     VmaAllocation& mem,
+    VmaAllocationInfo& allocInfo,
     void* data,
     VkDeviceSize dataSize);
 

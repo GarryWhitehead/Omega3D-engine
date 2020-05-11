@@ -107,7 +107,7 @@ void CompositionPass::setupPass()
         struct PushBlock
         {
             float expBias = 1.0f;
-            float gamma = 2.2f;
+            float gamma = 1.0f;
         } pushBlock;
 
         cmdBuffer->bindPushBlock(

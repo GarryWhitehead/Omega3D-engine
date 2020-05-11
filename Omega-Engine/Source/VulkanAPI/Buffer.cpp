@@ -39,12 +39,13 @@ void createGpuBufferAndCopy(
     StagingPool& pool,
     VkBuffer& buffer,
     VmaAllocation& mem,
+    VmaAllocationInfo& allocInfo,
     void* data,
     VkDeviceSize dataSize,
     VkBufferUsageFlags usage)
 {
     assert(data);
-    
+
     // get a staging pool for hosting on the CPU side
     StagingPool::StageInfo stage = pool.getStage(dataSize);
 
@@ -61,9 +62,9 @@ void createGpuBufferAndCopy(
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size = dataSize;
 
-    VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
-    VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &allocInfo, &buffer, &mem, nullptr));
+    VmaAllocationCreateInfo createInfo = {};
+    createInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+    VMA_CHECK_RESULT(vmaCreateBuffer(vmaAlloc, &bufferInfo, &createInfo, &buffer, &mem, &allocInfo));
 
     // copy from the staging area to the allocated GPU memory
     auto& manager = driver.getCbManager();
@@ -76,10 +77,25 @@ void createGpuBufferAndCopy(
     vkCmdCopyBuffer(cmdBuffer->get(), stage.buffer, buffer, 1, &copyRegion);
 
     // ensure that the copy finishes before the next frames draw call
-    vk::BufferMemoryBarrier memBarrier {vk::AccessFlagBits::eTransferWrite, vk::AccessFlagBits::eVertexAttributeRead | vk::AccessFlagBits::eIndexRead, VK_QUEUE_FAMILY_IGNORED, VK_QUEUE_FAMILY_IGNORED, stage.buffer, 0, VK_WHOLE_SIZE};
-    cmdBuffer->get().pipelineBarrier(vk::PipelineStageFlagBits::eTransfer,
-            vk::PipelineStageFlagBits::eVertexInput, vk::DependencyFlags(0), 0, nullptr, 1, &memBarrier, 0, nullptr);
-    
+    vk::BufferMemoryBarrier memBarrier {vk::AccessFlagBits::eTransferWrite,
+                                        vk::AccessFlagBits::eVertexAttributeRead |
+                                            vk::AccessFlagBits::eIndexRead,
+                                        VK_QUEUE_FAMILY_IGNORED,
+                                        VK_QUEUE_FAMILY_IGNORED,
+                                        stage.buffer,
+                                        0,
+                                        VK_WHOLE_SIZE};
+    cmdBuffer->get().pipelineBarrier(
+        vk::PipelineStageFlagBits::eTransfer,
+        vk::PipelineStageFlagBits::eVertexInput,
+        vk::DependencyFlags(0),
+        0,
+        nullptr,
+        1,
+        &memBarrier,
+        0,
+        nullptr);
+
     cmdBuffer->flush();
 
     // clean-up
@@ -163,7 +179,7 @@ void Buffer::prepare(
 void Buffer::map(void* data, size_t dataSize)
 {
     assert(data);
-    
+
     void* mapped;
     vmaMapMemory(*vmaAllocator, mem, &mapped);
     memcpy(mapped, data, dataSize);
@@ -206,7 +222,12 @@ void VertexBuffer::create(
 
     // create the buffer and copy the data
     createGpuBufferAndCopy(
-        driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        driver, vmaAlloc, pool, buffer, mem, allocInfo, data, dataSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+}
+
+uint32_t VertexBuffer::getOffset() const
+{
+    return allocInfo.offset;
 }
 
 // ======================= IndexBuffer ================================
@@ -222,7 +243,12 @@ void IndexBuffer::create(
 
     // create the buffer and copy the data
     createGpuBufferAndCopy(
-        driver, vmaAlloc, pool, buffer, mem, data, dataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+        driver, vmaAlloc, pool, buffer, mem, allocInfo, data, dataSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
+}
+
+uint32_t IndexBuffer::getOffset() const
+{
+    return allocInfo.offset;
 }
 
 } // namespace VulkanAPI
