@@ -134,6 +134,14 @@ public:
         std::future<T> fut;
     };
 
+    void waitAll()
+    {
+        for (auto& fut : futures)
+        {
+            fut.wait();
+        }
+    }
+
     uint32_t getThreadCount() const
     {
         return threadCount;
@@ -144,7 +152,7 @@ public:
      * Returns a std::future, this can be used for waiting for that thread to finish.
      */
     template <typename ThreadFunc, typename... Args>
-    auto submitTask(ThreadFunc&& func, Args&&... args)
+    void submitTask(ThreadFunc&& func, Args&&... args)
     {
         auto task = std::bind(std::forward<ThreadFunc>(func), std::forward<Args>(args)...);
 
@@ -152,10 +160,10 @@ public:
         using PackagedTask = std::packaged_task<ResultType()>;
 
         PackagedTask pTask {std::move(task)};
-        TaskFuture<ResultType> result {pTask.get_future()};
+        std::future<void> result {pTask.get_future()};
         workers.push(std::make_unique<ThreadTask<PackagedTask>>(std::move(pTask)));
 
-        return std::move(result);
+        futures.emplace_back(std::move(result));
     }
 
 private:
@@ -164,7 +172,7 @@ private:
     std::vector<std::thread> threads;
     ThreadedQueue<std::unique_ptr<Task>> workers;
     uint32_t threadCount = 0;
-
+    std::vector<std::future<void>> futures;
     std::atomic_bool isComplete {false};
 };
 
@@ -227,6 +235,11 @@ public:
 
         // finish by adding remaining data to process to the last thread
         pool->submitTask(func, pos, end - processed);
+    }
+
+    void waitAll()
+    {
+        pool->waitAll();
     }
 
 private:

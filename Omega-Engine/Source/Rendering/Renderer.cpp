@@ -196,7 +196,9 @@ void OERenderer::drawQueueThreaded(
     // split task up equally per thtread - using a new secondary cmd buffer per thread
     size_t workSize = queue.size();
     ThreadTaskSplitter split {0, workSize, thread_draw};
+    
     split.run();
+    split.waitAll();
 
     // check all task have finished here before execute?
     manager.executeSecondaryCommands();
